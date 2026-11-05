@@ -1,0 +1,7 @@
+<div class="flex flex-col gap-2" data-bulk-demo>
+  <sf-view id="invoices-view" aria-label="Счета">
+    <sf-view-table slot="content" aria-label="Счета" layout="auto" search-placeholder="Номер или клиент"></sf-view-table>
+    <sf-pagination slot="pagination" page-sizes="10,25" top="false" actions="paid:Отметить оплаченными|remind:Напомнить клиенту"></sf-pagination>
+  </sf-view>
+  <p class="m-0 color-on-surface-variant" role="status" data-log></p>
+</div>

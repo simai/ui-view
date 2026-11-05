@@ -1,0 +1,10 @@
+<div class="flex flex-col gap-2" data-states-demo>
+  <div class="flex flex-wrap gap-1" role="group" aria-label="Состояние данных" data-states>
+    <button type="button" class="sf-button sf-button--outline sf-button--on-surface sf-button--size-1/2 active" data-state-choice="populated" aria-pressed="true"><span class="sf-button-text-container">Данные</span></button>
+    <button type="button" class="sf-button sf-button--outline sf-button--on-surface sf-button--size-1/2" data-state-choice="loading" aria-pressed="false"><span class="sf-button-text-container">Загрузка</span></button>
+    <button type="button" class="sf-button sf-button--outline sf-button--on-surface sf-button--size-1/2" data-state-choice="empty" aria-pressed="false"><span class="sf-button-text-container">Пусто</span></button>
+    <button type="button" class="sf-button sf-button--outline sf-button--on-surface sf-button--size-1/2" data-state-choice="error" aria-pressed="false"><span class="sf-button-text-container">Ошибка</span></button>
+  </div>
+  <sf-view-table id="states-table" aria-label="Поставки" empty-text="Поставок пока нет" error-text="Не удалось загрузить поставки" retry-text="Повторить"></sf-view-table>
+  <p class="m-0 color-on-surface-variant" role="status" data-log></p>
+</div>
