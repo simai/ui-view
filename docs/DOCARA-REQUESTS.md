@@ -35,13 +35,12 @@ belongs to its own thread; nothing here was written in simai/docara.
 6. **The set template** itself (standard rollout 4a): the five required
    sections, a generated compatibility block from `set.json` and the receipt,
    and `docara init --template set`. `docs/SET-TEMPLATE.md` lists what to take.
-7. **Prefixed-locale redirects break the build.** With `locale_routing`
-   `{strategy: prefixed, root: redirect}`, `legacy_unprefixed_redirects: true`
-   together with entries in `redirects.json` stops `build production` with
-   `PORTABLE_PERFORMANCE_RESOURCE_UNSAFE
-   build_production.docara-candidate/_docara/search.js`; either one alone
-   builds. Workaround: the old addresses are listed in `redirects.json` by
-   hand and the flag is off.
+7. **Withdrawn: prefixed-locale redirects do not break the build.** The
+   `PORTABLE_PERFORMANCE_RESOURCE_UNSAFE` error came from two builds running
+   in one folder at once, not from `legacy_unprefixed_redirects` with
+   `redirects.json`. That pair builds green at `29ac6eb`; see
+   [docara-repro-7.md](docara-repro-7.md). The new ask (7a) is a lock on
+   the candidate folder, so a second build fails at once with a clear code.
 8. **Examples in tabs.** The set site scheme wants several live examples
    behind Framework pill or segmented tabs, one full-width example per tab.
    `:::tabs` draws underline tabs only and cannot hold `:::example`.
