@@ -1,0 +1,51 @@
+{
+ "set": "view",
+ "revision": "066e5dee607880f94e1bf9f04b3e4b1ff1625351",
+ "pair": "ui-e22fefb3c1f8",
+ "build": {
+  "status": "PASS",
+  "byte_identical": true,
+  "files": 123
+ },
+ "receipt": {
+  "receipt": "build/package-receipt.json",
+  "package": "view",
+  "framework": "ui-e22fefb3c1f8",
+  "source": "297a56c0914a",
+  "package_reference": "set-passport",
+  "archive_sha256": "c8001d9ac2362f16dc9d6d871fc6f58d8fc74c3866c7fba28263a9464ebb74e3"
+ },
+ "unit": {
+  "tests": 439,
+  "pass": 436,
+  "fail": 0,
+  "skipped": 3
+ },
+ "registry": {
+  "registry": "https://raw.githubusercontent.com/simai/ui-source/main/contracts/registry/names.json",
+  "set": "view",
+  "status": "pending",
+  "problems": []
+ },
+ "manifest": {
+  "checks": 20,
+  "passed": 20,
+  "failed": 0
+ },
+ "browser": {
+  "passed": 60,
+  "failed": 0,
+  "skipped": [
+   "composition-routing",
+   "loader-hidden-tab",
+   "table-intents",
+   "table-search-caret"
+  ]
+ },
+ "first_paint": {
+  "measured": 32,
+  "passed": 32,
+  "cls": 0,
+  "failed": 0
+ }
+}

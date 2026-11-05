@@ -1,0 +1,241 @@
+{
+ "base": "http://127.0.0.1:8790/",
+ "shots": [
+  {
+   "page": "/",
+   "width": 1440,
+   "scheme": "light",
+   "file": "overview-1440-light.png",
+   "elements": [],
+   "undefined": 0,
+   "errors": []
+  },
+  {
+   "page": "components/view-table/",
+   "width": 1440,
+   "scheme": "light",
+   "file": "component-view-table-1440-light.png",
+   "elements": [
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "hidden": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "hidden": false
+    },
+    {
+     "tag": "sf-table",
+     "defined": true,
+     "hidden": false
+    }
+   ],
+   "undefined": 0,
+   "errors": []
+  },
+  {
+   "page": "demos/orders/",
+   "width": 1440,
+   "scheme": "light",
+   "file": "demo-orders-1440-light.png",
+   "elements": [
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "hidden": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "hidden": false
+    },
+    {
+     "tag": "sf-view-properties",
+     "defined": true,
+     "hidden": false
+    }
+   ],
+   "undefined": 0,
+   "errors": []
+  },
+  {
+   "page": "/",
+   "width": 390,
+   "scheme": "light",
+   "file": "overview-390-light.png",
+   "elements": [],
+   "undefined": 0,
+   "errors": []
+  },
+  {
+   "page": "components/view-table/",
+   "width": 390,
+   "scheme": "light",
+   "file": "component-view-table-390-light.png",
+   "elements": [
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "hidden": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "hidden": false
+    },
+    {
+     "tag": "sf-table",
+     "defined": true,
+     "hidden": false
+    }
+   ],
+   "undefined": 0,
+   "errors": []
+  },
+  {
+   "page": "demos/orders/",
+   "width": 390,
+   "scheme": "light",
+   "file": "demo-orders-390-light.png",
+   "elements": [
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "hidden": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "hidden": false
+    },
+    {
+     "tag": "sf-view-properties",
+     "defined": true,
+     "hidden": false
+    }
+   ],
+   "undefined": 0,
+   "errors": []
+  },
+  {
+   "page": "/",
+   "width": 1440,
+   "scheme": "dark",
+   "file": "overview-1440-dark.png",
+   "elements": [],
+   "undefined": 0,
+   "errors": []
+  },
+  {
+   "page": "components/view-table/",
+   "width": 1440,
+   "scheme": "dark",
+   "file": "component-view-table-1440-dark.png",
+   "elements": [
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "hidden": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "hidden": false
+    },
+    {
+     "tag": "sf-table",
+     "defined": true,
+     "hidden": false
+    }
+   ],
+   "undefined": 0,
+   "errors": []
+  },
+  {
+   "page": "demos/orders/",
+   "width": 1440,
+   "scheme": "dark",
+   "file": "demo-orders-1440-dark.png",
+   "elements": [
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "hidden": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "hidden": false
+    },
+    {
+     "tag": "sf-view-properties",
+     "defined": true,
+     "hidden": false
+    }
+   ],
+   "undefined": 0,
+   "errors": []
+  },
+  {
+   "page": "/",
+   "width": 390,
+   "scheme": "dark",
+   "file": "overview-390-dark.png",
+   "elements": [],
+   "undefined": 0,
+   "errors": []
+  },
+  {
+   "page": "components/view-table/",
+   "width": 390,
+   "scheme": "dark",
+   "file": "component-view-table-390-dark.png",
+   "elements": [
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "hidden": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "hidden": false
+    },
+    {
+     "tag": "sf-table",
+     "defined": true,
+     "hidden": false
+    }
+   ],
+   "undefined": 0,
+   "errors": []
+  },
+  {
+   "page": "demos/orders/",
+   "width": 390,
+   "scheme": "dark",
+   "file": "demo-orders-390-dark.png",
+   "elements": [
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "hidden": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "hidden": false
+    },
+    {
+     "tag": "sf-view-properties",
+     "defined": true,
+     "hidden": false
+    }
+   ],
+   "undefined": 0,
+   "errors": []
+  }
+ ]
+}
