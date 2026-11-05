@@ -23,8 +23,8 @@ and tested in an **overlay**: ui-source at the revision `framework.lock.json`
 pins (from git, never a working tree), with this folder's `src/`, `tests/`
 and `docs/` laid over it. A file here may not replace a ui-source file.
 
-The pin is `297a56c0914a`, the source of the released pair
-`ui-e22fefb3c1f8` (core.runtime 1.26.1). The passport names the same commit.
+The pin is `ec2f29dfa5df`, the source of the released pair
+`ui-62b1d9b6dc8d` (core.runtime 1.28.0). The passport names the same commit.
 
 ```bash
 node scripts/test.mjs                                   # unit and contract suite in the overlay
@@ -35,7 +35,7 @@ node scripts/run-first-paint.mjs check|gate <free> <set build>
 ```
 
 `<free>` is the `distr` of the released pair (`git -C <ui> archive
-e22fefb3c1f8 distr`), `<set build>` the build output holding `smart/`
+62b1d9b6dc8d distr`), `<set build>` the build output holding `smart/`
 (`wave-1/output/package/view` of the build below). `scripts/gates.sh` runs
 the whole chain: two builds, the receipt, the suite, the probes and the first
 paint.
