@@ -3,6 +3,17 @@
 The set `view`, by its npm version `@simai-studio/view`; component versions
 in brackets. The site page «Изменения» says the same in Russian.
 
+## Unreleased
+
+- `sf-view-property-block` 1.0.0 (preview): a few properties as a block in a
+  flow (a chat, a feed): shows a record's fields, or asks for a few and sends
+  them, then keeps the answer read-only. Same field descriptors as
+  `sf-view-properties`; the answer is the event
+  `sf-view-property-block-answer {id, accepted, values}` and the host settles
+  it with `settle()`. Design: `docs/design/sf-view-property-block.md`.
+- `sf-view-properties`: the field value moved into `js/field-value.js`,
+  shared with the new block; no change in behaviour.
+
 ## 1.1.0 — 2026-11-05
 
 - `sf-view` 1.8.1: a table the host wrote `selectable="false"` or

@@ -337,18 +337,17 @@ const startMaster = (root) => {
 
 // ---- В потоке ---------------------------------------------------------------
 
-const VACATION = {
-  record_id: 'v-17', collection: 'hr.vacations', revision: '3', label: 'Заявка на отпуск № 17', actions: [],
-  sections: [{key: 'main', label: 'Заявка', groups: [{key: 'vacation', label: 'Заявка на отпуск № 17', columns: 2, fields: [
-    {key: 'employee', label: 'Сотрудник', propertyType: 'user', width: 'full', value: {value: 'e-5', label: 'Ирина Волкова', avatarText: 'ИВ'}},
-    {key: 'from', label: 'С', propertyType: 'date', width: 'half', value: '2026-12-21'},
-    {key: 'to', label: 'По', propertyType: 'date', width: 'half', value: '2027-01-08'},
-    {key: 'days', label: 'Дней', propertyType: 'integer', width: 'half', value: 19},
-    {key: 'status', label: 'Статус', propertyType: 'choice', width: 'half', value: 'approved',
-      options: [{value: 'approved', label: 'Согласована', scheme: 'success'}]},
-  ]}]}],
-};
-const TRIPS = [];
+// A block in a flow is sf-view-property-block: the fields of a record shown
+// under a message, or a few fields asked for and sent. The block holds the
+// fields it is given; a Send is an event, and the page answers it.
+const VACATION = [
+  {key: 'employee', label: 'Сотрудник', propertyType: 'user', width: 'full', value: {value: 'e-5', label: 'Ирина Волкова', avatarText: 'ИВ'}},
+  {key: 'from', label: 'С', propertyType: 'date', width: 'half', value: '2026-12-21'},
+  {key: 'to', label: 'По', propertyType: 'date', width: 'half', value: '2027-01-08'},
+  {key: 'days', label: 'Дней', propertyType: 'integer', width: 'half', value: 19},
+  {key: 'status', label: 'Статус', propertyType: 'choice', width: 'half', value: 'approved',
+    options: [{value: 'approved', label: 'Согласована', scheme: 'success'}]},
+];
 const tripFields = (trip = {}) => [
   {key: 'city', label: 'Город', propertyType: 'string', width: 'half', required: true, placeholder: 'Куда', value: trip.city ?? null},
   {key: 'from', label: 'Выезд', propertyType: 'date', width: 'half', required: true, value: trip.from ?? null},
@@ -356,55 +355,30 @@ const tripFields = (trip = {}) => [
   {key: 'advance', label: 'Аванс', propertyType: 'number', unit: '₽', width: 'half', value: trip.advance ?? null},
   {key: 'goal', label: 'Цель поездки', propertyType: 'text', width: 'full', placeholder: 'Например, встреча с заказчиком', value: trip.goal ?? null},
 ];
-const tripRecord = (trip) => ({
-  record_id: trip?.id ?? null, collection: 'hr.trips', revision: trip ? '1' : null,
-  label: trip ? `Командировка в ${trip.city}` : 'Новая командировка', actions: [],
-  sections: [{key: 'main', label: 'Командировка', groups: [{key: 'trip', label: trip ? `Командировка: ${trip.city}` : 'Командировка Ильи Орлова', columns: 2, fields: tripFields(trip)}]}],
-});
 
-const feedHost = (onCreated) => ({
-  version: '1.17.0',
-  capabilities: [],
-  async raise(intent, payload) {
-    await pause(150);
-    if (intent === 'record.load' && payload.collection === 'hr.vacations') return {answer: 'applied', record: VACATION};
-    if (intent === 'record.load' && payload.collection === 'hr.trips') {
-      const trip = TRIPS.find((item) => item.id === payload.record_id);
-      return {answer: 'applied', record: tripRecord(trip)};
-    }
-    if (intent === 'record.create') {
-      const values = payload.values ?? {};
-      const errors = {};
-      if (!String(values.city ?? '').trim()) errors.city = 'Укажите город.';
-      if (!values.from) errors.from = 'Укажите дату выезда.';
-      if (Object.keys(errors).length) return {answer: 'refused', reason: 'record_invalid', errors};
-      const trip = {id: `t-${TRIPS.length + 1}`, nights: 2, ...values};
-      TRIPS.push(trip);
-      setTimeout(() => onCreated(trip), 300);
-      return {answer: 'applied', record_id: trip.id, record: tripRecord(trip)};
-    }
-    return {answer: 'unavailable', reason: 'capability-not-provided'};
-  },
-  formatFieldValue,
-});
+// The application: it checks what only it can know and answers the block.
+const createTrip = async (values) => {
+  await pause(300);
+  if (/^москва$/iu.test(String(values.city ?? '').trim())) {
+    return {answer: 'refused', errors: {city: 'Командировка в город, где вы работаете, не оформляется.'}, message: 'Проверьте город'};
+  }
+  return {answer: 'applied'};
+};
 
 const startFeed = (root) => {
   const feed = root.querySelector('#feed');
   const drawn = new Map();
-  let host;
-  const card = (entry) => {
-    const element = document.createElement('sf-view-properties');
-    element.className = 'feed-card';
-    element.setAttribute('size', '1/2');
-    element.setAttribute('aria-label', entry.cardLabel);
-    element.setAttribute('collection', entry.collection);
-    element.setAttribute('mode', entry.mode);
-    if (entry.recordId) element.setAttribute('record-id', entry.recordId);
-    element.setHostPort(host);
+  const block = (entry) => {
+    const element = document.createElement('sf-view-property-block');
+    element.setAttribute('heading', entry.heading);
+    element.setAttribute('block-id', entry.id);
+    if (entry.ask) element.setAttribute('mode', 'edit');
+    element.fields = entry.fields;
+    element.formatFieldValue = formatFieldValue;
     return element;
   };
-  // A message is its author, its words and, for some, a card. A drawn
-  // message is kept, so redrawing the feed does not read the card again.
+  // A message is its author, its words and, for some, a block. A drawn
+  // message is kept, so redrawing the feed does not draw the block again.
   feed.renderItem = (entry, {first, own}) => {
     if (drawn.has(entry.id)) return drawn.get(entry.id);
     const article = document.createElement('article');
@@ -421,29 +395,40 @@ const startFeed = (root) => {
     text.className = 'sf-list-feed__text';
     text.textContent = entry.text;
     article.append(text);
-    if (entry.mode) article.append(card(entry));
+    if (entry.fields) article.append(block(entry));
     drawn.set(entry.id, article);
     return article;
   };
-  host = feedHost((trip) => {
-    feed.upsert({id: `m-done-${trip.id}`, author: 'bot', 'author-name': 'Ассистент',
-      text: `Готово: командировка в ${trip.city} создана и отправлена руководителю на согласование.`,
-      mode: 'view', collection: 'hr.trips', recordId: trip.id, cardLabel: `Командировка в ${trip.city}`});
+  feed.addEventListener('sf-view-property-block-answer', async (event) => {
+    const element = event.target;
+    const {accepted, values} = event.detail;
+    if (!accepted) {
+      element.settle({answer: 'applied'});
+      feed.upsert({id: 'm-cancel', author: 'bot', 'author-name': 'Ассистент', text: 'Хорошо, командировку не оформляю.'});
+      return;
+    }
+    const answer = await createTrip(values);
+    element.settle(answer);
+    if (answer.answer !== 'applied') return;
+    feed.upsert({id: 'm-done', author: 'bot', 'author-name': 'Ассистент',
+      text: `Готово: командировка в ${values.city} создана и отправлена руководителю на согласование.`});
   });
   feed.setItems([
     {id: 'm-1', author: 'me', own: true, text: 'Покажи заявку Ирины Волковой на отпуск.'},
     {id: 'm-2', author: 'bot', 'author-name': 'Ассистент', text: 'Нашёл заявку — она уже согласована:',
-      mode: 'view', collection: 'hr.vacations', recordId: 'v-17', cardLabel: 'Заявка на отпуск № 17'},
+      heading: 'Заявка на отпуск № 17', fields: VACATION},
     {id: 'm-3', author: 'me', own: true, text: 'Оформи командировку для Ильи Орлова.'},
     {id: 'm-4', author: 'bot', 'author-name': 'Ассистент', text: 'Заполните несколько полей, и я создам командировку:',
-      mode: 'create', collection: 'hr.trips', cardLabel: 'Новая командировка'},
+      heading: 'Командировка Ильи Орлова', ask: true, fields: tripFields()},
   ]);
 };
 
 // ---- the tabs --------------------------------------------------------------
 
 const STARTS = {table: startTable, card: startCard, master: startMaster, feed: startFeed};
-const TAGS = {table: ['sf-view'], card: ['sf-view-properties'], master: ['sf-view', 'sf-view-properties'], feed: ['sf-list-feed', 'sf-view-properties']};
+const TAGS = {table: ['sf-view'], card: ['sf-view-properties'], master: ['sf-view', 'sf-view-properties'], feed: ['sf-list-feed']};
+// A tag only the tab's script puts in the page (sf-view-property-block) is not
+// waited for: the Loader fetches it when it arrives, and waiting would never end.
 const started = new Set();
 const start = async (panel) => {
   const name = panel?.dataset.demo;

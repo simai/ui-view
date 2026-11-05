@@ -170,6 +170,13 @@ would collapse a block that is as wide as its content in a message bubble, as
 `sf-confirm-change` found). Labels above values, the record component's
 reading order. The action row is at the foot, the status line at its start.
 
+The common edit controls (`sf-input`, `sf-input-textarea`, `sf-input-date`,
+`sf-dropdown`, `sf-input-quantity`, `sf-switch`, `sf-checkbox`) are eager
+relations, not lazy as in `sf-view-properties`: a block asks at once, and a
+control fetched later stays empty after the block draws, so every field below
+it moves down (the first-paint gate measured it at 390 px). The rarer ones
+(slider, rich text, image, button group, password eye) stay lazy.
+
 ## Accessibility
 
 - The block is a `region` (`section`) named by its heading (`role="heading"`

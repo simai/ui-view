@@ -1,4 +1,5 @@
 sf-tabs:not(:defined) > [slot] { display: none; }
 .feed-box { display: flex; flex-direction: column; block-size: 36rem; overflow: hidden; }
 .feed-box > sf-list-feed { flex: 1; min-block-size: 0; display: flex; flex-direction: column; }
-.feed-card { inline-size: 100%; max-inline-size: 30rem; }
+/* A block in a message reads at a message's measure, not the whole frame. */
+.sf-list-feed__entry .sf-view-property-block { max-inline-size: 36rem; }

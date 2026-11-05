@@ -28,8 +28,10 @@ const PAGES = [
   ['quick-start', 'ru/guide/quick-start/'],
   ['recipe-bulk-actions', 'ru/guide/recipes/selection-and-bulk-actions/'],
   ['reference-view-table', 'ru/components/views/view-table/'],
+  ['reference-view-property-block', 'ru/components/views/view-property-block/'],
+  ['recipe-data-in-flow', 'ru/guide/recipes/data-in-flow/'],
 ];
-const SET_TAGS = 'sf-view, sf-view-table, sf-view-properties';
+const SET_TAGS = 'sf-view, sf-view-table, sf-view-properties, sf-view-property-block';
 const report = [];
 
 const watch = (page) => {
@@ -84,7 +86,7 @@ for (const scheme of ['light', 'dark']) {
         await frame.getByRole('tab', {name: label, exact: true}).click();
         await page.waitForTimeout(1500);
       }
-      const panel = await frame.evaluate((position) => {
+      const panel = await frame.evaluate(([position, tags]) => {
         const section = document.querySelector(`[slot="panel-${position}"]`);
         const table = section?.querySelector('sf-view-table');
         // A panel with a table must draw its rows; one without (the card,
@@ -93,8 +95,12 @@ for (const scheme of ['light', 'dark']) {
           visible: Boolean(section && section.getClientRects().length),
           rows: table ? table.querySelectorAll('tbody tr, [role="row"], li').length : null,
           text: (section?.innerText ?? '').replace(/\s+/gu, ' ').slice(0, 160),
+          // A panel's own words are not its example: a set element must be
+          // defined in it (the feed tab once showed its description over
+          // nothing). Defined, not measured: a Smart host is display: contents.
+          drawn: section ? [...section.querySelectorAll(tags)].filter((one) => customElements.get(one.localName)).length : 0,
         };
-      }, index);
+      }, [index, SET_TAGS]);
       const file = `home-${index + 1}-${width}-${scheme}.png`;
       await shoot(page, width, file);
       report.push({page: 'ru/', tab: label, width, scheme, file, panel, elements: await inventory(page), errors: [...errors]});
@@ -133,7 +139,7 @@ await browser.close();
 writeFileSync(join(out, 'screenshots.json'), `${JSON.stringify({base, shots: report, reloads}, null, 1)}\n`);
 const broken = report.filter((shot) => shot.errors.length
   || (shot.elements ?? []).some((one) => !one.defined && one.visible)
-  || (shot.panel && (!shot.panel.visible || shot.panel.rows === 0 || shot.panel.text.length < 120))
+  || (shot.panel && (!shot.panel.visible || shot.panel.rows === 0 || !shot.panel.drawn || shot.panel.text.length < 120))
   || (shot.page !== 'ru/' && !(shot.elements ?? []).length));
 const brokenReloads = reloads.filter((one) => one.errors.length || one.undefined || !one.url.endsWith('/ru/'));
 console.log(JSON.stringify({shots: report.length, broken: broken.map(({file, panel, errors}) => ({file, panel, errors})), reloads: brokenReloads}, null, 1));

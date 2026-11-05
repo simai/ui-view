@@ -1,0 +1,3 @@
+.flow-chat { display: flex; flex-direction: column; block-size: 30rem; overflow: hidden; }
+.flow-chat > sf-list-feed { flex: 1; min-block-size: 0; display: flex; flex-direction: column; }
+.flow-chat .sf-view-property-block { max-inline-size: 34rem; }

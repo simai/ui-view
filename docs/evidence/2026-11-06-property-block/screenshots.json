@@ -1,0 +1,1142 @@
+{
+ "base": "https://ui-view.test/",
+ "shots": [
+  {
+   "page": "ru/",
+   "tab": "Таблица",
+   "width": 1280,
+   "scheme": "light",
+   "file": "home-1-1280-light.png",
+   "panel": {
+    "visible": true,
+    "rows": 10,
+    "text": "Умная таблица заказов: поиск, фильтр по состоянию, сортировка по колонкам, страницы. Отметьте несколько заказов — внизу появятся действия с выбранными. Все Новы",
+    "drawn": 2
+   },
+   "elements": [
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": true
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 10
+    },
+    {
+     "tag": "sf-view-properties",
+     "defined": false,
+     "visible": false
+    },
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 7
+    }
+   ],
+   "errors": []
+  },
+  {
+   "page": "ru/",
+   "tab": "Карточка",
+   "width": 1280,
+   "scheme": "light",
+   "file": "home-2-1280-light.png",
+   "panel": {
+    "visible": true,
+    "rows": null,
+    "text": "Карточка сотрудника — одна запись, разложенная по группам: строки, даты, выбор, люди, файлы, числа и флажки. Переключите, как её показать. Просмотр Правка по гр",
+    "drawn": 1
+   },
+   "elements": [
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 10
+    },
+    {
+     "tag": "sf-view-properties",
+     "defined": true,
+     "visible": true
+    },
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 7
+    }
+   ],
+   "errors": []
+  },
+  {
+   "page": "ru/",
+   "tab": "Таблица и карточка",
+   "width": 1280,
+   "scheme": "light",
+   "file": "home-3-1280-light.png",
+   "panel": {
+    "visible": true,
+    "rows": 10,
+    "text": "Список сотрудников и карточка открытой записи: нажмите имя — карточка откроется панелью сбоку, список останется на месте. filter_list Фильтр search Настройки Со",
+    "drawn": 3
+   },
+   "elements": [
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 10
+    },
+    {
+     "tag": "sf-view-properties",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": true
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 10
+    },
+    {
+     "tag": "sf-view-properties",
+     "defined": true,
+     "visible": false
+    }
+   ],
+   "errors": []
+  },
+  {
+   "page": "ru/",
+   "tab": "В потоке",
+   "width": 1280,
+   "scheme": "light",
+   "file": "home-4-1280-light.png",
+   "panel": {
+    "visible": true,
+    "rows": null,
+    "text": "Данные внутри ленты сообщений: ассистент показывает найденную заявку и просит заполнить несколько полей. Это блок свойств sf-view-property-block — он во всю шир",
+    "drawn": 2
+   },
+   "elements": [
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 10
+    },
+    {
+     "tag": "sf-view-properties",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 10
+    },
+    {
+     "tag": "sf-view-properties",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-property-block",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-property-block",
+     "defined": true,
+     "visible": false
+    }
+   ],
+   "errors": []
+  },
+  {
+   "page": "ru/fields/",
+   "width": 1280,
+   "scheme": "light",
+   "file": "fields-1280-light.png",
+   "elements": [
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": true
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 3
+    },
+    {
+     "tag": "sf-view-properties",
+     "defined": true,
+     "visible": true
+    },
+    {
+     "tag": "sf-view-properties",
+     "defined": true,
+     "visible": true
+    }
+   ],
+   "errors": []
+  },
+  {
+   "page": "ru/fields/files/",
+   "width": 1280,
+   "scheme": "light",
+   "file": "fields-files-1280-light.png",
+   "elements": [
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": true
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 3
+    },
+    {
+     "tag": "sf-view-properties",
+     "defined": true,
+     "visible": true
+    },
+    {
+     "tag": "sf-view-properties",
+     "defined": true,
+     "visible": true
+    }
+   ],
+   "errors": []
+  },
+  {
+   "page": "ru/guide/quick-start/",
+   "width": 1280,
+   "scheme": "light",
+   "file": "quick-start-1280-light.png",
+   "elements": [
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 5
+    }
+   ],
+   "errors": []
+  },
+  {
+   "page": "ru/guide/recipes/selection-and-bulk-actions/",
+   "width": 1280,
+   "scheme": "light",
+   "file": "recipe-bulk-actions-1280-light.png",
+   "elements": [
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": true
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 14
+    }
+   ],
+   "errors": []
+  },
+  {
+   "page": "ru/components/views/view-table/",
+   "width": 1280,
+   "scheme": "light",
+   "file": "reference-view-table-1280-light.png",
+   "elements": [
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 5
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 4
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 3
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 3
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 3
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 3
+    }
+   ],
+   "errors": []
+  },
+  {
+   "page": "ru/components/views/view-property-block/",
+   "width": 1280,
+   "scheme": "light",
+   "file": "reference-view-property-block-1280-light.png",
+   "elements": [
+    {
+     "tag": "sf-view-property-block",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-property-block",
+     "defined": true,
+     "visible": false
+    }
+   ],
+   "errors": []
+  },
+  {
+   "page": "ru/guide/recipes/data-in-flow/",
+   "width": 1280,
+   "scheme": "light",
+   "file": "recipe-data-in-flow-1280-light.png",
+   "elements": [
+    {
+     "tag": "sf-view-property-block",
+     "defined": true,
+     "visible": false
+    }
+   ],
+   "errors": []
+  },
+  {
+   "page": "ru/",
+   "tab": "Таблица",
+   "width": 390,
+   "scheme": "light",
+   "file": "home-1-390-light.png",
+   "panel": {
+    "visible": true,
+    "rows": 10,
+    "text": "Умная таблица заказов: поиск, фильтр по состоянию, сортировка по колонкам, страницы. Отметьте несколько заказов — внизу появятся действия с выбранными. Все Новы",
+    "drawn": 2
+   },
+   "elements": [
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": true
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 10
+    },
+    {
+     "tag": "sf-view-properties",
+     "defined": false,
+     "visible": false
+    },
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 7
+    }
+   ],
+   "errors": []
+  },
+  {
+   "page": "ru/",
+   "tab": "Карточка",
+   "width": 390,
+   "scheme": "light",
+   "file": "home-2-390-light.png",
+   "panel": {
+    "visible": true,
+    "rows": null,
+    "text": "Карточка сотрудника — одна запись, разложенная по группам: строки, даты, выбор, люди, файлы, числа и флажки. Переключите, как её показать. Просмотр Правка по гр",
+    "drawn": 1
+   },
+   "elements": [
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 10
+    },
+    {
+     "tag": "sf-view-properties",
+     "defined": true,
+     "visible": true
+    },
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 7
+    }
+   ],
+   "errors": []
+  },
+  {
+   "page": "ru/",
+   "tab": "Таблица и карточка",
+   "width": 390,
+   "scheme": "light",
+   "file": "home-3-390-light.png",
+   "panel": {
+    "visible": true,
+    "rows": 10,
+    "text": "Список сотрудников и карточка открытой записи: нажмите имя — карточка откроется панелью сбоку, список останется на месте. search filter_list swap_vert Анна Бело",
+    "drawn": 3
+   },
+   "elements": [
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 10
+    },
+    {
+     "tag": "sf-view-properties",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": true
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 10
+    },
+    {
+     "tag": "sf-view-properties",
+     "defined": true,
+     "visible": false
+    }
+   ],
+   "errors": []
+  },
+  {
+   "page": "ru/",
+   "tab": "В потоке",
+   "width": 390,
+   "scheme": "light",
+   "file": "home-4-390-light.png",
+   "panel": {
+    "visible": true,
+    "rows": null,
+    "text": "Данные внутри ленты сообщений: ассистент показывает найденную заявку и просит заполнить несколько полей. Это блок свойств sf-view-property-block — он во всю шир",
+    "drawn": 2
+   },
+   "elements": [
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 10
+    },
+    {
+     "tag": "sf-view-properties",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 10
+    },
+    {
+     "tag": "sf-view-properties",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-property-block",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-property-block",
+     "defined": true,
+     "visible": false
+    }
+   ],
+   "errors": []
+  },
+  {
+   "page": "ru/fields/",
+   "width": 390,
+   "scheme": "light",
+   "file": "fields-390-light.png",
+   "elements": [
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": true
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 3
+    },
+    {
+     "tag": "sf-view-properties",
+     "defined": true,
+     "visible": true
+    },
+    {
+     "tag": "sf-view-properties",
+     "defined": true,
+     "visible": true
+    }
+   ],
+   "errors": []
+  },
+  {
+   "page": "ru/fields/files/",
+   "width": 390,
+   "scheme": "light",
+   "file": "fields-files-390-light.png",
+   "elements": [
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": true
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 3
+    },
+    {
+     "tag": "sf-view-properties",
+     "defined": true,
+     "visible": true
+    },
+    {
+     "tag": "sf-view-properties",
+     "defined": true,
+     "visible": true
+    }
+   ],
+   "errors": []
+  },
+  {
+   "page": "ru/guide/quick-start/",
+   "width": 390,
+   "scheme": "light",
+   "file": "quick-start-390-light.png",
+   "elements": [
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 5
+    }
+   ],
+   "errors": []
+  },
+  {
+   "page": "ru/guide/recipes/selection-and-bulk-actions/",
+   "width": 390,
+   "scheme": "light",
+   "file": "recipe-bulk-actions-390-light.png",
+   "elements": [
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": true
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 14
+    }
+   ],
+   "errors": []
+  },
+  {
+   "page": "ru/components/views/view-table/",
+   "width": 390,
+   "scheme": "light",
+   "file": "reference-view-table-390-light.png",
+   "elements": [
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 5
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 4
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 3
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 3
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 3
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 3
+    }
+   ],
+   "errors": []
+  },
+  {
+   "page": "ru/components/views/view-property-block/",
+   "width": 390,
+   "scheme": "light",
+   "file": "reference-view-property-block-390-light.png",
+   "elements": [
+    {
+     "tag": "sf-view-property-block",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-property-block",
+     "defined": true,
+     "visible": false
+    }
+   ],
+   "errors": []
+  },
+  {
+   "page": "ru/guide/recipes/data-in-flow/",
+   "width": 390,
+   "scheme": "light",
+   "file": "recipe-data-in-flow-390-light.png",
+   "elements": [
+    {
+     "tag": "sf-view-property-block",
+     "defined": true,
+     "visible": false
+    }
+   ],
+   "errors": []
+  },
+  {
+   "page": "ru/",
+   "tab": "Таблица",
+   "width": 1280,
+   "scheme": "dark",
+   "file": "home-1-1280-dark.png",
+   "panel": {
+    "visible": true,
+    "rows": 10,
+    "text": "Умная таблица заказов: поиск, фильтр по состоянию, сортировка по колонкам, страницы. Отметьте несколько заказов — внизу появятся действия с выбранными. Все Новы",
+    "drawn": 2
+   },
+   "elements": [
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": true
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 10
+    },
+    {
+     "tag": "sf-view-properties",
+     "defined": false,
+     "visible": false
+    },
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 7
+    }
+   ],
+   "errors": []
+  },
+  {
+   "page": "ru/",
+   "tab": "Карточка",
+   "width": 1280,
+   "scheme": "dark",
+   "file": "home-2-1280-dark.png",
+   "panel": {
+    "visible": true,
+    "rows": null,
+    "text": "Карточка сотрудника — одна запись, разложенная по группам: строки, даты, выбор, люди, файлы, числа и флажки. Переключите, как её показать. Просмотр Правка по гр",
+    "drawn": 1
+   },
+   "elements": [
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 10
+    },
+    {
+     "tag": "sf-view-properties",
+     "defined": true,
+     "visible": true
+    },
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 7
+    }
+   ],
+   "errors": []
+  },
+  {
+   "page": "ru/",
+   "tab": "Таблица и карточка",
+   "width": 1280,
+   "scheme": "dark",
+   "file": "home-3-1280-dark.png",
+   "panel": {
+    "visible": true,
+    "rows": 10,
+    "text": "Список сотрудников и карточка открытой записи: нажмите имя — карточка откроется панелью сбоку, список останется на месте. filter_list Фильтр search Настройки Со",
+    "drawn": 3
+   },
+   "elements": [
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 10
+    },
+    {
+     "tag": "sf-view-properties",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": true
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 10
+    },
+    {
+     "tag": "sf-view-properties",
+     "defined": true,
+     "visible": false
+    }
+   ],
+   "errors": []
+  },
+  {
+   "page": "ru/",
+   "tab": "В потоке",
+   "width": 1280,
+   "scheme": "dark",
+   "file": "home-4-1280-dark.png",
+   "panel": {
+    "visible": true,
+    "rows": null,
+    "text": "Данные внутри ленты сообщений: ассистент показывает найденную заявку и просит заполнить несколько полей. Это блок свойств sf-view-property-block — он во всю шир",
+    "drawn": 2
+   },
+   "elements": [
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 10
+    },
+    {
+     "tag": "sf-view-properties",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 10
+    },
+    {
+     "tag": "sf-view-properties",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-property-block",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-property-block",
+     "defined": true,
+     "visible": false
+    }
+   ],
+   "errors": []
+  },
+  {
+   "page": "ru/",
+   "tab": "Таблица",
+   "width": 390,
+   "scheme": "dark",
+   "file": "home-1-390-dark.png",
+   "panel": {
+    "visible": true,
+    "rows": 10,
+    "text": "Умная таблица заказов: поиск, фильтр по состоянию, сортировка по колонкам, страницы. Отметьте несколько заказов — внизу появятся действия с выбранными. Все Новы",
+    "drawn": 2
+   },
+   "elements": [
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": true
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 10
+    },
+    {
+     "tag": "sf-view-properties",
+     "defined": false,
+     "visible": false
+    },
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 7
+    }
+   ],
+   "errors": []
+  },
+  {
+   "page": "ru/",
+   "tab": "Карточка",
+   "width": 390,
+   "scheme": "dark",
+   "file": "home-2-390-dark.png",
+   "panel": {
+    "visible": true,
+    "rows": null,
+    "text": "Карточка сотрудника — одна запись, разложенная по группам: строки, даты, выбор, люди, файлы, числа и флажки. Переключите, как её показать. Просмотр Правка по гр",
+    "drawn": 1
+   },
+   "elements": [
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 10
+    },
+    {
+     "tag": "sf-view-properties",
+     "defined": true,
+     "visible": true
+    },
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 7
+    }
+   ],
+   "errors": []
+  },
+  {
+   "page": "ru/",
+   "tab": "Таблица и карточка",
+   "width": 390,
+   "scheme": "dark",
+   "file": "home-3-390-dark.png",
+   "panel": {
+    "visible": true,
+    "rows": 10,
+    "text": "Список сотрудников и карточка открытой записи: нажмите имя — карточка откроется панелью сбоку, список останется на месте. search filter_list swap_vert Анна Бело",
+    "drawn": 3
+   },
+   "elements": [
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 10
+    },
+    {
+     "tag": "sf-view-properties",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": true
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 10
+    },
+    {
+     "tag": "sf-view-properties",
+     "defined": true,
+     "visible": false
+    }
+   ],
+   "errors": []
+  },
+  {
+   "page": "ru/",
+   "tab": "В потоке",
+   "width": 390,
+   "scheme": "dark",
+   "file": "home-4-390-dark.png",
+   "panel": {
+    "visible": true,
+    "rows": null,
+    "text": "Данные внутри ленты сообщений: ассистент показывает найденную заявку и просит заполнить несколько полей. Это блок свойств sf-view-property-block — он во всю шир",
+    "drawn": 2
+   },
+   "elements": [
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 10
+    },
+    {
+     "tag": "sf-view-properties",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 10
+    },
+    {
+     "tag": "sf-view-properties",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-property-block",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-property-block",
+     "defined": true,
+     "visible": false
+    }
+   ],
+   "errors": []
+  }
+ ],
+ "reloads": [
+  {
+   "round": 1,
+   "url": "https://ui-view.test/ru/",
+   "elements": 5,
+   "undefined": 0,
+   "errors": []
+  },
+  {
+   "round": 2,
+   "url": "https://ui-view.test/ru/",
+   "elements": 5,
+   "undefined": 0,
+   "errors": []
+  },
+  {
+   "round": 3,
+   "url": "https://ui-view.test/ru/",
+   "elements": 5,
+   "undefined": 0,
+   "errors": []
+  }
+ ]
+}

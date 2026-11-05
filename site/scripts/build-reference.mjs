@@ -33,6 +33,7 @@ const PAGES = {
   view: 'content/ru/components/views/view.md',
   'view-table': 'content/ru/components/views/view-table.md',
   'view-properties': 'content/ru/components/views/view-properties.md',
+  'view-property-block': 'content/ru/components/views/view-property-block.md',
 };
 const START = '## Параметры';
 const END = '## См. также';
@@ -162,7 +163,20 @@ const render = (folder) => {
 };
 
 let stale = 0;
+// A component that has not been released yet has no manifest at the receipt's
+// commit: its page keeps the hand-written part until the release that carries it.
+const released = (folder) => {
+  try {
+    execFileSync('git', ['-C', repository, 'cat-file', '-e', `${revision}:package/src/smart/${folder}/smart.manifest.json`], {stdio: 'ignore'});
+    return true;
+  } catch {
+    return false;
+  }
+};
+const unreleased = Object.keys(PAGES).filter((folder) => !released(folder));
+
 for (const [folder, page] of Object.entries(PAGES)) {
+  if (unreleased.includes(folder)) continue;
   const path = join(site, page);
   const text = readFileSync(path, 'utf8');
   const start = text.indexOf(`\n${START}\n`);
@@ -177,6 +191,6 @@ for (const [folder, page] of Object.entries(PAGES)) {
 if (listMissing) {
   console.log(JSON.stringify([...missing], null, 2));
 } else {
-  console.log(JSON.stringify({pages: Object.keys(PAGES).length, changed: stale, untranslated: missing.size}));
+  console.log(JSON.stringify({pages: Object.keys(PAGES).length - unreleased.length, unreleased, changed: stale, untranslated: missing.size}));
   if (checkOnly && (stale || missing.size)) process.exit(1);
 }
