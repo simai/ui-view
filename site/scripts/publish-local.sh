@@ -2,7 +2,7 @@
 # Usage: scripts/publish-local.sh [target directory]
 #
 # Copies the built site (build_production) to the local review host, by default
-# /Users/rim/Sites/ui-view.test, served as https://ui-view.test by ServBay. The
+# ~/Sites/ui-view.test, served as https://ui-view.test by ServBay. The
 # copy is exact (rsync --delete) except for one change in the copy only:
 #
 # The live examples run in sandboxed srcdoc frames (sandbox="allow-scripts"),
@@ -18,7 +18,7 @@ set -euo pipefail
 
 SITE="$(cd "$(dirname "$0")/.." && pwd)"
 SOURCE="$SITE/build_production"
-TARGET="${1:-/Users/rim/Sites/ui-view.test}"
+TARGET="${1:-$HOME/Sites/ui-view.test}"
 
 [ -f "$SOURCE/index.html" ] || { echo "no build at $SOURCE: run scripts/build.sh first" >&2; exit 1; }
 mkdir -p "$TARGET"
