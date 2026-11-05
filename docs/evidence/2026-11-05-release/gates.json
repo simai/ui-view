@@ -1,0 +1,51 @@
+{
+ "set": "view",
+ "revision": "9c963d2171889103269af3cb9c4f923b3b90f86e",
+ "pair": "ui-62b1d9b6dc8d",
+ "build": {
+  "status": "PASS",
+  "byte_identical": true,
+  "files": 123
+ },
+ "receipt": {
+  "receipt": "package/dist/package-receipt.json",
+  "package": "view",
+  "framework": "ui-62b1d9b6dc8d",
+  "source": "ec2f29dfa5df",
+  "package_reference": "set-passport",
+  "archive_sha256": "3a1875b0ee1728377b53ca4be64994ba158fa887034afae6be4781cefe71b2ad"
+ },
+ "unit": {
+  "tests": 439,
+  "pass": 436,
+  "fail": 0,
+  "skipped": 3
+ },
+ "registry": {
+  "registry": "ui-source main contracts/registry/names.json",
+  "set": "view",
+  "status": "planned",
+  "problems": []
+ },
+ "manifest": {
+  "checks": 20,
+  "passed": 20,
+  "failed": 0
+ },
+ "browser": {
+  "passed": 60,
+  "failed": 0,
+  "skipped": [
+   "composition-routing",
+   "loader-hidden-tab",
+   "table-intents",
+   "table-search-caret"
+  ]
+ },
+ "first_paint": {
+  "measured": 32,
+  "passed": 32,
+  "cls": 0,
+  "failed": 0
+ }
+}
