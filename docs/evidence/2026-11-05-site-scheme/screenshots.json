@@ -9,7 +9,7 @@
    "file": "home-1-1280-light.png",
    "panel": {
     "visible": true,
-    "rows": 25,
+    "rows": 10,
     "text": " filter_list Фильтр search Настройки Заказ unfold_more Создан unfold_more Покупатель unfold_more Город unfold_more Товар"
    },
    "elements": [
@@ -22,12 +22,7 @@
      "tag": "sf-view-table",
      "defined": true,
      "visible": false,
-     "rows": 25
-    },
-    {
-     "tag": "sf-view-properties",
-     "defined": true,
-     "visible": false
+     "rows": 10
     },
     {
      "tag": "sf-view-table",
@@ -68,7 +63,7 @@
    "file": "home-2-1280-light.png",
    "panel": {
     "visible": true,
-    "rows": 24,
+    "rows": 10,
     "text": " search Создать settings Сотрудник unfold_more Должность unfold_more Отдел unfold_more Город unfold_more В компании с un"
    },
    "elements": [
@@ -81,18 +76,13 @@
      "tag": "sf-view-table",
      "defined": true,
      "visible": false,
-     "rows": 25
-    },
-    {
-     "tag": "sf-view-properties",
-     "defined": true,
-     "visible": false
+     "rows": 10
     },
     {
      "tag": "sf-view-table",
      "defined": true,
      "visible": false,
-     "rows": 24
+     "rows": 10
     },
     {
      "tag": "sf-view",
@@ -127,7 +117,7 @@
    "file": "home-3-1280-light.png",
    "panel": {
     "visible": true,
-    "rows": 25,
+    "rows": 10,
     "text": " filter_list Фильтр search Настройки Товар unfold_more Артикул unfold_more Категория unfold_more Склад unfold_more Остат"
    },
    "elements": [
@@ -140,18 +130,13 @@
      "tag": "sf-view-table",
      "defined": true,
      "visible": false,
-     "rows": 25
-    },
-    {
-     "tag": "sf-view-properties",
-     "defined": true,
-     "visible": false
+     "rows": 10
     },
     {
      "tag": "sf-view-table",
      "defined": true,
      "visible": false,
-     "rows": 24
+     "rows": 10
     },
     {
      "tag": "sf-view",
@@ -162,7 +147,7 @@
      "tag": "sf-view-table",
      "defined": true,
      "visible": false,
-     "rows": 25
+     "rows": 10
     },
     {
      "tag": "sf-view",
@@ -186,7 +171,7 @@
    "file": "home-4-1280-light.png",
    "panel": {
     "visible": true,
-    "rows": 25,
+    "rows": 10,
     "text": " filter_list Фильтр search Настройки Задача unfold_more Исполнитель unfold_more Приоритет unfold_more Срок unfold_more С"
    },
    "elements": [
@@ -199,18 +184,13 @@
      "tag": "sf-view-table",
      "defined": true,
      "visible": false,
-     "rows": 25
-    },
-    {
-     "tag": "sf-view-properties",
-     "defined": true,
-     "visible": false
+     "rows": 10
     },
     {
      "tag": "sf-view-table",
      "defined": true,
      "visible": false,
-     "rows": 24
+     "rows": 10
     },
     {
      "tag": "sf-view",
@@ -221,7 +201,7 @@
      "tag": "sf-view-table",
      "defined": true,
      "visible": false,
-     "rows": 25
+     "rows": 10
     },
     {
      "tag": "sf-view",
@@ -232,7 +212,7 @@
      "tag": "sf-view-table",
      "defined": true,
      "visible": false,
-     "rows": 25
+     "rows": 10
     }
    ],
    "errors": []
@@ -325,7 +305,7 @@
    "file": "home-1-390-light.png",
    "panel": {
     "visible": true,
-    "rows": 25,
+    "rows": 10,
     "text": " search filter_list swap_vert № 10468 Создан 3 нояб. 2026 г., 21:11 Покупатель Никита Фёдоров Город Нижний Новгород menu"
    },
    "elements": [
@@ -338,12 +318,7 @@
      "tag": "sf-view-table",
      "defined": true,
      "visible": false,
-     "rows": 25
-    },
-    {
-     "tag": "sf-view-properties",
-     "defined": true,
-     "visible": false
+     "rows": 10
     },
     {
      "tag": "sf-view-table",
@@ -384,7 +359,7 @@
    "file": "home-2-390-light.png",
    "panel": {
     "visible": true,
-    "rows": 24,
+    "rows": 10,
     "text": " search swap_vert add Анна Белова Должность Руководитель проектов Отдел Проекты menu Илья Орлов Должность Ведущий разраб"
    },
    "elements": [
@@ -397,18 +372,13 @@
      "tag": "sf-view-table",
      "defined": true,
      "visible": false,
-     "rows": 25
-    },
-    {
-     "tag": "sf-view-properties",
-     "defined": true,
-     "visible": false
+     "rows": 10
     },
     {
      "tag": "sf-view-table",
      "defined": true,
      "visible": false,
-     "rows": 24
+     "rows": 10
     },
     {
      "tag": "sf-view",
@@ -443,7 +413,7 @@
    "file": "home-3-390-light.png",
    "panel": {
     "visible": true,
-    "rows": 25,
+    "rows": 10,
     "text": " search filter_list swap_vert Ноутбук Остаток, шт. 0 Склад Подольск Артикул EL-01000 menu Монитор 27″ Остаток, шт. 53 Ск"
    },
    "elements": [
@@ -456,18 +426,13 @@
      "tag": "sf-view-table",
      "defined": true,
      "visible": false,
-     "rows": 25
-    },
-    {
-     "tag": "sf-view-properties",
-     "defined": true,
-     "visible": false
+     "rows": 10
     },
     {
      "tag": "sf-view-table",
      "defined": true,
      "visible": false,
-     "rows": 24
+     "rows": 10
     },
     {
      "tag": "sf-view",
@@ -478,7 +443,7 @@
      "tag": "sf-view-table",
      "defined": true,
      "visible": false,
-     "rows": 25
+     "rows": 10
     },
     {
      "tag": "sf-view",
@@ -502,7 +467,7 @@
    "file": "home-4-390-light.png",
    "panel": {
     "visible": true,
-    "rows": 25,
+    "rows": 10,
     "text": " search filter_list swap_vert Подготовить отчёт за квартал Исполнитель Анна Белова Срок 3 нояб. 2026 г. Приоритет Обычны"
    },
    "elements": [
@@ -515,18 +480,13 @@
      "tag": "sf-view-table",
      "defined": true,
      "visible": false,
-     "rows": 25
-    },
-    {
-     "tag": "sf-view-properties",
-     "defined": true,
-     "visible": false
+     "rows": 10
     },
     {
      "tag": "sf-view-table",
      "defined": true,
      "visible": false,
-     "rows": 24
+     "rows": 10
     },
     {
      "tag": "sf-view",
@@ -537,7 +497,7 @@
      "tag": "sf-view-table",
      "defined": true,
      "visible": false,
-     "rows": 25
+     "rows": 10
     },
     {
      "tag": "sf-view",
@@ -548,7 +508,7 @@
      "tag": "sf-view-table",
      "defined": true,
      "visible": false,
-     "rows": 25
+     "rows": 10
     }
    ],
    "errors": []
@@ -641,7 +601,7 @@
    "file": "home-1-1280-dark.png",
    "panel": {
     "visible": true,
-    "rows": 25,
+    "rows": 10,
     "text": " filter_list Фильтр search Настройки Заказ unfold_more Создан unfold_more Покупатель unfold_more Город unfold_more Товар"
    },
    "elements": [
@@ -654,12 +614,7 @@
      "tag": "sf-view-table",
      "defined": true,
      "visible": false,
-     "rows": 25
-    },
-    {
-     "tag": "sf-view-properties",
-     "defined": true,
-     "visible": false
+     "rows": 10
     },
     {
      "tag": "sf-view-table",
@@ -700,7 +655,7 @@
    "file": "home-2-1280-dark.png",
    "panel": {
     "visible": true,
-    "rows": 24,
+    "rows": 10,
     "text": " search Создать settings Сотрудник unfold_more Должность unfold_more Отдел unfold_more Город unfold_more В компании с un"
    },
    "elements": [
@@ -713,18 +668,13 @@
      "tag": "sf-view-table",
      "defined": true,
      "visible": false,
-     "rows": 25
-    },
-    {
-     "tag": "sf-view-properties",
-     "defined": true,
-     "visible": false
+     "rows": 10
     },
     {
      "tag": "sf-view-table",
      "defined": true,
      "visible": false,
-     "rows": 24
+     "rows": 10
     },
     {
      "tag": "sf-view",
@@ -759,7 +709,7 @@
    "file": "home-3-1280-dark.png",
    "panel": {
     "visible": true,
-    "rows": 25,
+    "rows": 10,
     "text": " filter_list Фильтр search Настройки Товар unfold_more Артикул unfold_more Категория unfold_more Склад unfold_more Остат"
    },
    "elements": [
@@ -772,18 +722,13 @@
      "tag": "sf-view-table",
      "defined": true,
      "visible": false,
-     "rows": 25
-    },
-    {
-     "tag": "sf-view-properties",
-     "defined": true,
-     "visible": false
+     "rows": 10
     },
     {
      "tag": "sf-view-table",
      "defined": true,
      "visible": false,
-     "rows": 24
+     "rows": 10
     },
     {
      "tag": "sf-view",
@@ -794,7 +739,7 @@
      "tag": "sf-view-table",
      "defined": true,
      "visible": false,
-     "rows": 25
+     "rows": 10
     },
     {
      "tag": "sf-view",
@@ -818,7 +763,7 @@
    "file": "home-4-1280-dark.png",
    "panel": {
     "visible": true,
-    "rows": 25,
+    "rows": 10,
     "text": " filter_list Фильтр search Настройки Задача unfold_more Исполнитель unfold_more Приоритет unfold_more Срок unfold_more С"
    },
    "elements": [
@@ -831,18 +776,13 @@
      "tag": "sf-view-table",
      "defined": true,
      "visible": false,
-     "rows": 25
-    },
-    {
-     "tag": "sf-view-properties",
-     "defined": true,
-     "visible": false
+     "rows": 10
     },
     {
      "tag": "sf-view-table",
      "defined": true,
      "visible": false,
-     "rows": 24
+     "rows": 10
     },
     {
      "tag": "sf-view",
@@ -853,7 +793,7 @@
      "tag": "sf-view-table",
      "defined": true,
      "visible": false,
-     "rows": 25
+     "rows": 10
     },
     {
      "tag": "sf-view",
@@ -864,7 +804,7 @@
      "tag": "sf-view-table",
      "defined": true,
      "visible": false,
-     "rows": 25
+     "rows": 10
     }
    ],
    "errors": []
@@ -877,7 +817,7 @@
    "file": "home-1-390-dark.png",
    "panel": {
     "visible": true,
-    "rows": 25,
+    "rows": 10,
     "text": " search filter_list swap_vert № 10468 Создан 3 нояб. 2026 г., 21:11 Покупатель Никита Фёдоров Город Нижний Новгород menu"
    },
    "elements": [
@@ -890,12 +830,7 @@
      "tag": "sf-view-table",
      "defined": true,
      "visible": false,
-     "rows": 25
-    },
-    {
-     "tag": "sf-view-properties",
-     "defined": true,
-     "visible": false
+     "rows": 10
     },
     {
      "tag": "sf-view-table",
@@ -936,7 +871,7 @@
    "file": "home-2-390-dark.png",
    "panel": {
     "visible": true,
-    "rows": 24,
+    "rows": 10,
     "text": " search swap_vert add Анна Белова Должность Руководитель проектов Отдел Проекты menu Илья Орлов Должность Ведущий разраб"
    },
    "elements": [
@@ -949,18 +884,13 @@
      "tag": "sf-view-table",
      "defined": true,
      "visible": false,
-     "rows": 25
-    },
-    {
-     "tag": "sf-view-properties",
-     "defined": true,
-     "visible": false
+     "rows": 10
     },
     {
      "tag": "sf-view-table",
      "defined": true,
      "visible": false,
-     "rows": 24
+     "rows": 10
     },
     {
      "tag": "sf-view",
@@ -995,7 +925,7 @@
    "file": "home-3-390-dark.png",
    "panel": {
     "visible": true,
-    "rows": 25,
+    "rows": 10,
     "text": " search filter_list swap_vert Ноутбук Остаток, шт. 0 Склад Подольск Артикул EL-01000 menu Монитор 27″ Остаток, шт. 53 Ск"
    },
    "elements": [
@@ -1008,18 +938,13 @@
      "tag": "sf-view-table",
      "defined": true,
      "visible": false,
-     "rows": 25
-    },
-    {
-     "tag": "sf-view-properties",
-     "defined": true,
-     "visible": false
+     "rows": 10
     },
     {
      "tag": "sf-view-table",
      "defined": true,
      "visible": false,
-     "rows": 24
+     "rows": 10
     },
     {
      "tag": "sf-view",
@@ -1030,7 +955,7 @@
      "tag": "sf-view-table",
      "defined": true,
      "visible": false,
-     "rows": 25
+     "rows": 10
     },
     {
      "tag": "sf-view",
@@ -1054,7 +979,7 @@
    "file": "home-4-390-dark.png",
    "panel": {
     "visible": true,
-    "rows": 25,
+    "rows": 10,
     "text": " search filter_list swap_vert Подготовить отчёт за квартал Исполнитель Анна Белова Срок 3 нояб. 2026 г. Приоритет Обычны"
    },
    "elements": [
@@ -1067,18 +992,13 @@
      "tag": "sf-view-table",
      "defined": true,
      "visible": false,
-     "rows": 25
-    },
-    {
-     "tag": "sf-view-properties",
-     "defined": true,
-     "visible": false
+     "rows": 10
     },
     {
      "tag": "sf-view-table",
      "defined": true,
      "visible": false,
-     "rows": 24
+     "rows": 10
     },
     {
      "tag": "sf-view",
@@ -1089,7 +1009,7 @@
      "tag": "sf-view-table",
      "defined": true,
      "visible": false,
-     "rows": 25
+     "rows": 10
     },
     {
      "tag": "sf-view",
@@ -1100,7 +1020,7 @@
      "tag": "sf-view-table",
      "defined": true,
      "visible": false,
-     "rows": 25
+     "rows": 10
     }
    ],
    "errors": []
@@ -1110,21 +1030,21 @@
   {
    "round": 1,
    "url": "https://ui-view.test/ru/",
-   "elements": 8,
+   "elements": 7,
    "undefined": 0,
    "errors": []
   },
   {
    "round": 2,
    "url": "https://ui-view.test/ru/",
-   "elements": 8,
+   "elements": 7,
    "undefined": 0,
    "errors": []
   },
   {
    "round": 3,
    "url": "https://ui-view.test/ru/",
-   "elements": 8,
+   "elements": 7,
    "undefined": 0,
    "errors": []
   }
