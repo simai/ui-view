@@ -35,3 +35,41 @@ belongs to its own thread; nothing here was written in simai/docara.
 6. **The set template** itself (standard rollout 4a): the five required
    sections, a generated compatibility block from `set.json` and the receipt,
    and `docara init --template set`. `docs/SET-TEMPLATE.md` lists what to take.
+7. **Prefixed-locale redirects break the build.** With `locale_routing`
+   `{strategy: prefixed, root: redirect}`, `legacy_unprefixed_redirects: true`
+   together with entries in `redirects.json` stops `build production` with
+   `PORTABLE_PERFORMANCE_RESOURCE_UNSAFE
+   build_production.docara-candidate/_docara/search.js`; either one alone
+   builds. Workaround: the old addresses are listed in `redirects.json` by
+   hand and the flag is off.
+8. **Examples in tabs.** The set site scheme wants several live examples
+   behind Framework pill or segmented tabs, one full-width example per tab.
+   `:::tabs` draws underline tabs only and cannot hold `:::example`.
+   Workaround: one example frame (`examples/home/showcase/`) holding an
+   `sf-tabs type="pills"` with one demo per panel, each started on first
+   show. Wanted: `:::tabs {type=pills|segmented}` whose panels may be
+   examples, frames loaded on first show.
+9. **A copyable code line in the hero.** `:::hero` takes two links and one or
+   two paragraphs; the scheme puts the one-line connection
+   (`data-sf-sets="view"`) under the buttons. Workaround: a code block right
+   after the hero. Wanted: a hero `code` slot with the copy button.
+10. **A site footer.** Version, Framework compatibility, licence and links at
+    the foot of the home page have no Docara block. Workaround: `:::surface`
+    with a grid of four plain cards. Wanted: a footer configured once in
+    `docara.json` (or generated from the set's `set.json` and receipt) and
+    shown on every page.
+11. **A full-width landing example.** `:::example` on a landing page is held
+    to the reading column with its source tabs and toolbar. Wanted: a
+    `layout=wide` / `chrome=none` option for showcase examples on landings.
+12. **Language switch and default locale.** With one locale there is no
+    switch, which is right, but the move to English as the default needs
+    content, `default_locale`, redirects and tracking changed together by
+    hand (`site/README.md`, «Languages»). Wanted: `docara locale add en
+    --default` doing the four steps.
+13. **Component reference from manifests.** The set site generates the
+    reference part of each component page from the set's
+    `smart.manifest.json` and `component.json` with a translation dictionary
+    (`site/scripts/build-reference.mjs`, `config/reference.ru.json`); ui-doc
+    has its own generator for the same job. Wanted: the set template (6)
+    absorbs it — a `:::reference {component=sf-view-table}` block or a build
+    step, with the dictionary as locale data and a check for drift.
