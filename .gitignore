@@ -1,0 +1,17 @@
+node_modules/
+.cache/
+.DS_Store
+*.log
+.env
+.env.*
+.mirai/
+.claude/
+work/
+.overlay/
+.overlay.package/
+.probe-output/
+# The Docara site: installed Docara, its build and its working files
+site/vendor/
+site/build_*/
+site/.docara/
+site/source/

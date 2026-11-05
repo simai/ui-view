@@ -1,0 +1,12 @@
+cff-version: 1.2.0
+message: "If you refer to SIMAI View, please cite it as below."
+title: "SIMAI View"
+abstract: "Data views for SIMAI Framework (sf-view, sf-view-table, sf-view-properties), the component set view."
+type: software
+authors:
+  - family-names: "Zabarov"
+    given-names: "Rim"
+    email: "rim@zabarov.com"
+license-url: "https://github.com/simai/ui-view/blob/main/LICENSE.md"
+repository-code: "https://github.com/simai/ui-view"
+url: "https://view.simai.io/"
