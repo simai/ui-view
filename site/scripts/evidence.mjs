@@ -2,11 +2,13 @@
 // Usage: node scripts/evidence.mjs <site URL> <out directory>
 //
 // Screenshots of the built site for review, at 1280 and 390 px, light (and
-// dark for the home page): the home page once per example tab (orders,
-// staff, warehouse, tasks), the quick start, the bulk-actions recipe and the
-// sf-view-table reference page. Every live example's set elements must be
-// defined and draw rows; console errors and page errors are recorded. The
-// home page is loaded three times more to catch errors that only show on some
+// dark for the home page): the home page once per example tab (table, card,
+// table and card, in a stream), the fields overview and the files page, the
+// quick start, the bulk-actions recipe and the sf-view-table reference page.
+// Every shown set element must be defined (one on a hidden tab may not be
+// yet: the Loader defines a component when it is first shown), a tab with a
+// table must draw rows, and console and page errors are recorded. The home
+// page is loaded three times more to catch errors that only show on some
 // loads. Needs Playwright (PLAYWRIGHT_MODULE for its path,
 // PLAYWRIGHT_BROWSERS_PATH for the browser).
 import {mkdirSync, writeFileSync} from 'node:fs';
@@ -19,8 +21,10 @@ const [base, outArgument] = process.argv.slice(2);
 if (!base || !outArgument) throw new Error('usage: evidence.mjs <site URL> <out directory>');
 const out = resolve(outArgument);
 mkdirSync(out, {recursive: true});
-const TABS = ['Заказы', 'Сотрудники', 'Склад', 'Задачи'];
+const TABS = ['Таблица', 'Карточка', 'Таблица и карточка', 'В потоке'];
 const PAGES = [
+  ['fields', 'ru/fields/'],
+  ['fields-files', 'ru/fields/files/'],
   ['quick-start', 'ru/guide/quick-start/'],
   ['recipe-bulk-actions', 'ru/guide/recipes/selection-and-bulk-actions/'],
   ['reference-view-table', 'ru/components/views/view-table/'],
@@ -77,16 +81,18 @@ for (const scheme of ['light', 'dark']) {
       const frame = page.frames().find((one) => one !== page.mainFrame());
       if (!frame) { report.push({page: 'ru/', tab: label, width, scheme, errors: ['no example frame']}); break; }
       if (index > 0) {
-        await frame.getByRole('tab', {name: label}).click();
+        await frame.getByRole('tab', {name: label, exact: true}).click();
         await page.waitForTimeout(1500);
       }
       const panel = await frame.evaluate((position) => {
         const section = document.querySelector(`[slot="panel-${position}"]`);
         const table = section?.querySelector('sf-view-table');
+        // A panel with a table must draw its rows; one without (the card,
+        // the feed) must draw some text of its own.
         return {
           visible: Boolean(section && section.getClientRects().length),
-          rows: table ? table.querySelectorAll('tbody tr, [role="row"], li').length : 0,
-          text: table ? table.textContent.replace(/\s+/gu, ' ').slice(0, 120) : '',
+          rows: table ? table.querySelectorAll('tbody tr, [role="row"], li').length : null,
+          text: (section?.innerText ?? '').replace(/\s+/gu, ' ').slice(0, 160),
         };
       }, index);
       const file = `home-${index + 1}-${width}-${scheme}.png`;
@@ -119,15 +125,15 @@ for (let round = 1; round <= 3; round += 1) {
   await page.goto(new URL('', base).href, {waitUntil: 'networkidle'});
   await wake(page);
   const elements = await inventory(page);
-  reloads.push({round, url: page.url(), elements: elements.length, undefined: elements.filter((one) => !one.defined).length, errors});
+  reloads.push({round, url: page.url(), elements: elements.length, undefined: elements.filter((one) => !one.defined && one.visible).length, errors});
   await context.close();
 }
 await browser.close();
 
 writeFileSync(join(out, 'screenshots.json'), `${JSON.stringify({base, shots: report, reloads}, null, 1)}\n`);
 const broken = report.filter((shot) => shot.errors.length
-  || (shot.elements ?? []).some((one) => !one.defined)
-  || (shot.panel && (!shot.panel.visible || shot.panel.rows === 0))
+  || (shot.elements ?? []).some((one) => !one.defined && one.visible)
+  || (shot.panel && (!shot.panel.visible || shot.panel.rows === 0 || shot.panel.text.length < 120))
   || (shot.page !== 'ru/' && !(shot.elements ?? []).length));
 const brokenReloads = reloads.filter((one) => one.errors.length || one.undefined || !one.url.endsWith('/ru/'));
 console.log(JSON.stringify({shots: report.length, broken: broken.map(({file, panel, errors}) => ({file, panel, errors})), reloads: brokenReloads}, null, 1));

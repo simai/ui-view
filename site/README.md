@@ -6,14 +6,20 @@ SIMAI Framework pair the set is built on. The layout follows the set site
 scheme the owner agreed on 2026-11-05 (ui-control
 `control/decisions/2026-11-03-component-sets.md`, «The set site»):
 
-- **Home** (`/ru/`): hero, the one-line connection, four live examples in
-  Framework pill tabs (orders, staff, warehouse, tasks — one frame,
-  `examples/home/showcase/`), advantages and a footer with version,
-  compatibility, licence and links.
+- **Home** (`/ru/`): hero (name, sentence, two buttons), the views of the
+  set in Framework pill tabs (table, card, table and card, cards in a stream
+  of messages — one frame, `examples/home/showcase/`), the one-line
+  connection, advantages and a footer with version, compatibility, licence
+  and links.
 - **Руководство** (`/ru/guide/`): introduction, quick start, connection, core
   concepts, recipes, server connection (REST, Laravel/Larena, Bitrix),
   appearance, keyboard and accessibility, large data, upgrading, change
   history, FAQ.
+- **Поля** (`/ru/fields/`): every field type the views draw, taken from
+  the Framework's `SF.fieldRenderers.registry` (18 types); an overview with
+  one record holding every type, then a page per family (text, numbers,
+  dates, yes/no, choice, people and links, files, colour), each with a live
+  example: the records in a table, a card to read and a card to edit.
 - **Компоненты** (`/ru/components/`): the reference, by family. Each page has
   a hand-written top (description, live examples) and a generated part
   between `## Параметры` and `## См. также`.
@@ -29,11 +35,13 @@ node site/scripts/evidence.mjs <site URL> docs/evidence/<date>
 ```
 
 - `content/ru/` — the pages; `examples/` — the live examples.
-- `scripts/landing-transform.mjs` — puts the connection line into the home
-  page's hero and hides the code tabs of its live example. It runs on the
-  local review copy (`publish-local.sh`), not in the verified build: Docara
-  requests 9, 14 and 15. A public deployment needs those requests or the
+- `scripts/landing-transform.mjs` — hides the code tabs of the home page's
+  live example. It runs on the local review copy (`publish-local.sh`), not
+  in the verified build: Docara requests 14 and 15. A public deployment needs those requests or the
   same step in its pipeline, with verify-static run before it.
+- `scripts/field-demo.js` — the engine and catalogue of the «Поля»
+  examples; `node site/scripts/build-field-examples.mjs` writes
+  `examples/fields/<family>/` from it (`--check` fails on drift).
 - `config/reference.ru.json` — Russian for every manifest string the
   reference shows (`css:<variable>` keys for CSS variables). The generator
   reads the manifests at the commit the set receipt names, not the working

@@ -40,3 +40,45 @@ the last two (`site/scripts/landing-transform.mjs`, Docara requests 14, 15).
 - `home-tasks-bulk-applied-1280-light.png` — bulk action rerun: «Завершено: 2».
 - The run above was repeated: 22 shots, 10 rows on every home tab, no
   console or page errors, three cold reloads clean.
+
+## Owner review (third round)
+
+The hero holds the name, the sentence and two buttons; the connection line is
+its own «Подключение» block after the examples. The home example shows the
+views of the set: «Таблица» (orders: search, status filter, sort, 10 rows a
+page, bulk «Отгрузить» / «Отменить»), «Карточка» (an employee card in
+`view`, `auto` and `edit` modes, 16 fields of 10 types), «Таблица и
+карточка» (employees list, the card in a side panel) and «В потоке»
+(`sf-list-feed` with cards inside messages: one to read, one in `create`
+mode). New section «Поля»: an overview of the 18 field types of
+`SF.fieldRenderers.registry` and eight family pages, each with a live
+example (table, card to read, card to edit, a switch to the record with empty
+values). `verify-static`: 49 pages, no broken reference.
+
+(The `home-orders-*` and `home-tasks-*` shots above belong to the second round and show the earlier home page.)
+
+Flows checked in a separate run (`home-card-edit-1280-light.png`,
+`home-master-open-1280-light.png`, `home-feed-created-1280-light.png`):
+
+- table: two orders marked, «Отгрузить» applied — «Отгружено: № 10466, № 10465»;
+- card: whole-card edit, an empty name refused by the host with «Укажите ФИО
+  сотрудника.» under the field, then saved — «версия 2»; group mode shows
+  three «изменить»;
+- table and card: a name opens the panel (`panelOpen` true), it closes;
+- stream: the create card filled (the date set through `changeField`, the
+  datepicker is not driven) and «Создать» — the feed adds the assistant's
+  answer with the created record;
+- fields overview: «Пустые значения» shows «не заполнено» for every field;
+  a changed name saved — «Хост получил: {"title":"Портал клиента 2"}».
+
+No console or page errors in any of these.
+
+Defects of the set found on the way (reported, not fixed here):
+
+- `sf-view-table` draws an `html` cell as its markup (the long-text fast
+  path skips the field renderer);
+- `sf-view-table` leaves a cell of non-image files empty;
+- a `color` field with `swatches` in half a card row: the palette does not
+  wrap and runs over the next field (the examples give it the full row);
+- a closed `sf-view-properties` panel still draws its drawer edge with the
+  close button over the page (the examples add the card only while open).

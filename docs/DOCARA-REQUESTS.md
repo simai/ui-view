@@ -52,9 +52,9 @@ belongs to its own thread; nothing here was written in simai/docara.
 9. **A copyable code line in the hero.** `:::hero` takes two links and one or
    two paragraphs; the scheme puts the one-line connection
    (`data-sf-sets="view"`) under the buttons. Workaround: a code block right
-   after the hero, moved into the hero under the buttons by
-   `site/scripts/landing-transform.mjs` in the local review copy only (see
-   15). Wanted: a hero `code` slot with the copy button.
+   after the hero. (The owner since chose a separate «Подключение» block
+   after the examples, so the site no longer needs this; kept for other
+   set sites.) Wanted: a hero `code` slot with the copy button.
 10. **A site footer.** Version, Framework compatibility, licence and links at
     the foot of the home page have no Docara block. Workaround: `:::surface`
     with a grid of four plain cards. Wanted: a footer configured once in
