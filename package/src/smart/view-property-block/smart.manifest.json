@@ -32,6 +32,7 @@
       "smart.badge",
       "smart.button",
       "smart.button-group",
+      "smart.button-icon",
       "smart.checkbox",
       "smart.dropdown",
       "smart.file-preview",
@@ -41,6 +42,9 @@
       "smart.input-color",
       "smart.input-country",
       "smart.input-date",
+      "smart.input-image",
+      "smart.input-quantity",
+      "smart.input-rich",
       "smart.input-textarea",
       "smart.list-item",
       "smart.progress-scale",
@@ -423,11 +427,11 @@
       },
       {
         "path": "src/smart/view-property-block/js/templates/default.js",
-        "sha256": "268b1aed76963b8b8b21c4828ae7127f0ee8970203c9b4e06a8328460907af7d"
+        "sha256": "7218199b3b53814d844604338f2062bb12959ef29146c8dc48d1813ea294fa4f"
       },
       {
         "path": "src/smart/view-property-block/js/templates/default.css",
-        "sha256": "99c021abd586d22e20a51d6c5b90e14a3d550646044b4d277ffe2e3f3b280675"
+        "sha256": "22d5be0a8041d24a11a00d532d0afec11e2297a977affdf8df33e6fa5ad184af"
       },
       {
         "path": "src/smart/view-properties/js/field-value.js",
@@ -443,7 +447,7 @@
       },
       {
         "path": "src/smart/view-property-block/rule.js",
-        "sha256": "b69677108d68f55580aa718687c6a6982097090ea3668a9793e26523e20d1677"
+        "sha256": "74c99b854acc4b64acd19720b69cb10b4fdeb3adebe68dbef42c2c07126391e8"
       },
       {
         "path": "src/smart/view-property-block/docs.md",

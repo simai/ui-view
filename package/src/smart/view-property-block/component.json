@@ -370,6 +370,34 @@
     {
       "name": "cl-button-group",
       "lazy": true
+    },
+    {
+      "name": "cl-input-quantity",
+      "lazy": true,
+      "$comment": [
+        "A number with variant stepper."
+      ]
+    },
+    {
+      "name": "cl-input-rich",
+      "lazy": true,
+      "$comment": [
+        "An html field edited."
+      ]
+    },
+    {
+      "name": "cl-input-image",
+      "lazy": true,
+      "$comment": [
+        "A single image shown or replaced."
+      ]
+    },
+    {
+      "name": "cl-button-icon",
+      "lazy": true,
+      "$comment": [
+        "A password field's show/hide."
+      ]
     }
   ],
   "templates": {

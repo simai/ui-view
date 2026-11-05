@@ -113,6 +113,15 @@
     overflow-wrap: anywhere;
   }
 
+  /* While the block takes an answer a value is one control, and it fills its
+     field: in a flex row a control keeps its intrinsic width, and a Smart
+     element is display: contents, so its painted root is a grandchild that
+     flex: 1 on the box's children never reaches (sf-view-properties found the
+     same for its full-width fields). As a block it fills. */
+  .sf-view-property-block--editing .sf-view-property-block__value {
+    display: block;
+  }
+
   .sf-view-property-block__error {
     font-size: var(--sf-view-property-block--label-size);
     line-height: var(--sf-view-property-block--label-height);

@@ -112,7 +112,7 @@ export function renderPropertyBlockTemplate(context) {
     const scoped = {...context, values};
     return html`
         <section
-                class="sf-view-property-block sf-view-property-block--${context.mode} sf-view-property-block--${context.state} sf-view-property-block--size-${context.size === "1" ? "1" : "1-2"}"
+                class="sf-view-property-block sf-view-property-block--${context.mode}${context.editing ? " sf-view-property-block--editing" : ""} sf-view-property-block--${context.state} sf-view-property-block--size-${context.size === "1" ? "1" : "1-2"}"
                 aria-labelledby=${context.heading ? context.headingId : nothing}
                 aria-label=${context.heading ? nothing : context.blockLabel}
                 aria-busy=${context.pending ? "true" : nothing}

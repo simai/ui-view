@@ -1,10 +1,12 @@
 {
   "title": "Property block",
   "runtime": {
+    "accept-text": "Send",
     "accepted-text": "Sent",
     "accepting-text": "Sending…",
     "block-label": "Properties",
     "cancel-text": "Cancel",
+    "decline-text": "Cancel",
     "declined-text": "Cancelled",
     "declining-text": "Cancelling…",
     "empty-text": "not filled in",

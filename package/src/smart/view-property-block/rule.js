@@ -40,5 +40,13 @@ SF.RuleLoader['cl-view-property-block'] = {
     { name: 'cl-switch', lazy: true },
     { name: 'cl-checkbox', lazy: true },
     { name: 'cl-button-group', lazy: true },
+    // A number with variant stepper.
+    { name: 'cl-input-quantity', lazy: true },
+    // An html field edited.
+    { name: 'cl-input-rich', lazy: true },
+    // A single image shown or replaced.
+    { name: 'cl-input-image', lazy: true },
+    // A password field's show/hide.
+    { name: 'cl-button-icon', lazy: true },
   ],
 };
