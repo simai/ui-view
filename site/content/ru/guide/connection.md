@@ -16,17 +16,17 @@ Loader сам находит набор, загружает его правил�
 ```
 
 Атрибут `data-sf-sets` перечисляет наборы через пробел. Конкретную версию
-набора задают через `@`: `data-sf-sets="view@1.0.0"`. Без версии Loader
+набора задают через `@`: `data-sf-sets="view@1.1.0"`. Без версии Loader
 выбирает по общему индексу совместимости самый новый выпуск набора, который
 подходит к подключённому Core.
 
 Набор опубликован в npm как `@simai-studio/view`; Loader берёт его с
-jsDelivr. Версия 1.0.0 (выпуск `view-9c963d217188`) собрана над выпуском
+jsDelivr. Версия 1.1.0 (выпуск `view-4d7070623fe1`) собрана над выпуском
 SIMAI Framework `ui-62b1d9b6dc8d` и работает с `core.runtime` 1.25.0 или
 новее. Ссылка на выпуск закрепляет Core и набор вместе:
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@simai-studio/ui@5.20261105.1447/distr/core/js/core.min.js" data-sf-sets="view@1.0.0"></script>
+<script src="https://cdn.jsdelivr.net/npm/@simai-studio/ui@5.20261105.1447/distr/core/js/core.min.js" data-sf-sets="view@1.1.0"></script>
 ```
 
 ## Из своей копии
@@ -38,7 +38,7 @@ SIMAI Framework `ui-62b1d9b6dc8d` и работает с `core.runtime` 1.25.0 �
 <script>
   window.SF_BOOT_CONFIG = {
     packages: {
-      view: {base: '/assets/ui-view/smart', version: '1.0.0'}
+      view: {base: '/assets/ui-view/smart', version: '1.1.0'}
     }
   };
 </script>
@@ -66,7 +66,7 @@ SIMAI Framework `ui-62b1d9b6dc8d` и работает с `core.runtime` 1.25.0 �
 страница раздаёт файлы со своего сервера или собирает их своей сборкой:
 
 ```bash
-npm install @simai-studio/view@1.0.0 @simai-studio/ui@5.20261105.1447
+npm install @simai-studio/view@1.1.0 @simai-studio/ui@5.20261105.1447
 ```
 
 Готовая сборка набора лежит в `node_modules/@simai-studio/view/dist/`:
@@ -82,11 +82,12 @@ npm install @simai-studio/view@1.0.0 @simai-studio/ui@5.20261105.1447
 
 | Набор | Выпуск | Собран над SIMAI Framework | Нужен Core |
 |:---|:---|:---|:---|
+| 1.1.0 | `view-4d7070623fe1` | `ui-62b1d9b6dc8d` (npm `@simai-studio/ui@5.20261105.1447`) | `core.runtime` 1.25.0 или новее |
 | 1.0.0 | `view-9c963d217188` | `ui-62b1d9b6dc8d` (npm `@simai-studio/ui@5.20261105.1447`) | `core.runtime` 1.25.0 или новее |
 
 Строка без версии (`data-sf-sets="view"`) берёт самый новый выпуск набора,
 который подходит к подключённому Core. Для рабочего сайта закрепите версию
-(`data-sf-sets="view@1.0.0"`): обновление станет вашим решением, а не
+(`data-sf-sets="view@1.1.0"`): обновление станет вашим решением, а не
 случайностью. Как переходить на новую версию — в разделе
 [Обновление версий](../upgrading/).
 
