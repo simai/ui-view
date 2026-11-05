@@ -13,8 +13,9 @@ const FAMILY = 'files';
 // sf-view-properties card to read and one to edit. The card talks to a small
 // host (simai.property-view-port): record.load, record.save, field.options for
 // people, records and reference lists, field.upload for files. What the host
-// received on save is shown under the cards. Both hosts format dates with
-// formatFieldValue: the set itself shows a date as it arrives.
+// received on save is shown under the cards. Dates are the set's own: it
+// writes them in the page's language when the host does not format them
+// (view 1.1.0). Both hosts format numbers with formatFieldValue.
 
 const IMAGE = (from, to) => `data:image/svg+xml;utf8,${encodeURIComponent(
   `<svg xmlns="http://www.w3.org/2000/svg" width="320" height="200" viewBox="0 0 320 200"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${from}"/><stop offset="1" stop-color="${to}"/></linearGradient></defs><rect width="320" height="200" fill="url(#g)"/><circle cx="240" cy="70" r="28" fill="#ffffff" fill-opacity=".55"/><path d="M0 170 L90 100 L150 150 L210 110 L320 180 L320 200 L0 200 Z" fill="#ffffff" fill-opacity=".45"/></svg>`)}`;
@@ -123,8 +124,7 @@ const CATALOGUE = {
       [[picture('Зал.svg', '#0f766e', '#334155'), picture('Кухня.svg', '#b45309', '#6d28d9')], [picture('Вход.svg', '#be123c', '#334155')], null]],
   ]},
   color: {label: 'Цвет', fields: [
-    // Full width: the palette does not wrap inside half a row (see the page).
-    [{key: 'tag', label: 'Цвет метки', propertyType: 'color', swatches: SWATCHES, width: 'full'}, ['#0f766e', '#be123c', null]],
+    [{key: 'tag', label: 'Цвет метки', propertyType: 'color', swatches: SWATCHES}, ['#0f766e', '#be123c', null]],
     [{key: 'brand', label: 'Цвет бренда', propertyType: 'color'}, ['#1d4ed8', '#6d28d9', null]],
   ]},
 };
@@ -170,13 +170,9 @@ const cardOf = (record) => ({
   }]}],
 });
 
-const dateOnly = new Intl.DateTimeFormat('ru-RU', {dateStyle: 'long'});
-const dateTime = new Intl.DateTimeFormat('ru-RU', {dateStyle: 'long', timeStyle: 'short'});
 const formatFieldValue = (field, value) => {
   const type = field?.propertyType ?? field?.property_type ?? field?.type;
   if (value == null || value === '') return undefined;
-  if (type === 'date') return dateOnly.format(new Date(`${String(value).slice(0, 10)}T00:00:00`));
-  if (type === 'datetime') return dateTime.format(new Date(value));
   // Numbers in Russian style with the field's precision; the unit is the
   // renderer's and follows.
   if ((type === 'number' || type === 'integer') && typeof value === 'number' && field?.variant !== 'scale') {
