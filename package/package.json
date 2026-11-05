@@ -1,0 +1,36 @@
+{
+  "name": "@simai-studio/view",
+  "version": "1.0.0",
+  "description": "SIMAI View, the component set view of SIMAI Framework: the data view sf-view, the smart table sf-view-table and the record card sf-view-properties.",
+  "private": true,
+  "license": "PolyForm-Small-Business-1.0.0 OR PolyForm-Noncommercial-1.0.0 OR LicenseRef-SIMAI-Commercial",
+  "author": "Rim Zabarov",
+  "homepage": "https://view.simai.io/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/simai/ui-view.git",
+    "directory": "package"
+  },
+  "keywords": [
+    "simai-framework",
+    "component-set",
+    "data-view",
+    "table",
+    "web-components"
+  ],
+  "files": [
+    "dist/",
+    "LICENSE.md"
+  ],
+  "simai": {
+    "set": "view",
+    "base": "dist/smart"
+  },
+  "scripts": {
+    "test": "node scripts/test.mjs",
+    "test:browser": "node scripts/run-browser-probes.mjs",
+    "test:manifest": "node scripts/run-manifest-probes.mjs",
+    "test:first-paint": "node scripts/run-first-paint.mjs",
+    "stage": "node scripts/stage-npm.mjs"
+  }
+}
