@@ -33,15 +33,19 @@ SF.RuleLoader['cl-view-property-block'] = {
     { name: 'cl-list-item' },
     { name: 'cl-spinner' },
     { name: 'cl-slider-range', lazy: true },
-    { name: 'cl-input', lazy: true },
-    { name: 'cl-input-textarea', lazy: true },
-    { name: 'cl-dropdown', lazy: true },
-    { name: 'cl-input-date', lazy: true },
-    { name: 'cl-switch', lazy: true },
-    { name: 'cl-checkbox', lazy: true },
+    // Below, not lazy: the controls a block asking for fields draws at once.
+    // Fetched later, a control drawn by the block stays empty until its code
+    // comes and every field below it moves down (first-paint gate at 390 px,
+    // 2026-11-06); a block in a flow mostly asks, so they come with it.
+    { name: 'cl-input' },
+    { name: 'cl-input-textarea' },
+    { name: 'cl-dropdown' },
+    { name: 'cl-input-date' },
+    { name: 'cl-switch' },
+    { name: 'cl-checkbox' },
     { name: 'cl-button-group', lazy: true },
     // A number with variant stepper.
-    { name: 'cl-input-quantity', lazy: true },
+    { name: 'cl-input-quantity' },
     // An html field edited.
     { name: 'cl-input-rich', lazy: true },
     // A single image shown or replaced.
