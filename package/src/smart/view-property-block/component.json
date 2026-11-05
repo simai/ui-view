@@ -1,0 +1,585 @@
+{
+  "$comment": "sf-view-property-block, standard simai.smart-component 1.4 (vocabulary 1.1.5): properties as a block in a flow. Design: ui-view docs/design/sf-view-property-block.md. The confirm surface (SIMAI Framework helpers/confirm-surface.js) gives the states, the expiry, the answer and expired events and the actions open, answer, confirm and cancel; the field values are sf-view-properties' js/field-value.js over the Framework field renderers.",
+  "id": "smart.view-property-block",
+  "tag": "sf-view-property-block",
+  "version": "1.0.0",
+  "kind": "leaf",
+  "family": "record",
+  "settings": {
+    "mode": {
+      "type": "enum",
+      "values": [
+        "view",
+        "edit"
+      ],
+      "default": "view",
+      "summary": "view: the fields shown, read-only, with no foot. edit: the fields as controls and the answers at the foot (Send, Cancel); after the answer they are shown again, read-only."
+    },
+    "heading": {
+      "type": "string",
+      "default": "",
+      "summary": "The header line; also the block's accessible name. Without one the block is named «Properties»."
+    },
+    "heading-level": {
+      "type": "enum",
+      "values": [
+        "2",
+        "3",
+        "4",
+        "5",
+        "6"
+      ],
+      "default": "3",
+      "summary": "The heading's level where the block is placed."
+    },
+    "fields": {
+      "type": "list",
+      "default": [],
+      "of": {
+        "key": "string",
+        "label": {
+          "type": "string",
+          "optional": true
+        },
+        "propertyType": "string",
+        "value": {
+          "type": "any",
+          "nullable": true,
+          "optional": true
+        },
+        "required": {
+          "type": "boolean",
+          "optional": true
+        },
+        "readonly": {
+          "type": "boolean",
+          "optional": true
+        },
+        "width": {
+          "type": "string",
+          "optional": true
+        },
+        "hint": {
+          "type": "string",
+          "optional": true
+        },
+        "when": {
+          "type": "object",
+          "optional": true
+        }
+      },
+      "x-markup": "the attribute takes the same list as JSON (markup, the Studio); the property wins",
+      "summary": "The field descriptors, sf-view-properties' shape (key, label, propertyType, value, required, readonly, width, hint, options, when ...). JSON in markup; a property set from script wins."
+    },
+    "groups": {
+      "type": "list",
+      "default": [],
+      "of": {
+        "key": "string",
+        "label": {
+          "type": "string",
+          "optional": true
+        },
+        "collapsible": {
+          "type": "boolean",
+          "optional": true
+        },
+        "collapsed": {
+          "type": "boolean",
+          "optional": true
+        },
+        "fields": "list"
+      },
+      "x-markup": "the attribute takes the same list as JSON; the property wins",
+      "summary": "Named groups of field descriptors, each optionally collapsible (collapsible, collapsed). Wins over fields when both are given."
+    },
+    "state": {
+      "type": "enum",
+      "values": [
+        "open",
+        "pending",
+        "accepted",
+        "declined",
+        "expired"
+      ],
+      "default": "open",
+      "summary": "Where the answer is (edit mode). open: the controls and the answers. pending: an answer is on its way (set by a press). accepted: the values sent, read-only. declined, expired: only the outcome."
+    },
+    "expires-at": {
+      "type": "date",
+      "optional": true,
+      "summary": "ISO 8601. Past it an open block reads as expired and says so once with sf-view-property-block-expired."
+    },
+    "block-id": {
+      "type": "id",
+      "default": "",
+      "summary": "The host's name for the block, carried back in every event."
+    },
+    "disabled": {
+      "type": "boolean",
+      "default": false,
+      "summary": "The controls and the answers are shown and cannot be used (an answer is on its way elsewhere in the flow)."
+    },
+    "size": {
+      "type": "enum",
+      "values": [
+        "1",
+        "1/2"
+      ],
+      "default": "1/2",
+      "summary": "The block's size: its text, labels and controls. 1/2 sits in a message."
+    },
+    "cancelable": {
+      "type": "boolean",
+      "default": true,
+      "summary": "Whether Cancel is offered beside Send."
+    },
+    "submit-text": {
+      "type": "string",
+      "default-from": "runtime.submit-text",
+      "summary": "The sending answer; empty is Send in the page's language."
+    },
+    "cancel-text": {
+      "type": "string",
+      "default-from": "runtime.cancel-text",
+      "summary": "The cancelling answer; empty is Cancel in the page's language."
+    },
+    "empty-text": {
+      "type": "string",
+      "default-from": "runtime.empty-text",
+      "summary": "What an empty value reads as."
+    },
+    "required-text": {
+      "type": "string",
+      "default-from": "runtime.required-text",
+      "summary": "Said under a required field left empty when Send is pressed."
+    },
+    "invalid-text": {
+      "type": "string",
+      "default-from": "runtime.invalid-text",
+      "summary": "The status line when Send was stopped by the fields."
+    }
+  },
+  "values": {},
+  "events": {
+    "answer": {
+      "carries": {
+        "id": {
+          "type": "id",
+          "summary": "block-id"
+        },
+        "accepted": "boolean",
+        "values": {
+          "type": "object",
+          "optional": true,
+          "summary": "With accepted true: every shown, editable field's value by key."
+        }
+      },
+      "cancelable": true,
+      "summary": "The person answered (vocabulary answer): Send with the values, or Cancel. Cancel the event to keep the block open."
+    },
+    "expired": {
+      "carries": {
+        "id": {
+          "type": "id",
+          "summary": "block-id"
+        }
+      },
+      "own-verb": true,
+      "summary": "An open block passed expires-at; said once per time."
+    },
+    "open": {
+      "carries": {
+        "id": {
+          "type": "id",
+          "summary": "block-id"
+        },
+        "field": "string",
+        "value": "object"
+      },
+      "summary": "A reference value (a record, a user) was pressed, vocabulary open: {id, field, value}. Following it is the host's."
+    }
+  },
+  "actions": {
+    "open": {
+      "x-outcomes": [
+        "applied",
+        "refused"
+      ],
+      "summary": "Puts the question again (state open); asked by an assembly it answers {accepted, reason, value} when the person answers or the time runs out.",
+      "x-returns": {
+        "type": "object",
+        "description": "{outcome: applied} or {outcome: refused, reason}"
+      }
+    },
+    "answer": {
+      "with": {
+        "accepted": "boolean"
+      },
+      "emits": "answer",
+      "x-outcomes": [
+        "applied",
+        "refused"
+      ],
+      "summary": "Answer as the person would: accepted true sends (after the block's own check of the fields), false cancels. Refused invalid, closed, disabled or prevented.",
+      "x-returns": {
+        "type": "object",
+        "description": "{outcome: applied} or {outcome: refused, reason}"
+      }
+    },
+    "confirm": {
+      "x-outcomes": [
+        "applied",
+        "refused"
+      ],
+      "summary": "Send; data-sf-action=\"<id>.confirm\".",
+      "x-returns": {
+        "type": "object",
+        "description": "{outcome: applied} or {outcome: refused, reason}"
+      }
+    },
+    "cancel": {
+      "x-outcomes": [
+        "applied",
+        "refused"
+      ],
+      "summary": "Cancel; data-sf-action=\"<id>.cancel\".",
+      "x-returns": {
+        "type": "object",
+        "description": "{outcome: applied} or {outcome: refused, reason}"
+      }
+    },
+    "settle": {
+      "with": {
+        "result": "object"
+      },
+      "x-outcomes": [
+        "applied",
+        "refused"
+      ],
+      "summary": "The host's answer to an answer, in the record port's words: {answer: applied, values?} shows the values sent, read-only; {answer: refused, errors?, message?} reopens the block with each error under its field; reason closed or expired closes it.",
+      "x-returns": {
+        "type": "object",
+        "description": "{outcome: applied} or {outcome: refused, reason}"
+      }
+    }
+  },
+  "slots": {
+    "description": {}
+  },
+  "layer": {
+    "kind": "surface",
+    "locks-page": false,
+    "traps-focus": false
+  },
+  "side-effects": [],
+  "keyboard": {
+    "host": {
+      "Tab": "reach",
+      "Enter": "select",
+      "Space": "select"
+    }
+  },
+  "relations": [
+    {
+      "name": "icons"
+    },
+    {
+      "name": "cl-icon",
+      "$comment": [
+        "The status glyph and a collapsible group's chevron are sf-icon; a tag the",
+        "block renders is a tag it fetches."
+      ]
+    },
+    {
+      "name": "cl-button",
+      "$comment": [
+        "Send and Cancel."
+      ]
+    },
+    {
+      "name": "cl-avatar",
+      "$comment": [
+        "Below: what the Framework field renderers draw for a value shown or edited,",
+        "as sf-view-properties fetches them. The block draws every field through",
+        "the renderer set (view-properties/js/field-value.js), so a tag the set",
+        "emits is a tag the block fetches."
+      ]
+    },
+    {
+      "name": "cl-badge"
+    },
+    {
+      "name": "cl-tag"
+    },
+    {
+      "name": "cl-reference-link"
+    },
+    {
+      "name": "cl-progress-scale"
+    },
+    {
+      "name": "cl-file-preview"
+    },
+    {
+      "name": "cl-input-color"
+    },
+    {
+      "name": "cl-input-country"
+    },
+    {
+      "name": "cl-help-mark",
+      "$comment": [
+        "A field's hint beside its label."
+      ]
+    },
+    {
+      "name": "cl-list-item"
+    },
+    {
+      "name": "cl-spinner"
+    },
+    {
+      "name": "cl-slider-range",
+      "lazy": true
+    },
+    {
+      "name": "cl-input",
+      "lazy": true
+    },
+    {
+      "name": "cl-input-textarea",
+      "lazy": true
+    },
+    {
+      "name": "cl-dropdown",
+      "lazy": true
+    },
+    {
+      "name": "cl-input-date",
+      "lazy": true
+    },
+    {
+      "name": "cl-switch",
+      "lazy": true
+    },
+    {
+      "name": "cl-checkbox",
+      "lazy": true
+    },
+    {
+      "name": "cl-button-group",
+      "lazy": true
+    }
+  ],
+  "templates": {
+    "default": {
+      "file": "js/templates/default.js",
+      "$comment": "The Lit template in JavaScript (§5.2)."
+    }
+  },
+  "styles": "js/templates/default.css",
+  "examples": "examples.json",
+  "docs": "docs.md",
+  "lang": "lang/",
+  "accessibility": {
+    "role": "region",
+    "name": {
+      "from": [
+        "heading",
+        "runtime.block-label"
+      ]
+    },
+    "keys": {
+      "Tab": "reach",
+      "Enter": "select",
+      "Space": "select"
+    },
+    "x-keys": "Enter and Space press the focused answer (two native buttons) or a collapsible group's toggle; the controls keep their own keys. No implicit Enter-submits."
+  },
+  "host-states": {
+    "data-state": "string"
+  },
+  "css-variables": {
+    "--sf-view-property-block-radius": {
+      "type": "length",
+      "state": "default"
+    },
+    "--sf-view-property-block-inset": {
+      "type": "length",
+      "state": "default"
+    },
+    "--sf-view-property-block-gap": {
+      "type": "length",
+      "state": "default"
+    },
+    "--sf-view-property-block-background-color": {
+      "type": "color",
+      "state": "default"
+    },
+    "--sf-view-property-block-border-color": {
+      "type": "color",
+      "state": "default"
+    }
+  },
+  "x-summary": "A few properties as a block in a flow (a chat message, a feed, any stream): shows a record's fields, or asks for a few and sends them, then keeps the answer read-only. Fields are sf-view-properties' descriptors drawn by the Framework field renderers; a press is an event, the host answers with settle.",
+  "x-words": [
+    "submit-text",
+    "cancel-text",
+    "empty-text",
+    "required-text",
+    "invalid-text"
+  ],
+  "x-decisions": [
+    "shape: a leaf. It draws its fields through the Framework field renderers (view-properties/js/field-value.js, shared with sf-view-properties), its answers as sf-button and its glyphs as sf-icon.",
+    "reuse: the confirm surface of SIMAI Framework (helpers/confirm-surface.js) is the state machine, the expiry timer, the answer and expired events and the actions open, answer, confirm, cancel; the conditions are sf-view-properties' js/conditions.js; dates the host does not format read through sf-view-table's js/format-value.js. Nothing is copied.",
+    "names: mode view|edit is sf-view-properties' mode (its two values a block can have without a port); state, expires-at, disabled, heading, heading-level are sf-confirm-change's; block-id is the question's name as change-id and confirm-id are.",
+    "events: answer {id, accepted, values} (vocabulary answer; values only with accepted true: every shown, editable field, the whole answer); expired {id} (a fact, own verb); open {id, field, value} for a reference pressed.",
+    "the host's answer: settle {answer, errors, message, values} in the record port's words; or the state attribute set directly.",
+    "layer: a surface drawn in place, neither locking the page nor trapping focus; no side effects, no network.",
+    "a11y-name: the heading when there is one, else the runtime word block-label («Данные»); the description slot is a description, never the name."
+  ],
+  "x-rule": {
+    "$comment": [
+      "The block draws its answers as sf-button, its glyphs as sf-icon, and every",
+      "field through the Framework field renderers: the relations are those, as",
+      "sf-view-properties fetches them, less what only the record component draws",
+      "(the drawer, the tree, the arranging, the related lists)."
+    ]
+  },
+  "x-registry": {
+    "capabilities": [
+      "field-renderers",
+      "confirmation",
+      "expiry",
+      "live-announcement"
+    ],
+    "persistence": {
+      "mode": "none",
+      "source_of_truth": "host",
+      "network_owner": "host",
+      "revision_field": null
+    },
+    "readiness": {
+      "level": "host-required",
+      "required_checks": [
+        "manifest",
+        "loader-rule",
+        "property-block-contract",
+        "property-block-browser"
+      ]
+    },
+    "tags": [
+      "record",
+      "properties",
+      "form",
+      "chat",
+      "feed"
+    ],
+    "contracts": {
+      "field": {
+        "const": "The field descriptor of simai.property-view-port (sf-view-properties): key, label, propertyType, value, required, readonly, width (half|full), hint, placeholder, options, min, max, step, unit, variant, multiple, mask, when."
+      },
+      "answers": {
+        "const": "Send checks the required fields and the controls' own entries, moves the block to pending and dispatches sf-view-property-block-answer {id, accepted: true, values} (cancelable; a cancelled event reopens it). Cancel dispatches {id, accepted: false}. The host answers with settle({answer: applied|refused, errors, message, values}) or sets state."
+      },
+      "slots": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string",
+            "description": "A line under the heading."
+          }
+        }
+      }
+    },
+    "state": {
+      "machines": {
+        "answer": [
+          "open",
+          "pending",
+          "accepted",
+          "declined",
+          "expired"
+        ]
+      },
+      "visual_states": [
+        "default",
+        "loading",
+        "success",
+        "error",
+        "disabled"
+      ]
+    },
+    "artifacts": {
+      "fixtures": [],
+      "scenarios": []
+    },
+    "ownership": {
+      "source": "simai/ui-view",
+      "data": "host",
+      "effects": "host",
+      "forbidden_client_responsibilities": [
+        "saving the values",
+        "validating beyond required fields and the controls' own entries",
+        "access decisions"
+      ]
+    },
+    "security": {
+      "permissions_owner": "host",
+      "untrusted_inputs": [
+        "heading, labels and values (drawn by the field renderers as text)"
+      ],
+      "network_policy": "deny"
+    },
+    "presentation": {
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "locales": [
+        "en",
+        "ru"
+      ],
+      "responsive": [
+        "desktop",
+        "mobile"
+      ],
+      "skeleton": {
+        "shape": "none",
+        "while_loading": "none"
+      }
+    },
+    "ai_guidance": {
+      "use_when": "Use sf-view-property-block for a few properties inside a flow: an assistant's answer showing a record, or asking the person to fill in a few fields and send them. For a record on a page or in a panel use sf-view-properties.",
+      "do_not": [
+        "Do not save in the element; answer the answer event and call settle",
+        "Do not leave the block pending: settle it, or set state",
+        "Do not send markup in labels or values"
+      ],
+      "required_reads": [
+        "inputs",
+        "contracts",
+        "events",
+        "accessibility"
+      ],
+      "minimal_example": "<sf-view-property-block mode=\"edit\" heading=\"Командировка\" block-id=\"b1\" fields='[{\"key\":\"city\",\"label\":\"Город\",\"propertyType\":\"string\",\"required\":true}]'></sf-view-property-block>",
+      "owner_commands": [
+        "node scripts/test.mjs",
+        "node scripts/run-browser-probes.mjs <free> <set build>"
+      ]
+    },
+    "accessibility": {
+      "accessible_name": "internal",
+      "focus": "A section named by its heading (role=heading at heading-level). The status line is a polite live region, present before it speaks; when the answers go, focus moves to it; when Send is stopped or refused, to the first field in error."
+    },
+    "compatibility": {
+      "migrations": []
+    },
+    "inputs": {
+      "template": {
+        "const": "default"
+      }
+    }
+  }
+}

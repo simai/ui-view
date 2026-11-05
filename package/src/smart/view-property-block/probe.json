@@ -1,0 +1,149 @@
+{
+  "component": "sf-view-property-block",
+  "probe": "sf-view-property-block against component.json (standard simai.smart-component 1.4 §12, gate 20)",
+  "format": "stands/15-scenarios (A4 modal: a page, probes in steps); the runner is ui-source tests/browser/manifest-probes.browser.mjs, run for the package by scripts/run-manifest-probes.mjs",
+  "page": {
+    "lang": "ru",
+    "body": [
+      "<main>",
+      "  <sf-view-property-block id=\"b\" mode=\"edit\" heading=\"Новая командировка\" block-id=\"b1\" fields='[{\"key\": \"city\", \"label\": \"Город\", \"propertyType\": \"string\", \"width\": \"half\", \"required\": true, \"placeholder\": \"Куда\", \"value\": null}, {\"key\": \"from\", \"label\": \"Выезд\", \"propertyType\": \"date\", \"width\": \"half\", \"required\": true, \"value\": null}, {\"key\": \"nights\", \"label\": \"Ночей\", \"propertyType\": \"integer\", \"width\": \"half\", \"value\": 2}, {\"key\": \"goal\", \"label\": \"Цель поездки\", \"propertyType\": \"text\", \"width\": \"full\", \"placeholder\": \"Например, встреча с заказчиком\", \"value\": null}]'></sf-view-property-block>",
+      "  <sf-view-property-block id=\"c\" mode=\"edit\" block-id=\"b2\" cancelable=\"false\" fields='[{\"key\": \"nights\", \"label\": \"Ночей\", \"propertyType\": \"integer\", \"width\": \"half\", \"value\": 2}]'></sf-view-property-block>",
+      "  <button id=\"page-send\" type=\"button\" data-sf-action=\"c.confirm\">Отправить</button>",
+      "</main>"
+    ]
+  },
+  "probes": [
+    {
+      "id": "p1-required-stops-send",
+      "title": "Send with the required fields empty sends nothing: each says «Заполните поле», the status line «Заполните отмеченные поля», and the block stays open",
+      "covers": "actions.confirm refused invalid, required, accessibility.name heading",
+      "steps": [
+        {
+          "script": "(document.activeElement?.blur?.(), true)",
+          "wait": 60,
+          "check": "document.querySelector('#b section').getAttribute('aria-labelledby') === document.querySelector('#b [role=heading]').id"
+        },
+        {
+          "action": {
+            "name": "confirm"
+          },
+          "target": "#b",
+          "wait": 120,
+          "expect": {
+            "returns": {
+              "outcome": "refused",
+              "reason": "invalid"
+            },
+            "events": [
+              {
+                "name": "sf-view-property-block-answer",
+                "count": 0
+              }
+            ]
+          },
+          "check": "document.querySelector('#b').state === 'open' && document.querySelectorAll('#b .sf-view-property-block__error').length === 2 && document.querySelector('#b .sf-view-property-block__status span').textContent.trim() === 'Заполните отмеченные поля'"
+        }
+      ]
+    },
+    {
+      "id": "p2-cancel",
+      "title": "Cancel answers {id, accepted: false}; the block is pending, then declined when the host settles it, and shows only «Отменено»",
+      "covers": "actions.cancel, events.answer, actions.settle",
+      "steps": [
+        {
+          "action": {
+            "name": "cancel"
+          },
+          "target": "#b",
+          "expect": {
+            "returns": {
+              "outcome": "applied"
+            },
+            "events": [
+              {
+                "name": "sf-view-property-block-answer",
+                "count": 1,
+                "detail": {
+                  "id": "b1",
+                  "accepted": false
+                }
+              }
+            ]
+          },
+          "check": "document.querySelector('#b').state === 'pending'"
+        },
+        {
+          "action": {
+            "name": "settle",
+            "with": {
+              "result": {
+                "answer": "applied"
+              }
+            }
+          },
+          "target": "#b",
+          "wait": 120,
+          "expect": {
+            "returns": {
+              "outcome": "applied"
+            }
+          },
+          "check": "document.querySelector('#b').state === 'declined' && !document.querySelector('#b .sf-view-property-block__groups') && document.querySelector('#b .sf-view-property-block__status span').textContent.trim() === 'Отменено'"
+        }
+      ]
+    },
+    {
+      "id": "p3-page-trigger-send",
+      "title": "a page button data-sf-action=\"c.confirm\" sends the untitled block with its values; without Cancel there is one answer; the block is named «Данные»",
+      "covers": "actions.confirm (§8 page trigger), cancelable false, accessibility.name runtime.block-label",
+      "steps": [
+        {
+          "script": "(document.activeElement?.blur?.(), true)",
+          "wait": 60,
+          "check": "document.querySelectorAll('#c sf-button').length === 1 && document.querySelector('#c section').getAttribute('aria-label') === 'Данные'"
+        },
+        {
+          "user": "click:#page-send",
+          "expect": {
+            "events": [
+              {
+                "name": "sf-view-property-block-answer",
+                "count": 1,
+                "detail": {
+                  "id": "b2",
+                  "accepted": true,
+                  "values": {
+                    "nights": 2
+                  }
+                }
+              }
+            ]
+          },
+          "check": "document.querySelector('#c').state === 'pending'"
+        }
+      ]
+    },
+    {
+      "id": "p4-expired",
+      "title": "an open block past expires-at reads as expired, says sf-view-property-block-expired once and offers no answer",
+      "covers": "events.expired (own verb)",
+      "steps": [
+        {
+          "script": "(document.querySelector('#c').state = 'open', document.querySelector('#c').setAttribute('expires-at', '2020-01-01T00:00:00Z'), true)",
+          "expect": {
+            "events": [
+              {
+                "name": "sf-view-property-block-expired",
+                "count": 1,
+                "detail": {
+                  "id": "b2"
+                }
+              }
+            ]
+          },
+          "check": "document.querySelector('#c').shownState === 'expired' && document.querySelector('#c .sf-view-property-block__actions').hidden"
+        }
+      ]
+    }
+  ]
+}

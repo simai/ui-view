@@ -87,7 +87,10 @@ test('the passport lists every component of the set and only them', {skip: !setR
     const relations = [...rule.matchAll(/\{ name: '(cl-[a-z0-9-]+)'/gu)].map((match) => match[1]).filter((name) => name !== component.rule);
     assert.deepEqual([...component.requires].sort(), [...new Set(relations)].sort(), `${component.element}: requires is the rule's relations`);
     // A former tag is the one aliases.json dates, with the same dates.
-    const dated = json(new URL('aliases.json', where)).aliases.filter((alias) => alias.kind === 'tag');
+    // A component with no former names has no aliases.json (the generator writes
+    // one only for an aliases block): it has no former tag either.
+    const aliasFile = new URL('aliases.json', where);
+    const dated = (existsSync(aliasFile) ? json(aliasFile).aliases : []).filter((alias) => alias.kind === 'tag');
     assert.deepEqual((component.element_aliases ?? []).map(({from, since, remove_after: removeAfter}) => ({from, since, removeAfter})),
       dated.map(({from, since, remove_after: removeAfter}) => ({from, since, removeAfter})));
   }

@@ -20,7 +20,7 @@ const root = resolve(import.meta.dirname, '..');
 
 // The package folders in the 1.4 form: every generated file is byte for byte
 // what the generator writes.
-const PHASE_A = ['view', 'view-properties', 'view-table'];
+const PHASE_A = ['view', 'view-properties', 'view-property-block', 'view-table'];
 
 // The package folders still in the 1.3 form: the five files the generator
 // already gives back (rule.js, aliases.json, the fixture, the scenario,

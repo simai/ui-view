@@ -34,7 +34,7 @@ const PENDING = {};
 // holds src/, tests/ and docs/ of this repository, not its scripts).
 // The renamed ones (rename plan R2, 2026-11-03) have their earlier former
 // names recorded with their tag record (tag-sf-table-to-sf-view-table, ...).
-const packageFolders = ['view', 'view-properties', 'view-table'];
+const packageFolders = ['view', 'view-properties', 'view-property-block', 'view-table'];
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/u;
 

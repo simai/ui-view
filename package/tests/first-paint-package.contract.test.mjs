@@ -15,7 +15,7 @@ import {fillSkeleton} from '../scripts/first-paint-skeleton.mjs';
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const smart = join(root, 'src', 'smart');
 // The set's folders (set.json components[].folder).
-const PACKAGE = ['view', 'view-properties', 'view-table'];
+const PACKAGE = ['view', 'view-properties', 'view-property-block', 'view-table'];
 const inner = (html, tag) => html.replace(/<!--[\s\S]*?-->\n?/gu, '').trim()
   .replace(new RegExp(`^<${tag}[^>]*>`, 'u'), '').replace(new RegExp(`</${tag}>$`, 'u'), '')
   .replace(/>\s+</gu, '><').trim();

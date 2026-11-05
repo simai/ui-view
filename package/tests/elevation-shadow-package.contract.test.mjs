@@ -11,7 +11,7 @@ import {resolve} from 'node:path';
 const root = resolve(import.meta.dirname, '..');
 const read = (path) => readFileSync(resolve(root, path), 'utf8');
 // The set's folders (set.json components[].folder).
-const PACKAGE = ['view', 'view-properties', 'view-table'];
+const PACKAGE = ['view', 'view-properties', 'view-property-block', 'view-table'];
 const exemptions = [
 ];
 
