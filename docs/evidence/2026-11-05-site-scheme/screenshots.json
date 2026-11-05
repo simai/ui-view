@@ -1,0 +1,1132 @@
+{
+ "base": "https://ui-view.test/",
+ "shots": [
+  {
+   "page": "ru/",
+   "tab": "Заказы",
+   "width": 1280,
+   "scheme": "light",
+   "file": "home-1-1280-light.png",
+   "panel": {
+    "visible": true,
+    "rows": 25,
+    "text": " filter_list Фильтр search Настройки Заказ unfold_more Создан unfold_more Покупатель unfold_more Город unfold_more Товар"
+   },
+   "elements": [
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": true
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 25
+    },
+    {
+     "tag": "sf-view-properties",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 7
+    },
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 7
+    },
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 7
+    }
+   ],
+   "errors": []
+  },
+  {
+   "page": "ru/",
+   "tab": "Сотрудники",
+   "width": 1280,
+   "scheme": "light",
+   "file": "home-2-1280-light.png",
+   "panel": {
+    "visible": true,
+    "rows": 24,
+    "text": " search Создать settings Сотрудник unfold_more Должность unfold_more Отдел unfold_more Город unfold_more В компании с un"
+   },
+   "elements": [
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 25
+    },
+    {
+     "tag": "sf-view-properties",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 24
+    },
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 7
+    },
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 7
+    }
+   ],
+   "errors": []
+  },
+  {
+   "page": "ru/",
+   "tab": "Склад",
+   "width": 1280,
+   "scheme": "light",
+   "file": "home-3-1280-light.png",
+   "panel": {
+    "visible": true,
+    "rows": 25,
+    "text": " filter_list Фильтр search Настройки Товар unfold_more Артикул unfold_more Категория unfold_more Склад unfold_more Остат"
+   },
+   "elements": [
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 25
+    },
+    {
+     "tag": "sf-view-properties",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 24
+    },
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": true
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 25
+    },
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 7
+    }
+   ],
+   "errors": []
+  },
+  {
+   "page": "ru/",
+   "tab": "Задачи",
+   "width": 1280,
+   "scheme": "light",
+   "file": "home-4-1280-light.png",
+   "panel": {
+    "visible": true,
+    "rows": 25,
+    "text": " filter_list Фильтр search Настройки Задача unfold_more Исполнитель unfold_more Приоритет unfold_more Срок unfold_more С"
+   },
+   "elements": [
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 25
+    },
+    {
+     "tag": "sf-view-properties",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 24
+    },
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 25
+    },
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": true
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 25
+    }
+   ],
+   "errors": []
+  },
+  {
+   "page": "ru/guide/quick-start/",
+   "width": 1280,
+   "scheme": "light",
+   "file": "quick-start-1280-light.png",
+   "elements": [
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 5
+    }
+   ],
+   "errors": []
+  },
+  {
+   "page": "ru/guide/recipes/selection-and-bulk-actions/",
+   "width": 1280,
+   "scheme": "light",
+   "file": "recipe-bulk-actions-1280-light.png",
+   "elements": [
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": true
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 14
+    }
+   ],
+   "errors": []
+  },
+  {
+   "page": "ru/components/views/view-table/",
+   "width": 1280,
+   "scheme": "light",
+   "file": "reference-view-table-1280-light.png",
+   "elements": [
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 5
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 4
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 3
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 3
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 3
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 3
+    }
+   ],
+   "errors": []
+  },
+  {
+   "page": "ru/",
+   "tab": "Заказы",
+   "width": 390,
+   "scheme": "light",
+   "file": "home-1-390-light.png",
+   "panel": {
+    "visible": true,
+    "rows": 25,
+    "text": " search filter_list swap_vert № 10468 Создан 3 нояб. 2026 г., 21:11 Покупатель Никита Фёдоров Город Нижний Новгород menu"
+   },
+   "elements": [
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": true
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 25
+    },
+    {
+     "tag": "sf-view-properties",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 7
+    },
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 7
+    },
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 7
+    }
+   ],
+   "errors": []
+  },
+  {
+   "page": "ru/",
+   "tab": "Сотрудники",
+   "width": 390,
+   "scheme": "light",
+   "file": "home-2-390-light.png",
+   "panel": {
+    "visible": true,
+    "rows": 24,
+    "text": " search swap_vert add Анна Белова Должность Руководитель проектов Отдел Проекты menu Илья Орлов Должность Ведущий разраб"
+   },
+   "elements": [
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 25
+    },
+    {
+     "tag": "sf-view-properties",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 24
+    },
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 7
+    },
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 7
+    }
+   ],
+   "errors": []
+  },
+  {
+   "page": "ru/",
+   "tab": "Склад",
+   "width": 390,
+   "scheme": "light",
+   "file": "home-3-390-light.png",
+   "panel": {
+    "visible": true,
+    "rows": 25,
+    "text": " search filter_list swap_vert Ноутбук Остаток, шт. 0 Склад Подольск Артикул EL-01000 menu Монитор 27″ Остаток, шт. 53 Ск"
+   },
+   "elements": [
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 25
+    },
+    {
+     "tag": "sf-view-properties",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 24
+    },
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": true
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 25
+    },
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 7
+    }
+   ],
+   "errors": []
+  },
+  {
+   "page": "ru/",
+   "tab": "Задачи",
+   "width": 390,
+   "scheme": "light",
+   "file": "home-4-390-light.png",
+   "panel": {
+    "visible": true,
+    "rows": 25,
+    "text": " search filter_list swap_vert Подготовить отчёт за квартал Исполнитель Анна Белова Срок 3 нояб. 2026 г. Приоритет Обычны"
+   },
+   "elements": [
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 25
+    },
+    {
+     "tag": "sf-view-properties",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 24
+    },
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 25
+    },
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": true
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 25
+    }
+   ],
+   "errors": []
+  },
+  {
+   "page": "ru/guide/quick-start/",
+   "width": 390,
+   "scheme": "light",
+   "file": "quick-start-390-light.png",
+   "elements": [
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 5
+    }
+   ],
+   "errors": []
+  },
+  {
+   "page": "ru/guide/recipes/selection-and-bulk-actions/",
+   "width": 390,
+   "scheme": "light",
+   "file": "recipe-bulk-actions-390-light.png",
+   "elements": [
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": true
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 14
+    }
+   ],
+   "errors": []
+  },
+  {
+   "page": "ru/components/views/view-table/",
+   "width": 390,
+   "scheme": "light",
+   "file": "reference-view-table-390-light.png",
+   "elements": [
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 5
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 4
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 3
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 3
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 3
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 3
+    }
+   ],
+   "errors": []
+  },
+  {
+   "page": "ru/",
+   "tab": "Заказы",
+   "width": 1280,
+   "scheme": "dark",
+   "file": "home-1-1280-dark.png",
+   "panel": {
+    "visible": true,
+    "rows": 25,
+    "text": " filter_list Фильтр search Настройки Заказ unfold_more Создан unfold_more Покупатель unfold_more Город unfold_more Товар"
+   },
+   "elements": [
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": true
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 25
+    },
+    {
+     "tag": "sf-view-properties",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 7
+    },
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 7
+    },
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 7
+    }
+   ],
+   "errors": []
+  },
+  {
+   "page": "ru/",
+   "tab": "Сотрудники",
+   "width": 1280,
+   "scheme": "dark",
+   "file": "home-2-1280-dark.png",
+   "panel": {
+    "visible": true,
+    "rows": 24,
+    "text": " search Создать settings Сотрудник unfold_more Должность unfold_more Отдел unfold_more Город unfold_more В компании с un"
+   },
+   "elements": [
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 25
+    },
+    {
+     "tag": "sf-view-properties",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 24
+    },
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 7
+    },
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 7
+    }
+   ],
+   "errors": []
+  },
+  {
+   "page": "ru/",
+   "tab": "Склад",
+   "width": 1280,
+   "scheme": "dark",
+   "file": "home-3-1280-dark.png",
+   "panel": {
+    "visible": true,
+    "rows": 25,
+    "text": " filter_list Фильтр search Настройки Товар unfold_more Артикул unfold_more Категория unfold_more Склад unfold_more Остат"
+   },
+   "elements": [
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 25
+    },
+    {
+     "tag": "sf-view-properties",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 24
+    },
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": true
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 25
+    },
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 7
+    }
+   ],
+   "errors": []
+  },
+  {
+   "page": "ru/",
+   "tab": "Задачи",
+   "width": 1280,
+   "scheme": "dark",
+   "file": "home-4-1280-dark.png",
+   "panel": {
+    "visible": true,
+    "rows": 25,
+    "text": " filter_list Фильтр search Настройки Задача unfold_more Исполнитель unfold_more Приоритет unfold_more Срок unfold_more С"
+   },
+   "elements": [
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 25
+    },
+    {
+     "tag": "sf-view-properties",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 24
+    },
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 25
+    },
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": true
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 25
+    }
+   ],
+   "errors": []
+  },
+  {
+   "page": "ru/",
+   "tab": "Заказы",
+   "width": 390,
+   "scheme": "dark",
+   "file": "home-1-390-dark.png",
+   "panel": {
+    "visible": true,
+    "rows": 25,
+    "text": " search filter_list swap_vert № 10468 Создан 3 нояб. 2026 г., 21:11 Покупатель Никита Фёдоров Город Нижний Новгород menu"
+   },
+   "elements": [
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": true
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 25
+    },
+    {
+     "tag": "sf-view-properties",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 7
+    },
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 7
+    },
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 7
+    }
+   ],
+   "errors": []
+  },
+  {
+   "page": "ru/",
+   "tab": "Сотрудники",
+   "width": 390,
+   "scheme": "dark",
+   "file": "home-2-390-dark.png",
+   "panel": {
+    "visible": true,
+    "rows": 24,
+    "text": " search swap_vert add Анна Белова Должность Руководитель проектов Отдел Проекты menu Илья Орлов Должность Ведущий разраб"
+   },
+   "elements": [
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 25
+    },
+    {
+     "tag": "sf-view-properties",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 24
+    },
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 7
+    },
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 7
+    }
+   ],
+   "errors": []
+  },
+  {
+   "page": "ru/",
+   "tab": "Склад",
+   "width": 390,
+   "scheme": "dark",
+   "file": "home-3-390-dark.png",
+   "panel": {
+    "visible": true,
+    "rows": 25,
+    "text": " search filter_list swap_vert Ноутбук Остаток, шт. 0 Склад Подольск Артикул EL-01000 menu Монитор 27″ Остаток, шт. 53 Ск"
+   },
+   "elements": [
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 25
+    },
+    {
+     "tag": "sf-view-properties",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 24
+    },
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": true
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 25
+    },
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 7
+    }
+   ],
+   "errors": []
+  },
+  {
+   "page": "ru/",
+   "tab": "Задачи",
+   "width": 390,
+   "scheme": "dark",
+   "file": "home-4-390-dark.png",
+   "panel": {
+    "visible": true,
+    "rows": 25,
+    "text": " search filter_list swap_vert Подготовить отчёт за квартал Исполнитель Анна Белова Срок 3 нояб. 2026 г. Приоритет Обычны"
+   },
+   "elements": [
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 25
+    },
+    {
+     "tag": "sf-view-properties",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 24
+    },
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": false
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 25
+    },
+    {
+     "tag": "sf-view",
+     "defined": true,
+     "visible": true
+    },
+    {
+     "tag": "sf-view-table",
+     "defined": true,
+     "visible": false,
+     "rows": 25
+    }
+   ],
+   "errors": []
+  }
+ ],
+ "reloads": [
+  {
+   "round": 1,
+   "url": "https://ui-view.test/ru/",
+   "elements": 8,
+   "undefined": 0,
+   "errors": []
+  },
+  {
+   "round": 2,
+   "url": "https://ui-view.test/ru/",
+   "elements": 8,
+   "undefined": 0,
+   "errors": []
+  },
+  {
+   "round": 3,
+   "url": "https://ui-view.test/ru/",
+   "elements": 8,
+   "undefined": 0,
+   "errors": []
+  }
+ ]
+}
