@@ -14,6 +14,10 @@
 # copy the frames also get allow-same-origin: they then run as the site's own
 # origin, which the local host serves. The examples are this repository's own
 # code. The build itself, and anything deployed from it, keeps Docara's sandbox.
+#
+# The copy's home page also gets the connection line in its hero and its live
+# example without code tabs (scripts/landing-transform.mjs, Docara requests 9,
+# 14 and 15).
 set -euo pipefail
 
 SITE="$(cd "$(dirname "$0")/.." && pwd)"
@@ -34,4 +38,6 @@ if [ "$changed" != "$expected" ] || [ "$left" != "0" ]; then
   echo "frame rewrite mismatch: expected $expected, changed $changed, left $left" >&2
   exit 1
 fi
+# The home page's hero line and clean example (see scripts/landing-transform.mjs).
+node "$SITE/scripts/landing-transform.mjs" "$TARGET"
 echo "published $(find "$TARGET" -type f | wc -l | tr -d ' ' || true) files to $TARGET ($changed example frames opened for the local host)"

@@ -52,7 +52,9 @@ belongs to its own thread; nothing here was written in simai/docara.
 9. **A copyable code line in the hero.** `:::hero` takes two links and one or
    two paragraphs; the scheme puts the one-line connection
    (`data-sf-sets="view"`) under the buttons. Workaround: a code block right
-   after the hero. Wanted: a hero `code` slot with the copy button.
+   after the hero, moved into the hero under the buttons by
+   `site/scripts/landing-transform.mjs` in the local review copy only (see
+   15). Wanted: a hero `code` slot with the copy button.
 10. **A site footer.** Version, Framework compatibility, licence and links at
     the foot of the home page have no Docara block. Workaround: `:::surface`
     with a grid of four plain cards. Wanted: a footer configured once in
@@ -73,3 +75,21 @@ belongs to its own thread; nothing here was written in simai/docara.
     has its own generator for the same job. Wanted: the set template (6)
     absorbs it — a `:::reference {component=sf-view-table}` block or a build
     step, with the dictionary as locale data and a check for drift.
+14. **An example without its code tabs.** A showcase on a landing wants the
+    live screen alone; `:::example` always draws the result and source tabs
+    (HTML, CSS, JavaScript) and the toolbar, with no setting to drop them
+    (`examples` settings know only `fullscreen` and `wrap`). Workaround:
+    `site/scripts/landing-transform.mjs` hides the header in the local
+    review copy, and the same example with its code is on the guide page
+    `guide/showcase/`, linked as «Код примера». Wanted:
+    `:::example {sources=false}` (or `chrome=none`).
+15. **Page transforms that change the body fail verify-static.**
+    `page_transforms` run after the pages are written, but each page's
+    Framework asset plan (`framework.shell.plans`, with `preload.html_sha256`
+    of the body outside `pre`/`code`/`script`/`style`) is not recomputed, so
+    verify-static reports `@framework-asset-projection: Generated Framework
+    page asset plan [ru/index.html] does not match final HTML` for any
+    transform that edits markup. Only transforms that touch code blocks pass.
+    Workaround: the home-page transform runs on the local review copy, not
+    in the build. Wanted: recompute the shell plans after the transforms (the
+    builder already republishes the vendor assets there).

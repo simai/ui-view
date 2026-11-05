@@ -29,6 +29,11 @@ node site/scripts/evidence.mjs <site URL> docs/evidence/<date>
 ```
 
 - `content/ru/` — the pages; `examples/` — the live examples.
+- `scripts/landing-transform.mjs` — puts the connection line into the home
+  page's hero and hides the code tabs of its live example. It runs on the
+  local review copy (`publish-local.sh`), not in the verified build: Docara
+  requests 9, 14 and 15. A public deployment needs those requests or the
+  same step in its pipeline, with verify-static run before it.
 - `config/reference.ru.json` — Russian for every manifest string the
   reference shows (`css:<variable>` keys for CSS variables). The generator
   reads the manifests at the commit the set receipt names, not the working
