@@ -1,7 +1,7 @@
-// Four screens built only from SIMAI View and SIMAI Framework components, one
-// per tab. Each "application" is a few lines of JavaScript over an array; a
-// real page answers the same intents from its server. A screen starts the
-// first time its tab is shown.
+// The views of SIMAI View, one per tab: a table, a card, a table with the card
+// of the open row, and cards inside a stream of messages. Each "application"
+// is a few lines of JavaScript over an array; a real page answers the same
+// intents from its server. A screen starts the first time its tab is shown.
 const pause = (ms = 200) => new Promise((resolve) => setTimeout(resolve, ms));
 const money = new Intl.NumberFormat('ru-RU');
 const dateTime = new Intl.DateTimeFormat('ru-RU', {dateStyle: 'medium', timeStyle: 'short'});
@@ -15,8 +15,9 @@ const answerPage = (rows, query, {columns, text, rowActions = [], actions = () =
   const [order] = query.sort;
   if (order) {
     const sign = order.direction === 'desc' ? -1 : 1;
-    found = [...found].sort((a, b) => (typeof a[order.key] === 'number' ? a[order.key] - b[order.key]
-      : String(a[order.key]).localeCompare(String(b[order.key]), 'ru')) * sign);
+    const value = (row) => (row[order.key] && typeof row[order.key] === 'object' ? row[order.key].label : row[order.key]);
+    found = [...found].sort((a, b) => (typeof value(a) === 'number' ? value(a) - value(b)
+      : String(value(a) ?? '').localeCompare(String(value(b) ?? ''), 'ru')) * sign);
   }
   const start = (query.page - 1) * query.per_page;
   return {
@@ -63,120 +64,6 @@ const ORDER_COLUMNS = [
   {key: 'status', label: 'Состояние', property_type: 'choice', options: ORDER_STATUS},
 ];
 
-const orderCard = (order) => ({
-  answer: 'applied',
-  record: {
-    record_id: order.id,
-    collection: 'shop.orders',
-    revision: Number(order.revision),
-    label: `Заказ ${order.number}`,
-    sections: [{key: 'main', label: 'Заказ', groups: [
-      {key: 'order', label: 'Заказ', columns: 2, fields: [
-        {key: 'status', label: 'Состояние', propertyType: 'choice', width: 'half', value: order.status, options: ORDER_STATUS.map(({value, label}) => ({value, label}))},
-        {key: 'created', label: 'Создан', propertyType: 'date', width: 'half', value: order.created_at.slice(0, 10)},
-        {key: 'items', label: 'Товаров', propertyType: 'number', width: 'half', value: order.items},
-        {key: 'amount', label: 'Сумма, ₽', propertyType: 'string', width: 'half', value: money.format(order.amount)},
-      ]},
-      {key: 'delivery', label: 'Доставка', columns: 2, fields: [
-        {key: 'buyer', label: 'Покупатель', propertyType: 'string', width: 'half', value: order.buyer},
-        {key: 'city', label: 'Город', propertyType: 'string', width: 'half', value: order.city},
-        {key: 'delivery', label: 'Способ', propertyType: 'choice', width: 'half', value: order.delivery, options: DELIVERY},
-        {key: 'comment', label: 'Комментарий', propertyType: 'text', width: 'full', value: order.items > 4 ? 'Крупный заказ: позвонить перед доставкой.' : ''},
-      ]},
-    ]}],
-  },
-});
-
-const startOrders = (root) => {
-  const view = root.querySelector('#orders-view');
-  const card = root.querySelector('#order-card');
-  // The card is in the page only while an order is open: a closed panel
-  // still draws its drawer's edge, the close button among it, over the list.
-  const home = card.parentElement;
-  card.remove();
-  const log = root.querySelector('[data-log]');
-  let status = '';
-
-  view.setHostPort({
-    version: '1.12.0',
-    capabilities: ['row-actions'],
-    async raise(intent, payload) {
-      await pause();
-      if (intent === 'query.change') {
-        const rows = ORDERS.filter((order) => !status || order.status === status);
-        return {answer: 'applied', sequence: payload.sequence, data: answerPage(rows, payload.query, {
-          columns: ORDER_COLUMNS,
-          text: (order) => `${order.number} ${order.buyer} ${order.city}`,
-          rowActions: [{id: 'ship', label: 'Отгрузить', icon: 'local_shipping'}],
-          actions: (order) => (order.status === 'new' || order.status === 'assembly' ? ['view', 'ship'] : ['view']),
-        })};
-      }
-      if (intent === 'record.open') {
-        const order = ORDERS.find((item) => String(item.id) === String(payload.record_ids[0]));
-        if (order) {
-          // The card opens as a panel beside the list; the list keeps the
-          // whole width while no order is open.
-          card.setAttribute('record-id', order.id);
-          card.setAttribute('panel-label', order.number);
-          card.hidden = false;
-          card.setAttribute('open', 'true');
-          if (!card.isConnected) home.append(card);
-        }
-        return {answer: 'applied'};
-      }
-      if (intent === 'record.mutate' && payload.action_id === 'ship') {
-        const changed = ORDERS.filter((order) => payload.record_ids.map(String).includes(String(order.id)));
-        changed.forEach((order) => { order.status = 'shipped'; order.revision = String(Number(order.revision) + 1); });
-        log.textContent = `Отгружено: ${changed.map((order) => order.number).join(', ')}`;
-        if (card.isConnected && changed.some((order) => order.id === card.getAttribute('record-id'))) card.refresh?.();
-        return {answer: 'applied', data: {records: changed.map((order) => ({...order, actions: ['view']}))}};
-      }
-      return {answer: 'unavailable', reason: 'capability-not-provided'};
-    },
-    formatFieldValue(field, value) {
-      if ((field?.property_type ?? field?.type) === 'datetime') return value ? dateTime.format(new Date(value)) : '';
-      if (field?.key === 'amount' && typeof value === 'number') return money.format(value);
-      return undefined;
-    },
-  });
-
-  card.setHostPort({
-    version: '1.7.0',
-    capabilities: [],
-    async raise(intent, payload) {
-      const order = ORDERS.find((item) => item.id === (payload?.record_id ?? card.getAttribute('record-id')));
-      if (!order) return {answer: 'refused', reason: 'not-found'};
-      if (intent === 'record.load') return orderCard(order);
-      if (intent === 'group.save') {
-        for (const [key, value] of Object.entries(payload?.values ?? {})) if (key in order && key !== 'amount') order[key] = value;
-        order.revision = String(Number(order.revision) + 1);
-        view.refresh();
-        return orderCard(order);
-      }
-      return {answer: 'unavailable', reason: 'unknown-intent'};
-    },
-  });
-
-  // Closing is the page's decision: nothing unsaved is kept here, so it closes.
-  card.addEventListener('sf-view-properties-close', () => {
-    card.setAttribute('open', 'false');
-    card.remove();
-  });
-
-  root.querySelector('[data-status-filter]').addEventListener('click', (event) => {
-    const button = event.target.closest('[data-status]');
-    if (!button) return;
-    status = button.dataset.status;
-    root.querySelectorAll('[data-status]').forEach((item) => {
-      item.classList.toggle('active', item === button);
-      item.setAttribute('aria-pressed', String(item === button));
-    });
-    view.refresh();
-  });
-};
-
-// ---- Сотрудники ------------------------------------------------------------
-
 const PEOPLE = [
   ['Анна Белова', 'Руководитель проектов', 'pm', 'Москва', '2019-03-11', 'office'],
   ['Илья Орлов', 'Ведущий разработчик', 'dev', 'Казань', '2020-07-01', 'remote'],
@@ -220,219 +107,351 @@ const WORK_FORMAT = [
   {value: 'remote', label: 'Удалённо', scheme: 'neutral'},
 ];
 
-const startStaff = (root) => {
-  const table = root.querySelector('#staff-table');
-  const pages = root.querySelector('#staff-pages');
-  table.setColumns([
-    {key: 'name', label: 'Сотрудник', role: 'title', sortable: true},
-    {key: 'position', label: 'Должность', sortable: true, priority: 1},
-    {key: 'department', label: 'Отдел', propertyType: 'choice', options: DEPARTMENTS, sortable: true, priority: 2},
-    {key: 'city', label: 'Город', sortable: true, priority: 3},
-    {key: 'hired', label: 'В компании с', propertyType: 'date', sortable: true, priority: 4},
-    {key: 'format', label: 'Формат', propertyType: 'choice', options: WORK_FORMAT, priority: 5},
-  ]);
-  // A table fed directly asks for search and sorting by events; the page
-  // gives it the rows in the order asked.
-  const people = PEOPLE.map(([name, position, department, city, hired, format], index) => ({
-    id: `p-${index + 1}`, name, position, department, city, hired, format,
-  }));
-  const departmentLabel = Object.fromEntries(DEPARTMENTS.map(({value, label}) => [value, label]));
-  let search = '';
-  let sort = null;
-  let page = 1;
-  let size = Number(pages.getAttribute('page-size')) || 10;
-  const show = () => {
-    let rows = people.filter((person) => `${person.name} ${person.position} ${departmentLabel[person.department]} ${person.city}`
-      .toLowerCase().includes(search));
-    if (sort?.direction) {
-      const sign = sort.direction === 'desc' ? -1 : 1;
-      const value = (person) => (sort.key === 'department' ? departmentLabel[person.department] : person[sort.key]);
-      rows = [...rows].sort((a, b) => String(value(a)).localeCompare(String(value(b)), 'ru') * sign);
-    }
-    page = Math.min(page, Math.max(1, Math.ceil(rows.length / size)));
-    pages.setAttribute('total', String(rows.length));
-    pages.setAttribute('page-size', String(size));
-    pages.setAttribute('current', String(page));
-    table.setRows(rows.slice((page - 1) * size, page * size));
-  };
-  table.addEventListener('sf-view-table-search-change', (event) => { search = event.detail.search.trim().toLowerCase(); page = 1; show(); });
-  table.addEventListener('sf-view-table-sort-change', (event) => { sort = event.detail; show(); });
-  pages.addEventListener('sf-pagination-change', (event) => { page = event.detail.current; show(); });
-  pages.addEventListener('sf-pagination-size-change', (event) => { size = event.detail['page-size'] ?? event.detail.pageSize ?? size; page = 1; show(); });
-  show();
+// Dates and numbers are the page's to format: the set shows a value as it
+// arrives unless the host says otherwise.
+const formatFieldValue = (field, value) => {
+  const type = field?.propertyType ?? field?.property_type ?? field?.type;
+  if (value == null || value === '') return undefined;
+  if (type === 'datetime') return dateTime.format(new Date(value));
+  if (type === 'date') return dateOnly.format(new Date(`${String(value).slice(0, 10)}T00:00:00`));
+  if ((type === 'number' || type === 'integer') && typeof value === 'number' && field?.variant !== 'scale') return money.format(value);
+  return undefined;
 };
-
-// ---- Склад -----------------------------------------------------------------
-
-const GOODS = [
-  ['Ноутбук', 'electronics', 54990], ['Монитор 27″', 'electronics', 21990], ['Клавиатура беспроводная', 'electronics', 2490],
-  ['Мышь оптическая', 'electronics', 890], ['Наушники', 'electronics', 4990], ['Чайник электрический', 'appliances', 2190],
-  ['Микроволновая печь', 'appliances', 8990], ['Пылесос', 'appliances', 12490], ['Утюг', 'appliances', 3290],
-  ['Дрель-шуруповёрт', 'tools', 6490], ['Набор отвёрток', 'tools', 1190], ['Рулетка 5 м', 'tools', 390],
-  ['Бумага А4, 500 листов', 'office', 450], ['Ручка шариковая, 50 шт.', 'office', 690], ['Папка-регистратор', 'office', 260],
-  ['Сковорода 28 см', 'kitchen', 2290], ['Кастрюля 4 л', 'kitchen', 1890], ['Набор ножей', 'kitchen', 3490],
-  ['Полотенце махровое', 'textile', 790], ['Комплект постельного белья', 'textile', 3990],
-];
-const CATEGORIES = [
-  {value: 'electronics', label: 'Электроника'}, {value: 'appliances', label: 'Бытовая техника'},
-  {value: 'tools', label: 'Инструменты'}, {value: 'office', label: 'Канцелярия'},
-  {value: 'kitchen', label: 'Посуда'}, {value: 'textile', label: 'Текстиль'},
-];
-const WAREHOUSES = ['Подольск', 'Шушары', 'Казань', 'Екатеринбург', 'Новосибирск'];
-const STOCK_STATUS = [
-  {value: 'in', label: 'В наличии', scheme: 'success'},
-  {value: 'low', label: 'Мало', scheme: 'warning'},
-  {value: 'out', label: 'Нет', scheme: 'neutral'},
-];
-const stockStatus = (item) => (item.stock === 0 ? 'out' : item.stock < 10 ? 'low' : 'in');
-// 640 positions: every product on every warehouse, in several variants.
-const STOCK = Array.from({length: 640}, (_, index) => {
-  const [name, category, price] = GOODS[index % GOODS.length];
-  const variant = Math.floor(index / GOODS.length) % 32;
-  const stock = (index * 37) % 11 === 0 ? 0 : (index * 53) % 140;
-  const item = {
-    id: `s-${index + 1}`,
-    sku: `${category.slice(0, 2).toUpperCase()}-${String(1000 + index * 7).padStart(5, '0')}`,
-    name: variant ? `${name}, вариант ${variant + 1}` : name,
-    category,
-    warehouse: WAREHOUSES[index % WAREHOUSES.length],
-    stock,
-    reserved: Math.min(stock, (index * 3) % 9),
-    price: price + variant * 10,
-    revision: '1',
-  };
-  return {...item, status: stockStatus(item)};
-});
-const STOCK_COLUMNS = [
-  {key: 'name', label: 'Товар', role: 'title', sortable: true},
-  {key: 'sku', label: 'Артикул', sortable: true, priority: 3},
-  {key: 'category', label: 'Категория', property_type: 'choice', options: CATEGORIES, sortable: true, priority: 4},
-  {key: 'warehouse', label: 'Склад', sortable: true, priority: 2},
-  {key: 'stock', label: 'Остаток, шт.', property_type: 'number', sortable: true, priority: 1},
-  {key: 'reserved', label: 'В резерве', property_type: 'number', sortable: true, priority: 5},
-  {key: 'price', label: 'Цена, ₽', property_type: 'number', sortable: true, priority: 6},
-  {key: 'status', label: 'Наличие', property_type: 'choice', options: STOCK_STATUS},
-];
-
-const startWarehouse = (root) => {
-  const view = root.querySelector('#stock-view');
-  const log = root.querySelector('[data-log]');
-  view.setHostPort({
-    version: '1.12.0',
-    capabilities: ['row-actions'],
-    async raise(intent, payload) {
-      await pause(250);
-      if (intent === 'query.change') {
-        return {answer: 'applied', sequence: payload.sequence, data: answerPage(STOCK, payload.query, {
-          columns: STOCK_COLUMNS,
-          text: (item) => `${item.sku} ${item.name} ${item.warehouse}`,
-          rowActions: [{id: 'restock', label: 'Заказать поставку', icon: 'add_shopping_cart'}],
-          actions: (item) => (item.status === 'in' ? [] : ['restock']),
-        })};
-      }
-      if (intent === 'record.mutate' && payload.action_id === 'restock') {
-        const changed = STOCK.filter((item) => payload.record_ids.map(String).includes(String(item.id)));
-        changed.forEach((item) => {
-          item.stock += 50;
-          item.status = stockStatus(item);
-          item.revision = String(Number(item.revision) + 1);
-        });
-        log.textContent = `Поставка заказана: ${changed.map((item) => `${item.name} (${item.warehouse})`).join(', ')}`;
-        return {answer: 'applied', data: {records: changed.map((item) => ({...item, actions: []}))}};
-      }
-      return {answer: 'unavailable', reason: 'capability-not-provided'};
-    },
-    formatFieldValue(field, value) {
-      if (field?.key === 'price' && typeof value === 'number') return money.format(value);
-      return undefined;
-    },
+const segmented = (group, attribute, onChange) => group.addEventListener('click', (event) => {
+  const button = event.target.closest(`[${attribute}]`);
+  if (!button) return;
+  group.querySelectorAll(`[${attribute}]`).forEach((item) => {
+    item.classList.toggle('active', item === button);
+    item.setAttribute('aria-pressed', String(item === button));
   });
-};
+  onChange(button.getAttribute(attribute));
+});
 
-// ---- Задачи ----------------------------------------------------------------
+// ---- Таблица ----------------------------------------------------------------
 
-const TASK_TITLES = [
-  'Подготовить отчёт за квартал', 'Обновить прайс-лист', 'Проверить договор с поставщиком', 'Настроить рассылку',
-  'Согласовать макет главной', 'Перенести базу клиентов', 'Ответить на обращения поддержки', 'Провести собеседование',
-  'Заказать канцелярию', 'Обновить инструкцию для склада', 'Сверить остатки', 'Подготовить презентацию для клиента',
-  'Исправить ошибку в корзине', 'Написать статью в блог', 'Проверить счета за октябрь', 'Запланировать встречу с командой',
-  'Собрать отзывы клиентов', 'Обновить сертификат сайта', 'Подготовить план закупок', 'Описать процесс возврата',
-  'Протестировать оплату', 'Обновить фото товаров', 'Разобрать входящие заявки', 'Проверить доступы сотрудников',
-  'Подготовить акт сверки', 'Оформить командировку', 'Обновить карточки товаров', 'Подготовить бриф для дизайнера',
-  'Проверить позиции в поиске', 'Составить график отпусков', 'Сделать резервную копию', 'Обучить нового менеджера',
-];
-const ASSIGNEES = ['Анна Белова', 'Илья Орлов', 'Мария Котова', 'Олег Смирнов', 'Ирина Волкова', 'Артём Попов'];
-const TASK_STATUS = [
-  {value: 'todo', label: 'Новая', scheme: 'primary'},
-  {value: 'doing', label: 'В работе', scheme: 'warning'},
-  {value: 'review', label: 'На проверке', scheme: 'primary'},
-  {value: 'done', label: 'Готово', scheme: 'success'},
-];
-const PRIORITY = [
-  {value: 'high', label: 'Высокий', scheme: 'warning'},
-  {value: 'normal', label: 'Обычный', scheme: 'neutral'},
-  {value: 'low', label: 'Низкий', scheme: 'neutral'},
-];
-const TASKS = TASK_TITLES.map((title, index) => ({
-  id: `t-${101 + index}`,
-  title,
-  assignee: ASSIGNEES[(index * 5) % ASSIGNEES.length],
-  priority: ['normal', 'high', 'normal', 'low'][index % 4],
-  status: ['todo', 'doing', 'todo', 'review', 'doing', 'done'][index % 6],
-  due: new Date(Date.UTC(2026, 10, 3 + (index * 3) % 24)).toISOString().slice(0, 10),
-  revision: '1',
-}));
-const TASK_COLUMNS = [
-  {key: 'title', label: 'Задача', role: 'title', sortable: true},
-  {key: 'assignee', label: 'Исполнитель', sortable: true, priority: 1},
-  {key: 'priority', label: 'Приоритет', property_type: 'choice', options: PRIORITY, sortable: true, priority: 3},
-  {key: 'due', label: 'Срок', property_type: 'date', sortable: true, priority: 2},
-  {key: 'status', label: 'Состояние', property_type: 'choice', options: TASK_STATUS, sortable: true},
-];
-
-const startTasks = (root) => {
-  const view = root.querySelector('#tasks-view');
+const startTable = (root) => {
+  const view = root.querySelector('#orders-view');
   const log = root.querySelector('[data-log]');
+  let status = '';
   view.setHostPort({
     version: '1.12.0',
     capabilities: ['row-actions'],
     async raise(intent, payload) {
       await pause();
       if (intent === 'query.change') {
-        return {answer: 'applied', sequence: payload.sequence, data: answerPage(TASKS, payload.query, {
-          columns: TASK_COLUMNS,
-          text: (task) => `${task.title} ${task.assignee}`,
-          actions: () => [],
+        const rows = ORDERS.filter((order) => !status || order.status === status);
+        return {answer: 'applied', sequence: payload.sequence, data: answerPage(rows, payload.query, {
+          columns: ORDER_COLUMNS,
+          text: (order) => `${order.number} ${order.buyer} ${order.city}`,
+          rowActions: [{id: 'ship', label: 'Отгрузить', icon: 'local_shipping'}],
+          actions: (order) => (order.status === 'new' || order.status === 'assembly' ? ['ship'] : []),
         })};
       }
+      const apply = (ids, action) => {
+        const next = action === 'cancel' ? 'cancelled' : 'shipped';
+        const changed = ORDERS.filter((order) => ids.includes(String(order.id)) && order.status !== 'shipped' && order.status !== 'cancelled');
+        changed.forEach((order) => { order.status = next; order.revision = String(Number(order.revision) + 1); });
+        log.textContent = changed.length
+          ? `${next === 'shipped' ? 'Отгружено' : 'Отменено'}: ${changed.map((order) => order.number).join(', ')}`
+          : 'Эти заказы уже отгружены или отменены.';
+        return changed;
+      };
+      if (intent === 'record.mutate' && payload.action_id === 'ship') {
+        const changed = apply(payload.record_ids.map(String), 'ship');
+        return {answer: 'applied', data: {records: changed.map((order) => ({...order, actions: []}))}};
+      }
       if (intent === 'bulk.apply_selected') {
-        const ids = payload.record_ids.map(String);
-        const stale = TASKS.filter((task) => ids.includes(task.id) && String(payload.revisions?.[task.id] ?? task.revision) !== task.revision);
-        if (stale.length) return {answer: 'conflict', conflicts: stale.map((task) => ({id: task.id, current_revision: task.revision}))};
-        const status = payload.action_id === 'done' ? 'done' : 'doing';
-        const changed = TASKS.filter((task) => ids.includes(task.id));
-        changed.forEach((task) => { task.status = status; task.revision = String(Number(task.revision) + 1); });
-        log.textContent = `${status === 'done' ? 'Завершено' : 'Взято в работу'}: ${changed.length}`;
+        apply(payload.record_ids.map(String), payload.action_id);
         return {answer: 'applied'};
       }
       return {answer: 'unavailable', reason: 'capability-not-provided'};
     },
-    formatFieldValue(field, value) {
-      if (field?.key === 'due' && value) return dateOnly.format(new Date(`${value}T00:00:00`));
-      return undefined;
-    },
+    formatFieldValue,
   });
+  segmented(root.querySelector('[data-status-filter]'), 'data-status', (value) => { status = value; view.refresh(); });
+};
+
+// ---- Сотрудники: данные карточки --------------------------------------------
+
+const SKILLS = [
+  {value: 'js', label: 'JavaScript', scheme: 'primary'}, {value: 'php', label: 'PHP', scheme: 'primary'},
+  {value: 'sql', label: 'SQL', scheme: 'success'}, {value: 'ux', label: 'Интерфейсы', scheme: 'warning'},
+  {value: 'sales', label: 'Переговоры', scheme: 'success'}, {value: 'docs', label: 'Документация', scheme: 'neutral'},
+];
+const ENGLISH = [{value: 'a2', label: 'A2'}, {value: 'b1', label: 'B1'}, {value: 'b2', label: 'B2'}, {value: 'c1', label: 'C1'}];
+const CITY_LIST = ['Москва', 'Санкт-Петербург', 'Казань', 'Екатеринбург', 'Новосибирск', 'Нижний Новгород', 'Самара', 'Краснодар']
+  .map((label, index) => ({value: `city-${index}`, label}));
+const initials = (name) => name.split(' ').map((part) => part[0]).join('');
+const LATIN = {а: 'a', б: 'b', в: 'v', г: 'g', д: 'd', е: 'e', ё: 'e', ж: 'zh', з: 'z', и: 'i', й: 'y', к: 'k', л: 'l', м: 'm', н: 'n', о: 'o', п: 'p', р: 'r',
+  с: 's', т: 't', у: 'u', ф: 'f', х: 'h', ц: 'ts', ч: 'ch', ш: 'sh', щ: 'sch', ы: 'y', э: 'e', ю: 'yu', я: 'ya', ь: '', ъ: ''};
+const latin = (text) => [...text.toLowerCase()].map((letter) => LATIN[letter] ?? letter).join('');
+const EMPLOYEES = PEOPLE.map(([name, position, department, city, hired, format], index) => {
+  const [first, last] = name.split(' ');
+  return {
+    id: `e-${index + 1}`, name, position, department, hired, format,
+    city: CITY_LIST.find((item) => item.label === city) ?? CITY_LIST[0],
+    phone: `+7 9${String(16 + index).padStart(2, '0')} ${String(100 + index * 37).slice(0, 3)}-${String(10 + index).padStart(2, '0')}-${String(40 + index * 3).slice(-2)}`,
+    email: `${latin(first)[0]}.${latin(last)}@example.ru`,
+    manager: index === 13 ? null : {value: 'e-14', label: 'Сергей Васильев', avatarText: 'СВ'},
+    skills: [['js', 'sql'], ['php', 'sql', 'docs'], ['ux'], ['sales'], ['docs'], ['sql', 'docs'], ['js', 'ux']][index % 7],
+    english: ENGLISH[index % 4].value,
+    rate: 90000 + ((index * 7919) % 17) * 5000,
+    load: 40 + ((index * 37) % 60),
+    mentor: index % 3 === 0,
+    about: index % 2 ? '' : `${position}. В компании с ${new Date(hired).getFullYear()} года, ведёт внутренние проекты отдела.`,
+    documents: index % 4 === 1 ? [] : [{label: 'Трудовой договор.pdf', mime: 'application/pdf', href: '#file', size: 184320}],
+    revision: 1,
+  };
+});
+const STAFF_COLUMNS = [
+  {key: 'name', label: 'Сотрудник', role: 'title', sortable: true},
+  {key: 'position', label: 'Должность', sortable: true, priority: 1},
+  {key: 'department', label: 'Отдел', property_type: 'choice', options: DEPARTMENTS, sortable: true, priority: 2},
+  {key: 'city', label: 'Город', property_type: 'lookup', sortable: true, priority: 3},
+  {key: 'hired', label: 'В компании с', property_type: 'date', sortable: true, priority: 4},
+  {key: 'format', label: 'Формат', property_type: 'choice', options: WORK_FORMAT, priority: 5},
+];
+
+const employeeCard = (person) => ({
+  record_id: person.id,
+  collection: 'hr.employees',
+  revision: String(person.revision),
+  label: person.name,
+  actions: ['record.edit'],
+  sections: [{key: 'main', label: 'Сотрудник', groups: [
+    {key: 'job', label: 'Работа', columns: 2, fields: [
+      {key: 'name', label: 'ФИО', propertyType: 'string', width: 'half', required: true, value: person.name},
+      {key: 'position', label: 'Должность', propertyType: 'string', width: 'half', value: person.position},
+      {key: 'department', label: 'Отдел', propertyType: 'choice', width: 'half', options: DEPARTMENTS, value: person.department},
+      {key: 'manager', label: 'Руководитель', propertyType: 'user', width: 'half', placeholder: 'Выберите сотрудника', value: person.manager},
+      {key: 'hired', label: 'В компании с', propertyType: 'date', width: 'half', value: person.hired},
+      {key: 'format', label: 'Формат работы', propertyType: 'choice', variant: 'buttons', width: 'half', options: WORK_FORMAT, value: person.format},
+    ]},
+    {key: 'contacts', label: 'Контакты', columns: 2, fields: [
+      {key: 'phone', label: 'Телефон', propertyType: 'string', variant: 'phone', width: 'half', value: person.phone},
+      {key: 'email', label: 'Почта', propertyType: 'string', width: 'half', value: person.email},
+      {key: 'city', label: 'Город', propertyType: 'lookup', source: 'cities', width: 'half', options: CITY_LIST, value: person.city},
+    ]},
+    {key: 'profile', label: 'Профиль', columns: 2, fields: [
+      {key: 'skills', label: 'Навыки', propertyType: 'choices', width: 'full', options: SKILLS, value: person.skills},
+      {key: 'english', label: 'Английский', propertyType: 'choice', width: 'half', options: ENGLISH, value: person.english},
+      {key: 'load', label: 'Загрузка', propertyType: 'number', variant: 'scale', width: 'half', min: 0, max: 100, value: person.load},
+      {key: 'rate', label: 'Оклад', propertyType: 'number', unit: '₽', width: 'half', value: person.rate},
+      {key: 'mentor', label: 'Наставник', propertyType: 'boolean', width: 'half', value: person.mentor},
+      {key: 'about', label: 'О сотруднике', propertyType: 'text', width: 'full', placeholder: 'Пара слов о сотруднике', value: person.about},
+      {key: 'documents', label: 'Документы', propertyType: 'file', multiple: true, accept: '.pdf', width: 'full', value: person.documents},
+    ]},
+  ]}],
+});
+
+// One host for every employee card: read, save, people to choose from,
+// cities, files.
+const employeeHost = (log, onSaved = () => {}) => ({
+  version: '1.17.0',
+  capabilities: ['field-options', 'field-upload'],
+  async raise(intent, payload) {
+    await pause(150);
+    const person = EMPLOYEES.find((item) => item.id === payload?.record_id);
+    if (intent === 'field.options') {
+      const search = String(payload.search ?? '').toLowerCase();
+      const all = payload.field === 'city' ? CITY_LIST
+        : EMPLOYEES.map((item) => ({value: item.id, label: item.name, avatarText: initials(item.name)}));
+      const items = all.filter((item) => item.label.toLowerCase().includes(search));
+      return {answer: 'applied', options_page: {items, next_cursor: null, total: items.length}};
+    }
+    if (intent === 'field.upload') {
+      const file = payload.file;
+      return {answer: 'applied', file: {label: file?.name ?? 'Файл', mime: file?.type ?? '', size: file?.size ?? 0, href: '#file'}};
+    }
+    if (!person) return {answer: 'refused', reason: 'record-unknown', message: 'Сотрудник не найден.'};
+    if (intent === 'record.load') return {answer: 'applied', record: employeeCard(person)};
+    if (intent === 'group.save' || intent === 'record.save') {
+      if ('name' in payload.values && !String(payload.values.name ?? '').trim()) {
+        return {answer: 'refused', reason: 'record_invalid', errors: {name: 'Укажите ФИО сотрудника.'}};
+      }
+      Object.assign(person, payload.values);
+      person.revision += 1;
+      if (log) log.textContent = `Сохранено: ${Object.keys(payload.values).length} поле(й), версия ${person.revision}.`;
+      onSaved(person);
+      return {answer: 'applied', record: employeeCard(person), revision: String(person.revision)};
+    }
+    return {answer: 'unavailable', reason: 'capability-not-provided'};
+  },
+  formatFieldValue,
+});
+
+// ---- Карточка ---------------------------------------------------------------
+
+const startCard = (root) => {
+  const card = root.querySelector('#employee-card');
+  card.setHostPort(employeeHost(root.querySelector('[data-log]')));
+  segmented(root.querySelector('[data-card-mode]'), 'data-mode', (mode) => card.setAttribute('mode', mode));
+};
+
+// ---- Таблица и карточка -----------------------------------------------------
+
+const startMaster = (root) => {
+  const view = root.querySelector('#staff-view');
+  // The card is in the page only while a record is open: a closed panel
+  // still draws its drawer's edge, the close button among it, over the list.
+  const home = root;
+  const card = document.createElement('sf-view-properties');
+  card.setAttribute('aria-label', 'Карточка сотрудника');
+  card.setAttribute('panel', '');
+  card.setAttribute('panel-size', '1');
+  card.setAttribute('mode', 'auto');
+  card.setHostPort(employeeHost(null, () => view.refresh()));
+  const departmentLabel = Object.fromEntries(DEPARTMENTS.map(({value, label}) => [value, label]));
+  view.setHostPort({
+    version: '1.12.0',
+    capabilities: ['row-actions'],
+    async raise(intent, payload) {
+      await pause();
+      if (intent === 'query.change') {
+        const rows = EMPLOYEES.map((person) => ({id: person.id, name: person.name, position: person.position, department: person.department,
+          city: person.city, hired: person.hired, format: person.format, revision: String(person.revision)}));
+        return {answer: 'applied', sequence: payload.sequence, data: answerPage(rows, payload.query, {
+          columns: STAFF_COLUMNS,
+          text: (person) => `${person.name} ${person.position} ${departmentLabel[person.department]} ${person.city.label}`,
+        })};
+      }
+      if (intent === 'record.open') {
+        const person = EMPLOYEES.find((item) => String(item.id) === String(payload.record_ids[0]));
+        if (person) {
+          card.setAttribute('record-id', person.id);
+          card.setAttribute('panel-label', person.name);
+          card.hidden = false;
+          card.setAttribute('open', 'true');
+          if (!card.isConnected) home.append(card);
+        }
+        return {answer: 'applied'};
+      }
+      return {answer: 'unavailable', reason: 'capability-not-provided'};
+    },
+    formatFieldValue,
+  });
+  // Closing is the page's decision: nothing unsaved is kept here, so it closes.
+  card.addEventListener('sf-view-properties-close', () => {
+    card.setAttribute('open', 'false');
+    card.remove();
+  });
+};
+
+// ---- В потоке ---------------------------------------------------------------
+
+const VACATION = {
+  record_id: 'v-17', collection: 'hr.vacations', revision: '3', label: 'Заявка на отпуск № 17', actions: [],
+  sections: [{key: 'main', label: 'Заявка', groups: [{key: 'vacation', label: 'Заявка на отпуск № 17', columns: 2, fields: [
+    {key: 'employee', label: 'Сотрудник', propertyType: 'user', width: 'full', value: {value: 'e-5', label: 'Ирина Волкова', avatarText: 'ИВ'}},
+    {key: 'from', label: 'С', propertyType: 'date', width: 'half', value: '2026-12-21'},
+    {key: 'to', label: 'По', propertyType: 'date', width: 'half', value: '2027-01-08'},
+    {key: 'days', label: 'Дней', propertyType: 'integer', width: 'half', value: 19},
+    {key: 'status', label: 'Статус', propertyType: 'choice', width: 'half', value: 'approved',
+      options: [{value: 'approved', label: 'Согласована', scheme: 'success'}]},
+  ]}]}],
+};
+const TRIPS = [];
+const tripFields = (trip = {}) => [
+  {key: 'city', label: 'Город', propertyType: 'string', width: 'half', required: true, placeholder: 'Куда', value: trip.city ?? null},
+  {key: 'from', label: 'Выезд', propertyType: 'date', width: 'half', required: true, value: trip.from ?? null},
+  {key: 'nights', label: 'Ночей', propertyType: 'integer', variant: 'stepper', width: 'half', min: 1, max: 14, step: 1, value: trip.nights ?? 2},
+  {key: 'advance', label: 'Аванс', propertyType: 'number', unit: '₽', width: 'half', value: trip.advance ?? null},
+  {key: 'goal', label: 'Цель поездки', propertyType: 'text', width: 'full', placeholder: 'Например, встреча с заказчиком', value: trip.goal ?? null},
+];
+const tripRecord = (trip) => ({
+  record_id: trip?.id ?? null, collection: 'hr.trips', revision: trip ? '1' : null,
+  label: trip ? `Командировка в ${trip.city}` : 'Новая командировка', actions: [],
+  sections: [{key: 'main', label: 'Командировка', groups: [{key: 'trip', label: trip ? `Командировка: ${trip.city}` : 'Командировка Ильи Орлова', columns: 2, fields: tripFields(trip)}]}],
+});
+
+const feedHost = (onCreated) => ({
+  version: '1.17.0',
+  capabilities: [],
+  async raise(intent, payload) {
+    await pause(150);
+    if (intent === 'record.load' && payload.collection === 'hr.vacations') return {answer: 'applied', record: VACATION};
+    if (intent === 'record.load' && payload.collection === 'hr.trips') {
+      const trip = TRIPS.find((item) => item.id === payload.record_id);
+      return {answer: 'applied', record: tripRecord(trip)};
+    }
+    if (intent === 'record.create') {
+      const values = payload.values ?? {};
+      const errors = {};
+      if (!String(values.city ?? '').trim()) errors.city = 'Укажите город.';
+      if (!values.from) errors.from = 'Укажите дату выезда.';
+      if (Object.keys(errors).length) return {answer: 'refused', reason: 'record_invalid', errors};
+      const trip = {id: `t-${TRIPS.length + 1}`, nights: 2, ...values};
+      TRIPS.push(trip);
+      setTimeout(() => onCreated(trip), 300);
+      return {answer: 'applied', record_id: trip.id, record: tripRecord(trip)};
+    }
+    return {answer: 'unavailable', reason: 'capability-not-provided'};
+  },
+  formatFieldValue,
+});
+
+const startFeed = (root) => {
+  const feed = root.querySelector('#feed');
+  const drawn = new Map();
+  let host;
+  const card = (entry) => {
+    const element = document.createElement('sf-view-properties');
+    element.className = 'feed-card';
+    element.setAttribute('size', '1/2');
+    element.setAttribute('aria-label', entry.cardLabel);
+    element.setAttribute('collection', entry.collection);
+    element.setAttribute('mode', entry.mode);
+    if (entry.recordId) element.setAttribute('record-id', entry.recordId);
+    element.setHostPort(host);
+    return element;
+  };
+  // A message is its author, its words and, for some, a card. A drawn
+  // message is kept, so redrawing the feed does not read the card again.
+  feed.renderItem = (entry, {first, own}) => {
+    if (drawn.has(entry.id)) return drawn.get(entry.id);
+    const article = document.createElement('article');
+    article.className = 'sf-list-feed__entry';
+    const name = own ? 'Вы' : entry['author-name'];
+    article.setAttribute('aria-label', name);
+    if (first && !own) {
+      const author = document.createElement('p');
+      author.className = 'sf-list-feed__author';
+      author.textContent = name;
+      article.append(author);
+    }
+    const text = document.createElement('p');
+    text.className = 'sf-list-feed__text';
+    text.textContent = entry.text;
+    article.append(text);
+    if (entry.mode) article.append(card(entry));
+    drawn.set(entry.id, article);
+    return article;
+  };
+  host = feedHost((trip) => {
+    feed.upsert({id: `m-done-${trip.id}`, author: 'bot', 'author-name': 'Ассистент',
+      text: `Готово: командировка в ${trip.city} создана и отправлена руководителю на согласование.`,
+      mode: 'view', collection: 'hr.trips', recordId: trip.id, cardLabel: `Командировка в ${trip.city}`});
+  });
+  feed.setItems([
+    {id: 'm-1', author: 'me', own: true, text: 'Покажи заявку Ирины Волковой на отпуск.'},
+    {id: 'm-2', author: 'bot', 'author-name': 'Ассистент', text: 'Нашёл заявку — она уже согласована:',
+      mode: 'view', collection: 'hr.vacations', recordId: 'v-17', cardLabel: 'Заявка на отпуск № 17'},
+    {id: 'm-3', author: 'me', own: true, text: 'Оформи командировку для Ильи Орлова.'},
+    {id: 'm-4', author: 'bot', 'author-name': 'Ассистент', text: 'Заполните несколько полей, и я создам командировку:',
+      mode: 'create', collection: 'hr.trips', cardLabel: 'Новая командировка'},
+  ]);
 };
 
 // ---- the tabs --------------------------------------------------------------
 
-const STARTS = {orders: startOrders, staff: startStaff, warehouse: startWarehouse, tasks: startTasks};
+const STARTS = {table: startTable, card: startCard, master: startMaster, feed: startFeed};
+const TAGS = {table: ['sf-view'], card: ['sf-view-properties'], master: ['sf-view', 'sf-view-properties'], feed: ['sf-list-feed', 'sf-view-properties']};
 const started = new Set();
 const start = async (panel) => {
   const name = panel?.dataset.demo;
   if (!name || started.has(name)) return;
   started.add(name);
-  await Promise.all(['sf-view', 'sf-view-table', 'sf-view-properties'].map((tag) => customElements.whenDefined(tag)));
+  await Promise.all(TAGS[name].map((tag) => customElements.whenDefined(tag)));
   STARTS[name](panel);
 };
 
