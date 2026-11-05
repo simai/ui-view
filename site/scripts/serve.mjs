@@ -6,8 +6,9 @@
 // because the live examples run in sandboxed frames (origin "null") that fetch
 // the SIMAI Framework runtime and the set's files from this server, and a
 // charset on text, so Russian pages read right. It is a review server, not a
-// deployment: it binds to 127.0.0.1 only.
-import {createReadStream, existsSync, statSync} from 'node:fs';
+// deployment: it binds to 127.0.0.1 only. Example frames are opened to the
+// site's origin in the served pages, as scripts/publish-local.sh does.
+import {createReadStream, existsSync, readFileSync, statSync} from 'node:fs';
 import {createServer} from 'node:http';
 import {extname, join, normalize, resolve, sep} from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -36,6 +37,17 @@ createServer((request, response) => {
     if (existsSync(missing)) createReadStream(missing).pipe(response); else response.end('Not found');
     return;
   }
-  response.writeHead(200, {...headers, 'Content-Type': TYPES[extname(path).toLowerCase()] ?? 'application/octet-stream'});
+  const type = TYPES[extname(path).toLowerCase()] ?? 'application/octet-stream';
+  if (extname(path).toLowerCase() === '.html') {
+    // Chromium's Local Network Access blocks every request from an opaque-origin
+    // frame to 127.0.0.1, so the sandboxed example frames could not load the
+    // runtime here; served locally they also get allow-same-origin (see
+    // scripts/publish-local.sh). The build on disk is not changed.
+    const page = readFileSync(path, 'utf8').replaceAll('sandbox="allow-scripts"', 'sandbox="allow-scripts allow-same-origin"');
+    response.writeHead(200, {...headers, 'Content-Type': type});
+    response.end(page);
+    return;
+  }
+  response.writeHead(200, {...headers, 'Content-Type': type});
   createReadStream(path).pipe(response);
 }).listen(port, '127.0.0.1', () => console.log(`http://127.0.0.1:${port}/`));
