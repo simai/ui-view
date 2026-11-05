@@ -292,15 +292,16 @@ const startCard = (root) => {
 
 const startMaster = (root) => {
   const view = root.querySelector('#staff-view');
-  // The card is in the page only while a record is open: a closed panel
-  // still draws its drawer's edge, the close button among it, over the list.
-  const home = root;
+  // The card stays in the page and opens over the list: a closed panel draws
+  // nothing (view 1.1.0).
   const card = document.createElement('sf-view-properties');
   card.setAttribute('aria-label', 'Карточка сотрудника');
   card.setAttribute('panel', '');
   card.setAttribute('panel-size', '1');
   card.setAttribute('mode', 'auto');
+  card.setAttribute('open', 'false');
   card.setHostPort(employeeHost(null, () => view.refresh()));
+  root.append(card);
   const departmentLabel = Object.fromEntries(DEPARTMENTS.map(({value, label}) => [value, label]));
   view.setHostPort({
     version: '1.12.0',
@@ -320,9 +321,7 @@ const startMaster = (root) => {
         if (person) {
           card.setAttribute('record-id', person.id);
           card.setAttribute('panel-label', person.name);
-          card.hidden = false;
           card.setAttribute('open', 'true');
-          if (!card.isConnected) home.append(card);
         }
         return {answer: 'applied'};
       }
@@ -333,7 +332,6 @@ const startMaster = (root) => {
   // Closing is the page's decision: nothing unsaved is kept here, so it closes.
   card.addEventListener('sf-view-properties-close', () => {
     card.setAttribute('open', 'false');
-    card.remove();
   });
 };
 
