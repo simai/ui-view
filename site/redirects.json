@@ -1,5 +1,13 @@
 {
   "schema": "docara.redirects.v1",
   "version": 1,
-  "redirects": []
+  "redirects": [
+    {"from": "connection", "to": "ru/guide/connection"},
+    {"from": "changes", "to": "ru/guide/changes"},
+    {"from": "components/view", "to": "ru/components/views/view"},
+    {"from": "components/view-table", "to": "ru/components/views/view-table"},
+    {"from": "components/view-properties", "to": "ru/components/views/view-properties"},
+    {"from": "demos/orders", "to": "ru"},
+    {"from": "demos/staff", "to": "ru"}
+  ]
 }

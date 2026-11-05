@@ -11,13 +11,13 @@
       "label": "Русский",
       "direction": "ltr",
       "content_root": "content/ru",
-      "public_prefix": "",
+      "public_prefix": "ru",
       "fallbacks": []
     }
   },
   "locale_routing": {
-    "strategy": "default_unprefixed",
-    "root": "default_locale",
+    "strategy": "prefixed",
+    "root": "redirect",
     "detect_browser_language": false
   },
   "redirects_file": "redirects.json",

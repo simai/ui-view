@@ -7,8 +7,12 @@
       "profile": "reference"
     },
     {
-      "match": "demos/**",
-      "profile": "article"
+      "match": "guide/recipes/**",
+      "profile": "how_to"
+    },
+    {
+      "match": "guide/server/**",
+      "profile": "how_to"
     }
   ]
 }
