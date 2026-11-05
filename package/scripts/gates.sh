@@ -16,7 +16,9 @@
 # The free side is the distr of the released pair whose source the lock pins,
 # taken from the ui checkout's git objects (never its working tree). Sibling
 # checkouts are the defaults: ../ui-source, ../ui, ../ui-builder beside this
-# repository. Each gate's output lands in <workspace>/logs/; the summary in
+# repository. The overlay is package/.overlay (ignored): the browser probes
+# import Playwright, which Node resolves from the overlay's parent folders, so
+# it stays inside the checkout. Each gate's output lands in <workspace>/logs/; the summary in
 # <workspace>/gates.json. Long: start it with nohup and read the log.
 set -eu
 here=$(cd "$(dirname "$0")/.." && pwd)
@@ -60,16 +62,16 @@ step receipt
 curl -fsS https://raw.githubusercontent.com/simai/ui-source/main/contracts/registry/names.json -o "$workspace/names-main.json"
 python3 "$builder/scripts/write-package-receipt.py" --report "$build/report.json" --ui "$ui" --registry "$workspace/names-main.json" > "$logs/receipt.json"
 step unit
-(cd "$here" && node scripts/test.mjs --committed --ui-source "$ui_source" --overlay "$workspace/overlay") > "$logs/unit.log" 2>&1
+(cd "$here" && node scripts/test.mjs --committed --ui-source "$ui_source") > "$logs/unit.log" 2>&1
 step registry
 node "$here/scripts/check-registry.mjs" --registry "$workspace/names-main.json" > "$logs/registry.json"
 step manifest
-node "$here/scripts/run-manifest-probes.mjs" "$free" "$output" --overlay "$workspace/overlay" > "$logs/manifest.log" 2>&1
+node "$here/scripts/run-manifest-probes.mjs" "$free" "$output" > "$logs/manifest.log" 2>&1
 step browser
-node "$here/scripts/run-browser-probes.mjs" "$free" "$output" --overlay "$workspace/overlay" > "$logs/browser.json" 2> "$logs/browser.err"
+node "$here/scripts/run-browser-probes.mjs" "$free" "$output" > "$logs/browser.json" 2> "$logs/browser.err"
 step "first paint"
-node "$here/scripts/run-first-paint.mjs" check "$free" "$output" --overlay "$workspace/overlay" > "$logs/first-paint-check.log" 2>&1
-node "$here/scripts/run-first-paint.mjs" gate "$free" "$output" --overlay "$workspace/overlay" > "$logs/first-paint-gate.log" 2>&1
+node "$here/scripts/run-first-paint.mjs" check "$free" "$output" > "$logs/first-paint-check.log" 2>&1
+node "$here/scripts/run-first-paint.mjs" gate "$free" "$output" > "$logs/first-paint-gate.log" 2>&1
 
 node - "$workspace" "$revision" "$lock" <<'NODE'
 const [workspace, revision, lock] = process.argv.slice(2);
