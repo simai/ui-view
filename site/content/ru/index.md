@@ -38,8 +38,8 @@ SIMAI Framework.
 | | |
 |:---|:---|
 | Набор | `view`, версия 1.0.0 |
-| Собран и проверен над | выпуском SIMAI Framework `ui-e22fefb3c1f8` (npm `@simai-studio/ui@5.20261105.829`) |
-| Исходники Framework | `simai/ui-source` `297a56c0914a` |
+| Собран и проверен над | выпуском SIMAI Framework `ui-62b1d9b6dc8d` (npm `@simai-studio/ui@5.20261105.1447`) |
+| Исходники Framework | `simai/ui-source` `ec2f29dfa5df` |
 | Нужен Core | `core.runtime` 1.25.0 или новее |
 | Другие наборы | не нужны |
 

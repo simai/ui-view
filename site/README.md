@@ -15,7 +15,7 @@ node site/scripts/evidence.mjs http://127.0.0.1:8790/ docs/evidence/<date>
 
 - `content/ru/` — the pages; `examples/` — the live examples and demos.
 - `simai-framework.lock.json` and `contracts/generated/` are written by
-  `scripts/materialize-framework-runtime.php` (pair `ui-e22fefb3c1f8` and the
+  `scripts/materialize-framework-runtime.php` (the pair the set build names and the
   set's receipt); commit them after a rebuild.
 - `vendor/`, `.docara/`, `.framework/` and `build_production/` are local.
 - The site is not deployed anywhere; view.simai.io is not set up.

@@ -30,11 +30,11 @@ declare(strict_types=1);
  * files' hashes in simai-framework.lock.json, never the files.
  */
 
-const UI_METADATA_REVISION = '6534a3ebd97ded90b3f1e6f97ce79483714b7f37';
-const UI_RUNTIME_REVISION = 'e22fefb3c1f8bed4c7ad8d8745a408ecedc5029f';
-const SOURCE_REVISION = '297a56c0914a42ff2c24bcba1f45ae0234e3a483';
+const UI_METADATA_REVISION = '376c92c89a93c34ed35152e4f03b270e70ff2cb8';
+const UI_RUNTIME_REVISION = '62b1d9b6dc8d390837b7daa7c28a4543297521ad';
+const SOURCE_REVISION = 'ec2f29dfa5df657a027887ec413150118740d28d';
 const BUILDER_REVISION = '9c9c1b1510393b24adb98ea2ca523b26474cf0cf';
-const RELEASE_LOCK = 'contracts/releases/ui-e22fefb3c1f8.lock.json';
+const RELEASE_LOCK = 'contracts/releases/ui-62b1d9b6dc8d.lock.json';
 // The release on npm, the form the guide's CDN snippets use
 // (https://cdn.jsdelivr.net/npm/<package>@<version>/distr/...). The version is
 // derived from the release commit, never chosen: 5.<yyyymmdd>.<hhmm> of its
@@ -42,7 +42,7 @@ const RELEASE_LOCK = 'contracts/releases/ui-e22fefb3c1f8.lock.json';
 // the commit. scripts/sync-framework-documentation-versions.php checks the
 // version against UI_RUNTIME_REVISION and moves the snippets with it.
 const NPM_PACKAGE = '@simai-studio/ui';
-const NPM_VERSION = '5.20261105.829';
+const NPM_VERSION = '5.20261105.1447';
 // The set this repository holds: its receipt must name this repository's
 // package folder (checked against the checkout below).
 const PACKAGES = [
@@ -197,10 +197,12 @@ foreach ($receiptPaths as $receiptPath) {
     }
     // The receipt's commit is in this checkout and its package folder is the
     // one at HEAD: the site shows the set as it is committed, never an older build.
+    // The release route lays the build itself into <path>/dist after that
+    // commit, so dist/ is left out of the comparison.
     $built = (string) ($receipt['package_source']['revision'] ?? '');
     $repositoryRoot = trim($git($projectRoot, ['rev-parse', '--show-toplevel']));
-    $tree = static fn (string $commit): string => trim($git($repositoryRoot, ['rev-parse', $commit . ':' . $pinned['path']]));
-    if (preg_match('/\A[0-9a-f]{40}\z/D', $built) !== 1 || $tree($built) !== $tree('HEAD')) {
+    $changed = static fn (string $commit): string => trim($git($repositoryRoot, ['diff', '--name-only', $commit, 'HEAD', '--', $pinned['path'], ':(exclude)' . $pinned['path'] . '/dist']));
+    if (preg_match('/\A[0-9a-f]{40}\z/D', $built) !== 1 || $changed($built) !== '') {
         throw new RuntimeException('FRAMEWORK_PACKAGE_STALE: ' . $name . ' was built from ' . $built
             . ', whose ' . $pinned['path'] . '/ is not the one at HEAD; rebuild the set');
     }

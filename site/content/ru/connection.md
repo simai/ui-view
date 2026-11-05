@@ -11,7 +11,7 @@ Loader сам находит набор, загружает его правил�
 ## Одна строка
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@simai-studio/ui@5.20261105.829/distr/core/js/core.min.js" data-sf-sets="view"></script>
+<script src="https://cdn.jsdelivr.net/npm/@simai-studio/ui@5.20261105.1447/distr/core/js/core.min.js" data-sf-sets="view"></script>
 ```
 
 Атрибут `data-sf-sets` перечисляет наборы через пробел. Конкретную версию
@@ -19,9 +19,14 @@ Loader сам находит набор, загружает его правил�
 выбирает по общему индексу совместимости самый новый выпуск набора, который
 подходит к подключённому Core.
 
-:::ui.alert
-{"type":"warning","variant":"default","title":"Набор ещё не выпущен","supporting-text":"Первый выпуск набора view и его публикация в npm готовятся. Пока набор подключают из своей копии сборки, как показано ниже."}
-:::
+Набор опубликован в npm как `@simai-studio/view`; Loader берёт его с
+jsDelivr. Версия 1.0.0 (выпуск `view-9c963d217188`) собрана над выпуском
+SIMAI Framework `ui-62b1d9b6dc8d` и работает с `core.runtime` 1.25.0 или
+новее. Ссылка на выпуск закрепляет Core и набор вместе:
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/@simai-studio/ui@5.20261105.1447/distr/core/js/core.min.js" data-sf-sets="view@1.0.0"></script>
+```
 
 ## Из своей копии
 
