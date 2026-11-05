@@ -69,6 +69,184 @@ function normalizeBadgeContract({
 
 /***/ },
 
+/***/ "e577837dd70a"
+(module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   calendarDayOffset: () => (/* binding */ calendarDayOffset),
+/* harmony export */   formatDate: () => (/* binding */ formatDate),
+/* harmony export */   msUntilNextDay: () => (/* binding */ msUntilNextDay),
+/* harmony export */   toDate: () => (/* reexport safe */ _format_intl_js__WEBPACK_IMPORTED_MODULE_0__.toDate)
+/* harmony export */ });
+/* harmony import */ var _format_intl_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("15b4e93ff6ed");
+var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_format_intl_js__WEBPACK_IMPORTED_MODULE_0__]);
+var __webpack_async_dependencies_result__ = (__webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
+_format_intl_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_async_dependencies_result__[0];
+// Dates in the page's language: formatDate, the calendar day offset and the
+// next midnight, with no top-level side effects (format-intl.js). The same
+// functions as core/js/format.js and SF.format; relative days and times are
+// format-relative.js, so a bundle that writes a date does not carry them.
+
+
+const DAY_MS = 86400000;
+
+function hasDateStyle(style) {
+  return style === 'short' || style === 'medium' || style === 'long' || style === 'full';
+}
+/**
+ * A date, a time or both in the locale.
+ *
+ *   formatDate(at)                          3 нояб. 2026 г.  /  Nov 3, 2026
+ *   formatDate(at, {date: 'short'})         03.11.2026       /  11/3/26
+ *   formatDate(at, {date: 'long'})          3 ноября 2026 г. /  November 3, 2026
+ *   formatDate(at, {time: 'short'})         3 нояб. 2026 г., 14:05
+ *   formatDate(at, {date: null, time: 'short'})   14:05   /  2:05 PM
+ *
+ * `date` and `time` are Intl styles (short, medium, long, full); `intl` gives
+ * Intl.DateTimeFormat options outright, for a form the styles do not name (a
+ * chart's tick, «14:05» with two-digit hours). Anything that is not a date is
+ * `gap`, '' by default.
+ */
+
+
+function formatDate(value, {
+  date = 'medium',
+  time = null,
+  intl = null,
+  gap = '',
+  ...where
+} = {}) {
+  const moment = (0,_format_intl_js__WEBPACK_IMPORTED_MODULE_0__.toDate)(value);
+  if (!moment) return gap;
+  let options = intl;
+
+  if (!options) {
+    options = {};
+    if (hasDateStyle(date)) options.dateStyle = date;
+    if (hasDateStyle(time)) options.timeStyle = time;
+    if (!options.dateStyle && !options.timeStyle) options.dateStyle = 'medium';
+  }
+
+  return (0,_format_intl_js__WEBPACK_IMPORTED_MODULE_0__.intlFormatter)('DateTimeFormat', (0,_format_intl_js__WEBPACK_IMPORTED_MODULE_0__.formatLocale)(where), options).format(moment);
+}
+/**
+ * Calendar days from `now` to the value in the reader's time zone: 0 today,
+ * -1 yesterday, 1 tomorrow; NaN when the value is no date. Counted on
+ * calendar dates, not 24-hour spans, so 23:59 yesterday is -1 at 00:01 and a
+ * day of a clock change is still one day.
+ */
+
+function calendarDayOffset(value, {
+  now = new Date()
+} = {}) {
+  const moment = (0,_format_intl_js__WEBPACK_IMPORTED_MODULE_0__.toDate)(value);
+  const today = (0,_format_intl_js__WEBPACK_IMPORTED_MODULE_0__.toDate)(now);
+  if (!moment || !today) return Number.NaN;
+  const day = Date.UTC(moment.getFullYear(), moment.getMonth(), moment.getDate());
+  const base = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
+  return Math.round((day - base) / DAY_MS);
+}
+/**
+ * Milliseconds from `now` to the reader's next midnight, when every relative
+ * day on the screen moves by one. A component that shows them sets a timer
+ * for this long (plus a second's margin, so it wakes in the new day) and
+ * draws them again; «сегодня» said yesterday is wrong by morning.
+ */
+
+function msUntilNextDay(now = new Date()) {
+  const today = (0,_format_intl_js__WEBPACK_IMPORTED_MODULE_0__.toDate)(now) ?? new Date();
+  const next = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+  return next.getTime() - today.getTime();
+}
+__webpack_async_result__();
+} catch(e) { __webpack_async_result__(e); } });
+
+/***/ },
+
+/***/ "15b4e93ff6ed"
+(module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   formatLocale: () => (/* binding */ formatLocale),
+/* harmony export */   intlFormatter: () => (/* binding */ intlFormatter),
+/* harmony export */   toDate: () => (/* binding */ toDate)
+/* harmony export */ });
+/* harmony import */ var _page_language_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("43090d1c8307");
+var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_page_language_js__WEBPACK_IMPORTED_MODULE_0__]);
+var __webpack_async_dependencies_result__ = (__webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
+_page_language_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_async_dependencies_result__[0];
+/* harmony import */ var _page_language_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_page_language_js__WEBPACK_IMPORTED_MODULE_0__);
+// The part every format module shares (core/js/format.js says what the
+// helpers are): the locale a call formats in, a Date from what a host gives,
+// and the Intl formatters, kept on a global every copy of these modules shares
+// (bundles each carry their own module copy; page-language.js says why).
+//
+// No top-level side effects, here or in format-number.js, format-date.js,
+// format-relative.js and format-file-size.js (ui-chart, 2026-11-05): a bundle
+// that imports one function carries that function and what it calls, nothing
+// else. The global is made on the first format, not on load, and SF.format is
+// published by core's entry (index.js, publishFormat in format.js).
+
+/** The locale a call formats in: the one it names, else its node's page language. */
+
+function formatLocale({
+  locale,
+  node
+} = {}) {
+  return String(locale || '').trim() || (0,_page_language_js__WEBPACK_IMPORTED_MODULE_0__.pageLocale)(node);
+}
+/** A Date from a Date, a time in milliseconds or a date string; null when it is none. */
+
+function toDate(value) {
+  if (value === null || value === undefined || value === '') return null;
+  const date = value instanceof Date ? new Date(value.getTime()) : new Date(typeof value === 'string' && /^\d+$/u.test(value) ? Number(value) : value);
+  return Number.isNaN(date.getTime()) ? null : date;
+} // The formatters every copy shares, made on the first call.
+
+function formatterCache() {
+  const root = typeof globalThis !== 'undefined' ? globalThis : {};
+  if (!root.__sfFormat) root.__sfFormat = {
+    formatters: new Map()
+  };
+  return root.__sfFormat.formatters;
+} // One formatter per kind, locale and options. An unknown locale falls back to
+// the browser's, and options the platform refuses (an unknown unit or
+// currency) to a plain number, so a typo in a page never throws at a reader.
+
+
+function intlFormatter(kind, locale, options) {
+  const key = `${kind}|${locale}|${JSON.stringify(options)}`;
+  const cache = formatterCache();
+  if (cache.has(key)) return cache.get(key);
+  const Make = Intl[kind];
+  let made;
+
+  try {
+    made = new Make(locale || undefined, options);
+  } catch {
+    try {
+      made = new Make(undefined, options);
+    } catch {
+      made = new Make(locale || undefined, kind === 'NumberFormat' ? {
+        maximumFractionDigits: 2
+      } : {});
+    }
+  } // A page that formats in many locales does not grow the cache for ever.
+
+
+  if (cache.size >= 256) cache.delete(cache.keys().next().value);
+  cache.set(key, made);
+  return made;
+}
+__webpack_async_result__();
+} catch(e) { __webpack_async_result__(e); } });
+
+/***/ },
+
 /***/ "1b42c5117087"
 (__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
@@ -3191,10 +3369,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _core_js_page_language__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__("43090d1c8307");
 /* harmony import */ var _core_js_layer_stack__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__("18003344cff0");
 /* harmony import */ var _js_templates_default__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__("40b137e60526");
-/* harmony import */ var _field_renderers_datetime_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__("9ce1a42b2a85");
-/* harmony import */ var _js_conditions_js__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__("844bdc4d24eb");
-var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_core_js_smart_base__WEBPACK_IMPORTED_MODULE_0__, _core_js_element_manifest__WEBPACK_IMPORTED_MODULE_1__, _core_js_page_language__WEBPACK_IMPORTED_MODULE_8__, _core_js_layer_stack__WEBPACK_IMPORTED_MODULE_9__, _js_templates_default__WEBPACK_IMPORTED_MODULE_10__]);
-([_core_js_smart_base__WEBPACK_IMPORTED_MODULE_0__, _core_js_element_manifest__WEBPACK_IMPORTED_MODULE_1__, _core_js_page_language__WEBPACK_IMPORTED_MODULE_8__, _core_js_layer_stack__WEBPACK_IMPORTED_MODULE_9__, _js_templates_default__WEBPACK_IMPORTED_MODULE_10__] = __webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
+/* harmony import */ var _js_conditions_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__("844bdc4d24eb");
+/* harmony import */ var _view_table_js_format_value_js__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__("2f31b00ad99a");
+var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_core_js_smart_base__WEBPACK_IMPORTED_MODULE_0__, _core_js_element_manifest__WEBPACK_IMPORTED_MODULE_1__, _core_js_page_language__WEBPACK_IMPORTED_MODULE_8__, _core_js_layer_stack__WEBPACK_IMPORTED_MODULE_9__, _js_templates_default__WEBPACK_IMPORTED_MODULE_10__, _view_table_js_format_value_js__WEBPACK_IMPORTED_MODULE_12__]);
+([_core_js_smart_base__WEBPACK_IMPORTED_MODULE_0__, _core_js_element_manifest__WEBPACK_IMPORTED_MODULE_1__, _core_js_page_language__WEBPACK_IMPORTED_MODULE_8__, _core_js_layer_stack__WEBPACK_IMPORTED_MODULE_9__, _js_templates_default__WEBPACK_IMPORTED_MODULE_10__, _view_table_js_format_value_js__WEBPACK_IMPORTED_MODULE_12__] = __webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
 /* harmony import */ var _core_js_smart_base__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_core_js_smart_base__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _core_js_element_manifest__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_core_js_element_manifest__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var _core_js_page_language__WEBPACK_IMPORTED_MODULE_8___default = /*#__PURE__*/__webpack_require__.n(_core_js_page_language__WEBPACK_IMPORTED_MODULE_8__);
@@ -3715,13 +3893,10 @@ class SfPropertyView extends PropertyViewElement {
 
     this.editing = null;
     this.changed = new Map();
-    this.errors = new Map(); // What a person has entered into a field that is not a value yet: a
-    // datetime's day and time, held until both make one (inputDrafts), and
-    // what is wrong with an entry that cannot be written (inputErrors).
-    // The view's own, so a host's refusal does not replace them; a save
-    // waits until they are put right.
+    this.errors = new Map(); // What is wrong with an entry a field control reports it cannot write
+    // yet (inputErrors). The view's own, so a host's refusal does not
+    // replace them; a save waits until they are put right.
 
-    this.inputDrafts = new Map();
     this.inputErrors = new Map(); // The keys of inputErrors a field control reported itself (port 1.16.0:
     // a masked string that does not fill its mask, through the renderer
     // set's setFieldError). The control draws that message under itself, so
@@ -4894,7 +5069,7 @@ class SfPropertyView extends PropertyViewElement {
     return (Array.isArray(entries) ? entries : []).filter(entry => entry && entry.hidden !== true).filter(entry => this.showRare || entry.rare !== true) // A field its condition hides is not drawn (port 1.14.0). Not while
     // the view is arranged -- the template lists every entry then -- and
     // not by the view: `hidden` is the arrangement's, `when` the values'.
-    .filter(entry => !values || !entry.when || (0,_js_conditions_js__WEBPACK_IMPORTED_MODULE_12__.fieldConditions)(entry, values).visible);
+    .filter(entry => !values || !entry.when || (0,_js_conditions_js__WEBPACK_IMPORTED_MODULE_11__.fieldConditions)(entry, values).visible);
   } // Every field's value as it stands on screen: what the record holds, or what
   // the person changed it to and has not saved. The conditions read these, so
   // a field appears the moment the value it waits for is chosen, before any
@@ -4924,7 +5099,7 @@ class SfPropertyView extends PropertyViewElement {
 
   conditionedField(field, values = this.fieldValues()) {
     if (!field?.when) return field;
-    const decided = (0,_js_conditions_js__WEBPACK_IMPORTED_MODULE_12__.fieldConditions)(field, values);
+    const decided = (0,_js_conditions_js__WEBPACK_IMPORTED_MODULE_11__.fieldConditions)(field, values);
     return { ...field,
       required: decided.required,
       readonly: field.readonly === true || !decided.enabled
@@ -4937,7 +5112,7 @@ class SfPropertyView extends PropertyViewElement {
     const hidden = new Set();
 
     const check = field => {
-      if (field?.when && !(0,_js_conditions_js__WEBPACK_IMPORTED_MODULE_12__.fieldConditions)(field, values).visible) hidden.add(String(field.key));
+      if (field?.when && !(0,_js_conditions_js__WEBPACK_IMPORTED_MODULE_11__.fieldConditions)(field, values).visible) hidden.add(String(field.key));
     };
 
     for (const section of this.sections ?? []) {
@@ -4958,6 +5133,31 @@ class SfPropertyView extends PropertyViewElement {
     const hidden = this._hiddenByCondition();
 
     return Object.fromEntries([...this.changed].filter(([key]) => !hidden.has(key)));
+  } // The host as the renderer set reads a field shown: its formatFieldValue
+  // first, and for a date it did not format, the date in the page's language
+  // (format-date), as sf-view-table's cells read it. A date stood in the card
+  // as stored -- «2026-11-02» -- unless the host formatted it (2026-11-05).
+
+
+  get viewHost() {
+    const host = this.hostPort ?? null;
+    if (this._viewHost?.host === host) return this._viewHost.view; // Everything else the host offers the renderer set (its words, say) is
+    // reached through it unchanged.
+
+    const view = Object.create(host && typeof host === "object" ? host : null);
+    Object.assign(view, {
+      formatFieldValue: (field, value) => {
+        const own = host?.formatFieldValue?.(field, value);
+        if (typeof own === "string") return own;
+        const type = field?.propertyType ?? field?.property_type ?? field?.type ?? field?.dataType;
+        return (0,_view_table_js_format_value_js__WEBPACK_IMPORTED_MODULE_12__.formatDateValue)(type, value, this) || undefined;
+      }
+    });
+    this._viewHost = {
+      host,
+      view
+    };
+    return view;
   }
 
   templateContext() {
@@ -4965,6 +5165,7 @@ class SfPropertyView extends PropertyViewElement {
     return this.createTemplateContext({ ...props,
       component: this,
       hostPort: this.hostPort,
+      viewHost: this.viewHost,
       size: this.size,
       mode: this.mode,
       mayEdit: this.mayEdit,
@@ -5001,11 +5202,6 @@ class SfPropertyView extends PropertyViewElement {
       // is wrong beside it and each message under its field.
       inputsInvalid: this.inputErrors.size > 0,
       controlErrors: this.controlErrors,
-      dateTimeText: {
-        dateLabel: (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_8__.pageText)(PROPERTY_VIEW_TEXT, "dateTimeDateLabel", this),
-        timeLabel: (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_8__.pageText)(PROPERTY_VIEW_TEXT, "dateTimeTimeLabel", this),
-        placeholder: (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_8__.pageText)(PROPERTY_VIEW_TEXT, "timePlaceholderText", this)
-      },
       canPickRecords: this.canPickRecords,
       canUploadFiles: this.canUploadFiles,
       // The base captures the host's slot content in connectedCallback,
@@ -5586,9 +5782,9 @@ class SfPropertyView extends PropertyViewElement {
       reason: "prevented"
     };
   } // What would be lost by closing: every changed field, and every entry that
-  // is not a value yet -- a day picked for a datetime whose time is still
-  // empty is work the person did, though there is nothing to save (Larena
-  // acceptance, 2026-10-22: Esc after picking a day closed without asking).
+  // is not a value yet -- a masked text not filled in is work the person did,
+  // though there is nothing to save (Larena acceptance, 2026-10-22: Esc after
+  // an entry closed without asking).
 
 
   get unsavedFields() {
@@ -5808,62 +6004,28 @@ class SfPropertyView extends PropertyViewElement {
 
 
   changeField(field, value) {
-    const key = String(field.key ?? "");
-    if (value === undefined) this.changed.delete(key);else this.changed.set(key, value);
+    const key = String(field.key ?? ""); // Back to what the record holds is no change. A control is drawn with
+    // the change it made, so it compares a later entry with that and not
+    // with the record: a time put back to the stored one was written.
+
+    const stored = Object.hasOwn(field ?? {}, "value") && value !== undefined && JSON.stringify(value) === JSON.stringify(field.value ?? null);
+    if (value === undefined || stored) this.changed.delete(key);else this.changed.set(key, value);
     this.errors.delete(key); // A confirmation described the save as it stood; an entry changed after
     // it is a different save, and the question goes until save is pressed again.
 
     this.confirmation = null;
     this.requestComponentUpdate("changed");
     return this;
-  } // A datetime's day or time, as the person entered it (js/datetime-edit.js).
-  // The two make one value; until they do, the entry is held as a draft and
-  // what is missing is said under the field, as a host's error would be.
-
-
-  dateTimeDraft(key) {
-    return this.inputDrafts.get(String(key)) ?? null;
-  }
-
-  changeDateTime(field, value, part, text) {
-    const key = String(field.key ?? ""); // What the record holds, and what the controls show now: the draft,
-    // or the value the field is drawn with (a change not yet saved).
-
-    const original = (0,_field_renderers_datetime_js__WEBPACK_IMPORTED_MODULE_11__.splitDateTime)(field.value);
-    const current = this.inputDrafts.get(key) ?? (0,_field_renderers_datetime_js__WEBPACK_IMPORTED_MODULE_11__.splitDateTime)(value); // A time that reads as one is kept as hh:mm, so «0930» typed without
-    // the mask shows as 09:30; anything else stays as typed, to be put right.
-
-    const typed = String(text ?? "");
-    const draft = { ...current,
-      [part]: part === "time" ? (0,_field_renderers_datetime_js__WEBPACK_IMPORTED_MODULE_11__.normalizeTime)(typed) ?? typed : typed
-    };
-    this.inputDrafts.set(key, draft);
-    const result = (0,_field_renderers_datetime_js__WEBPACK_IMPORTED_MODULE_11__.composeDateTime)(original, draft);
-
-    if (result.error) {
-      this.changed.delete(key);
-      this.errors.delete(key);
-      this.inputErrors.set(key, (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_8__.pageText)(PROPERTY_VIEW_TEXT, `${result.error}Text`, this));
-      this.requestComponentUpdate("errors");
-      return this;
-    }
-
-    this.inputErrors.delete(key); // Back to what the record holds is no change: nothing is written.
-
-    const same = result.value === null ? original.known && !original.date : result.value === original.raw;
-    return this.changeField(field, same ? undefined : result.value);
   }
 
   _clearInputs() {
-    this.inputDrafts.clear();
     this.inputErrors.clear();
     this.controlErrors.clear();
   } // A field control that knows its entry is not a value yet (port 1.16.0,
   // consumer simai.main): a masked string that does not fill its mask. The
   // renderer set tells the host through setFieldError(field, message) on
   // every keystroke, and null once the text is complete or cleared. Such an
-  // entry is held where a datetime's half-entered pair is held, in
-  // inputErrors, so the same rule stops both saves -- group.save and
+  // entry is held in inputErrors, so the same rule stops both saves -- group.save and
   // record.save («Изменить всё») -- and Save is drawn disabled while any field
   // of the surface is incomplete. Each field is its own key, so one masked
   // field completed does not release another still incomplete. What was typed
@@ -5892,7 +6054,7 @@ class SfPropertyView extends PropertyViewElement {
 
 
   fieldDisabled(field, values = this.fieldValues()) {
-    return Boolean(field?.when) && !(0,_js_conditions_js__WEBPACK_IMPORTED_MODULE_12__.fieldConditions)(field, values).enabled;
+    return Boolean(field?.when) && !(0,_js_conditions_js__WEBPACK_IMPORTED_MODULE_11__.fieldConditions)(field, values).enabled;
   } // An entry that is not a value yet stops a save, and says so where it is.
 
 
@@ -7419,100 +7581,6 @@ function fieldConditions(field, values) {
 
 /***/ },
 
-/***/ "d577a2a824ab"
-(module, __webpack_exports__, __webpack_require__) {
-
-__webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   renderDateTimeEdit: () => (/* binding */ renderDateTimeEdit)
-/* harmony export */ });
-/* harmony import */ var lit__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("2a080a730149");
-/* harmony import */ var _field_renderers_datetime_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__("9ce1a42b2a85");
-var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([lit__WEBPACK_IMPORTED_MODULE_0__]);
-var __webpack_async_dependencies_result__ = (__webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
-lit__WEBPACK_IMPORTED_MODULE_0__ = __webpack_async_dependencies_result__[0];
-/* harmony import */ var lit__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(lit__WEBPACK_IMPORTED_MODULE_0__);
-
- // A datetime field edited as what it is: a day and a time of day (Larena
-// acceptance, 2026-10-22: «Дата и время» kept only the day, so a new record
-// could not get a time and «15.11.2026 10:30» was saved as «15.11.2026»).
-//
-// The shared renderer set edits a datetime with sf-input-date alone, which has
-// no clock, and puts the record's old time back on the way out. This view
-// draws the pair itself: the Framework's sf-input-date for the day and the
-// Framework's sf-input, masked to hh:mm, for the time -- sf-input has no
-// input-type="time" (its types are text, email, password, search, tel, url),
-// and a raw <input type="time"> would be the one unstyled control in the panel.
-// Both are drawn at the view's size, on one row, each named for assistive
-// technology («Начало: дата», «Начало: время»).
-//
-// The value is the host's text, in the site's time zone, as it reads it. The
-// round trip is lossless: an untouched field is not written at all, and a
-// field whose day and time come back to what they were writes back exactly
-// the text it read. A changed day keeps the record's clock (seconds, fraction)
-// and zone; a changed time is hh:mm:00 with the record's zone; a new value has
-// no zone and is the site's time, which is how the host sends and reads it.
-// The pair. `draft` is what the person has entered so far, kept by the view so
-// a half-typed time survives a render; without one the stored value shows.
-
-function renderDateTimeEdit(context, field, value) {
-  const key = String(field.key ?? '');
-  const stored = (0,_field_renderers_datetime_js__WEBPACK_IMPORTED_MODULE_1__.splitDateTime)(value);
-  const draft = context.component.dateTimeDraft(key) ?? stored;
-  const label = String(field.label || field.key || '');
-  const words = context.dateTimeText;
-  const size = context.size === '1/2' ? '1/2' : '1';
-  const name = `sf_field_${field.key || 'value'}`;
-  const invalid = context.errors.has(key);
-
-  const change = (part, text) => context.component.changeDateTime(field, value, part, text); // The day is bound as a property, not as the value attribute: sf-input-date
-  // reads a value attribute back after the person empties the field, so an
-  // attribute-bound day could not be cleared (its date getter falls back to
-  // the attribute once its own state is empty).
-
-
-  return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
-        <div class="sf-property-view-datetime" role="group" aria-label=${label} data-datetime=${key}>
-            <sf-input-date
-                    class="sf-property-view-datetime-date"
-                    size=${size}
-                    name=${`${name}_date`}
-                    .value=${draft.date}
-                    aria-label=${words.dateLabel.replace('{label}', label)}
-                    ?required=${Boolean(field.required)}
-                    @change=${event => {
-    // The datepicker's own change, not a bubbling native one
-    // from its text field: only the first carries the ISO day.
-    if (event.target !== event.currentTarget) return;
-    change('date', event.detail?.value ?? event.currentTarget?.value ?? '');
-  }}
-            ></sf-input-date>
-            <sf-input
-                    class="sf-property-view-datetime-time"
-                    size=${size}
-                    appearance="bordered"
-                    root-class="sf-property-view-datetime-time-field"
-                    name=${`${name}_time`}
-                    value=${draft.time}
-                    inputmode="numeric"
-                    autocomplete="off"
-                    placeholder=${words.placeholder}
-                    mask
-                    mask-pattern="00:00"
-                    ?invalid=${invalid}
-                    ?required=${Boolean(field.required)}
-                    aria-label=${words.timeLabel.replace('{label}', label)}
-                    @change=${event => change('time', event.currentTarget?.value ?? '')}
-            ></sf-input>
-        </div>
-    `;
-}
-__webpack_async_result__();
-} catch(e) { __webpack_async_result__(e); } });
-
-/***/ },
-
 /***/ "40b137e60526"
 (module, __webpack_exports__, __webpack_require__) {
 
@@ -7524,11 +7592,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var lit__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("2a080a730149");
 /* harmony import */ var _default_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__("9e9dad7bcc09");
 /* harmony import */ var _field_renderers_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__("e5483002f3ea");
-/* harmony import */ var _datetime_edit_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__("d577a2a824ab");
-var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([lit__WEBPACK_IMPORTED_MODULE_0__, _field_renderers_index_js__WEBPACK_IMPORTED_MODULE_2__, _datetime_edit_js__WEBPACK_IMPORTED_MODULE_3__]);
-([lit__WEBPACK_IMPORTED_MODULE_0__, _field_renderers_index_js__WEBPACK_IMPORTED_MODULE_2__, _datetime_edit_js__WEBPACK_IMPORTED_MODULE_3__] = __webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
+var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([lit__WEBPACK_IMPORTED_MODULE_0__, _field_renderers_index_js__WEBPACK_IMPORTED_MODULE_2__]);
+([lit__WEBPACK_IMPORTED_MODULE_0__, _field_renderers_index_js__WEBPACK_IMPORTED_MODULE_2__] = __webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
 /* harmony import */ var lit__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(lit__WEBPACK_IMPORTED_MODULE_0__);
-
 
 
  // The arrangement, drawn in the component's own light DOM. Not in a shadow root:
@@ -7559,19 +7625,20 @@ function renderFieldValue(context, field, editing, {
       setFieldOptionSearch: (target, text) => context.component.setFieldOptionSearch(target, text),
       loadFieldOptions: (target, request) => context.component.loadFieldOptions(target, request)
     } : {})
-  }; // A datetime is edited as a day and a time (../datetime-edit.js): the
-  // shared set's control edits the day alone. A readonly one is shown, as the
-  // set shows every readonly field.
+  }; // A datetime and a time of day are the renderer set's: sf-input-date in
+  // mode datetime and time, one control each (SIMAI Framework duplication
+  // audit A-14). This view drew its own pair -- the day in a datepicker and
+  // the time in a masked field -- which cut the day short in a half-width
+  // field and held half-typed entries of its own.
 
-  const type = field.propertyType || field.type || field.dataType;
-  const content = editing && type === 'datetime' && field.readonly !== true ? (0,_datetime_edit_js__WEBPACK_IMPORTED_MODULE_3__.renderDateTimeEdit)(context, field, context.changed.has(key) ? context.changed.get(key) : field.value) : editing ? (0,_field_renderers_index_js__WEBPACK_IMPORTED_MODULE_2__.renderEditField)(field, context.changed.has(key) ? context.changed.get(key) : field.value, editHost, // A field its condition turns off is drawn disabled where the set
+  const content = editing ? (0,_field_renderers_index_js__WEBPACK_IMPORTED_MODULE_2__.renderEditField)(field, context.changed.has(key) ? context.changed.get(key) : field.value, editHost, // A field its condition turns off is drawn disabled where the set
   // draws disabled apart from read-only (a choice as buttons).
   {
     size: context.size,
     ...(disabled ? {
       disabled: true
     } : {})
-  }) : (0,_field_renderers_index_js__WEBPACK_IMPORTED_MODULE_2__.renderViewField)(field, field.value, context.hostPort, {
+  }) : (0,_field_renderers_index_js__WEBPACK_IMPORTED_MODULE_2__.renderViewField)(field, field.value, context.viewHost, {
     size: context.size
   });
   const reference = ['record', 'relation', 'user'].includes(field.propertyType || field.type) && field.value && typeof field.value === 'object';
@@ -7598,7 +7665,7 @@ function renderFieldValue(context, field, editing, {
 
 
   if (editing && (content === null || typeof content === 'undefined' || content === lit__WEBPACK_IMPORTED_MODULE_0__.nothing)) {
-    const shown = (0,_field_renderers_index_js__WEBPACK_IMPORTED_MODULE_2__.renderViewField)(field, field.value, context.hostPort, {
+    const shown = (0,_field_renderers_index_js__WEBPACK_IMPORTED_MODULE_2__.renderViewField)(field, field.value, context.viewHost, {
       size: context.size
     });
 
@@ -9111,6 +9178,74 @@ __webpack_async_result__();
 
 /***/ },
 
+/***/ "2f31b00ad99a"
+(module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   DATE_TYPES: () => (/* binding */ DATE_TYPES),
+/* harmony export */   formatDateValue: () => (/* binding */ formatDateValue)
+/* harmony export */ });
+/* harmony import */ var _core_js_format_date_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("e577837dd70a");
+var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_core_js_format_date_js__WEBPACK_IMPORTED_MODULE_0__]);
+var __webpack_async_dependencies_result__ = (__webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
+_core_js_format_date_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_async_dependencies_result__[0];
+ // A date, a date and time or a time of day in the page's language, through
+// the SIMAI Framework's format-date module, for a value the host did not
+// format (formatFieldValue). The host's own text still wins; without one, a
+// date read «2026-11-02» where a person expects «2 нояб. 2026 г.».
+//
+// The forms are read as a host stores them: a day «YYYY-MM-DD» is that day on
+// the reader's calendar (not UTC midnight, which is the day before west of
+// Greenwich); a date and time with a zone is that moment in the reader's zone
+// and one without a zone is the wall clock as written; a time «hh:mm[:ss]» is
+// a time of day. Anything else is left for the caller to print as it came.
+
+const DAY = /^(\d{4})-(\d{2})-(\d{2})$/u;
+const TIME = /^(\d{2}):(\d{2})(?::(\d{2})(?:\.\d+)?)?$/u;
+const DATE_TIME = /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})(?::(\d{2})(?:\.\d+)?)?(Z|[+-]\d{2}:?\d{2})?$/u;
+const DATE_TYPES = new Set(['date', 'datetime', 'time']);
+
+function readMoment(type, text) {
+  const day = DAY.exec(text);
+  if (day) return new Date(Number(day[1]), Number(day[2]) - 1, Number(day[3]));
+  const time = TIME.exec(text);
+  if (time) return type === 'time' ? new Date(2000, 0, 1, Number(time[1]), Number(time[2]), Number(time[3] ?? 0)) : null;
+  const stamp = DATE_TIME.exec(text);
+  if (!stamp) return null;
+
+  if (stamp[7]) {
+    const moment = new Date(text.replace(' ', 'T'));
+    return Number.isNaN(moment.getTime()) ? null : moment;
+  }
+
+  return new Date(Number(stamp[1]), Number(stamp[2]) - 1, Number(stamp[3]), Number(stamp[4]), Number(stamp[5]), Number(stamp[6] ?? 0));
+} // The text for a value of a date type, or '' when it is not one this reads.
+
+
+function formatDateValue(type, value, node) {
+  if (!DATE_TYPES.has(type) || typeof value !== 'string' || !value.trim()) return '';
+  const text = value.trim();
+  const moment = readMoment(type, text);
+  if (!moment) return '';
+  const hasTime = type !== 'date' && !DAY.test(text);
+  if (type === 'time') return (0,_core_js_format_date_js__WEBPACK_IMPORTED_MODULE_0__.formatDate)(moment, {
+    date: null,
+    time: 'short',
+    node
+  });
+  return (0,_core_js_format_date_js__WEBPACK_IMPORTED_MODULE_0__.formatDate)(moment, {
+    date: 'medium',
+    time: hasTime ? 'short' : null,
+    node
+  });
+}
+__webpack_async_result__();
+} catch(e) { __webpack_async_result__(e); } });
+
+/***/ },
+
 /***/ "17828be41e75"
 (__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
@@ -10223,21 +10358,21 @@ module.exports = /*#__PURE__*/JSON.parse('{"$comment":"Dated aliases of sf-view-
 /***/ "3ea81f4c3c20"
 (module) {
 
-module.exports = /*#__PURE__*/JSON.parse('{"id":"smart.view-properties","tag":"sf-view-properties","version":"1.9.1","kind":"leaf","implements":["record-view@1"],"settings":{"add-field-text":{"type":"string","default-from":"runtime.add-field-text"},"add-group-text":{"type":"string","default-from":"runtime.add-group-text"},"add-section-text":{"type":"string","default-from":"runtime.add-section-text"},"back-label":{"type":"string","default-from":"runtime.back-label"},"cancel-configuring-text":{"type":"string","default-from":"runtime.cancel-configuring-text"},"cancel-name-text":{"type":"string","default-from":"runtime.cancel-name-text"},"cancel-text":{"type":"string","default-from":"runtime.cancel-text"},"changed-text":{"type":"string","default-from":"runtime.changed-text"},"close-label":{"type":"string","default-from":"runtime.close-label"},"collection":{"type":"string","default":""},"collection-icon":{"type":"icon","default":""},"collection-label":{"type":"string","default":""},"configure-hint-narrow-text":{"type":"string","default-from":"runtime.configure-hint-narrow-text"},"configure-hint-text":{"type":"string","default-from":"runtime.configure-hint-text"},"configure-text":{"type":"string","default-from":"runtime.configure-text"},"conflict-text":{"type":"string","default-from":"runtime.conflict-text"},"copy-link-label":{"type":"string","default-from":"runtime.copy-link-label"},"delete-text":{"type":"string","default-from":"runtime.delete-text"},"done-configuring-text":{"type":"string","default-from":"runtime.done-configuring-text"},"edit-text":{"type":"string","default-from":"runtime.edit-text"},"empty-record-text":{"type":"string","default-from":"runtime.empty-record-text"},"empty-text":{"type":"string","default-from":"runtime.empty-text"},"errors-text":{"type":"string","default-from":"runtime.errors-text"},"favourite":{"type":"boolean","default":false},"favourite-label":{"type":"string","default-from":"runtime.favourite-label"},"field-label-text":{"type":"string","default-from":"runtime.field-label-text"},"field-settings-text":{"type":"string","default-from":"runtime.field-settings-text"},"hidden-text":{"type":"string","default-from":"runtime.hidden-text"},"hide-rare-text":{"type":"string","default-from":"runtime.hide-rare-text"},"hint-text":{"type":"string","default-from":"runtime.hint-text"},"in-this-group-text":{"type":"string","default-from":"runtime.in-this-group-text"},"inherited-text":{"type":"string","default-from":"runtime.inherited-text"},"link-copied-label":{"type":"string","default-from":"runtime.link-copied-label"},"menu-label":{"type":"string","default-from":"runtime.menu-label"},"move-down-text":{"type":"string","default-from":"runtime.move-down-text"},"move-up-text":{"type":"string","default-from":"runtime.move-up-text"},"new-group-title":{"type":"string","default-from":"runtime.new-group-title"},"new-section-title":{"type":"string","default-from":"runtime.new-section-title"},"no-match-text":{"type":"string","default-from":"runtime.no-match-text"},"open-full-label":{"type":"string","default-from":"runtime.open-full-label"},"panel":{"type":"boolean","default":false},"panel-label":{"type":"string","default":""},"panel-size":{"type":"enum","values":["1/2","1","2","full"],"default":"1"},"size":{"type":"enum","values":["1","1/2"],"default":"1"},"mode":{"type":"enum","values":["view","auto","edit","create"],"default":"auto"},"panel-width":{"type":"string","default":""},"personal-layer-text":{"type":"string","default-from":"runtime.personal-layer-text"},"rare-text":{"type":"string","default-from":"runtime.rare-text"},"record-id":{"type":"id","default":""},"remove-field-text":{"type":"string","default-from":"runtime.remove-field-text"},"remove-group-text":{"type":"string","default-from":"runtime.remove-group-text"},"remove-section-text":{"type":"string","default-from":"runtime.remove-section-text"},"rename-text":{"type":"string","default-from":"runtime.rename-text"},"reset-view-ask-text":{"type":"string","default-from":"runtime.reset-view-ask-text"},"reset-view-text":{"type":"string","default-from":"runtime.reset-view-text"},"save-name-text":{"type":"string","default-from":"runtime.save-name-text"},"save-text":{"type":"string","default-from":"runtime.save-text"},"section-icon-text":{"type":"string","default-from":"runtime.section-icon-text"},"section-icons":{"type":"string","default":""},"sections-as":{"type":"enum","values":["list","tabs"],"default":"list"},"sections-label":{"type":"string","default-from":"runtime.sections-label"},"shared-layer-text":{"type":"string","default-from":"runtime.shared-layer-text"},"show-rare":{"type":"boolean","default":false},"show-rare-text":{"type":"string","default-from":"runtime.show-rare-text"},"shown-text":{"type":"string","default-from":"runtime.shown-text"},"unplaced-hint-text":{"type":"string","default-from":"runtime.unplaced-hint-text"},"unplaced-title":{"type":"string","default-from":"runtime.unplaced-title"},"variant-text":{"type":"string","default-from":"runtime.variant-text"},"view-conflict-text":{"type":"string","default-from":"runtime.view-conflict-text"},"view-denied-text":{"type":"string","default-from":"runtime.view-denied-text"},"width-text":{"type":"string","default-from":"runtime.width-text"},"view-profile-label":{"type":"string","default-from":"runtime.view-profile-label"},"add-view-text":{"type":"string","default-from":"runtime.add-view-text"},"new-view-text":{"type":"string","default-from":"runtime.new-view-text"},"delete-view-text":{"type":"string","default-from":"runtime.delete-view-text"},"last-shared-view-text":{"type":"string","default-from":"runtime.last-shared-view-text"},"full":{"type":"boolean","default":false},"open":{"type":"boolean","default":true}},"values":{"revision":{"type":"string"},"section":{"type":"string"}},"events":{"close":{"carries":{"reason":{"type":"enum","values":["close","escape","cancelled","deleted","api"]},"record_id":{"type":"id","nullable":true},"unsaved_fields":{"type":"list"}},"cancelable":true},"open-full":{"carries":{"id":"id","address":"string","record_id":{"type":"id","nullable":true}}},"saved":{"carries":{"id":"id","revision":{"type":"string","optional":true}}},"failed":{"carries":{"reason":"string","message":{"type":"string","optional":true}}},"open":{"carries":{"field":"string","value":"object","answer":"string"}},"delete":{"carries":{"collection":"string","revision":"string","answer":"string","record_id":{"type":"id","nullable":true}}},"created":{"carries":{"collection":{"type":"string","nullable":true},"record_id":{"type":"id","nullable":true}}},"cancel":{"carries":{"mode":{"type":"enum","values":["auto","edit","create"]},"scope":{"type":"enum","values":["group"],"optional":true},"section":{"type":"string","optional":true},"group":{"type":"string","optional":true}}},"state":{"carries":{"state":"string","message":"string"},"own-verb":true},"address-copy":{"carries":{},"own-verb":true},"favourite":{"carries":{"collection":{"type":"string","nullable":true},"favourite":"boolean","record_id":{"type":"id","nullable":true}},"own-verb":true}},"actions":{"refresh":{},"load":{"with":{"reason":{"type":"string","optional":true}}},"edit-group":{"with":{"section":"string","group":"string"}},"cancel-edit":{},"save-group":{"with":{"options":{"type":"object","optional":true}},"concurrency":"drop"},"select-section":{"with":{"key":"string"}},"close-panel":{"with":{"reason":{"type":"string","optional":true}}},"copy-address":{},"open-full-page":{},"confirm-save":{},"cancel-confirmation":{}},"port":{"id":"simai.property-view-port","version":"1.17.0","contract":"src/core/contracts/ports/simai.property-view-port/1.17.0/port.json"},"presentation":{"skeleton":{"file":"skeleton.html","late":[]}},"css-variables":{"--sf-property-view--sections-width":{"type":"length","state":"default"},"--sf-property-view--title-size":{"type":"length","state":"default"},"--sf-property-view--label-size":{"type":"length","state":"default"},"--sf-property-view--value-size":{"type":"length","state":"default"},"--sf-property-view--group-size":{"type":"length","state":"default"},"--sf-property-view--edge-room":{"type":"length","state":"open"}},"host-states":{"data-state":"string","aria-busy":"string"}}');
+module.exports = /*#__PURE__*/JSON.parse('{"id":"smart.view-properties","tag":"sf-view-properties","version":"1.10.0","kind":"leaf","implements":["record-view@1"],"settings":{"add-field-text":{"type":"string","default-from":"runtime.add-field-text"},"add-group-text":{"type":"string","default-from":"runtime.add-group-text"},"add-section-text":{"type":"string","default-from":"runtime.add-section-text"},"back-label":{"type":"string","default-from":"runtime.back-label"},"cancel-configuring-text":{"type":"string","default-from":"runtime.cancel-configuring-text"},"cancel-name-text":{"type":"string","default-from":"runtime.cancel-name-text"},"cancel-text":{"type":"string","default-from":"runtime.cancel-text"},"changed-text":{"type":"string","default-from":"runtime.changed-text"},"close-label":{"type":"string","default-from":"runtime.close-label"},"collection":{"type":"string","default":""},"collection-icon":{"type":"icon","default":""},"collection-label":{"type":"string","default":""},"configure-hint-narrow-text":{"type":"string","default-from":"runtime.configure-hint-narrow-text"},"configure-hint-text":{"type":"string","default-from":"runtime.configure-hint-text"},"configure-text":{"type":"string","default-from":"runtime.configure-text"},"conflict-text":{"type":"string","default-from":"runtime.conflict-text"},"copy-link-label":{"type":"string","default-from":"runtime.copy-link-label"},"delete-text":{"type":"string","default-from":"runtime.delete-text"},"done-configuring-text":{"type":"string","default-from":"runtime.done-configuring-text"},"edit-text":{"type":"string","default-from":"runtime.edit-text"},"empty-record-text":{"type":"string","default-from":"runtime.empty-record-text"},"empty-text":{"type":"string","default-from":"runtime.empty-text"},"errors-text":{"type":"string","default-from":"runtime.errors-text"},"favourite":{"type":"boolean","default":false},"favourite-label":{"type":"string","default-from":"runtime.favourite-label"},"field-label-text":{"type":"string","default-from":"runtime.field-label-text"},"field-settings-text":{"type":"string","default-from":"runtime.field-settings-text"},"hidden-text":{"type":"string","default-from":"runtime.hidden-text"},"hide-rare-text":{"type":"string","default-from":"runtime.hide-rare-text"},"hint-text":{"type":"string","default-from":"runtime.hint-text"},"in-this-group-text":{"type":"string","default-from":"runtime.in-this-group-text"},"inherited-text":{"type":"string","default-from":"runtime.inherited-text"},"link-copied-label":{"type":"string","default-from":"runtime.link-copied-label"},"menu-label":{"type":"string","default-from":"runtime.menu-label"},"move-down-text":{"type":"string","default-from":"runtime.move-down-text"},"move-up-text":{"type":"string","default-from":"runtime.move-up-text"},"new-group-title":{"type":"string","default-from":"runtime.new-group-title"},"new-section-title":{"type":"string","default-from":"runtime.new-section-title"},"no-match-text":{"type":"string","default-from":"runtime.no-match-text"},"open-full-label":{"type":"string","default-from":"runtime.open-full-label"},"panel":{"type":"boolean","default":false},"panel-label":{"type":"string","default":""},"panel-size":{"type":"enum","values":["1/2","1","2","full"],"default":"1"},"size":{"type":"enum","values":["1","1/2"],"default":"1"},"mode":{"type":"enum","values":["view","auto","edit","create"],"default":"auto"},"panel-width":{"type":"string","default":""},"personal-layer-text":{"type":"string","default-from":"runtime.personal-layer-text"},"rare-text":{"type":"string","default-from":"runtime.rare-text"},"record-id":{"type":"id","default":""},"remove-field-text":{"type":"string","default-from":"runtime.remove-field-text"},"remove-group-text":{"type":"string","default-from":"runtime.remove-group-text"},"remove-section-text":{"type":"string","default-from":"runtime.remove-section-text"},"rename-text":{"type":"string","default-from":"runtime.rename-text"},"reset-view-ask-text":{"type":"string","default-from":"runtime.reset-view-ask-text"},"reset-view-text":{"type":"string","default-from":"runtime.reset-view-text"},"save-name-text":{"type":"string","default-from":"runtime.save-name-text"},"save-text":{"type":"string","default-from":"runtime.save-text"},"section-icon-text":{"type":"string","default-from":"runtime.section-icon-text"},"section-icons":{"type":"string","default":""},"sections-as":{"type":"enum","values":["list","tabs"],"default":"list"},"sections-label":{"type":"string","default-from":"runtime.sections-label"},"shared-layer-text":{"type":"string","default-from":"runtime.shared-layer-text"},"show-rare":{"type":"boolean","default":false},"show-rare-text":{"type":"string","default-from":"runtime.show-rare-text"},"shown-text":{"type":"string","default-from":"runtime.shown-text"},"unplaced-hint-text":{"type":"string","default-from":"runtime.unplaced-hint-text"},"unplaced-title":{"type":"string","default-from":"runtime.unplaced-title"},"variant-text":{"type":"string","default-from":"runtime.variant-text"},"view-conflict-text":{"type":"string","default-from":"runtime.view-conflict-text"},"view-denied-text":{"type":"string","default-from":"runtime.view-denied-text"},"width-text":{"type":"string","default-from":"runtime.width-text"},"view-profile-label":{"type":"string","default-from":"runtime.view-profile-label"},"add-view-text":{"type":"string","default-from":"runtime.add-view-text"},"new-view-text":{"type":"string","default-from":"runtime.new-view-text"},"delete-view-text":{"type":"string","default-from":"runtime.delete-view-text"},"last-shared-view-text":{"type":"string","default-from":"runtime.last-shared-view-text"},"full":{"type":"boolean","default":false},"open":{"type":"boolean","default":true}},"values":{"revision":{"type":"string"},"section":{"type":"string"}},"events":{"close":{"carries":{"reason":{"type":"enum","values":["close","escape","cancelled","deleted","api"]},"record_id":{"type":"id","nullable":true},"unsaved_fields":{"type":"list"}},"cancelable":true},"open-full":{"carries":{"id":"id","address":"string","record_id":{"type":"id","nullable":true}}},"saved":{"carries":{"id":"id","revision":{"type":"string","optional":true}}},"failed":{"carries":{"reason":"string","message":{"type":"string","optional":true}}},"open":{"carries":{"field":"string","value":"object","answer":"string"}},"delete":{"carries":{"collection":"string","revision":"string","answer":"string","record_id":{"type":"id","nullable":true}}},"created":{"carries":{"collection":{"type":"string","nullable":true},"record_id":{"type":"id","nullable":true}}},"cancel":{"carries":{"mode":{"type":"enum","values":["auto","edit","create"]},"scope":{"type":"enum","values":["group"],"optional":true},"section":{"type":"string","optional":true},"group":{"type":"string","optional":true}}},"state":{"carries":{"state":"string","message":"string"},"own-verb":true},"address-copy":{"carries":{},"own-verb":true},"favourite":{"carries":{"collection":{"type":"string","nullable":true},"favourite":"boolean","record_id":{"type":"id","nullable":true}},"own-verb":true}},"actions":{"refresh":{},"load":{"with":{"reason":{"type":"string","optional":true}}},"edit-group":{"with":{"section":"string","group":"string"}},"cancel-edit":{},"save-group":{"with":{"options":{"type":"object","optional":true}},"concurrency":"drop"},"select-section":{"with":{"key":"string"}},"close-panel":{"with":{"reason":{"type":"string","optional":true}}},"copy-address":{},"open-full-page":{},"confirm-save":{},"cancel-confirmation":{}},"port":{"id":"simai.property-view-port","version":"1.17.0","contract":"src/core/contracts/ports/simai.property-view-port/1.17.0/port.json"},"presentation":{"skeleton":{"file":"skeleton.html","late":[]}},"css-variables":{"--sf-property-view--sections-width":{"type":"length","state":"default"},"--sf-property-view--title-size":{"type":"length","state":"default"},"--sf-property-view--label-size":{"type":"length","state":"default"},"--sf-property-view--value-size":{"type":"length","state":"default"},"--sf-property-view--group-size":{"type":"length","state":"default"},"--sf-property-view--edge-room":{"type":"length","state":"open"}},"host-states":{"data-state":"string","aria-busy":"string"}}');
 
 /***/ },
 
 /***/ "99fb492b7fba"
 (module) {
 
-module.exports = /*#__PURE__*/JSON.parse('{"title":"Property view","events":{"state":{"label":"Record state"},"address-copy":{"label":"Address copied"},"favourite":{"label":"Favourite"}},"runtime":{"add-field-text":"Add a field","add-group-text":"Add an area","add-section-text":"Add a section","add-view-text":"Add a view","back-label":"Back","cancel-configuring-text":"Cancel","cancel-name-text":"Leave the name","cancel-text":"Cancel","changed-text":"Fields changed","close-label":"Close","configure-hint-narrow-text":"Drag fields between groups. Applied at once.","configure-hint-text":"Drag fields between groups and onto a section on the left. Applied at once.","configure-text":"Arrange the view","confirm-save-text":"Confirm and save","conflict-text":"The record changed; read it again","copy-link-label":"Copy link","create-text":"Create","date-invalid-text":"The date is not a calendar date","date-missing-text":"Enter the date","date-time-date-label":"{label}: date","date-time-time-label":"{label}: time","delete-text":"Delete","delete-view-text":"Remove the view","done-configuring-text":"Done","edit-text":"edit","empty-record-text":"This record has nothing to show","empty-text":"not filled in","errors-text":"Errors","favourite-label":"Favourite","field-label-text":"Name","field-settings-text":"Field settings","hidden-text":"Hide","hide-rare-text":"Hide rare fields","hint-text":"Hint","in-this-group-text":"In this area","inherited-text":"by default","keep-editing-text":"Keep editing","last-shared-view-text":"The only view everyone has","link-copied-label":"Link copied","menu-label":"More","move-down-text":"Move down","move-up-text":"Move up","new-group-title":"New area","new-section-title":"New section","new-view-text":"New view","no-match-text":"Nothing matches","open-full-label":"Open as a page","personal-layer-text":"Personal","rare-text":"rare","read-only-text":"You can only view this record","remove-field-text":"Remove from this area","remove-group-text":"Remove this area","remove-section-text":"Remove this section","rename-text":"Rename","reset-view-ask-text":"Reset the whole view?","reset-view-text":"Reset","save-failed-text":"The save failed","save-name-text":"Save the name","save-text":"Save","section-icon-text":"Section glyph","sections-label":"Sections","shared-layer-text":"Everyone\'s","show-rare-text":"Show rare fields","shown-text":"Shown","state-load-failed":"The record could not be read","state-loading":"Reading the record","state-port-not-connected":"The record port is not connected","state-unavailable":"The record is unavailable","time-invalid-text":"Enter the time as hh:mm, from 00:00 to 23:59","time-missing-text":"Enter the time","time-placeholder-text":"hh:mm","unplaced-hint-text":"Fields this view does not show. Drag one into a group to place it, or drag a field here to take it out.","unplaced-title":"Not placed","variant-text":"Template","view-conflict-text":"The view changed and was read again","view-denied-text":"You may not change this layer","view-profile-label":"View","view-reset-failed-text":"The view could not be reset","view-save-failed-text":"The view could not be saved","width-text":"Full width"}}');
+module.exports = /*#__PURE__*/JSON.parse('{"title":"Property view","events":{"state":{"label":"Record state"},"address-copy":{"label":"Address copied"},"favourite":{"label":"Favourite"}},"runtime":{"add-field-text":"Add a field","add-group-text":"Add an area","add-section-text":"Add a section","add-view-text":"Add a view","back-label":"Back","cancel-configuring-text":"Cancel","cancel-name-text":"Leave the name","cancel-text":"Cancel","changed-text":"Fields changed","close-label":"Close","configure-hint-narrow-text":"Drag fields between groups. Applied at once.","configure-hint-text":"Drag fields between groups and onto a section on the left. Applied at once.","configure-text":"Arrange the view","confirm-save-text":"Confirm and save","conflict-text":"The record changed; read it again","copy-link-label":"Copy link","create-text":"Create","delete-text":"Delete","delete-view-text":"Remove the view","done-configuring-text":"Done","edit-text":"edit","empty-record-text":"This record has nothing to show","empty-text":"not filled in","errors-text":"Errors","favourite-label":"Favourite","field-label-text":"Name","field-settings-text":"Field settings","hidden-text":"Hide","hide-rare-text":"Hide rare fields","hint-text":"Hint","in-this-group-text":"In this area","inherited-text":"by default","keep-editing-text":"Keep editing","last-shared-view-text":"The only view everyone has","link-copied-label":"Link copied","menu-label":"More","move-down-text":"Move down","move-up-text":"Move up","new-group-title":"New area","new-section-title":"New section","new-view-text":"New view","no-match-text":"Nothing matches","open-full-label":"Open as a page","personal-layer-text":"Personal","rare-text":"rare","read-only-text":"You can only view this record","remove-field-text":"Remove from this area","remove-group-text":"Remove this area","remove-section-text":"Remove this section","rename-text":"Rename","reset-view-ask-text":"Reset the whole view?","reset-view-text":"Reset","save-failed-text":"The save failed","save-name-text":"Save the name","save-text":"Save","section-icon-text":"Section glyph","sections-label":"Sections","shared-layer-text":"Everyone\'s","show-rare-text":"Show rare fields","shown-text":"Shown","state-load-failed":"The record could not be read","state-loading":"Reading the record","state-port-not-connected":"The record port is not connected","state-unavailable":"The record is unavailable","unplaced-hint-text":"Fields this view does not show. Drag one into a group to place it, or drag a field here to take it out.","unplaced-title":"Not placed","variant-text":"Template","view-conflict-text":"The view changed and was read again","view-denied-text":"You may not change this layer","view-profile-label":"View","view-reset-failed-text":"The view could not be reset","view-save-failed-text":"The view could not be saved","width-text":"Full width"}}');
 
 /***/ },
 
 /***/ "d614908e644f"
 (module) {
 
-module.exports = /*#__PURE__*/JSON.parse('{"title":"Запись","events":{"state":{"label":"Состояние записи"},"address-copy":{"label":"Адрес скопирован"},"favourite":{"label":"Избранное"}},"runtime":{"add-field-text":"Добавить поле","add-group-text":"Добавить область","add-section-text":"Добавить раздел","add-view-text":"Добавить вид","back-label":"Назад","cancel-configuring-text":"Отменить","cancel-name-text":"Оставить название","cancel-text":"Отменить","changed-text":"Изменено полей","close-label":"Закрыть","configure-hint-narrow-text":"Перетаскивайте поля между группами. Применяется сразу.","configure-hint-text":"Перетаскивайте поля между группами и на разделы слева. Применяется сразу.","configure-text":"Настроить вид","confirm-save-text":"Подтвердить и сохранить","conflict-text":"Запись изменилась, обновите её","copy-link-label":"Копировать ссылку","create-text":"Создать","date-invalid-text":"Дата указана неверно","date-missing-text":"Укажите дату","date-time-date-label":"{label}: дата","date-time-time-label":"{label}: время","delete-text":"Удалить","delete-view-text":"Удалить вид","done-configuring-text":"Готово","edit-text":"изменить","empty-record-text":"В этой записи нечего показать","empty-text":"не заполнено","errors-text":"Ошибок","favourite-label":"В избранное","field-label-text":"Название","field-settings-text":"Настройки поля","hidden-text":"Скрыть","hide-rare-text":"Скрыть редкие поля","hint-text":"Подсказка","in-this-group-text":"В этой области","inherited-text":"по умолчанию","keep-editing-text":"Вернуться к правке","last-shared-view-text":"Единственный общий вид","link-copied-label":"Ссылка скопирована","menu-label":"Ещё","move-down-text":"Ниже","move-up-text":"Выше","new-group-title":"Новая область","new-section-title":"Новый раздел","new-view-text":"Новый вид","no-match-text":"Ничего не найдено","open-full-label":"Открыть на всю страницу","personal-layer-text":"Персональный","rare-text":"редкое","read-only-text":"Эту запись можно только смотреть","remove-field-text":"Убрать из области","remove-group-text":"Удалить область","remove-section-text":"Удалить раздел","rename-text":"Переименовать","reset-view-ask-text":"Сбросить весь вид?","reset-view-text":"Сбросить","save-failed-text":"Не удалось сохранить","save-name-text":"Сохранить название","save-text":"Сохранить","section-icon-text":"Значок раздела","sections-label":"Разделы","shared-layer-text":"Для всех","show-rare-text":"Показать редкие поля","shown-text":"Показывать","state-load-failed":"Не удалось загрузить запись","state-loading":"Загрузка записи","state-port-not-connected":"Порт записи не подключён","state-unavailable":"Запись недоступна","time-invalid-text":"Укажите время в виде чч:мм, от 00:00 до 23:59","time-missing-text":"Укажите время","time-placeholder-text":"чч:мм","unplaced-hint-text":"Поля, которых нет в этом виде. Перетащите поле в группу, чтобы разместить, или сюда, чтобы убрать.","unplaced-title":"Не размещённые","variant-text":"Вид","view-conflict-text":"Вид изменился, он перезагружен","view-denied-text":"Нет права менять этот слой","view-profile-label":"Вид","view-reset-failed-text":"Не удалось сбросить вид","view-save-failed-text":"Не удалось сохранить вид","width-text":"На всю ширину"}}');
+module.exports = /*#__PURE__*/JSON.parse('{"title":"Запись","events":{"state":{"label":"Состояние записи"},"address-copy":{"label":"Адрес скопирован"},"favourite":{"label":"Избранное"}},"runtime":{"add-field-text":"Добавить поле","add-group-text":"Добавить область","add-section-text":"Добавить раздел","add-view-text":"Добавить вид","back-label":"Назад","cancel-configuring-text":"Отменить","cancel-name-text":"Оставить название","cancel-text":"Отменить","changed-text":"Изменено полей","close-label":"Закрыть","configure-hint-narrow-text":"Перетаскивайте поля между группами. Применяется сразу.","configure-hint-text":"Перетаскивайте поля между группами и на разделы слева. Применяется сразу.","configure-text":"Настроить вид","confirm-save-text":"Подтвердить и сохранить","conflict-text":"Запись изменилась, обновите её","copy-link-label":"Копировать ссылку","create-text":"Создать","delete-text":"Удалить","delete-view-text":"Удалить вид","done-configuring-text":"Готово","edit-text":"изменить","empty-record-text":"В этой записи нечего показать","empty-text":"не заполнено","errors-text":"Ошибок","favourite-label":"В избранное","field-label-text":"Название","field-settings-text":"Настройки поля","hidden-text":"Скрыть","hide-rare-text":"Скрыть редкие поля","hint-text":"Подсказка","in-this-group-text":"В этой области","inherited-text":"по умолчанию","keep-editing-text":"Вернуться к правке","last-shared-view-text":"Единственный общий вид","link-copied-label":"Ссылка скопирована","menu-label":"Ещё","move-down-text":"Ниже","move-up-text":"Выше","new-group-title":"Новая область","new-section-title":"Новый раздел","new-view-text":"Новый вид","no-match-text":"Ничего не найдено","open-full-label":"Открыть на всю страницу","personal-layer-text":"Персональный","rare-text":"редкое","read-only-text":"Эту запись можно только смотреть","remove-field-text":"Убрать из области","remove-group-text":"Удалить область","remove-section-text":"Удалить раздел","rename-text":"Переименовать","reset-view-ask-text":"Сбросить весь вид?","reset-view-text":"Сбросить","save-failed-text":"Не удалось сохранить","save-name-text":"Сохранить название","save-text":"Сохранить","section-icon-text":"Значок раздела","sections-label":"Разделы","shared-layer-text":"Для всех","show-rare-text":"Показать редкие поля","shown-text":"Показывать","state-load-failed":"Не удалось загрузить запись","state-loading":"Загрузка записи","state-port-not-connected":"Порт записи не подключён","state-unavailable":"Запись недоступна","unplaced-hint-text":"Поля, которых нет в этом виде. Перетащите поле в группу, чтобы разместить, или сюда, чтобы убрать.","unplaced-title":"Не размещённые","variant-text":"Вид","view-conflict-text":"Вид изменился, он перезагружен","view-denied-text":"Нет права менять этот слой","view-profile-label":"Вид","view-reset-failed-text":"Не удалось сбросить вид","view-save-failed-text":"Не удалось сохранить вид","width-text":"На всю ширину"}}');
 
 /***/ }
 

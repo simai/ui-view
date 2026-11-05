@@ -69,6 +69,184 @@ function normalizeBadgeContract({
 
 /***/ },
 
+/***/ "e577837dd70a"
+(module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   calendarDayOffset: () => (/* binding */ calendarDayOffset),
+/* harmony export */   formatDate: () => (/* binding */ formatDate),
+/* harmony export */   msUntilNextDay: () => (/* binding */ msUntilNextDay),
+/* harmony export */   toDate: () => (/* reexport safe */ _format_intl_js__WEBPACK_IMPORTED_MODULE_0__.toDate)
+/* harmony export */ });
+/* harmony import */ var _format_intl_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("15b4e93ff6ed");
+var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_format_intl_js__WEBPACK_IMPORTED_MODULE_0__]);
+var __webpack_async_dependencies_result__ = (__webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
+_format_intl_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_async_dependencies_result__[0];
+// Dates in the page's language: formatDate, the calendar day offset and the
+// next midnight, with no top-level side effects (format-intl.js). The same
+// functions as core/js/format.js and SF.format; relative days and times are
+// format-relative.js, so a bundle that writes a date does not carry them.
+
+
+const DAY_MS = 86400000;
+
+function hasDateStyle(style) {
+  return style === 'short' || style === 'medium' || style === 'long' || style === 'full';
+}
+/**
+ * A date, a time or both in the locale.
+ *
+ *   formatDate(at)                          3 нояб. 2026 г.  /  Nov 3, 2026
+ *   formatDate(at, {date: 'short'})         03.11.2026       /  11/3/26
+ *   formatDate(at, {date: 'long'})          3 ноября 2026 г. /  November 3, 2026
+ *   formatDate(at, {time: 'short'})         3 нояб. 2026 г., 14:05
+ *   formatDate(at, {date: null, time: 'short'})   14:05   /  2:05 PM
+ *
+ * `date` and `time` are Intl styles (short, medium, long, full); `intl` gives
+ * Intl.DateTimeFormat options outright, for a form the styles do not name (a
+ * chart's tick, «14:05» with two-digit hours). Anything that is not a date is
+ * `gap`, '' by default.
+ */
+
+
+function formatDate(value, {
+  date = 'medium',
+  time = null,
+  intl = null,
+  gap = '',
+  ...where
+} = {}) {
+  const moment = (0,_format_intl_js__WEBPACK_IMPORTED_MODULE_0__.toDate)(value);
+  if (!moment) return gap;
+  let options = intl;
+
+  if (!options) {
+    options = {};
+    if (hasDateStyle(date)) options.dateStyle = date;
+    if (hasDateStyle(time)) options.timeStyle = time;
+    if (!options.dateStyle && !options.timeStyle) options.dateStyle = 'medium';
+  }
+
+  return (0,_format_intl_js__WEBPACK_IMPORTED_MODULE_0__.intlFormatter)('DateTimeFormat', (0,_format_intl_js__WEBPACK_IMPORTED_MODULE_0__.formatLocale)(where), options).format(moment);
+}
+/**
+ * Calendar days from `now` to the value in the reader's time zone: 0 today,
+ * -1 yesterday, 1 tomorrow; NaN when the value is no date. Counted on
+ * calendar dates, not 24-hour spans, so 23:59 yesterday is -1 at 00:01 and a
+ * day of a clock change is still one day.
+ */
+
+function calendarDayOffset(value, {
+  now = new Date()
+} = {}) {
+  const moment = (0,_format_intl_js__WEBPACK_IMPORTED_MODULE_0__.toDate)(value);
+  const today = (0,_format_intl_js__WEBPACK_IMPORTED_MODULE_0__.toDate)(now);
+  if (!moment || !today) return Number.NaN;
+  const day = Date.UTC(moment.getFullYear(), moment.getMonth(), moment.getDate());
+  const base = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
+  return Math.round((day - base) / DAY_MS);
+}
+/**
+ * Milliseconds from `now` to the reader's next midnight, when every relative
+ * day on the screen moves by one. A component that shows them sets a timer
+ * for this long (plus a second's margin, so it wakes in the new day) and
+ * draws them again; «сегодня» said yesterday is wrong by morning.
+ */
+
+function msUntilNextDay(now = new Date()) {
+  const today = (0,_format_intl_js__WEBPACK_IMPORTED_MODULE_0__.toDate)(now) ?? new Date();
+  const next = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+  return next.getTime() - today.getTime();
+}
+__webpack_async_result__();
+} catch(e) { __webpack_async_result__(e); } });
+
+/***/ },
+
+/***/ "15b4e93ff6ed"
+(module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   formatLocale: () => (/* binding */ formatLocale),
+/* harmony export */   intlFormatter: () => (/* binding */ intlFormatter),
+/* harmony export */   toDate: () => (/* binding */ toDate)
+/* harmony export */ });
+/* harmony import */ var _page_language_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("43090d1c8307");
+var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_page_language_js__WEBPACK_IMPORTED_MODULE_0__]);
+var __webpack_async_dependencies_result__ = (__webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
+_page_language_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_async_dependencies_result__[0];
+/* harmony import */ var _page_language_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_page_language_js__WEBPACK_IMPORTED_MODULE_0__);
+// The part every format module shares (core/js/format.js says what the
+// helpers are): the locale a call formats in, a Date from what a host gives,
+// and the Intl formatters, kept on a global every copy of these modules shares
+// (bundles each carry their own module copy; page-language.js says why).
+//
+// No top-level side effects, here or in format-number.js, format-date.js,
+// format-relative.js and format-file-size.js (ui-chart, 2026-11-05): a bundle
+// that imports one function carries that function and what it calls, nothing
+// else. The global is made on the first format, not on load, and SF.format is
+// published by core's entry (index.js, publishFormat in format.js).
+
+/** The locale a call formats in: the one it names, else its node's page language. */
+
+function formatLocale({
+  locale,
+  node
+} = {}) {
+  return String(locale || '').trim() || (0,_page_language_js__WEBPACK_IMPORTED_MODULE_0__.pageLocale)(node);
+}
+/** A Date from a Date, a time in milliseconds or a date string; null when it is none. */
+
+function toDate(value) {
+  if (value === null || value === undefined || value === '') return null;
+  const date = value instanceof Date ? new Date(value.getTime()) : new Date(typeof value === 'string' && /^\d+$/u.test(value) ? Number(value) : value);
+  return Number.isNaN(date.getTime()) ? null : date;
+} // The formatters every copy shares, made on the first call.
+
+function formatterCache() {
+  const root = typeof globalThis !== 'undefined' ? globalThis : {};
+  if (!root.__sfFormat) root.__sfFormat = {
+    formatters: new Map()
+  };
+  return root.__sfFormat.formatters;
+} // One formatter per kind, locale and options. An unknown locale falls back to
+// the browser's, and options the platform refuses (an unknown unit or
+// currency) to a plain number, so a typo in a page never throws at a reader.
+
+
+function intlFormatter(kind, locale, options) {
+  const key = `${kind}|${locale}|${JSON.stringify(options)}`;
+  const cache = formatterCache();
+  if (cache.has(key)) return cache.get(key);
+  const Make = Intl[kind];
+  let made;
+
+  try {
+    made = new Make(locale || undefined, options);
+  } catch {
+    try {
+      made = new Make(undefined, options);
+    } catch {
+      made = new Make(locale || undefined, kind === 'NumberFormat' ? {
+        maximumFractionDigits: 2
+      } : {});
+    }
+  } // A page that formats in many locales does not grow the cache for ever.
+
+
+  if (cache.size >= 256) cache.delete(cache.keys().next().value);
+  cache.set(key, made);
+  return made;
+}
+__webpack_async_result__();
+} catch(e) { __webpack_async_result__(e); } });
+
+/***/ },
+
 /***/ "51250bf01ab0"
 (__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
@@ -3498,21 +3676,25 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _js_templates_default__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__("9d9caaf4f796");
 /* harmony import */ var _helpers_option_badge_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__("b30ec5bc0edb");
 /* harmony import */ var _field_renderers_index_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__("e5483002f3ea");
-/* harmony import */ var lit__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__("2a080a730149");
-/* harmony import */ var lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__("8137feb490e0");
-/* harmony import */ var _core_js_page_language__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__("43090d1c8307");
-/* harmony import */ var _helpers_dom__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__("926043d18700");
-/* harmony import */ var _helpers_loaderDragState__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__("870b5dfddc25");
-/* harmony import */ var _core_js_position_js__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__("116963e5e31b");
-/* harmony import */ var _core_js_preferences_js__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__("51250bf01ab0");
-var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_core_js_smart_base__WEBPACK_IMPORTED_MODULE_0__, _core_js_element_manifest__WEBPACK_IMPORTED_MODULE_1__, _js_templates_default__WEBPACK_IMPORTED_MODULE_7__, _field_renderers_index_js__WEBPACK_IMPORTED_MODULE_9__, lit__WEBPACK_IMPORTED_MODULE_10__, lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_11__, _core_js_page_language__WEBPACK_IMPORTED_MODULE_12__, _core_js_position_js__WEBPACK_IMPORTED_MODULE_15__]);
-([_core_js_smart_base__WEBPACK_IMPORTED_MODULE_0__, _core_js_element_manifest__WEBPACK_IMPORTED_MODULE_1__, _js_templates_default__WEBPACK_IMPORTED_MODULE_7__, _field_renderers_index_js__WEBPACK_IMPORTED_MODULE_9__, lit__WEBPACK_IMPORTED_MODULE_10__, lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_11__, _core_js_page_language__WEBPACK_IMPORTED_MODULE_12__, _core_js_position_js__WEBPACK_IMPORTED_MODULE_15__] = __webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
+/* harmony import */ var _field_renderers_html_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__("01ae054f01b4");
+/* harmony import */ var _js_format_value_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__("2f31b00ad99a");
+/* harmony import */ var lit__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__("2a080a730149");
+/* harmony import */ var lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__("8137feb490e0");
+/* harmony import */ var _core_js_page_language__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__("43090d1c8307");
+/* harmony import */ var _helpers_dom__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__("926043d18700");
+/* harmony import */ var _helpers_loaderDragState__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__("870b5dfddc25");
+/* harmony import */ var _core_js_position_js__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__("116963e5e31b");
+/* harmony import */ var _core_js_preferences_js__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__("51250bf01ab0");
+var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_core_js_smart_base__WEBPACK_IMPORTED_MODULE_0__, _core_js_element_manifest__WEBPACK_IMPORTED_MODULE_1__, _js_templates_default__WEBPACK_IMPORTED_MODULE_7__, _field_renderers_index_js__WEBPACK_IMPORTED_MODULE_9__, _js_format_value_js__WEBPACK_IMPORTED_MODULE_11__, lit__WEBPACK_IMPORTED_MODULE_12__, lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_13__, _core_js_page_language__WEBPACK_IMPORTED_MODULE_14__, _core_js_position_js__WEBPACK_IMPORTED_MODULE_17__]);
+([_core_js_smart_base__WEBPACK_IMPORTED_MODULE_0__, _core_js_element_manifest__WEBPACK_IMPORTED_MODULE_1__, _js_templates_default__WEBPACK_IMPORTED_MODULE_7__, _field_renderers_index_js__WEBPACK_IMPORTED_MODULE_9__, _js_format_value_js__WEBPACK_IMPORTED_MODULE_11__, lit__WEBPACK_IMPORTED_MODULE_12__, lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_13__, _core_js_page_language__WEBPACK_IMPORTED_MODULE_14__, _core_js_position_js__WEBPACK_IMPORTED_MODULE_17__] = __webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
 /* harmony import */ var _core_js_smart_base__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_core_js_smart_base__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _core_js_element_manifest__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_core_js_element_manifest__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var lit__WEBPACK_IMPORTED_MODULE_10___default = /*#__PURE__*/__webpack_require__.n(lit__WEBPACK_IMPORTED_MODULE_10__);
-/* harmony import */ var lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_11___default = /*#__PURE__*/__webpack_require__.n(lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_11__);
-/* harmony import */ var _core_js_page_language__WEBPACK_IMPORTED_MODULE_12___default = /*#__PURE__*/__webpack_require__.n(_core_js_page_language__WEBPACK_IMPORTED_MODULE_12__);
-/* harmony import */ var _core_js_position_js__WEBPACK_IMPORTED_MODULE_15___default = /*#__PURE__*/__webpack_require__.n(_core_js_position_js__WEBPACK_IMPORTED_MODULE_15__);
+/* harmony import */ var lit__WEBPACK_IMPORTED_MODULE_12___default = /*#__PURE__*/__webpack_require__.n(lit__WEBPACK_IMPORTED_MODULE_12__);
+/* harmony import */ var lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_13___default = /*#__PURE__*/__webpack_require__.n(lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_13__);
+/* harmony import */ var _core_js_page_language__WEBPACK_IMPORTED_MODULE_14___default = /*#__PURE__*/__webpack_require__.n(_core_js_page_language__WEBPACK_IMPORTED_MODULE_14__);
+/* harmony import */ var _core_js_position_js__WEBPACK_IMPORTED_MODULE_17___default = /*#__PURE__*/__webpack_require__.n(_core_js_position_js__WEBPACK_IMPORTED_MODULE_17__);
+
+
 
 
 
@@ -3541,7 +3723,7 @@ var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_cor
 // SF.Preferences, the Framework's one store of view preferences (core
 // publishes it; this bundle's copy is the fallback).
 
-const preferences = () => globalThis.SF?.Preferences || _core_js_preferences_js__WEBPACK_IMPORTED_MODULE_16__["default"];
+const preferences = () => globalThis.SF?.Preferences || _core_js_preferences_js__WEBPACK_IMPORTED_MODULE_18__["default"];
 
 const tablePreferenceKey = key => `sf-table/${String(key).replace(/[^\w.:-]+/gu, "-")}`; // What a cell may draw as markup rather than as an element of its own.
 
@@ -3578,7 +3760,7 @@ const TABLE_TEXT = {
 };
 const SYSTEM_COLUMN_KEYS = new Set(["select", "settings", "actions"]);
 
-const positioning = () => globalThis.SF?.Position || (_core_js_position_js__WEBPACK_IMPORTED_MODULE_15___default()); // Published Composition ports (simai.composition.port-manifest.v1, sf-view-table@1.0.0).
+const positioning = () => globalThis.SF?.Position || (_core_js_position_js__WEBPACK_IMPORTED_MODULE_17___default()); // Published Composition ports (simai.composition.port-manifest.v1, sf-view-table@1.0.0).
 
 
 const SF_TABLE_PORTS = Object.freeze({
@@ -4521,10 +4703,10 @@ class SfTable extends TableElement {
   }
 
   renderBulkActions() {
-    if (!this.state.bulkActions?.length) return lit__WEBPACK_IMPORTED_MODULE_10__.nothing;
+    if (!this.state.bulkActions?.length) return lit__WEBPACK_IMPORTED_MODULE_12__.nothing;
     const selected = this.getSelectedRecordIds();
-    return (0,lit__WEBPACK_IMPORTED_MODULE_10__.html)`<div class="flex flex-wrap gap-1/3">
-            ${this.state.bulkActions.map(action => (0,lit__WEBPACK_IMPORTED_MODULE_10__.html)`<sf-button
+    return (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`<div class="flex flex-wrap gap-1/3">
+            ${this.state.bulkActions.map(action => (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`<sf-button
                 text=${action.name} ?disabled=${selected.length === 0}
                 @click=${() => {
       const ids = this.getSelectedRecordIds();
@@ -4661,7 +4843,7 @@ class SfTable extends TableElement {
       if (action) this.requestToolbarAction(action.id);
     };
 
-    return (0,lit__WEBPACK_IMPORTED_MODULE_10__.html)`
+    return (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
             <sf-menu-context
                     size=${this.size === "1/2" ? "1/2" : "1"}
                     :key=${x + y}
@@ -4720,7 +4902,7 @@ class SfTable extends TableElement {
 
     const sortable = this.getColumns().filter(column => column?.sortable && !column.system && !["select", "settings", "actions"].includes(column.key));
     const items = [option(this.text('sortNone'), null, null), ...sortable.flatMap(column => [option(`${column.label ?? column.key}, ${this.text('sortAscending')}`, column.key, 'asc'), option(`${column.label ?? column.key}, ${this.text('sortDescending')}`, column.key, 'desc')])];
-    return (0,lit__WEBPACK_IMPORTED_MODULE_10__.html)`
+    return (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
             <sf-menu-context
                     size=${this.size === "1/2" ? "1/2" : "1"}
                     :key=${x + y}
@@ -4757,7 +4939,7 @@ class SfTable extends TableElement {
       if (item) this.requestCreateIntent(item.id);
     };
 
-    return (0,lit__WEBPACK_IMPORTED_MODULE_10__.html)`
+    return (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
             <sf-menu-context
                     size=${this.size === "1/2" ? "1/2" : "1"}
                     :key=${x + y}
@@ -5340,7 +5522,7 @@ class SfTable extends TableElement {
     if (typeof value !== "string" && typeof value !== "number" && typeof value !== "boolean") return null;
 
     if (LONG_TEXT_CELL_TYPES.has(column.propertyType ?? column.property_type ?? column.type) && typeof value !== "boolean") {
-      const text = String(value);
+      const text = this.cellText(column, value);
       return {
         kind: "text",
         className: "sf-table-cell-clip",
@@ -6747,6 +6929,19 @@ class SfTable extends TableElement {
   columnTakesFloor(column) {
     if (!column?.key || SYSTEM_COLUMN_KEYS.has(column.key)) return false;
     return !(column.colWidth ?? column.width ?? column.size ?? column.min_width ?? column.minWidth);
+  } // The settings column carries two things: the gear in its head, which
+  // opens the column settings (settings-menu), and the ≡ in each row, which
+  // opens the row's menu of actions. With neither -- no column settings, no
+  // row actions to list, no rows to put in order -- it is an empty column
+  // of buttons that open nothing, and it is not drawn (Larena, the sites
+  // list, 2026-11-05: a «≡» column beside every row of a list without
+  // actions).
+
+
+  settingsColumnHasUse(props = this.getPropsContext()) {
+    if (props.settingsMenu !== false) return true;
+    if (props.rowReorder === true) return true;
+    return (this.ACTIONS_SETTINGS_ROW ?? []).length > 0;
   }
 
   getSystemColumns() {
@@ -6757,7 +6952,7 @@ class SfTable extends TableElement {
       columns.push(this.getSelectColumn());
     }
 
-    if (props.settings) {
+    if (props.settings && this.settingsColumnHasUse(props)) {
       columns.push(this.TABLE_SETTINGS_COLUMN);
     }
 
@@ -6877,7 +7072,7 @@ class SfTable extends TableElement {
       position
     } = data;
     const template = this.getSelectedFilterTemplate();
-    return (0,lit__WEBPACK_IMPORTED_MODULE_10__.html)`
+    return (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
             <sf-menu-context
                     size=${this.size === "1/2" ? "1/2" : "1"}
                     :key=${x + y + this._renderToken}
@@ -6897,7 +7092,7 @@ class SfTable extends TableElement {
                 <div class="flex flex-col flex-1 gap-2" slot="content">
                     <div class="sf-table-context-top"><span class="sf-text-2 bold">Сохранение шаблона</span></div>
                     <div class="sf-table-context-main">
-                        <form ${(0,lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_11__.ref)(this.refs.templateForm)} id="save_template" class="flex flex-col gap-1/2">
+                        <form ${(0,lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_13__.ref)(this.refs.templateForm)} id="save_template" class="flex flex-col gap-1/2">
                             <sf-input
                                     size=${this.size}
                                     appearance="filled"
@@ -7010,7 +7205,7 @@ class SfTable extends TableElement {
       }
     }
 
-    return (0,lit__WEBPACK_IMPORTED_MODULE_10__.html)`
+    return (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
             <sf-menu-context
                     size=${this.size === "1/2" ? "1/2" : "1"}
                     :key=${x + y}
@@ -7442,14 +7637,14 @@ class SfTable extends TableElement {
     return this.getColumnItems().filter(col => inGroup(col) && (!pin || col.system || this.matchesColumnQuery(col.label, query))).map(col => {
       const itemRef = this.getItemRef(`${refPrefix}:${col.key}`) || false;
       const isChecked = typeof checked === "function" ? Boolean(checked(col)) : Boolean(checked);
-      const box = (0,lit__WEBPACK_IMPORTED_MODULE_10__.html)`
+      const box = (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
                 <sf-checkbox
                     size=${this.size}
                     label=${col.label}
                     position="end"
                     root-class="content-main-between"
                     ?checked=${isChecked}
-                    ${(0,lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_11__.ref)(itemRef)}
+                    ${(0,lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_13__.ref)(itemRef)}
                     @change=${event => onChange?.(col, event)}
                 ></sf-checkbox>
             `;
@@ -7462,12 +7657,12 @@ class SfTable extends TableElement {
 
 
       const pinned = this.isColumnPinned(col);
-      return (0,lit__WEBPACK_IMPORTED_MODULE_10__.html)`
+      return (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
                 <div class="sf-table-column-option flex items-cross-center gap-1/3"
                      data-column-key=${col.key}
                      data-sf-sortable-item=${col.key}
                      data-pinned=${pinned ? "1" : "0"}>
-                    ${handle ? (0,lit__WEBPACK_IMPORTED_MODULE_10__.html)`<sf-button-icon
+                    ${handle ? (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`<sf-button-icon
                                 size="1/2"
                                 appearance="link"
                                 scheme="on-surface"
@@ -7476,7 +7671,7 @@ class SfTable extends TableElement {
                                 data-sf-sortable-handle
                                 root-class="sf-table-column-move cursor-grab"
                                 aria-label=${`${this.text("columnMoveLabel", "column-move-label")}: ${col.label || col.key}`}
-                            ></sf-button-icon>` : lit__WEBPACK_IMPORTED_MODULE_10__.nothing}
+                            ></sf-button-icon>` : lit__WEBPACK_IMPORTED_MODULE_12__.nothing}
                     <span class="flex-1 min-w-0">${box}</span>
                     <!-- A pinned column's pin is filled and a loose one's is
                          outlined, the way a pinned filter template already
@@ -7572,14 +7767,14 @@ class SfTable extends TableElement {
     label,
     onIntent
   }) {
-    const list = (group, rows) => rows.length ? (0,lit__WEBPACK_IMPORTED_MODULE_10__.html)`<sf-sortable
+    const list = (group, rows) => rows.length ? (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`<sf-sortable
                 group=${`${name}-${group}`}
                 data-group=${group}
                 label=${label}
                 class="flex flex-col gap-1/3"
-                @sf-sortable-intent=${onIntent}>${rows}</sf-sortable>` : lit__WEBPACK_IMPORTED_MODULE_10__.nothing;
+                @sf-sortable-intent=${onIntent}>${rows}</sf-sortable>` : lit__WEBPACK_IMPORTED_MODULE_12__.nothing;
 
-    return (0,lit__WEBPACK_IMPORTED_MODULE_10__.html)`${list('pinned', pinnedRows)}${list('loose', looseRows)}`;
+    return (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`${list('pinned', pinnedRows)}${list('loose', looseRows)}`;
   }
 
   getTableColsData(group = '') {
@@ -7908,7 +8103,31 @@ class SfTable extends TableElement {
     // «2026-09-25T07:12:00+03:00» in a row, and a consumer had no way to
     // change the second. The set still refuses to guess a format; this only
     // lets the host say one (admin polygon, 2026-10-10).
-    return (0,_field_renderers_index_js__WEBPACK_IMPORTED_MODULE_9__.renderCellField)(column, value, this.cellHost ?? null);
+    const host = this.cellHost ?? null;
+    const type = column.propertyType ?? column.property_type ?? column.type; // Several files are one value each, as several choices are tags: the
+    // renderer set reads a file and not a list of them, so a column of
+    // documents drew nothing at all (the Fields page, 2026-11-05). Each is
+    // its name with its kind's icon, and what does not fit folds into «+N».
+
+    if (type === "file" && Array.isArray(value)) {
+      const files = value.map(file => (0,_field_renderers_index_js__WEBPACK_IMPORTED_MODULE_9__.renderCellField)(column, file, host)).filter(item => item !== null && item !== undefined);
+      return files.length ? files : null;
+    }
+
+    const rendered = (0,_field_renderers_index_js__WEBPACK_IMPORTED_MODULE_9__.renderCellField)(column, value, host);
+    if (rendered !== null && rendered !== undefined) return rendered; // A date the host did not format reads in the page's language rather
+    // than as stored (format-date); the host's formatFieldValue still wins.
+
+    if (_js_format_value_js__WEBPACK_IMPORTED_MODULE_11__.DATE_TYPES.has(type)) return (0,_js_format_value_js__WEBPACK_IMPORTED_MODULE_11__.formatDateValue)(type, value, this) || null;
+    return null;
+  } // The text a long-text cell shows on its one line: formatted text is its
+  // text, not its markup -- «<p>Этапы: <strong>дизайн</strong>…» stood in
+  // the row as written (the Fields page, 2026-11-05).
+
+
+  cellText(column = {}, value) {
+    const type = column.propertyType ?? column.property_type ?? column.type;
+    return type === "html" ? (0,_field_renderers_html_js__WEBPACK_IMPORTED_MODULE_10__.htmlText)(value) : String(value);
   } // The filter controls were the Framework's only type-aware rendering, and
   // Larena's request asks for one renderer set shared by the record view and
   // the table's cells. Keeping these here as well would have made two maps
@@ -7939,20 +8158,20 @@ class SfTable extends TableElement {
     const value = option.value ?? option.id ?? option.key ?? option.label ?? option.title;
     const label = option.label || option.title || String(value || '');
     const badge = field.filter?.optionRenderer === 'badge' ? (0,_helpers_option_badge_js__WEBPACK_IMPORTED_MODULE_8__.optionBadgeProps)(option) : null;
-    return (0,lit__WEBPACK_IMPORTED_MODULE_10__.html)`
+    return (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
             <div
-                    ${(0,lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_11__.ref)(this.getItemRef(option.label))}
+                    ${(0,lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_13__.ref)(this.getItemRef(option.label))}
                     class="flex items-cross-center gap-1/2 content-main-between">
                 <div class="flex items-cross-center gap-1/2 min-w-0">
-                    ${badge ? (0,lit__WEBPACK_IMPORTED_MODULE_10__.html)`
+                    ${badge ? (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
                         <sf-badge
                                 appearance="tonal"
                                 scheme=${badge.scheme}
-                                root-style=${badge.rootStyle || lit__WEBPACK_IMPORTED_MODULE_10__.nothing}
-                                icon=${option.icon || lit__WEBPACK_IMPORTED_MODULE_10__.nothing}
+                                root-style=${badge.rootStyle || lit__WEBPACK_IMPORTED_MODULE_12__.nothing}
+                                icon=${option.icon || lit__WEBPACK_IMPORTED_MODULE_12__.nothing}
                                 text=${label}
                         ></sf-badge>
-                    ` : (0,lit__WEBPACK_IMPORTED_MODULE_10__.html)`
+                    ` : (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
                         ${this.renderFilterOptionVisual(field, option)}
                         <span class="sf-text-1 truncate">${label}</span>
                     `}
@@ -7984,7 +8203,7 @@ class SfTable extends TableElement {
   renderFilterOptionVisual(field = {}, option = {}) {
     // A colour from the field's palette is shown as its swatch.
     if (field.filter?.optionRenderer === 'swatch' && option.color) {
-      return (0,lit__WEBPACK_IMPORTED_MODULE_10__.html)`<span class="sf-table-filter-swatch" aria-hidden="true" style=${`background-color: ${option.color}`}></span>`;
+      return (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`<span class="sf-table-filter-swatch" aria-hidden="true" style=${`background-color: ${option.color}`}></span>`;
     }
 
     if (field.filter?.optionRenderer !== 'avatar-checkbox') {
@@ -7992,7 +8211,7 @@ class SfTable extends TableElement {
     }
 
     if (option.imageUrl) {
-      return (0,lit__WEBPACK_IMPORTED_MODULE_10__.html)`
+      return (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
                 <sf-avatar
                         size=${this.size}
                         image-url="${option.imageUrl}"
@@ -8001,7 +8220,7 @@ class SfTable extends TableElement {
             `;
     }
 
-    return (0,lit__WEBPACK_IMPORTED_MODULE_10__.html)`
+    return (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
             <sf-avatar
                     size=${this.size}
                     heading="${option.avatarText || option.title || option.label || ''}"
@@ -8072,9 +8291,9 @@ class SfTable extends TableElement {
         };
         component = this.renderSmartElement(data.type, data.props);
       } else {
-        component = (0,lit__WEBPACK_IMPORTED_MODULE_10__.html)`
+        component = (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
                     <div class="flex items-cross-center gap-1/4 flex-1">
-                        <sf-input size=${this.size} ${(0,lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_11__.ref)(this.refs.renameInput)} root-class="flex-1"
+                        <sf-input size=${this.size} ${(0,lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_13__.ref)(this.refs.renameInput)} root-class="flex-1"
                                   default-value="${col.label}"></sf-input>
                         <div class="flex items-cross-center flex-none">
                             <sf-button-icon size=${this.size} segment="start" appearance="outline" scheme="on-surface" @click="${() => {
@@ -8100,16 +8319,16 @@ class SfTable extends TableElement {
                     </div>`;
       }
 
-      return (0,lit__WEBPACK_IMPORTED_MODULE_10__.html)`
+      return (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
                 <div
                         :key=${col.key}
-                        ${(0,lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_11__.ref)(this.getItemRef(col.label))}
+                        ${(0,lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_13__.ref)(this.getItemRef(col.label))}
                         class="sf-settings-context-menu-item flex items-cross-center flex-1 gap-1/3 ${col.deleted ? 'opacity-3' : ''}"
                         data-filter-template-key="${col.key}"
                         data-sf-sortable-item=${col.key}
                         data-pinned="${col.pinned ? "1" : "0"}"
                 >
-                    ${!isActiveEdit ? (0,lit__WEBPACK_IMPORTED_MODULE_10__.html)`
+                    ${!isActiveEdit ? (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
                         <sf-button-icon size=${this.size}
                                 id="${this.getInstanceId()}--template-move--${col.key}"
                                 appearance="link"
@@ -8119,9 +8338,9 @@ class SfTable extends TableElement {
                                 aria-label=${`${this.text("templateMoveLabel")}: ${col.label}`}
                                 icon="drag_indicator"
                                 root-class="cursor-move"
-                        ></sf-button-icon>` : lit__WEBPACK_IMPORTED_MODULE_10__.nothing}
+                        ></sf-button-icon>` : lit__WEBPACK_IMPORTED_MODULE_12__.nothing}
                     ${component}
-                    ${!isActiveEdit ? (0,lit__WEBPACK_IMPORTED_MODULE_10__.html)`
+                    ${!isActiveEdit ? (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
                         <div class="flex items-cross-center m-inline-start-auto gap-1/3">
                             <sf-button-icon
                                     appearance="link"
@@ -8152,14 +8371,14 @@ class SfTable extends TableElement {
         });
       }}
                             ></sf-button-icon>
-                        </div>` : lit__WEBPACK_IMPORTED_MODULE_10__.nothing}
+                        </div>` : lit__WEBPACK_IMPORTED_MODULE_12__.nothing}
                 </div>`;
     });
     const menuColumnCount = columnCount ?? columnsCount ?? this.contextMenuColumns ?? 1;
     const colsData = this.getFilterTagColsData();
     const columnGroups = this.splitItemsByColumns(colsData, menuColumnCount);
     let contextItems = `${this.text('templatesTabText')}|${this.text('fieldsTabText')}`;
-    return (0,lit__WEBPACK_IMPORTED_MODULE_10__.html)`
+    return (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
             <sf-menu-context
                     size=${this.size === "1/2" ? "1/2" : "1"}
                     :key=${x + y + this._renderToken}
@@ -8195,7 +8414,7 @@ class SfTable extends TableElement {
                      bottom, and the window keeps its width -- it grew under
                      the pointer when «Применить (2)» got longer. -->
                 <div class="sf-table-context-body flex flex-col flex-1" slot="content">
-                    ${this._filterTab !== 'fields' ? (0,lit__WEBPACK_IMPORTED_MODULE_10__.html)`
+                    ${this._filterTab !== 'fields' ? (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
                             <div
                                     class="sf-context-menu-columns flex flex-col gap-1/4 overflow-auto flex-1"
                                     data-filter-template-list
@@ -8205,9 +8424,9 @@ class SfTable extends TableElement {
       label: this.text('templatesTabText'),
       onIntent: event => this.onFilterTemplateIntent(event)
     })}
-                            </div>` : (0,lit__WEBPACK_IMPORTED_MODULE_10__.html)`
+                            </div>` : (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
                             <div class="sf-context-menu-columns flex flex-1 gap-1 overflow-auto">
-                                ${columnGroups.map(group => (0,lit__WEBPACK_IMPORTED_MODULE_10__.html)`
+                                ${columnGroups.map(group => (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
                                             <div class="flex flex-col gap-1 flex-1">
                                                 ${group}
                                             </div>
@@ -8288,7 +8507,7 @@ class SfTable extends TableElement {
         control: this.getCurrentFilterTags()?.[fieldKey]?.control || 'text'
       }
     };
-    return (0,lit__WEBPACK_IMPORTED_MODULE_10__.html)`
+    return (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
             <sf-menu-context
                     size=${this.size === "1/2" ? "1/2" : "1"}
                     :key=${x + y + this._renderToken}
@@ -8407,7 +8626,7 @@ class SfTable extends TableElement {
     // bulk actions in the band under the table, so a third place to find
     // them taught nobody anything.
 
-    return (0,lit__WEBPACK_IMPORTED_MODULE_10__.html)`
+    return (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
             <sf-menu-context
                     size=${this.size === "1/2" ? "1/2" : "1"}
                     :key=${x + y + this._renderToken}
@@ -8443,7 +8662,7 @@ class SfTable extends TableElement {
                      stays while the rows scroll, and its width is its own.
                      Esc, a click outside and the gear again close it too. -->
                 <div class="sf-table-context-body flex flex-col flex-1" slot="content">
-                    ${this._settingsTab === 'view' ? this.renderTableViewSettings() : (0,lit__WEBPACK_IMPORTED_MODULE_10__.html)`
+                    ${this._settingsTab === 'view' ? this.renderTableViewSettings() : (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
                     <!-- The search: a site can have hundreds of fields, and
                          scrolling for one is not an answer. -->
                     <label class="sf-table-column-search flex flex-col">
@@ -8464,7 +8683,7 @@ class SfTable extends TableElement {
       name: 'table-columns',
       label: this.text('settingsColumnLabel'),
       onIntent: event => this.onColumnSettingsIntent(event)
-    }) : (0,lit__WEBPACK_IMPORTED_MODULE_10__.html)`<div class="sf-table-column-empty p-1 color-on-surface-variant">
+    }) : (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`<div class="sf-table-column-empty p-1 color-on-surface-variant">
                                 ${this.text("columnSearchEmptyText", "column-search-empty-text")}
                             </div>`}
                     </div>
@@ -8491,7 +8710,7 @@ class SfTable extends TableElement {
     const size = this.size === "1/2" ? "1/2" : "1";
     const everywhere = this._viewEverywhere === true;
 
-    const row = (label, control) => (0,lit__WEBPACK_IMPORTED_MODULE_10__.html)`<div class="sf-table-settings-row">${control}<span>${label}</span></div>`;
+    const row = (label, control) => (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`<div class="sf-table-settings-row">${control}<span>${label}</span></div>`;
 
     const density = ["compact", "normal", "spacious"];
     const label = {
@@ -8500,7 +8719,7 @@ class SfTable extends TableElement {
       spacious: "viewDensitySpacious"
     };
 
-    const check = (field, text) => (0,lit__WEBPACK_IMPORTED_MODULE_10__.html)`<label class="sf-table-settings-row" data-view-option=${field}>
+    const check = (field, text) => (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`<label class="sf-table-settings-row" data-view-option=${field}>
             <sf-checkbox size=${size} ?checked=${view[field] === true}
                          @change=${event => this.setTableView({
       [field]: Boolean(event.target?.checked ?? event.detail?.checked)
@@ -8509,11 +8728,11 @@ class SfTable extends TableElement {
     })}></sf-checkbox>
             <span>${this.text(text)}</span></label>`;
 
-    return (0,lit__WEBPACK_IMPORTED_MODULE_10__.html)`
+    return (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
             <div class="sf-table-view-settings flex flex-col flex-1 gap-1/3" data-table-view-settings>
                 <div class="sf-table-settings-heading">${this.text('viewDensity')}</div>
                 <div role="radiogroup" aria-label=${this.text('viewDensity')} class="flex flex-col">
-                    ${density.map(value => (0,lit__WEBPACK_IMPORTED_MODULE_10__.html)`<label class="sf-table-settings-row" data-view-density=${value}>
+                    ${density.map(value => (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`<label class="sf-table-settings-row" data-view-density=${value}>
                         <sf-radio size=${size} name=${`${this.getInstanceId()}-density`} value=${value} ?checked=${view.density === value}
                                   @change=${() => this.setTableView({
       density: value
@@ -8525,13 +8744,13 @@ class SfTable extends TableElement {
                 ${check("stripes", "viewStripes")}
                 ${check("lines", "viewLines")}
                 ${check("singleLine", "viewSingleLine")}
-                ${this.getAttribute("vertical-scroll") === "page" ? check("stickyHead", "viewStickyHead") : lit__WEBPACK_IMPORTED_MODULE_10__.nothing}
-                ${this.viewPreferenceKey ? (0,lit__WEBPACK_IMPORTED_MODULE_10__.html)`<div class="sf-table-settings-separator" role="separator"></div>
-                    ${row(this.text('viewEverywhere'), (0,lit__WEBPACK_IMPORTED_MODULE_10__.html)`<sf-checkbox size=${size} data-view-everywhere ?checked=${everywhere}
+                ${this.getAttribute("vertical-scroll") === "page" ? check("stickyHead", "viewStickyHead") : lit__WEBPACK_IMPORTED_MODULE_12__.nothing}
+                ${this.viewPreferenceKey ? (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`<div class="sf-table-settings-separator" role="separator"></div>
+                    ${row(this.text('viewEverywhere'), (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`<sf-checkbox size=${size} data-view-everywhere ?checked=${everywhere}
                         @change=${event => {
       this._viewEverywhere = Boolean(event.target?.checked ?? event.detail?.checked);
       this.requestComponentUpdate('view-everywhere');
-    }}></sf-checkbox>`)}` : lit__WEBPACK_IMPORTED_MODULE_10__.nothing}
+    }}></sf-checkbox>`)}` : lit__WEBPACK_IMPORTED_MODULE_12__.nothing}
             </div>`;
   }
 
@@ -8580,7 +8799,7 @@ class SfTable extends TableElement {
     const temp = this.getFilterTemplateByKey(template.key, this.tempSettings?.filter || null);
     let isDeleted = (temp || template).deleted;
     const isDefaultTemplate = (temp || template).default === true;
-    return (0,lit__WEBPACK_IMPORTED_MODULE_10__.html)`
+    return (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
             <sf-menu-context
                     size=${this.size === "1/2" ? "1/2" : "1"}
                     :key=${`${template.key || ''}-${x}-${y}`}
@@ -8648,7 +8867,7 @@ class SfTable extends TableElement {
         return this.renderTemplateActionsContextSubmenu(data);
 
       default:
-        return lit__WEBPACK_IMPORTED_MODULE_10__.nothing;
+        return lit__WEBPACK_IMPORTED_MODULE_12__.nothing;
     }
   }
 
@@ -8661,26 +8880,26 @@ class SfTable extends TableElement {
     }
 
     if (!data?.open) {
-      (0,lit__WEBPACK_IMPORTED_MODULE_10__.render)(null, this.getPortalContainer());
+      (0,lit__WEBPACK_IMPORTED_MODULE_12__.render)(null, this.getPortalContainer());
       this.hidePortal();
-      return lit__WEBPACK_IMPORTED_MODULE_10__.nothing;
+      return lit__WEBPACK_IMPORTED_MODULE_12__.nothing;
     }
 
-    (0,lit__WEBPACK_IMPORTED_MODULE_10__.render)((0,lit__WEBPACK_IMPORTED_MODULE_10__.html)`
+    (0,lit__WEBPACK_IMPORTED_MODULE_12__.render)((0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
                 <div
                         class="sf-table-context-layer"
-                        data-sf-sheet=${this.isList && ["filter-settings", "tag-settings"].includes(data.menu) ? "" : lit__WEBPACK_IMPORTED_MODULE_10__.nothing}
-                        ${(0,lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_11__.ref)(this.refs.contextMenu)}
+                        data-sf-sheet=${this.isList && ["filter-settings", "tag-settings"].includes(data.menu) ? "" : lit__WEBPACK_IMPORTED_MODULE_12__.nothing}
+                        ${(0,lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_13__.ref)(this.refs.contextMenu)}
                         @click=${event => this.handleContextLayerClick(event)}
                 >
                     ${this.renderMainContextMenu(data)}
-                    ${data.submenu?.open ? this.renderContextSubmenu(data.submenu) : lit__WEBPACK_IMPORTED_MODULE_10__.nothing}
-                    ${this.isList && ["filter-settings", "tag-settings"].includes(data.menu) ? (0,lit__WEBPACK_IMPORTED_MODULE_10__.html)`
+                    ${data.submenu?.open ? this.renderContextSubmenu(data.submenu) : lit__WEBPACK_IMPORTED_MODULE_12__.nothing}
+                    ${this.isList && ["filter-settings", "tag-settings"].includes(data.menu) ? (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
                         <div class="sf-table-sheet-close">
                             <sf-button-icon size=${this.size} appearance="link" scheme="on-surface"
                                             icon="close" aria-label=${this.text('closeText')}
                                             @click=${() => this.closeContextMenu()}></sf-button-icon>
-                        </div>` : lit__WEBPACK_IMPORTED_MODULE_10__.nothing}
+                        </div>` : lit__WEBPACK_IMPORTED_MODULE_12__.nothing}
                 </div>
             `, this.getPortalContainer());
     this.showPortal();
@@ -8691,7 +8910,7 @@ class SfTable extends TableElement {
 
       this.redrawWhenComponentsUpgrade(this.getPortalContainer());
     });
-    return lit__WEBPACK_IMPORTED_MODULE_10__.nothing;
+    return lit__WEBPACK_IMPORTED_MODULE_12__.nothing;
   }
 
   getActionItems() {
@@ -8935,7 +9154,7 @@ class SfTable extends TableElement {
       start: () => {
         state.dragging = true;
         this._columnResizeState = state;
-        (0,_helpers_loaderDragState__WEBPACK_IMPORTED_MODULE_14__.setLoaderDragState)(true);
+        (0,_helpers_loaderDragState__WEBPACK_IMPORTED_MODULE_16__.setLoaderDragState)(true);
         document.documentElement.classList.add('sf-table-column-resizing');
       },
       apply: width => {
@@ -8955,7 +9174,7 @@ class SfTable extends TableElement {
       },
       end: () => {
         document.documentElement.classList.remove('sf-table-column-resizing');
-        (0,_helpers_loaderDragState__WEBPACK_IMPORTED_MODULE_14__.setLoaderDragState)(false);
+        (0,_helpers_loaderDragState__WEBPACK_IMPORTED_MODULE_16__.setLoaderDragState)(false);
         this.suppressNextHeaderClick(); // The drag is over before the line goes: hidden while the
         // state still said «resizing», it stayed on the edge.
 
@@ -9970,7 +10189,7 @@ class SfTable extends TableElement {
           let parent = null;
 
           if (opts.parent) {
-            parent = (0,_helpers_dom__WEBPACK_IMPORTED_MODULE_13__.getParent)(event.target);
+            parent = (0,_helpers_dom__WEBPACK_IMPORTED_MODULE_15__.getParent)(event.target);
             pos = parent.getBoundingClientRect();
             anchor = parent;
           }
@@ -10836,7 +11055,7 @@ class SfTable extends TableElement {
       }
     });
     this.stopContextMenuPositions();
-    (0,lit__WEBPACK_IMPORTED_MODULE_10__.render)(null, this.getPortalContainer());
+    (0,lit__WEBPACK_IMPORTED_MODULE_12__.render)(null, this.getPortalContainer());
     this.hidePortal();
 
     if (this.refs.contextMenu) {
@@ -11063,7 +11282,7 @@ class SfTable extends TableElement {
     this.contextTarget = null;
 
     if (this._portalContainer) {
-      (0,lit__WEBPACK_IMPORTED_MODULE_10__.render)(null, this._portalContainer);
+      (0,lit__WEBPACK_IMPORTED_MODULE_12__.render)(null, this._portalContainer);
 
       this._portalContainer.remove();
 
@@ -11086,7 +11305,7 @@ class SfTable extends TableElement {
 
 
   text(key, attribute) {
-    return attribute && this.getAttribute(attribute) || (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_12__.pageText)(TABLE_TEXT, key, this);
+    return attribute && this.getAttribute(attribute) || (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_14__.pageText)(TABLE_TEXT, key, this);
   }
 
   templateContext() {
@@ -11122,7 +11341,7 @@ class SfTable extends TableElement {
         return;
       }
 
-      const parentSpace = (0,_helpers_dom__WEBPACK_IMPORTED_MODULE_13__.setParentSpace)(this.refs.items);
+      const parentSpace = (0,_helpers_dom__WEBPACK_IMPORTED_MODULE_15__.setParentSpace)(this.refs.items);
 
       if (!parentSpace) {
         return;
@@ -11270,6 +11489,74 @@ class SfTable extends TableElement {
 
 (0,_js_manifest_actions_js__WEBPACK_IMPORTED_MODULE_2__.settingSetters)(SfTable, _component_json__WEBPACK_IMPORTED_MODULE_3__);
 SfTable.define("sf-view-table");
+__webpack_async_result__();
+} catch(e) { __webpack_async_result__(e); } });
+
+/***/ },
+
+/***/ "2f31b00ad99a"
+(module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   DATE_TYPES: () => (/* binding */ DATE_TYPES),
+/* harmony export */   formatDateValue: () => (/* binding */ formatDateValue)
+/* harmony export */ });
+/* harmony import */ var _core_js_format_date_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("e577837dd70a");
+var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_core_js_format_date_js__WEBPACK_IMPORTED_MODULE_0__]);
+var __webpack_async_dependencies_result__ = (__webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
+_core_js_format_date_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_async_dependencies_result__[0];
+ // A date, a date and time or a time of day in the page's language, through
+// the SIMAI Framework's format-date module, for a value the host did not
+// format (formatFieldValue). The host's own text still wins; without one, a
+// date read «2026-11-02» where a person expects «2 нояб. 2026 г.».
+//
+// The forms are read as a host stores them: a day «YYYY-MM-DD» is that day on
+// the reader's calendar (not UTC midnight, which is the day before west of
+// Greenwich); a date and time with a zone is that moment in the reader's zone
+// and one without a zone is the wall clock as written; a time «hh:mm[:ss]» is
+// a time of day. Anything else is left for the caller to print as it came.
+
+const DAY = /^(\d{4})-(\d{2})-(\d{2})$/u;
+const TIME = /^(\d{2}):(\d{2})(?::(\d{2})(?:\.\d+)?)?$/u;
+const DATE_TIME = /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})(?::(\d{2})(?:\.\d+)?)?(Z|[+-]\d{2}:?\d{2})?$/u;
+const DATE_TYPES = new Set(['date', 'datetime', 'time']);
+
+function readMoment(type, text) {
+  const day = DAY.exec(text);
+  if (day) return new Date(Number(day[1]), Number(day[2]) - 1, Number(day[3]));
+  const time = TIME.exec(text);
+  if (time) return type === 'time' ? new Date(2000, 0, 1, Number(time[1]), Number(time[2]), Number(time[3] ?? 0)) : null;
+  const stamp = DATE_TIME.exec(text);
+  if (!stamp) return null;
+
+  if (stamp[7]) {
+    const moment = new Date(text.replace(' ', 'T'));
+    return Number.isNaN(moment.getTime()) ? null : moment;
+  }
+
+  return new Date(Number(stamp[1]), Number(stamp[2]) - 1, Number(stamp[3]), Number(stamp[4]), Number(stamp[5]), Number(stamp[6] ?? 0));
+} // The text for a value of a date type, or '' when it is not one this reads.
+
+
+function formatDateValue(type, value, node) {
+  if (!DATE_TYPES.has(type) || typeof value !== 'string' || !value.trim()) return '';
+  const text = value.trim();
+  const moment = readMoment(type, text);
+  if (!moment) return '';
+  const hasTime = type !== 'date' && !DAY.test(text);
+  if (type === 'time') return (0,_core_js_format_date_js__WEBPACK_IMPORTED_MODULE_0__.formatDate)(moment, {
+    date: null,
+    time: 'short',
+    node
+  });
+  return (0,_core_js_format_date_js__WEBPACK_IMPORTED_MODULE_0__.formatDate)(moment, {
+    date: 'medium',
+    time: hasTime ? 'short' : null,
+    node
+  });
+}
 __webpack_async_result__();
 } catch(e) { __webpack_async_result__(e); } });
 
@@ -12472,7 +12759,7 @@ function renderTableTemplate(context) {
 
 
     if (LONG_TEXT_TYPES.has(column.propertyType ?? column.property_type ?? column.type) && (typeof value === "string" || typeof value === "number")) {
-      const text = String(value);
+      const text = context.component?.cellText?.(column, value) ?? String(value);
       return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-table-cell-clip" title=${text}>${text}</span>`;
     } // The renderer set is asked before the shapes below, because a typed
     // cell's value is often an object -- a user or a related record arrives
@@ -13686,7 +13973,7 @@ module.exports = /*#__PURE__*/JSON.parse('{"$comment":"Dated aliases of sf-view-
 /***/ "c1f17ed5a348"
 (module) {
 
-module.exports = /*#__PURE__*/JSON.parse('{"id":"smart.view-table","tag":"sf-view-table","version":"1.14.0","kind":"leaf","settings":{"selectable":{"type":"boolean","default":true},"settings":{"type":"boolean","default":true},"actions":{"type":"boolean","default":true},"row-actions":{"type":"boolean","default":true},"creatable":{"type":"boolean","default":true},"filter-templates":{"type":"boolean","default":true},"settings-menu":{"type":"boolean","default":true},"pagin":{"type":"boolean","default":false},"filter-text":{"type":"string","default-from":"runtime.filter-text"},"clear-text":{"type":"string","default-from":"runtime.clear-text"},"search-placeholder":{"type":"string","default-from":"runtime.search-placeholder"},"create-text":{"type":"string","default-from":"runtime.create-text"},"pagination-total":{"type":"number","default":10,"integer":true,"min":0},"pagination-page-size":{"type":"number","default":10,"integer":true,"min":1,"max":100},"page-sizes":{"type":"string","default":"10,20,30,40"},"context-menu-columns":{"type":"number","default":1,"integer":true,"min":1,"max":4},"remember-widths":{"type":"boolean","default":false},"table-settings-key":{"type":"string","default":""},"data-state":{"type":"enum","values":["auto","loading","ready","populated","empty","error"],"default":"auto","x-alias":{"populated":"ready"}},"loading-text":{"type":"string","default-from":"runtime.loading-text"},"empty-text":{"type":"string","default-from":"runtime.empty-text"},"empty-description":{"type":"string"},"error-text":{"type":"string","default-from":"runtime.error-text"},"retry-text":{"type":"string","default-from":"runtime.retry-text"},"toolbar":{"type":"boolean","default":true},"pin-column-label":{"type":"string","default-from":"runtime.pin-column-label"},"unpin-column-label":{"type":"string","default-from":"runtime.unpin-column-label"},"column-move-label":{"type":"string","default-from":"runtime.column-move-label"},"column-search-placeholder":{"type":"string","default-from":"runtime.column-search-placeholder"},"column-search-empty-text":{"type":"string","default-from":"runtime.column-search-empty-text"},"vertical-scroll":{"type":"enum","values":["self","page"],"default":"self"},"filter-apply-text":{"type":"string","default-from":"runtime.filter-apply-text"},"layout":{"type":"enum","values":["auto","table","list"],"default":"table"},"list-below":{"type":"number","default":600},"list-fields":{"type":"number","default":3},"size":{"type":"enum","values":["1/2","1"],"default":"1"},"preferences-key":{"type":"string","default":""},"row-actions-visible":{"type":"enum","values":["hover","always"],"default":"hover"},"drag-rows":{"type":"boolean","default":false},"row-reorder":{"type":"boolean","default":false},"inline-edit":{"type":"boolean","default":false},"active-filter-fields":{"type":"list","entries":{"key":"id"}},"bulk-actions":{"type":"list"},"columns":{"type":"list","of":{"key":"string","label":"string"}},"create-items":{"type":"list"},"filter-fields":{"type":"list"},"rows":{"type":"list","entries":{"key":"id","changes":"revision"},"of":{"id":"id","revision":{"type":"string","optional":true}}},"table-data":{"type":"object"},"table-settings":{"type":"object"},"templates":{"type":"list"},"toolbar-actions":{"type":"list"},"sort":{"type":"list","of":{"key":"string","direction":{"type":"enum","values":["asc","desc"]}},"controlled":true},"current":{"type":"string","default":""}},"values":{"selected":{"type":"id","optional":true},"selection":{"type":"list","default":[]}},"events":{"select":{"carries":{"ids":"list"}},"apply":{"carries":{"action":"string","scope":{"type":"enum","values":["entry","selection","filter"]},"ids":"list","revisions":{"type":"object","optional":true}}},"save":{"carries":{"kind":{"type":"enum","values":["columns"]},"reason":"string","column-settings":{"type":"object"},"table-settings-key":{"type":"string"}}},"column-settings-reset":{"carries":{"target":{"type":"enum","values":["personal"]},"table-settings-key":{"type":"string","nullable":true}},"own-verb":true},"create":{"carries":{"item":{"type":"string","nullable":true,"optional":true}}},"filter-change":{"carries":{"template-key":{"type":"string"},"template-label":{"type":"string"},"values":{"type":"object"},"tags":{"type":"object"}},"own-verb":true},"query":{"carries":{"reason":"string","context":"object","sequence":{"type":"number","integer":true}}},"refresh":{"carries":{}},"search-change":{"carries":{"search":"string"},"own-verb":true},"sort-change":{"carries":{"key":{"type":"string","schema":{"minLength":1}},"direction":{"type":"enum","values":["asc","desc",null],"nullable":true}},"own-verb":true},"template-delete":{"carries":{"key":{"type":"string","schema":{"minLength":1}}},"own-verb":true},"template-save":{"carries":{},"own-verb":true},"template-select":{"carries":{"key":{"type":"string","schema":{"minLength":1}}},"own-verb":true},"toolbar-action":{"carries":{"action":"string","href":{"type":"string","nullable":true,"optional":true}},"cancelable":true,"own-verb":true},"reference-open":{"carries":{"field":"string","value":"object","href":"string"},"cancelable":true,"own-verb":true},"expand":{"carries":{"id":"id","expanded":{"type":"boolean","optional":true}}},"load-more":{"carries":{"direction":{"type":"enum","values":["after"]},"parent":{"type":"id","nullable":true},"cursor":{"type":"string","nullable":true}}},"rows-drag":{"carries":{"ids":{"type":"list","schema":{"items":{"type":"string"},"minItems":1}},"source":{"type":"string","nullable":true}},"own-verb":true},"move":{"carries":{"ids":"list","before":{"type":"id","nullable":true},"order":"list"}},"cell-set":{"carries":{"id":"object","key":"string","value":"object","revision":"object"},"own-verb":true},"view-change":{"carries":{"view":"object","everywhere":"boolean"},"own-verb":true},"window":{"carries":{"first":{"type":"number","integer":true},"last":{"type":"number","integer":true}},"own-verb":true}},"actions":{"add-rows":{"with":{"rows":"list"}},"apply-query-result":{"with":{"sequence":{"type":"number","integer":true,"schema":{"minimum":1}},"rows":"list"}},"clear-selection":{},"request-action-intent":{"with":{"action-id":{"type":"string","schema":{"minLength":1}},"record-ids":{"type":"list","schema":{"items":{"type":["string","integer"],"minLength":1},"minItems":1}}},"emits":"apply"},"request-create-intent":{"with":{"item-id":{"type":"string","optional":true,"nullable":true}},"emits":"create"},"request-retry":{"emits":"refresh"},"set-sort":{"with":{"key":{"type":"string","nullable":true},"direction":{"type":"enum","values":["asc","desc"],"nullable":true}}},"toggle-tree-row":{"with":{"row":"object"},"emits":"expand"},"request-tree-more":{"with":{"row":"object"},"emits":"load-more"},"focus-row":{"with":{"id":"id"}}},"port":{"id":"simai.dataview-port","version":"1.0.0","contract":"src/core/contracts/ports/simai.dataview-port/1.0.0/port.json"},"presentation":{"skeleton":{"late":["rows"]}},"host-states":{"data-sf-view-stripes":"boolean","data-sf-page-scroll":"boolean"},"css-variables":{"--sf-table-row-block-size-1/2":{"type":"length","state":"default"},"--sf-table-row-block-size-1":{"type":"length","state":"default"},"--sf-table-row-2-lines-block-size-1/2":{"type":"length","state":"default"},"--sf-table-row-2-lines-block-size-1":{"type":"length","state":"default"},"--sf-table-head-block-size-1/2":{"type":"length","state":"default"},"--sf-table-head-block-size-1":{"type":"length","state":"default"},"--sf-table-toolbar-block-size-1/2":{"type":"length","state":"default"},"--sf-table-toolbar-block-size-1":{"type":"length","state":"default"},"--sf-table-toolbar-gap":{"type":"length","state":"default"},"--sf-table-head--background-color":{"type":"color","state":"default"},"--sf-table-row--background-color":{"type":"color","state":"default"},"--sf-table--cell-spacing":{"type":"length","state":"default"},"--sf-table-cell--line-clamp":{"type":"number","state":"default"},"--sf-table-context-menu--z-index":{"type":"number","state":"open"},"--sf-table-context-menu--max-width":{"type":"length","state":"open"}}}');
+module.exports = /*#__PURE__*/JSON.parse('{"id":"smart.view-table","tag":"sf-view-table","version":"1.15.0","kind":"leaf","settings":{"selectable":{"type":"boolean","default":true},"settings":{"type":"boolean","default":true},"actions":{"type":"boolean","default":true},"row-actions":{"type":"boolean","default":true},"creatable":{"type":"boolean","default":true},"filter-templates":{"type":"boolean","default":true},"settings-menu":{"type":"boolean","default":true},"pagin":{"type":"boolean","default":false},"filter-text":{"type":"string","default-from":"runtime.filter-text"},"clear-text":{"type":"string","default-from":"runtime.clear-text"},"search-placeholder":{"type":"string","default-from":"runtime.search-placeholder"},"create-text":{"type":"string","default-from":"runtime.create-text"},"pagination-total":{"type":"number","default":10,"integer":true,"min":0},"pagination-page-size":{"type":"number","default":10,"integer":true,"min":1,"max":100},"page-sizes":{"type":"string","default":"10,20,30,40"},"context-menu-columns":{"type":"number","default":1,"integer":true,"min":1,"max":4},"remember-widths":{"type":"boolean","default":false},"table-settings-key":{"type":"string","default":""},"data-state":{"type":"enum","values":["auto","loading","ready","populated","empty","error"],"default":"auto","x-alias":{"populated":"ready"}},"loading-text":{"type":"string","default-from":"runtime.loading-text"},"empty-text":{"type":"string","default-from":"runtime.empty-text"},"empty-description":{"type":"string"},"error-text":{"type":"string","default-from":"runtime.error-text"},"retry-text":{"type":"string","default-from":"runtime.retry-text"},"toolbar":{"type":"boolean","default":true},"pin-column-label":{"type":"string","default-from":"runtime.pin-column-label"},"unpin-column-label":{"type":"string","default-from":"runtime.unpin-column-label"},"column-move-label":{"type":"string","default-from":"runtime.column-move-label"},"column-search-placeholder":{"type":"string","default-from":"runtime.column-search-placeholder"},"column-search-empty-text":{"type":"string","default-from":"runtime.column-search-empty-text"},"vertical-scroll":{"type":"enum","values":["self","page"],"default":"self"},"filter-apply-text":{"type":"string","default-from":"runtime.filter-apply-text"},"layout":{"type":"enum","values":["auto","table","list"],"default":"table"},"list-below":{"type":"number","default":600},"list-fields":{"type":"number","default":3},"size":{"type":"enum","values":["1/2","1"],"default":"1"},"preferences-key":{"type":"string","default":""},"row-actions-visible":{"type":"enum","values":["hover","always"],"default":"hover"},"drag-rows":{"type":"boolean","default":false},"row-reorder":{"type":"boolean","default":false},"inline-edit":{"type":"boolean","default":false},"active-filter-fields":{"type":"list","entries":{"key":"id"}},"bulk-actions":{"type":"list"},"columns":{"type":"list","of":{"key":"string","label":"string"}},"create-items":{"type":"list"},"filter-fields":{"type":"list"},"rows":{"type":"list","entries":{"key":"id","changes":"revision"},"of":{"id":"id","revision":{"type":"string","optional":true}}},"table-data":{"type":"object"},"table-settings":{"type":"object"},"templates":{"type":"list"},"toolbar-actions":{"type":"list"},"sort":{"type":"list","of":{"key":"string","direction":{"type":"enum","values":["asc","desc"]}},"controlled":true},"current":{"type":"string","default":""}},"values":{"selected":{"type":"id","optional":true},"selection":{"type":"list","default":[]}},"events":{"select":{"carries":{"ids":"list"}},"apply":{"carries":{"action":"string","scope":{"type":"enum","values":["entry","selection","filter"]},"ids":"list","revisions":{"type":"object","optional":true}}},"save":{"carries":{"kind":{"type":"enum","values":["columns"]},"reason":"string","column-settings":{"type":"object"},"table-settings-key":{"type":"string"}}},"column-settings-reset":{"carries":{"target":{"type":"enum","values":["personal"]},"table-settings-key":{"type":"string","nullable":true}},"own-verb":true},"create":{"carries":{"item":{"type":"string","nullable":true,"optional":true}}},"filter-change":{"carries":{"template-key":{"type":"string"},"template-label":{"type":"string"},"values":{"type":"object"},"tags":{"type":"object"}},"own-verb":true},"query":{"carries":{"reason":"string","context":"object","sequence":{"type":"number","integer":true}}},"refresh":{"carries":{}},"search-change":{"carries":{"search":"string"},"own-verb":true},"sort-change":{"carries":{"key":{"type":"string","schema":{"minLength":1}},"direction":{"type":"enum","values":["asc","desc",null],"nullable":true}},"own-verb":true},"template-delete":{"carries":{"key":{"type":"string","schema":{"minLength":1}}},"own-verb":true},"template-save":{"carries":{},"own-verb":true},"template-select":{"carries":{"key":{"type":"string","schema":{"minLength":1}}},"own-verb":true},"toolbar-action":{"carries":{"action":"string","href":{"type":"string","nullable":true,"optional":true}},"cancelable":true,"own-verb":true},"reference-open":{"carries":{"field":"string","value":"object","href":"string"},"cancelable":true,"own-verb":true},"expand":{"carries":{"id":"id","expanded":{"type":"boolean","optional":true}}},"load-more":{"carries":{"direction":{"type":"enum","values":["after"]},"parent":{"type":"id","nullable":true},"cursor":{"type":"string","nullable":true}}},"rows-drag":{"carries":{"ids":{"type":"list","schema":{"items":{"type":"string"},"minItems":1}},"source":{"type":"string","nullable":true}},"own-verb":true},"move":{"carries":{"ids":"list","before":{"type":"id","nullable":true},"order":"list"}},"cell-set":{"carries":{"id":"object","key":"string","value":"object","revision":"object"},"own-verb":true},"view-change":{"carries":{"view":"object","everywhere":"boolean"},"own-verb":true},"window":{"carries":{"first":{"type":"number","integer":true},"last":{"type":"number","integer":true}},"own-verb":true}},"actions":{"add-rows":{"with":{"rows":"list"}},"apply-query-result":{"with":{"sequence":{"type":"number","integer":true,"schema":{"minimum":1}},"rows":"list"}},"clear-selection":{},"request-action-intent":{"with":{"action-id":{"type":"string","schema":{"minLength":1}},"record-ids":{"type":"list","schema":{"items":{"type":["string","integer"],"minLength":1},"minItems":1}}},"emits":"apply"},"request-create-intent":{"with":{"item-id":{"type":"string","optional":true,"nullable":true}},"emits":"create"},"request-retry":{"emits":"refresh"},"set-sort":{"with":{"key":{"type":"string","nullable":true},"direction":{"type":"enum","values":["asc","desc"],"nullable":true}}},"toggle-tree-row":{"with":{"row":"object"},"emits":"expand"},"request-tree-more":{"with":{"row":"object"},"emits":"load-more"},"focus-row":{"with":{"id":"id"}}},"port":{"id":"simai.dataview-port","version":"1.0.0","contract":"src/core/contracts/ports/simai.dataview-port/1.0.0/port.json"},"presentation":{"skeleton":{"late":["rows"]}},"host-states":{"data-sf-view-stripes":"boolean","data-sf-page-scroll":"boolean"},"css-variables":{"--sf-table-row-block-size-1/2":{"type":"length","state":"default"},"--sf-table-row-block-size-1":{"type":"length","state":"default"},"--sf-table-row-2-lines-block-size-1/2":{"type":"length","state":"default"},"--sf-table-row-2-lines-block-size-1":{"type":"length","state":"default"},"--sf-table-head-block-size-1/2":{"type":"length","state":"default"},"--sf-table-head-block-size-1":{"type":"length","state":"default"},"--sf-table-toolbar-block-size-1/2":{"type":"length","state":"default"},"--sf-table-toolbar-block-size-1":{"type":"length","state":"default"},"--sf-table-toolbar-gap":{"type":"length","state":"default"},"--sf-table-head--background-color":{"type":"color","state":"default"},"--sf-table-row--background-color":{"type":"color","state":"default"},"--sf-table--cell-spacing":{"type":"length","state":"default"},"--sf-table-cell--line-clamp":{"type":"number","state":"default"},"--sf-table-context-menu--z-index":{"type":"number","state":"open"},"--sf-table-context-menu--max-width":{"type":"length","state":"open"}}}');
 
 /***/ },
 
