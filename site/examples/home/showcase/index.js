@@ -90,7 +90,10 @@ const orderCard = (order) => ({
 const startOrders = (root) => {
   const view = root.querySelector('#orders-view');
   const card = root.querySelector('#order-card');
-  const hint = root.querySelector('[data-orders-hint]');
+  // The card is in the page only while an order is open: a closed panel
+  // still draws its drawer's edge, the close button among it, over the list.
+  const home = card.parentElement;
+  card.remove();
   const log = root.querySelector('[data-log]');
   let status = '';
 
@@ -111,9 +114,13 @@ const startOrders = (root) => {
       if (intent === 'record.open') {
         const order = ORDERS.find((item) => String(item.id) === String(payload.record_ids[0]));
         if (order) {
-          hint.hidden = true;
-          card.hidden = false;
+          // The card opens as a panel beside the list; the list keeps the
+          // whole width while no order is open.
           card.setAttribute('record-id', order.id);
+          card.setAttribute('panel-label', order.number);
+          card.hidden = false;
+          card.setAttribute('open', 'true');
+          if (!card.isConnected) home.append(card);
         }
         return {answer: 'applied'};
       }
@@ -121,7 +128,7 @@ const startOrders = (root) => {
         const changed = ORDERS.filter((order) => payload.record_ids.map(String).includes(String(order.id)));
         changed.forEach((order) => { order.status = 'shipped'; order.revision = String(Number(order.revision) + 1); });
         log.textContent = `Отгружено: ${changed.map((order) => order.number).join(', ')}`;
-        if (changed.some((order) => order.id === card.getAttribute('record-id'))) card.refresh?.();
+        if (card.isConnected && changed.some((order) => order.id === card.getAttribute('record-id'))) card.refresh?.();
         return {answer: 'applied', data: {records: changed.map((order) => ({...order, actions: ['view']}))}};
       }
       return {answer: 'unavailable', reason: 'capability-not-provided'};
@@ -148,6 +155,12 @@ const startOrders = (root) => {
       }
       return {answer: 'unavailable', reason: 'unknown-intent'};
     },
+  });
+
+  // Closing is the page's decision: nothing unsaved is kept here, so it closes.
+  card.addEventListener('sf-view-properties-close', () => {
+    card.setAttribute('open', 'false');
+    card.remove();
   });
 
   root.querySelector('[data-status-filter]').addEventListener('click', (event) => {
@@ -209,6 +222,7 @@ const WORK_FORMAT = [
 
 const startStaff = (root) => {
   const table = root.querySelector('#staff-table');
+  const pages = root.querySelector('#staff-pages');
   table.setColumns([
     {key: 'name', label: 'Сотрудник', role: 'title', sortable: true},
     {key: 'position', label: 'Должность', sortable: true, priority: 1},
@@ -225,6 +239,8 @@ const startStaff = (root) => {
   const departmentLabel = Object.fromEntries(DEPARTMENTS.map(({value, label}) => [value, label]));
   let search = '';
   let sort = null;
+  let page = 1;
+  let size = Number(pages.getAttribute('page-size')) || 10;
   const show = () => {
     let rows = people.filter((person) => `${person.name} ${person.position} ${departmentLabel[person.department]} ${person.city}`
       .toLowerCase().includes(search));
@@ -233,10 +249,16 @@ const startStaff = (root) => {
       const value = (person) => (sort.key === 'department' ? departmentLabel[person.department] : person[sort.key]);
       rows = [...rows].sort((a, b) => String(value(a)).localeCompare(String(value(b)), 'ru') * sign);
     }
-    table.setRows(rows);
+    page = Math.min(page, Math.max(1, Math.ceil(rows.length / size)));
+    pages.setAttribute('total', String(rows.length));
+    pages.setAttribute('page-size', String(size));
+    pages.setAttribute('current', String(page));
+    table.setRows(rows.slice((page - 1) * size, page * size));
   };
-  table.addEventListener('sf-view-table-search-change', (event) => { search = event.detail.search.trim().toLowerCase(); show(); });
+  table.addEventListener('sf-view-table-search-change', (event) => { search = event.detail.search.trim().toLowerCase(); page = 1; show(); });
   table.addEventListener('sf-view-table-sort-change', (event) => { sort = event.detail; show(); });
+  pages.addEventListener('sf-pagination-change', (event) => { page = event.detail.current; show(); });
+  pages.addEventListener('sf-pagination-size-change', (event) => { size = event.detail['page-size'] ?? event.detail.pageSize ?? size; page = 1; show(); });
   show();
 };
 

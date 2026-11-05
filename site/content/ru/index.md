@@ -27,8 +27,10 @@ Framework. Ищите, сортируйте, листайте страницы, 
 выполняйте действия — данные отвечает небольшое «приложение» на JavaScript,
 настоящая страница отвечает тем же со своего сервера.
 
-:::example {id="home/showcase" label="Живые примеры" fullscreen=true}
+:::example {id="home/showcase" label="Живые примеры" fullscreen=false wrap=false}
 :::
+
+[Код примера](/ru/guide/showcase/)
 
 ## Почему SIMAI View
 
