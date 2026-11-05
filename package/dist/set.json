@@ -1,0 +1,141 @@
+{
+  "schema": "simai.framework.component-set",
+  "schema_version": 1,
+  "standard": {
+    "id": "simai.component-set",
+    "version": "1.0.0"
+  },
+  "id": "view",
+  "title": "SIMAI View",
+  "summary": "Data views for SIMAI Framework pages: the data view sf-view over a host's data port, the smart table sf-view-table (search, filters, sorting, pages, columns, row actions) and the record card sf-view-properties.",
+  "repository": "simai/ui-view",
+  "licence": {
+    "class": "simai-pro",
+    "spdx": "PolyForm-Small-Business-1.0.0 OR PolyForm-Noncommercial-1.0.0 OR LicenseRef-SIMAI-Commercial"
+  },
+  "framework": {
+    "core_runtime": ">=1.25.0",
+    "source_revision": "ec2f29dfa5df657a027887ec413150118740d28d"
+  },
+  "requires_sets": [],
+  "families": [
+    "view"
+  ],
+  "docs": "https://view.simai.io/",
+  "components": [
+    {
+      "element": "sf-view",
+      "rule": "cl-view",
+      "folder": "view",
+      "status": "released",
+      "requires": [
+        "cl-button",
+        "cl-button-icon",
+        "cl-checkbox",
+        "cl-dropdown",
+        "cl-pagination",
+        "cl-toast",
+        "cl-view-table"
+      ],
+      "element_aliases": [
+        {
+          "from": "sf-data-view",
+          "since": "2026-11-03",
+          "remove_after": "2027-01-01",
+          "journal": "simai/ui-source contracts/changes/journal.json#tag-sf-data-view-to-sf-view"
+        }
+      ]
+    },
+    {
+      "element": "sf-view-table",
+      "rule": "cl-view-table",
+      "folder": "view-table",
+      "status": "released",
+      "requires": [
+        "cl-avatar",
+        "cl-badge",
+        "cl-button",
+        "cl-button-icon",
+        "cl-checkbox",
+        "cl-dropdown",
+        "cl-empty-state",
+        "cl-file-preview",
+        "cl-input",
+        "cl-input-color",
+        "cl-input-country",
+        "cl-input-date",
+        "cl-list-item",
+        "cl-menu-context",
+        "cl-modal",
+        "cl-pagination",
+        "cl-radio",
+        "cl-reference-link",
+        "cl-resizer",
+        "cl-slider-range",
+        "cl-sortable",
+        "cl-spinner",
+        "cl-tabs",
+        "cl-tag"
+      ],
+      "element_aliases": [
+        {
+          "from": "sf-table",
+          "since": "2026-11-03",
+          "remove_after": "2027-01-01",
+          "journal": "simai/ui-source contracts/changes/journal.json#tag-sf-table-to-sf-view-table"
+        }
+      ]
+    },
+    {
+      "element": "sf-view-properties",
+      "rule": "cl-view-properties",
+      "folder": "view-properties",
+      "status": "released",
+      "requires": [
+        "cl-avatar",
+        "cl-badge",
+        "cl-button",
+        "cl-button-copy",
+        "cl-button-group",
+        "cl-button-icon",
+        "cl-checkbox",
+        "cl-drawer",
+        "cl-dropdown",
+        "cl-empty-state",
+        "cl-file-preview",
+        "cl-file-upload",
+        "cl-help-mark",
+        "cl-icon",
+        "cl-input",
+        "cl-input-color",
+        "cl-input-country",
+        "cl-input-date",
+        "cl-input-textarea",
+        "cl-list-item",
+        "cl-popover",
+        "cl-profile-picker",
+        "cl-progress-bar",
+        "cl-progress-scale",
+        "cl-reference-link",
+        "cl-slider-range",
+        "cl-sortable",
+        "cl-spinner",
+        "cl-switch",
+        "cl-tabs",
+        "cl-tag",
+        "cl-tree",
+        "cl-tree-item",
+        "cl-view",
+        "cl-view-table"
+      ],
+      "element_aliases": [
+        {
+          "from": "sf-property-view",
+          "since": "2026-11-03",
+          "remove_after": "2027-01-01",
+          "journal": "simai/ui-source contracts/changes/journal.json#tag-sf-property-view-to-sf-view-properties"
+        }
+      ]
+    }
+  ]
+}

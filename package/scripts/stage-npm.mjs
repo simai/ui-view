@@ -13,8 +13,8 @@
 //
 // It refuses a build whose passport is not set.json (the set changed and was
 // not rebuilt). --check stages into a temporary folder and runs
-// `npm pack --dry-run` on it. Nothing is published: package.json is private
-// until the owner decides whether a Pro set goes to the public npm registry.
+// `npm pack --dry-run` on it. It publishes nothing: `npm publish` runs from the
+// staged folder (paid sets publish on the public registry, owner 2026-11-05).
 import {execFileSync} from 'node:child_process';
 import {copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
