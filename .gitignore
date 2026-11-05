@@ -15,3 +15,6 @@ site/vendor/
 site/build_*/
 site/.docara/
 site/source/
+site/.framework/
+site/stage/
+package/stage/

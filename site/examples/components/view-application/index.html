@@ -1,0 +1,15 @@
+<div class="flex flex-col gap-2" data-application-demo>
+  <div class="sf-button-group" role="group" aria-label="Ответ приложения" data-scenarios>
+    <button type="button" class="sf-button sf-button--outline sf-button--on-surface sf-button--size-1/2 active" data-scenario="normal" aria-pressed="true"><span class="sf-button-text-container">Данные</span></button>
+    <button type="button" class="sf-button sf-button--outline sf-button--on-surface sf-button--size-1/2" data-scenario="refused" aria-pressed="false"><span class="sf-button-text-container">Нет доступа</span></button>
+    <button type="button" class="sf-button sf-button--outline sf-button--on-surface sf-button--size-1/2" data-scenario="unavailable" aria-pressed="false"><span class="sf-button-text-container">Сбой сервера</span></button>
+  </div>
+  <sf-view
+    id="projects-application-view"
+    aria-label="Проекты"
+    preferences-key="view.application-projects">
+    <sf-view-table slot="content" aria-label="Проекты" layout="auto" search-placeholder="Найти проект"></sf-view-table>
+    <sf-pagination slot="pagination" page-sizes="5,10,25" top="false"></sf-pagination>
+  </sf-view>
+  <p class="m-0 color-on-surface-variant" role="status" data-application-log></p>
+</div>

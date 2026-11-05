@@ -1,0 +1,14 @@
+{
+  "schema": "docara.authoring.v1",
+  "infer_profiles": true,
+  "rules": [
+    {
+      "match": "components/**",
+      "profile": "reference"
+    },
+    {
+      "match": "demos/**",
+      "profile": "article"
+    }
+  ]
+}
