@@ -1,0 +1,25 @@
+<div data-fields class="flex flex-col gap-3">
+  <section class="flex flex-col gap-1" aria-label="В таблице">
+    <p class="m-0 weight-6">В таблице</p>
+    <sf-view aria-label="Записи" preferences-key="view.fields-flags">
+      <sf-view-table slot="content" aria-label="Записи" layout="auto" selectable="false"></sf-view-table>
+      <sf-pagination slot="pagination" page-size="10" page-sizes="10,25" top="false"></sf-pagination>
+    </sf-view>
+  </section>
+  <div class="flex flex-wrap gap-1 items-cross-center" role="group" aria-label="Запись в карточках" data-record-switch>
+      <button type="button" class="sf-button sf-button--outline sf-button--on-surface sf-button--size-1/2 active" data-record="r-1" aria-pressed="true"><span class="sf-button-text-container">Первая запись</span></button>
+      <button type="button" class="sf-button sf-button--outline sf-button--on-surface sf-button--size-1/2" data-record="r-2" aria-pressed="false"><span class="sf-button-text-container">Вторая запись</span></button>
+      <button type="button" class="sf-button sf-button--outline sf-button--on-surface sf-button--size-1/2" data-record="r-3" aria-pressed="false"><span class="sf-button-text-container">Пустые значения</span></button>
+  </div>
+  <div class="grid gap-3 fields-cards">
+    <section class="flex flex-col gap-1 min-w-0" aria-label="Карточка: просмотр">
+      <p class="m-0 weight-6">Карточка: просмотр</p>
+      <sf-view-properties aria-label="Карточка: просмотр" mode="view"></sf-view-properties>
+    </section>
+    <section class="flex flex-col gap-1 min-w-0" aria-label="Карточка: правка">
+      <p class="m-0 weight-6">Карточка: правка</p>
+      <sf-view-properties aria-label="Карточка: правка" mode="edit"></sf-view-properties>
+    </section>
+  </div>
+  <p class="m-0 color-on-surface-variant" role="status" data-log>Измените поля в правке и нажмите «Сохранить» — здесь появится то, что получил хост.</p>
+</div>
