@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Usage: node scripts/run-browser-probes.mjs <free build output> <package build output> [--overlay <directory>]
+// Usage: node scripts/run-browser-probes.mjs <free build output | ui distr> <package build output> [--overlay <directory>]
 //
 // Runs every package browser probe (tests/browser/*.browser.mjs of this
 // repository) against the package bytes laid into the free Framework they were
@@ -25,15 +25,28 @@ const at = args.indexOf('--overlay');
 const overlay = resolve(at === -1 ? join(PACKAGE_ROOT, '.overlay') : args[at + 1]);
 const [freeInput, packageInput] = args.filter((value, index) => !value.startsWith('--') && (at === -1 || index !== at + 1));
 if (!freeInput || !packageInput) throw new Error('usage: run-browser-probes.mjs <free build output> <package build output> [--overlay <directory>]');
-const free = resolve(freeInput);
 const built = resolve(packageInput);
+if (!existsSync(overlay)) materializeOverlay(overlay);
+// The free output as a product root: as given, or the distr of the ui
+// distribution laid out as one with symbolic links (as run-first-paint.mjs does).
+let free = resolve(freeInput);
+if (!existsSync(join(free, 'core', 'core', 'js', 'core.js')) && existsSync(join(free, 'core', 'js', 'core.js'))) {
+  const root = join(overlay, '.probe-free');
+  rmSync(root, {force: true, recursive: true});
+  const products = {core: ['core', 'core'], rule: ['core', 'rule'], component: ['component', 'component'], smart: ['smart', 'smart'], utility: ['utility', 'utility']};
+  for (const [product, [folder, inner]] of Object.entries(products)) {
+    if (!existsSync(join(free, product))) throw new Error(`the free output has no ${product}: ${free}`);
+    mkdirSync(join(root, folder), {recursive: true});
+    symlinkSync(join(free, product), join(root, folder, inner));
+  }
+  free = root;
+}
 for (const path of ['core/core/js/core.js', 'smart/smart']) {
   if (!existsSync(join(free, path))) throw new Error(`the free output has no ${path}: ${free}`);
 }
 for (const path of [...PACKAGE_COMPONENTS.map((name) => `smart/${name}`), 'smart/rule.js']) {
   if (!existsSync(join(built, path))) throw new Error(`the package output has no ${path}: ${built}`);
 }
-if (!existsSync(overlay)) materializeOverlay(overlay);
 
 // One output root, laid out like the free one, with the package inside smart/smart.
 const combined = join(overlay, '.probe-output');
