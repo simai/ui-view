@@ -1,0 +1,6 @@
+sf-tabs:not(:defined) > [slot] { display: none; }
+.showcase-split { grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 1100px) {
+  .showcase-split { grid-template-columns: minmax(0, 1fr) 24rem; align-items: start; }
+}
+.showcase-card { min-block-size: 12rem; }
