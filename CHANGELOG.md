@@ -13,6 +13,9 @@ in brackets. The site page «Изменения» says the same in Russian.
   it with `settle()`. Design: `docs/design/sf-view-flow.md`.
 - `sf-view-properties`: the field value moved into `js/field-value.js`,
   shared with the new block; no change in behaviour.
+- Built over SIMAI Framework `ui-1e5ec795a1ce` (ui-source `54c89e61ef9b`,
+  npm `@simai-studio/ui@5.20261106.1146`, core.runtime 1.30.0), the pair that
+  registers `sf-view-flow`; still runs with core.runtime 1.25.0 or newer.
 
 ## 1.1.0 — 2026-11-05
 
