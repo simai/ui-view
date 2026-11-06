@@ -60,13 +60,13 @@ and tags `view-<12>`; it is not run yet.
 ## Connecting it
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@simai-studio/ui@5.20261105.829/distr/core/js/core.min.js" data-sf-sets="view"></script>
+<script src="https://cdn.jsdelivr.net/npm/@simai-studio/ui@5.20261106.1146/distr/core/js/core.min.js" data-sf-sets="view"></script>
 ```
 
 or, from a base the page serves itself:
 
 ```js
-window.SF_BOOT_CONFIG = {packages: {view: {base: '/assets/ui-view/smart', version: '1.1.0'}}};
+window.SF_BOOT_CONFIG = {packages: {view: {base: '/assets/ui-view/smart', version: '1.2.0'}}};
 ```
 
 ## Moving to a newer SIMAI Framework

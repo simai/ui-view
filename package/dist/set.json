@@ -7,7 +7,7 @@
   },
   "id": "view",
   "title": "SIMAI View",
-  "summary": "Data views for SIMAI Framework pages: the data view sf-view over a host's data port, the smart table sf-view-table (search, filters, sorting, pages, columns, row actions) and the record card sf-view-properties.",
+  "summary": "Data views for SIMAI Framework pages: the data view sf-view over a host's data port, the smart table sf-view-table (search, filters, sorting, pages, columns, row actions), the record card sf-view-properties and the flow block sf-view-flow for a flow (a chat, a feed).",
   "repository": "simai/ui-view",
   "licence": {
     "class": "simai-pro",
@@ -15,7 +15,7 @@
   },
   "framework": {
     "core_runtime": ">=1.25.0",
-    "source_revision": "ec2f29dfa5df657a027887ec413150118740d28d"
+    "source_revision": "54c89e61ef9b89ed683fe530d43bdbf215fbafdd"
   },
   "requires_sets": [],
   "families": [
@@ -135,6 +135,39 @@
           "remove_after": "2027-01-01",
           "journal": "simai/ui-source contracts/changes/journal.json#tag-sf-property-view-to-sf-view-properties"
         }
+      ]
+    },
+    {
+      "element": "sf-view-flow",
+      "rule": "cl-view-flow",
+      "folder": "view-flow",
+      "status": "preview",
+      "requires": [
+        "cl-avatar",
+        "cl-badge",
+        "cl-button",
+        "cl-button-group",
+        "cl-button-icon",
+        "cl-checkbox",
+        "cl-dropdown",
+        "cl-file-preview",
+        "cl-help-mark",
+        "cl-icon",
+        "cl-input",
+        "cl-input-color",
+        "cl-input-country",
+        "cl-input-date",
+        "cl-input-image",
+        "cl-input-quantity",
+        "cl-input-rich",
+        "cl-input-textarea",
+        "cl-list-item",
+        "cl-progress-scale",
+        "cl-reference-link",
+        "cl-slider-range",
+        "cl-spinner",
+        "cl-switch",
+        "cl-tag"
       ]
     }
   ]

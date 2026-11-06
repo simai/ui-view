@@ -40,6 +40,100 @@ SF.RuleLoader.registerPackage("view", {
       ],
       "type": "smart"
     },
+    "cl-view-flow": {
+      "css": true,
+      "js": true,
+      "mode": "smart",
+      "relation": [
+        {
+          "name": "icons"
+        },
+        {
+          "name": "cl-icon"
+        },
+        {
+          "name": "cl-button"
+        },
+        {
+          "name": "cl-avatar"
+        },
+        {
+          "name": "cl-badge"
+        },
+        {
+          "name": "cl-tag"
+        },
+        {
+          "name": "cl-reference-link"
+        },
+        {
+          "name": "cl-progress-scale"
+        },
+        {
+          "name": "cl-file-preview"
+        },
+        {
+          "name": "cl-input-color"
+        },
+        {
+          "name": "cl-input-country"
+        },
+        {
+          "name": "cl-help-mark"
+        },
+        {
+          "name": "cl-list-item"
+        },
+        {
+          "name": "cl-spinner"
+        },
+        {
+          "lazy": true,
+          "name": "cl-slider-range"
+        },
+        {
+          "name": "cl-input"
+        },
+        {
+          "name": "cl-input-textarea"
+        },
+        {
+          "name": "cl-dropdown"
+        },
+        {
+          "name": "cl-input-date"
+        },
+        {
+          "name": "cl-switch"
+        },
+        {
+          "name": "cl-checkbox"
+        },
+        {
+          "lazy": true,
+          "name": "cl-button-group"
+        },
+        {
+          "name": "cl-input-quantity"
+        },
+        {
+          "lazy": true,
+          "name": "cl-input-rich"
+        },
+        {
+          "lazy": true,
+          "name": "cl-input-image"
+        },
+        {
+          "lazy": true,
+          "name": "cl-button-icon"
+        }
+      ],
+      "tags": [
+        "sf-view-flow"
+      ],
+      "type": "smart"
+    },
     "cl-view-properties": {
       "css": true,
       "js": true,

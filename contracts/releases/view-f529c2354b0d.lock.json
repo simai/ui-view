@@ -1,0 +1,42 @@
+{
+  "schema": "simai.framework.package-release-lock",
+  "schema_version": 1,
+  "id": "view-f529c2354b0d",
+  "package": "view",
+  "version": "1.2.0",
+  "source": {
+    "repository": "simai/ui-view",
+    "path": "package",
+    "revision": "f529c2354b0d0c622d0a8fa3feed19b17fefe30a",
+    "tree": "a2fd1b4a68c3fd8ddaf0ca65060ff9594a522a2d"
+  },
+  "build": {
+    "revision": "b22e573c133ffbc4d09a4e4e568da92899780223",
+    "path": "package/dist",
+    "tree": "8436f9999f60bdb7b92c857fb57369c70c22b48d",
+    "archive_sha256": "672cc5c8007b7ec806eecdbfb877158ca84dd0ffa1d5a5e9c93c7a403c03236d"
+  },
+  "receipt": {
+    "path": "package/dist/package-receipt.json",
+    "sha256": "b58411efba6578bc59aad5116721cad9324a99c6a7d75dfbe1cafffed625591e"
+  },
+  "output": {
+    "manifest_sha256": "cdabf3d733e96a3d5e3f7174f281d44760eaa849df204580e8fb22ec7b70f455",
+    "archive_sha256": "b8e433f916e3e1d8cd20b5fb4a3d8411a3d0c980d545b72c964b38d91fdbccb9",
+    "files_count": 161
+  },
+  "requires": {
+    "framework": "ui-1e5ec795a1ce",
+    "source": "54c89e61ef9b89ed683fe530d43bdbf215fbafdd",
+    "core_runtime": ">=1.25.0"
+  },
+  "requires_sets": [],
+  "builder": {
+    "repository": "simai/ui-builder",
+    "revision": "9c9c1b1510393b24adb98ea2ca523b26474cf0cf",
+    "clean": true
+  },
+  "claims": {
+    "production_ready": false
+  }
+}

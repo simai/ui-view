@@ -3,7 +3,7 @@
 The set `view`, by its npm version `@simai-studio/view`; component versions
 in brackets. The site page «Изменения» says the same in Russian.
 
-## Unreleased
+## 1.2.0 — 2026-11-06
 
 - `sf-view-flow` 1.0.0 (preview): a few properties as a block in a
   flow (a chat, a feed): shows a record's fields, or asks for a few and sends
@@ -11,8 +11,11 @@ in brackets. The site page «Изменения» says the same in Russian.
   `sf-view-properties`; the answer is the event
   `sf-view-flow-answer {id, accepted, values}` and the host settles
   it with `settle()`. Design: `docs/design/sf-view-flow.md`.
-- `sf-view-properties`: the field value moved into `js/field-value.js`,
-  shared with the new block; no change in behaviour.
+- `sf-view-properties` 1.10.1: the field value moved into
+  `js/field-value.js`, shared with the new block; no change in behaviour.
+- `sf-view` 1.8.2: its first paint snapshots retaken over the new pair
+  (`sf-dropdown` 1.6.0 prints its empty-state placeholder); no change in
+  behaviour.
 - Built over SIMAI Framework `ui-1e5ec795a1ce` (ui-source `54c89e61ef9b`,
   npm `@simai-studio/ui@5.20261106.1146`, core.runtime 1.30.0), the pair that
   registers `sf-view-flow`; still runs with core.runtime 1.25.0 or newer.
