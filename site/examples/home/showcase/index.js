@@ -337,7 +337,7 @@ const startMaster = (root) => {
 
 // ---- В потоке ---------------------------------------------------------------
 
-// A block in a flow is sf-view-property-block: the fields of a record shown
+// A block in a flow is sf-view-flow: the fields of a record shown
 // under a message, or a few fields asked for and sent. The block holds the
 // fields it is given; a Send is an event, and the page answers it.
 const VACATION = [
@@ -369,7 +369,7 @@ const startFeed = (root) => {
   const feed = root.querySelector('#feed');
   const drawn = new Map();
   const block = (entry) => {
-    const element = document.createElement('sf-view-property-block');
+    const element = document.createElement('sf-view-flow');
     element.setAttribute('heading', entry.heading);
     element.setAttribute('block-id', entry.id);
     if (entry.ask) element.setAttribute('mode', 'edit');
@@ -399,7 +399,7 @@ const startFeed = (root) => {
     drawn.set(entry.id, article);
     return article;
   };
-  feed.addEventListener('sf-view-property-block-answer', async (event) => {
+  feed.addEventListener('sf-view-flow-answer', async (event) => {
     const element = event.target;
     const {accepted, values} = event.detail;
     if (!accepted) {
@@ -427,7 +427,7 @@ const startFeed = (root) => {
 
 const STARTS = {table: startTable, card: startCard, master: startMaster, feed: startFeed};
 const TAGS = {table: ['sf-view'], card: ['sf-view-properties'], master: ['sf-view', 'sf-view-properties'], feed: ['sf-list-feed']};
-// A tag only the tab's script puts in the page (sf-view-property-block) is not
+// A tag only the tab's script puts in the page (sf-view-flow) is not
 // waited for: the Loader fetches it when it arrives, and waiting would never end.
 const started = new Set();
 const start = async (panel) => {

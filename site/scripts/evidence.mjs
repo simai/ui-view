@@ -28,10 +28,10 @@ const PAGES = [
   ['quick-start', 'ru/guide/quick-start/'],
   ['recipe-bulk-actions', 'ru/guide/recipes/selection-and-bulk-actions/'],
   ['reference-view-table', 'ru/components/views/view-table/'],
-  ['reference-view-property-block', 'ru/components/views/view-property-block/'],
+  ['reference-view-flow', 'ru/components/views/view-flow/'],
   ['recipe-data-in-flow', 'ru/guide/recipes/data-in-flow/'],
 ];
-const SET_TAGS = 'sf-view, sf-view-table, sf-view-properties, sf-view-property-block';
+const SET_TAGS = 'sf-view, sf-view-table, sf-view-properties, sf-view-flow';
 const report = [];
 
 const watch = (page) => {

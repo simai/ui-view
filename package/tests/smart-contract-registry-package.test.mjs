@@ -16,10 +16,10 @@ test("the package composites are generated into the searchable registry beside t
   assert.equal(registry.schema, "simai.smart-component-contract-registry.v2");
   // The free registry's Smart components at the pinned revision (71 at
   // ec2f29df: sf-alert-bar, sf-list and sf-list-feed joined) and the set's own
-  // four (sf-view-property-block joined) make 75.
+  // four (sf-view-flow joined) make 75.
   assert.equal(registry.entries.length, 75);
   assert.ok(registry.entries.some((entry) => entry.id === "smart.confirm-change"), "sf-confirm-change, the Framework's");
-  for (const id of ["smart.view-table", "smart.view", "smart.view-properties", "smart.view-property-block"]) {
+  for (const id of ["smart.view-table", "smart.view", "smart.view-properties", "smart.view-flow"]) {
     assert.ok(registry.entries.some((entry) => entry.id === id), id);
   }
   assert.ok(registry.entries.find(({id}) => id === "smart.view-table").capabilities.includes("data-view"));

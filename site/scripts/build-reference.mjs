@@ -33,7 +33,7 @@ const PAGES = {
   view: 'content/ru/components/views/view.md',
   'view-table': 'content/ru/components/views/view-table.md',
   'view-properties': 'content/ru/components/views/view-properties.md',
-  'view-property-block': 'content/ru/components/views/view-property-block.md',
+  'view-flow': 'content/ru/components/views/view-flow.md',
 };
 const START = '## Параметры';
 const END = '## См. также';

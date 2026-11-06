@@ -1,5 +1,5 @@
 ---
-description: Как показать данные записи или попросить заполнить несколько полей прямо в чате или ленте — sf-list-feed и sf-view-property-block по шагам.
+description: Как показать данные записи или попросить заполнить несколько полей прямо в чате или ленте — sf-list-feed и sf-view-flow по шагам.
 profile: how_to
 ---
 
@@ -7,7 +7,7 @@ profile: how_to
 
 В чате с ассистентом, в ленте событий или в комментариях данные идут прямо
 в потоке: под сообщением — поля найденной записи или короткая форма. Для
-этого есть блок свойств `sf-view-property-block`: он во всю ширину потока и
+этого есть блок свойств `sf-view-flow`: он во всю ширину потока и
 после ответа остаётся в нём записью того, что отправлено.
 
 ## Перед началом
@@ -22,7 +22,7 @@ profile: how_to
    как в карточке записи:
 
    ```js
-   const block = document.createElement('sf-view-property-block');
+   const block = document.createElement('sf-view-flow');
    block.setAttribute('mode', 'edit');          // без mode — только показать
    block.setAttribute('heading', 'Встреча');
    block.setAttribute('block-id', 'meeting-1');
@@ -37,7 +37,7 @@ profile: how_to
    принимает ответы всех блоков; `block-id` говорит, чей это ответ:
 
    ```js
-   chat.addEventListener('sf-view-property-block-answer', async (event) => {
+   chat.addEventListener('sf-view-flow-answer', async (event) => {
      const block = event.target;
      const {id, accepted, values} = event.detail;
      ...
@@ -70,6 +70,6 @@ profile: how_to
 
 ## См. также
 
-- [Блок свойств sf-view-property-block](/ru/components/views/view-property-block/)
+- [Блок в потоке sf-view-flow](/ru/components/views/view-flow/)
 - [Правка записей](../editing/)
 - [Поля](/ru/fields/)

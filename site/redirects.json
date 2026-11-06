@@ -7,6 +7,7 @@
     {"from": "components/view", "to": "ru/components/views/view"},
     {"from": "components/view-table", "to": "ru/components/views/view-table"},
     {"from": "components/view-properties", "to": "ru/components/views/view-properties"},
+    {"from": "ru/components/views/view-property-block", "to": "ru/components/views/view-flow"},
     {"from": "demos/orders", "to": "ru"},
     {"from": "demos/staff", "to": "ru"}
   ]

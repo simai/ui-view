@@ -18,7 +18,7 @@ const table = read('src/smart/view-table/index.js');
 const template = read('src/smart/view-table/js/templates/default.js');
 const card = read('src/smart/view-properties/index.js');
 // The record component's field value lives in js/field-value.js (shared with
-// sf-view-property-block); the card's template is both files.
+// sf-view-flow); the card's template is both files.
 const cardTemplate = read('src/smart/view-properties/js/templates/default.js') + read('src/smart/view-properties/js/field-value.js');
 const en = (options) => new Intl.DateTimeFormat('en', options);
 

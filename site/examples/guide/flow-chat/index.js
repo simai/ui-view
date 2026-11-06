@@ -1,5 +1,5 @@
 // Data in a chat: messages in sf-list-feed, and under some of them a block of
-// properties, sf-view-property-block. The assistant asks for a few fields; the
+// properties, sf-view-flow. The assistant asks for a few fields; the
 // page receives the answer as an event, checks it as a server would and settles
 // the block. Settled, the block stays in the chat as what was sent.
 const pause = (ms) => new Promise((done) => setTimeout(done, ms));
@@ -29,7 +29,7 @@ const initializeChat = async () => {
     text.textContent = entry.text;
     message.append(text);
     if (entry.block) {
-      const block = document.createElement('sf-view-property-block');
+      const block = document.createElement('sf-view-flow');
       block.setAttribute('mode', 'edit');
       block.setAttribute('heading', 'Встреча');
       block.setAttribute('block-id', entry.id);
@@ -39,7 +39,7 @@ const initializeChat = async () => {
     drawn.set(entry.id, message);
     return message;
   };
-  chat.addEventListener('sf-view-property-block-answer', async (event) => {
+  chat.addEventListener('sf-view-flow-answer', async (event) => {
     const block = event.target;
     const {accepted, values} = event.detail;
     await pause(300);

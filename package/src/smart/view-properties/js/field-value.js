@@ -4,7 +4,7 @@ import {renderViewField, renderEditField} from '../../field-renderers/index.js';
 // One field's value, shown or edited, drawn by the SIMAI Framework field
 // renderers. Moved out of the record component's template (sf-view-properties
 // 1.10.0) so that every view of the set that draws a field draws it the same
-// way: sf-view-properties and sf-view-property-block import this, and neither
+// way: sf-view-properties and sf-view-flow import this, and neither
 // has field code of its own (reuse rule, naming decision 2026-11-02).
 //
 // `context` is what the caller's template reads:

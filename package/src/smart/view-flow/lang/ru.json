@@ -1,0 +1,24 @@
+{
+  "title": "Блок в потоке",
+  "runtime": {
+    "accept-text": "Отправить",
+    "accepted-text": "Отправлено",
+    "accepting-text": "Отправляем…",
+    "block-label": "Данные",
+    "cancel-text": "Отмена",
+    "decline-text": "Отмена",
+    "declined-text": "Отменено",
+    "declining-text": "Отменяем…",
+    "empty-text": "не заполнено",
+    "expired-text": "Время ответа истекло",
+    "invalid-text": "Заполните отмеченные поля",
+    "required-text": "Заполните поле",
+    "submit-text": "Отправить",
+    "until-text": "Ответить до {time}"
+  },
+  "events": {
+    "expired": {
+      "label": "Время истекло"
+    }
+  }
+}
