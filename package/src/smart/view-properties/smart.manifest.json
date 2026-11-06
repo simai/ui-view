@@ -1557,7 +1557,7 @@
       },
       {
         "path": "src/smart/view-properties/js/field-value.js",
-        "sha256": "91339eb9c02066a1c8a94fa8ed29fde0e29034c121c1a8a116fbcfe84635ecae"
+        "sha256": "18194d28683ab6dc3f876cd4f39928745017b5e03f2abd310876c079ffe74188"
       },
       {
         "path": "src/smart/view-properties/rule.js",
