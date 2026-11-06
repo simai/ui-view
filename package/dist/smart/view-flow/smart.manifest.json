@@ -1,0 +1,478 @@
+{
+  "schema_version": 2,
+  "id": "smart.view-flow",
+  "version": "1.0.0",
+  "title": "Flow block",
+  "summary": "A few properties as a block in a flow (a chat message, a feed, any stream): shows a record's fields, or asks for a few and sends them, then keeps the answer read-only. Fields are sf-view-properties' descriptors drawn by the Framework field renderers; a press is an event, the host answers with settle.",
+  "kind": "smart",
+  "reuse_mode": "whole",
+  "lifecycle": "experimental",
+  "tags": [
+    "record",
+    "properties",
+    "form",
+    "chat",
+    "feed"
+  ],
+  "capabilities": [
+    "field-renderers",
+    "confirmation",
+    "expiry",
+    "live-announcement"
+  ],
+  "custom_element": "sf-view-flow",
+  "templates": [
+    "default"
+  ],
+  "exported_parts": [],
+  "composition": {
+    "uses": [
+      "component.icons",
+      "smart.avatar",
+      "smart.badge",
+      "smart.button",
+      "smart.button-group",
+      "smart.button-icon",
+      "smart.checkbox",
+      "smart.dropdown",
+      "smart.file-preview",
+      "smart.help-mark",
+      "smart.icon",
+      "smart.input",
+      "smart.input-color",
+      "smart.input-country",
+      "smart.input-date",
+      "smart.input-image",
+      "smart.input-quantity",
+      "smart.input-rich",
+      "smart.input-textarea",
+      "smart.list-item",
+      "smart.progress-scale",
+      "smart.reference-link",
+      "smart.slider-range",
+      "smart.spinner",
+      "smart.switch",
+      "smart.tag"
+    ],
+    "public_parts": []
+  },
+  "inputs": {
+    "type": "object",
+    "properties": {
+      "template": {
+        "type": "string",
+        "default": "default",
+        "description": "Template variant name for SfBaseElement external templates.",
+        "const": "default"
+      },
+      "root-class": {
+        "type": "string",
+        "default": "",
+        "description": "Classes added to the root element the component draws."
+      },
+      "root-style": {
+        "type": "string",
+        "default": "",
+        "description": "Inline style declarations set on the root element the component draws, custom properties included."
+      },
+      "mode": {
+        "type": "string",
+        "default": "view",
+        "description": "view: the fields shown, read-only, with no foot. edit: the fields as controls and the answers at the foot (Send, Cancel); after the answer they are shown again, read-only.",
+        "enum": [
+          "view",
+          "edit"
+        ]
+      },
+      "heading": {
+        "type": "string",
+        "default": "",
+        "description": "The header line; also the block's accessible name. Without one the block is named «Properties»."
+      },
+      "heading-level": {
+        "type": "string",
+        "default": "3",
+        "description": "The heading's level where the block is placed.",
+        "enum": [
+          "2",
+          "3",
+          "4",
+          "5",
+          "6"
+        ]
+      },
+      "state": {
+        "type": "string",
+        "default": "open",
+        "description": "Where the answer is (edit mode). open: the controls and the answers. pending: an answer is on its way (set by a press). accepted: the values sent, read-only. declined, expired: only the outcome.",
+        "enum": [
+          "open",
+          "pending",
+          "accepted",
+          "declined",
+          "expired"
+        ]
+      },
+      "expires-at": {
+        "type": "string",
+        "default": "",
+        "description": "ISO 8601. Past it an open block reads as expired and says so once with sf-view-flow-expired."
+      },
+      "block-id": {
+        "type": "string",
+        "default": "",
+        "description": "The host's name for the block, carried back in every event."
+      },
+      "disabled": {
+        "type": "boolean",
+        "default": false,
+        "description": "The controls and the answers are shown and cannot be used (an answer is on its way elsewhere in the flow)."
+      },
+      "size": {
+        "type": "string",
+        "default": "1/2",
+        "description": "The block's size: its text, labels and controls. 1/2 sits in a message.",
+        "enum": [
+          "1",
+          "1/2"
+        ]
+      },
+      "cancelable": {
+        "type": "boolean",
+        "default": true,
+        "description": "Whether Cancel is offered beside Send."
+      },
+      "submit-text": {
+        "type": "string",
+        "description": "The sending answer; empty is Send in the page's language."
+      },
+      "cancel-text": {
+        "type": "string",
+        "description": "The cancelling answer; empty is Cancel in the page's language."
+      },
+      "empty-text": {
+        "type": "string",
+        "description": "What an empty value reads as."
+      },
+      "required-text": {
+        "type": "string",
+        "description": "Said under a required field left empty when Send is pressed."
+      },
+      "invalid-text": {
+        "type": "string",
+        "description": "The status line when Send was stopped by the fields."
+      },
+      "fields": {
+        "type": "array",
+        "default": [],
+        "description": "The field descriptors, sf-view-properties' shape (key, label, propertyType, value, required, readonly, width, hint, options, when ...). JSON in markup; a property set from script wins."
+      },
+      "groups": {
+        "type": "array",
+        "default": [],
+        "description": "Named groups of field descriptors, each optionally collapsible (collapsible, collapsed). Wins over fields when both are given."
+      }
+    },
+    "additionalProperties": false
+  },
+  "item_contract": {},
+  "contracts": {
+    "field": {
+      "const": "The field descriptor of simai.property-view-port (sf-view-properties): key, label, propertyType, value, required, readonly, width (half|full), hint, placeholder, options, min, max, step, unit, variant, multiple, mask, when."
+    },
+    "answers": {
+      "const": "Send checks the required fields and the controls' own entries, moves the block to pending and dispatches sf-view-flow-answer {id, accepted: true, values} (cancelable; a cancelled event reopens it). Cancel dispatches {id, accepted: false}. The host answers with settle({answer: applied|refused, errors, message, values}) or sets state."
+    },
+    "slots": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string",
+          "description": "A line under the heading."
+        }
+      }
+    }
+  },
+  "methods": {
+    "open": {
+      "summary": "Puts the question again (state open); asked by an assembly it answers {accepted, reason, value} when the person answers or the time runs out.",
+      "arguments": [],
+      "returns": {
+        "type": "object",
+        "description": "{outcome: applied} or {outcome: refused, reason}"
+      }
+    },
+    "answer": {
+      "summary": "Answer as the person would: accepted true sends (after the block's own check of the fields), false cancels. Refused invalid, closed, disabled or prevented.",
+      "arguments": [
+        {
+          "name": "accepted",
+          "schema": {
+            "type": "boolean"
+          }
+        }
+      ],
+      "returns": {
+        "type": "object",
+        "description": "{outcome: applied} or {outcome: refused, reason}"
+      }
+    },
+    "confirm": {
+      "summary": "Send; data-sf-action=\"<id>.confirm\".",
+      "arguments": [],
+      "returns": {
+        "type": "object",
+        "description": "{outcome: applied} or {outcome: refused, reason}"
+      }
+    },
+    "cancel": {
+      "summary": "Cancel; data-sf-action=\"<id>.cancel\".",
+      "arguments": [],
+      "returns": {
+        "type": "object",
+        "description": "{outcome: applied} or {outcome: refused, reason}"
+      }
+    },
+    "settle": {
+      "summary": "The host's answer to an answer, in the record port's words: {answer: applied, values?} shows the values sent, read-only; {answer: refused, errors?, message?} reopens the block with each error under its field; reason closed or expired closes it.",
+      "arguments": [
+        {
+          "name": "result",
+          "schema": {
+            "type": "object"
+          }
+        }
+      ],
+      "returns": {
+        "type": "object",
+        "description": "{outcome: applied} or {outcome: refused, reason}"
+      }
+    }
+  },
+  "events": {
+    "sf-view-flow-answer": {
+      "summary": "The person answered (vocabulary answer): Send with the values, or Cancel. Cancel the event to keep the block open.",
+      "payload": {
+        "type": "object",
+        "required": [
+          "id",
+          "accepted"
+        ],
+        "properties": {
+          "id": {
+            "description": "block-id"
+          },
+          "accepted": {
+            "type": "boolean"
+          },
+          "values": {
+            "type": "object",
+            "description": "With accepted true: every shown, editable field's value by key."
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "sf-view-flow-expired": {
+      "summary": "An open block passed expires-at; said once per time.",
+      "payload": {
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "properties": {
+          "id": {
+            "description": "block-id"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "sf-view-flow-open": {
+      "summary": "A reference value (a record, a user) was pressed, vocabulary open: {id, field, value}. Following it is the host's.",
+      "payload": {
+        "type": "object",
+        "required": [
+          "id",
+          "field",
+          "value"
+        ],
+        "properties": {
+          "id": {
+            "description": "block-id"
+          },
+          "field": {
+            "type": "string"
+          },
+          "value": {
+            "type": "object"
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "state": {
+    "machines": {
+      "answer": [
+        "open",
+        "pending",
+        "accepted",
+        "declined",
+        "expired"
+      ]
+    },
+    "visual_states": [
+      "default",
+      "loading",
+      "success",
+      "error",
+      "disabled"
+    ]
+  },
+  "persistence": {
+    "mode": "none",
+    "source_of_truth": "host",
+    "network_owner": "host",
+    "revision_field": null
+  },
+  "ownership": {
+    "source": "simai/ui-view",
+    "data": "host",
+    "effects": "host",
+    "forbidden_client_responsibilities": [
+      "saving the values",
+      "validating beyond required fields and the controls' own entries",
+      "access decisions"
+    ]
+  },
+  "security": {
+    "permissions_owner": "host",
+    "untrusted_inputs": [
+      "heading, labels and values (drawn by the field renderers as text)"
+    ],
+    "network_policy": "deny"
+  },
+  "accessibility": {
+    "role": "region",
+    "accessible_name": "internal",
+    "keyboard": [
+      "Tab",
+      "Enter",
+      "Space"
+    ],
+    "focus": "A section named by its heading (role=heading at heading-level). The status line is a polite live region, present before it speaks; when the answers go, focus moves to it; when Send is stopped or refused, to the first field in error."
+  },
+  "presentation": {
+    "themes": [
+      "light",
+      "dark"
+    ],
+    "locales": [
+      "en",
+      "ru"
+    ],
+    "responsive": [
+      "desktop",
+      "mobile"
+    ],
+    "skeleton": {
+      "shape": "none",
+      "while_loading": "none"
+    }
+  },
+  "adapter": {
+    "kind": "generic",
+    "protocol": "simai.smart-studio-adapter.v1",
+    "module": null
+  },
+  "artifacts": {
+    "fixtures": [],
+    "scenarios": []
+  },
+  "readiness": {
+    "level": "host-required",
+    "required_checks": [
+      "manifest",
+      "loader-rule",
+      "view-flow-contract",
+      "view-flow-browser"
+    ]
+  },
+  "compatibility": {
+    "contract_schema": {
+      "id": "https://simai.io/contracts/smart-component-manifest.v2.schema.json",
+      "version": 2
+    },
+    "runtime_pair": {
+      "ui_revision": "62b1d9b6dc8d390837b7daa7c28a4543297521ad",
+      "ui_smart_revision": "62b1d9b6dc8d390837b7daa7c28a4543297521ad"
+    },
+    "aliases": [],
+    "deprecations": [],
+    "replacement": null,
+    "migrations": []
+  },
+  "provenance": {
+    "source_repository": "simai/ui-view",
+    "source_revision": "94a63c638f63c0cae50623b2f911a3120e4c5a6b",
+    "source_artifacts": [
+      {
+        "path": "src/smart/view-flow/index.js",
+        "sha256": "8a519d3bb7a6bda52339aa2a74ad905bce8d898022bc5c9c6d819e2b4663366b"
+      },
+      {
+        "path": "src/smart/view-flow/js/answer.js",
+        "sha256": "7ade765807ce11ef2ebeb813f8d91e6e742a8cf94ea147e01738e928d6a348fc"
+      },
+      {
+        "path": "src/smart/view-flow/js/templates/default.js",
+        "sha256": "dff4ddc80b56d3fb07b1481441ca6ec0248678e9513b95319e05f0f471c8d504"
+      },
+      {
+        "path": "src/smart/view-flow/js/templates/default.css",
+        "sha256": "1950e47fd8609d263df3d15745cb190d377fbd9a1f59d4e1705e9aa6a4f8f18d"
+      },
+      {
+        "path": "src/smart/view-properties/js/field-value.js",
+        "sha256": "18194d28683ab6dc3f876cd4f39928745017b5e03f2abd310876c079ffe74188"
+      },
+      {
+        "path": "src/smart/view-properties/js/conditions.js",
+        "sha256": "bf48b0bf4d2affb43433d1142b1a0ca57e22dc26088c5bd0b28e3212fba7134b"
+      },
+      {
+        "path": "src/smart/helpers/confirm-surface.js",
+        "sha256": "d46e8651582d9fcba73394af057fed4d8dc79c3ee5b8b525abb689d41a0613c4"
+      },
+      {
+        "path": "src/smart/view-flow/rule.js",
+        "sha256": "e91d2c9ebaa697679a5911af4a884beeedc9e6eab09667277599e52b7fa6369c"
+      },
+      {
+        "path": "src/smart/view-flow/docs.md",
+        "sha256": "6c9e6914dadee80e973c8e4171f7b1aac3895e5a8dc9dc75b8e8edf49b24c9bb"
+      }
+    ],
+    "generated_runtime": []
+  },
+  "ai_guidance": {
+    "use_when": "Use sf-view-flow for a few properties inside a flow: an assistant's answer showing a record, or asking the person to fill in a few fields and send them. For a record on a page or in a panel use sf-view-properties.",
+    "do_not": [
+      "Do not save in the element; answer the answer event and call settle",
+      "Do not leave the block pending: settle it, or set state",
+      "Do not send markup in labels or values"
+    ],
+    "required_reads": [
+      "inputs",
+      "contracts",
+      "events",
+      "accessibility"
+    ],
+    "minimal_example": "<sf-view-flow mode=\"edit\" heading=\"Командировка\" block-id=\"b1\" fields='[{\"key\":\"city\",\"label\":\"Город\",\"propertyType\":\"string\",\"required\":true}]'></sf-view-flow>",
+    "owner_commands": [
+      "node scripts/test.mjs",
+      "node scripts/run-browser-probes.mjs <free> <set build>"
+    ]
+  }
+}
