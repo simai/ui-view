@@ -144,7 +144,7 @@
    "panel": {
     "visible": true,
     "rows": null,
-    "text": "Данные внутри ленты сообщений: ассистент показывает найденную заявку и просит заполнить несколько полей. Это блок свойств sf-view-property-block — он во всю шир",
+    "text": "Данные внутри ленты сообщений: ассистент показывает найденную заявку и просит заполнить несколько полей. Это блок свойств sf-view-flow — он во всю ширину ленты ",
     "drawn": 2
    },
    "elements": [
@@ -181,12 +181,12 @@
      "visible": false
     },
     {
-     "tag": "sf-view-property-block",
+     "tag": "sf-view-flow",
      "defined": true,
      "visible": false
     },
     {
-     "tag": "sf-view-property-block",
+     "tag": "sf-view-flow",
      "defined": true,
      "visible": false
     }
@@ -334,18 +334,18 @@
    "errors": []
   },
   {
-   "page": "ru/components/views/view-property-block/",
+   "page": "ru/components/views/view-flow/",
    "width": 1280,
    "scheme": "light",
-   "file": "reference-view-property-block-1280-light.png",
+   "file": "reference-view-flow-1280-light.png",
    "elements": [
     {
-     "tag": "sf-view-property-block",
+     "tag": "sf-view-flow",
      "defined": true,
      "visible": false
     },
     {
-     "tag": "sf-view-property-block",
+     "tag": "sf-view-flow",
      "defined": true,
      "visible": false
     }
@@ -359,7 +359,7 @@
    "file": "recipe-data-in-flow-1280-light.png",
    "elements": [
     {
-     "tag": "sf-view-property-block",
+     "tag": "sf-view-flow",
      "defined": true,
      "visible": false
     }
@@ -509,7 +509,7 @@
    "panel": {
     "visible": true,
     "rows": null,
-    "text": "Данные внутри ленты сообщений: ассистент показывает найденную заявку и просит заполнить несколько полей. Это блок свойств sf-view-property-block — он во всю шир",
+    "text": "Данные внутри ленты сообщений: ассистент показывает найденную заявку и просит заполнить несколько полей. Это блок свойств sf-view-flow — он во всю ширину ленты ",
     "drawn": 2
    },
    "elements": [
@@ -546,12 +546,12 @@
      "visible": false
     },
     {
-     "tag": "sf-view-property-block",
+     "tag": "sf-view-flow",
      "defined": true,
      "visible": false
     },
     {
-     "tag": "sf-view-property-block",
+     "tag": "sf-view-flow",
      "defined": true,
      "visible": false
     }
@@ -699,18 +699,18 @@
    "errors": []
   },
   {
-   "page": "ru/components/views/view-property-block/",
+   "page": "ru/components/views/view-flow/",
    "width": 390,
    "scheme": "light",
-   "file": "reference-view-property-block-390-light.png",
+   "file": "reference-view-flow-390-light.png",
    "elements": [
     {
-     "tag": "sf-view-property-block",
+     "tag": "sf-view-flow",
      "defined": true,
      "visible": false
     },
     {
-     "tag": "sf-view-property-block",
+     "tag": "sf-view-flow",
      "defined": true,
      "visible": false
     }
@@ -724,7 +724,7 @@
    "file": "recipe-data-in-flow-390-light.png",
    "elements": [
     {
-     "tag": "sf-view-property-block",
+     "tag": "sf-view-flow",
      "defined": true,
      "visible": false
     }
@@ -874,7 +874,7 @@
    "panel": {
     "visible": true,
     "rows": null,
-    "text": "Данные внутри ленты сообщений: ассистент показывает найденную заявку и просит заполнить несколько полей. Это блок свойств sf-view-property-block — он во всю шир",
+    "text": "Данные внутри ленты сообщений: ассистент показывает найденную заявку и просит заполнить несколько полей. Это блок свойств sf-view-flow — он во всю ширину ленты ",
     "drawn": 2
    },
    "elements": [
@@ -911,12 +911,12 @@
      "visible": false
     },
     {
-     "tag": "sf-view-property-block",
+     "tag": "sf-view-flow",
      "defined": true,
      "visible": false
     },
     {
-     "tag": "sf-view-property-block",
+     "tag": "sf-view-flow",
      "defined": true,
      "visible": false
     }
@@ -1066,7 +1066,7 @@
    "panel": {
     "visible": true,
     "rows": null,
-    "text": "Данные внутри ленты сообщений: ассистент показывает найденную заявку и просит заполнить несколько полей. Это блок свойств sf-view-property-block — он во всю шир",
+    "text": "Данные внутри ленты сообщений: ассистент показывает найденную заявку и просит заполнить несколько полей. Это блок свойств sf-view-flow — он во всю ширину ленты ",
     "drawn": 2
    },
    "elements": [
@@ -1103,12 +1103,12 @@
      "visible": false
     },
     {
-     "tag": "sf-view-property-block",
+     "tag": "sf-view-flow",
      "defined": true,
      "visible": false
     },
     {
-     "tag": "sf-view-property-block",
+     "tag": "sf-view-flow",
      "defined": true,
      "visible": false
     }
