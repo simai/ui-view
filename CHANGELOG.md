@@ -3,7 +3,7 @@
 The set `view`, by its npm version `@simai-studio/view`; component versions
 in brackets. The site page «Изменения» says the same in Russian.
 
-## Unreleased
+## 1.3.0 — 2026-11-07
 
 - `sf-view-properties` 1.11.0: five property types drawn by the set from
   SIMAI Framework controls (Larena property types standard, notes of
@@ -13,9 +13,14 @@ in brackets. The site page «Изменения» says the same in Russian.
   `minRows`/`maxRows`, a card a row where narrow), `compound` and
   `ru.requisites` (checked part by part and together). Decimal strings
   throughout, never a float; an entry that is not a value yet holds the save.
-  Their settings are due in `simai.property-view-port` 1.18.0.
+  Their settings are due in `simai.property-view-port` 1.18.0. The row
+  bounds Larena writes `min_rows` and `max_rows` are read as `minRows` and
+  `maxRows`, as every field key of the port is camelCase; a column's `type`
+  and `settings` are read beside `propertyType`.
 - `sf-view-flow` 1.1.0: draws the same five types through the shared field
   value.
+- Same SIMAI Framework pair `ui-1e5ec795a1ce` (ui-source `54c89e61ef9b`, npm
+  `@simai-studio/ui@5.20261106.1146`); needs core.runtime 1.25.0 or newer.
 
 ## 1.2.0 — 2026-11-06
 

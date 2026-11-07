@@ -66,7 +66,7 @@ and tags `view-<12>`; it is not run yet.
 or, from a base the page serves itself:
 
 ```js
-window.SF_BOOT_CONFIG = {packages: {view: {base: '/assets/ui-view/smart', version: '1.2.0'}}};
+window.SF_BOOT_CONFIG = {packages: {view: {base: '/assets/ui-view/smart', version: '1.3.0'}}};
 ```
 
 ## Moving to a newer SIMAI Framework
