@@ -3,6 +3,17 @@
 The set `view`, by its npm version `@simai-studio/view`; component versions
 in brackets. The site page «Изменения» says the same in Russian.
 
+## Unreleased
+
+- `sf-view-table` 1.15.1: a filter option drawn as a badge is a tight badge
+  (`sf-badge` `tight`, SIMAI Framework `sf-badge` 1.3.0, pair
+  `ui-2a671352d67b`), as a cell's choice badge is; on an older pair the
+  attribute is ignored.
+- `sf-view-properties` 1.11.1: the record's title keeps rung 3 and the views'
+  list heading rung 4, where they fell back to the heading-4 and heading-3
+  roles that the content heading ladder (`tokens.typography` 1.2.0, docs
+  review R022) moves to smaller rungs; unchanged on the page.
+
 ## 1.3.0 — 2026-11-07
 
 - `sf-view-properties` 1.11.0: five property types drawn by the set from
