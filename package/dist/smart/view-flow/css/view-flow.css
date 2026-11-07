@@ -201,3 +201,370 @@
     }
   }
 }
+@layer sf.components {
+  /* The property types the set draws itself (js/set-fields.js): money, percent,
+     rows (items) and the compound fields. Framework tokens only; the controls in
+     them are the Framework's own and keep their own geometry on the size ladder. */
+  /* An amount with a currency choice: the amount takes the room, the currency
+     the width of its code and sign. */
+  .sf-view-fields-money {
+    width: 100%;
+    inline-size: 100%;
+    align-items: flex-start;
+  }
+  /* sf-input and sf-dropdown hosts may draw no box of their own (display:
+     contents), so the rules reach the box they draw as well. */
+  .sf-view-fields-money > .sf-view-fields-decimal,
+  .sf-view-fields-money > .sf-view-fields-decimal > .sf-input {
+    flex: 1 1 8rem;
+    min-width: 0;
+    min-inline-size: 0;
+  }
+  .sf-view-fields-money > .sf-view-fields-currency,
+  .sf-view-fields-money > .sf-view-fields-currency > .sf-dropdown {
+    flex: 0 0 8.5rem;
+    min-width: 0;
+    min-inline-size: 0;
+  }
+  /* A control in a cell or a part fills its track: a native input's own
+     width (twenty characters) pushed a cell over its neighbour. */
+  .sf-view-items-cell .sf-input {
+    width: 100%;
+    inline-size: 100%;
+    min-width: 0;
+    min-inline-size: 0;
+  }
+  .sf-view-items-cell .sf-dropdown {
+    width: 100%;
+    inline-size: 100%;
+    min-width: 0;
+    min-inline-size: 0;
+  }
+  .sf-view-items-cell .sf-input-date {
+    width: 100%;
+    inline-size: 100%;
+    min-width: 0;
+    min-inline-size: 0;
+  }
+  .sf-view-fields-part .sf-input {
+    width: 100%;
+    inline-size: 100%;
+    min-width: 0;
+    min-inline-size: 0;
+  }
+  .sf-view-fields-part .sf-dropdown {
+    width: 100%;
+    inline-size: 100%;
+    min-width: 0;
+    min-inline-size: 0;
+  }
+  .sf-view-items-cell .sf-input-field input,
+  .sf-view-fields-part .sf-input-field input {
+    width: 100%;
+    inline-size: 100%;
+  }
+  /* A number reads right-aligned where numbers stand in a column (a row's
+     cells, totals); a lone amount in a field keeps the field's start. */
+  _:-ms-input-placeholder, html:not([dir="rtl"]) .sf-view-items .sf-view-fields-decimal input {
+    text-align: right;
+  }
+  @supports not (text-align: end) {
+  html:not([dir="rtl"]) .sf-view-items .sf-view-fields-decimal input {
+    text-align: right;
+    }
+  }
+  .sf-view-items .sf-view-fields-decimal input:where(:dir(ltr)) {
+    text-align: right;
+  }
+  _:-ms-input-placeholder, [dir="rtl"] .sf-view-items .sf-view-fields-decimal input {
+    text-align: left;
+  }
+  @supports not (text-align: end) {
+  [dir="rtl"] .sf-view-items .sf-view-fields-decimal input {
+    text-align: left;
+    }
+  }
+  .sf-view-items .sf-view-fields-decimal input:where(:dir(rtl)) {
+    text-align: left;
+  }
+  .sf-view-items .sf-view-fields-decimal input {
+    text-align: end;
+  }
+  .sf-view-fields-amount,
+  .sf-view-items-numeric .sf-view-items-text {
+    -webkit-font-feature-settings: "tnum";
+            font-feature-settings: "tnum";
+    font-variant-numeric: tabular-nums;
+  }
+  /* --- A compound: its parts in a grid that wraps by the field's width --- */
+  .sf-view-fields-compound {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 11rem), 1fr));
+  }
+  .sf-view-fields-part--wide {
+    grid-column: span 2;
+  }
+  .sf-view-fields-part-label {
+    font-size: var(--sf-text-size-1);
+    font-size: var(--sf-label-medium--size, var(--sf-text-size-1));
+    line-height: var(--sf-text-height-1);
+    line-height: var(--sf-label-medium--height, var(--sf-text-height-1));
+  }
+  @container (max-width: 24rem) {
+    .sf-view-fields-part--wide {
+      grid-column: auto;
+    }
+  }
+  /* --- Rows over columns --- */
+  /* A table of rows at any width the field has, and one card a row where it is
+     narrow (a phone, a half-width field): the field's own width decides, not the
+     window's, as the record's groups decide their columns. */
+  /* The box the rows ask for their width: a container query cannot restyle
+     the container itself, so the grid is inside it. */
+  .sf-view-items-box {
+    display: block;
+    container: sf-view-items/inline-size;
+    width: 100%;
+    inline-size: 100%;
+    min-width: 0;
+    min-inline-size: 0;
+    flex: 1 1 100%;
+  }
+  _:-ms-input-placeholder, html:not([dir="rtl"]) .sf-view-items {
+    text-align: left;
+  }
+  @supports not (text-align: start) {
+  html:not([dir="rtl"]) .sf-view-items {
+    text-align: left;
+    }
+  }
+  .sf-view-items:where(:dir(ltr)) {
+    text-align: left;
+  }
+  _:-ms-input-placeholder, [dir="rtl"] .sf-view-items {
+    text-align: right;
+  }
+  @supports not (text-align: start) {
+  [dir="rtl"] .sf-view-items {
+    text-align: right;
+    }
+  }
+  .sf-view-items:where(:dir(rtl)) {
+    text-align: right;
+  }
+  .sf-view-items {
+    display: grid;
+    width: 100%;
+    inline-size: 100%;
+    min-width: 0;
+    min-inline-size: 0;
+    grid-template-columns: 1fr;
+    grid-template-columns: var(--sf-view-items-columns, 1fr);
+    grid-column-gap: var(--sf-space-1);
+    -webkit-column-gap: var(--sf-space-1);
+       -moz-column-gap: var(--sf-space-1);
+            column-gap: var(--sf-space-1);
+    text-align: start;
+  }
+  .sf-view-items-head,
+  .sf-view-items-row {
+    display: grid;
+    grid-column: 1/-1;
+    grid-template-columns: subgrid;
+    align-items: center;
+  }
+  .sf-view-items-head {
+    padding-bottom: var(--sf-space-1);
+    -webkit-padding-after: var(--sf-space-1);
+            padding-block-end: var(--sf-space-1);
+    border-bottom: var(--sf-px) solid var(--sf-outline-variant);
+    -webkit-border-after: var(--sf-px) solid var(--sf-outline-variant);
+            border-block-end: var(--sf-px) solid var(--sf-outline-variant);
+  }
+  .sf-view-items-heading {
+    font-size: var(--sf-text-size-1);
+    font-size: var(--sf-label-medium--size, var(--sf-text-size-1));
+    line-height: var(--sf-text-height-1);
+    line-height: var(--sf-label-medium--height, var(--sf-text-height-1));
+    color: var(--sf-on-surface-variant);
+    min-width: 0;
+    min-inline-size: 0;
+  }
+  .sf-view-items-row {
+    padding-top: var(--sf-space-1);
+    padding-bottom: var(--sf-space-1);
+    padding-block: var(--sf-space-1);
+    border-bottom: var(--sf-px) solid var(--sf-outline-variant);
+    -webkit-border-after: var(--sf-px) solid var(--sf-outline-variant);
+            border-block-end: var(--sf-px) solid var(--sf-outline-variant);
+  }
+  .sf-view-items:not(.sf-view-items--edit) .sf-view-items-row {
+    padding-top: calc(var(--sf-space-1) / 2);
+    padding-bottom: calc(var(--sf-space-1) / 2);
+    padding-block: calc(var(--sf-space-1) / 2);
+  }
+  .sf-view-items-cell {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-inline-size: 0;
+  }
+  _:-ms-input-placeholder, html:not([dir="rtl"]) .sf-view-items-numeric {
+    text-align: right;
+  }
+  @supports not (text-align: end) {
+  html:not([dir="rtl"]) .sf-view-items-numeric {
+    text-align: right;
+    }
+  }
+  .sf-view-items-numeric:where(:dir(ltr)) {
+    text-align: right;
+  }
+  _:-ms-input-placeholder, [dir="rtl"] .sf-view-items-numeric {
+    text-align: left;
+  }
+  @supports not (text-align: end) {
+  [dir="rtl"] .sf-view-items-numeric {
+    text-align: left;
+    }
+  }
+  .sf-view-items-numeric:where(:dir(rtl)) {
+    text-align: left;
+  }
+  .sf-view-items-numeric {
+    text-align: end;
+    align-items: flex-end;
+  }
+  .sf-view-items-cell > :not(.sf-view-items-cell-label) {
+    width: 100%;
+    inline-size: 100%;
+    min-width: 0;
+    min-inline-size: 0;
+  }
+  .sf-view-items-text {
+    word-wrap: anywhere;
+  }
+  .sf-view-items-cell-label {
+    display: none;
+    font-size: var(--sf-text-size-1);
+    font-size: var(--sf-label-medium--size, var(--sf-text-size-1));
+    line-height: var(--sf-text-height-1);
+    line-height: var(--sf-label-medium--height, var(--sf-text-height-1));
+  }
+  .sf-view-items-totals {
+    border-bottom: 0;
+    -webkit-border-after: 0;
+            border-block-end: 0;
+    font-weight: 600;
+  }
+  .sf-view-items-foot {
+    grid-column: 1/-1;
+    padding-top: var(--sf-space-1);
+    -webkit-padding-before: var(--sf-space-1);
+            padding-block-start: var(--sf-space-1);
+  }
+  @container sf-view-items (max-width: 36rem) {
+    .sf-view-items {
+      grid-template-columns: 1fr;
+      row-gap: var(--sf-space-1);
+    }
+    .sf-view-items-head {
+      display: none;
+    }
+    /* A card a row: each cell its label over its value, the row's actions at
+       the card's foot. */
+    .sf-view-items-row {
+      grid-template-columns: 1fr;
+      row-gap: var(--sf-space-1);
+      padding: var(--sf-space-1) var(--sf-space-2);
+      border: var(--sf-px) solid var(--sf-outline-variant);
+      border-radius: var(--sf-radius-1);
+    }
+    .sf-view-items:not(.sf-view-items--edit) .sf-view-items-row {
+      padding: var(--sf-space-1) var(--sf-space-2);
+    }
+    _:-ms-input-placeholder, html:not([dir="rtl"]) .sf-view-items-cell,html:not([dir="rtl"])
+    .sf-view-items-numeric {
+      text-align: left;
+    }
+    @supports not (text-align: start) {
+    html:not([dir="rtl"]) .sf-view-items-cell,html:not([dir="rtl"])
+    .sf-view-items-numeric {
+      text-align: left;
+      }
+    }
+    .sf-view-items-cell:where(:dir(ltr)),
+    .sf-view-items-numeric:where(:dir(ltr)) {
+      text-align: left;
+    }
+    _:-ms-input-placeholder, [dir="rtl"] .sf-view-items-cell,[dir="rtl"]
+    .sf-view-items-numeric {
+      text-align: right;
+    }
+    @supports not (text-align: start) {
+    [dir="rtl"] .sf-view-items-cell,[dir="rtl"]
+    .sf-view-items-numeric {
+      text-align: right;
+      }
+    }
+    .sf-view-items-cell:where(:dir(rtl)),
+    .sf-view-items-numeric:where(:dir(rtl)) {
+      text-align: right;
+    }
+    .sf-view-items-cell,
+    .sf-view-items-numeric {
+      align-items: stretch;
+      text-align: start;
+      gap: calc(var(--sf-space-1) / 4);
+    }
+    _:-ms-input-placeholder, html:not([dir="rtl"]) .sf-view-items-numeric .sf-view-items-text,html:not([dir="rtl"])
+    .sf-view-items .sf-view-fields-decimal input {
+      text-align: left;
+    }
+    @supports not (text-align: start) {
+    html:not([dir="rtl"]) .sf-view-items-numeric .sf-view-items-text,html:not([dir="rtl"])
+    .sf-view-items .sf-view-fields-decimal input {
+      text-align: left;
+      }
+    }
+    .sf-view-items-numeric .sf-view-items-text:where(:dir(ltr)),
+    .sf-view-items .sf-view-fields-decimal input:where(:dir(ltr)) {
+      text-align: left;
+    }
+    _:-ms-input-placeholder, [dir="rtl"] .sf-view-items-numeric .sf-view-items-text,[dir="rtl"]
+    .sf-view-items .sf-view-fields-decimal input {
+      text-align: right;
+    }
+    @supports not (text-align: start) {
+    [dir="rtl"] .sf-view-items-numeric .sf-view-items-text,[dir="rtl"]
+    .sf-view-items .sf-view-fields-decimal input {
+      text-align: right;
+      }
+    }
+    .sf-view-items-numeric .sf-view-items-text:where(:dir(rtl)),
+    .sf-view-items .sf-view-fields-decimal input:where(:dir(rtl)) {
+      text-align: right;
+    }
+    .sf-view-items-numeric .sf-view-items-text,
+    .sf-view-items .sf-view-fields-decimal input {
+      text-align: start;
+    }
+    .sf-view-items-cell-label {
+      display: block;
+    }
+    .sf-view-items-cell--blank {
+      display: none;
+    }
+    .sf-view-items-actions {
+      justify-content: flex-end;
+    }
+    .sf-view-items-totals {
+      border: 0;
+      padding-left: var(--sf-space-2);
+      padding-right: var(--sf-space-2);
+      padding-inline: var(--sf-space-2);
+    }
+    .sf-view-items-totals .sf-view-items-total-word {
+      display: none;
+    }
+  }
+}

@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-flow",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "title": "Flow block",
   "summary": "A few properties as a block in a flow (a chat message, a feed, any stream): shows a record's fields, or asks for a few and sends them, then keeps the answer read-only. Fields are sf-view-properties' descriptors drawn by the Framework field renderers; a press is an event, the host answers with settle.",
   "kind": "smart",
@@ -411,7 +411,15 @@
     "aliases": [],
     "deprecations": [],
     "replacement": null,
-    "migrations": []
+    "migrations": [
+      {
+        "from": "1.0.0",
+        "to": "1.1.0",
+        "changes": [
+          "The block draws the property types money, percent, items, compound and ru.requisites with the record card's controls (view-properties js/set-fields.js, through the shared field value). Nothing changes for a host that sends none of them."
+        ]
+      }
+    ]
   },
   "provenance": {
     "source_repository": "simai/ui-view",
@@ -435,7 +443,7 @@
       },
       {
         "path": "src/smart/view-properties/js/field-value.js",
-        "sha256": "18194d28683ab6dc3f876cd4f39928745017b5e03f2abd310876c079ffe74188"
+        "sha256": "aa04dbf2f3f8a979966af613c82e2bcffa13020371a5884f88728f50c1145b8e"
       },
       {
         "path": "src/smart/view-properties/js/conditions.js",
