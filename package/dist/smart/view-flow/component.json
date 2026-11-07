@@ -2,7 +2,7 @@
   "$comment": "sf-view-flow, standard simai.smart-component 1.4 (vocabulary 1.1.5): properties as a block in a flow. Design: ui-view docs/design/sf-view-flow.md. The confirm surface (SIMAI Framework helpers/confirm-surface.js) gives the states, the expiry, the answer and expired events and the actions open, answer, confirm and cancel; the field values are sf-view-properties' js/field-value.js over the Framework field renderers.",
   "id": "smart.view-flow",
   "tag": "sf-view-flow",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "kind": "leaf",
   "family": "record",
   "settings": {
@@ -601,7 +601,15 @@
       "focus": "A section named by its heading (role=heading at heading-level). The status line is a polite live region, present before it speaks; when the answers go, focus moves to it; when Send is stopped or refused, to the first field in error."
     },
     "compatibility": {
-      "migrations": []
+      "migrations": [
+        {
+          "from": "1.0.0",
+          "to": "1.1.0",
+          "changes": [
+            "The block draws the property types money, percent, items, compound and ru.requisites with the record card's controls (view-properties js/set-fields.js, through the shared field value). Nothing changes for a host that sends none of them."
+          ]
+        }
+      ]
     },
     "inputs": {
       "template": {

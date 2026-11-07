@@ -4517,6 +4517,226 @@ function fieldConditions(field, values) {
 
 /***/ },
 
+/***/ "f44b979883f0"
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   add: () => (/* binding */ add),
+/* harmony export */   compare: () => (/* binding */ compare),
+/* harmony export */   decimalString: () => (/* binding */ decimalString),
+/* harmony export */   editableDecimal: () => (/* binding */ editableDecimal),
+/* harmony export */   formatDecimal: () => (/* binding */ formatDecimal),
+/* harmony export */   fractionDigits: () => (/* binding */ fractionDigits),
+/* harmony export */   multiply: () => (/* binding */ multiply),
+/* harmony export */   readDecimal: () => (/* binding */ readDecimal),
+/* harmony export */   round: () => (/* binding */ round),
+/* harmony export */   share: () => (/* binding */ share),
+/* harmony export */   toDecimal: () => (/* binding */ toDecimal)
+/* harmony export */ });
+// Decimal numbers as strings, never as floats (Larena property types standard,
+// notes of 2026-11-03: «Arithmetic is on decimal digits, never on floats»;
+// «Never a float on the wire»). A money amount, a percent and every cell a row
+// computes are read, multiplied, summed and rounded here on BigInt units, so
+// 0.1 + 0.2 is 0.3 and 2 499,99 stays 2 499,99 however many rows add up to it.
+//
+// A decimal is {units, scale}: the value is units / 10^scale. The canonical
+// string has an optional minus, the integer digits without leading zeros and
+// the fraction digits as written ("1500.50", "0.5", "-3"); "-0" is "0".
+const TYPED = /^([+-]?)(\d*)(?:[.,](\d*))?$/u; // Spaces a person or a formatter puts between groups of digits: the plain
+// space, the no-break space and the narrow no-break space ru-RU writes.
+
+const GROUP_SPACES = /[\s   ']/gu;
+/**
+ * What a person typed, read as a decimal: `{ok: true, value}` with the
+ * canonical string (null for nothing typed), or `{ok: false}` for text that is
+ * not a number. A comma and a point both separate the fraction; spaces between
+ * groups go.
+ */
+
+function readDecimal(text) {
+  if (text === null || typeof text === 'undefined') return {
+    ok: true,
+    value: null
+  };
+
+  if (typeof text === 'number') {
+    // A JSON integer is taken as its digits (property types standard §5); a
+    // float is not a decimal and is refused rather than guessed at.
+    return Number.isSafeInteger(text) ? {
+      ok: true,
+      value: String(text)
+    } : {
+      ok: false
+    };
+  }
+
+  const plain = String(text).replace(GROUP_SPACES, '');
+  if (plain === '') return {
+    ok: true,
+    value: null
+  };
+  const match = TYPED.exec(plain);
+  if (!match) return {
+    ok: false
+  };
+  const [, sign, whole, fraction] = match;
+  if (whole === '' && (fraction ?? '') === '') return {
+    ok: false
+  };
+  const integer = whole.replace(/^0+(?=\d)/u, '') || '0';
+  const digits = fraction ?? '';
+  const zero = /^0*$/u.test(integer + digits);
+  const value = `${sign === '-' && !zero ? '-' : ''}${integer}${digits ? `.${digits}` : ''}`;
+  return {
+    ok: true,
+    value
+  };
+}
+/** The decimal of a canonical string or a JSON integer, or null. */
+
+function toDecimal(value) {
+  if (value && typeof value === 'object' && typeof value.units === 'bigint') return value;
+  const read = readDecimal(value);
+  if (!read.ok || read.value === null) return null;
+  const negative = read.value.startsWith('-');
+  const [whole, fraction = ''] = read.value.replace('-', '').split('.');
+  const units = BigInt(whole + fraction) * (negative ? -1n : 1n);
+  return {
+    units,
+    scale: fraction.length
+  };
+}
+/** How many digits a decimal string has after its point. */
+
+function fractionDigits(value) {
+  const read = readDecimal(value);
+  if (!read.ok || read.value === null) return 0;
+  const at = read.value.indexOf('.');
+  return at === -1 ? 0 : read.value.length - at - 1;
+}
+const POWERS = new Map();
+
+const power = n => {
+  if (!POWERS.has(n)) POWERS.set(n, 10n ** BigInt(n));
+  return POWERS.get(n);
+};
+
+function rescale(decimal, scale) {
+  return decimal.scale === scale ? decimal : {
+    units: decimal.units * power(scale - decimal.scale),
+    scale
+  };
+}
+
+function multiply(a, b) {
+  return {
+    units: a.units * b.units,
+    scale: a.scale + b.scale
+  };
+}
+function add(a, b) {
+  const scale = Math.max(a.scale, b.scale);
+  return {
+    units: rescale(a, scale).units + rescale(b, scale).units,
+    scale
+  };
+}
+/** A share: 20 percent is 0.2 (property types standard, rows: «A percent operand counts as its share»). */
+
+function share(decimal) {
+  return {
+    units: decimal.units,
+    scale: decimal.scale + 2
+  };
+}
+/** Rounded half away from zero to `scale` digits after the point. */
+
+function round(decimal, scale) {
+  if (decimal.scale <= scale) return rescale(decimal, scale);
+  const divisor = power(decimal.scale - scale);
+  const negative = decimal.units < 0n;
+  const magnitude = negative ? -decimal.units : decimal.units;
+  let units = magnitude / divisor;
+  if (magnitude % divisor * 2n >= divisor) units += 1n;
+  return {
+    units: negative ? -units : units,
+    scale
+  };
+}
+function compare(a, b) {
+  const scale = Math.max(a.scale, b.scale);
+  const left = rescale(a, scale).units;
+  const right = rescale(b, scale).units;
+  return left === right ? 0 : left < right ? -1 : 1;
+}
+/** The canonical string of a decimal, with exactly its scale's digits after the point. */
+
+function decimalString(decimal) {
+  const negative = decimal.units < 0n;
+  const digits = (negative ? -decimal.units : decimal.units).toString().padStart(decimal.scale + 1, '0');
+  const whole = decimal.scale ? digits.slice(0, -decimal.scale) : digits;
+  const fraction = decimal.scale ? digits.slice(-decimal.scale) : '';
+  const zero = decimal.units === 0n;
+  return `${negative && !zero ? '-' : ''}${whole}${fraction ? `.${fraction}` : ''}`;
+} // The separators of a locale, read once from Intl and kept: a decimal is
+// formatted from its digits, so no amount passes through a float to be shown.
+
+const SEPARATORS = new Map();
+
+function separators(locale) {
+  if (!SEPARATORS.has(locale)) {
+    let group = ' ';
+    let point = '.';
+
+    try {
+      for (const part of new Intl.NumberFormat(locale).formatToParts(12345.6)) {
+        if (part.type === 'group') group = part.value;
+        if (part.type === 'decimal') point = part.value;
+      }
+    } catch {// An unknown locale keeps the defaults.
+    }
+
+    SEPARATORS.set(locale, {
+      group,
+      point
+    });
+  }
+
+  return SEPARATORS.get(locale);
+}
+/**
+ * A decimal string as a person reads it in `locale`: groups of three, the
+ * locale's point, and at least `minFraction` digits after it («1 500,50»).
+ * Groups start at four digits, as the standard reads money («1 500,50 ₽»).
+ */
+
+
+function formatDecimal(value, locale, {
+  minFraction = 0
+} = {}) {
+  const decimal = toDecimal(value);
+  if (!decimal) return '';
+  const text = decimalString(decimal.scale < minFraction ? rescale(decimal, minFraction) : decimal);
+  const negative = text.startsWith('-');
+  const [whole, fraction] = text.replace('-', '').split('.');
+  const {
+    group,
+    point
+  } = separators(locale);
+  const grouped = whole.replace(/\B(?=(\d{3})+(?!\d))/gu, group);
+  return `${negative ? '−' : ''}${grouped}${fraction ? `${point}${fraction}` : ''}`;
+}
+/** A decimal string as typed in an input: the locale's point, no groups («1500,5»). */
+
+function editableDecimal(value, locale) {
+  const read = readDecimal(value);
+  if (!read.ok || read.value === null) return '';
+  return read.value.replace('.', separators(locale).point);
+}
+
+/***/ },
+
 /***/ "62c5c417c97d"
 (module, __webpack_exports__, __webpack_require__) {
 
@@ -4527,9 +4747,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var lit__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("2a080a730149");
 /* harmony import */ var _field_renderers_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__("e5483002f3ea");
-var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([lit__WEBPACK_IMPORTED_MODULE_0__, _field_renderers_index_js__WEBPACK_IMPORTED_MODULE_1__]);
-([lit__WEBPACK_IMPORTED_MODULE_0__, _field_renderers_index_js__WEBPACK_IMPORTED_MODULE_1__] = __webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
+/* harmony import */ var _set_fields_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__("db94c32f22be");
+var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([lit__WEBPACK_IMPORTED_MODULE_0__, _field_renderers_index_js__WEBPACK_IMPORTED_MODULE_1__, _set_fields_js__WEBPACK_IMPORTED_MODULE_2__]);
+([lit__WEBPACK_IMPORTED_MODULE_0__, _field_renderers_index_js__WEBPACK_IMPORTED_MODULE_1__, _set_fields_js__WEBPACK_IMPORTED_MODULE_2__] = __webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
 /* harmony import */ var lit__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(lit__WEBPACK_IMPORTED_MODULE_0__);
+
 
  // One field's value, shown or edited, drawn by the SIMAI Framework field
 // renderers. Moved out of the record component's template (sf-view-properties
@@ -4568,11 +4790,26 @@ function renderFieldValue(context, field, editing, {
       setFieldOptionSearch: (target, text) => context.component.setFieldOptionSearch(target, text),
       loadFieldOptions: (target, request) => context.component.loadFieldOptions(target, request)
     } : {})
-  }; // A datetime and a time of day are the renderer set's: sf-input-date in
+  }; // Money, a percent, rows and the compound fields are the set's own
+  // (js/set-fields.js, Larena addendum of 2026-11-03): drawn from Framework
+  // controls, with the edit host above, before the Framework renderers are
+  // asked for a type they do not draw.
+
+  const own = (0,_set_fields_js__WEBPACK_IMPORTED_MODULE_2__.renderSetField)(field, context.changed.has(key) && editing ? context.changed.get(key) : field.value, editing, editHost, {
+    node: context.component,
+    size: context.size,
+    viewHost: context.viewHost,
+    disabled
+  });
+
+  if (own !== null) {
+    return own === lit__WEBPACK_IMPORTED_MODULE_0__.nothing ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-property-view-empty color-on-surface-variant">${context.emptyText}</span>` : own;
+  } // A datetime and a time of day are the renderer set's: sf-input-date in
   // mode datetime and time, one control each (SIMAI Framework duplication
   // audit A-14). This view drew its own pair -- the day in a datepicker and
   // the time in a masked field -- which cut the day short in a half-width
   // field and held half-typed entries of its own.
+
 
   const content = editing ? (0,_field_renderers_index_js__WEBPACK_IMPORTED_MODULE_1__.renderEditField)(field, context.changed.has(key) ? context.changed.get(key) : field.value, editHost, // A field its condition turns off is drawn disabled where the set
   // draws disabled apart from read-only (a choice as buttons).
@@ -4622,6 +4859,1308 @@ function renderFieldValue(context, field, editing, {
   }
 
   return content;
+}
+__webpack_async_result__();
+} catch(e) { __webpack_async_result__(e); } });
+
+/***/ },
+
+/***/ "d69ebe7e288e"
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   currencyOf: () => (/* binding */ currencyOf),
+/* harmony export */   formatMoney: () => (/* binding */ formatMoney),
+/* harmony export */   moneyParts: () => (/* binding */ moneyParts),
+/* harmony export */   percentText: () => (/* binding */ percentText)
+/* harmony export */ });
+/* harmony import */ var _decimal_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("f44b979883f0");
+ // Money and percent as a person reads them, from decimal strings, never a
+// float: the currency's sign and minor units come from Intl, the digits from
+// ./decimal.js. Pure, so the unit suite reads it without a browser.
+
+const CURRENCY = new Map();
+/** {sign, before, minor}: the sign a locale writes, whether before the amount, and the ISO 4217 minor units. */
+
+function currencyOf(code, locale) {
+  const id = `${code}|${locale}`;
+
+  if (!CURRENCY.has(id)) {
+    let sign = code;
+    let before = false;
+    let minor = 2;
+
+    try {
+      const format = new Intl.NumberFormat(locale, {
+        style: 'currency',
+        currency: code,
+        currencyDisplay: 'narrowSymbol'
+      });
+      const parts = format.formatToParts(1);
+      const at = parts.findIndex(part => part.type === 'currency');
+      sign = parts[at]?.value ?? code;
+      before = at < parts.findIndex(part => part.type === 'integer');
+      minor = format.resolvedOptions().maximumFractionDigits;
+    } catch {// A code Intl does not know keeps its letters and two minor digits.
+    }
+
+    CURRENCY.set(id, {
+      sign,
+      before,
+      minor
+    });
+  }
+
+  return CURRENCY.get(id);
+}
+/** An amount with its currency, as a person reads it: «1 500,50 ₽», «$1,500.50». */
+
+function formatMoney(amount, code, locale) {
+  if (!code) return (0,_decimal_js__WEBPACK_IMPORTED_MODULE_0__.formatDecimal)(amount, locale);
+  const {
+    sign,
+    before,
+    minor
+  } = currencyOf(code, locale);
+  const number = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_0__.formatDecimal)(amount, locale, {
+    minFraction: minor
+  });
+  if (!number) return '';
+  return before ? `${sign}${number}` : `${number} ${sign}`;
+}
+/** A money value as {amount, currency}; a field that fixes the currency takes a bare amount. */
+
+function moneyParts(value, fixed) {
+  if (value && typeof value === 'object' && !Array.isArray(value)) {
+    return {
+      amount: value.amount ?? null,
+      currency: fixed || (value.currency ?? null)
+    };
+  }
+
+  if (value === null || typeof value === 'undefined' || value === '') return {
+    amount: null,
+    currency: fixed || null
+  };
+  return {
+    amount: value,
+    currency: fixed || null
+  };
+}
+function percentText(value, locale) {
+  const number = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_0__.formatDecimal)(value, locale);
+  if (!number) return ''; // ru-RU writes «12,5 %», en «12.5%»: the space is the locale's, read from Intl.
+
+  let spaced = false;
+
+  try {
+    spaced = new Intl.NumberFormat(locale, {
+      style: 'percent'
+    }).formatToParts(0.5).some(part => part.type === 'literal' && /\s/u.test(part.value));
+  } catch {
+    spaced = false;
+  }
+
+  return `${number}${spaced ? ' ' : ''}%`;
+}
+
+/***/ },
+
+/***/ "06dfc7b3b9d9"
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   REQUISITE_PARTS: () => (/* binding */ REQUISITE_PARTS),
+/* harmony export */   innValid: () => (/* binding */ innValid),
+/* harmony export */   ogrnValid: () => (/* binding */ ogrnValid),
+/* harmony export */   requisiteErrors: () => (/* binding */ requisiteErrors)
+/* harmony export */ });
+// The checks of Russian requisites (Larena property types standard, notes of
+// 2026-11-03, `ru.requisites@1`): each part on its own, and the parts that go
+// together, together. The server checks the same and is the authority; these
+// are here so a person sees a mistyped ИНН under the field instead of a refused
+// save after it.
+//
+// Every check answers the key of the words that explain the mistake, or null.
+const REQUISITE_PARTS = Object.freeze(['inn', 'kpp', 'ogrn', 'bik', 'account', 'corr_account']);
+
+const digitsOf = text => [...text].map(Number);
+
+const weighted = (digits, weights) => weights.reduce((sum, weight, index) => sum + weight * digits[index], 0);
+
+function innValid(inn) {
+  if (!/^\d{10}$|^\d{12}$/u.test(inn)) return false;
+  const d = digitsOf(inn);
+  if (inn.length === 10) return weighted(d, [2, 4, 10, 3, 5, 9, 4, 6, 8]) % 11 % 10 === d[9];
+  const eleventh = weighted(d, [7, 2, 4, 10, 3, 5, 9, 4, 6, 8]) % 11 % 10;
+  const twelfth = weighted(d, [3, 7, 2, 4, 10, 3, 5, 9, 4, 6, 8]) % 11 % 10;
+  return eleventh === d[10] && twelfth === d[11];
+}
+function ogrnValid(ogrn) {
+  if (!/^\d{13}$|^\d{15}$/u.test(ogrn)) return false;
+  const body = BigInt(ogrn.slice(0, -1));
+  const modulus = ogrn.length === 13 ? 11n : 13n;
+  return Number(body % modulus % 10n) === Number(ogrn.at(-1));
+} // An account is checked with the БИК by the Bank of Russia key: the three
+// digits that come before it, then its twenty, weighted 7, 1, 3 in turn, add up
+// to a multiple of ten. A settlement account takes the БИК's last three digits;
+// a correspondent account takes «0» and the БИК's fifth and sixth.
+
+function accountKeyValid(prefix, account) {
+  const digits = digitsOf(prefix + account);
+  const sum = digits.reduce((total, digit, index) => total + digit * [7, 1, 3][index % 3], 0);
+  return sum % 10 === 0;
+}
+/** The mistakes of a requisites value, part by part: {inn: 'innWrong', …}. */
+
+
+function requisiteErrors(value, parts = REQUISITE_PARTS) {
+  const errors = {};
+
+  const has = part => parts.includes(part);
+
+  const of = part => String(value?.[part] ?? '');
+
+  const inn = of('inn');
+  const kpp = of('kpp');
+  const ogrn = of('ogrn');
+  const bik = of('bik');
+  const account = of('account');
+  const corr = of('corr_account');
+
+  if (has('inn')) {
+    // The ИНН is required (the standard): a value without one is no value.
+    if (!inn) errors.inn = 'innRequired';else if (!/^\d{10}$|^\d{12}$/u.test(inn)) errors.inn = 'innLength';else if (!innValid(inn)) errors.inn = 'innWrong';
+  }
+
+  const person = inn.length === 12;
+  const organization = inn.length === 10;
+
+  if (has('kpp') && kpp) {
+    if (!/^\d{4}[\dA-Z]{2}\d{3}$/u.test(kpp)) errors.kpp = 'kppWrong';else if (person) errors.kpp = 'kppPerson';
+  }
+
+  if (has('ogrn') && ogrn) {
+    if (!/^\d{13}$|^\d{15}$/u.test(ogrn)) errors.ogrn = 'ogrnLength';else if (!ogrnValid(ogrn)) errors.ogrn = 'ogrnWrong';else if (organization && ogrn.length !== 13) errors.ogrn = 'ogrnOrganization';else if (person && ogrn.length !== 15) errors.ogrn = 'ogrnPerson';
+  }
+
+  const bikRight = /^04\d{7}$/u.test(bik);
+  if (has('bik') && bik && !bikRight) errors.bik = 'bikWrong';
+
+  if (has('account') && account) {
+    if (!/^\d{20}$/u.test(account)) errors.account = 'accountLength';else if (bikRight && !accountKeyValid(bik.slice(-3), account)) errors.account = 'accountKey';
+  }
+
+  if (has('corr_account') && corr) {
+    if (!/^\d{20}$/u.test(corr)) errors.corr_account = 'accountLength';else if (!corr.startsWith('301')) errors.corr_account = 'corrStart';else if (bikRight && !accountKeyValid(`0${bik.slice(4, 6)}`, corr)) errors.corr_account = 'accountKey';
+  }
+
+  return errors;
+}
+
+/***/ },
+
+/***/ "ebc72103d8b6"
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   NUMERIC: () => (/* binding */ NUMERIC),
+/* harmony export */   cellDecimal: () => (/* binding */ cellDecimal),
+/* harmony export */   columnCurrency: () => (/* binding */ columnCurrency),
+/* harmony export */   columnOf: () => (/* binding */ columnOf),
+/* harmony export */   columnsOf: () => (/* binding */ columnsOf),
+/* harmony export */   computeRow: () => (/* binding */ computeRow),
+/* harmony export */   rowTotals: () => (/* binding */ rowTotals),
+/* harmony export */   rowsOf: () => (/* binding */ rowsOf)
+/* harmony export */ });
+/* harmony import */ var _decimal_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("f44b979883f0");
+/* harmony import */ var _money_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__("d69ebe7e288e");
+
+ // Rows over columns (Larena property types standard, notes of 2026-11-03,
+// `items@1`): the columns as the set reads them, the computed cells of a row
+// and the totals under summed columns, on decimal strings. Pure, so the unit
+// suite reads it without a browser.
+
+const NUMERIC = new Set(['integer', 'number', 'percent', 'money']); // A column as the set reads it: its settings beside its own keys, its type
+// under the name the renderers address (`propertyType`).
+
+function columnOf(column) {
+  const {
+    settings,
+    ...own
+  } = column ?? {};
+  const type = own.propertyType || own.type;
+  return { ...(settings && typeof settings === 'object' ? settings : {}),
+    ...own,
+    propertyType: type,
+    type
+  };
+}
+function columnsOf(field) {
+  return (Array.isArray(field.columns) ? field.columns : []).map(columnOf).filter(column => column.key);
+}
+function rowsOf(value) {
+  return Array.isArray(value) ? value.map(row => row && typeof row === 'object' ? row : {}) : [];
+} // The decimal a numeric cell holds, or null.
+
+function cellDecimal(column, cell) {
+  if (cell === null || typeof cell === 'undefined' || cell === '') return null;
+  if (column.propertyType === 'money') return (0,_decimal_js__WEBPACK_IMPORTED_MODULE_0__.toDecimal)((0,_money_js__WEBPACK_IMPORTED_MODULE_1__.moneyParts)(cell, column.currency).amount);
+  return (0,_decimal_js__WEBPACK_IMPORTED_MODULE_0__.toDecimal)(cell);
+} // The currency a money column's cells are in: its own, else the one money
+// operand's when it is computed.
+
+function columnCurrency(column, columns) {
+  if (column.currency) return column.currency;
+
+  if (column.compute?.of) {
+    const operand = columns.find(one => column.compute.of.includes(one.key) && one.propertyType === 'money');
+    return operand?.currency ?? null;
+  }
+
+  return null;
+}
+/**
+ * A row with its computed cells worked out from the cells typed: a product of
+ * two or three operands, a percent counting as its share, rounded half away
+ * from zero to the currency's minor units or the column's `scale` (2 by
+ * default). A computed cell whose operands are not all there is no cell. The
+ * keys follow the columns, the computed ones last. The server works the same
+ * out and is the authority.
+ */
+
+function computeRow(row, columns, locale = 'en') {
+  const typed = {};
+  const computed = {};
+
+  for (const column of columns) {
+    if (column.compute) continue;
+    if (Object.hasOwn(row, column.key) && row[column.key] !== null && row[column.key] !== '') typed[column.key] = row[column.key];
+  }
+
+  for (const column of columns) {
+    if (!column.compute || column.compute.op !== 'multiply' || !Array.isArray(column.compute.of)) continue;
+    let product = null;
+    let currency = null;
+
+    for (const key of column.compute.of) {
+      const operand = columns.find(one => one.key === key);
+      const decimal = operand ? cellDecimal(operand, typed[key]) : null;
+
+      if (!decimal) {
+        product = null;
+        break;
+      }
+
+      if (operand.propertyType === 'money') currency = (0,_money_js__WEBPACK_IMPORTED_MODULE_1__.moneyParts)(typed[key], operand.currency).currency;
+      const factor = operand.propertyType === 'percent' ? (0,_decimal_js__WEBPACK_IMPORTED_MODULE_0__.share)(decimal) : decimal;
+      product = product ? (0,_decimal_js__WEBPACK_IMPORTED_MODULE_0__.multiply)(product, factor) : factor;
+    }
+
+    if (!product) continue;
+
+    if (column.propertyType === 'money') {
+      const code = column.currency || currency;
+      const scale = code ? (0,_money_js__WEBPACK_IMPORTED_MODULE_1__.currencyOf)(code, locale).minor : 2;
+      computed[column.key] = {
+        amount: (0,_decimal_js__WEBPACK_IMPORTED_MODULE_0__.decimalString)((0,_decimal_js__WEBPACK_IMPORTED_MODULE_0__.round)(product, scale)),
+        currency: code
+      };
+    } else {
+      const scale = column.propertyType === 'integer' ? 0 : Number.isInteger(column.scale) ? column.scale : 2;
+      computed[column.key] = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_0__.decimalString)((0,_decimal_js__WEBPACK_IMPORTED_MODULE_0__.round)(product, scale));
+    }
+  }
+
+  return { ...typed,
+    ...computed
+  };
+}
+/** The sums of the columns marked `total: "sum"`, as decimals by key. */
+
+function rowTotals(rows, columns) {
+  const totals = {};
+
+  for (const column of columns) {
+    if (column.total !== 'sum' || !NUMERIC.has(column.propertyType)) continue;
+    let sum = {
+      units: 0n,
+      scale: 0
+    };
+
+    for (const row of rows) {
+      const decimal = cellDecimal(column, row[column.key]);
+      if (decimal) sum = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_0__.add)(sum, decimal);
+    }
+
+    totals[column.key] = sum;
+  }
+
+  return totals;
+}
+
+/***/ },
+
+/***/ "db94c32f22be"
+(module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   SET_FIELD_TYPES: () => (/* binding */ SET_FIELD_TYPES),
+/* harmony export */   drawsSetField: () => (/* binding */ drawsSetField),
+/* harmony export */   renderSetField: () => (/* binding */ renderSetField),
+/* harmony export */   setFieldText: () => (/* binding */ setFieldText)
+/* harmony export */ });
+/* harmony import */ var lit__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("2a080a730149");
+/* harmony import */ var _set_fields_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__("f59c8bcdc90a");
+/* harmony import */ var _field_renderers_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__("e5483002f3ea");
+/* harmony import */ var _core_js_page_language__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__("43090d1c8307");
+/* harmony import */ var _decimal_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__("f44b979883f0");
+/* harmony import */ var _money_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__("d69ebe7e288e");
+/* harmony import */ var _rows_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__("ebc72103d8b6");
+/* harmony import */ var _requisites_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__("06dfc7b3b9d9");
+var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([lit__WEBPACK_IMPORTED_MODULE_0__, _field_renderers_index_js__WEBPACK_IMPORTED_MODULE_2__, _core_js_page_language__WEBPACK_IMPORTED_MODULE_3__]);
+([lit__WEBPACK_IMPORTED_MODULE_0__, _field_renderers_index_js__WEBPACK_IMPORTED_MODULE_2__, _core_js_page_language__WEBPACK_IMPORTED_MODULE_3__] = __webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
+/* harmony import */ var lit__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(lit__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _core_js_page_language__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__);
+
+
+
+
+
+
+
+ // The property types the set draws itself, beside the SIMAI Framework field
+// renderers it draws every other type with (Larena addendum of 2026-11-03 to
+// the general components task, msg-bf1ad4f3ae00420bb752; Larena property types
+// standard, notes of 2026-11-03):
+//
+//   money          {amount, currency}: an amount and its ISO 4217 currency
+//   percent        a decimal with a % after it
+//   items          rows over the field's columns: a table editor, a card a row on a phone
+//   compound       a fixed set of parts with one value object, checked together
+//   ru.requisites  the compound of a Russian organisation's or person's requisites
+//
+// Each is drawn from Framework controls (sf-input with `text-end`, sf-dropdown,
+// sf-button-icon, sf-button) and, inside a row or a compound, by the Framework
+// renderers for the types they already draw. Every number is a decimal string
+// (./decimal.js): nothing here writes a float.
+//
+// A control writes what was typed. An entry that is not a value yet -- text
+// that is not a number, more digits after the point than the currency has, a
+// ИНН whose control digit is wrong -- is written as typed and reported through
+// setFieldError, which holds both saves while it stands (port 1.16.0, as a
+// masked string does), and the control says what is wrong under itself once
+// the person has left it.
+
+const TEXT = {
+  en: {
+    currency: 'Currency',
+    notNumber: 'Enter a number',
+    fractionMax: 'At most {n} digits after the point',
+    fractionNone: 'A whole amount, no digits after the point',
+    chooseCurrency: 'Choose a currency',
+    range: 'From {min} to {max}',
+    atLeast: 'At least {min}',
+    atMost: 'At most {max}',
+    addRow: 'Add a row',
+    removeRow: 'Remove the row',
+    rowUp: 'Move the row up',
+    rowDown: 'Move the row down',
+    row: 'Row {n}',
+    total: 'Total',
+    cellsWrong: 'Some cells are not filled in correctly',
+    rows: '{n} rows',
+    row1: '1 row',
+    inn: 'INN',
+    kpp: 'KPP',
+    ogrn: 'OGRN',
+    bik: 'BIK',
+    account: 'Account',
+    corr_account: 'Correspondent account',
+    innRequired: 'The INN is required',
+    innLength: '10 digits for an organisation, 12 for a person',
+    innWrong: 'The INN control digits do not match',
+    kppWrong: 'Nine characters: four digits, two digits or letters, three digits',
+    kppPerson: 'A person\'s INN has no KPP',
+    ogrnLength: '13 digits (OGRN) or 15 (OGRNIP)',
+    ogrnWrong: 'The control digit does not match',
+    ogrnOrganization: 'An organisation has a 13-digit OGRN',
+    ogrnPerson: 'A person has a 15-digit OGRNIP',
+    bikWrong: 'Nine digits starting with 04',
+    accountLength: '20 digits',
+    accountKey: 'The account does not match the BIK',
+    corrStart: 'A correspondent account starts with 301'
+  },
+  ru: {
+    currency: 'Валюта',
+    notNumber: 'Введите число',
+    fractionMax: 'Не больше {n} знаков после запятой',
+    fractionNone: 'Целая сумма, без знаков после запятой',
+    chooseCurrency: 'Выберите валюту',
+    range: 'От {min} до {max}',
+    atLeast: 'Не меньше {min}',
+    atMost: 'Не больше {max}',
+    addRow: 'Добавить строку',
+    removeRow: 'Удалить строку',
+    rowUp: 'Поднять строку',
+    rowDown: 'Опустить строку',
+    row: 'Строка {n}',
+    total: 'Итого',
+    cellsWrong: 'Не все ячейки заполнены верно',
+    rows: '{n} строк',
+    row1: '1 строка',
+    inn: 'ИНН',
+    kpp: 'КПП',
+    ogrn: 'ОГРН',
+    bik: 'БИК',
+    account: 'Расчётный счёт',
+    corr_account: 'Корр. счёт',
+    innRequired: 'ИНН обязателен',
+    innLength: '10 цифр у организации, 12 у физлица',
+    innWrong: 'Не сходятся контрольные цифры ИНН',
+    kppWrong: 'Девять знаков: четыре цифры, две цифры или буквы, три цифры',
+    kppPerson: 'У ИНН физлица нет КПП',
+    ogrnLength: '13 цифр (ОГРН) или 15 (ОГРНИП)',
+    ogrnWrong: 'Не сходится контрольная цифра',
+    ogrnOrganization: 'У организации ОГРН из 13 цифр',
+    ogrnPerson: 'У физлица ОГРНИП из 15 цифр',
+    bikWrong: 'Девять цифр, начиная с 04',
+    accountLength: '20 цифр',
+    accountKey: 'Счёт не сходится с БИК',
+    corrStart: 'Корр. счёт начинается с 301'
+  }
+};
+const WORDS_OF = 'sf-view-properties';
+
+function word(node, key, vars = {}) {
+  let text = (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageText)(TEXT, key, node, WORDS_OF);
+
+  for (const [name, value] of Object.entries(vars)) text = text.replaceAll(`{${name}}`, String(value));
+
+  return text;
+} // ru counts: 1 строка, 2–4 строки, 5+ строк.
+
+
+function rowsWord(node, count) {
+  const locale = (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(node);
+  if (count === 1) return word(node, 'row1');
+
+  if (locale.startsWith('ru')) {
+    const tens = count % 100;
+    const ones = count % 10;
+    if (ones >= 2 && ones <= 4 && (tens < 12 || tens > 14)) return `${count} строки`;
+  }
+
+  return word(node, 'rows', {
+    n: count
+  });
+}
+
+const SET_FIELD_TYPES = Object.freeze(['money', 'percent', 'items', 'compound', 'ru.requisites']); // --- Currencies -------------------------------------------------------------
+// The currencies a money field offers when it does not fix one: the ones a
+// Russian-language business meets most, and the value's own currency first
+// when it is none of them. A field that fixes `currency` offers no choice.
+
+const OFFERED_CURRENCIES = ['RUB', 'USD', 'EUR', 'CNY', 'KZT', 'BYN', 'AED', 'TRY', 'GBP', 'JPY']; // --- What a person is typing -------------------------------------------------
+// The text in a decimal input while it is being typed. The value written is
+// canonical («12.5»); drawn back as such it would move the caret under the
+// person typing «12,50». So the typed text is kept per control and shown while
+// it still reads as the value, and dropped when the control is left.
+
+const DRAFTS = new WeakMap();
+
+const draftsOf = node => {
+  if (!DRAFTS.has(node)) DRAFTS.set(node, new Map());
+  return DRAFTS.get(node);
+}; // The controls a person has left: a message stands under a control only then,
+// as a masked string's does.
+
+
+const LEFT = new WeakMap();
+
+const leftOf = node => {
+  if (!LEFT.has(node)) LEFT.set(node, new Set());
+  return LEFT.get(node);
+};
+
+const redraw = node => node?.requestComponentUpdate?.('changed');
+
+function shownText(node, path, value, locale) {
+  const draft = draftsOf(node).get(path);
+  const read = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_4__.readDecimal)(value);
+  if (!read.ok) return String(value ?? '');
+
+  if (typeof draft === 'string') {
+    const typed = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_4__.readDecimal)(draft);
+    if (typed.ok && typed.value === read.value) return draft;
+  }
+
+  return (0,_decimal_js__WEBPACK_IMPORTED_MODULE_4__.editableDecimal)(read.value, locale);
+} // The mistake of a typed decimal, or null: not a number, more digits after the
+// point than allowed, outside the bounds.
+
+
+function decimalError(node, raw, {
+  maxFraction = null,
+  min = null,
+  max = null
+} = {}) {
+  const read = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_4__.readDecimal)(raw);
+  if (!read.ok) return word(node, 'notNumber');
+  if (read.value === null) return null;
+
+  if (maxFraction !== null && (0,_decimal_js__WEBPACK_IMPORTED_MODULE_4__.fractionDigits)(read.value) > maxFraction) {
+    return maxFraction === 0 ? word(node, 'fractionNone') : word(node, 'fractionMax', {
+      n: maxFraction
+    });
+  }
+
+  const value = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_4__.toDecimal)(read.value);
+  const low = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_4__.toDecimal)(min);
+  const high = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_4__.toDecimal)(max);
+  const locale = (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(node);
+
+  if (low && (0,_decimal_js__WEBPACK_IMPORTED_MODULE_4__.compare)(value, low) < 0 || high && (0,_decimal_js__WEBPACK_IMPORTED_MODULE_4__.compare)(value, high) > 0) {
+    if (low && high) return word(node, 'range', {
+      min: (0,_decimal_js__WEBPACK_IMPORTED_MODULE_4__.formatDecimal)(min, locale),
+      max: (0,_decimal_js__WEBPACK_IMPORTED_MODULE_4__.formatDecimal)(max, locale)
+    });
+    return low ? word(node, 'atLeast', {
+      min: (0,_decimal_js__WEBPACK_IMPORTED_MODULE_4__.formatDecimal)(min, locale)
+    }) : word(node, 'atMost', {
+      max: (0,_decimal_js__WEBPACK_IMPORTED_MODULE_4__.formatDecimal)(max, locale)
+    });
+  }
+
+  return null;
+}
+/**
+ * One decimal input: sf-input with the decimal keyboard and `text-end` (a % or
+ * a currency sign). `write(text, error)` gets what was typed -- canonical when
+ * it reads as a number -- and the mistake, or null.
+ */
+
+
+function decimalInput(node, {
+  path,
+  value,
+  size,
+  label,
+  required,
+  textEnd,
+  placeholder,
+  check,
+  write
+}) {
+  const locale = (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(node);
+  const text = shownText(node, path, value, locale);
+  const error = check(text);
+  const shown = error && leftOf(node).has(path) ? error : '';
+
+  const typed = event => {
+    const raw = event.target?.value ?? '';
+    draftsOf(node).set(path, raw);
+    const read = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_4__.readDecimal)(raw);
+    write(read.ok ? read.value : raw, check(raw));
+  };
+
+  return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+        <sf-input
+                class="sf-view-fields-decimal"
+                size=${size}
+                appearance="bordered"
+                inputmode="decimal"
+                value=${text}
+                text-end=${textEnd || lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                placeholder=${placeholder || lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                ?required=${Boolean(required)}
+                ?invalid=${Boolean(shown)}
+                error-message=${shown || lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                aria-label=${label || ''}
+                data-path=${path}
+                @input=${typed}
+                @change=${typed}
+                @focusout=${() => {
+    draftsOf(node).delete(path);
+    leftOf(node).add(path);
+    redraw(node);
+  }}
+        ></sf-input>
+    `;
+} // --- percent -------------------------------------------------------------------
+
+
+function percentBounds(field) {
+  // 0 and 100 when the field sets none (property types standard §2).
+  return {
+    min: field.min ?? '0',
+    max: field.max ?? '100'
+  };
+}
+
+function renderPercentEdit(field, value, host, ctx) {
+  const {
+    min,
+    max
+  } = percentBounds(field);
+  return decimalInput(ctx.node, {
+    path: ctx.path ?? String(field.key ?? ''),
+    value,
+    size: ctx.size,
+    label: field.label || field.key,
+    required: field.required,
+    textEnd: '%',
+    placeholder: field.placeholder,
+    check: text => decimalError(ctx.node, text, {
+      min,
+      max
+    }),
+    write: (next, error) => {
+      host.setFieldValue(field, next);
+      host.setFieldError?.(field, error);
+    }
+  });
+}
+
+function renderPercentView(field, value, ctx) {
+  const text = (0,_money_js__WEBPACK_IMPORTED_MODULE_5__.percentText)(value, (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(ctx.node));
+  return text ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-field-view">${text}</span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing;
+} // --- money ---------------------------------------------------------------------
+
+
+function renderMoneyEdit(field, value, host, ctx) {
+  const node = ctx.node;
+  const locale = (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(node);
+  const path = ctx.path ?? String(field.key ?? '');
+  const fixed = typeof field.currency === 'string' && field.currency ? field.currency : null;
+  const parts = (0,_money_js__WEBPACK_IMPORTED_MODULE_5__.moneyParts)(value, fixed); // A currency chosen before an amount is typed waits here: a value is an
+  // amount and its currency, never a currency alone.
+
+  const currencyPath = `${path}#currency`;
+  const currency = parts.currency || draftsOf(node).get(currencyPath) || null;
+  const minor = currency ? (0,_money_js__WEBPACK_IMPORTED_MODULE_5__.currencyOf)(currency, locale).minor : null;
+
+  const check = text => {
+    const error = decimalError(node, text, {
+      maxFraction: minor,
+      min: field.min ?? null,
+      max: field.max ?? null
+    });
+    if (error) return error;
+    return (0,_decimal_js__WEBPACK_IMPORTED_MODULE_4__.readDecimal)(text).value !== null && !currency ? word(node, 'chooseCurrency') : null;
+  };
+
+  const write = (amount, error, code = currency) => {
+    host.setFieldValue(field, amount === null ? null : {
+      amount,
+      currency: code
+    });
+    host.setFieldError?.(field, error);
+  };
+
+  const amount = decimalInput(node, {
+    path,
+    value: parts.amount,
+    size: ctx.size,
+    label: field.label || field.key,
+    required: field.required,
+    textEnd: fixed ? (0,_money_js__WEBPACK_IMPORTED_MODULE_5__.currencyOf)(fixed, locale).sign : '',
+    placeholder: field.placeholder,
+    check,
+    write
+  });
+  if (fixed) return amount;
+  const offered = [...new Set([...(currency ? [currency] : []), ...OFFERED_CURRENCIES])];
+  return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+        <span class="sf-view-fields-money flex gap-1/3 min-w-0">
+            ${amount}
+            <sf-dropdown
+                    class="sf-view-fields-currency"
+                    size=${ctx.size}
+                    appearance="outlined"
+                    mode="select"
+                    search="false"
+                    value=${currency ?? ''}
+                    placeholder=${word(node, 'currency')}
+                    aria-label=${word(node, 'currency')}
+                    .options=${offered.map(code => ({
+    type: 'text',
+    size: '1',
+    value: code,
+    text: `${code} ${(0,_money_js__WEBPACK_IMPORTED_MODULE_5__.currencyOf)(code, locale).sign === code ? '' : (0,_money_js__WEBPACK_IMPORTED_MODULE_5__.currencyOf)(code, locale).sign}`.trim(),
+    selected: code === currency
+  }))}
+                    @change=${event => {
+    const code = event.detail?.value || null;
+    draftsOf(node).set(currencyPath, code);
+    const typed = parts.amount;
+
+    if (typed !== null && typed !== '') {
+      const nextMinor = code ? (0,_money_js__WEBPACK_IMPORTED_MODULE_5__.currencyOf)(code, locale).minor : null;
+      const error = decimalError(node, typed, {
+        maxFraction: nextMinor,
+        min: field.min ?? null,
+        max: field.max ?? null
+      }) || (code ? null : word(node, 'chooseCurrency'));
+      write((0,_decimal_js__WEBPACK_IMPORTED_MODULE_4__.readDecimal)(typed).ok ? (0,_decimal_js__WEBPACK_IMPORTED_MODULE_4__.readDecimal)(typed).value : typed, error, code);
+    } else {
+      redraw(node);
+    }
+  }}
+            ></sf-dropdown>
+        </span>
+    `;
+}
+
+function moneyText(field, value, locale) {
+  const fixed = typeof field.currency === 'string' && field.currency ? field.currency : null;
+  const {
+    amount,
+    currency
+  } = (0,_money_js__WEBPACK_IMPORTED_MODULE_5__.moneyParts)(value, fixed);
+  return amount === null ? '' : (0,_money_js__WEBPACK_IMPORTED_MODULE_5__.formatMoney)(amount, currency, locale);
+}
+
+function renderMoneyView(field, value, ctx) {
+  const text = moneyText(field, value, (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(ctx.node));
+  return text ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-field-view sf-view-fields-amount">${text}</span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing;
+} // --- number inside a row -----------------------------------------------------------
+// A number cell of a row is a decimal string as a money amount is: the
+// Framework's number editor writes a float, which the rows refuse. An integer
+// cell is the Framework's own.
+
+
+function renderDecimalEdit(field, value, host, ctx) {
+  return decimalInput(ctx.node, {
+    path: ctx.path ?? String(field.key ?? ''),
+    value,
+    size: ctx.size,
+    label: field.label || field.key,
+    required: field.required,
+    textEnd: field.unit || '',
+    placeholder: field.placeholder,
+    check: text => decimalError(ctx.node, text, {
+      min: field.min ?? null,
+      max: field.max ?? null
+    }),
+    write: (next, error) => {
+      host.setFieldValue(field, next);
+      host.setFieldError?.(field, error);
+    }
+  });
+}
+
+function decimalText(field, value, locale) {
+  const text = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_4__.formatDecimal)(value, locale);
+  return text && field.unit ? `${text} ${field.unit}` : text;
+} // --- items: rows over columns ------------------------------------------------------
+
+
+function cellText(column, cell, columns, locale, viewHost) {
+  if (cell === null || typeof cell === 'undefined' || cell === '') return null;
+
+  switch (column.propertyType) {
+    case 'money':
+      {
+        const {
+          amount,
+          currency
+        } = (0,_money_js__WEBPACK_IMPORTED_MODULE_5__.moneyParts)(cell, (0,_rows_js__WEBPACK_IMPORTED_MODULE_6__.columnCurrency)(column, columns));
+        return amount === null ? null : (0,_money_js__WEBPACK_IMPORTED_MODULE_5__.formatMoney)(amount, currency, locale);
+      }
+
+    case 'percent':
+      return (0,_money_js__WEBPACK_IMPORTED_MODULE_5__.percentText)(cell, locale);
+
+    case 'number':
+      return decimalText(column, cell, locale);
+
+    default:
+      {
+        const shown = (0,_field_renderers_index_js__WEBPACK_IMPORTED_MODULE_2__.renderViewField)({ ...column,
+          value: cell
+        }, cell, viewHost, {
+          size: '1'
+        });
+        return shown === null || shown === lit__WEBPACK_IMPORTED_MODULE_0__.nothing ? null : shown;
+      }
+  }
+}
+
+function totalText(column, total, columns, locale) {
+  if (column.propertyType === 'money') {
+    const currency = (0,_rows_js__WEBPACK_IMPORTED_MODULE_6__.columnCurrency)(column, columns);
+    return (0,_money_js__WEBPACK_IMPORTED_MODULE_5__.formatMoney)((0,_decimal_js__WEBPACK_IMPORTED_MODULE_4__.decimalString)(total), currency, locale);
+  }
+
+  if (column.propertyType === 'percent') return (0,_money_js__WEBPACK_IMPORTED_MODULE_5__.percentText)((0,_decimal_js__WEBPACK_IMPORTED_MODULE_4__.decimalString)(total), locale);
+  return decimalText(column, (0,_decimal_js__WEBPACK_IMPORTED_MODULE_4__.decimalString)(total), locale);
+} // A column's share of the row: text widest, a yes-or-no narrowest.
+
+
+function track(column) {
+  switch (column.propertyType) {
+    case 'boolean':
+      return 'minmax(4rem, auto)';
+    // Wide enough for the control's own padding, a suffix (% or a currency
+    // sign) and the digits a person types: a 5.5rem percent showed «2 %» for 20.
+
+    case 'integer':
+      return 'minmax(5.5rem, 0.6fr)';
+
+    case 'percent':
+      return 'minmax(6.5rem, 0.6fr)';
+
+    case 'number':
+      return 'minmax(6.5rem, 0.7fr)';
+
+    case 'money':
+      return column.currency ? 'minmax(9rem, 0.9fr)' : 'minmax(13rem, 1.2fr)';
+
+    case 'date':
+      return 'minmax(9rem, 0.8fr)';
+
+    case 'choice':
+      return 'minmax(8rem, 1fr)';
+
+    default:
+      return 'minmax(10rem, 2fr)';
+  }
+}
+
+function itemsSummary(field, rows, columns, ctx) {
+  const locale = (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(ctx.node);
+  const totals = (0,_rows_js__WEBPACK_IMPORTED_MODULE_6__.rowTotals)(rows, columns);
+  const first = columns.find(column => Object.hasOwn(totals, column.key) && column.propertyType === 'money') ?? columns.find(column => Object.hasOwn(totals, column.key));
+  const count = rowsWord(ctx.node, rows.length);
+  return first ? `${count}, ${word(ctx.node, 'total').toLowerCase()} ${totalText(first, totals[first.key], columns, locale)}` : count;
+}
+
+function renderItemsTable(field, rows, columns, ctx, {
+  editing,
+  host
+}) {
+  const node = ctx.node;
+  const locale = (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(node);
+  const key = String(field.key ?? '');
+  const minRows = Number.isInteger(field.minRows) ? field.minRows : 0;
+  const maxRows = Number.isInteger(field.maxRows) ? field.maxRows : 1000; // Fewer rows than the field asks for are drawn as empty rows to fill in,
+  // and written only once something is typed in them.
+
+  const drawn = editing ? [...rows, ...Array.from({
+    length: Math.max(0, minRows - rows.length)
+  }, () => ({}))] : rows;
+  const totals = (0,_rows_js__WEBPACK_IMPORTED_MODULE_6__.rowTotals)(rows, columns);
+  const hasTotals = Object.keys(totals).length > 0;
+  const template = `${columns.map(track).join(' ')}${editing ? ' auto' : ''}`; // Every cell's mistake, by row and column, reported as one for the field:
+  // the field holds the save while any cell does.
+
+  const errors = cellErrorsOf(node, key);
+
+  const reportCells = () => {
+    const any = [...errors.values()].some(Boolean);
+    host.setFieldError?.(field, any ? word(node, 'cellsWrong') : null);
+  };
+
+  const writeRows = next => {
+    const computed = next.map(row => (0,_rows_js__WEBPACK_IMPORTED_MODULE_6__.computeRow)(row, columns, locale));
+    host.setFieldValue(field, computed.length ? computed : null);
+  };
+
+  const writeCell = (index, column, cell) => {
+    const next = drawn.map(row => ({ ...row
+    }));
+    if (cell === null || typeof cell === 'undefined' || cell === '') delete next[index][column.key];else next[index][column.key] = cell;
+    writeRows(next.slice(0, Math.max(rows.length, index + 1)));
+  }; // Rows move: what was typed in a cell and is not a value yet goes with the
+  // cell's place, so the drafts of this field are dropped.
+
+
+  const reshape = next => {
+    for (const path of [...draftsOf(node).keys()]) if (path.startsWith(`${key}[`)) draftsOf(node).delete(path);
+
+    for (const path of [...leftOf(node)]) if (path.startsWith(`${key}[`)) leftOf(node).delete(path);
+
+    errors.clear();
+    reportCells();
+    writeRows(next);
+  };
+
+  const cell = (row, index, column) => {
+    const path = `${key}[${index}].${column.key}`;
+    const value = row[column.key];
+
+    if (!editing || column.compute || field.readonly === true || column.readonly === true) {
+      const text = cellText(column, column.compute && editing ? (0,_rows_js__WEBPACK_IMPORTED_MODULE_6__.computeRow)(row, columns, locale)[column.key] : value, columns, locale, ctx.viewHost);
+      return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-view-items-text ${column.compute ? 'color-on-surface-variant' : ''}" data-computed=${column.compute ? 'true' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}>${text ?? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="color-on-surface-variant">—</span>`}</span>`;
+    }
+
+    const cellField = { ...column,
+      key: path,
+      label: column.label || column.key,
+      value
+    };
+    const cellHost = {
+      setFieldValue: (_target, next) => writeCell(index, column, next),
+      setFieldError: (_target, message) => {
+        errors.set(path, message || null);
+        reportCells();
+      }
+    };
+    const cellCtx = { ...ctx,
+      path
+    };
+
+    switch (column.propertyType) {
+      case 'money':
+        return renderMoneyEdit({ ...cellField,
+          currency: column.currency
+        }, value, cellHost, cellCtx);
+
+      case 'percent':
+        return renderPercentEdit(cellField, value, cellHost, cellCtx);
+
+      case 'number':
+        return renderDecimalEdit(cellField, value, cellHost, cellCtx);
+
+      default:
+        {
+          const control = (0,_field_renderers_index_js__WEBPACK_IMPORTED_MODULE_2__.renderEditField)(cellField, value, cellHost, {
+            size: ctx.size
+          });
+          return control ?? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-view-items-text">${cellText(column, value, columns, locale, ctx.viewHost) ?? '—'}</span>`;
+        }
+    }
+  };
+
+  const rowActions = index => (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+        <span class="sf-view-items-actions flex items-cross-center gap-1/4" role="cell">
+            <sf-button-icon size="1/2" appearance="link" scheme="secondary" icon="keyboard_arrow_up"
+                    data-action="row-up" ?disabled=${index === 0 || index >= rows.length}
+                    title=${word(node, 'rowUp')} aria-label=${word(node, 'rowUp')}
+                    @click=${() => {
+    const next = rows.slice();
+    [next[index - 1], next[index]] = [next[index], next[index - 1]];
+    reshape(next);
+  }}></sf-button-icon>
+            <sf-button-icon size="1/2" appearance="link" scheme="secondary" icon="keyboard_arrow_down"
+                    data-action="row-down" ?disabled=${index >= rows.length - 1}
+                    title=${word(node, 'rowDown')} aria-label=${word(node, 'rowDown')}
+                    @click=${() => {
+    const next = rows.slice();
+    [next[index + 1], next[index]] = [next[index], next[index + 1]];
+    reshape(next);
+  }}></sf-button-icon>
+            <sf-button-icon size="1/2" appearance="link" scheme="secondary" icon="delete"
+                    data-action="row-remove" ?disabled=${drawn.length <= minRows || index >= rows.length}
+                    title=${word(node, 'removeRow')} aria-label=${word(node, 'removeRow')}
+                    @click=${() => reshape(rows.filter((_row, at) => at !== index))}></sf-button-icon>
+        </span>
+    `;
+
+  return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+        <span class="sf-view-items-box">
+        <span class="sf-view-items ${editing ? 'sf-view-items--edit' : ''}" data-items=${key} role="table"
+              aria-label=${field.label || key} style=${`--sf-view-items-columns: ${template}`}>
+            <span class="sf-view-items-head" role="row">
+                ${columns.map(column => (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-view-items-heading ${_rows_js__WEBPACK_IMPORTED_MODULE_6__.NUMERIC.has(column.propertyType) ? 'sf-view-items-numeric' : ''}" role="columnheader">${column.label || column.key}${editing && column.required && !column.compute ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="color-error" aria-hidden="true"> *</span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}</span>`)}
+                ${editing ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-view-items-heading" role="columnheader"></span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+            </span>
+            ${drawn.map((row, index) => (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+                <span class="sf-view-items-row" role="row" data-row=${index} aria-label=${word(node, 'row', {
+    n: index + 1
+  })}>
+                    ${columns.map(column => (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+                        <span class="sf-view-items-cell ${_rows_js__WEBPACK_IMPORTED_MODULE_6__.NUMERIC.has(column.propertyType) ? 'sf-view-items-numeric' : ''}" role="cell" data-column=${column.key}>
+                            <span class="sf-view-items-cell-label color-on-surface-variant" aria-hidden="true">${column.label || column.key}</span>
+                            ${cell(row, index, column)}
+                        </span>`)}
+                    ${editing ? rowActions(index) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                </span>`)}
+            ${hasTotals && rows.length ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+                    <span class="sf-view-items-row sf-view-items-totals" role="row" data-totals="true">
+                        ${columns.map((column, at) => (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+                            <span class="sf-view-items-cell ${_rows_js__WEBPACK_IMPORTED_MODULE_6__.NUMERIC.has(column.propertyType) ? 'sf-view-items-numeric' : ''} ${Object.hasOwn(totals, column.key) ? '' : 'sf-view-items-cell--blank'}" role="cell" data-column=${column.key}>
+                                ${Object.hasOwn(totals, column.key) ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-view-items-cell-label color-on-surface-variant" aria-hidden="true">${word(node, 'total')}: ${column.label || column.key}</span><span class="sf-view-items-text sf-view-items-total">${totalText(column, totals[column.key], columns, locale)}</span>` : at === 0 ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-view-items-text sf-view-items-total-word">${word(node, 'total')}</span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                            </span>`)}
+                        ${editing ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span role="cell"></span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                    </span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+            ${editing ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+                    <span class="sf-view-items-foot flex items-cross-center gap-1">
+                        <sf-button appearance="outline" size=${ctx.size} icon="add" text=${word(node, 'addRow')}
+                                data-action="row-add" ?disabled=${drawn.length >= maxRows}
+                                @click=${() => reshape([...drawn, {}])}></sf-button>
+                    </span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+        </span>
+        </span>
+    `;
+}
+
+const CELL_ERRORS = new WeakMap();
+
+function cellErrorsOf(node, key) {
+  if (!CELL_ERRORS.has(node)) CELL_ERRORS.set(node, new Map());
+  const all = CELL_ERRORS.get(node);
+  if (!all.has(key)) all.set(key, new Map());
+  return all.get(key);
+}
+
+function renderItemsEdit(field, value, host, ctx) {
+  return renderItemsTable(field, (0,_rows_js__WEBPACK_IMPORTED_MODULE_6__.rowsOf)(value), (0,_rows_js__WEBPACK_IMPORTED_MODULE_6__.columnsOf)(field), ctx, {
+    editing: true,
+    host
+  });
+}
+
+function renderItemsView(field, value, ctx) {
+  const rows = (0,_rows_js__WEBPACK_IMPORTED_MODULE_6__.rowsOf)(value);
+  if (!rows.length) return lit__WEBPACK_IMPORTED_MODULE_0__.nothing;
+  if (ctx.summary) return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-field-view">${itemsSummary(field, rows, (0,_rows_js__WEBPACK_IMPORTED_MODULE_6__.columnsOf)(field), ctx)}</span>`;
+  return renderItemsTable(field, rows, (0,_rows_js__WEBPACK_IMPORTED_MODULE_6__.columnsOf)(field), ctx, {
+    editing: false,
+    host: null
+  });
+} // --- compound: a fixed set of parts, one value --------------------------------------
+// The parts of a requisites field, in the standard's order, of those the field
+// names (`parts`; all six when it names none). Each is typed as digits, the КПП
+// as digits and capital letters.
+
+
+const REQUISITE_LENGTH = {
+  inn: 12,
+  kpp: 9,
+  ogrn: 15,
+  bik: 9,
+  account: 20,
+  corr_account: 20
+};
+
+function requisiteParts(field) {
+  const named = Array.isArray(field.parts) ? field.parts.map(String) : _requisites_js__WEBPACK_IMPORTED_MODULE_7__.REQUISITE_PARTS;
+  return _requisites_js__WEBPACK_IMPORTED_MODULE_7__.REQUISITE_PARTS.filter(part => named.includes(part));
+}
+
+function compoundParts(field) {
+  return (Array.isArray(field.parts) ? field.parts : []).map(part => part && typeof part === 'object' ? { ...part,
+    propertyType: part.propertyType || part.type
+  } : null).filter(part => part?.key);
+}
+
+function objectOf(value) {
+  return value && typeof value === 'object' && !Array.isArray(value) ? value : {};
+} // The value written: the parts in their order, an empty part no key, and
+// nothing at all when every part is empty.
+
+
+function compoundValue(order, value) {
+  const next = {};
+
+  for (const part of order) {
+    const one = value[part];
+    if (one !== null && typeof one !== 'undefined' && one !== '') next[part] = one;
+  }
+
+  return Object.keys(next).length ? next : null;
+}
+
+function renderRequisitesEdit(field, value, host, ctx) {
+  const node = ctx.node;
+  const key = String(field.key ?? '');
+  const parts = requisiteParts(field);
+  const held = objectOf(value);
+  const errors = (0,_requisites_js__WEBPACK_IMPORTED_MODULE_7__.requisiteErrors)(held, parts);
+
+  const write = (part, text) => {
+    const cleaned = part === 'kpp' ? text.replace(/\s/gu, '').toUpperCase() : text.replace(/\D/gu, '');
+    const next = compoundValue(parts, { ...held,
+      [part]: cleaned
+    });
+    const mistakes = (0,_requisites_js__WEBPACK_IMPORTED_MODULE_7__.requisiteErrors)(next ?? {}, parts); // Nothing typed in a field that is not required is no mistake.
+
+    const blank = next === null && field.required !== true;
+    host.setFieldValue(field, next);
+    host.setFieldError?.(field, !blank && Object.keys(mistakes).length ? word(node, mistakes[Object.keys(mistakes)[0]]) : null);
+  };
+
+  return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+        <span class="sf-view-fields-compound grid gap-1 w-full min-w-0" data-compound=${key}>
+            ${parts.map(part => {
+    const path = `${key}.${part}`;
+    const left = leftOf(node).has(path);
+    const blank = Object.keys(held).length === 0 && field.required !== true;
+    const message = left && !blank && errors[part] ? word(node, errors[part]) : '';
+    return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+                    <span class="sf-view-fields-part flex flex-col gap-1/4 min-w-0 ${part === 'account' || part === 'corr_account' ? 'sf-view-fields-part--wide' : ''}" data-part=${part}>
+                        <span class="sf-view-fields-part-label color-on-surface-variant">${word(node, part)}${part === 'inn' && field.required ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="color-error" aria-hidden="true"> *</span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}</span>
+                        <sf-input
+                                size=${ctx.size}
+                                appearance="bordered"
+                                inputmode=${part === 'kpp' ? 'text' : 'numeric'}
+                                maxlength=${String(REQUISITE_LENGTH[part])}
+                                value=${String(held[part] ?? '')}
+                                ?required=${part === 'inn' && field.required === true}
+                                ?invalid=${Boolean(message)}
+                                error-message=${message || lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                                aria-label=${`${field.label || key}: ${word(node, part)}`}
+                                @input=${event => write(part, String(event.target?.value ?? ''))}
+                                @change=${event => write(part, String(event.target?.value ?? ''))}
+                                @focusout=${() => {
+      leftOf(node).add(path);
+      redraw(node);
+    }}
+                        ></sf-input>
+                    </span>`;
+  })}
+        </span>
+    `;
+}
+
+function requisitesText(field, value, node) {
+  const held = objectOf(value);
+  return requisiteParts(field).filter(part => held[part]).map(part => `${word(node, part)} ${held[part]}`).join(', ');
+}
+
+function renderRequisitesView(field, value, ctx) {
+  const text = requisitesText(field, value, ctx.node);
+  return text ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-field-view">${text}</span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing;
+}
+
+function renderCompoundEdit(field, value, host, ctx) {
+  const node = ctx.node;
+  const key = String(field.key ?? '');
+  const parts = compoundParts(field);
+  const order = parts.map(part => part.key);
+  const held = objectOf(value);
+  const errors = cellErrorsOf(node, key);
+  return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+        <span class="sf-view-fields-compound grid gap-1 w-full min-w-0" data-compound=${key}>
+            ${parts.map(part => {
+    const path = `${key}.${part.key}`;
+    const partField = { ...part,
+      key: path,
+      label: part.label || part.key,
+      readonly: field.readonly === true || part.readonly === true
+    };
+    const partHost = {
+      setFieldValue: (_target, next) => host.setFieldValue(field, compoundValue(order, { ...held,
+        [part.key]: next
+      })),
+      setFieldError: (_target, message) => {
+        errors.set(path, message || null);
+        const first = [...errors.values()].find(Boolean);
+        host.setFieldError?.(field, first ?? null);
+      }
+    };
+    const partCtx = { ...ctx,
+      path
+    };
+    const control = SET_CONTROLS[part.propertyType]?.edit(partField, held[part.key], partHost, partCtx) ?? (0,_field_renderers_index_js__WEBPACK_IMPORTED_MODULE_2__.renderEditField)(partField, held[part.key], partHost, {
+      size: ctx.size
+    });
+    return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+                    <span class="sf-view-fields-part flex flex-col gap-1/4 min-w-0 ${part.width === 'full' ? 'sf-view-fields-part--wide' : ''}" data-part=${part.key}>
+                        <span class="sf-view-fields-part-label color-on-surface-variant">${partField.label}${part.required ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="color-error" aria-hidden="true"> *</span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}</span>
+                        ${control ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                    </span>`;
+  })}
+        </span>
+    `;
+}
+
+function renderCompoundView(field, value, ctx) {
+  const held = objectOf(value);
+  const shown = compoundParts(field).filter(part => held[part.key] !== null && typeof held[part.key] !== 'undefined' && held[part.key] !== '');
+  if (!shown.length) return lit__WEBPACK_IMPORTED_MODULE_0__.nothing;
+  return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-field-view sf-view-fields-compound-view">${shown.map((part, at) => {
+    const own = SET_CONTROLS[part.propertyType]?.view({ ...part
+    }, held[part.key], ctx);
+    const content = own ?? (0,_field_renderers_index_js__WEBPACK_IMPORTED_MODULE_2__.renderViewField)({ ...part
+    }, held[part.key], ctx.viewHost, {
+      size: ctx.size
+    }) ?? String(held[part.key]);
+    return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`${at ? ', ' : ''}<span class="color-on-surface-variant">${part.label || part.key}</span> ${content}`;
+  })}</span>`;
+} // --- the map ---------------------------------------------------------------------
+
+
+const SET_CONTROLS = {
+  money: {
+    edit: renderMoneyEdit,
+    view: renderMoneyView
+  },
+  percent: {
+    edit: renderPercentEdit,
+    view: renderPercentView
+  },
+  items: {
+    edit: renderItemsEdit,
+    view: renderItemsView
+  },
+  compound: {
+    edit: renderCompoundEdit,
+    view: renderCompoundView
+  },
+  'ru.requisites': {
+    edit: renderRequisitesEdit,
+    view: renderRequisitesView
+  }
+};
+/** Whether the set draws this property type itself. */
+
+function drawsSetField(field) {
+  return Object.hasOwn(SET_CONTROLS, String(field?.propertyType || field?.type || ''));
+}
+/**
+ * A field of a type the set draws, edited or shown. `ctx` is {node, size,
+ * viewHost, disabled}: the element whose page language the words follow, the
+ * size on the ladder, the host's formatFieldValue, and whether a condition
+ * turns the field off. A field the person may not change is shown, as the
+ * Framework renderers show one.
+ */
+
+function renderSetField(field, value, editing, host, ctx) {
+  const control = SET_CONTROLS[String(field.propertyType || field.type)];
+  if (!control) return null;
+  const formatted = !editing ? ctx.viewHost?.formatFieldValue?.(field, value) : null;
+  if (typeof formatted === 'string' && formatted !== '') return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-field-view">${formatted}</span>`;
+
+  if (editing && field.readonly !== true && ctx.disabled !== true && host?.setFieldValue) {
+    return control.edit(field, value, host, ctx);
+  }
+
+  return control.view(field, value, ctx);
+}
+/** A field's value as one line of text: «1 500,50 ₽», «2 строки, итого 2 499,99 ₽». */
+
+function setFieldText(field, value, node) {
+  const locale = (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(node);
+
+  switch (String(field?.propertyType || field?.type || '')) {
+    case 'money':
+      return moneyText(field, value, locale);
+
+    case 'percent':
+      return (0,_money_js__WEBPACK_IMPORTED_MODULE_5__.percentText)(value, locale);
+
+    case 'items':
+      {
+        const rows = (0,_rows_js__WEBPACK_IMPORTED_MODULE_6__.rowsOf)(value);
+        return rows.length ? itemsSummary(field, rows, (0,_rows_js__WEBPACK_IMPORTED_MODULE_6__.columnsOf)(field), {
+          node
+        }) : '';
+      }
+
+    case 'ru.requisites':
+      return requisitesText(field, value, node);
+
+    default:
+      return null;
+  }
 }
 __webpack_async_result__();
 } catch(e) { __webpack_async_result__(e); } });
@@ -4697,6 +6236,15 @@ __webpack_async_result__();
 /***/ },
 
 /***/ "ce395bc5aedf"
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+// extracted by mini-css-extract-plugin
+
+
+/***/ },
+
+/***/ "f59c8bcdc90a"
 (__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 __webpack_require__.r(__webpack_exports__);
@@ -5665,7 +7213,7 @@ __webpack_require__.r(__webpack_exports__);
 /***/ "e4c87bda9c30"
 (module) {
 
-module.exports = /*#__PURE__*/JSON.parse('{"id":"smart.view-flow","tag":"sf-view-flow","version":"1.0.0","kind":"leaf","settings":{"mode":{"type":"enum","values":["view","edit"],"default":"view"},"heading":{"type":"string","default":""},"heading-level":{"type":"enum","values":["2","3","4","5","6"],"default":"3"},"fields":{"type":"list","default":[],"of":{"key":"string","label":{"type":"string","optional":true},"propertyType":"string","value":{"type":"any","nullable":true,"optional":true},"required":{"type":"boolean","optional":true},"readonly":{"type":"boolean","optional":true},"width":{"type":"string","optional":true},"hint":{"type":"string","optional":true},"when":{"type":"object","optional":true}}},"groups":{"type":"list","default":[],"of":{"key":"string","label":{"type":"string","optional":true},"collapsible":{"type":"boolean","optional":true},"collapsed":{"type":"boolean","optional":true},"fields":"list"}},"state":{"type":"enum","values":["open","pending","accepted","declined","expired"],"default":"open"},"expires-at":{"type":"date","optional":true},"block-id":{"type":"id","default":""},"disabled":{"type":"boolean","default":false},"size":{"type":"enum","values":["1","1/2"],"default":"1/2"},"cancelable":{"type":"boolean","default":true},"submit-text":{"type":"string","default-from":"runtime.submit-text"},"cancel-text":{"type":"string","default-from":"runtime.cancel-text"},"empty-text":{"type":"string","default-from":"runtime.empty-text"},"required-text":{"type":"string","default-from":"runtime.required-text"},"invalid-text":{"type":"string","default-from":"runtime.invalid-text"}},"values":{},"events":{"answer":{"carries":{"id":{"type":"id"},"accepted":"boolean","values":{"type":"object","optional":true}},"cancelable":true},"expired":{"carries":{"id":{"type":"id"}},"own-verb":true},"open":{"carries":{"id":{"type":"id"},"field":"string","value":"object"}}},"actions":{"open":{},"answer":{"with":{"accepted":"boolean"},"emits":"answer"},"confirm":{},"cancel":{},"settle":{"with":{"result":"object"}}},"layer":{"kind":"surface","locks-page":false,"traps-focus":false},"host-states":{"data-state":"string"},"css-variables":{"--sf-view-flow-radius":{"type":"length","state":"default"},"--sf-view-flow-inset":{"type":"length","state":"default"},"--sf-view-flow-gap":{"type":"length","state":"default"},"--sf-view-flow-background-color":{"type":"color","state":"default"},"--sf-view-flow-border-color":{"type":"color","state":"default"}}}');
+module.exports = /*#__PURE__*/JSON.parse('{"id":"smart.view-flow","tag":"sf-view-flow","version":"1.1.0","kind":"leaf","settings":{"mode":{"type":"enum","values":["view","edit"],"default":"view"},"heading":{"type":"string","default":""},"heading-level":{"type":"enum","values":["2","3","4","5","6"],"default":"3"},"fields":{"type":"list","default":[],"of":{"key":"string","label":{"type":"string","optional":true},"propertyType":"string","value":{"type":"any","nullable":true,"optional":true},"required":{"type":"boolean","optional":true},"readonly":{"type":"boolean","optional":true},"width":{"type":"string","optional":true},"hint":{"type":"string","optional":true},"when":{"type":"object","optional":true}}},"groups":{"type":"list","default":[],"of":{"key":"string","label":{"type":"string","optional":true},"collapsible":{"type":"boolean","optional":true},"collapsed":{"type":"boolean","optional":true},"fields":"list"}},"state":{"type":"enum","values":["open","pending","accepted","declined","expired"],"default":"open"},"expires-at":{"type":"date","optional":true},"block-id":{"type":"id","default":""},"disabled":{"type":"boolean","default":false},"size":{"type":"enum","values":["1","1/2"],"default":"1/2"},"cancelable":{"type":"boolean","default":true},"submit-text":{"type":"string","default-from":"runtime.submit-text"},"cancel-text":{"type":"string","default-from":"runtime.cancel-text"},"empty-text":{"type":"string","default-from":"runtime.empty-text"},"required-text":{"type":"string","default-from":"runtime.required-text"},"invalid-text":{"type":"string","default-from":"runtime.invalid-text"}},"values":{},"events":{"answer":{"carries":{"id":{"type":"id"},"accepted":"boolean","values":{"type":"object","optional":true}},"cancelable":true},"expired":{"carries":{"id":{"type":"id"}},"own-verb":true},"open":{"carries":{"id":{"type":"id"},"field":"string","value":"object"}}},"actions":{"open":{},"answer":{"with":{"accepted":"boolean"},"emits":"answer"},"confirm":{},"cancel":{},"settle":{"with":{"result":"object"}}},"layer":{"kind":"surface","locks-page":false,"traps-focus":false},"host-states":{"data-state":"string"},"css-variables":{"--sf-view-flow-radius":{"type":"length","state":"default"},"--sf-view-flow-inset":{"type":"length","state":"default"},"--sf-view-flow-gap":{"type":"length","state":"default"},"--sf-view-flow-background-color":{"type":"color","state":"default"},"--sf-view-flow-border-color":{"type":"color","state":"default"}}}');
 
 /***/ },
 
