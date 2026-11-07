@@ -3,6 +3,20 @@
 The set `view`, by its npm version `@simai-studio/view`; component versions
 in brackets. The site page «Изменения» says the same in Russian.
 
+## Unreleased
+
+- `sf-view-properties` 1.11.0: five property types drawn by the set from
+  SIMAI Framework controls (Larena property types standard, notes of
+  2026-11-03): `money` {amount, currency} (the currency's sign, or a currency
+  choice; minor digits by ISO 4217), `percent`, `items` (rows over columns:
+  typed and computed cells, totals, rows added, moved and removed within
+  `minRows`/`maxRows`, a card a row where narrow), `compound` and
+  `ru.requisites` (checked part by part and together). Decimal strings
+  throughout, never a float; an entry that is not a value yet holds the save.
+  Their settings are due in `simai.property-view-port` 1.18.0.
+- `sf-view-flow` 1.1.0: draws the same five types through the shared field
+  value.
+
 ## 1.2.0 — 2026-11-06
 
 - `sf-view-flow` 1.0.0 (preview): a few properties as a block in a
