@@ -23,14 +23,19 @@
 set -eu
 here=$(cd "$(dirname "$0")/.." && pwd)
 repo=$(git -C "$here" rev-parse --show-toplevel)
-workspace=${1:?usage: gates.sh <new workspace> [--ui-source DIR] [--ui DIR] [--builder DIR]}
+workspace=${1:?usage: gates.sh <new workspace> [--ui-source DIR] [--ui DIR] [--builder DIR] [--set ID=DIR ...]}
 shift
 ui_source="$repo/../ui-source"; ui="$repo/../ui"; builder="$repo/../ui-builder"
+# Each set the passport requires (requires_sets), as its released output (the
+# folder holding smart/rule.js): --set <id>=<dir>, else ../ui-<id>/package/dist
+# beside this repository.
+given_sets=""
 while [ $# -gt 0 ]; do
   case "$1" in
     --ui-source) ui_source=$2; shift 2 ;;
     --ui) ui=$2; shift 2 ;;
     --builder) builder=$2; shift 2 ;;
+    --set) given_sets="$given_sets $2"; shift 2 ;;
     *) echo "unknown option $1" >&2; exit 2 ;;
   esac
 done
@@ -52,6 +57,13 @@ git -C "$ui" archive --format=tar "$pair_commit" distr | tar -x -C "$workspace/f
 free="$workspace/free/distr"
 build="$workspace/build"
 output="$build/wave-1/output/package/view"
+sets=""
+for id in $(node -e "console.log((require('$here/set.json').requires_sets ?? []).map(({id}) => id).join(' '))"); do
+  dir="$repo/../ui-$id/package/dist"
+  for pair in $given_sets; do [ "${pair%%=*}" = "$id" ] && dir=${pair#*=}; done
+  [ -f "$dir/smart/rule.js" ] || { echo "the required set $id has no released output at $dir (pass --set $id=DIR)" >&2; exit 2; }
+  sets="$sets --set $id=$dir"
+done
 export PLAYWRIGHT_BROWSERS_PATH=${PLAYWRIGHT_BROWSERS_PATH:-$repo/../.playwright-browsers}
 
 step() { echo "== $1"; }
@@ -66,9 +78,9 @@ step unit
 step registry
 node "$here/scripts/check-registry.mjs" --registry "$workspace/names-main.json" > "$logs/registry.json"
 step manifest
-node "$here/scripts/run-manifest-probes.mjs" "$free" "$output" > "$logs/manifest.log" 2>&1
+node "$here/scripts/run-manifest-probes.mjs" "$free" "$output" $sets > "$logs/manifest.log" 2>&1
 step browser
-node "$here/scripts/run-browser-probes.mjs" "$free" "$output" > "$logs/browser.json" 2> "$logs/browser.err"
+node "$here/scripts/run-browser-probes.mjs" "$free" "$output" $sets > "$logs/browser.json" 2> "$logs/browser.err"
 step "first paint"
 node "$here/scripts/run-first-paint.mjs" check "$free" "$output" > "$logs/first-paint-check.log" 2>&1
 node "$here/scripts/run-first-paint.mjs" gate "$free" "$output" > "$logs/first-paint-gate.log" 2>&1

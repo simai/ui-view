@@ -13,7 +13,7 @@
 // The name declared is the one the build registers (pro; larena for a build
 // under the former name, which a Framework pair from before 2026-11-02 needs).
 import {spawnSync} from 'node:child_process';
-import {existsSync, readFileSync, rmSync, writeFileSync} from 'node:fs';
+import {existsSync, readdirSync, readFileSync, rmSync, writeFileSync} from 'node:fs';
 import {dirname, join, resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 
@@ -23,7 +23,13 @@ const runner = join(here, 'manifest-probes.browser.mjs');
 const FREE_BOOT = "window.SF_BOOT_CONFIG={preloader:{enabled:false}};";
 const ruleFile = join(process.argv[2], 'smart', 'smart', 'rule.js');
 const registered = existsSync(ruleFile) ? /registerPackage\(\s*["']([a-z][a-z0-9-]*)["']/u.exec(readFileSync(ruleFile, 'utf8')) : null;
-const PACKAGE_BOOT = `window.SF_BOOT_CONFIG={preloader:{enabled:false},packages:{${registered ? registered[1] : 'pro'}:{base:'/distr/smart'}}};`;
+// A set this set requires (set.json requires_sets), laid beside it under
+// smart/smart/set-<id> by scripts/run-browser-probes.mjs --set, is declared
+// with its own base, as a page declares both (data-sf-sets="<set> <required set>").
+const others = readdirSync(join(process.argv[2], 'smart', 'smart'))
+  .filter((entry) => entry.startsWith('set-') && existsSync(join(process.argv[2], 'smart', 'smart', entry, 'rule.js')))
+  .map((entry) => `,${entry.slice(4)}:{base:'/distr/smart/${entry}/'}`).join('');
+const PACKAGE_BOOT = `window.SF_BOOT_CONFIG={preloader:{enabled:false},packages:{${registered ? registered[1] : 'pro'}:{base:'/distr/smart'}${others}}};`;
 const source = readFileSync(runner, 'utf8');
 if (!source.includes(FREE_BOOT)) throw new Error('the Framework runner no longer boots the page as this wrapper expects');
 const PACKAGE = ['admin-menu', 'chat-composer', 'chat-interlocutor', 'chat-message', 'chat-threads', 'chat-window', 'editor-content', 'mail-canvas', 'mail-inspector', 'mail-letters', 'mail-structure', 'mail-library', 'message-log', 'view', 'view-properties', 'view-flow', 'view-table'];
