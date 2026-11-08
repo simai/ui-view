@@ -100,14 +100,19 @@ test('the registry at the pinned revision gives the set its family and names', {
   const passport = json(join(setRoot, 'set.json'));
   const registry = fromOverlay('contracts/registry/names.json');
   assert.deepEqual(registryProblems(registry, passport), []);
-  // Each relation names a rule of this set or of SIMAI Framework (no set is
-  // required): the free rule exists in the overlay.
+  // Each relation names a rule of this set, of a set it requires (a name the
+  // registry gives that set's owner) or of SIMAI Framework (the free rule
+  // exists in the overlay).
   const own = new Set(passport.components.map((component) => component.rule));
+  const required = new Set((passport.requires_sets ?? []).map(({id}) => id));
+  const ofRequired = new Set(registry.owners
+    .filter((owner) => owner.kind === 'set' && required.has(owner.id))
+    .flatMap((owner) => owner.names.map(({element}) => `cl-${element.slice(3)}`)));
   for (const component of passport.components) {
-    for (const rule of component.requires.filter((name) => !own.has(name))) {
+    for (const rule of component.requires.filter((name) => !own.has(name) && !ofRequired.has(name))) {
       const folder = rule.slice(3);
       assert.ok(existsSync(new URL(`src/smart/${folder}/rule.js`, overlay)) || existsSync(new URL(`src/component/${folder}`, overlay)),
-        `${component.element} needs ${rule}, which the pinned SIMAI Framework does not hold`);
+        `${component.element} needs ${rule}, which neither the pinned SIMAI Framework nor a required set holds`);
     }
   }
 });

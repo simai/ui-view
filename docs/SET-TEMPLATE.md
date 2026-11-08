@@ -22,17 +22,17 @@ package/                              the set (standard simai.component-set)
   README.md                           fill
   src/smart/<folder>/                 own    the components
   tests/*.test.mjs                    own    the components' tests
-  tests/set-passport.contract.test.mjs generic passport against schema, folders, rules, registry
+  tests/set-passport.contract.test.mjs generic passport against schema, folders, rules, registry; a relation may name a rule of a required set
   tests/set-registry.mjs              generic the registry check shared with the script
   tests/browser/*.browser.mjs         own    the components' browser probes
   tests/fixtures/                     own
   scripts/overlay.mjs                 generic* PACKAGE_NAME is the only literal (could read set.json id)
   scripts/test.mjs                    generic the CROSS_CUTTING list is the Framework's, not the set's
-  scripts/run-manifest-probes.mjs     generic
-  scripts/run-browser-probes.mjs      generic* the needsLab list names this set's lab probes
+  scripts/run-manifest-probes.mjs     generic --set <id>=<output> per required set
+  scripts/run-browser-probes.mjs      generic* the needsLab list names this set's lab probes; --set <id>=<output>
   scripts/run-first-paint.mjs         generic
   scripts/check-registry.mjs          generic
-  scripts/gates.sh                    generic* the package id `view` in two lines
+  scripts/gates.sh                    generic* the package id `view` in three lines; --set <id>=<dir>
   scripts/stage-npm.mjs               generic (effects adds its catalogue)
 site/                                 the Docara site
   composer.json                       fill   pins simai/docara exactly
@@ -96,6 +96,25 @@ the way a server would; the data is realistic and Russian.
 6. the browser probes;
 7. the first paint, `check` (committed snapshots current) and `gate`
    (1280 and 390 px, CLS).
+
+A set that requires another (`requires_sets` in `set.json`) is probed with
+that set beside it, as a page declares both (`data-sf-sets="chat view"`):
+`gates.sh` reads `requires_sets` and passes `--set <id>=<dir>` to the manifest
+and browser probes, `<dir>` being the required set's released output (the
+folder holding `smart/rule.js`), `../ui-<id>/package/dist` by default or
+`--set <id>=<dir>` on the command line. The probes lay it under
+`smart/smart/set-<id>/` and declare it with its own base. A relation to a rule
+of a required set (`cl-chat-message` to `cl-view-properties`) is met by the
+names the registry gives that set's owner: in `set-passport.contract.test.mjs`
+here, in ui-source `tests/loader-relations.contract.test.mjs` from ui-source
+2874cb5d on (with `SET_ROOT`), and in ui-builder `write-package-receipt.py`
+from eb0a3c9 on (with `--registry`). A set pinned to a pair older than that
+ui-source keeps `loader-relations` out of `CROSS_CUTTING` and carries the set
+half, as ui-chat `package/tests/loader-relations-set.contract.test.mjs` does.
+
+When the free side is a ui `distr`, the browser probes lay it out with
+symbolic links and copy the free `smart/smart` with `dereference: true`, so
+the set's folders land in the probe output, never inside the free `distr`.
 
 Then `site/scripts/build.sh <workspace>` builds the site over that same
 build, `site/scripts/serve.mjs` serves it on 127.0.0.1 with CORS (the

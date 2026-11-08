@@ -21,6 +21,17 @@ import {join, resolve} from 'node:path';
 import {PACKAGE_COMPONENTS, PACKAGE_ROOT, materializeOverlay} from './overlay.mjs';
 
 const args = process.argv.slice(2);
+// --set <id>=<output>: a released set this set requires (set.json requires_sets),
+// its output holding smart/<folder> and smart/rule.js, laid under
+// smart/smart/set-<id>/ (tests/browser/package-manifest-probes.browser.mjs
+// declares it with that base).
+const required = [];
+for (let index = args.indexOf('--set'); index !== -1; index = args.indexOf('--set', index)) {
+  const [id, path] = String(args[index + 1] ?? '').split('=');
+  if (!/^[a-z][a-z0-9-]*$/u.test(id ?? '') || !path) throw new Error('--set takes <id>=<output of that set>');
+  required.push({id, output: resolve(path)});
+  args.splice(index, 2);
+}
 const at = args.indexOf('--overlay');
 const overlay = resolve(at === -1 ? join(PACKAGE_ROOT, '.overlay') : args[at + 1]);
 const [freeInput, packageInput] = args.filter((value, index) => !value.startsWith('--') && (at === -1 || index !== at + 1));
@@ -53,11 +64,17 @@ const combined = join(overlay, '.probe-output');
 rmSync(combined, {force: true, recursive: true});
 mkdirSync(join(combined, 'smart'), {recursive: true});
 for (const product of ['core', 'component', 'utility']) symlinkSync(join(free, product), join(combined, product));
-cpSync(join(free, 'smart', 'smart'), join(combined, 'smart', 'smart'), {recursive: true});
+// dereference: with a distr given, free/smart/smart is a link into it, and a
+// copied link would let the set's folders land in the free distr itself.
+cpSync(join(free, 'smart', 'smart'), join(combined, 'smart', 'smart'), {recursive: true, dereference: true});
 for (const entry of readdirSync(join(built, 'smart'))) {
   const destination = join(combined, 'smart', 'smart', entry);
   if (existsSync(destination)) throw new Error(`the package output would replace the free smart/${entry}`);
   cpSync(join(built, 'smart', entry), destination, {recursive: true});
+}
+for (const {id, output} of required) {
+  if (!existsSync(join(output, 'smart', 'rule.js'))) throw new Error(`the required set ${id} has no smart/rule.js: ${output}`);
+  cpSync(join(output, 'smart'), join(combined, 'smart', 'smart', `set-${id}`), {recursive: true});
 }
 const roots = {
   output: combined,
