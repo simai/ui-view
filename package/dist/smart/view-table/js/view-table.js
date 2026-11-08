@@ -672,6 +672,173 @@ function composeTime(original, text) {
 
 /***/ },
 
+/***/ "ab3947ea3647"
+(module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   formatDecimal: () => (/* binding */ formatDecimal),
+/* harmony export */   formatMoney: () => (/* binding */ formatMoney),
+/* harmony export */   formatPercent: () => (/* binding */ formatPercent),
+/* harmony export */   fractionDigits: () => (/* binding */ fractionDigits),
+/* harmony export */   moneyParts: () => (/* binding */ moneyParts),
+/* harmony export */   readDecimal: () => (/* binding */ readDecimal)
+/* harmony export */ });
+/* harmony import */ var _core_js_format_intl_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("15b4e93ff6ed");
+var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_core_js_format_intl_js__WEBPACK_IMPORTED_MODULE_0__]);
+var __webpack_async_dependencies_result__ = (__webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
+_core_js_format_intl_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_async_dependencies_result__[0];
+// Decimal numbers as strings, never as floats (simai.property-view-port
+// 1.18.0; Larena property types standard, notes of 2026-11-03: «Never a float
+// on the wire»). What a person typed is read into a canonical decimal string,
+// and a decimal, a money amount and a percent are shown in the page's language
+// through Intl, which formats a string by its digits: «1500.10» never passes
+// through a float on the way to «1 500,10 ₽». Pure, so the unit suite reads it
+// without a browser; the View set draws the editors of money, percent and
+// items with its own copy of the same rules.
+
+const TYPED = /^([+-]?)(\d*)(?:[.,](\d*))?$/u; // Spaces a person or a formatter puts between groups of digits: the plain
+// space, the no-break space and the narrow no-break space ru-RU writes, and
+// the apostrophe some locales group with.
+
+const GROUP_SPACES = /[\s  ']/gu;
+/**
+ * What a person typed, read as a decimal: `{ok: true, value}` with the
+ * canonical string (an optional minus, the integer digits without leading
+ * zeros, the fraction digits as typed; null for nothing typed), or
+ * `{ok: false}` for text that is not a number. A comma and a point both
+ * separate the fraction. A JSON integer is read as its digits; a float is not
+ * a decimal and is refused rather than guessed at.
+ */
+
+function readDecimal(text) {
+  if (text === null || typeof text === 'undefined') return {
+    ok: true,
+    value: null
+  };
+
+  if (typeof text === 'number') {
+    return Number.isSafeInteger(text) ? {
+      ok: true,
+      value: String(text)
+    } : {
+      ok: false
+    };
+  }
+
+  const plain = String(text).replace(GROUP_SPACES, '');
+  if (plain === '') return {
+    ok: true,
+    value: null
+  };
+  const match = TYPED.exec(plain);
+  if (!match) return {
+    ok: false
+  };
+  const [, sign, whole, fraction] = match;
+  if (whole === '' && (fraction ?? '') === '') return {
+    ok: false
+  };
+  const integer = whole.replace(/^0+(?=\d)/u, '') || '0';
+  const digits = fraction ?? '';
+  const zero = /^0*$/u.test(integer + digits);
+  return {
+    ok: true,
+    value: `${sign === '-' && !zero ? '-' : ''}${integer}${digits ? `.${digits}` : ''}`
+  };
+}
+/** How many digits a canonical decimal string has after its point. */
+
+function fractionDigits(value) {
+  const at = String(value ?? '').indexOf('.');
+  return at === -1 ? 0 : String(value).length - at - 1;
+} // A float a host sent anyway is shown, not refused: a cell is not the place to
+// argue with a stored value. Only what reads as a decimal is formatted.
+
+function decimalOf(value) {
+  if (typeof value === 'number') return Number.isFinite(value) ? String(value) : null;
+  const read = readDecimal(value);
+  return read.ok ? read.value : null;
+}
+/** A decimal string in the locale's digits, with every digit it has: «1 500,5». */
+
+
+function formatDecimal(value, locale) {
+  const decimal = decimalOf(value);
+  if (decimal === null) return '';
+  const digits = Math.min(20, fractionDigits(decimal));
+  return (0,_core_js_format_intl_js__WEBPACK_IMPORTED_MODULE_0__.intlFormatter)('NumberFormat', locale, {
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits
+  }).format(decimal);
+}
+/** A money value as {amount, currency}; a field that fixes the currency takes a bare amount. */
+
+function moneyParts(value, fixed) {
+  const currency = typeof fixed === 'string' && fixed ? fixed : null;
+
+  if (value && typeof value === 'object' && !Array.isArray(value)) {
+    return {
+      amount: value.amount ?? null,
+      currency: currency || (value.currency ?? null)
+    };
+  }
+
+  if (value === null || typeof value === 'undefined' || value === '') return {
+    amount: null,
+    currency
+  };
+  return {
+    amount: value,
+    currency
+  };
+}
+/**
+ * An amount with its currency, as a person reads it: «1 500,50 ₽», «$1,500.50».
+ * The digits after the point are at least the currency's minor units (ISO
+ * 4217) and every digit the amount has. Without a currency, the amount alone.
+ */
+
+function formatMoney(value, field = {}, locale = 'en') {
+  const {
+    amount,
+    currency
+  } = moneyParts(value, field.currency);
+  const decimal = decimalOf(amount);
+  if (decimal === null) return '';
+  if (!currency) return formatDecimal(decimal, locale);
+  const minor = (0,_core_js_format_intl_js__WEBPACK_IMPORTED_MODULE_0__.intlFormatter)('NumberFormat', locale, {
+    style: 'currency',
+    currency
+  }).resolvedOptions().maximumFractionDigits ?? 2;
+  const digits = Math.min(20, Math.max(minor, fractionDigits(decimal)));
+  return (0,_core_js_format_intl_js__WEBPACK_IMPORTED_MODULE_0__.intlFormatter)('NumberFormat', locale, {
+    style: 'currency',
+    currency,
+    currencyDisplay: 'narrowSymbol',
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits
+  }).format(decimal);
+}
+/** A percent, «12,5 %» or «12.5%»: the value is the percent ("20" is 20 %), never the share. */
+
+function formatPercent(value, locale = 'en') {
+  const decimal = decimalOf(value);
+  if (decimal === null) return '';
+  const digits = Math.min(20, fractionDigits(decimal));
+  return (0,_core_js_format_intl_js__WEBPACK_IMPORTED_MODULE_0__.intlFormatter)('NumberFormat', locale, {
+    style: 'unit',
+    unit: 'percent',
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits
+  }).format(decimal);
+}
+__webpack_async_result__();
+} catch(e) { __webpack_async_result__(e); } });
+
+/***/ },
+
 /***/ "01ae054f01b4"
 (__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
@@ -738,11 +905,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _datetime_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__("9ce1a42b2a85");
 /* harmony import */ var _mask_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__("dd6973f77245");
 /* harmony import */ var _html_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__("01ae054f01b4");
-var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([lit__WEBPACK_IMPORTED_MODULE_0__, lit_directives_unsafe_html_js__WEBPACK_IMPORTED_MODULE_1__, _core_js_page_language__WEBPACK_IMPORTED_MODULE_3__]);
-([lit__WEBPACK_IMPORTED_MODULE_0__, lit_directives_unsafe_html_js__WEBPACK_IMPORTED_MODULE_1__, _core_js_page_language__WEBPACK_IMPORTED_MODULE_3__] = __webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
+/* harmony import */ var _decimal_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__("ab3947ea3647");
+var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([lit__WEBPACK_IMPORTED_MODULE_0__, lit_directives_unsafe_html_js__WEBPACK_IMPORTED_MODULE_1__, _core_js_page_language__WEBPACK_IMPORTED_MODULE_3__, _decimal_js__WEBPACK_IMPORTED_MODULE_8__]);
+([lit__WEBPACK_IMPORTED_MODULE_0__, lit_directives_unsafe_html_js__WEBPACK_IMPORTED_MODULE_1__, _core_js_page_language__WEBPACK_IMPORTED_MODULE_3__, _decimal_js__WEBPACK_IMPORTED_MODULE_8__] = __webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
 /* harmony import */ var lit__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(lit__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var lit_directives_unsafe_html_js__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(lit_directives_unsafe_html_js__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var _core_js_page_language__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__);
+
 
 
 
@@ -1109,7 +1278,13 @@ const FILTER_RENDERERS = {
   relation: renderEntityMultiSelectFilterControl,
   lookup: renderEntityMultiSelectFilterControl,
   file: renderFileFilterControl,
-  color: renderColorFilterControl
+  color: renderColorFilterControl,
+  // The types a component set draws (property-view port 1.18.0): a money
+  // amount and a percent are filtered as numbers (the host compares the
+  // amount, as a decimal), and an items field by its number of rows.
+  money: renderNumberFilterControl,
+  percent: renderNumberFilterControl,
+  items: renderNumberFilterControl
 }; // What a field asks to be filtered by: its own declared control if it has one,
 // otherwise its property type, otherwise text.
 
@@ -1363,7 +1538,10 @@ const CELL_RENDERERS = {
   record: renderReferenceCell,
   relation: renderReferenceCell,
   lookup: renderLookupCell,
-  html: renderHtmlCell
+  html: renderHtmlCell,
+  money: renderMoneyCell,
+  percent: renderPercentCell,
+  items: renderItemsCell
 }; // A consumer found this on their stand: the words were written into the set, so
 // an English admin saw «Да». The set must not decide what a value is called in
 // anyone's language. They come from the field, which is where the rest of the
@@ -1423,6 +1601,41 @@ function renderChoiceCell(field, value) {
 function renderHostFormattedCell(field, value, host) {
   const formatted = host?.formatFieldValue?.(field, value);
   return typeof formatted === 'string' && formatted !== '' ? formatted : null;
+} // The types a component set draws (property-view port 1.18.0) have their
+// cells here, so a table shows them wherever the set's editors live. A host's
+// formatFieldValue wins, as for a date; otherwise the page's language:
+//
+//   money     {amount, currency} or a bare amount under a fixed `currency`;
+//             «1 500,50 ₽», every digit the amount has and at least the
+//             currency's minor units, formatted from the digits, never a float
+//   percent   a decimal string of the percent, «12,5 %»
+//   items     a list of rows; how many, «3 строки»
+//
+// A value that is not one of these shapes falls through to the plain value.
+
+
+function renderMoneyCell(field, value, host) {
+  const formatted = renderHostFormattedCell(field, value, host);
+  if (formatted !== null) return formatted;
+  const text = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_8__.formatMoney)(scalarValue(value), field, (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(host ?? null));
+  return text || null;
+}
+
+function renderPercentCell(field, value, host) {
+  const formatted = renderHostFormattedCell(field, value, host);
+  if (formatted !== null) return formatted;
+  const text = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_8__.formatPercent)(scalarValue(value), (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(host ?? null));
+  return text || null;
+}
+
+function renderItemsCell(field, value, host) {
+  const formatted = renderHostFormattedCell(field, value, host);
+  if (formatted !== null) return formatted;
+  if (!Array.isArray(value)) return null;
+  return value.length ? (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageWord)(SET_TEXT, 'rowCount', host ?? null, {
+    component: SET_NAME,
+    count: value.length
+  }) : '';
 }
 
 function renderNumericCell(field, value, host) {
@@ -1597,10 +1810,14 @@ function renderPhoneEdit(field, value, host) {
 // Clearing a set password is not offered: an empty field means «keep».
 //
 // The typed text lives in the input and nowhere else: no `value` attribute on
-// sf-input, no data-*, no text node, no log. «Показать» is an icon button that
-// switches the input's type and says so with its pressed setting (aria-pressed); it changes the DOM
-// directly, so a host's re-render (its attributes are static in the template)
-// leaves the person's choice as it is.
+// sf-input, no data-*, no text node, no log. «Показать пароль» is an icon button
+// that switches the input's type and says what it will do next by its name and
+// icon: «Показать пароль» (visibility) while hidden, «Скрыть пароль»
+// (visibility_off) while shown. A toggle whose name changes is not a pressed
+// toggle (rule C12, point 3): it carries no aria-pressed and no pressed look,
+// or a reader would hear «Скрыть пароль, нажата». It changes the DOM directly,
+// so a host's re-render (its attributes are static in the template) leaves the
+// person's choice as it is.
 
 
 function isPasswordField(field) {
@@ -1616,13 +1833,13 @@ function passwordState(host, value) {
   return setText(host, passwordIsSet(value) ? 'passwordSet' : 'passwordUnset');
 }
 
-function togglePasswordShown(event) {
+function togglePasswordShown(event, host) {
   const button = event.currentTarget;
   const input = button?.closest?.('.sf-field-password')?.querySelector?.('sf-input');
   if (!input) return;
-  const shown = button.getAttribute('pressed') === 'false';
+  const shown = input.getAttribute('input-type') !== 'text';
   input.setAttribute('input-type', shown ? 'text' : 'password');
-  button.setAttribute('pressed', shown ? '' : 'false');
+  button.setAttribute('aria-label', setText(host, shown ? 'hidePassword' : 'showPassword'));
   button.setAttribute('icon', shown ? 'visibility_off' : 'visibility');
 }
 
@@ -1658,9 +1875,8 @@ function renderPasswordEdit(field, value, host) {
                     appearance="link"
                     scheme="on-surface"
                     icon="visibility"
-                    pressed="false"
                     aria-label=${setText(host, 'showPassword')}
-                    @click=${togglePasswordShown}
+                    @click=${event => togglePasswordShown(event, host)}
             ></sf-button-icon>
         </span>
     `;
@@ -1923,29 +2139,98 @@ function renderStepperEdit(field, value, host) {
                 @change=${write}
         ></sf-input-quantity>
     `;
+} // A number is a decimal (property-view port 1.18.0: «never a float on the
+// wire»). What is typed is read with a comma or a point and spaces between
+// groups. A number field whose value arrives as a string, or that declares
+// `precision`, is a decimal-string field: it writes the canonical decimal
+// string («1500.50»), never a float, and refuses more digits after the point
+// than `precision` allows. Any other number field writes a number, as before;
+// an integer field is unchanged. Text that is not a number is reported as a
+// masked string's incomplete entry is: through setFieldError, which holds the
+// save, and under the field once the person leaves it.
+
+
+function isDecimalStringField(field, value) {
+  return (field.propertyType || field.type) === 'number' && (typeof value === 'string' || Number.isInteger(field.precision));
 }
 
 function renderNumberEdit(field, value, host) {
   if (isStepperField(field)) return renderStepperEdit(field, value, host);
   const decimal = (field.propertyType || field.type) === 'number';
   value = scalarValue(value);
+
+  if (!decimal) {
+    return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+            <sf-input
+                    size=${EDIT_SIZE}
+                    appearance="bordered"
+                    name=${fieldName(field)}
+                    value=${value ?? ''}
+                    inputmode="numeric"
+                    ?required=${Boolean(field.required)}
+                    aria-label=${field.label || field.key || ''}
+                    @input=${event => {
+      const next = event.target?.value ?? '';
+      host.setFieldValue(field, next === '' ? null : Number(next));
+    }}
+                    @change=${event => {
+      const next = event.target?.value ?? '';
+      host.setFieldValue(field, next === '' ? null : Number(next));
+    }}
+            ></sf-input>
+        `;
+  }
+
+  const asString = isDecimalStringField(field, value);
+
+  const write = (event, left) => {
+    const input = event.currentTarget ?? event.target;
+    const text = String(input?.value ?? '');
+    const read = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_8__.readDecimal)(text);
+    let message = null;
+    if (!read.ok) message = setText(host, 'notNumber');else if (read.value !== null && Number.isInteger(field.precision) && (0,_decimal_js__WEBPACK_IMPORTED_MODULE_8__.fractionDigits)(read.value) > field.precision) {
+      message = (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageWord)(SET_TEXT, 'precisionMax', host ?? null, {
+        component: SET_NAME,
+        count: field.precision
+      });
+    }
+
+    if (message) {
+      if (left && input) {
+        input.setAttribute('error-message', message);
+        input.toggleAttribute('invalid', true);
+      }
+
+      if (typeof host.setFieldError === 'function') {
+        host.setFieldError(field, message);
+        host.setFieldValue(field, text);
+      } else {
+        host.setFieldValue(field, undefined);
+      }
+
+      return;
+    }
+
+    if (input?.hasAttribute?.('invalid')) {
+      input.toggleAttribute('invalid', false);
+      input.removeAttribute('error-message');
+    }
+
+    host.setFieldError?.(field, null);
+    if (read.value === null) host.setFieldValue(field, null);else host.setFieldValue(field, asString ? read.value : Number(read.value));
+  };
+
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
         <sf-input
                 size=${EDIT_SIZE}
                 appearance="bordered"
                 name=${fieldName(field)}
                 value=${value ?? ''}
-                inputmode=${decimal ? 'decimal' : 'numeric'}
+                inputmode="decimal"
                 ?required=${Boolean(field.required)}
                 aria-label=${field.label || field.key || ''}
-                @input=${event => {
-    const next = event.target?.value ?? '';
-    host.setFieldValue(field, next === '' ? null : Number(next));
-  }}
-                @change=${event => {
-    const next = event.target?.value ?? '';
-    host.setFieldValue(field, next === '' ? null : Number(next));
-  }}
+                @input=${event => write(event, false)}
+                @change=${event => write(event, true)}
         ></sf-input>
     `;
 } // A date control has no clock. `sf-input-date` declares a format and a date,
@@ -2388,7 +2673,14 @@ const SET_TEXT = {
     passwordUnset: 'Not set',
     passwordKeep: 'Set; type a new one to replace it',
     showPassword: 'Show password',
-    maskIncomplete: 'Complete the field'
+    hidePassword: 'Hide password',
+    maskIncomplete: 'Complete the field',
+    notNumber: 'Enter a number',
+    precisionMax: 'At most {n} digits after the point',
+    rowCount: {
+      one: '{n} row',
+      other: '{n} rows'
+    }
   },
   ru: {
     yes: 'Да',
@@ -2416,7 +2708,16 @@ const SET_TEXT = {
     passwordUnset: 'Не задан',
     passwordKeep: 'Задан; введите новый, чтобы заменить',
     showPassword: 'Показать пароль',
-    maskIncomplete: 'Заполните поле полностью'
+    hidePassword: 'Скрыть пароль',
+    maskIncomplete: 'Заполните поле полностью',
+    notNumber: 'Введите число',
+    precisionMax: 'Не больше {n} знаков после запятой',
+    rowCount: {
+      one: '{n} строка',
+      few: '{n} строки',
+      many: '{n} строк',
+      other: '{n} строки'
+    }
   }
 }; // The host's word wins, as it always did; the set's own fallback now follows
 // the page's language instead of being Russian whatever the page is. `host` is
@@ -2933,10 +3234,13 @@ function renderChoiceView(field, value) {
   const options = field.options || field.filter?.options || field.constraints?.options;
   const option = Array.isArray(options) ? options.find(item => String(item?.value) === String(value)) : null;
   if (!option) return lit__WEBPACK_IMPORTED_MODULE_0__.nothing;
-  const badge = (0,_helpers_option_badge_js__WEBPACK_IMPORTED_MODULE_2__.optionBadgeProps)(option);
+  const badge = (0,_helpers_option_badge_js__WEBPACK_IMPORTED_MODULE_2__.optionBadgeProps)(option); // A table cell is a dense place: the badge keeps the tight side room
+  // (sf-badge tight), as it had before sf-badge 1.3.0 widened the default.
+
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
         <sf-badge
                 line=${VIEW_LINE}
+                tight
                 appearance=${field.badgeAppearance ?? CELL_BADGE_APPEARANCE}
                 scheme=${badge.scheme}
                 style=${badge.rootStyle || lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
@@ -3262,12 +3566,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   modesOf: () => (/* binding */ modesOf)
 /* harmony export */ });
 // The registry of universal properties (owner, 2026-10-15): every property
-// type the Framework renders, its variants and the parameters a field of it
-// reads -- one list a host (Larena's fields and settings), the property
-// workbench and the documentation read, instead of each learning the types
-// from the renderers' source. Which modes a type has is not written here: it
-// is read from the renderer maps themselves (modesOf), so the registry cannot
-// claim a mode the set does not draw. A contract keeps the two the same.
+// type the Framework renders, or a component set renders beside it (`set`),
+// its variants and the parameters a field of it reads -- one list a host
+// (Larena's fields and settings), the property workbench and the documentation
+// read, instead of each learning the types from the renderers' source. Which
+// modes a type has is not written here: it is read from the renderer maps
+// themselves (modesOf), so the registry cannot claim a mode the set does not
+// draw. A contract keeps the two the same.
 //
 // `params` are the field keys the type's renderers read -- each one, and no
 // other (the probe field-renderer-params calls them with a field that records
@@ -3522,6 +3827,58 @@ const PROPERTY_TYPES = Object.freeze([{
   },
   variants: [],
   params: ['language', 'required', 'readonly']
+}, // The types a component set draws (property-view port 1.18.0; Larena
+// property types standard, notes of 2026-11-03): `set` names the set whose
+// components show and edit them -- the View set's sf-view-properties and
+// sf-view-flow -- and the Framework draws their table cells and filters
+// (money and percent as numbers, items by its number of rows). `params` are
+// the keys the type reads, in the set's renderers and in these. Every
+// number is a decimal string, never a float.
+{
+  type: 'money',
+  label: {
+    ru: 'Деньги',
+    en: 'Money'
+  },
+  set: 'view',
+  variants: [],
+  params: ['currency', 'min', 'max', 'required', 'readonly']
+}, {
+  type: 'percent',
+  label: {
+    ru: 'Процент',
+    en: 'Percent'
+  },
+  set: 'view',
+  variants: [],
+  params: ['min', 'max', 'required', 'readonly']
+}, {
+  type: 'items',
+  label: {
+    ru: 'Строки',
+    en: 'Rows'
+  },
+  set: 'view',
+  variants: [],
+  params: ['columns', 'minRows', 'maxRows', 'required', 'readonly']
+}, {
+  type: 'compound',
+  label: {
+    ru: 'Составное',
+    en: 'Compound'
+  },
+  set: 'view',
+  variants: [],
+  params: ['parts', 'required', 'readonly']
+}, {
+  type: 'ru.requisites',
+  label: {
+    ru: 'Реквизиты',
+    en: 'Requisites (Russia)'
+  },
+  set: 'view',
+  variants: [],
+  params: ['parts', 'required', 'readonly']
 }]); // The modes a type has, read from the renderer maps: view and edit (a record),
 // cell (a table) and filter -- `own` when the set has a filter control for the
 // type, `text` when a filter falls back to a text search.
@@ -8159,7 +8516,9 @@ class SfTable extends TableElement {
   renderFilterOption(field = {}, option = {}, selected = new Set()) {
     const value = option.value ?? option.id ?? option.key ?? option.label ?? option.title;
     const label = option.label || option.title || String(value || '');
-    const badge = field.filter?.optionRenderer === 'badge' ? (0,_helpers_option_badge_js__WEBPACK_IMPORTED_MODULE_8__.optionBadgeProps)(option) : null;
+    const badge = field.filter?.optionRenderer === 'badge' ? (0,_helpers_option_badge_js__WEBPACK_IMPORTED_MODULE_8__.optionBadgeProps)(option) : null; // An option list is a dense place: its badge keeps the size's own narrow
+    // side room (sf-badge tight, sf-badge 1.3.0), as a cell's choice badge does.
+
     return (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
             <div
                     ${(0,lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_13__.ref)(this.getItemRef(option.label))}
@@ -8168,6 +8527,7 @@ class SfTable extends TableElement {
                     ${badge ? (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
                         <sf-badge
                                 appearance="tonal"
+                                tight
                                 scheme=${badge.scheme}
                                 root-style=${badge.rootStyle || lit__WEBPACK_IMPORTED_MODULE_12__.nothing}
                                 icon=${option.icon || lit__WEBPACK_IMPORTED_MODULE_12__.nothing}
@@ -13975,7 +14335,7 @@ module.exports = /*#__PURE__*/JSON.parse('{"$comment":"Dated aliases of sf-view-
 /***/ "c1f17ed5a348"
 (module) {
 
-module.exports = /*#__PURE__*/JSON.parse('{"id":"smart.view-table","tag":"sf-view-table","version":"1.15.0","kind":"leaf","settings":{"selectable":{"type":"boolean","default":true},"settings":{"type":"boolean","default":true},"actions":{"type":"boolean","default":true},"row-actions":{"type":"boolean","default":true},"creatable":{"type":"boolean","default":true},"filter-templates":{"type":"boolean","default":true},"settings-menu":{"type":"boolean","default":true},"pagin":{"type":"boolean","default":false},"filter-text":{"type":"string","default-from":"runtime.filter-text"},"clear-text":{"type":"string","default-from":"runtime.clear-text"},"search-placeholder":{"type":"string","default-from":"runtime.search-placeholder"},"create-text":{"type":"string","default-from":"runtime.create-text"},"pagination-total":{"type":"number","default":10,"integer":true,"min":0},"pagination-page-size":{"type":"number","default":10,"integer":true,"min":1,"max":100},"page-sizes":{"type":"string","default":"10,20,30,40"},"context-menu-columns":{"type":"number","default":1,"integer":true,"min":1,"max":4},"remember-widths":{"type":"boolean","default":false},"table-settings-key":{"type":"string","default":""},"data-state":{"type":"enum","values":["auto","loading","ready","populated","empty","error"],"default":"auto","x-alias":{"populated":"ready"}},"loading-text":{"type":"string","default-from":"runtime.loading-text"},"empty-text":{"type":"string","default-from":"runtime.empty-text"},"empty-description":{"type":"string"},"error-text":{"type":"string","default-from":"runtime.error-text"},"retry-text":{"type":"string","default-from":"runtime.retry-text"},"toolbar":{"type":"boolean","default":true},"pin-column-label":{"type":"string","default-from":"runtime.pin-column-label"},"unpin-column-label":{"type":"string","default-from":"runtime.unpin-column-label"},"column-move-label":{"type":"string","default-from":"runtime.column-move-label"},"column-search-placeholder":{"type":"string","default-from":"runtime.column-search-placeholder"},"column-search-empty-text":{"type":"string","default-from":"runtime.column-search-empty-text"},"vertical-scroll":{"type":"enum","values":["self","page"],"default":"self"},"filter-apply-text":{"type":"string","default-from":"runtime.filter-apply-text"},"layout":{"type":"enum","values":["auto","table","list"],"default":"table"},"list-below":{"type":"number","default":600},"list-fields":{"type":"number","default":3},"size":{"type":"enum","values":["1/2","1"],"default":"1"},"preferences-key":{"type":"string","default":""},"row-actions-visible":{"type":"enum","values":["hover","always"],"default":"hover"},"drag-rows":{"type":"boolean","default":false},"row-reorder":{"type":"boolean","default":false},"inline-edit":{"type":"boolean","default":false},"active-filter-fields":{"type":"list","entries":{"key":"id"}},"bulk-actions":{"type":"list"},"columns":{"type":"list","of":{"key":"string","label":"string"}},"create-items":{"type":"list"},"filter-fields":{"type":"list"},"rows":{"type":"list","entries":{"key":"id","changes":"revision"},"of":{"id":"id","revision":{"type":"string","optional":true}}},"table-data":{"type":"object"},"table-settings":{"type":"object"},"templates":{"type":"list"},"toolbar-actions":{"type":"list"},"sort":{"type":"list","of":{"key":"string","direction":{"type":"enum","values":["asc","desc"]}},"controlled":true},"current":{"type":"string","default":""}},"values":{"selected":{"type":"id","optional":true},"selection":{"type":"list","default":[]}},"events":{"select":{"carries":{"ids":"list"}},"apply":{"carries":{"action":"string","scope":{"type":"enum","values":["entry","selection","filter"]},"ids":"list","revisions":{"type":"object","optional":true}}},"save":{"carries":{"kind":{"type":"enum","values":["columns"]},"reason":"string","column-settings":{"type":"object"},"table-settings-key":{"type":"string"}}},"column-settings-reset":{"carries":{"target":{"type":"enum","values":["personal"]},"table-settings-key":{"type":"string","nullable":true}},"own-verb":true},"create":{"carries":{"item":{"type":"string","nullable":true,"optional":true}}},"filter-change":{"carries":{"template-key":{"type":"string"},"template-label":{"type":"string"},"values":{"type":"object"},"tags":{"type":"object"}},"own-verb":true},"query":{"carries":{"reason":"string","context":"object","sequence":{"type":"number","integer":true}}},"refresh":{"carries":{}},"search-change":{"carries":{"search":"string"},"own-verb":true},"sort-change":{"carries":{"key":{"type":"string","schema":{"minLength":1}},"direction":{"type":"enum","values":["asc","desc",null],"nullable":true}},"own-verb":true},"template-delete":{"carries":{"key":{"type":"string","schema":{"minLength":1}}},"own-verb":true},"template-save":{"carries":{},"own-verb":true},"template-select":{"carries":{"key":{"type":"string","schema":{"minLength":1}}},"own-verb":true},"toolbar-action":{"carries":{"action":"string","href":{"type":"string","nullable":true,"optional":true}},"cancelable":true,"own-verb":true},"reference-open":{"carries":{"field":"string","value":"object","href":"string"},"cancelable":true,"own-verb":true},"expand":{"carries":{"id":"id","expanded":{"type":"boolean","optional":true}}},"load-more":{"carries":{"direction":{"type":"enum","values":["after"]},"parent":{"type":"id","nullable":true},"cursor":{"type":"string","nullable":true}}},"rows-drag":{"carries":{"ids":{"type":"list","schema":{"items":{"type":"string"},"minItems":1}},"source":{"type":"string","nullable":true}},"own-verb":true},"move":{"carries":{"ids":"list","before":{"type":"id","nullable":true},"order":"list"}},"cell-set":{"carries":{"id":"object","key":"string","value":"object","revision":"object"},"own-verb":true},"view-change":{"carries":{"view":"object","everywhere":"boolean"},"own-verb":true},"window":{"carries":{"first":{"type":"number","integer":true},"last":{"type":"number","integer":true}},"own-verb":true}},"actions":{"add-rows":{"with":{"rows":"list"}},"apply-query-result":{"with":{"sequence":{"type":"number","integer":true,"schema":{"minimum":1}},"rows":"list"}},"clear-selection":{},"request-action-intent":{"with":{"action-id":{"type":"string","schema":{"minLength":1}},"record-ids":{"type":"list","schema":{"items":{"type":["string","integer"],"minLength":1},"minItems":1}}},"emits":"apply"},"request-create-intent":{"with":{"item-id":{"type":"string","optional":true,"nullable":true}},"emits":"create"},"request-retry":{"emits":"refresh"},"set-sort":{"with":{"key":{"type":"string","nullable":true},"direction":{"type":"enum","values":["asc","desc"],"nullable":true}}},"toggle-tree-row":{"with":{"row":"object"},"emits":"expand"},"request-tree-more":{"with":{"row":"object"},"emits":"load-more"},"focus-row":{"with":{"id":"id"}}},"port":{"id":"simai.dataview-port","version":"1.0.0","contract":"src/core/contracts/ports/simai.dataview-port/1.0.0/port.json"},"presentation":{"skeleton":{"late":["rows"]}},"host-states":{"data-sf-view-stripes":"boolean","data-sf-page-scroll":"boolean"},"css-variables":{"--sf-table-row-block-size-1/2":{"type":"length","state":"default"},"--sf-table-row-block-size-1":{"type":"length","state":"default"},"--sf-table-row-2-lines-block-size-1/2":{"type":"length","state":"default"},"--sf-table-row-2-lines-block-size-1":{"type":"length","state":"default"},"--sf-table-head-block-size-1/2":{"type":"length","state":"default"},"--sf-table-head-block-size-1":{"type":"length","state":"default"},"--sf-table-toolbar-block-size-1/2":{"type":"length","state":"default"},"--sf-table-toolbar-block-size-1":{"type":"length","state":"default"},"--sf-table-toolbar-gap":{"type":"length","state":"default"},"--sf-table-head--background-color":{"type":"color","state":"default"},"--sf-table-row--background-color":{"type":"color","state":"default"},"--sf-table--cell-spacing":{"type":"length","state":"default"},"--sf-table-cell--line-clamp":{"type":"number","state":"default"},"--sf-table-context-menu--z-index":{"type":"number","state":"open"},"--sf-table-context-menu--max-width":{"type":"length","state":"open"}}}');
+module.exports = /*#__PURE__*/JSON.parse('{"id":"smart.view-table","tag":"sf-view-table","version":"1.15.1","kind":"leaf","settings":{"selectable":{"type":"boolean","default":true},"settings":{"type":"boolean","default":true},"actions":{"type":"boolean","default":true},"row-actions":{"type":"boolean","default":true},"creatable":{"type":"boolean","default":true},"filter-templates":{"type":"boolean","default":true},"settings-menu":{"type":"boolean","default":true},"pagin":{"type":"boolean","default":false},"filter-text":{"type":"string","default-from":"runtime.filter-text"},"clear-text":{"type":"string","default-from":"runtime.clear-text"},"search-placeholder":{"type":"string","default-from":"runtime.search-placeholder"},"create-text":{"type":"string","default-from":"runtime.create-text"},"pagination-total":{"type":"number","default":10,"integer":true,"min":0},"pagination-page-size":{"type":"number","default":10,"integer":true,"min":1,"max":100},"page-sizes":{"type":"string","default":"10,20,30,40"},"context-menu-columns":{"type":"number","default":1,"integer":true,"min":1,"max":4},"remember-widths":{"type":"boolean","default":false},"table-settings-key":{"type":"string","default":""},"data-state":{"type":"enum","values":["auto","loading","ready","populated","empty","error"],"default":"auto","x-alias":{"populated":"ready"}},"loading-text":{"type":"string","default-from":"runtime.loading-text"},"empty-text":{"type":"string","default-from":"runtime.empty-text"},"empty-description":{"type":"string"},"error-text":{"type":"string","default-from":"runtime.error-text"},"retry-text":{"type":"string","default-from":"runtime.retry-text"},"toolbar":{"type":"boolean","default":true},"pin-column-label":{"type":"string","default-from":"runtime.pin-column-label"},"unpin-column-label":{"type":"string","default-from":"runtime.unpin-column-label"},"column-move-label":{"type":"string","default-from":"runtime.column-move-label"},"column-search-placeholder":{"type":"string","default-from":"runtime.column-search-placeholder"},"column-search-empty-text":{"type":"string","default-from":"runtime.column-search-empty-text"},"vertical-scroll":{"type":"enum","values":["self","page"],"default":"self"},"filter-apply-text":{"type":"string","default-from":"runtime.filter-apply-text"},"layout":{"type":"enum","values":["auto","table","list"],"default":"table"},"list-below":{"type":"number","default":600},"list-fields":{"type":"number","default":3},"size":{"type":"enum","values":["1/2","1"],"default":"1"},"preferences-key":{"type":"string","default":""},"row-actions-visible":{"type":"enum","values":["hover","always"],"default":"hover"},"drag-rows":{"type":"boolean","default":false},"row-reorder":{"type":"boolean","default":false},"inline-edit":{"type":"boolean","default":false},"active-filter-fields":{"type":"list","entries":{"key":"id"}},"bulk-actions":{"type":"list"},"columns":{"type":"list","of":{"key":"string","label":"string"}},"create-items":{"type":"list"},"filter-fields":{"type":"list"},"rows":{"type":"list","entries":{"key":"id","changes":"revision"},"of":{"id":"id","revision":{"type":"string","optional":true}}},"table-data":{"type":"object"},"table-settings":{"type":"object"},"templates":{"type":"list"},"toolbar-actions":{"type":"list"},"sort":{"type":"list","of":{"key":"string","direction":{"type":"enum","values":["asc","desc"]}},"controlled":true},"current":{"type":"string","default":""}},"values":{"selected":{"type":"id","optional":true},"selection":{"type":"list","default":[]}},"events":{"select":{"carries":{"ids":"list"}},"apply":{"carries":{"action":"string","scope":{"type":"enum","values":["entry","selection","filter"]},"ids":"list","revisions":{"type":"object","optional":true}}},"save":{"carries":{"kind":{"type":"enum","values":["columns"]},"reason":"string","column-settings":{"type":"object"},"table-settings-key":{"type":"string"}}},"column-settings-reset":{"carries":{"target":{"type":"enum","values":["personal"]},"table-settings-key":{"type":"string","nullable":true}},"own-verb":true},"create":{"carries":{"item":{"type":"string","nullable":true,"optional":true}}},"filter-change":{"carries":{"template-key":{"type":"string"},"template-label":{"type":"string"},"values":{"type":"object"},"tags":{"type":"object"}},"own-verb":true},"query":{"carries":{"reason":"string","context":"object","sequence":{"type":"number","integer":true}}},"refresh":{"carries":{}},"search-change":{"carries":{"search":"string"},"own-verb":true},"sort-change":{"carries":{"key":{"type":"string","schema":{"minLength":1}},"direction":{"type":"enum","values":["asc","desc",null],"nullable":true}},"own-verb":true},"template-delete":{"carries":{"key":{"type":"string","schema":{"minLength":1}}},"own-verb":true},"template-save":{"carries":{},"own-verb":true},"template-select":{"carries":{"key":{"type":"string","schema":{"minLength":1}}},"own-verb":true},"toolbar-action":{"carries":{"action":"string","href":{"type":"string","nullable":true,"optional":true}},"cancelable":true,"own-verb":true},"reference-open":{"carries":{"field":"string","value":"object","href":"string"},"cancelable":true,"own-verb":true},"expand":{"carries":{"id":"id","expanded":{"type":"boolean","optional":true}}},"load-more":{"carries":{"direction":{"type":"enum","values":["after"]},"parent":{"type":"id","nullable":true},"cursor":{"type":"string","nullable":true}}},"rows-drag":{"carries":{"ids":{"type":"list","schema":{"items":{"type":"string"},"minItems":1}},"source":{"type":"string","nullable":true}},"own-verb":true},"move":{"carries":{"ids":"list","before":{"type":"id","nullable":true},"order":"list"}},"cell-set":{"carries":{"id":"object","key":"string","value":"object","revision":"object"},"own-verb":true},"view-change":{"carries":{"view":"object","everywhere":"boolean"},"own-verb":true},"window":{"carries":{"first":{"type":"number","integer":true},"last":{"type":"number","integer":true}},"own-verb":true}},"actions":{"add-rows":{"with":{"rows":"list"}},"apply-query-result":{"with":{"sequence":{"type":"number","integer":true,"schema":{"minimum":1}},"rows":"list"}},"clear-selection":{},"request-action-intent":{"with":{"action-id":{"type":"string","schema":{"minLength":1}},"record-ids":{"type":"list","schema":{"items":{"type":["string","integer"],"minLength":1},"minItems":1}}},"emits":"apply"},"request-create-intent":{"with":{"item-id":{"type":"string","optional":true,"nullable":true}},"emits":"create"},"request-retry":{"emits":"refresh"},"set-sort":{"with":{"key":{"type":"string","nullable":true},"direction":{"type":"enum","values":["asc","desc"],"nullable":true}}},"toggle-tree-row":{"with":{"row":"object"},"emits":"expand"},"request-tree-more":{"with":{"row":"object"},"emits":"load-more"},"focus-row":{"with":{"id":"id"}}},"port":{"id":"simai.dataview-port","version":"1.0.0","contract":"src/core/contracts/ports/simai.dataview-port/1.0.0/port.json"},"presentation":{"skeleton":{"late":["rows"]}},"host-states":{"data-sf-view-stripes":"boolean","data-sf-page-scroll":"boolean"},"css-variables":{"--sf-table-row-block-size-1/2":{"type":"length","state":"default"},"--sf-table-row-block-size-1":{"type":"length","state":"default"},"--sf-table-row-2-lines-block-size-1/2":{"type":"length","state":"default"},"--sf-table-row-2-lines-block-size-1":{"type":"length","state":"default"},"--sf-table-head-block-size-1/2":{"type":"length","state":"default"},"--sf-table-head-block-size-1":{"type":"length","state":"default"},"--sf-table-toolbar-block-size-1/2":{"type":"length","state":"default"},"--sf-table-toolbar-block-size-1":{"type":"length","state":"default"},"--sf-table-toolbar-gap":{"type":"length","state":"default"},"--sf-table-head--background-color":{"type":"color","state":"default"},"--sf-table-row--background-color":{"type":"color","state":"default"},"--sf-table--cell-spacing":{"type":"length","state":"default"},"--sf-table-cell--line-clamp":{"type":"number","state":"default"},"--sf-table-context-menu--z-index":{"type":"number","state":"open"},"--sf-table-context-menu--max-width":{"type":"length","state":"open"}}}');
 
 /***/ },
 
