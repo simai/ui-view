@@ -19,8 +19,9 @@ test("the package composites are generated into the searchable registry beside t
   // four (sf-view-flow joined) make 75. At 8c0b5d2b (pair ui-5edc71bd6936)
   // the free registry holds 78 (sf-language, sf-settings, sf-wizard,
   // sf-wizard-step, sf-tile-metric, sf-list-attention, sf-progress-run
-  // joined): 82.
-  assert.equal(registry.entries.length, 82);
+  // joined): 82. At da48ba8f (pair ui-0c23f6a0af12) it holds 81
+  // (sf-input-choice, sf-list-description, sf-list-timeline): 85.
+  assert.equal(registry.entries.length, 85);
   assert.ok(registry.entries.some((entry) => entry.id === "smart.confirm-change"), "sf-confirm-change, the Framework's");
   for (const id of ["smart.view-table", "smart.view", "smart.view-properties", "smart.view-flow"]) {
     assert.ok(registry.entries.some((entry) => entry.id === id), id);
@@ -58,8 +59,8 @@ test("CLI discovers and describes the whole data view", () => {
   // recorded in the port files and the ledger rather than restated in a comment
   // that nothing holds to the truth. Every version before the current one stays
   // supported, so a host does not have to move.
-  assert.equal(composite.host_port.version, "1.13.0");
-  assert.deepEqual(composite.host_port.supported_versions, ["1.0.0", "1.1.0", "1.2.0", "1.3.0", "1.4.0", "1.5.0", "1.6.0", "1.7.0", "1.8.0", "1.9.0", "1.10.0", "1.11.0", "1.12.0", "1.13.0"]);
+  assert.equal(composite.host_port.version, "1.14.0");
+  assert.deepEqual(composite.host_port.supported_versions, ["1.0.0", "1.1.0", "1.2.0", "1.3.0", "1.4.0", "1.5.0", "1.6.0", "1.7.0", "1.8.0", "1.9.0", "1.10.0", "1.11.0", "1.12.0", "1.13.0", "1.14.0"]);
 });
 
 test("table preferences remain operable through the canonical source", () => {
