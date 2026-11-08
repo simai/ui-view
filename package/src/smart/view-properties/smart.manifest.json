@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-properties",
-  "version": "1.11.1",
+  "version": "1.12.0",
   "title": "Property view",
   "summary": "One object's fields shown as sections, groups and fields, each drawn by the per-type field renderer set, behind a separate host port. A group is edited and saved as one revision by the button, and a reference field is picked from the host's own candidates a page at a time. The pair to the data view: that one is a set of records, this one is a single object.",
   "kind": "composite",
@@ -625,7 +625,7 @@
       "const": "A reference field is picked from the host's candidates when the host announces the field-options capability, a page at a time with the search answered by the host. Without the capability the field shows its current value read-only, which is better than an empty control over a value that exists."
     },
     "panel": {
-      "const": "The panel is modeless -- modal and overlay both off -- so the list it was opened from stays visible and usable. Esc is handled by the composite rather than by the drawer, because in a stack it must close the top window only."
+      "const": "The panel is an sf-drawer with modal and overlay on, so the page behind is covered and dimmed rather than squeezed. It is a layer of the Framework's one layer stack (core layer-stack.js, standard 1.3.8 §19), shared with sf-modal, the other drawers and the menus: the stack hands Escape to the top layer only, and the drawer's close is refused and raised as this component's cancelable close, because a panel never closes itself."
     },
     "address": {
       "const": "A window's address is the host's. The component copies it and announces it and never constructs one; without an address neither the copy nor the open control is rendered."
@@ -637,7 +637,7 @@
       "const": "Children marked slot=\"actions\", slot=\"menu\" or slot=\"footer\" are captured by the base element before the first render and returned as live nodes by reference, so a host's listeners and open state survive every render. The menu slot holds a host's own items inside the «…», under the ones the component offers, so the corner of the head is one place whatever the task puts in it. Both slots work in the panel and in the full-page layout; there is deliberately no slot inside a group or between fields, because content there could not survive the view configuration reordering around it."
     },
     "panel_stack": {
-      "const": "A stack is an order of elements, not one state held for several records: each window is its own sf-view-properties with its own record, open group and unsaved changes, so a half-edited window left underneath keeps them. The Framework owns the behaviour between windows -- Esc closes the top one, the others are dimmed and not interactive, and each depth is inset so the one below stays partly visible."
+      "const": "A stack is an order of elements, not one state held for several records: each window is its own sf-view-properties with its own record, open group and unsaved changes, so a half-edited window left underneath keeps them. The Framework's layer stack owns the behaviour between windows -- Esc reaches the top one only, a window below is under the overlay of the one above it, so it is dimmed and takes no press, the height of each is the stack's, and focus goes back where it was when one closes; a window takes no step in from the one below (owner, 2026-10-07)."
     },
     "opening_a_reference": {
       "const": "Activating a reference raises record.open and nothing else. The component follows no href, because that would be routing for the consumer, and opens no window, because that would decide whether a half-edited window may be covered."
@@ -961,7 +961,7 @@
   },
   "events": {
     "sf-view-properties-close": {
-      "summary": "The panel asks to be closed (by its close control, Esc or Cancel), carrying how many fields would be lost: changed and not saved, or entered and not yet a value.",
+      "summary": "The panel asks to be closed (by its close control, Esc, a press on the dimmed page or Cancel), carrying how many fields would be lost: changed and not saved, or entered and not yet a value.",
       "payload": {
         "type": "object",
         "required": [
@@ -974,6 +974,7 @@
             "enum": [
               "close",
               "escape",
+              "outside",
               "cancelled",
               "deleted",
               "api"
@@ -1546,6 +1547,13 @@
         "changes": [
           "The record's title keeps rung 3 (--sf-text--size-3, --sf-title--height-3) and the views' list heading rung 4 with the heading's space, where they fell back to the heading-4 and heading-3 roles that the content heading ladder moves to smaller rungs (tokens.typography 1.2.0, docs review R022). Unchanged on the page over every pair; a host's --sf-property-view--title-size and --sf-property-view--title-height still win. Nothing to change for a host."
         ]
+      },
+      {
+        "from": "1.11.1",
+        "to": "1.12.0",
+        "changes": [
+          "Panels stand on the SIMAI Framework layer stack (core layer-stack.js), the one sf-modal, the drawers and the menus share, instead of a list of their own: Escape reaches the top layer only, so Escape over an sf-modal or a menu opened from a panel closes that and not the panel; the drawer's own Escape is on, and every close it starts is refused and raised as sf-view-properties-close, now also with reason outside for a press on the dimmed page (the drawer closed itself on it before, and the panel stayed open under no drawer). A panel below another is dimmed by the overlay of the one above it, the drawer's scrim, without a second dim of its own (opacity and a wash, gone with data-stack-depth and data-stacked on the panel). Escape in a naming row leaves the row and no longer also asks to close the panel. Nothing to change for a host that already answers close; a host that switched on reason may meet outside."
+        ]
       }
     ]
   },
@@ -1555,15 +1563,15 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-properties/index.js",
-        "sha256": "94e290610bfe9056fbbc8e7f2856d73ab23f69a132ec6d3b04669c7c52766c2a"
+        "sha256": "729f5b076d5c210a28bd02a59b7972738af522b57eda3224bf7c8889419e0056"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.js",
-        "sha256": "f279e28558ccf50841b59c311ac39f8861f78e43bcce333eb4501d38aac6048b"
+        "sha256": "1c462e778bbe479d2c749012ffbb464e1db695460d147f968e5b8027b51fa0a5"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.css",
-        "sha256": "daad2ac6e944e1fd5fbf939412385e76ea27dbd43ab5213a0601ad44f1916d82"
+        "sha256": "09a8e734989a1ff735ad6243bca439c29aa5778cc96a0c1ed63a209e363d3348"
       },
       {
         "path": "src/smart/view-properties/js/conditions.js",
@@ -1607,7 +1615,7 @@
       },
       {
         "path": "src/smart/view-properties/docs.md",
-        "sha256": "e66515f627d9a8515807d01dd7d6d3c172f5da4e7aab6ef0cb53a9b02c51052d"
+        "sha256": "105ba1c1ab5c557c8da76676e2f2b8e5ea9e607d94d9dfc71f7d7198af899848"
       }
     ],
     "generated_runtime": []

@@ -285,10 +285,13 @@ While the view is arranged every field is listed, whatever its condition.
 
 ## Closing a panel over unsaved work
 
-A panel never closes itself: the cross, Esc and «Отменить» each raise
-`sf-view-properties-close` (`reason` `close`, `escape` or `cancelled`) with
-`unsaved_fields`, and whether to ask «Закрыть? Введённое не будет сохранено.»
-is the host's decision. The count is the same on every way out: the changed
+A panel never closes itself: the cross, Esc, a press on the dimmed page and
+«Отменить» each raise `sf-view-properties-close` (`reason` `close`, `escape`,
+`outside` or `cancelled`) with `unsaved_fields`, and whether to ask «Закрыть?
+Введённое не будет сохранено.» is the host's decision. Esc reaches the panel
+through SIMAI Framework's layer stack, which hands it to the top layer only: a
+menu, a list or an sf-modal opened over the panel takes it first, and of two
+stacked panels only the upper one asks to close. The count is the same on every way out: the changed
 fields, plus every entry a control reports as not a value yet (a masked text
 not filled in). A field still holding the focus reports first, so an entry
 typed and not yet left is counted. «Отменить» keeps what was entered

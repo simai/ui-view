@@ -292,7 +292,12 @@ function renderEntryName(context, kind, key, label, titleClass) {
                     value=${label}
                     @keydown=${(event) => {
                         if (event.key === 'Enter') commit(event);
-                        if (event.key === 'Escape') context.component.cancelRenaming();
+                        // Escape here leaves the naming row and nothing else: the
+                        // layer stack passes over a press a control took.
+                        if (event.key === 'Escape') {
+                            event.preventDefault();
+                            context.component.cancelRenaming();
+                        }
                     }}
             ></sf-input>
             <sf-button-icon
@@ -1334,7 +1339,12 @@ function renderNewViewName(context) {
                     placeholder=${context.newViewText}
                     @keydown=${(event) => {
                         if (event.key === 'Enter') commit(event);
-                        if (event.key === 'Escape') context.component.cancelNamingView();
+                        // Escape here leaves the naming row and nothing else: the
+                        // layer stack passes over a press a control took.
+                        if (event.key === 'Escape') {
+                            event.preventDefault();
+                            context.component.cancelNamingView();
+                        }
                     }}
             ></sf-input>
             <sf-button-icon
@@ -1515,9 +1525,12 @@ function renderBody(context, railOutside = false, withActions = true) {
 // `modal` is on because the drawer draws its overlay only when it is -- the
 // element is marked hidden unless modal and overlay are both set, which was
 // measured rather than assumed. Dimming the page is what the mockup asks for, and
-// a panel that dims the page is modal in the sense that matters. Esc is still
-// handled here rather than by the drawer, because in a stack it must close the top
-// window and not every one of them.
+// a panel that dims the page is modal in the sense that matters. The dim is the
+// drawer's overlay, the same over a panel below as over the page: a panel under
+// another stands under that one's overlay, so it is dimmed and takes no press
+// without a dim of its own (1.12.0). Esc is the drawer's on the layer stack, which
+// hands it to the top layer only; the close it starts is refused and asked of the
+// host (index.js, sf-drawer-close).
 //
 // The drawer is given no `title`: the panel draws its own head, with the collection
 // above the name and the star and the «⋯» beside it, and a drawer title as well
@@ -1553,7 +1566,6 @@ export function renderPropertyViewTemplate(context) {
                 panel-style=${`--sf-drawer-background: var(--sf-surface-1); --sf-property-view--sections-width: ${context.sectionsWidth}; scrollbar-gutter: auto;${sizeStyle(context)}`}
                 show-close="false"
                 close-label=${context.closeLabel}
-                close-on-esc="false"
                 label=${context.panelLabel || context.recordId || ''}
         >
             ${renderPanelControls(context)}
@@ -1562,8 +1574,6 @@ export function renderPropertyViewTemplate(context) {
                          ? `--sf-property-view--edge-room: calc(${context.edgeControlCount} * ${context.edgeControlWidth} + ${context.edgeControlCount - 1} * var(--sf-space-1\\/2));`
                          : nothing}
                  data-record-id=${context.recordId || ''}
-                 data-stack-depth=${String(context.stackDepth)}
-                 data-stacked=${context.isTopPanel ? 'false' : 'true'}
             >
                 ${renderPanelHead(context)}
                 <div class="sf-property-view-scroll flex-auto min-h-0 ${rail ? 'flex' : 'flex flex-col'}">
