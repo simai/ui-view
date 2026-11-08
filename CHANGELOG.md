@@ -5,6 +5,11 @@ in brackets. The site page «Изменения» says the same in Russian.
 
 ## Unreleased
 
+- `sf-view-table` 1.15.2: its windows (filter, field and settings windows,
+  menus) are a surface of the one layer stack: a press outside and Escape
+  reach them through the stack, only while they are on top, and they are
+  drawn at the stack's height; Escape on a window inside a record panel no
+  longer closes the panel too. `--sf-table-context-menu--z-index` still wins.
 - `sf-view-table` 1.15.1: a filter option drawn as a badge is a tight badge
   (`sf-badge` `tight`, SIMAI Framework `sf-badge` 1.3.0, pair
   `ui-2a671352d67b`), as a cell's choice badge is; on an older pair the
