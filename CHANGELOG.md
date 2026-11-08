@@ -3,7 +3,7 @@
 The set `view`, by its npm version `@simai-studio/view`; component versions
 in brackets. The site page «Изменения» says the same in Russian.
 
-## Unreleased
+## 1.3.1 — 2026-11-08
 
 - `sf-view-table` 1.15.1: a filter option drawn as a badge is a tight badge
   (`sf-badge` `tight`, SIMAI Framework `sf-badge` 1.3.0, pair
@@ -13,6 +13,10 @@ in brackets. The site page «Изменения» says the same in Russian.
   list heading rung 4, where they fell back to the heading-4 and heading-3
   roles that the content heading ladder (`tokens.typography` 1.2.0, docs
   review R022) moves to smaller rungs; unchanged on the page.
+- Built over SIMAI Framework `ui-5edc71bd6936` (ui-source `8c0b5d2b93e7`,
+  npm `@simai-studio/ui@5.20261107.2234`, core.runtime 1.37.0), the pair
+  with the content heading ladder; still runs with core.runtime 1.25.0 or
+  newer (the tight badge needs `ui-2a671352d67b` or newer).
 
 ## 1.3.0 — 2026-11-07
 
