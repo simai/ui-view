@@ -182,7 +182,8 @@ digits. An entry that is not a value yet -- not a number, more digits after
 the point than the currency has, a ИНН whose control digits do not match --
 holds both saves as an incomplete masked string does, and the control says
 what is wrong under itself once the person leaves it. The settings below are
-due in simai.property-view-port 1.18.0.
+declared by simai.property-view-port 1.18.0 (since sf-view-properties 1.12.0);
+a 1.17.0 host sends none of them.
 
 - `money`: `{"amount": "1500.50", "currency": "RUB"}`. A field with
   `currency` fixes it: the sign stands in the input and a bare amount is read

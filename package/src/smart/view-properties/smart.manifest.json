@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-properties",
-  "version": "1.11.1",
+  "version": "1.12.0",
   "title": "Property view",
   "summary": "One object's fields shown as sections, groups and fields, each drawn by the per-type field renderer set, behind a separate host port. A group is edited and saved as one revision by the button, and a reference field is picked from the host's own candidates a page at a time. The pair to the data view: that one is a set of records, this one is a single object.",
   "kind": "composite",
@@ -195,9 +195,9 @@
       },
       "host_port": {
         "port": "simai.property-view-port",
-        "version": "1.17.0",
-        "path": "src/core/contracts/ports/simai.property-view-port/1.17.0/port.json",
-        "sha256": "123295c1e8fda146ebd25a814fc4695c6fdb6cb1f84911a66d4568e0c7504120",
+        "version": "1.18.0",
+        "path": "src/core/contracts/ports/simai.property-view-port/1.18.0/port.json",
+        "sha256": "59d49df35692416608d8dc2757927c2c720555e39f53a74563aad8235ecfe972",
         "supported_versions": [
           "1.0.0",
           "1.1.0",
@@ -215,7 +215,8 @@
           "1.14.0",
           "1.15.0",
           "1.16.0",
-          "1.17.0"
+          "1.17.0",
+          "1.18.0"
         ]
       }
     }
@@ -1546,6 +1547,13 @@
         "changes": [
           "The record's title keeps rung 3 (--sf-text--size-3, --sf-title--height-3) and the views' list heading rung 4 with the heading's space, where they fell back to the heading-4 and heading-3 roles that the content heading ladder moves to smaller rungs (tokens.typography 1.2.0, docs review R022). Unchanged on the page over every pair; a host's --sf-property-view--title-size and --sf-property-view--title-height still win. Nothing to change for a host."
         ]
+      },
+      {
+        "from": "1.11.1",
+        "to": "1.12.0",
+        "changes": [
+          "Port 1.18.0 (1.17.0 and earlier keep working; ordered with 1.11.0, the Framework half in ui-source 5a3ccf91): currency, columns, minRows, maxRows and parts, the settings money, percent, items, compound and ru.requisites read since 1.11.0, and min, max, step and precision of a number field are declared by the port, every one optional; the Framework field renderers draw the cells and filters of money, percent and items and write a number field whose value is a string as a decimal string. Titles read the text ladder, not the heading roles, under the heading ladder (C21: h3 rung 3, h4 2, h5 1, h6 1): the title at size 1/2 is rung 2 (--sf-text--size-2, --sf-title--height-2), where the heading-5 role would move it to rung 1, the size of the fields; a group title is rung 1 (--sf-text--size-1, --sf-title--height-1), as the heading-6 role gives it on both ladders. Unchanged on the page over the pinned pair; over a pair with the C21 ladder the titles keep their rungs."
+        ]
       }
     ]
   },
@@ -1555,15 +1563,15 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-properties/index.js",
-        "sha256": "94e290610bfe9056fbbc8e7f2856d73ab23f69a132ec6d3b04669c7c52766c2a"
+        "sha256": "a0eb93783b77504f4dd54a91b43b5f881bda94ca66789c42653743702fa8c4b1"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.js",
-        "sha256": "f279e28558ccf50841b59c311ac39f8861f78e43bcce333eb4501d38aac6048b"
+        "sha256": "cb64e2b7a5cd0fa0b8247749a8140392d5df3b9273b76f7156070e2d661c6789"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.css",
-        "sha256": "daad2ac6e944e1fd5fbf939412385e76ea27dbd43ab5213a0601ad44f1916d82"
+        "sha256": "19ede7c3d576bb6fd66f77908d4cc162086c1e073ff36705e9a22c4773b8306c"
       },
       {
         "path": "src/smart/view-properties/js/conditions.js",
@@ -1607,7 +1615,7 @@
       },
       {
         "path": "src/smart/view-properties/docs.md",
-        "sha256": "e66515f627d9a8515807d01dd7d6d3c172f5da4e7aab6ef0cb53a9b02c51052d"
+        "sha256": "47d79d2db2aa19731e55e66160f305ce4e0846cb9959bbcac6ab27938e2759e2"
       }
     ],
     "generated_runtime": []

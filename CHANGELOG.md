@@ -10,6 +10,15 @@ in brackets. The site page «Изменения» says the same in Russian.
   reach them through the stack, only while they are on top, and they are
   drawn at the stack's height; Escape on a window inside a record panel no
   longer closes the panel too. `--sf-table-context-menu--z-index` still wins.
+- `sf-view-properties` 1.12.0: speaks `simai.property-view-port` 1.18.0
+  beside 1.0.0-1.17.0. The port declares the settings the set-drawn types
+  read since 1.11.0 (`currency`, `columns`, `minRows`, `maxRows`, `parts`)
+  and a number field's `min`, `max`, `step` and `precision`, all optional;
+  the SIMAI Framework field renderers (module.smart-field-renderers 1.5.0)
+  draw the cells and filters of money, percent and items and keep a number
+  whose value is a string a decimal string. Titles read the text ladder, not
+  the heading roles, under the heading ladder (C21): the title at size 1/2
+  keeps rung 2 and a group title rung 1; unchanged on the page.
 
 ## 1.4.0 — 2026-11-08
 

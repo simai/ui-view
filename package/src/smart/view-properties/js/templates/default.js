@@ -792,10 +792,13 @@ function renderSectionTabs(context, sections) {
 
 // The type of a view at 1/2: a step down from 1 in every role, so the record
 // reads at the table's size. Variables rather than a class: the panel is drawn
-// in a drawer moved to the page's end, outside the element.
+// in a drawer moved to the page's end, outside the element. The title is rung 2,
+// one below the full title's rung 3, read from the text ladder: the heading-5
+// role it took is a content heading, which the heading ladder (C21) moves to
+// rung 1, the size of the fields under it.
 function sizeStyle(context) {
     if (context.size !== '1/2') return '';
-    return ' --sf-property-view--title-size: var(--sf-heading-5--size); --sf-property-view--title-height: var(--sf-heading-5--height);'
+    return ' --sf-property-view--title-size: var(--sf-text--size-2); --sf-property-view--title-height: var(--sf-title--height-2);'
         + ' --sf-property-view--group-size: var(--sf-text-medium--size); --sf-property-view--group-height: var(--sf-text-medium--height);'
         + ' --sf-property-view--label-size: var(--sf-label-medium--size); --sf-property-view--label-height: var(--sf-label-medium--height);'
         + ' --sf-property-view--value-size: var(--sf-text-small--size); --sf-property-view--value-height: var(--sf-text-small--height);';

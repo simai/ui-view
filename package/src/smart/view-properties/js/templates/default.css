@@ -381,9 +381,12 @@
     /* `--sf-title-small` does not exist in this Framework, so this fell back to
        `inherit` and a group title was the same sixteen regular pixels as the field
        labels under it -- the flat look the owner called slapdash. The roles that
-       do exist are display, heading, label and text. */
-    font-size: var(--sf-property-view--group-size, var(--sf-heading-6--size));
-    line-height: var(--sf-property-view--group-height, var(--sf-heading-6--height));
+       do exist are display, heading, label and text. A group title is not a
+       content heading either: it reads rung 1 of the text ladder, which the
+       heading-6 role it took also holds under the heading ladder (C21), so a
+       later move of that role does not move it. */
+    font-size: var(--sf-property-view--group-size, var(--sf-text--size-1));
+    line-height: var(--sf-property-view--group-height, var(--sf-title--height-1));
     font-weight: 600;
   }
 
@@ -888,7 +891,8 @@
     margin: 0;
     /* Rung 3, the step the heading-4 role held before the content heading
        ladder moved it to the body size (tokens.typography 1.2.0, docs review
-       R022); a record's name is not a content sub-heading. */
+       R022) and that the heading ladder (C21) gives h3; a record's name is not
+       a content sub-heading, so it reads the text ladder, not a heading role. */
     font-size: var(--sf-property-view--title-size, var(--sf-text--size-3));
     line-height: var(--sf-property-view--title-height, var(--sf-title--height-3));
     font-weight: 700;
