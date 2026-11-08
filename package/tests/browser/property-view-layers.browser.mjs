@@ -65,7 +65,13 @@ const server = createServer((request, response) => {
     response.end(page(url.searchParams.get('theme') || 'light'));
     return;
   }
-  const path = normalize(join(out, decodeURIComponent(url.pathname)));
+  // The Loader takes the folder above core/js as its base and asks for
+  // <base>/<product>/..., the distr layout; the output root holds each
+  // product one level deeper (<product>/<product>/...).
+  let wanted = decodeURIComponent(url.pathname);
+  const asked = /^\/core\/(smart|component|utility|rule)\/(.*)$/u.exec(wanted);
+  if (asked) wanted = `/${asked[1]}/${asked[1]}/${asked[2]}`;
+  const path = normalize(join(out, wanted));
   if (!path.startsWith(out) || !existsSync(path) || !statSync(path).isFile()) {
     response.writeHead(404);
     response.end();
@@ -104,10 +110,13 @@ const scenario = async () => {
     },
   });
   const closes = [];
-  const open = async (id) => {
+  // `later`: the panel is placed hidden and shown once read, the way a host
+  // keeps one element and opens it by removing hidden (simai/ui-pro#4).
+  const open = async (id, {later = false} = {}) => {
     const view = document.createElement('sf-view-properties');
     view.setAttribute('record-id', id);
     view.setAttribute('panel', '');
+    if (later) view.hidden = true;
     view.addEventListener('sf-view-properties-close', (event) => {
       closes.push([id, event.detail.reason, event.detail.unsaved_fields]);
       if (event.detail.unsaved_fields > 0) event.preventDefault();
@@ -116,12 +125,17 @@ const scenario = async () => {
     document.body.append(view);
     view.setHostPort(host(id));
     await wait(500);
+    if (later) {
+      view.hidden = false;
+      await wait(400);
+    }
     return view;
   };
   const panelOf = (id) => document.querySelector(`.sf-property-view-panel[data-record-id="${id}"]`);
   const rootOf = (id) => panelOf(id)?.closest('[data-sf-drawer-root]') ?? null;
   const drawerOpen = (view) => Boolean(view?.querySelector(':scope > sf-drawer')?.hasAttribute('open'));
   const zOf = (node) => Number(node ? getComputedStyle(node).zIndex : NaN);
+  const drawerRootOf = (view) => view?.querySelector(':scope > sf-drawer')?.getDrawerRoot?.() ?? null;
   const result = {};
 
   // 1. Two nested panels; the lower one half-edited, the focus on its close.
@@ -133,7 +147,7 @@ const scenario = async () => {
   await wait(200);
   const lowerClose = rootOf('lower')?.querySelector('[data-action="close"]');
   lowerClose?.focus();
-  const upper = await open('upper');
+  const upper = await open('upper', {later: true});
   const box = panelOf('lower')?.getBoundingClientRect();
   const hit = box ? document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2) : null;
   const overlay = rootOf('upper')?.querySelector('[data-sf-drawer-overlay]');
@@ -207,9 +221,9 @@ const scenario = async () => {
   await wait(500);
   const inModal = document.getElementById('in-modal');
   inModal?.focus();
-  const over = await open('over-modal');
+  const over = await open('over-modal', {later: true});
   result.panelOverModal = {
-    panelAbove: zOf(rootOf('over-modal')) > zOf(modal.modalRoot ?? document.querySelector('.sf-modal')),
+    panelAbove: zOf(drawerRootOf(over)) > zOf(modal.modalRoot ?? document.querySelector('.sf-modal')),
     panelTop: over.isTopPanel,
   };
   escape();
@@ -223,6 +237,20 @@ const scenario = async () => {
   result.panelOverModal.modalClosed = !(modal.isOpen ?? modal.hasAttribute('open'));
   over.remove();
   modal.remove();
+  await wait(200);
+  // 7. A panel placed already open (never hidden). sf-drawer connected with
+  // `open` records no element to return to (core.runtime 1.42.0 and the pinned
+  // pair: connectedCallback registers the layer with _lastActive null), so the
+  // focus falls into the layer below instead of going back. A SIMAI Framework
+  // defect, reported to the dispatcher; measured and printed, not failed here.
+  const opener = document.getElementById('opener');
+  opener.focus();
+  const born = await open('born-open');
+  escape();
+  await wait(500);
+  result.bornOpen = {focusBack: document.activeElement === opener,
+    active: document.activeElement?.tagName?.toLowerCase() ?? null};
+  born.remove();
   await wait(200);
   result.layersLeft = (globalThis[Symbol.for('sf.layerStack')]?.layers ?? []).length;
   return result;
@@ -290,7 +318,11 @@ for (const {theme, load, measured: m, consoleErrors} of runs) {
   if (consoleErrors.length) note({at, case: 'the console is clean', got: consoleErrors.slice(0, 5)});
 }
 
-console.log(JSON.stringify({runs: runs.length, failures, sample: runs[0]?.measured}, null, 1));
+const frameworkPending = runs.filter(({measured}) => !measured.bornOpen?.focusBack)
+  .map(({theme, load, measured}) => ({at: `${theme} load ${load}`, bornOpen: measured.bornOpen}));
+console.log(JSON.stringify({runs: runs.length, failures, frameworkPending: {
+  case: 'sf-drawer connected already open returns no focus on close (Framework request)',
+  count: frameworkPending.length, sample: frameworkPending[0] ?? null}, sample: runs[0]?.measured}, null, 1));
 if (failures.length) {
   console.error(`${failures.length} failure(s)`);
   process.exit(1);

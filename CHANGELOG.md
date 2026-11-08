@@ -3,6 +3,21 @@
 The set `view`, by its npm version `@simai-studio/view`; component versions
 in brackets. The site page «Изменения» says the same in Russian.
 
+## Unreleased
+
+- `sf-view-properties` 1.12.0: the panels stand on SIMAI Framework's one
+  layer stack (core `layer-stack.js`), the stack `sf-modal`, the drawers and
+  the menus share, instead of a list, an Escape listener and a dim of their
+  own. Escape reaches the top layer only: over an `sf-modal` or a menu opened
+  from a panel it closes that, not the panel, and of two stacked panels the
+  upper one. A panel below another is dimmed by the overlay of the one above
+  (the drawer's scrim), with no opacity of its own. A panel still never
+  closes itself: every close its drawer starts is asked of the host as
+  `sf-view-properties-close` with `unsaved_fields`, now also with `reason`
+  `outside` for a press on the dimmed page, which closed the drawer and left
+  the panel open before. Escape in a naming row leaves the row only. Same
+  pair and core.runtime floor (1.25.0).
+
 ## 1.4.0 — 2026-11-08
 
 - `sf-view` 1.9.0: speaks `simai.dataview-port` 1.14.0 beside 1.0.0-1.13.0;
