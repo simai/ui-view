@@ -12,7 +12,8 @@
 //   leaves a column without a role out;
 // - the row of the ladder: 48 at size 1/2 and 56 at size 1 on the desktop,
 //   52 on a phone; a table row with a supporting line at size 1/2 is 48 too
-//   (it was 53), and the published two-line box stays the wrapped row's 53;
+//   (it was 53), and so is the published two-line box (the row model of the
+//   look points, table-look-points.browser.mjs);
 // - the phone keeps only the most worrying fact (none when all is well), and
 //   the quick actions fold into «more».
 import {join, resolve} from 'node:path';
@@ -217,8 +218,8 @@ try {
     if (one.some((row) => row.height !== desktop.ladder.row3)) note(theme, {said: 'a list row at size 1 is not the ladder\'s 56', got: one.map((row) => row.height)});
     if (desktop.ladder.row2 !== 48 || desktop.ladder.row3 !== 56) note(theme, {said: 'the desktop ladder is not 48/56', got: desktop.ladder});
     if (!(desktop.rows.grid?.length === 2 && desktop.rows.grid.every((height) => height === 48))) note(theme, {said: 'a table row of two lines at size 1/2 is not 48', got: desktop.rows.grid});
-    // A row whose own text wraps keeps 53, the box the page reserves (docs.md).
-    if (desktop.published !== '53px') note(theme, {said: '--sf-table-row-2-lines-block-size-1/2 is not the wrapped row\'s 53', got: desktop.published});
+    // A row whose own text wraps is 48 too (the look points' row model), and the box the page reserves says so (docs.md).
+    if (desktop.published !== '48px') note(theme, {said: '--sf-table-row-2-lines-block-size-1/2 is not the two-line row\'s 48', got: desktop.published});
     if (desktop.hoverTip !== 'Есть замечания') note(theme, {said: 'the dot\'s tooltip does not show on hover', got: desktop.hoverTip});
     // The same columns as a table (C31 acceptance 1): a status is the dot
     // with its word, a fact its badge, quiet or warning/error, with its tip.
@@ -256,9 +257,9 @@ try {
     if (phone.errors.length) note(theme, {said: 'the console is not clean (phone)', errors: phone.errors});
 
     // Compact density (C22) on the root, a table without a size, desktop
-    // (C31 acceptance 2): the step-1/2 rows of the normal ladder -- 45 with
-    // the row's box and menu, 48 with a supporting line -- and the published
-    // step-1 box says so.
+    // (C31 acceptance 2, then the look points' row model): the ladder one
+    // rung down -- 40 with the row's box and menu, 48 with a supporting
+    // line -- and the published step-1 box says so.
     const dense = await stand({
       theme, width: 1440, density: 'compact',
       body: '<div style="inline-size:1200px"><sf-view-table id="dense" layout="table" toolbar="false" aria-label="Сайты"></sf-view-table></div>',
@@ -284,8 +285,8 @@ try {
         published: {row: px('--sf-table-row-block-size-1'), twoLines: px('--sf-table-row-2-lines-block-size-1')}};
     });
     report[`${theme}-compact`] = compact;
-    if (JSON.stringify(compact.rows) !== '[48,45]' || !compact.menu) note(theme, {said: 'compact density without a size does not draw the 48 and 45 rows', got: compact});
-    if (compact.published.row !== 45 || compact.published.twoLines !== 53) note(theme, {said: 'the published step-1 box does not follow compact density', got: compact.published});
+    if (JSON.stringify(compact.rows) !== '[48,40]' || !compact.menu) note(theme, {said: 'compact density without a size does not draw the 48 and 40 rows', got: compact});
+    if (compact.published.row !== 40 || compact.published.twoLines !== 48) note(theme, {said: 'the published step-1 box does not follow compact density', got: compact.published});
     if (dense.errors.length) note(theme, {said: 'the console is not clean (compact)', errors: dense.errors});
     await dense.page.close();
   }

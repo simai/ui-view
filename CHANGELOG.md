@@ -26,11 +26,13 @@ in brackets. The site page «Изменения» says the same in Russian.
     `set-layout {layout}` sets it.
   - On a phone (below 32rem) a list row is `--sf-ui-3--control-height` and
     keeps only its most worrying fact.
-  - A list row is a rung of the ladder: 48 at size 1/2, 56 at size 1. A table
-    row with a supporting line at size 1/2 (a link with its subtext, a found
-    tree row with its path) is 48 (`--sf-ui-2--control-height`), it was 53.
-    A row whose own text wraps to two lines keeps 53, and
-    `--sf-table-row-2-lines-block-size-1/2` still publishes that box.
+  - A list row is a rung of the ladder: 48 at size 1/2, 56 at size 1.
+  - One row model for every table: a body cell's padding comes from the
+    rung of two lines of the step's text, and a row stands on the rung
+    below it. Size 1/2: one line 40 (was 45), two lines 48 (a link with its
+    subtext was 48, a wrapped text 53). Size 1: one line with the row menu
+    48 (was 73), two lines 56. The size-1 head is 41, 57 with its box (was
+    57 and 73). The published `--sf-table-row-*-block-size-*` follow.
   - A column with a list role draws the same in a table cell: a status as
     the dot with its word, a fact as its badge.
   - The row the person is on (`data-current`, where the keys and a press
@@ -38,8 +40,13 @@ in brackets. The site page «Изменения» says the same in Russian.
     `aria-current`): the keys no longer move the open record, and list rows
     carry `aria-current` too.
   - Under compact density (`data-sf-density="compact"`, desktop) a table
-    without a size has the 1/2 rows of the normal ladder: 45 with its
-    controls, 48 with a supporting line (they were 57 and 61).
+    without a size takes the ladder one rung down: 40 with its controls, 48
+    with a supporting line (they were 57 and 61).
+  - The list's look points (owner, 2026-11-09): the title in the text colour,
+    medium, underlined on hover; the open record filled with
+    `--sf-primary-container` beside `aria-current`, the keyboard's row with
+    the focus ring only; «more» 36 on a phone; the search field, Create and
+    the rows on one line (R077).
 - `sf-view` 1.11.0 passes its own `layout` on (it used to set `auto` for a
   page's list and `table` for an embedded one), and `layout-switch`,
   `list-below`, `quick-actions` and `row-open` with it; `list-roles="key:role,…"`
