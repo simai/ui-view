@@ -3,6 +3,36 @@
 The set `view`, by its npm version `@simai-studio/view`; component versions
 in brackets. The site page «Изменения» says the same in Russian.
 
+## 1.5.1 — 2026-11-09
+
+- Built over SIMAI Framework `ui-b4a77681f0a7` (ui-source `a29cc9989beb`,
+  npm `@simai-studio/ui@5.20261109.1121`, core.runtime 1.47.0); the set
+  still needs core.runtime 1.43.0 or newer.
+- `sf-view-table` 1.16.1: the avatar's `max-width` reads
+  `--sf-table-avatar--max-width` with the fallback `none`, what it drew when
+  no page set it; the pair range lists no variable bound by the page.
+- `sf-view-properties` 1.13.2 (with the skeleton fix next): the arranging bar's section title
+  reads rung 1 of the text ladder (`--sf-text--size-1`,
+  `--sf-text--height-1`), 16/24 at sizes 1 and 1/2, what it drew while it
+  named `--sf-title-small`, a role the Framework has no token for.
+- Probes: `table-behaviour`, `table-list-layout`, `data-view-declared-port`
+  and `data-view-reloads` load the icons sheet, which draws an icon as one
+  glyph on a page with no Loader (ui-source `ea3a53ca`); over the earlier
+  pairs the icons drew nothing, so these probes measured controls 0 wide.
+  `table-list-layout` also loads `sf-input` and the control sheets and
+  requires every toolbar control drawn; `data-view-declared-port` lets the
+  toolbar move when a port brings a capability more (a control comes in) and
+  holds everything outside it still. Nothing changes on the page.
+
+- `sf-view-properties` 1.13.2: the loading skeleton's strip of section tabs
+  takes the box `sf-tabs` takes (simai/ui-pro#3): a tab's height (the
+  control height of the view's size), the tabs' hairline and their empty
+  panel, from the tabs' own sheet. It was one text line, so with
+  `sections-as="tabs"` the record moved down by 49px at size 1 (41px at
+  1/2) when it came; now the first group stands where the skeleton drew it.
+  `skeleton.html` prints the same markup. Nothing to change for a host.
+  Probe `property-view-pro-issues-3-4` holds #3 and #4 in both themes.
+
 ## 1.5.0 — 2026-11-09
 
 - Built over SIMAI Framework `ui-cb287da78ab1` (ui-source `44a5efda6649`,
