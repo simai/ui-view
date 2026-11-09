@@ -31,6 +31,15 @@ in brackets. The site page «Изменения» says the same in Russian.
     tree row with its path) is 48 (`--sf-ui-2--control-height`), it was 53.
     A row whose own text wraps to two lines keeps 53, and
     `--sf-table-row-2-lines-block-size-1/2` still publishes that box.
+  - A column with a list role draws the same in a table cell: a status as
+    the dot with its word, a fact as its badge.
+  - The row the person is on (`data-current`, where the keys and a press
+    leave them) is kept apart from the record the page has open (`current`,
+    `aria-current`): the keys no longer move the open record, and list rows
+    carry `aria-current` too.
+  - Under compact density (`data-sf-density="compact"`, desktop) a table
+    without a size has the 1/2 rows of the normal ladder: 45 with its
+    controls, 48 with a supporting line (they were 57 and 61).
 - `sf-view` 1.11.0 passes its own `layout` on (it used to set `auto` for a
   page's list and `table` for an embedded one), and `layout-switch`,
   `list-below`, `quick-actions` and `row-open` with it; `list-roles="key:role,…"`
