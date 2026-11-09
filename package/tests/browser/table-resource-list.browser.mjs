@@ -44,7 +44,7 @@ const failures = [];
 const note = (theme, detail) => failures.push({theme, ...detail});
 const browser = await chromium.launch();
 
-async function stand({theme, width, height = 900, body, setup}) {
+async function stand({theme, width, height = 900, body, setup, density = ''}) {
   const page = await browser.newPage({viewport: {width, height}});
   // The theme the class names and the one the browser asks for agree.
   await page.emulateMedia({colorScheme: theme});
@@ -53,7 +53,7 @@ async function stand({theme, width, height = 900, body, setup}) {
   // Scripts added by path have no address for webpack's automatic publicPath
   // (the same allowance as table-field-cells); every other error counts.
   page.on('pageerror', (error) => { if (!/publicPath/u.test(error.message)) errors.push(error.message); });
-  await page.setContent(`<!doctype html><html class="theme-${theme}" lang="ru"><head><meta charset="utf-8"></head><body style="margin:0;background:var(--sf-surface-page)">${body}</body></html>`);
+  await page.setContent(`<!doctype html><html class="theme-${theme}" lang="ru"${density ? ` data-sf-density="${density}"` : ''}><head><meta charset="utf-8"></head><body style="margin:0;background:var(--sf-surface-page)">${body}</body></html>`);
   for (const path of styles) await page.addStyleTag({path});
   for (const path of modules) await page.addScriptTag({path, type: 'module'});
   await page.waitForFunction(() => Boolean(customElements.get('sf-view-table') && customElements.get('sf-badge')), null, {timeout: 10000});
@@ -127,8 +127,18 @@ const read = () => {
   for (const table of document.querySelectorAll('sf-view-table[layout="table"]')) {
     rows[table.id] = [...table.querySelectorAll('tbody tr[data-row-id]')].map((tr) => Math.round(tr.getBoundingClientRect().height * 100) / 100);
   }
+  const cells = [...document.querySelectorAll('#cells tbody tr[data-row-id]')].map((tr) => {
+    const fact = (key) => {
+      const badge = tr.querySelector(`td[data-key="${key}"] sf-badge`);
+      return badge ? {text: badge.getAttribute('text'), status: badge.getAttribute('status') ?? '',
+        tip: tr.querySelector(`td[data-key="${key}"] .sf-tooltip-text`)?.textContent.trim() ?? null} : null;
+    };
+    const dot = tr.querySelector('td[data-key="state"] .sf-dot');
+    return {id: tr.dataset.rowId, dot: dot ? [...dot.classList].find((name) => /^sf-dot--/u.test(name))?.slice(8) : null,
+      word: tr.querySelector('td[data-key="state"]')?.textContent.trim() ?? null, ssl: fact('ssl'), backup: fact('backup')};
+  });
   return {
-    tables, rows,
+    tables, rows, cells,
     ladder: {row2: length('var(--sf-ui-2--control-height)'), row3: length('var(--sf-ui-3--control-height)')},
     published: getComputedStyle(document.documentElement).getPropertyValue('--sf-table-row-2-lines-block-size-1/2').trim(),
   };
@@ -143,7 +153,8 @@ try {
       body: '<div style="inline-size:1200px">'
         + '<sf-view-table id="half" size="1/2" layout="list" toolbar="false" selectable="false" quick-actions="visit,restart" aria-label="Сайты"></sf-view-table>'
         + '<sf-view-table id="one" size="1" layout="list" toolbar="false" selectable="false" quick-actions="visit,restart" aria-label="Сайты"></sf-view-table>'
-        + '<sf-view-table id="grid" size="1/2" layout="table" toolbar="false" selectable="false" aria-label="Сайты"></sf-view-table></div>',
+        + '<sf-view-table id="grid" size="1/2" layout="table" toolbar="false" selectable="false" aria-label="Сайты"></sf-view-table>'
+        + '<sf-view-table id="cells" size="1/2" layout="table" toolbar="false" selectable="false" aria-label="Сайты таблицей"></sf-view-table></div>',
       setup: (data) => {
         for (const table of document.querySelectorAll('sf-view-table')) {
           table.ACTIONS_SETTINGS_ROW = data.actions;
@@ -209,6 +220,18 @@ try {
     // A row whose own text wraps keeps 53, the box the page reserves (docs.md).
     if (desktop.published !== '53px') note(theme, {said: '--sf-table-row-2-lines-block-size-1/2 is not the wrapped row\'s 53', got: desktop.published});
     if (desktop.hoverTip !== 'Есть замечания') note(theme, {said: 'the dot\'s tooltip does not show on hover', got: desktop.hoverTip});
+    // The same columns as a table (C31 acceptance 1): a status is the dot
+    // with its word, a fact its badge, quiet or warning/error, with its tip.
+    const statusDots = {simai: ['success', 'Работает'], shop: ['warning', 'Есть замечания'], demo: ['neutral', 'Остановлен'], clinic: ['warning', 'Есть замечания']};
+    for (const row of desktop.cells ?? []) {
+      const source = ROWS.find((item) => item.id === row.id);
+      if (row.dot !== statusDots[row.id][0] || row.word !== statusDots[row.id][1]) note(theme, {said: 'a status cell of the table is not the dot with its word', row: row.id, got: row});
+      for (const key of ['ssl', 'backup']) {
+        const want = {text: source[key].text, status: source[key].status ?? '', tip: source[key].tip ?? null};
+        if (JSON.stringify(row[key]) !== JSON.stringify(want)) note(theme, {said: 'a fact cell of the table is not its badge', row: row.id, key, got: row[key], want});
+      }
+    }
+    if ((desktop.cells ?? []).length !== ROWS.length) note(theme, {said: 'the table of the same columns does not draw every record', got: desktop.cells});
     if (desk.errors.length) note(theme, {said: 'the console is not clean (desktop)', errors: desk.errors});
 
     // The phone: the mobile row, the most worrying fact only, the actions in «more».
@@ -231,6 +254,40 @@ try {
     }
     if (mobile.ladder.row3 !== 52) note(theme, {said: 'the mobile ladder is not 52', got: mobile.ladder});
     if (phone.errors.length) note(theme, {said: 'the console is not clean (phone)', errors: phone.errors});
+
+    // Compact density (C22) on the root, a table without a size, desktop
+    // (C31 acceptance 2): the step-1/2 rows of the normal ladder -- 45 with
+    // the row's box and menu, 48 with a supporting line -- and the published
+    // step-1 box says so.
+    const dense = await stand({
+      theme, width: 1440, density: 'compact',
+      body: '<div style="inline-size:1200px"><sf-view-table id="dense" layout="table" toolbar="false" aria-label="Сайты"></sf-view-table></div>',
+      setup: (data) => {
+        const table = document.getElementById('dense');
+        table.ACTIONS_SETTINGS_ROW = data.actions;
+        table.setColumns([{key: 'name', label: 'Сайт', renderer: 'link'}, {key: 'kind', label: 'Тип'}]);
+        table.setRows([{id: 'a', name: {text: 'Интернет-магазин', subtext: 'shop.simai.ru', href: '#a'}, kind: 'Laravel', actions: ['view', 'restart']},
+          {id: 'b', name: {text: 'Блог', href: '#b'}, kind: 'Static', actions: ['view', 'restart']}]);
+      },
+    });
+    const compact = await dense.page.evaluate(() => {
+      const px = (name) => {
+        const probe = document.createElement('div');
+        probe.style.blockSize = `var(${name})`;
+        document.body.append(probe);
+        const value = probe.getBoundingClientRect().height;
+        probe.remove();
+        return value;
+      };
+      return {rows: [...document.querySelectorAll('#dense tbody tr[data-row-id]')].map((tr) => Math.round(tr.getBoundingClientRect().height * 100) / 100),
+        menu: Boolean(document.querySelector('#dense tbody td[data-key="settings"] :is(button, sf-button-icon)')),
+        published: {row: px('--sf-table-row-block-size-1'), twoLines: px('--sf-table-row-2-lines-block-size-1')}};
+    });
+    report[`${theme}-compact`] = compact;
+    if (JSON.stringify(compact.rows) !== '[48,45]' || !compact.menu) note(theme, {said: 'compact density without a size does not draw the 48 and 45 rows', got: compact});
+    if (compact.published.row !== 45 || compact.published.twoLines !== 53) note(theme, {said: 'the published step-1 box does not follow compact density', got: compact.published});
+    if (dense.errors.length) note(theme, {said: 'the console is not clean (compact)', errors: dense.errors});
+    await dense.page.close();
   }
 } finally {
   await browser.close();

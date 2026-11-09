@@ -41,7 +41,10 @@ test('a click moves the row the person is on, and nothing else', async () => {
     /handleRowClick\(event, row\) \{[\s\S]{0,400}?applyRowSelection/u,
     'a click never marks the row',
   );
-  assert.match(markup, /data-current=\$\{context\.component\.isCurrentRow\(row, rowIndex\) \? '' : nothing\}/u);
+  // The row the person is on (data-current) and the record the page has open
+  // (aria-current) are two marks (C31 acceptance, 2026-11-09).
+  assert.match(markup, /data-current=\$\{context\.component\.isCursorRow\(row, rowIndex\) \? '' : nothing\}/u);
+  assert.match(markup, /aria-current=\$\{context\.component\.isCurrentRow\(row, rowIndex\) \? 'true' : nothing\}/u);
   // Keyed the way the rest of the template keys a row: id, then value, then
   // position. The current row followed `id` alone, so in a view whose rows
   // carry another key a click marked nothing and looked broken.
@@ -56,9 +59,10 @@ test('a click moves the row the person is on, and nothing else', async () => {
   // selection. The template reads the field back, so a later render keeps it.
   assert.match(
     source,
-    /focusRow\(rowId, \{reveal = false, focus = true\} = \{\}\) \{[\s\S]*?this\._currentRowId = String\(rowId\);[\s\S]*?removeAttribute\("data-current"\)[\s\S]*?setAttribute\("data-current", ""\)/u,
+    /focusRow\(rowId, \{reveal = false, focus = true\} = \{\}\) \{[\s\S]*?this\._cursorRowId = String\(rowId\);[\s\S]*?removeAttribute\("data-current"\)[\s\S]*?setAttribute\("data-current", ""\)/u,
   );
   assert.doesNotMatch(source, /currentRowId: null,/u, 'the current row is not table state');
+  assert.doesNotMatch(source, /focusRow\([^)]*\) \{[\s\S]{0,400}?this\._currentRowId =/u, 'the keys never move the open record');
   assert.match(markup, /tabindex="-1"/u, 'the row can take focus, so the keyboard can act on it');
 });
 

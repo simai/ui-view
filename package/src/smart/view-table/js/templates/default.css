@@ -134,6 +134,29 @@
     padding-block: calc((var(--sf-ui-2--control-height) - 2 * var(--sf-text-height-1\/2) - var(--sf-px)) / 2);
   }
 
+  /* Compact density (C22: data-sf-density="compact" on the root or a
+     container, desktop only) moves every step one rung down, and a table
+     without a size is the step-1/2 table of the normal ladder: the step's
+     own vertical space around its control (45 with the row's box and menu),
+     and a row with a supporting line on the rung above the control's two
+     lines of text (48, C31). Step 1's --sf-space-1 is a spacing token that
+     density does not move, so the rows stood at 57 and 61, off the ladder.
+     The person's own view density (data-sf-view-density) still wins. */
+  @media (min-width: 60rem) {
+    :is(sf-view-table, sf-table):not([size]):not([data-sf-view-density]):is([data-sf-density=compact], [data-sf-density=compact] *):not([data-sf-density=normal], [data-sf-density=normal] *) > * .table > :not(caption) > * > * {
+      padding-block: var(--sf-ui-1--space-y);
+    }
+    :is(sf-view-table, sf-table):not([size]):not([data-sf-view-density]):is([data-sf-density=compact], [data-sf-density=compact] *):not([data-sf-density=normal], [data-sf-density=normal] *) > * .table > tbody > tr:has(.sf-table-link-cell-subtext, .sf-table-tree-path) > * {
+      padding-block: calc((var(--sf-ui-3--control-height) - 2 * var(--sf-text-height-1) - var(--sf-px)) / 2);
+    }
+    /* The published box of step 1 follows on a compact page. */
+    :root[data-sf-density=compact] {
+      --sf-table-row-block-size-1: calc(2 * var(--sf-ui-1--space-y) + max(var(--sf-ui-1--control-height), var(--sf-text-height-1)) + var(--sf-px));
+      --sf-table-row-2-lines-block-size-1: calc(2 * var(--sf-ui-1--space-y) + max(var(--sf-ui-1--control-height), 2 * var(--sf-text-height-1)) + var(--sf-px));
+      --sf-table-head-block-size-1: calc(2 * var(--sf-ui-1--space-y) + var(--sf-text-height-1) + var(--sf-px));
+    }
+  }
+
   /* The windows' top-layer container (see getPortalContainer): the whole
      viewport, invisible and click-through, so each window inside places itself
      as it did at the end of the body. A popover is otherwise drawn as a small

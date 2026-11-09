@@ -800,7 +800,8 @@ export function renderTableTemplate(context) {
                         <li class="sf-table-list-item"
                             data-row-id=${context.component.getRowKey(row, rowIndex)}
                             data-selected=${row.select?.component?.props?.checked === true ? '' : nothing}
-                            data-current=${context.component.isCurrentRow(row, rowIndex) ? '' : nothing}
+                            data-current=${context.component.isCursorRow(row, rowIndex) ? '' : nothing}
+                            aria-current=${context.component.isCurrentRow(row, rowIndex) ? 'true' : nothing}
                             aria-level=${row.__tree ? String(row.__tree.level + 1) : nothing}
                             aria-expanded=${row.__tree?.hasChildren ? String(row.__tree.expanded === true) : nothing}
                             tabindex="-1"
@@ -870,7 +871,8 @@ export function renderTableTemplate(context) {
                         <li class="sf-table-list-item sf-table-resource"
                             data-row-id=${component.getRowKey(row, rowIndex)}
                             data-selected=${row.select?.component?.props?.checked === true ? '' : nothing}
-                            data-current=${component.isCurrentRow(row, rowIndex) ? '' : nothing}
+                            data-current=${component.isCursorRow(row, rowIndex) ? '' : nothing}
+                            aria-current=${component.isCurrentRow(row, rowIndex) ? 'true' : nothing}
                             data-status=${state?.dot ?? nothing}
                             data-open=${opensRow && component.canOpenRow?.(row) ? 'row' : nothing}
                             aria-level=${row.__tree ? String(row.__tree.level + 1) : nothing}
@@ -907,11 +909,16 @@ export function renderTableTemplate(context) {
     // A fact: a badge without its column's label, which a screen reader
     // still hears; quiet when all is well, warning or error when not.
     function renderFact(column, fact) {
+        return html`<span class="sf-table-visually-hidden">${column.label ?? column.key}: </span>${renderFactBadge(fact)}`;
+    }
+
+    // The badge of a fact, in a list row and in a table cell alike.
+    function renderFactBadge(fact) {
         const size = context.size === '1/2' ? '1/3' : '1/2';
         const badge = html`<sf-badge size=${size} appearance="tonal"
                 scheme=${fact.status ? nothing : 'neutral'} status=${fact.status || nothing}
                 text=${fact.text} data-tooltip=${fact.tip ? '' : nothing}></sf-badge>`;
-        return html`<span class="sf-table-visually-hidden">${column.label ?? column.key}: </span>${fact.tip ? tooltip(badge, fact.tip) : badge}`;
+        return fact.tip ? tooltip(badge, fact.tip) : badge;
     }
 
     // The Framework's tooltip: the trigger and its surface in one anchor
@@ -1013,6 +1020,7 @@ export function renderTableTemplate(context) {
         const renderRow = (row, at) => {
             const index = at + offset;
             const current = component.isCurrentRow(row, index);
+            const cursor = component.isCursorRow(row, index);
             const kinds = [];
             const values = [
                 row.select?.component?.props?.checked === true ? '' : nothing,
@@ -1024,7 +1032,7 @@ export function renderTableTemplate(context) {
                 row.__tree?.loading ? 'true' : nothing,
                 slice ? String(index + 2) : nothing,
                 component.getRowKey(row, index),
-                current ? '' : nothing,
+                cursor ? '' : nothing,
                 current ? 'true' : nothing,
                 component.rowPointerDown,
                 (event) => component.handleRowClick(event, row, index),
@@ -1155,6 +1163,22 @@ export function renderTableTemplate(context) {
             if (!built) value = context.component.rowActionItems(row);
         }
 
+
+        // A column with a list role (C31) draws its value the same way in a
+        // table cell as in a list row: a status is the dot with its word, a
+        // fact the badge, quiet or warning/error. Without this, the switch to
+        // «Таблица» showed a status's raw value (ok, stopped) and dropped a
+        // fact given as {text, status, tip} altogether.
+        if (column.list === 'status') {
+            const state = context.component.listStatus(column, row);
+            return state ? html`<span class="sf-table-status flex items-cross-center gap-1/3" data-status=${state.dot}>
+                <span class="sf-dot sf-dot--${state.dot}" aria-hidden="true"><span class="sf-dot-item"></span></span>
+                <span>${state.word}</span></span>` : nothing;
+        }
+        if (column.list === 'fact') {
+            const fact = context.component.listFact(column, row);
+            return fact ? renderFactBadge(fact) : nothing;
+        }
 
         // A boolean the host lets this person write is a checkbox in the cell;
         // it is disabled while the host answers.

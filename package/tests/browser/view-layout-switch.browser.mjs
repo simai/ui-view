@@ -105,6 +105,10 @@ const state = (page) => page.evaluate(() => {
     layout: table.getAttribute('layout'),
     list: table.querySelectorAll('.sf-table-resource').length,
     rows: table.querySelectorAll('tbody tr[data-row-id]').length,
+    // The list roles drawn in table cells too (C31 acceptance 1).
+    cells: {dots: table.querySelectorAll('tbody td[data-key="state"] .sf-dot').length,
+      words: [...table.querySelectorAll('tbody td[data-key="state"]')].map((cell) => cell.textContent.trim()),
+      badges: [...table.querySelectorAll('tbody td[data-key="ssl"] sf-badge, tbody td[data-key="backup"] sf-badge')].map((badge) => badge.getAttribute('text'))},
     // sf-segmented draws its radio group; the host itself has no box.
     switch: control ? {value: control.getAttribute('value'),
       shown: (control.querySelector('[role="radiogroup"]')?.getBoundingClientRect().width ?? 0) > 0,
@@ -174,6 +178,11 @@ try {
     errors.push(...next.errors);
     await next.page.close();
     if (table.rows !== ROWS.length || table.kept !== 'table') note(theme, {said: 'a press on «Таблица» does not draw and keep the table', got: table});
+    const facts = ROWS.flatMap((row) => [row.ssl.text, row.backup.text]);
+    if (table.cells.dots !== ROWS.length || JSON.stringify(table.cells.words) !== JSON.stringify(['Работает', 'Есть замечания', 'Остановлен', 'Есть замечания'])
+        || JSON.stringify(table.cells.badges) !== JSON.stringify(facts)) {
+      note(theme, {said: 'the table of sf-view with list-roles loses the status words or the facts', got: table.cells, want: facts});
+    }
     if (reopened.list !== ROWS.length || reopened.switch?.value !== 'list' || reopened.kept !== 'list') note(theme, {said: 'opening the saved view does not put its list back', got: reopened});
 
     // Narrow: no switch, a list.

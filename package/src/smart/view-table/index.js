@@ -498,7 +498,12 @@ class SfTable extends TableElement {
             rail: this.createRef(),
             resizeGuide: this.createRef(),
         }
+        // Two rows, kept apart: the record the page has open (current,
+        // aria-current) and the row the person is on (the keyboard's and the
+        // pointer's place, data-current). The keys used to write the first, so
+        // ↑/↓ moved «the open record» (C31 acceptance, 2026-11-09).
         this._currentRowId = null;
+        this._cursorRowId = null;
         this._checkboxMeasureToken = 0;
         this._responsiveWidth = 0;
         this._responsiveObserver = null;
@@ -642,6 +647,8 @@ class SfTable extends TableElement {
     set current(id) {
         const value = id === null || id === undefined ? "" : String(id);
         this._currentRowId = value || null;
+        // Opening a record puts the person on it.
+        this._cursorRowId = null;
         if ((this.getAttribute("current") ?? "") !== value) {
             if (value) this.setAttribute("current", value);
             else this.removeAttribute("current");
@@ -651,7 +658,10 @@ class SfTable extends TableElement {
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
-        if (name === "current" && oldValue !== newValue) this._currentRowId = newValue || null;
+        if (name === "current" && oldValue !== newValue) {
+            this._currentRowId = newValue || null;
+            this._cursorRowId = null;
+        }
         super.attributeChangedCallback?.(name, oldValue, newValue);
     }
 
@@ -1311,9 +1321,17 @@ class SfTable extends TableElement {
         }, {signal});
     }
 
+    // The record the page has open (aria-current).
     isCurrentRow(row, index = -1) {
         const key = this.getRowKey(row, index);
         return key !== "" && String(this._currentRowId ?? "") === key;
+    }
+
+    // The row the person is on (data-current): where the keys and the last
+    // press left them, else the open record.
+    isCursorRow(row, index = -1) {
+        const key = this.getRowKey(row, index);
+        return key !== "" && String(this._cursorRowId ?? this._currentRowId ?? "") === key;
     }
 
     // ---------- many entries (§18.4) ----------
@@ -1491,7 +1509,7 @@ class SfTable extends TableElement {
         // The action focus-row {id} (component.json) answers an outcome.
         if (rowId && typeof rowId === "object") return this.focusRowAction(rowId);
         if (rowId == null || rowId === "") return this;
-        this._currentRowId = String(rowId);
+        this._cursorRowId = String(rowId);
         // The list's rows: the item is marked, and the focus goes to its title
         // link where it has one (the row's tab stop), else to the item.
         if (this.isList) {

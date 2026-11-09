@@ -55,7 +55,7 @@ try {
     page.on('pageerror', (error) => { if (!/publicPath/u.test(error.message)) errors.push(error.message); });
     await page.setContent(`<!doctype html><html class="theme-${theme}" lang="ru"><head><meta charset="utf-8"></head><body style="margin:0;background:var(--sf-surface-page)">${
       WIDTHS.map((width) => `<div style="inline-size:${width}px"><sf-view-table id="w${width}" size="1/2" layout="list" toolbar="false" selectable="false" row-open="row" quick-actions="visit,restart" aria-label="Сайты ${width}"></sf-view-table></div>`).join('')
-    }</body></html>`);
+    }<div style="inline-size:1000px"><sf-view-table id="tab" size="1/2" layout="table" toolbar="false" selectable="false" current="demo" aria-label="Сайты таблицей"></sf-view-table></div></body></html>`);
     for (const path of styles) await page.addStyleTag({path});
     for (const path of modules) await page.addScriptTag({path, type: 'module'});
     await page.waitForFunction(() => Boolean(customElements.get('sf-view-table') && customElements.get('sf-menu-context')), null, {timeout: 10000});
@@ -137,8 +137,11 @@ try {
     const rowCursor = await page.evaluate(() => getComputedStyle(document.querySelector('#w1000 .sf-table-resource[data-open="row"]')).cursor);
     if (rowCursor !== 'pointer') note(theme, {said: 'a row that opens does not show the pointer', got: rowCursor});
 
-    // The keys: ↓ ↑ Home End between the titles, Enter opens.
-    await page.evaluate(() => { window.applied = []; });
+    // The keys: ↓ ↑ Home End between the titles, Enter opens. The page has
+    // «shop» open: the keys move the person's row, never the open record,
+    // and the list row of the open record says aria-current.
+    await page.evaluate(() => { window.applied = []; document.getElementById('w700').setAttribute('current', 'shop'); });
+    await page.waitForTimeout(150);
     await page.focus('#w700 .sf-table-resource[data-row-id="simai"] .sf-table-title-link');
     const where = () => page.evaluate(() => document.activeElement?.closest('.sf-table-resource')?.dataset.rowId ?? document.activeElement?.tagName);
     const steps = [];
@@ -148,11 +151,28 @@ try {
       steps.push(await where());
     }
     const current = await page.evaluate(() => [...document.querySelectorAll('#w700 .sf-table-resource[data-current]')].map((item) => item.dataset.rowId));
+    const open = await page.evaluate(() => ({
+      aria: [...document.querySelectorAll('#w700 .sf-table-resource[aria-current="true"]')].map((item) => item.dataset.rowId),
+      property: document.getElementById('w700').current,
+    }));
     await page.keyboard.press('End');
     await page.keyboard.press('Enter');
     await page.waitForTimeout(200);
     const keyed = await page.evaluate(() => window.applied);
-    report[theme].keys = {steps, current, keyed};
+    report[theme].keys = {steps, current, open, keyed};
+    if (JSON.stringify(open) !== JSON.stringify({aria: ['shop'], property: 'shop'})) note(theme, {said: 'the keys moved the open record, or the list row of it has no aria-current', got: open});
+
+    // The same in a table: ↓ from the open record moves the person's row only.
+    await page.focus('#tab tbody tr[data-row-id="demo"]');
+    await page.keyboard.press('ArrowDown');
+    await page.waitForTimeout(120);
+    const table = await page.evaluate(() => ({
+      on: [...document.querySelectorAll('#tab tbody tr[data-current]')].map((tr) => tr.dataset.rowId),
+      aria: [...document.querySelectorAll('#tab tbody tr[aria-current="true"]')].map((tr) => tr.dataset.rowId),
+      property: document.getElementById('tab').current,
+    }));
+    report[theme].table = table;
+    if (JSON.stringify(table) !== JSON.stringify({on: ['clinic'], aria: ['demo'], property: 'demo'})) note(theme, {said: 'in a table the keys moved the open record', got: table});
     if (JSON.stringify(steps) !== JSON.stringify(['shop', 'demo', 'shop', 'clinic', 'simai'])) note(theme, {said: 'the keys do not move between the rows', got: steps});
     if (JSON.stringify(current) !== JSON.stringify(['simai'])) note(theme, {said: 'the current row is not marked as the keys move', got: current});
     if (JSON.stringify(keyed) !== JSON.stringify([{table: 'w700', action: 'view', ids: ['clinic']}])) note(theme, {said: 'Enter does not open the record', got: keyed});
