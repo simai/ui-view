@@ -2,7 +2,7 @@
   "$comment": "sf-view-flow, standard simai.smart-component 1.4 (vocabulary 1.1.5): properties as a block in a flow. Design: ui-view docs/design/sf-view-flow.md. The confirm surface (SIMAI Framework helpers/confirm-surface.js) gives the states, the expiry, the answer and expired events and the actions open, answer, confirm and cancel; the field values are sf-view-properties' js/field-value.js over the Framework field renderers.",
   "id": "smart.view-flow",
   "tag": "sf-view-flow",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "kind": "leaf",
   "family": "record",
   "settings": {
@@ -368,7 +368,7 @@
       "name": "cl-checkbox"
     },
     {
-      "name": "cl-button-group",
+      "name": "cl-segmented",
       "lazy": true
     },
     {
@@ -607,6 +607,13 @@
           "to": "1.1.0",
           "changes": [
             "The block draws the property types money, percent, items, compound and ru.requisites with the record card's controls (view-properties js/set-fields.js, through the shared field value). Nothing changes for a host that sends none of them."
+          ]
+        },
+        {
+          "from": "1.1.0",
+          "to": "1.1.1",
+          "changes": [
+            "Over SIMAI Framework ui-cb287da78ab1 (core.runtime 1.45.0; the set needs 1.43.0 or newer): it relates cl-segmented, the rule that serves sf-segmented and sf-button-group since the pair ui-d6f01121baca (cl-button-group is its forwarded former name), and its fill falls back to --sf-surface-page (C16 name of --sf-surface-0, the same value). The reference names one args argument per action (standard §4.4); answer and settle already read one object. Nothing changes on the page."
           ]
         }
       ]

@@ -111,7 +111,7 @@ SF.RuleLoader.registerPackage("view", {
         },
         {
           "lazy": true,
-          "name": "cl-button-group"
+          "name": "cl-segmented"
         },
         {
           "name": "cl-input-quantity"
@@ -229,7 +229,7 @@ SF.RuleLoader.registerPackage("view", {
         },
         {
           "lazy": true,
-          "name": "cl-button-group"
+          "name": "cl-segmented"
         },
         {
           "name": "cl-list-item"
