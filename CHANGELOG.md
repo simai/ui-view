@@ -3,6 +3,17 @@
 The set `view`, by its npm version `@simai-studio/view`; component versions
 in brackets. The site page «Изменения» says the same in Russian.
 
+## Unreleased
+
+- `sf-view-properties` 1.13.2: the loading skeleton's strip of section tabs
+  takes the box `sf-tabs` takes (simai/ui-pro#3): a tab's height (the
+  control height of the view's size), the tabs' hairline and their empty
+  panel, from the tabs' own sheet. It was one text line, so with
+  `sections-as="tabs"` the record moved down by 49px at size 1 (41px at
+  1/2) when it came; now the first group stands where the skeleton drew it.
+  `skeleton.html` prints the same markup. Nothing to change for a host.
+  Probe `property-view-pro-issues-3-4` holds #3 and #4 in both themes.
+
 ## 1.5.0 — 2026-11-09
 
 - Built over SIMAI Framework `ui-cb287da78ab1` (ui-source `44a5efda6649`,
