@@ -1995,7 +1995,7 @@ class SfDataView extends DataViewElement {
             // press on a row opens go to the table as the view has them.
             this._forwardListSettings(table, refused);
             if (this.controlSize) table.setAttribute("size", this.controlSize);
-            else table.removeAttribute("size");
+            else table.removeAttribute?.("size");
             this._tableScrollMode(table);
             table.setAttribute("settings", this.renders("settings") && !hostWroteOff(table, "settings") ? "true" : "false");
             // The column settings, without the column: it also carries each

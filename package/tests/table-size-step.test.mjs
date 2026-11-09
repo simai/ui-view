@@ -49,7 +49,7 @@ test('the table writes its step on what it draws and its rows follow', () => {
 });
 
 test('the data view hands its own size to the table, the page row and the band, and none without one', () => {
-  assert.match(view, /if \(this\.controlSize\) table\.setAttribute\("size", this\.controlSize\);\s*else table\.removeAttribute\("size"\);/u);
+  assert.match(view, /if \(this\.controlSize\) table\.setAttribute\("size", this\.controlSize\);\s*else table\.removeAttribute\?\.\("size"\);/u);
   assert.match(view, /if \(this\.controlSize\) this\.pagination\?\.setAttribute\?\.\("size", this\.controlSize\);\s*else this\.pagination\?\.removeAttribute\?\.\("size"\);/u);
   assert.match(view, /if \(node\.localName\.startsWith\("sf-"\)\) chosen\(node, "size", this\.controlSize\)/u);
   assert.doesNotMatch(view, /\bsize="1"/u, 'no control the view makes is fixed at 1');
