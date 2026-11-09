@@ -10,15 +10,28 @@ in brackets. The site page «Изменения» says the same in Russian.
   reach them through the stack, only while they are on top, and they are
   drawn at the stack's height; Escape on a window inside a record panel no
   longer closes the panel too. `--sf-table-context-menu--z-index` still wins.
-- `sf-view-properties` 1.12.0: speaks `simai.property-view-port` 1.18.0
-  beside 1.0.0-1.17.0. The port declares the settings the set-drawn types
-  read since 1.11.0 (`currency`, `columns`, `minRows`, `maxRows`, `parts`)
-  and a number field's `min`, `max`, `step` and `precision`, all optional;
-  the SIMAI Framework field renderers (module.smart-field-renderers 1.5.0)
-  draw the cells and filters of money, percent and items and keep a number
-  whose value is a string a decimal string. Titles read the text ladder, not
-  the heading roles, under the heading ladder (C21): the title at size 1/2
-  keeps rung 2 and a group title rung 1; unchanged on the page.
+- `sf-view-properties` 1.13.0 (1.12.0 and 1.13.0 in one step, two branches
+  merged; port 1.18.0 and titles in 1.12.0, the layer stack in 1.13.0):
+  speaks `simai.property-view-port` 1.18.0 beside 1.0.0-1.17.0. The port
+  declares the settings the set-drawn types read since 1.11.0 (`currency`,
+  `columns`, `minRows`, `maxRows`, `parts`) and a number field's `min`,
+  `max`, `step` and `precision`, all optional; the SIMAI Framework field
+  renderers (module.smart-field-renderers 1.5.0) draw the cells and filters
+  of money, percent and items and keep a number whose value is a string a
+  decimal string. Titles read the text ladder, not the heading roles, under
+  the heading ladder (C21): the title at size 1/2 keeps rung 2 and a group
+  title rung 1; unchanged on the page. The panels stand on SIMAI Framework's
+  one layer stack (core `layer-stack.js`), the stack `sf-modal`, the drawers
+  and the menus share, instead of a list, an Escape listener and a dim of
+  their own. Escape reaches the top layer only: over an `sf-modal` or a menu
+  opened from a panel it closes that, not the panel, and of two stacked
+  panels the upper one. A panel below another is dimmed by the overlay of
+  the one above (the drawer's scrim), with no opacity of its own. A panel
+  still never closes itself: every close its drawer starts is asked of the
+  host as `sf-view-properties-close` with `unsaved_fields`, now also with
+  `reason` `outside` for a press on the dimmed page, which closed the drawer
+  and left the panel open before. Escape in a naming row leaves the row
+  only. Same pair and core.runtime floor (1.25.0).
 
 ## 1.4.0 — 2026-11-08
 

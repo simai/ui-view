@@ -24,25 +24,6 @@
     overscroll-behavior: contain;
   }
 
-  /* A stack of windows. Each depth is inset a little further so the one below
-     stays partly visible, which is what makes it a stack rather than a
-     replacement: a person can see they are two records deep. Only the top window
-     is interactive -- a dimmed window that still answered clicks would be a
-     window that looks disabled and is not. */
-  .sf-property-view-panel[data-stacked="true"] {
-    opacity: 0.6;
-    pointer-events: none;
-  }
-
-  .sf-property-view-panel[data-stacked="true"]::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background-color: var(--sf-surface-0);
-    opacity: 0.4;
-    pointer-events: none;
-  }
-
   /* sf-drawer portals its content out of the element, so an open panel is no
      longer a descendant of sf-view-properties. These rules are scoped to the panel
      itself rather than to the element: written under `sf-view-properties` they
