@@ -1632,7 +1632,7 @@
       },
       {
         "path": "src/smart/view/docs.md",
-        "sha256": "6fbe4b18a496ce87e6c65f0bab96e1aa657718929a0b29796ef5c0232ceb4fd5"
+        "sha256": "1b736c394fc90823be215ee335370b7447d09c389f1c08b46eadd380be4cc286"
       },
       {
         "path": "tests/fixtures/data-view-composite-lab.html",

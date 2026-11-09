@@ -3,6 +3,39 @@
 The set `view`, by its npm version `@simai-studio/view`; component versions
 in brackets. The site page «Изменения» says the same in Russian.
 
+## 1.6.0 — 2026-11-09
+
+- Built over SIMAI Framework `ui-b4a77681f0a7` (ui-source `a29cc9989beb`,
+  npm `@simai-studio/ui@5.20261109.1121`, core.runtime 1.47.0).
+- The list of resources (owner decision C31), with no new tag.
+  `sf-view-table` 1.17.0:
+  - `columns[].list` gives a column its role in a list row: `status` (an
+    `.sf-dot` whose word is its tooltip and its accessible text), `title`,
+    `supporting` (joined into the second line), `fact` (an unlabelled
+    `sf-badge` in columns of one width, quiet when fine, warning or error
+    when not) or `hidden`. A column without a role stays out of the list.
+  - `quick-actions` puts up to three row actions in the row as icon buttons,
+    always shown; the rest are in a `more_horiz` menu in place of ≡, and
+    below a 37.5rem container the quick ones fold into it.
+  - `row-open="row"` opens the record from anywhere in the row, through the
+    same `view` intent as the title link; the row's buttons keep their own
+    work, ↑/↓, Home and End move between the rows, a double click opens once.
+  - `layout-switch` draws a list/table `sf-segmented` in the toolbar, not
+    below `list-below`; the choice is kept per person (`SF.Preferences` field
+    `layout`) and said by `sf-view-table-layout-change {layout}`; the action
+    `set-layout {layout}` sets it.
+  - On a phone (below 32rem) a list row is `--sf-ui-3--control-height` and
+    keeps only its most worrying fact.
+  - A list row is a rung of the ladder: 48 at size 1/2, 56 at size 1. A table
+    row of two lines at size 1/2 is 48 (`--sf-ui-2--control-height`), it was
+    53; `--sf-table-row-2-lines-block-size-1/2` says 48px.
+- `sf-view` 1.11.0 passes its own `layout` on (it used to set `auto` for a
+  page's list and `table` for an embedded one), and `layout-switch`,
+  `list-below`, `quick-actions` and `row-open` with it; `list-roles="key:role,…"`
+  gives the columns their list roles, which `simai.dataview-port` 1.14.0 has
+  no field for. A saved view carries the layout in `settings.layout` and
+  opening it puts the layout back; the first paint draws the person's choice.
+
 ## 1.5.0 — 2026-11-09
 
 - Built over SIMAI Framework `ui-cb287da78ab1` (ui-source `44a5efda6649`,

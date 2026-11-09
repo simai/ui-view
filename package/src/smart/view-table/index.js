@@ -1541,6 +1541,9 @@ class SfTable extends TableElement {
 
     handleRowOpen(event, row) {
         if (this.isRowControlTarget(event?.target) || !this.canOpenRow(row)) return this;
+        // With row-open="row" the first click of a double click has opened
+        // the record already: the second is the same wish, not a second one.
+        if (event?.type === "dblclick" && this.getAttribute("row-open") === "row") return this;
         const id = row?.id;
         if (id == null) return this;
         return this.requestActionIntent("view", [id]);
