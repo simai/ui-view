@@ -1476,6 +1476,9 @@ class SfTable extends TableElement {
         // row whose arrangement changes is drawn anew, and the focus that
         // brought the buttons in would leave with the old row.
         if (column.system || column.component || column.renderer === "link" || column.role === "title") return null;
+        // A status or a fact (C31) is the full renderer's: the dot with its
+        // word, the badge.
+        if (column.list === "status" || column.list === "fact") return null;
         if (this.isTree() || row.path || this.cellEditable(row, column)) return null;
         const value = row[key];
         if (value === null || typeof value === "undefined") return {kind: "empty"};

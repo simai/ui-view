@@ -147,7 +147,8 @@
       padding-block: var(--sf-ui-1--space-y);
     }
     :is(sf-view-table, sf-table):not([size]):not([data-sf-view-density]):is([data-sf-density=compact], [data-sf-density=compact] *):not([data-sf-density=normal], [data-sf-density=normal] *) > * .table > tbody > tr:has(.sf-table-link-cell-subtext, .sf-table-tree-path) > * {
-      padding-block: calc((var(--sf-ui-3--control-height) - 2 * var(--sf-text-height-1) - var(--sf-px)) / 2);
+      /* The title on the step's text, the supporting line on the 1/2 text. */
+      padding-block: calc((var(--sf-ui-3--control-height) - var(--sf-text-height-1) - var(--sf-text-height-1\/2) - var(--sf-px)) / 2);
     }
     /* The published box of step 1 follows on a compact page. */
     :root[data-sf-density=compact] {
