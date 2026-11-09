@@ -138,6 +138,10 @@ const TableElement = elementFromManifest(manifest, {
     aliases,
 });
 
+// template-save carries {templates} (1.16.0); its former names keep the 1.3
+// detail, the template itself or the array of them, until their dates.
+const formerTemplateDetail = (detail) => (detail?.templates?.length === 1 ? detail.templates[0] : detail?.templates);
+
 
 // Whether a row of the current set would stand at another index in the next:
 // a row kept by id and drawn elsewhere is a layout shift.
@@ -650,6 +654,8 @@ class SfTable extends TableElement {
             "sf-table-action-intent": (detail) => Object.freeze({action_id: detail.action, record_ids: detail.ids}),
             "sf-port-output": (detail) => Object.freeze({port: "selection", value: detail.ids}),
             onSearchEnd: (detail) => detail.search,
+            "sf-table-template-save": formerTemplateDetail,
+            onTemplateSave: formerTemplateDetail,
         };
     }
 
@@ -2244,7 +2250,8 @@ class SfTable extends TableElement {
             template || this.getFilterTemplateByKey(key, filter),
             filter,
         );
-        this.emitTableEvent('template-save', detail);
+        // §8: the detail is an object; the template rides in templates.
+        this.emitTableEvent('template-save', {templates: [detail]});
 
         return this;
     }
@@ -2275,10 +2282,7 @@ class SfTable extends TableElement {
             return this;
         }
 
-        const detail = this.withFilterFieldSettings(
-            filteredTemplates.length === 1 ? filteredTemplates[0] : filteredTemplates,
-        );
-        this.emitTableEvent('template-save', detail);
+        this.emitTableEvent('template-save', {templates: this.withFilterFieldSettings(filteredTemplates)});
 
         return this;
     }
@@ -3168,8 +3172,7 @@ class SfTable extends TableElement {
             }
         };
 
-        const detail = this.withFilterFieldSettings(template);
-        this.emitTableEvent('template-save', detail);
+        this.emitTableEvent('template-save', {templates: [this.withFilterFieldSettings(template)]});
         this.tempSettings = null;
         this.closeContextMenu();
     }
@@ -3713,7 +3716,7 @@ class SfTable extends TableElement {
                     ${handle
                         ? html`<sf-button-icon
                                 size="1/2"
-                                appearance="link"
+                                appearance="ghost"
                                 scheme="on-surface"
                                 icon="drag_indicator"
                                 data-move
@@ -3730,7 +3733,7 @@ class SfTable extends TableElement {
                          a list of twenty pins could not tell which were set. -->
                     <sf-button-icon
                         size="1/2"
-                        appearance="link"
+                        appearance="ghost"
                         scheme=${pinned ? "primary" : "on-surface"}
                         ?filled=${pinned}
                         icon="push_pin"
@@ -4360,7 +4363,7 @@ class SfTable extends TableElement {
                     ${!isActiveEdit ? html`
                         <sf-button-icon size=${this.size}
                                 id="${this.getInstanceId()}--template-move--${col.key}"
-                                appearance="link"
+                                appearance="ghost"
                                 data-move
                                 data-sf-sortable-handle
                                 scheme="on-surface"
@@ -4372,7 +4375,7 @@ class SfTable extends TableElement {
                     ${!isActiveEdit ? html`
                         <div class="flex items-cross-center m-inline-start-auto gap-1/3">
                             <sf-button-icon
-                                    appearance="link"
+                                    appearance="ghost"
                                     data-keep
                                     size="1/3"
                                     scheme="on-surface"
@@ -4387,7 +4390,7 @@ class SfTable extends TableElement {
                                     }}
                             ></sf-button-icon>
                             <sf-button-icon size=${this.size}
-                                    appearance="link"
+                                    appearance="ghost"
                                     data-settings
                                     data-context-submenu-anchor="${col.key}"
                                     scheme="on-surface"
@@ -4932,7 +4935,7 @@ class SfTable extends TableElement {
                     ${data.submenu?.open ? this.renderContextSubmenu(data.submenu) : nothing}
                     ${this.isList && ["filter-settings", "tag-settings"].includes(data.menu) ? html`
                         <div class="sf-table-sheet-close">
-                            <sf-button-icon size=${this.size} appearance="link" scheme="on-surface"
+                            <sf-button-icon size=${this.size} appearance="ghost" scheme="on-surface"
                                             icon="close" aria-label=${this.text('closeText')}
                                             @click=${() => this.closeContextMenu()}></sf-button-icon>
                         </div>` : nothing}

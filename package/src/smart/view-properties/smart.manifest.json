@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-properties",
-  "version": "1.13.0",
+  "version": "1.13.1",
   "title": "Property view",
   "summary": "One object's fields shown as sections, groups and fields, each drawn by the per-type field renderer set, behind a separate host port. A group is edited and saved as one revision by the button, and a reference field is picked from the host's own candidates a page at a time. The pair to the data view: that one is a set of records, this one is a single object.",
   "kind": "composite",
@@ -38,7 +38,6 @@
       "smart.badge",
       "smart.button",
       "smart.button-copy",
-      "smart.button-group",
       "smart.button-icon",
       "smart.checkbox",
       "smart.drawer",
@@ -59,6 +58,7 @@
       "smart.progress-bar",
       "smart.progress-scale",
       "smart.reference-link",
+      "smart.segmented",
       "smart.slider-range",
       "smart.sortable",
       "smart.spinner",
@@ -668,9 +668,16 @@
       "summary": "Read the object again through the port.",
       "arguments": [
         {
-          "name": "reason",
+          "name": "args",
+          "type": "object|string",
+          "required": false,
           "schema": {
-            "type": "string"
+            "type": "object",
+            "properties": {
+              "reason": {
+                "type": "string"
+              }
+            }
           }
         }
       ],
@@ -683,15 +690,23 @@
       "summary": "Open one group for editing.",
       "arguments": [
         {
-          "name": "section",
+          "name": "args",
+          "type": "object",
+          "required": true,
           "schema": {
-            "type": "string"
-          }
-        },
-        {
-          "name": "group",
-          "schema": {
-            "type": "string"
+            "type": "object",
+            "properties": {
+              "section": {
+                "type": "string"
+              },
+              "group": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "section",
+              "group"
+            ]
           }
         }
       ],
@@ -712,10 +727,17 @@
       "summary": "Save the changed fields of the open group as one revision.",
       "arguments": [
         {
-          "name": "options",
+          "name": "args",
+          "type": "object",
+          "required": false,
           "schema": {
             "type": "object",
-            "description": "{confirm}: the digest of a confirmation the host asked for; set by confirmSave."
+            "properties": {
+              "options": {
+                "type": "object",
+                "description": "{confirm}: the digest of a confirmation the host asked for; set by confirmSave."
+              }
+            }
           }
         }
       ],
@@ -728,9 +750,19 @@
       "summary": "Open one section.",
       "arguments": [
         {
-          "name": "key",
+          "name": "args",
+          "type": "object|string",
+          "required": true,
           "schema": {
-            "type": "string"
+            "type": "object",
+            "properties": {
+              "key": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "key"
+            ]
           }
         }
       ],
@@ -743,9 +775,16 @@
       "summary": "Announce that the panel should close. Closing is the host's decision.",
       "arguments": [
         {
-          "name": "reason",
+          "name": "args",
+          "type": "object|string",
+          "required": false,
           "schema": {
-            "type": "string"
+            "type": "object",
+            "properties": {
+              "reason": {
+                "type": "string"
+              }
+            }
           }
         }
       ],
@@ -1562,6 +1601,13 @@
         "changes": [
           "Panels stand on the SIMAI Framework layer stack (core layer-stack.js), the one sf-modal, the drawers and the menus share, instead of a list of their own: Escape reaches the top layer only, so Escape over an sf-modal or a menu opened from a panel closes that and not the panel; the drawer's own Escape is on, and every close it starts is refused and raised as sf-view-properties-close, now also with reason outside for a press on the dimmed page (the drawer closed itself on it before, and the panel stayed open under no drawer). A panel below another is dimmed by the overlay of the one above it, the drawer's scrim, without a second dim of its own (opacity and a wash, gone with data-stack-depth and data-stacked on the panel). Escape in a naming row leaves the row and no longer also asks to close the panel. Nothing to change for a host that already answers close; a host that switched on reason may meet outside."
         ]
+      },
+      {
+        "from": "1.13.0",
+        "to": "1.13.1",
+        "changes": [
+          "Over SIMAI Framework ui-cb287da78ab1 (core.runtime 1.45.0; the set needs 1.43.0 or newer): a choice drawn as buttons (sf-button-group) relates cl-segmented, the rule that serves sf-segmented and sf-button-group since the pair ui-d6f01121baca (cl-button-group is its forwarded former name); the theme roles and the background utility by their C16 names (--sf-surface-page, --sf-surface-area, --sf-surface-popup, --sf-shadow-popup, bg-surface-page; the former names are dated aliases of the same values); the buttons ask for appearance ghost, scheme on-surface-variant and status danger (link, secondary and error are their former names, drawn the same). The reference names one args argument per action (standard §4.4); the methods already took the object form (answerActions). Nothing changes on the page."
+        ]
       }
     ]
   },
@@ -1575,11 +1621,11 @@
       },
       {
         "path": "src/smart/view-properties/js/templates/default.js",
-        "sha256": "0566626188a36ea82ef45968bd0a3b9fca3b1d5ed508e3fc6203d6e85590230c"
+        "sha256": "ce652d1f9769c3eab9baa013f43dc87457229a49004b54ef2a77d6f887655247"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.css",
-        "sha256": "edddf9c0adea7916adc8bcb0eb9a9cdabc15f65d2d13279225483bf47067c16e"
+        "sha256": "545aa0e735b98c990cc18b9af2b0863b35e74df9443e630d13fafe98c842ca94"
       },
       {
         "path": "src/smart/view-properties/js/conditions.js",
@@ -1611,11 +1657,11 @@
       },
       {
         "path": "src/smart/view-properties/js/set-fields.js",
-        "sha256": "f2b67678f0c498b2355cb5b1233ab903ca8cb089c05244e09c760e049e89c815"
+        "sha256": "5186f15be38ea810912463a6c1e4dc265708df87765c923bb57f58ba85b4f580"
       },
       {
         "path": "src/smart/view-properties/rule.js",
-        "sha256": "e23c095e11f5f42de3bad05a8d347f668c947dad90018994e3ef334832e1b887"
+        "sha256": "d6b0ba37902b2b84b46be67ec3a4d8261110b08e0f4e5c4685ef2fd4766dbedf"
       },
       {
         "path": "src/core/contracts/ports/simai.property-view-port/1.4.0/port.json",

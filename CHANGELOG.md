@@ -3,8 +3,37 @@
 The set `view`, by its npm version `@simai-studio/view`; component versions
 in brackets. The site page «Изменения» says the same in Russian.
 
-## Unreleased
+## 1.5.0 — 2026-11-09
 
+- Built over SIMAI Framework `ui-cb287da78ab1` (ui-source `44a5efda6649`,
+  npm `@simai-studio/ui@5.20261109.559`, core.runtime 1.45.0); the set now
+  needs core.runtime 1.43.0 or newer (it was 1.25.0): it names the theme
+  roles by their C16 names and the shadow places of C20.
+- `sf-view-table` 1.16.0: `sf-view-table-template-save` carries
+  `{templates}`, a list of one template (saved from the form) or several
+  (Apply on the Templates tab), each `{key, label, selected, data,
+  settings}`, at least one (decision «Event detail that is not a flat
+  object», 2026-11-09). The detail used to be the template itself or an
+  array of them; `sf-table-template-save` (until 2027-01-01) and
+  `onTemplateSave` (until 2026-12-01) keep that detail through the
+  element's adapter. A host listening to `sf-view-table-template-save` reads
+  `detail.templates`.
+- `sf-view` 1.10.0: reads `detail.templates` of the table's template save,
+  and a bare template or array from an older table until 2027-01-01.
+- `sf-view-properties` 1.13.1 and `sf-view-flow` 1.1.1: a choice drawn as
+  buttons relates `cl-segmented`, the rule that serves `sf-segmented` and
+  `sf-button-group` since the pair `ui-d6f01121baca` (`cl-button-group` is
+  its forwarded former name).
+- All four: the theme roles and the background utility by their C16 names
+  (`--sf-surface-page`, `--sf-surface-area`, `--sf-surface-popup`,
+  `--sf-shadow-popup`, `--sf-primary-outline`, `--sf-primary-state-select`,
+  `bg-surface-page`; the former names are dated aliases of the same values);
+  the buttons ask for `appearance="ghost"`, `scheme="on-surface-variant"`
+  and `status="danger"` (link, secondary and error are their former names,
+  drawn the same). The reference names one `args` object per action
+  (standard §4.4); the methods already took that form beside the fields in
+  order. First-paint snapshots retaken over the pair. Nothing changes on the
+  page.
 - `sf-view-table` 1.15.2: its windows (filter, field and settings windows,
   menus) are a surface of the one layer stack: a press outside and Escape
   reach them through the stack, only while they are on top, and they are

@@ -81,7 +81,7 @@ test('the field editors the set draws for the two are fetched by the rule', () =
   const sandbox = {SF: {RuleLoader: {}}};
   vm.runInContext(read('src/smart/view-properties/rule.js'), vm.createContext(sandbox));
   const relations = sandbox.SF.RuleLoader['cl-view-properties'].relation;
-  for (const name of ['cl-input', 'cl-button-group', 'cl-dropdown']) {
+  for (const name of ['cl-input', 'cl-segmented', 'cl-dropdown']) {
     assert.ok(relations.some((relation) => relation.name === name && relation.lazy === true), name);
   }
 });
