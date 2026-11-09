@@ -1031,6 +1031,16 @@ class SfDataView extends DataViewElement {
         return this.getAttribute("size") === "1/2" ? "1/2" : "1";
     }
 
+    // The size written on the controls the view makes and on its table: the
+    // view's own when it has one, none when it has not, so page density moves
+    // them with the page (C22). A table given size 1 by a view without one
+    // stayed 40 under compact density, beside the page's 32 (Larena,
+    // 2026-11-10).
+    get controlSize() {
+        const size = this.getAttribute("size");
+        return size === "1/2" || size === "1" ? size : null;
+    }
+
     static get observedAttributes() {
         return ["chrome", "row-cap", "aria-label", "size", "preferences-key", ...LIST_ATTRIBUTES, ...LABEL_ATTRIBUTES];
     }
@@ -1522,11 +1532,11 @@ class SfDataView extends DataViewElement {
             band.innerHTML = `
                 <span class="sf-pagination-actions-count" data-sf-bulk="count"></span>
                 <span class="sf-pagination-actions-separator" aria-hidden="true"></span>
-                <sf-dropdown data-sf-bulk="actions" size="1" appearance="outlined" search="false" mode="select"></sf-dropdown>
-                <sf-button data-sf-bulk="apply" size="1" appearance="default" scheme="primary"></sf-button>
+                <sf-dropdown data-sf-bulk="actions" appearance="outlined" search="false" mode="select"></sf-dropdown>
+                <sf-button data-sf-bulk="apply" appearance="default" scheme="primary"></sf-button>
                 <span class="sf-pagination-actions-separator" aria-hidden="true" data-sf-bulk="for-all-separator"></span>
                 <sf-checkbox data-sf-bulk="for-all"></sf-checkbox>
-                <sf-button-icon data-sf-bulk="clear" class="sf-pagination-actions-clear" size="1" appearance="ghost" scheme="on-surface" icon="close"></sf-button-icon>`;
+                <sf-button-icon data-sf-bulk="clear" class="sf-pagination-actions-clear" appearance="ghost" scheme="on-surface" icon="close"></sf-button-icon>`;
             band.querySelector('[data-sf-bulk="apply"]')
                 .addEventListener("click", () => this.applyBulkAction());
             band.querySelector('[data-sf-bulk="actions"]')
@@ -1538,16 +1548,16 @@ class SfDataView extends DataViewElement {
         }
         for (const node of band.querySelectorAll("[data-sf-bulk]")) {
             parts[node.dataset.sfBulk] = node;
-            if (node.localName.startsWith("sf-")) chosen(node, "size", this.size);
+            if (node.localName.startsWith("sf-")) chosen(node, "size", this.controlSize);
         }
         parts.count.textContent = `${pagination.selectedLabel} ${selected.length}`;
         chosen(parts.actions, "value", action);
         chosen(parts.actions, "placeholder", pagination.actionChooseLabel);
         chosen(parts.actions, "aria-label", pagination.actionsLabel);
         parts.actions.options = [
-            {type: "text", size: this.size, text: pagination.actionChooseLabel, value: "", selected: !action},
+            {type: "text", size: this.controlSize ?? undefined, text: pagination.actionChooseLabel, value: "", selected: !action},
             ...actions.map((item) => ({
-                type: "text", size: this.size, text: item.text, value: item.value,
+                type: "text", size: this.controlSize ?? undefined, text: item.text, value: item.value,
                 selected: item.value === action, disabled: Boolean(item.disabled),
             })),
         ];
@@ -1940,7 +1950,8 @@ class SfDataView extends DataViewElement {
         // false value by removing the attribute — and a removed `bottom` means
         // the default, which is to draw the band.
         this.pagination?.setAttribute?.("bottom", "false");
-        this.pagination?.setAttribute?.("size", this.size);
+        if (this.controlSize) this.pagination?.setAttribute?.("size", this.controlSize);
+        else this.pagination?.removeAttribute?.("size");
         this._forwardLabels();
         const table = this.table;
         if (table) {
@@ -1983,7 +1994,8 @@ class SfDataView extends DataViewElement {
             // toolbar to hold it), the threshold, the quick actions and what a
             // press on a row opens go to the table as the view has them.
             this._forwardListSettings(table, refused);
-            table.setAttribute("size", this.size);
+            if (this.controlSize) table.setAttribute("size", this.controlSize);
+            else table.removeAttribute("size");
             this._tableScrollMode(table);
             table.setAttribute("settings", this.renders("settings") && !hostWroteOff(table, "settings") ? "true" : "false");
             // The column settings, without the column: it also carries each
@@ -2168,7 +2180,7 @@ class SfDataView extends DataViewElement {
                 button = document.createElement("sf-button");
                 button.setAttribute("data-show-all", "");
                 button.setAttribute("appearance", "link");
-                button.setAttribute("size", "1");
+                if (this.controlSize) button.setAttribute("size", this.controlSize);
                 band.append(button);
             }
             button.setAttribute("text", pageText(DATA_VIEW_TEXT, "showAll", this));

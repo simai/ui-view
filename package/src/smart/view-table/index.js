@@ -944,7 +944,7 @@ class SfTable extends TableElement {
         };
         return html`
             <sf-menu-context
-                    size=${this.size === "1/2" ? "1/2" : "1"}
+                    size=${this.controlSize ?? nothing}
                     :key=${x + y}
                     aria-label=${this.getContextMenuLabel({...data, menu: 'toolbar-actions'})}
                     style="
@@ -992,7 +992,7 @@ class SfTable extends TableElement {
         ];
         return html`
             <sf-menu-context
-                    size=${this.size === "1/2" ? "1/2" : "1"}
+                    size=${this.controlSize ?? nothing}
                     :key=${x + y}
                     aria-label=${this.getContextMenuLabel({...data, menu: 'list-sort'})}
                     style="
@@ -1019,7 +1019,7 @@ class SfTable extends TableElement {
         };
         return html`
             <sf-menu-context
-                    size=${this.size === "1/2" ? "1/2" : "1"}
+                    size=${this.controlSize ?? nothing}
                     :key=${x + y}
                     aria-label=${this.getContextMenuLabel({...data, menu: 'create'})}
                     style="
@@ -3312,7 +3312,7 @@ class SfTable extends TableElement {
         const template = this.getSelectedFilterTemplate();
         return html`
             <sf-menu-context
-                    size=${this.size === "1/2" ? "1/2" : "1"}
+                    size=${this.controlSize ?? nothing}
                     :key=${x + y + this._renderToken}
                     aria-label=${this.getContextMenuLabel({...data, menu: 'filter-favorites'})}
                     style="
@@ -3441,7 +3441,7 @@ class SfTable extends TableElement {
         }
         return html`
             <sf-menu-context
-                    size=${this.size === "1/2" ? "1/2" : "1"}
+                    size=${this.controlSize ?? nothing}
                     :key=${x + y}
                     aria-label=${this.getContextMenuLabel({...data, menu: 'row-settings'})}
                     style="
@@ -4646,7 +4646,7 @@ class SfTable extends TableElement {
         let contextItems = `${this.text('templatesTabText')}|${this.text('fieldsTabText')}`;
         return html`
             <sf-menu-context
-                    size=${this.size === "1/2" ? "1/2" : "1"}
+                    size=${this.controlSize ?? nothing}
                     :key=${x + y + this._renderToken}
                     aria-label=${this.getContextMenuLabel({...data, menu: 'filter-settings'})}
                     style="
@@ -4797,7 +4797,7 @@ class SfTable extends TableElement {
         };
         return html`
             <sf-menu-context
-                    size=${this.size === "1/2" ? "1/2" : "1"}
+                    size=${this.controlSize ?? nothing}
                     :key=${x + y + this._renderToken}
                     aria-label=${this.getContextMenuLabel({...data, menu: 'tag-settings'})}
                     style="
@@ -4932,7 +4932,7 @@ class SfTable extends TableElement {
         // them taught nobody anything.
         return html`
             <sf-menu-context
-                    size=${this.size === "1/2" ? "1/2" : "1"}
+                    size=${this.controlSize ?? nothing}
                     :key=${x + y + this._renderToken}
                     aria-label=${this.getContextMenuLabel({...data, menu: 'table-settings'})}
                     style="
@@ -5078,7 +5078,7 @@ class SfTable extends TableElement {
         const isDefaultTemplate = (temp || template).default === true;
         return html`
             <sf-menu-context
-                    size=${this.size === "1/2" ? "1/2" : "1"}
+                    size=${this.controlSize ?? nothing}
                     :key=${`${template.key || ''}-${x}-${y}`}
                     aria-label=${this.getContextMenuLabel({...data, type: 'filter-template-actions'})}
                     style="
@@ -6615,8 +6615,7 @@ class SfTable extends TableElement {
         }
         if (typeof element.template !== "function") return this.renderSmartElement(type, props);
         for (const name of [...element.getAttributeNames()]) element.removeAttribute(name);
-        const size = this.size !== "1" && String(props.size) === "1" ? this.size : props.size;
-        for (const [key, value] of Object.entries({...props, ...(size !== undefined ? {size} : {})})) {
+        for (const [key, value] of Object.entries(this.relativeSize(props))) {
             if (value === undefined || value === null || value === false) continue;
             const attribute = key.replace(/[A-Z]/gu, (letter) => `-${letter.toLowerCase()}`);
             if (typeof value === "object" || typeof value === "function") element[key] = value;
@@ -6634,15 +6633,28 @@ class SfTable extends TableElement {
     // under its current tag.
     renderSmartElement(type, props = {}) {
         type = canonicalTag(`sf-${String(type ?? "").replace(/^sf-/u, "")}`);
-        const size = this.size;
-        if (size !== "1" && props && String(props.size) === "1") {
-            return super.renderSmartElement(type, {...props, size});
-        }
-        return super.renderSmartElement(type, props);
+        return super.renderSmartElement(type, this.relativeSize(props));
     }
 
     get size() {
         return this.getEnumAttr("size", ["1/2", "1"], "1");
+    }
+
+    // The size a control inside is written with (C22): the host's own when it
+    // has one, none when it has not. A control written at size 1 in a host
+    // without a size stayed 40 under compact page density, where the page's
+    // own controls were 32 (Larena, 2026-11-10).
+    get controlSize() {
+        const size = this.getAttribute("size");
+        return size === "1/2" || size === "1" ? size : null;
+    }
+
+    // A control a column or an action names at size 1 is "this table's
+    // size": the host's size when it has one, otherwise no size at all.
+    relativeSize(props) {
+        if (!props || String(props.size) !== "1") return props;
+        const {size: _size, ...rest} = props;
+        return this.controlSize ? {...rest, size: this.controlSize} : rest;
     }
 
     getSelectColumn() {
@@ -7555,6 +7567,10 @@ class SfTable extends TableElement {
             layoutSwitch: this.hasLayoutSwitch && !this.isNarrow,
             shownLayout: this._renderedList ? "list" : "table",
             quickActionIds: this.quickActionIds,
+            // The size the controls inside are written with: the host's own,
+            // or none, so a host without a size keeps its controls relative
+            // and page density moves them (C22).
+            controlSize: this.controlSize,
             rootClass: this.getRootClass(),
             rootStyle: this.getRootStyle(),
             filterText: this.text("filterText", "filter-text"),

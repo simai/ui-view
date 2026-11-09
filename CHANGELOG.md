@@ -47,12 +47,18 @@ in brackets. The site page «Изменения» says the same in Russian.
     `--sf-primary-container` beside `aria-current`, the keyboard's row with
     the focus ring only; «more» 36 on a phone; the search field, Create and
     the rows on one line (R077).
+  - The controls inside are relative (C22, a Larena report): a table without
+    a size writes no size on its toolbar, menus and row controls, so compact
+    page density gives them 32 at 1280 (they stayed 40); a host with a size
+    still hands it down.
 - `sf-view` 1.11.0 passes its own `layout` on (it used to set `auto` for a
   page's list and `table` for an embedded one), and `layout-switch`,
   `list-below`, `quick-actions` and `row-open` with it; `list-roles="key:role,…"`
   gives the columns their list roles, which `simai.dataview-port` 1.14.0 has
   no field for. A saved view carries the layout in `settings.layout` and
   opening it puts the layout back; the first paint draws the person's choice.
+  A view without a size writes none on its table, page row, selection band or
+  Show all (C22): under compact density they follow the page.
 
 ## 1.5.1 — 2026-11-09
 

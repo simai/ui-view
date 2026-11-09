@@ -1613,6 +1613,7 @@
         "to": "1.11.0",
         "changes": [
           "The list of resources (owner decision C31, 2026-11-09): layout is passed to the table instead of auto always (a page's list is still auto without it; a layout the host wrote on its table is kept); layout-switch, list-below, quick-actions and row-open go to the table as written; list-roles gives the columns their places in a list row (columns[].list) where the host's columns do not carry them. With the switch, the person's choice is kept under preferences-key by the table, rides in a saved view's settings (settings.layout) and comes back when that view is opened; the first paint draws the layout chosen. Needs sf-view-table 1.17.0 (the same release).",
+          "The controls the view makes and its table are relative (C22, Larena 2026-11-10): a view without a size writes no size on its table, page row, selection band (the action list, Apply, Clear and their options) or Show all, so compact page density moves them with the page (32 at 1280 where they stayed 40); a view with size=\"1\" or \"1/2\" still hands it down. A table given its own size inside a view without one loses it to the view (it used to be overwritten with 1).",
           "Over SIMAI Framework ui-b4a77681f0a7 (core.runtime 1.47.0; the set still needs 1.43.0 or newer). Nothing to change for a host that does not use the new settings."
         ]
       }
@@ -1624,7 +1625,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view/index.js",
-        "sha256": "666a0879978d25612809f65c56ee8d6e8ecf31d1fa39f8e32c0ce7398a2d5222"
+        "sha256": "1d27440f6b3071bb7879006291aab3aa51cd489212407fe0203a343d169d9b65"
       },
       {
         "path": "src/core/contracts/ports/simai.dataview-port/1.5.0/port.json",
