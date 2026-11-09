@@ -1613,7 +1613,8 @@
         "from": "1.13.1",
         "to": "1.13.2",
         "changes": [
-          "The loading skeleton's strip of section tabs takes the box sf-tabs takes (simai/ui-pro#3): a tab's height (the control height of the view's size, --sf-ui-1--control-height, at 1/2 --sf-ui-1/2--control-height), the tabs' hairline (.sf-tabs-top-container) and their empty panel (.sf-tabs-main-container), from the tabs' own sheet. It was one text line, so with sections-as tabs the record moved down by 49px at size 1 (41px at 1/2) when it came; now the first group stands where the skeleton drew it. skeleton.html prints the same markup (data-size from size). Nothing to change for a host."
+          "The loading skeleton's strip of section tabs takes the box sf-tabs takes (simai/ui-pro#3): a tab's height (the control height of the view's size, --sf-ui-1--control-height, at 1/2 --sf-ui-1/2--control-height), the tabs' hairline (.sf-tabs-top-container) and their empty panel (.sf-tabs-main-container), from the tabs' own sheet. It was one text line, so with sections-as tabs the record moved down by 49px at size 1 (41px at 1/2) when it came; now the first group stands where the skeleton drew it. skeleton.html prints the same markup (data-size from size). Nothing to change for a host.",
+          "The arranging bar's section title reads rung 1 of the text ladder (--sf-text--size-1, --sf-text--height-1), 16/24 at sizes 1 and 1/2: what it drew while it named --sf-title-small, a role the Framework has no token for (measured before and after, both themes, three loads). Nothing changes on the page."
         ]
       }
     ]
@@ -1632,7 +1633,7 @@
       },
       {
         "path": "src/smart/view-properties/js/templates/default.css",
-        "sha256": "6ac0d1a27fdb5b41fac887cb598203c62abc952ecf6fa06694d9fb350983e78e"
+        "sha256": "9fbc0fddf5bd614901e2e1837042eff2ba4348999301aba44e46c2a07da0fb65"
       },
       {
         "path": "src/smart/view-properties/js/conditions.js",
