@@ -18,9 +18,10 @@
 // distribution (core, smart, …). <package output> holds smart/<folder> and
 // smart/rule.js (ui-builder's run-package-product-build.cjs).
 import {spawnSync} from 'node:child_process';
-import {cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, symlinkSync, writeFileSync} from 'node:fs';
+import {existsSync, readdirSync, readFileSync, writeFileSync} from 'node:fs';
 import {join, resolve} from 'node:path';
 import {PACKAGE_ROOT, materializeOverlay, packageNameOf} from './overlay.mjs';
+import {layProbeOutput} from './probe-layout.mjs';
 
 const args = process.argv.slice(2);
 // --set <id>=<output>: a released set this set requires (set.json requires_sets),
@@ -44,31 +45,10 @@ if (!existsSync(join(built, 'smart', 'rule.js'))) throw new Error(`the package o
 if (!existsSync(overlay)) materializeOverlay(overlay);
 
 // One output root in the product layout, the package's folders and its rule
-// file inside smart/smart beside the free components.
-// The runner reads <root>/core/core, core/rule, component/component,
-// smart/smart and utility/utility.
-const products = {core: ['core', 'core'], rule: ['core', 'rule'], component: ['component', 'component'], smart: ['smart', 'smart'], utility: ['utility', 'utility']};
-const layout = existsSync(join(free, 'core', 'core', 'js', 'core.js')) ? 'product' : existsSync(join(free, 'core', 'js', 'core.js')) ? 'distr' : '';
-if (!layout) throw new Error(`no core/js/core.js under ${free} (a product output root or a ui distr)`);
-const combined = join(overlay, '.manifest-probe-output');
-rmSync(combined, {force: true, recursive: true});
-for (const [product, [folder, inner]] of Object.entries(products)) {
-  const from = layout === 'product' ? join(free, folder, inner) : join(free, product);
-  if (!existsSync(from)) throw new Error(`the free output has no ${product}: ${free}`);
-  mkdirSync(join(combined, folder), {recursive: true});
-  if (product === 'smart') cpSync(from, join(combined, folder, inner), {recursive: true});
-  else symlinkSync(from, join(combined, folder, inner));
-}
-for (const entry of readdirSync(join(built, 'smart'))) {
-  const destination = join(combined, 'smart', 'smart', entry);
-  if (existsSync(destination)) throw new Error(`the package output would replace the free smart/${entry}`);
-  cpSync(join(built, 'smart', entry), destination, {recursive: true});
-}
+// file inside smart/smart beside the free components (scripts/probe-layout.mjs):
+// the free output, a product root or a ui distr, is read and never written.
+const combined = layProbeOutput({free, built, required, target: join(overlay, '.manifest-probe-output')}).output;
 
-for (const {id, output} of required) {
-  if (!existsSync(join(output, 'smart', 'rule.js'))) throw new Error(`the required set ${id} has no smart/rule.js: ${output}`);
-  cpSync(join(output, 'smart'), join(combined, 'smart', 'smart', `set-${id}`), {recursive: true});
-}
 // The free runner, with the page declaring the package. The runner resolves
 // probes from <overlay>/src/smart, where this repository's folders are laid.
 const runner = join(overlay, 'tests', 'browser', 'manifest-probes.browser.mjs');
