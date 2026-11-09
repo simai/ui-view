@@ -348,6 +348,18 @@
     display: none;
   }
 
+  /* Its strip is a tab's height: the control height of the view's size, the
+     height sf-tabs gives its buttons. The hairline under it and the empty panel
+     below are the tabs' sheet's (.sf-tabs-top-container, .sf-tabs-main-container),
+     so the record's tabs take the same box when they come (simai/ui-pro#3). */
+  .sf-property-view-tabs-skeleton-strip {
+    min-block-size: var(--sf-ui-1--control-height);
+  }
+
+  .sf-property-view-tabs--skeleton[data-size="1/2"] .sf-property-view-tabs-skeleton-strip {
+    min-block-size: var(--sf-ui-1\/2--control-height);
+  }
+
   @media not all and (min-width: 48rem) {
     .sf-property-view-tabs--skeleton {
       display: none;
