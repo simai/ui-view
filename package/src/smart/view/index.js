@@ -175,6 +175,9 @@ const preferences = () => globalThis.SF?.Preferences || BundledPreferences;
 // The stored key keeps the former tag's spelling: it names what a person has
 // already saved (SF.Preferences, a host's store), not the element.
 const viewPreferenceKey = (key) => `sf-table/${String(key).replace(/[^\w.:-]+/gu, "-")}`;
+// The list of resources (owner decision C31): what the view passes to its
+// table, and the columns' places in a list row.
+const LIST_ATTRIBUTES = ["layout", "layout-switch", "list-below", "quick-actions", "row-open", "list-roles"];
 
 function hasValue(value) {
     if (value === null || value === undefined || value === "" || value === false) return false;
@@ -843,6 +846,23 @@ class SfDataView extends DataViewElement {
         this.append(skeleton);
     }
 
+    // The layout the data will draw (C31): the host's on its table, else the
+    // view's, else auto for a page's list; with the switch, the person's
+    // choice -- a list is a list, a table is a table only where there is room
+    // (auto), as the table resolves it.
+    _firstPaintLayout(table) {
+        const written = table?.getAttribute?.("data-sf-host-layout") || table?.getAttribute?.("layout") || this.getAttribute?.("layout");
+        const own = ["auto", "table", "list"].includes(written) ? written : (this.renders("toolbar") ? "auto" : "table");
+        const value = this.getAttribute?.("layout-switch");
+        const switched = value !== null && value !== undefined && value !== "false" && this.renders("toolbar");
+        if (!switched) return own;
+        const key = this.preferencesKey;
+        const chosen = key ? preferences()?.read(key)?.layout : null;
+        if (chosen === "list") return "list";
+        if (chosen === "table") return "auto";
+        return own === "table" ? "auto" : own;
+    }
+
     // The skeleton's markup, kept small (it is printed in every page that
     // shows the view): a bar is an <i class="sf-skeleton-text">, a control
     // block one marked data-control; the lengths and the bars' widths are the
@@ -858,7 +878,7 @@ class SfDataView extends DataViewElement {
         const ownToolbar = Boolean(table) && this.renders("toolbar") && Boolean(this.querySelector(':scope > [slot="toolbar"]'));
         const select = this.renders("select") && !hostWroteOff(table, "selectable");
         const settings = this.renders("settings") && !hostWroteOff(table, "settings");
-        const layout = table?.getAttribute("layout") || (this.renders("toolbar") ? "auto" : "table");
+        const layout = this._firstPaintLayout(table);
         skeleton.setAttribute("data-layout", ["auto", "table", "list"].includes(layout) ? layout : "table");
         const columns = this.expectedColumns;
         const rows = this.firstPaintRows;
@@ -1012,7 +1032,7 @@ class SfDataView extends DataViewElement {
     }
 
     static get observedAttributes() {
-        return ["chrome", "row-cap", "aria-label", "size", "preferences-key", ...LABEL_ATTRIBUTES];
+        return ["chrome", "row-cap", "aria-label", "size", "preferences-key", ...LIST_ATTRIBUTES, ...LABEL_ATTRIBUTES];
     }
 
     // The words of the table and the pagination the view draws itself, written
@@ -1952,9 +1972,17 @@ class SfDataView extends DataViewElement {
             if (!table.hasAttribute?.("data-sf-host-layout")) {
                 table.setAttribute("data-sf-host-layout", table.getAttribute?.("layout") ?? "");
             }
+            // The view's own layout is passed on (owner decision C31): a page's
+            // list is auto unless the view says list or table; an embedded one
+            // stays a table unless the view says otherwise.
             if (!table.getAttribute?.("data-sf-host-layout")) {
-                table.setAttribute("layout", this.renders("toolbar") ? "auto" : "table");
+                const own = this.getAttribute("layout");
+                table.setAttribute("layout", ["auto", "table", "list"].includes(own) ? own : (this.renders("toolbar") ? "auto" : "table"));
             }
+            // The list of resources (C31): the switch (where there is a
+            // toolbar to hold it), the threshold, the quick actions and what a
+            // press on a row opens go to the table as the view has them.
+            this._forwardListSettings(table, refused);
             table.setAttribute("size", this.size);
             this._tableScrollMode(table);
             table.setAttribute("settings", this.renders("settings") && !hostWroteOff(table, "settings") ? "true" : "false");
@@ -2064,7 +2092,7 @@ class SfDataView extends DataViewElement {
             // no host to ask. Only the formatting is read from it -- the table
             // raises its intents as it always has and the view re-raises them.
             table.cellHost = this.hostPort ?? null;
-            table.setColumns?.(this.columns);
+            table.setColumns?.(this._listColumns(this.columns));
             if (Array.isArray(this.appended)) {
                 // Appending leaves the rows already on screen untouched, so a
                 // row that was checked stays checked: the checkbox state lives
@@ -2181,7 +2209,9 @@ class SfDataView extends DataViewElement {
         return this._raise(level === "shared" ? "view.save_shared" : "view.save", {
             key, label, revision, query: copy(this.query),
             roles: copy(roles ?? {}), layout: copy(layout ?? {columns: this.columns}),
-            settings: copy(settings ?? this.columnSettings ?? {}),
+            // With the layout switch the view's list or table rides with it (C31).
+            settings: copy(settings ?? {...(this.columnSettings ?? {}),
+                ...(this.table?.hasLayoutSwitch && this.table.chosenLayout ? {layout: this.table.chosenLayout} : {})}),
             ...(level === "shared" ? {target: "shared"} : {}),
         });
     }
@@ -2206,7 +2236,48 @@ class SfDataView extends DataViewElement {
         if (Array.isArray(fields)) {
             this.table?.setActiveFilterFields?.(fields.filter((item) => typeof item === "string"));
         }
+        // The list or the table it was saved as (C31), for this person now.
+        const layout = view.settings?.layout;
+        if ((layout === "list" || layout === "table") && this.table?.hasLayoutSwitch) {
+            this.table.setLayoutChoice?.(layout, {emit: false});
+        }
         return this;
+    }
+
+    // The settings of the list of resources the view passes to its table
+    // (C31). layout-switch only where the table draws its toolbar; a refused
+    // list offers no switch either.
+    _forwardListSettings(table, refused = false) {
+        if (!table?.setAttribute) return;
+        this._listForwarded ??= new Set();
+        for (const name of LIST_ATTRIBUTES) {
+            if (name === "layout" || name === "list-roles") continue;
+            let value = this.getAttribute(name);
+            if (name === "layout-switch" && value !== null && (value === "false" || refused || !this.renders("toolbar"))) value = null;
+            if (value === null) {
+                if (this._listForwarded.delete(name)) table.removeAttribute(name);
+                continue;
+            }
+            table.setAttribute(name, value);
+            this._listForwarded.add(name);
+        }
+    }
+
+    // The columns with their places in a list row (columns[].list, C31):
+    // the host's own, else what list-roles on the view names
+    // ("state:status, name:title, domain:supporting, ssl:fact").
+    _listColumns(columns = []) {
+        const written = String(this.getAttribute("list-roles") ?? "").trim();
+        if (!written) return columns;
+        const roles = new Map(written.split(/[\s,]+/u).filter(Boolean).map((pair) => pair.split(":").map((part) => part.trim())));
+        if (this._listRolesKey !== written || this._listRolesFrom !== columns) {
+            this._listRolesKey = written;
+            this._listRolesFrom = columns;
+            this._listRolesColumns = columns.map((column) => (column?.list || !roles.has(column?.key)
+                ? column
+                : {...column, list: roles.get(column.key)}));
+        }
+        return this._listRolesColumns;
     }
     saveColumnSettings(columnSettings, {shared = false, base_revision} = {}) {
         const layer = shared ? "shared" : "personal";

@@ -71,6 +71,7 @@
         "cl-radio",
         "cl-reference-link",
         "cl-resizer",
+        "cl-segmented",
         "cl-slider-range",
         "cl-sortable",
         "cl-spinner",
