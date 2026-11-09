@@ -625,7 +625,7 @@ __webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __we
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   FILTER_RENDERERS: () => (/* binding */ FILTER_RENDERERS),
-/* harmony export */   PROPERTY_TYPES: () => (/* reexport safe */ _registry_js__WEBPACK_IMPORTED_MODULE_4__.PROPERTY_TYPES),
+/* harmony export */   PROPERTY_TYPES: () => (/* reexport safe */ _registry_js__WEBPACK_IMPORTED_MODULE_5__.PROPERTY_TYPES),
 /* harmony export */   propertyModes: () => (/* binding */ propertyModes),
 /* harmony export */   renderCellField: () => (/* binding */ renderCellField),
 /* harmony export */   renderEditField: () => (/* binding */ renderEditField),
@@ -636,16 +636,18 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var lit_directives_unsafe_html_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__("073f05ff1a81");
 /* harmony import */ var _helpers_option_badge_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__("b30ec5bc0edb");
 /* harmony import */ var _core_js_page_language__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__("43090d1c8307");
-/* harmony import */ var _registry_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__("fc654eb7fab0");
-/* harmony import */ var _datetime_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__("9ce1a42b2a85");
-/* harmony import */ var _mask_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__("dd6973f77245");
-/* harmony import */ var _html_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__("01ae054f01b4");
-/* harmony import */ var _decimal_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__("ab3947ea3647");
-var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([lit__WEBPACK_IMPORTED_MODULE_0__, lit_directives_unsafe_html_js__WEBPACK_IMPORTED_MODULE_1__, _core_js_page_language__WEBPACK_IMPORTED_MODULE_3__, _decimal_js__WEBPACK_IMPORTED_MODULE_8__]);
-([lit__WEBPACK_IMPORTED_MODULE_0__, lit_directives_unsafe_html_js__WEBPACK_IMPORTED_MODULE_1__, _core_js_page_language__WEBPACK_IMPORTED_MODULE_3__, _decimal_js__WEBPACK_IMPORTED_MODULE_8__] = __webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
+/* harmony import */ var _core_js_format_date_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__("e577837dd70a");
+/* harmony import */ var _registry_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__("fc654eb7fab0");
+/* harmony import */ var _datetime_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__("9ce1a42b2a85");
+/* harmony import */ var _mask_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__("dd6973f77245");
+/* harmony import */ var _html_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__("01ae054f01b4");
+/* harmony import */ var _decimal_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__("ab3947ea3647");
+var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([lit__WEBPACK_IMPORTED_MODULE_0__, lit_directives_unsafe_html_js__WEBPACK_IMPORTED_MODULE_1__, _core_js_page_language__WEBPACK_IMPORTED_MODULE_3__, _core_js_format_date_js__WEBPACK_IMPORTED_MODULE_4__, _decimal_js__WEBPACK_IMPORTED_MODULE_9__]);
+([lit__WEBPACK_IMPORTED_MODULE_0__, lit_directives_unsafe_html_js__WEBPACK_IMPORTED_MODULE_1__, _core_js_page_language__WEBPACK_IMPORTED_MODULE_3__, _core_js_format_date_js__WEBPACK_IMPORTED_MODULE_4__, _decimal_js__WEBPACK_IMPORTED_MODULE_9__] = __webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
 /* harmony import */ var lit__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(lit__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var lit_directives_unsafe_html_js__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(lit_directives_unsafe_html_js__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var _core_js_page_language__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__);
+
 
 
 
@@ -1258,8 +1260,8 @@ const CELL_RENDERERS = {
   // 2026» in the record panel, with no way for a consumer to change the
   // first. These two ask the host and fall through to the stored value when
   // it has nothing to say.
-  date: renderHostFormattedCell,
-  datetime: renderHostFormattedCell,
+  date: renderDateCell,
+  datetime: renderDateCell,
   time: renderHostFormattedCell,
   boolean: renderBooleanCell,
   choices: renderChoicesCell,
@@ -1352,14 +1354,14 @@ function renderHostFormattedCell(field, value, host) {
 function renderMoneyCell(field, value, host) {
   const formatted = renderHostFormattedCell(field, value, host);
   if (formatted !== null) return formatted;
-  const text = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_8__.formatMoney)(scalarValue(value), field, (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(host ?? null));
+  const text = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_9__.formatMoney)(scalarValue(value), field, (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(host ?? null));
   return text || null;
 }
 
 function renderPercentCell(field, value, host) {
   const formatted = renderHostFormattedCell(field, value, host);
   if (formatted !== null) return formatted;
-  const text = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_8__.formatPercent)(scalarValue(value), (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(host ?? null));
+  const text = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_9__.formatPercent)(scalarValue(value), (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(host ?? null));
   return text || null;
 }
 
@@ -1371,6 +1373,15 @@ function renderItemsCell(field, value, host) {
     component: SET_NAME,
     count: value.length
   }) : '';
+} // A date in a row reads as it does in the record panel: the host's text, else
+// the page's reading of the day (simai/ui-source#34); null for a value that is
+// not a date, which the table prints as it came.
+
+
+function renderDateCell(field, value, host) {
+  const formatted = renderHostFormattedCell(field, value, host);
+  if (formatted !== null) return formatted;
+  return defaultDateText(field, value, host);
 }
 
 function renderNumericCell(field, value, host) {
@@ -1445,7 +1456,7 @@ function renderLookupCell(field, value) {
 
 
 function renderHtmlCell(field, value) {
-  return (0,_html_js__WEBPACK_IMPORTED_MODULE_7__.htmlText)(value) || null;
+  return (0,_html_js__WEBPACK_IMPORTED_MODULE_8__.htmlText)(value) || null;
 } // What a cell should hold for a field, in the same shape a host would pass: a
 // string, an object with a component, or a list of those. Null means the value
 // is better off as itself. Returning the host's own shape is deliberate -- the
@@ -1607,7 +1618,7 @@ function renderPasswordEdit(field, value, host) {
             ></sf-input>
             <sf-button-icon
                     size=${EDIT_SIZE}
-                    appearance="link"
+                    appearance="ghost"
                     scheme="on-surface"
                     icon="visibility"
                     aria-label=${setText(host, 'showPassword')}
@@ -1684,7 +1695,7 @@ function renderIncludeCell(field, value) {
 }
 
 function renderTextEdit(field, value, host) {
-  const mask = (0,_mask_js__WEBPACK_IMPORTED_MODULE_6__.maskPattern)(field);
+  const mask = (0,_mask_js__WEBPACK_IMPORTED_MODULE_7__.maskPattern)(field);
   if (String(field.variant ?? '') === 'phone') return renderPhoneEdit(field, value, host);
   if (isPasswordField(field)) return renderPasswordEdit(field, value, host);
   if (mask) return renderMaskedEdit(field, value, host, mask);
@@ -1738,7 +1749,7 @@ function renderMaskedEdit(field, value, host, mask) {
   const write = (event, left) => {
     const input = event.currentTarget;
     const text = String(input?.value ?? '');
-    const state = (0,_mask_js__WEBPACK_IMPORTED_MODULE_6__.maskState)(text, mask);
+    const state = (0,_mask_js__WEBPACK_IMPORTED_MODULE_7__.maskState)(text, mask);
 
     if (state === 'incomplete') {
       const message = setText(host, 'maskIncomplete');
@@ -1921,9 +1932,9 @@ function renderNumberEdit(field, value, host) {
   const write = (event, left) => {
     const input = event.currentTarget ?? event.target;
     const text = String(input?.value ?? '');
-    const read = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_8__.readDecimal)(text);
+    const read = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_9__.readDecimal)(text);
     let message = null;
-    if (!read.ok) message = setText(host, 'notNumber');else if (read.value !== null && Number.isInteger(field.precision) && (0,_decimal_js__WEBPACK_IMPORTED_MODULE_8__.fractionDigits)(read.value) > field.precision) {
+    if (!read.ok) message = setText(host, 'notNumber');else if (read.value !== null && Number.isInteger(field.precision) && (0,_decimal_js__WEBPACK_IMPORTED_MODULE_9__.fractionDigits)(read.value) > field.precision) {
       message = (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageWord)(SET_TEXT, 'precisionMax', host ?? null, {
         component: SET_NAME,
         count: field.precision
@@ -2047,7 +2058,7 @@ function minuteStepOf(field) {
 }
 
 function renderDateTimeEdit(field, value, host) {
-  const stored = (0,_datetime_js__WEBPACK_IMPORTED_MODULE_5__.splitDateTime)(value);
+  const stored = (0,_datetime_js__WEBPACK_IMPORTED_MODULE_6__.splitDateTime)(value);
   const shown = stored.date ? `${stored.date}${stored.time ? `T${stored.time}` : ''}` : '';
   const min = typeof field.min === 'string' ? field.min : '';
   const max = typeof field.max === 'string' ? field.max : '';
@@ -2068,7 +2079,7 @@ function renderDateTimeEdit(field, value, host) {
     // The picker's own change, not a native one from its field.
     if (event.target !== event.currentTarget) return;
     const [date = '', time = ''] = String(event.detail?.value ?? '').split('T');
-    const result = (0,_datetime_js__WEBPACK_IMPORTED_MODULE_5__.composeDateTime)(stored, {
+    const result = (0,_datetime_js__WEBPACK_IMPORTED_MODULE_6__.composeDateTime)(stored, {
       date,
       time
     });
@@ -2085,7 +2096,7 @@ function renderDateTimeEdit(field, value, host) {
 
 
 function renderTimeEdit(field, value, host) {
-  const stored = (0,_datetime_js__WEBPACK_IMPORTED_MODULE_5__.splitTime)(value);
+  const stored = (0,_datetime_js__WEBPACK_IMPORTED_MODULE_6__.splitTime)(value);
   const min = typeof field.min === 'string' ? field.min : '';
   const max = typeof field.max === 'string' ? field.max : '';
   const step = minuteStepOf(field);
@@ -2103,7 +2114,7 @@ function renderTimeEdit(field, value, host) {
                 ?required=${Boolean(field.required)}
                 @change=${event => {
     if (event.target !== event.currentTarget) return;
-    const result = (0,_datetime_js__WEBPACK_IMPORTED_MODULE_5__.composeTime)(stored, String(event.detail?.value ?? ''));
+    const result = (0,_datetime_js__WEBPACK_IMPORTED_MODULE_6__.composeTime)(stored, String(event.detail?.value ?? ''));
     if (result.error) return;
     const same = result.value === null ? stored.known && !stored.time : result.value === stored.raw;
     host.setFieldValue(field, same ? undefined : result.value);
@@ -2141,7 +2152,8 @@ function renderBooleanEdit(field, value, host) {
     label: words.no
   }]);
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
-        <sf-button-group
+        <sf-segmented
+                appearance="buttons"
                 size=${EDIT_SIZE}
                 items=${items}
                 value=${value === true ? 'yes' : value === false ? 'no' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
@@ -2150,7 +2162,7 @@ function renderBooleanEdit(field, value, host) {
     const next = event.detail?.value;
     host.setFieldValue(field, next === 'yes' ? true : next === 'no' ? false : null);
   }}
-        ></sf-button-group>
+        ></sf-segmented>
     `;
 }
 
@@ -2255,9 +2267,9 @@ function renderChoiceButtons(field, value, host) {
 
   };
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
-        <sf-button-group
+        <sf-segmented
                 class="sf-field-choice-buttons"
-                appearance="segmented"
+                appearance="track"
                 size=${size}
                 root-class=${locked ? 'flex-wrap pointer-event-none' : 'flex-wrap'}
                 name=${fieldName(field)}
@@ -2272,7 +2284,7 @@ function renderChoiceButtons(field, value, host) {
     const next = String(event.detail?.value ?? '');
     host.setFieldValue(field, next === '' ? null : optionValue(next));
   }}
-        ></sf-button-group>
+        ></sf-segmented>
     `;
 }
 
@@ -2930,7 +2942,7 @@ function renderTextView(field, value, host) {
 
 
 function renderHtmlView(field, value) {
-  const clean = (0,_html_js__WEBPACK_IMPORTED_MODULE_7__.cleanHtml)(value);
+  const clean = (0,_html_js__WEBPACK_IMPORTED_MODULE_8__.cleanHtml)(value);
   return clean ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<div class="sf-field-view sf-field-html">${(0,lit_directives_unsafe_html_js__WEBPACK_IMPORTED_MODULE_1__.unsafeHTML)(clean)}</div>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing;
 } // A number carries its unit when the field declares one, and nothing when it
 // does not -- the set does not guess at a unit, and «42» with an invented «шт»
@@ -2949,13 +2961,63 @@ function renderNumberView(field, value, host) {
 
   const text = viewText(field, value, host);
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-field-view">${field.unit ? `${text} ${field.unit}` : text}</span>`;
-} // A date is the host's to format. The set has no locale and will not invent one:
-// without formatFieldValue it shows what it was given, which is at worst the
-// stored form and never a wrong date confidently rendered.
+} // A date is the host's to format first: formatFieldValue wins, and so does a
+// value that carries its own text. Without it the set used to print the stored
+// form -- «2026-10-25T10:30:00+03:00» (simai/ui-source#34) -- so a host that
+// formats nothing gets the page's medium reading through core format-date:
+// «2 нояб. 2026 г.» / «Nov 2, 2026» for a date, «15 нояб. 2026 г., 10:30» /
+// «Nov 15, 2026, 10:30 AM» for a datetime, the form the View set's table
+// printed before the renderers formatted dates (C19: the set formats, the
+// table inherits). The day and the clock are the record's own (datetime.js
+// reads them as written, in the host's zone): nothing is moved to the reader's
+// time zone, which would show a different day near midnight. A value that is
+// not a date at all is shown as it came, never guessed at.
 
+
+const DATE_VIEW = {
+  dateStyle: 'medium',
+  timeZone: 'UTC'
+};
+const DATETIME_VIEW = {
+  dateStyle: 'medium',
+  timeStyle: 'short',
+  timeZone: 'UTC'
+};
+
+function defaultDateText(field, value, host) {
+  if (carriesText(value)) return null;
+  const parts = (0,_datetime_js__WEBPACK_IMPORTED_MODULE_6__.splitDateTime)(value);
+  if (!parts.known || !parts.date) return null;
+  const [year, month, day] = parts.date.split('-').map(Number);
+  const locale = (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(host ?? null);
+
+  try {
+    const date = new Date(0);
+    date.setUTCFullYear(year, month - 1, day);
+    const type = field?.propertyType || field?.type || field?.dataType;
+    if (type !== 'datetime' || !parts.time) return (0,_core_js_format_date_js__WEBPACK_IMPORTED_MODULE_4__.formatDate)(date, {
+      intl: DATE_VIEW,
+      locale
+    }) || null;
+    const [hours, minutes] = parts.time.split(':').map(Number);
+    date.setUTCHours(hours, minutes, 0, 0);
+    return (0,_core_js_format_date_js__WEBPACK_IMPORTED_MODULE_4__.formatDate)(date, {
+      intl: DATETIME_VIEW,
+      locale
+    }) || null;
+  } catch {
+    return null;
+  }
+}
+
+function dateText(field, value, host) {
+  const formatted = host?.formatFieldValue?.(field, value);
+  if (typeof formatted === 'string') return formatted;
+  return defaultDateText(field, value, host) ?? viewText(field, value, null);
+}
 
 function renderDateView(field, value, host) {
-  const text = viewText(field, value, host);
+  const text = dateText(field, value, host);
   return text ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-field-view">${text}</span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing;
 }
 
@@ -3108,7 +3170,7 @@ const VIEW_RENDERERS = {
 // date belongs. Null when the set has no view for that type.
 
 function propertyModes(type) {
-  return (0,_registry_js__WEBPACK_IMPORTED_MODULE_4__.modesOf)(type, {
+  return (0,_registry_js__WEBPACK_IMPORTED_MODULE_5__.modesOf)(type, {
     view: VIEW_RENDERERS,
     edit: EDIT_RENDERERS,
     cell: CELL_RENDERERS,
@@ -3152,14 +3214,14 @@ if (typeof window !== 'undefined') {
     // normalizeTime(text); and a time of day's: splitTime(value),
     // composeTime(stored, text).
     dateTime: {
-      split: _datetime_js__WEBPACK_IMPORTED_MODULE_5__.splitDateTime,
-      compose: _datetime_js__WEBPACK_IMPORTED_MODULE_5__.composeDateTime,
-      normalizeTime: _datetime_js__WEBPACK_IMPORTED_MODULE_5__.normalizeTime,
-      splitTime: _datetime_js__WEBPACK_IMPORTED_MODULE_5__.splitTime,
-      composeTime: _datetime_js__WEBPACK_IMPORTED_MODULE_5__.composeTime
+      split: _datetime_js__WEBPACK_IMPORTED_MODULE_6__.splitDateTime,
+      compose: _datetime_js__WEBPACK_IMPORTED_MODULE_6__.composeDateTime,
+      normalizeTime: _datetime_js__WEBPACK_IMPORTED_MODULE_6__.normalizeTime,
+      splitTime: _datetime_js__WEBPACK_IMPORTED_MODULE_6__.splitTime,
+      composeTime: _datetime_js__WEBPACK_IMPORTED_MODULE_6__.composeTime
     },
     // The universal properties, each with the modes the set draws for it.
-    registry: _registry_js__WEBPACK_IMPORTED_MODULE_4__.PROPERTY_TYPES.map(entry => ({ ...entry,
+    registry: _registry_js__WEBPACK_IMPORTED_MODULE_5__.PROPERTY_TYPES.map(entry => ({ ...entry,
       modes: propertyModes(entry.type)
     }))
   }; // SF.whenFieldRenderers() settles on this, whichever bundle published the set.
@@ -3636,6 +3698,7 @@ __webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __we
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   CONFIRM_ICON: () => (/* binding */ CONFIRM_ICON),
+/* harmony export */   CONFIRM_SIZES: () => (/* binding */ CONFIRM_SIZES),
 /* harmony export */   CONFIRM_STATES: () => (/* binding */ CONFIRM_STATES),
 /* harmony export */   confirmSurface: () => (/* binding */ confirmSurface),
 /* harmony export */   renderConfirmFooter: () => (/* binding */ renderConfirmFooter)
@@ -3649,9 +3712,9 @@ var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([lit_
 /* harmony import */ var lit__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(lit__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _core_js_element_manifest__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_core_js_element_manifest__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var _core_js_instance_path__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(_core_js_instance_path__WEBPACK_IMPORTED_MODULE_2__);
-// The behaviour of a question put to a person in place: two answers of equal
-// standing, a pending state while the answer is applied, the outcome, and an
-// optional time the offer runs out. sf-confirm (the plain question) and
+// The behaviour of a question put to a person in place: two answers, a
+// pending state while the answer is applied, the outcome, and an optional time
+// the offer runs out. sf-confirm (the plain question) and
 // sf-confirm-change (the same question over values as they were and as they
 // will be) are this one surface (duplication audit 2026-11-03, A-5): it was
 // written once in sf-confirm-change and five more times by hand in the chat
@@ -3677,7 +3740,11 @@ var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([lit_
 const CONFIRM_STATES = Object.freeze(["open", "pending", "accepted", "declined", "expired"]); // A timer longer than this is not a timer setTimeout keeps: past 2^31-1 ms it
 // fires at once. An offer valid for longer than 24 days is checked again daily.
 
-const LONGEST_WAIT = 24 * 60 * 60 * 1000; // The glyph the status line shows beside its words, per state.
+const LONGEST_WAIT = 24 * 60 * 60 * 1000; // The steps of the control ladder the answers stand on (C22): the element's
+// size, else 1, the size of a field and a button beside it. Compactness is
+// the region's density (data-sf-density), never a smaller size by hand.
+
+const CONFIRM_SIZES = Object.freeze(["1/3", "1/2", "1", "2", "3"]); // The glyph the status line shows beside its words, per state.
 
 const CONFIRM_ICON = Object.freeze({
   open: "schedule",
@@ -3789,7 +3856,9 @@ function confirmSurface(Base, {
         pressed: shown === "pending" ? this._pressed : null,
         // Not named `disabled`: that is the setting, and this is more --
         // the setting, or any state but open.
-        answersLocked: this.getProp("disabled") || shown !== "open"
+        answersLocked: this.getProp("disabled") || shown !== "open",
+        // The step the answers stand on: a page's size, else 1 (C22).
+        size: CONFIRM_SIZES.includes(this.getAttribute("size")) ? this.getAttribute("size") : "1"
       };
     }
 
@@ -3862,7 +3931,14 @@ function confirmSurface(Base, {
       const {
         signal
       } = args[1] ?? {};
-      if (this.state !== "open") this.state = "open";
+      const reopened = this.state !== "open";
+      if (reopened) this.state = "open"; // The question is put to the person now: focus waits on the safe
+      // answer (decision C25), so a stray Enter or Space only takes the
+      // question back.
+
+      this.whenRendered(() => this.focusSafeAnswer(), {
+        next: reopened
+      });
       return signal ? this.waitForAnswer(signal) : (0,_core_js_element_manifest__WEBPACK_IMPORTED_MODULE_1__.applied)();
     }
     /** The person's answer as a call: {accepted: true} confirms, false declines. */
@@ -3960,22 +4036,53 @@ function confirmSurface(Base, {
     focusStatus() {
       const target = this.querySelector(`.${block}__status`);
       if (!target) return;
-      const buttons = this.querySelector(`.${block}__actions:not([hidden])`);
-
-      if (buttons && this.state === "open") {
-        buttons.querySelector("button")?.focus();
-        return;
-      }
-
+      if (this.state === "open" && this.focusSafeAnswer()) return;
       target.focus({
         preventScroll: true
       });
+    } // The answer that changes nothing -- the declining one -- takes the
+    // focus whenever the question is put (decision C25, as Primer's
+    // ConfirmationDialog does for a dangerous one): Enter or Space pressed
+    // by habit closes the question, and the accepting answer needs a
+    // pointer or Tab. Answers false when there is no answer to focus.
+    // The surface's after-render can come before the answer can take the
+    // focus (its sf-button is drawn, or its region shown, a frame later):
+    // the focus then tries again for a few frames, unless the person has
+    // moved it meanwhile.
+
+
+    focusSafeAnswer(frames = 10) {
+      if (this.shownState !== "open" || this.getProp("disabled")) return false;
+      const host = this.querySelector(`.${block}__actions:not([hidden]) [data-action="decline"]`);
+      const button = host?.matches("button") ? host : host?.querySelector("button");
+      button?.focus({
+        preventScroll: true
+      });
+      const doc = this.ownerDocument;
+      if (button && doc.activeElement === button) return true;
+      const view = doc.defaultView;
+
+      if (host && frames > 0 && view?.requestAnimationFrame) {
+        view.requestAnimationFrame(() => {
+          const active = doc.activeElement;
+          if (!active || active === doc.body || this.contains(active)) this.focusSafeAnswer(frames - 1);
+        });
+      }
+
+      return false;
     }
 
   };
 } // The surface's footer, the same in every template: the status line, then the
-// two answers. `block` is the drawn surface's class; `acceptStatus` "error"
-// marks a destructive acceptance (a delete).
+// two answers. `block` is the drawn surface's class; `acceptStatus` "danger"
+// marks a destructive acceptance (a delete, decision C13).
+//
+// The answers (decision C25): a plain question offers two outlined answers of
+// one weight. A dangerous one fills the accepting answer with the danger
+// colour and leaves the declining one quiet (ghost, no frame), so the two are
+// told apart by more than the red of a word. Both stand on the element's size
+// (context.size, 1 unless the page gives one); a size a template gives is
+// relative, so a compact region (data-sf-density, C22) moves them down a step.
 
 function renderConfirmFooter(context, block, {
   acceptStatus = ""
@@ -3983,6 +4090,8 @@ function renderConfirmFooter(context, block, {
   const {
     component
   } = context;
+  const danger = acceptStatus === "danger" || acceptStatus === "error";
+  const size = context.size || "1";
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
             <footer class="${block}__footer">
                 <!-- Always in the page, empty while there is nothing to say: a live
@@ -3997,10 +4106,10 @@ function renderConfirmFooter(context, block, {
                      the person sees which answer is on its way. -->
                 <div class="${block}__actions" ?hidden=${!context.open && !context.pending}>
                     <sf-button
-                            appearance="outline"
+                            appearance=${danger ? "default" : "outline"}
                             scheme="primary"
-                            status=${acceptStatus || lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
-                            size="1/2"
+                            status=${danger ? "danger" : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                            size=${size}
                             text=${context.acceptText}
                             data-action="accept"
                             ?loading=${context.pressed === true}
@@ -4008,9 +4117,9 @@ function renderConfirmFooter(context, block, {
                             @click=${() => component.confirm()}
                     ></sf-button>
                     <sf-button
-                            appearance="outline"
+                            appearance=${danger ? "ghost" : "outline"}
                             scheme="on-surface"
-                            size="1/2"
+                            size=${size}
                             text=${context.declineText}
                             data-action="decline"
                             ?loading=${context.pressed === false}
@@ -6197,7 +6306,7 @@ function renderItemsTable(field, rows, columns, ctx, {
 
   const rowActions = index => (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
         <span class="sf-view-items-actions flex items-cross-center gap-1/4" role="cell">
-            <sf-button-icon size="1/2" appearance="link" scheme="secondary" icon="keyboard_arrow_up"
+            <sf-button-icon size="1/2" appearance="ghost" scheme="on-surface-variant" icon="keyboard_arrow_up"
                     data-action="row-up" ?disabled=${index === 0 || index >= rows.length}
                     title=${word(node, 'rowUp')} aria-label=${word(node, 'rowUp')}
                     @click=${() => {
@@ -6205,7 +6314,7 @@ function renderItemsTable(field, rows, columns, ctx, {
     [next[index - 1], next[index]] = [next[index], next[index - 1]];
     reshape(next);
   }}></sf-button-icon>
-            <sf-button-icon size="1/2" appearance="link" scheme="secondary" icon="keyboard_arrow_down"
+            <sf-button-icon size="1/2" appearance="ghost" scheme="on-surface-variant" icon="keyboard_arrow_down"
                     data-action="row-down" ?disabled=${index >= rows.length - 1}
                     title=${word(node, 'rowDown')} aria-label=${word(node, 'rowDown')}
                     @click=${() => {
@@ -7570,7 +7679,7 @@ __webpack_require__.r(__webpack_exports__);
 /***/ "e4c87bda9c30"
 (module) {
 
-module.exports = /*#__PURE__*/JSON.parse('{"id":"smart.view-flow","tag":"sf-view-flow","version":"1.1.0","kind":"leaf","settings":{"mode":{"type":"enum","values":["view","edit"],"default":"view"},"heading":{"type":"string","default":""},"heading-level":{"type":"enum","values":["2","3","4","5","6"],"default":"3"},"fields":{"type":"list","default":[],"of":{"key":"string","label":{"type":"string","optional":true},"propertyType":"string","value":{"type":"any","nullable":true,"optional":true},"required":{"type":"boolean","optional":true},"readonly":{"type":"boolean","optional":true},"width":{"type":"string","optional":true},"hint":{"type":"string","optional":true},"when":{"type":"object","optional":true}}},"groups":{"type":"list","default":[],"of":{"key":"string","label":{"type":"string","optional":true},"collapsible":{"type":"boolean","optional":true},"collapsed":{"type":"boolean","optional":true},"fields":"list"}},"state":{"type":"enum","values":["open","pending","accepted","declined","expired"],"default":"open"},"expires-at":{"type":"date","optional":true},"block-id":{"type":"id","default":""},"disabled":{"type":"boolean","default":false},"size":{"type":"enum","values":["1","1/2"],"default":"1/2"},"cancelable":{"type":"boolean","default":true},"submit-text":{"type":"string","default-from":"runtime.submit-text"},"cancel-text":{"type":"string","default-from":"runtime.cancel-text"},"empty-text":{"type":"string","default-from":"runtime.empty-text"},"required-text":{"type":"string","default-from":"runtime.required-text"},"invalid-text":{"type":"string","default-from":"runtime.invalid-text"}},"values":{},"events":{"answer":{"carries":{"id":{"type":"id"},"accepted":"boolean","values":{"type":"object","optional":true}},"cancelable":true},"expired":{"carries":{"id":{"type":"id"}},"own-verb":true},"open":{"carries":{"id":{"type":"id"},"field":"string","value":"object"}}},"actions":{"open":{},"answer":{"with":{"accepted":"boolean"},"emits":"answer"},"confirm":{},"cancel":{},"settle":{"with":{"result":"object"}}},"layer":{"kind":"surface","locks-page":false,"traps-focus":false},"host-states":{"data-state":"string"},"css-variables":{"--sf-view-flow-radius":{"type":"length","state":"default"},"--sf-view-flow-inset":{"type":"length","state":"default"},"--sf-view-flow-gap":{"type":"length","state":"default"},"--sf-view-flow-background-color":{"type":"color","state":"default"},"--sf-view-flow-border-color":{"type":"color","state":"default"}}}');
+module.exports = /*#__PURE__*/JSON.parse('{"id":"smart.view-flow","tag":"sf-view-flow","version":"1.1.1","kind":"leaf","settings":{"mode":{"type":"enum","values":["view","edit"],"default":"view"},"heading":{"type":"string","default":""},"heading-level":{"type":"enum","values":["2","3","4","5","6"],"default":"3"},"fields":{"type":"list","default":[],"of":{"key":"string","label":{"type":"string","optional":true},"propertyType":"string","value":{"type":"any","nullable":true,"optional":true},"required":{"type":"boolean","optional":true},"readonly":{"type":"boolean","optional":true},"width":{"type":"string","optional":true},"hint":{"type":"string","optional":true},"when":{"type":"object","optional":true}}},"groups":{"type":"list","default":[],"of":{"key":"string","label":{"type":"string","optional":true},"collapsible":{"type":"boolean","optional":true},"collapsed":{"type":"boolean","optional":true},"fields":"list"}},"state":{"type":"enum","values":["open","pending","accepted","declined","expired"],"default":"open"},"expires-at":{"type":"date","optional":true},"block-id":{"type":"id","default":""},"disabled":{"type":"boolean","default":false},"size":{"type":"enum","values":["1","1/2"],"default":"1/2"},"cancelable":{"type":"boolean","default":true},"submit-text":{"type":"string","default-from":"runtime.submit-text"},"cancel-text":{"type":"string","default-from":"runtime.cancel-text"},"empty-text":{"type":"string","default-from":"runtime.empty-text"},"required-text":{"type":"string","default-from":"runtime.required-text"},"invalid-text":{"type":"string","default-from":"runtime.invalid-text"}},"values":{},"events":{"answer":{"carries":{"id":{"type":"id"},"accepted":"boolean","values":{"type":"object","optional":true}},"cancelable":true},"expired":{"carries":{"id":{"type":"id"}},"own-verb":true},"open":{"carries":{"id":{"type":"id"},"field":"string","value":"object"}}},"actions":{"open":{},"answer":{"with":{"accepted":"boolean"},"emits":"answer"},"confirm":{},"cancel":{},"settle":{"with":{"result":"object"}}},"layer":{"kind":"surface","locks-page":false,"traps-focus":false},"host-states":{"data-state":"string"},"css-variables":{"--sf-view-flow-radius":{"type":"length","state":"default"},"--sf-view-flow-inset":{"type":"length","state":"default"},"--sf-view-flow-gap":{"type":"length","state":"default"},"--sf-view-flow-background-color":{"type":"color","state":"default"},"--sf-view-flow-border-color":{"type":"color","state":"default"}}}');
 
 /***/ },
 

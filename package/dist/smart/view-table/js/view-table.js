@@ -890,7 +890,7 @@ __webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __we
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   FILTER_RENDERERS: () => (/* binding */ FILTER_RENDERERS),
-/* harmony export */   PROPERTY_TYPES: () => (/* reexport safe */ _registry_js__WEBPACK_IMPORTED_MODULE_4__.PROPERTY_TYPES),
+/* harmony export */   PROPERTY_TYPES: () => (/* reexport safe */ _registry_js__WEBPACK_IMPORTED_MODULE_5__.PROPERTY_TYPES),
 /* harmony export */   propertyModes: () => (/* binding */ propertyModes),
 /* harmony export */   renderCellField: () => (/* binding */ renderCellField),
 /* harmony export */   renderEditField: () => (/* binding */ renderEditField),
@@ -901,16 +901,18 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var lit_directives_unsafe_html_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__("073f05ff1a81");
 /* harmony import */ var _helpers_option_badge_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__("b30ec5bc0edb");
 /* harmony import */ var _core_js_page_language__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__("43090d1c8307");
-/* harmony import */ var _registry_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__("fc654eb7fab0");
-/* harmony import */ var _datetime_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__("9ce1a42b2a85");
-/* harmony import */ var _mask_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__("dd6973f77245");
-/* harmony import */ var _html_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__("01ae054f01b4");
-/* harmony import */ var _decimal_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__("ab3947ea3647");
-var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([lit__WEBPACK_IMPORTED_MODULE_0__, lit_directives_unsafe_html_js__WEBPACK_IMPORTED_MODULE_1__, _core_js_page_language__WEBPACK_IMPORTED_MODULE_3__, _decimal_js__WEBPACK_IMPORTED_MODULE_8__]);
-([lit__WEBPACK_IMPORTED_MODULE_0__, lit_directives_unsafe_html_js__WEBPACK_IMPORTED_MODULE_1__, _core_js_page_language__WEBPACK_IMPORTED_MODULE_3__, _decimal_js__WEBPACK_IMPORTED_MODULE_8__] = __webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
+/* harmony import */ var _core_js_format_date_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__("e577837dd70a");
+/* harmony import */ var _registry_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__("fc654eb7fab0");
+/* harmony import */ var _datetime_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__("9ce1a42b2a85");
+/* harmony import */ var _mask_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__("dd6973f77245");
+/* harmony import */ var _html_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__("01ae054f01b4");
+/* harmony import */ var _decimal_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__("ab3947ea3647");
+var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([lit__WEBPACK_IMPORTED_MODULE_0__, lit_directives_unsafe_html_js__WEBPACK_IMPORTED_MODULE_1__, _core_js_page_language__WEBPACK_IMPORTED_MODULE_3__, _core_js_format_date_js__WEBPACK_IMPORTED_MODULE_4__, _decimal_js__WEBPACK_IMPORTED_MODULE_9__]);
+([lit__WEBPACK_IMPORTED_MODULE_0__, lit_directives_unsafe_html_js__WEBPACK_IMPORTED_MODULE_1__, _core_js_page_language__WEBPACK_IMPORTED_MODULE_3__, _core_js_format_date_js__WEBPACK_IMPORTED_MODULE_4__, _decimal_js__WEBPACK_IMPORTED_MODULE_9__] = __webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
 /* harmony import */ var lit__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(lit__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var lit_directives_unsafe_html_js__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(lit_directives_unsafe_html_js__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var _core_js_page_language__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__);
+
 
 
 
@@ -1523,8 +1525,8 @@ const CELL_RENDERERS = {
   // 2026» in the record panel, with no way for a consumer to change the
   // first. These two ask the host and fall through to the stored value when
   // it has nothing to say.
-  date: renderHostFormattedCell,
-  datetime: renderHostFormattedCell,
+  date: renderDateCell,
+  datetime: renderDateCell,
   time: renderHostFormattedCell,
   boolean: renderBooleanCell,
   choices: renderChoicesCell,
@@ -1617,14 +1619,14 @@ function renderHostFormattedCell(field, value, host) {
 function renderMoneyCell(field, value, host) {
   const formatted = renderHostFormattedCell(field, value, host);
   if (formatted !== null) return formatted;
-  const text = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_8__.formatMoney)(scalarValue(value), field, (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(host ?? null));
+  const text = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_9__.formatMoney)(scalarValue(value), field, (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(host ?? null));
   return text || null;
 }
 
 function renderPercentCell(field, value, host) {
   const formatted = renderHostFormattedCell(field, value, host);
   if (formatted !== null) return formatted;
-  const text = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_8__.formatPercent)(scalarValue(value), (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(host ?? null));
+  const text = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_9__.formatPercent)(scalarValue(value), (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(host ?? null));
   return text || null;
 }
 
@@ -1636,6 +1638,15 @@ function renderItemsCell(field, value, host) {
     component: SET_NAME,
     count: value.length
   }) : '';
+} // A date in a row reads as it does in the record panel: the host's text, else
+// the page's reading of the day (simai/ui-source#34); null for a value that is
+// not a date, which the table prints as it came.
+
+
+function renderDateCell(field, value, host) {
+  const formatted = renderHostFormattedCell(field, value, host);
+  if (formatted !== null) return formatted;
+  return defaultDateText(field, value, host);
 }
 
 function renderNumericCell(field, value, host) {
@@ -1710,7 +1721,7 @@ function renderLookupCell(field, value) {
 
 
 function renderHtmlCell(field, value) {
-  return (0,_html_js__WEBPACK_IMPORTED_MODULE_7__.htmlText)(value) || null;
+  return (0,_html_js__WEBPACK_IMPORTED_MODULE_8__.htmlText)(value) || null;
 } // What a cell should hold for a field, in the same shape a host would pass: a
 // string, an object with a component, or a list of those. Null means the value
 // is better off as itself. Returning the host's own shape is deliberate -- the
@@ -1872,7 +1883,7 @@ function renderPasswordEdit(field, value, host) {
             ></sf-input>
             <sf-button-icon
                     size=${EDIT_SIZE}
-                    appearance="link"
+                    appearance="ghost"
                     scheme="on-surface"
                     icon="visibility"
                     aria-label=${setText(host, 'showPassword')}
@@ -1949,7 +1960,7 @@ function renderIncludeCell(field, value) {
 }
 
 function renderTextEdit(field, value, host) {
-  const mask = (0,_mask_js__WEBPACK_IMPORTED_MODULE_6__.maskPattern)(field);
+  const mask = (0,_mask_js__WEBPACK_IMPORTED_MODULE_7__.maskPattern)(field);
   if (String(field.variant ?? '') === 'phone') return renderPhoneEdit(field, value, host);
   if (isPasswordField(field)) return renderPasswordEdit(field, value, host);
   if (mask) return renderMaskedEdit(field, value, host, mask);
@@ -2003,7 +2014,7 @@ function renderMaskedEdit(field, value, host, mask) {
   const write = (event, left) => {
     const input = event.currentTarget;
     const text = String(input?.value ?? '');
-    const state = (0,_mask_js__WEBPACK_IMPORTED_MODULE_6__.maskState)(text, mask);
+    const state = (0,_mask_js__WEBPACK_IMPORTED_MODULE_7__.maskState)(text, mask);
 
     if (state === 'incomplete') {
       const message = setText(host, 'maskIncomplete');
@@ -2186,9 +2197,9 @@ function renderNumberEdit(field, value, host) {
   const write = (event, left) => {
     const input = event.currentTarget ?? event.target;
     const text = String(input?.value ?? '');
-    const read = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_8__.readDecimal)(text);
+    const read = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_9__.readDecimal)(text);
     let message = null;
-    if (!read.ok) message = setText(host, 'notNumber');else if (read.value !== null && Number.isInteger(field.precision) && (0,_decimal_js__WEBPACK_IMPORTED_MODULE_8__.fractionDigits)(read.value) > field.precision) {
+    if (!read.ok) message = setText(host, 'notNumber');else if (read.value !== null && Number.isInteger(field.precision) && (0,_decimal_js__WEBPACK_IMPORTED_MODULE_9__.fractionDigits)(read.value) > field.precision) {
       message = (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageWord)(SET_TEXT, 'precisionMax', host ?? null, {
         component: SET_NAME,
         count: field.precision
@@ -2312,7 +2323,7 @@ function minuteStepOf(field) {
 }
 
 function renderDateTimeEdit(field, value, host) {
-  const stored = (0,_datetime_js__WEBPACK_IMPORTED_MODULE_5__.splitDateTime)(value);
+  const stored = (0,_datetime_js__WEBPACK_IMPORTED_MODULE_6__.splitDateTime)(value);
   const shown = stored.date ? `${stored.date}${stored.time ? `T${stored.time}` : ''}` : '';
   const min = typeof field.min === 'string' ? field.min : '';
   const max = typeof field.max === 'string' ? field.max : '';
@@ -2333,7 +2344,7 @@ function renderDateTimeEdit(field, value, host) {
     // The picker's own change, not a native one from its field.
     if (event.target !== event.currentTarget) return;
     const [date = '', time = ''] = String(event.detail?.value ?? '').split('T');
-    const result = (0,_datetime_js__WEBPACK_IMPORTED_MODULE_5__.composeDateTime)(stored, {
+    const result = (0,_datetime_js__WEBPACK_IMPORTED_MODULE_6__.composeDateTime)(stored, {
       date,
       time
     });
@@ -2350,7 +2361,7 @@ function renderDateTimeEdit(field, value, host) {
 
 
 function renderTimeEdit(field, value, host) {
-  const stored = (0,_datetime_js__WEBPACK_IMPORTED_MODULE_5__.splitTime)(value);
+  const stored = (0,_datetime_js__WEBPACK_IMPORTED_MODULE_6__.splitTime)(value);
   const min = typeof field.min === 'string' ? field.min : '';
   const max = typeof field.max === 'string' ? field.max : '';
   const step = minuteStepOf(field);
@@ -2368,7 +2379,7 @@ function renderTimeEdit(field, value, host) {
                 ?required=${Boolean(field.required)}
                 @change=${event => {
     if (event.target !== event.currentTarget) return;
-    const result = (0,_datetime_js__WEBPACK_IMPORTED_MODULE_5__.composeTime)(stored, String(event.detail?.value ?? ''));
+    const result = (0,_datetime_js__WEBPACK_IMPORTED_MODULE_6__.composeTime)(stored, String(event.detail?.value ?? ''));
     if (result.error) return;
     const same = result.value === null ? stored.known && !stored.time : result.value === stored.raw;
     host.setFieldValue(field, same ? undefined : result.value);
@@ -2406,7 +2417,8 @@ function renderBooleanEdit(field, value, host) {
     label: words.no
   }]);
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
-        <sf-button-group
+        <sf-segmented
+                appearance="buttons"
                 size=${EDIT_SIZE}
                 items=${items}
                 value=${value === true ? 'yes' : value === false ? 'no' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
@@ -2415,7 +2427,7 @@ function renderBooleanEdit(field, value, host) {
     const next = event.detail?.value;
     host.setFieldValue(field, next === 'yes' ? true : next === 'no' ? false : null);
   }}
-        ></sf-button-group>
+        ></sf-segmented>
     `;
 }
 
@@ -2520,9 +2532,9 @@ function renderChoiceButtons(field, value, host) {
 
   };
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
-        <sf-button-group
+        <sf-segmented
                 class="sf-field-choice-buttons"
-                appearance="segmented"
+                appearance="track"
                 size=${size}
                 root-class=${locked ? 'flex-wrap pointer-event-none' : 'flex-wrap'}
                 name=${fieldName(field)}
@@ -2537,7 +2549,7 @@ function renderChoiceButtons(field, value, host) {
     const next = String(event.detail?.value ?? '');
     host.setFieldValue(field, next === '' ? null : optionValue(next));
   }}
-        ></sf-button-group>
+        ></sf-segmented>
     `;
 }
 
@@ -3195,7 +3207,7 @@ function renderTextView(field, value, host) {
 
 
 function renderHtmlView(field, value) {
-  const clean = (0,_html_js__WEBPACK_IMPORTED_MODULE_7__.cleanHtml)(value);
+  const clean = (0,_html_js__WEBPACK_IMPORTED_MODULE_8__.cleanHtml)(value);
   return clean ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<div class="sf-field-view sf-field-html">${(0,lit_directives_unsafe_html_js__WEBPACK_IMPORTED_MODULE_1__.unsafeHTML)(clean)}</div>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing;
 } // A number carries its unit when the field declares one, and nothing when it
 // does not -- the set does not guess at a unit, and «42» with an invented «шт»
@@ -3214,13 +3226,63 @@ function renderNumberView(field, value, host) {
 
   const text = viewText(field, value, host);
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-field-view">${field.unit ? `${text} ${field.unit}` : text}</span>`;
-} // A date is the host's to format. The set has no locale and will not invent one:
-// without formatFieldValue it shows what it was given, which is at worst the
-// stored form and never a wrong date confidently rendered.
+} // A date is the host's to format first: formatFieldValue wins, and so does a
+// value that carries its own text. Without it the set used to print the stored
+// form -- «2026-10-25T10:30:00+03:00» (simai/ui-source#34) -- so a host that
+// formats nothing gets the page's medium reading through core format-date:
+// «2 нояб. 2026 г.» / «Nov 2, 2026» for a date, «15 нояб. 2026 г., 10:30» /
+// «Nov 15, 2026, 10:30 AM» for a datetime, the form the View set's table
+// printed before the renderers formatted dates (C19: the set formats, the
+// table inherits). The day and the clock are the record's own (datetime.js
+// reads them as written, in the host's zone): nothing is moved to the reader's
+// time zone, which would show a different day near midnight. A value that is
+// not a date at all is shown as it came, never guessed at.
 
+
+const DATE_VIEW = {
+  dateStyle: 'medium',
+  timeZone: 'UTC'
+};
+const DATETIME_VIEW = {
+  dateStyle: 'medium',
+  timeStyle: 'short',
+  timeZone: 'UTC'
+};
+
+function defaultDateText(field, value, host) {
+  if (carriesText(value)) return null;
+  const parts = (0,_datetime_js__WEBPACK_IMPORTED_MODULE_6__.splitDateTime)(value);
+  if (!parts.known || !parts.date) return null;
+  const [year, month, day] = parts.date.split('-').map(Number);
+  const locale = (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(host ?? null);
+
+  try {
+    const date = new Date(0);
+    date.setUTCFullYear(year, month - 1, day);
+    const type = field?.propertyType || field?.type || field?.dataType;
+    if (type !== 'datetime' || !parts.time) return (0,_core_js_format_date_js__WEBPACK_IMPORTED_MODULE_4__.formatDate)(date, {
+      intl: DATE_VIEW,
+      locale
+    }) || null;
+    const [hours, minutes] = parts.time.split(':').map(Number);
+    date.setUTCHours(hours, minutes, 0, 0);
+    return (0,_core_js_format_date_js__WEBPACK_IMPORTED_MODULE_4__.formatDate)(date, {
+      intl: DATETIME_VIEW,
+      locale
+    }) || null;
+  } catch {
+    return null;
+  }
+}
+
+function dateText(field, value, host) {
+  const formatted = host?.formatFieldValue?.(field, value);
+  if (typeof formatted === 'string') return formatted;
+  return defaultDateText(field, value, host) ?? viewText(field, value, null);
+}
 
 function renderDateView(field, value, host) {
-  const text = viewText(field, value, host);
+  const text = dateText(field, value, host);
   return text ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-field-view">${text}</span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing;
 }
 
@@ -3373,7 +3435,7 @@ const VIEW_RENDERERS = {
 // date belongs. Null when the set has no view for that type.
 
 function propertyModes(type) {
-  return (0,_registry_js__WEBPACK_IMPORTED_MODULE_4__.modesOf)(type, {
+  return (0,_registry_js__WEBPACK_IMPORTED_MODULE_5__.modesOf)(type, {
     view: VIEW_RENDERERS,
     edit: EDIT_RENDERERS,
     cell: CELL_RENDERERS,
@@ -3417,14 +3479,14 @@ if (typeof window !== 'undefined') {
     // normalizeTime(text); and a time of day's: splitTime(value),
     // composeTime(stored, text).
     dateTime: {
-      split: _datetime_js__WEBPACK_IMPORTED_MODULE_5__.splitDateTime,
-      compose: _datetime_js__WEBPACK_IMPORTED_MODULE_5__.composeDateTime,
-      normalizeTime: _datetime_js__WEBPACK_IMPORTED_MODULE_5__.normalizeTime,
-      splitTime: _datetime_js__WEBPACK_IMPORTED_MODULE_5__.splitTime,
-      composeTime: _datetime_js__WEBPACK_IMPORTED_MODULE_5__.composeTime
+      split: _datetime_js__WEBPACK_IMPORTED_MODULE_6__.splitDateTime,
+      compose: _datetime_js__WEBPACK_IMPORTED_MODULE_6__.composeDateTime,
+      normalizeTime: _datetime_js__WEBPACK_IMPORTED_MODULE_6__.normalizeTime,
+      splitTime: _datetime_js__WEBPACK_IMPORTED_MODULE_6__.splitTime,
+      composeTime: _datetime_js__WEBPACK_IMPORTED_MODULE_6__.composeTime
     },
     // The universal properties, each with the modes the set draws for it.
-    registry: _registry_js__WEBPACK_IMPORTED_MODULE_4__.PROPERTY_TYPES.map(entry => ({ ...entry,
+    registry: _registry_js__WEBPACK_IMPORTED_MODULE_5__.PROPERTY_TYPES.map(entry => ({ ...entry,
       modes: propertyModes(entry.type)
     }))
   }; // SF.whenFieldRenderers() settles on this, whichever bundle published the set.
@@ -4043,15 +4105,21 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _helpers_dom__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__("926043d18700");
 /* harmony import */ var _helpers_loaderDragState__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__("870b5dfddc25");
 /* harmony import */ var _core_js_position_js__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__("116963e5e31b");
-/* harmony import */ var _core_js_preferences_js__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__("51250bf01ab0");
-var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_core_js_smart_base__WEBPACK_IMPORTED_MODULE_0__, _core_js_element_manifest__WEBPACK_IMPORTED_MODULE_1__, _js_templates_default__WEBPACK_IMPORTED_MODULE_7__, _field_renderers_index_js__WEBPACK_IMPORTED_MODULE_9__, _js_format_value_js__WEBPACK_IMPORTED_MODULE_11__, lit__WEBPACK_IMPORTED_MODULE_12__, lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_13__, _core_js_page_language__WEBPACK_IMPORTED_MODULE_14__, _core_js_position_js__WEBPACK_IMPORTED_MODULE_17__]);
-([_core_js_smart_base__WEBPACK_IMPORTED_MODULE_0__, _core_js_element_manifest__WEBPACK_IMPORTED_MODULE_1__, _js_templates_default__WEBPACK_IMPORTED_MODULE_7__, _field_renderers_index_js__WEBPACK_IMPORTED_MODULE_9__, _js_format_value_js__WEBPACK_IMPORTED_MODULE_11__, lit__WEBPACK_IMPORTED_MODULE_12__, lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_13__, _core_js_page_language__WEBPACK_IMPORTED_MODULE_14__, _core_js_position_js__WEBPACK_IMPORTED_MODULE_17__] = __webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
+/* harmony import */ var _core_js_open_surface_mark_js__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__("bf0cea966575");
+/* harmony import */ var _core_js_layer_stack_js__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__("18003344cff0");
+/* harmony import */ var _core_js_preferences_js__WEBPACK_IMPORTED_MODULE_20__ = __webpack_require__("51250bf01ab0");
+var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_core_js_smart_base__WEBPACK_IMPORTED_MODULE_0__, _core_js_element_manifest__WEBPACK_IMPORTED_MODULE_1__, _js_templates_default__WEBPACK_IMPORTED_MODULE_7__, _field_renderers_index_js__WEBPACK_IMPORTED_MODULE_9__, _js_format_value_js__WEBPACK_IMPORTED_MODULE_11__, lit__WEBPACK_IMPORTED_MODULE_12__, lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_13__, _core_js_page_language__WEBPACK_IMPORTED_MODULE_14__, _core_js_position_js__WEBPACK_IMPORTED_MODULE_17__, _core_js_open_surface_mark_js__WEBPACK_IMPORTED_MODULE_18__, _core_js_layer_stack_js__WEBPACK_IMPORTED_MODULE_19__]);
+([_core_js_smart_base__WEBPACK_IMPORTED_MODULE_0__, _core_js_element_manifest__WEBPACK_IMPORTED_MODULE_1__, _js_templates_default__WEBPACK_IMPORTED_MODULE_7__, _field_renderers_index_js__WEBPACK_IMPORTED_MODULE_9__, _js_format_value_js__WEBPACK_IMPORTED_MODULE_11__, lit__WEBPACK_IMPORTED_MODULE_12__, lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_13__, _core_js_page_language__WEBPACK_IMPORTED_MODULE_14__, _core_js_position_js__WEBPACK_IMPORTED_MODULE_17__, _core_js_open_surface_mark_js__WEBPACK_IMPORTED_MODULE_18__, _core_js_layer_stack_js__WEBPACK_IMPORTED_MODULE_19__] = __webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
 /* harmony import */ var _core_js_smart_base__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_core_js_smart_base__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _core_js_element_manifest__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_core_js_element_manifest__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var lit__WEBPACK_IMPORTED_MODULE_12___default = /*#__PURE__*/__webpack_require__.n(lit__WEBPACK_IMPORTED_MODULE_12__);
 /* harmony import */ var lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_13___default = /*#__PURE__*/__webpack_require__.n(lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_13__);
 /* harmony import */ var _core_js_page_language__WEBPACK_IMPORTED_MODULE_14___default = /*#__PURE__*/__webpack_require__.n(_core_js_page_language__WEBPACK_IMPORTED_MODULE_14__);
 /* harmony import */ var _core_js_position_js__WEBPACK_IMPORTED_MODULE_17___default = /*#__PURE__*/__webpack_require__.n(_core_js_position_js__WEBPACK_IMPORTED_MODULE_17__);
+/* harmony import */ var _core_js_open_surface_mark_js__WEBPACK_IMPORTED_MODULE_18___default = /*#__PURE__*/__webpack_require__.n(_core_js_open_surface_mark_js__WEBPACK_IMPORTED_MODULE_18__);
+/* harmony import */ var _core_js_layer_stack_js__WEBPACK_IMPORTED_MODULE_19___default = /*#__PURE__*/__webpack_require__.n(_core_js_layer_stack_js__WEBPACK_IMPORTED_MODULE_19__);
+
+
 
 
 
@@ -4082,7 +4150,7 @@ var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_cor
 // SF.Preferences, the Framework's one store of view preferences (core
 // publishes it; this bundle's copy is the fallback).
 
-const preferences = () => globalThis.SF?.Preferences || _core_js_preferences_js__WEBPACK_IMPORTED_MODULE_18__["default"];
+const preferences = () => globalThis.SF?.Preferences || _core_js_preferences_js__WEBPACK_IMPORTED_MODULE_20__["default"];
 
 const tablePreferenceKey = key => `sf-table/${String(key).replace(/[^\w.:-]+/gu, "-")}`; // What a cell may draw as markup rather than as an element of its own.
 
@@ -4192,8 +4260,12 @@ const TableElement = (0,_core_js_element_manifest__WEBPACK_IMPORTED_MODULE_1__.e
   },
   source: "ru",
   aliases: _aliases_json__WEBPACK_IMPORTED_MODULE_4__
-}); // Whether a row of the current set would stand at another index in the next:
+}); // template-save carries {templates} (1.16.0); its former names keep the 1.3
+// detail, the template itself or the array of them, until their dates.
+
+const formerTemplateDetail = detail => detail?.templates?.length === 1 ? detail.templates[0] : detail?.templates; // Whether a row of the current set would stand at another index in the next:
 // a row kept by id and drawn elsewhere is a layout shift.
+
 
 function rowsWouldMove(current, next) {
   const at = new Map();
@@ -4888,7 +4960,9 @@ class SfTable extends TableElement {
         port: "selection",
         value: detail.ids
       }),
-      onSearchEnd: detail => detail.search
+      onSearchEnd: detail => detail.search,
+      "sf-table-template-save": formerTemplateDetail,
+      onTemplateSave: formerTemplateDetail
     };
   }
 
@@ -5213,7 +5287,7 @@ class SfTable extends TableElement {
             position: fixed;
             left: ${x}px;
             inset-block-start: calc(${y}px + calc(var(--sf-focus-outline-width) * 2));
-            z-index: var(--sf-table-context-menu--z-index, var(--sf-z-index-9));
+            z-index: var(--sf-table-context-menu--z-index, ${this.contextMenuZIndex()});
           "
                     data-context-main-menu
                     .entries=${entries}
@@ -5272,7 +5346,7 @@ class SfTable extends TableElement {
             position: fixed;
             left: ${x}px;
             inset-block-start: calc(${y}px + calc(var(--sf-focus-outline-width) * 2));
-            z-index: var(--sf-table-context-menu--z-index, var(--sf-z-index-9));
+            z-index: var(--sf-table-context-menu--z-index, ${this.contextMenuZIndex()});
           "
                     data-context-main-menu
                     .entries=${items}
@@ -5309,7 +5383,7 @@ class SfTable extends TableElement {
             position: fixed;
             left: ${x}px;
             inset-block-start: calc(${y}px + calc(var(--sf-focus-outline-width) * 2));
-            z-index: var(--sf-table-context-menu--z-index, var(--sf-z-index-9));
+            z-index: var(--sf-table-context-menu--z-index, ${this.contextMenuZIndex()});
           "
                     data-context-main-menu
                     .entries=${entries}
@@ -6672,8 +6746,11 @@ class SfTable extends TableElement {
   }
 
   dispatchFilterTemplateSave(key, filter, template = null) {
-    const detail = this.withFilterFieldSettings(template || this.getFilterTemplateByKey(key, filter), filter);
-    this.emitTableEvent('template-save', detail);
+    const detail = this.withFilterFieldSettings(template || this.getFilterTemplateByKey(key, filter), filter); // §8: the detail is an object; the template rides in templates.
+
+    this.emitTableEvent('template-save', {
+      templates: [detail]
+    });
     return this;
   }
 
@@ -6697,8 +6774,9 @@ class SfTable extends TableElement {
       return this;
     }
 
-    const detail = this.withFilterFieldSettings(filteredTemplates.length === 1 ? filteredTemplates[0] : filteredTemplates);
-    this.emitTableEvent('template-save', detail);
+    this.emitTableEvent('template-save', {
+      templates: this.withFilterFieldSettings(filteredTemplates)
+    });
     return this;
   }
 
@@ -7442,7 +7520,7 @@ class SfTable extends TableElement {
             position: fixed;
             left: ${x}px;
             inset-block-start: calc(${y}px + calc(var(--sf-focus-outline-width) * 2));
-            z-index: var(--sf-table-context-menu--z-index, var(--sf-z-index-9));
+            z-index: var(--sf-table-context-menu--z-index, ${this.contextMenuZIndex()});
           "
                     root-class="sf-table-context-menu ${this.size === "1/2" ? "sf-table-context-menu--dense " : ""}flex flex-col"
                     data-context-main-menu
@@ -7527,8 +7605,9 @@ class SfTable extends TableElement {
         tags
       }
     };
-    const detail = this.withFilterFieldSettings(template);
-    this.emitTableEvent('template-save', detail);
+    this.emitTableEvent('template-save', {
+      templates: [this.withFilterFieldSettings(template)]
+    });
     this.tempSettings = null;
     this.closeContextMenu();
   }
@@ -7576,7 +7655,7 @@ class SfTable extends TableElement {
             left: calc(${x}px + var(--sf-context-menu-tail-corner-offset));
             inset-block-start: ${y}px;
             transform: ${pos};
-            z-index: var(--sf-table-context-menu--z-index, var(--sf-z-index-9));
+            z-index: var(--sf-table-context-menu--z-index, ${this.contextMenuZIndex()});
           "
                     .entries=${items.map((item, at) => {
       // The standard menu's rows (owner, 2026-10-14): these were
@@ -8023,7 +8102,7 @@ class SfTable extends TableElement {
                      data-pinned=${pinned ? "1" : "0"}>
                     ${handle ? (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`<sf-button-icon
                                 size="1/2"
-                                appearance="link"
+                                appearance="ghost"
                                 scheme="on-surface"
                                 icon="drag_indicator"
                                 data-move
@@ -8039,7 +8118,7 @@ class SfTable extends TableElement {
                          a list of twenty pins could not tell which were set. -->
                     <sf-button-icon
                         size="1/2"
-                        appearance="link"
+                        appearance="ghost"
                         scheme=${pinned ? "primary" : "on-surface"}
                         ?filled=${pinned}
                         icon="push_pin"
@@ -8693,7 +8772,7 @@ class SfTable extends TableElement {
                     ${!isActiveEdit ? (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
                         <sf-button-icon size=${this.size}
                                 id="${this.getInstanceId()}--template-move--${col.key}"
-                                appearance="link"
+                                appearance="ghost"
                                 data-move
                                 data-sf-sortable-handle
                                 scheme="on-surface"
@@ -8705,7 +8784,7 @@ class SfTable extends TableElement {
                     ${!isActiveEdit ? (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
                         <div class="flex items-cross-center m-inline-start-auto gap-1/3">
                             <sf-button-icon
-                                    appearance="link"
+                                    appearance="ghost"
                                     data-keep
                                     size="1/3"
                                     scheme="on-surface"
@@ -8720,7 +8799,7 @@ class SfTable extends TableElement {
       }}
                             ></sf-button-icon>
                             <sf-button-icon size=${this.size}
-                                    appearance="link"
+                                    appearance="ghost"
                                     data-settings
                                     data-context-submenu-anchor="${col.key}"
                                     scheme="on-surface"
@@ -8752,7 +8831,7 @@ class SfTable extends TableElement {
             left: ${x}px;
             inset-block-start: calc(${y}px + calc(var(--sf-focus-outline-width) * 2));
             transform: ${pos};
-            z-index: var(--sf-table-context-menu--z-index, var(--sf-z-index-9));
+            z-index: var(--sf-table-context-menu--z-index, ${this.contextMenuZIndex()});
             --sf-table-context-menu--max-block-size: calc(100dvh - ${y}px - var(--sf-space-4));
           "
                     root-class="sf-table-context-menu ${this.size === "1/2" ? "sf-table-context-menu--dense " : ""}flex flex-col"
@@ -8880,7 +8959,7 @@ class SfTable extends TableElement {
             position: fixed;
             left: ${x}px;
             inset-block-start: calc(${y}px + calc(var(--sf-focus-outline-width) * 2));
-            z-index: var(--sf-table-context-menu--z-index, var(--sf-z-index-9));
+            z-index: var(--sf-table-context-menu--z-index, ${this.contextMenuZIndex()});
           "
                     root-class="sf-table-context-menu ${this.size === "1/2" ? "sf-table-context-menu--dense " : ""}flex flex-col"
                     position="${position || ""}"
@@ -9000,7 +9079,7 @@ class SfTable extends TableElement {
             left: ${x}px;
             inset-block-start: calc(${y}px + calc(var(--sf-focus-outline-width) * 2));
             transform: ${pos};
-            z-index: var(--sf-table-context-menu--z-index, var(--sf-z-index-9));
+            z-index: var(--sf-table-context-menu--z-index, ${this.contextMenuZIndex()});
             --sf-table-context-menu--max-block-size: calc(100dvh - ${y}px - var(--sf-space-4));
           "
                     root-class="sf-table-context-menu ${this.size === "1/2" ? "sf-table-context-menu--dense " : ""}flex flex-col"
@@ -9172,7 +9251,7 @@ class SfTable extends TableElement {
           position: fixed;
         left: calc(${x}px + var(--sf-context-menu-tail-corner-offset));
             inset-block-start: ${y}px;
-          z-index: var(--sf-table-context-submenu--z-index, var(--sf-z-index-9));
+          z-index: var(--sf-table-context-submenu--z-index, ${this.contextMenuZIndex()});
           transform: ${pos}
         "
                     data-context-submenu
@@ -9245,8 +9324,11 @@ class SfTable extends TableElement {
       (0,lit__WEBPACK_IMPORTED_MODULE_12__.render)(null, this.getPortalContainer());
       this.hidePortal();
       return lit__WEBPACK_IMPORTED_MODULE_12__.nothing;
-    }
+    } // On the layer stack before it is drawn: the windows take their
+    // z-index from their place in it.
 
+
+    this.bindContextEvent();
     (0,lit__WEBPACK_IMPORTED_MODULE_12__.render)((0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
                 <div
                         class="sf-table-context-layer"
@@ -9258,14 +9340,13 @@ class SfTable extends TableElement {
                     ${data.submenu?.open ? this.renderContextSubmenu(data.submenu) : lit__WEBPACK_IMPORTED_MODULE_12__.nothing}
                     ${this.isList && ["filter-settings", "tag-settings"].includes(data.menu) ? (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
                         <div class="sf-table-sheet-close">
-                            <sf-button-icon size=${this.size} appearance="link" scheme="on-surface"
+                            <sf-button-icon size=${this.size} appearance="ghost" scheme="on-surface"
                                             icon="close" aria-label=${this.text('closeText')}
                                             @click=${() => this.closeContextMenu()}></sf-button-icon>
                         </div>` : lit__WEBPACK_IMPORTED_MODULE_12__.nothing}
                 </div>
             `, this.getPortalContainer());
     this.showPortal();
-    this.bindContextEvent();
     this.bindContextViewport();
     requestAnimationFrame(() => {
       this.clampContextMenusToViewport(); // The menu lives in the portal, not in this element's own tree.
@@ -10182,15 +10263,28 @@ class SfTable extends TableElement {
     th.classList.remove('is-resizing', 'is-resizing-forward', 'is-resizing-backward');
     this.hideColumnResizeGuide();
     this.measurePinnedColumns();
-  }
+  } // An open window is a surface of the document's one layer stack
+  // (standard 1.3.8 §19): the stack's one listener hands it a press outside
+  // and Escape while it is the top layer, and it is drawn at the stack's
+  // height. The table bound a document click and keydown of its own (reuse
+  // audit 2026-11-02, findings 1 and 3), which acted whatever lay above the
+  // window and closed it together with a drawer or a record panel under it.
+  // The layer is the portal the windows are drawn in, not the table: a press
+  // anywhere else in the table is outside the window.
+
 
   bindContextEvent() {
     if (this._contextEventBound) {
       return;
     }
 
-    document.addEventListener("click", this.contextEvent);
-    document.addEventListener("keydown", this.contextKeyEvent);
+    const portal = this.getPortalContainer();
+    this._contextLayerOwner = portal;
+    (0,_core_js_open_surface_mark_js__WEBPACK_IMPORTED_MODULE_18__.holdOpenSurfaceMark)(portal, true, {
+      root: () => portal,
+      onOutsidePress: event => this.contextOutsidePress(event),
+      onEscape: event => this.contextKeyEvent(event)
+    });
     this._contextEventBound = true;
   }
 
@@ -10199,19 +10293,39 @@ class SfTable extends TableElement {
       return;
     }
 
-    document.removeEventListener("click", this.contextEvent);
-    document.removeEventListener("keydown", this.contextKeyEvent);
+    (0,_core_js_open_surface_mark_js__WEBPACK_IMPORTED_MODULE_18__.holdOpenSurfaceMark)(this._contextLayerOwner, false);
+    this._contextLayerOwner = null;
     this._contextEventBound = false;
-  }
+  } // The window's place on the stack's z-index scale; the Framework's old
+  // fixed step until it is on the stack.
 
-  contextKeyEvent(event) {
-    if (event.key !== 'Escape' || !this.state.contextMenu?.open) {
+
+  contextMenuZIndex() {
+    const zIndex = this._contextLayerOwner ? (0,_core_js_layer_stack_js__WEBPACK_IMPORTED_MODULE_19__.layerZIndex)(this._contextLayerOwner) : '';
+    return zIndex === '' ? 'var(--sf-z-index-9)' : String(zIndex);
+  } // A press on the control that opened the window is left to that
+  // control's own click, which reopens or closes it as it always did: closed
+  // here first, the gear's second press would open the window again.
+
+
+  contextOutsidePress(event) {
+    const opener = this.contextTarget;
+
+    if (opener instanceof Element && (event.composedPath?.() || []).includes(opener)) {
       return;
     }
 
-    event.preventDefault();
-    event.stopPropagation();
+    this.contextEvent(event);
+  } // Answers true when it took the press; the stack then stops it.
+
+
+  contextKeyEvent(event) {
+    if (event.key !== 'Escape' || !this.state.contextMenu?.open) {
+      return false;
+    }
+
     this.closeContextMenu(true);
+    return true;
   } // The table's windows -- filter, field popovers, settings, menus -- are
   // drawn in the page's top layer from inside the table, not moved to the end
   // of the body. Moved out, a window was not clipped by the table's scroll
@@ -12204,7 +12318,7 @@ function renderListToolbar(context) {
     })}
                             ></sf-tag>`;
   })}
-                    <sf-button size=${context.size} appearance="link" scheme="on-surface" text=${context.clearText}
+                    <sf-button size=${context.size} appearance="ghost" scheme="on-surface" text=${context.clearText}
                                @click="${() => context.component.removeFilterTag()}"></sf-button>
                 </div>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
         </div>
@@ -12336,7 +12450,7 @@ function renderToolbar(context) {
           <span slot="right">
                 <sf-button-icon
                         size=${context.size}
-                        appearance="link"
+                        appearance="ghost"
                         scheme="on-surface"
                         icon=${value.length ? 'close' : 'search'}
                         aria-label=${value.length ? 'Очистить поиск' : 'Поиск'}
@@ -12873,7 +12987,7 @@ function renderTableTemplate(context) {
                 aria-busy=${dataState === 'loading' ? 'true' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}>
                 ${rows.map((row, rowIndex) => row.__tree?.more ? (0,lit_directives_keyed_js__WEBPACK_IMPORTED_MODULE_1__.keyed)(`item:${row.id}`, (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
                         <li class="sf-table-list-more" style=${`--sf-table-tree--level: ${row.__tree.level}`}>
-                            <sf-button appearance="link" size="1/2" text=${context.component.text('treeMore')}
+                            <sf-button appearance="ghost" size="1/2" text=${context.component.text('treeMore')}
                                        @click=${() => context.component.requestTreeMore(row)}></sf-button>
                         </li>`) : (0,lit_directives_keyed_js__WEBPACK_IMPORTED_MODULE_1__.keyed)(`item:${context.component.rowsGeneration?.() ?? 0}:${row.id ?? rowIndex}`, (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
                         <li class="sf-table-list-item"
@@ -13025,7 +13139,7 @@ function renderTableTemplate(context) {
                 <td colspan=${String(columns.length)}>
                     <span class="sf-table-tree-cell" style=${`--sf-table-tree--level: ${row.__tree.level}`}>
                         <span class="sf-table-tree-toggle" aria-hidden="true"></span>
-                        <sf-button appearance="link" size="1/2" text=${context.component.text('treeMore')}
+                        <sf-button appearance="ghost" size="1/2" text=${context.component.text('treeMore')}
                                    @click=${() => context.component.requestTreeMore(row)}></sf-button>
                     </span>
                 </td>
@@ -13347,6 +13461,13 @@ module.exports = (globalThis.SF && globalThis.SF.runtimeModule ? globalThis.SF.r
 
 /***/ },
 
+/***/ "18003344cff0"
+(module) {
+
+module.exports = (globalThis.SF && globalThis.SF.runtimeModule ? globalThis.SF.runtimeModule("layer-stack", 1) : new Promise((resolve, reject) => globalThis.addEventListener("sf-runtime-ready", () => globalThis.SF.runtimeModule("layer-stack", 1).then(resolve, reject), { once: true })));
+
+/***/ },
+
 /***/ "80c480e5196c"
 (module) {
 
@@ -13386,6 +13507,13 @@ module.exports = (globalThis.SF && globalThis.SF.runtimeModule ? globalThis.SF.r
 (module) {
 
 module.exports = (globalThis.SF && globalThis.SF.runtimeModule ? globalThis.SF.runtimeModule("lit", 1) : new Promise((resolve, reject) => globalThis.addEventListener("sf-runtime-ready", () => globalThis.SF.runtimeModule("lit", 1).then(resolve, reject), { once: true })));
+
+/***/ },
+
+/***/ "bf0cea966575"
+(module) {
+
+module.exports = (globalThis.SF && globalThis.SF.runtimeModule ? globalThis.SF.runtimeModule("open-surface-mark", 1) : new Promise((resolve, reject) => globalThis.addEventListener("sf-runtime-ready", () => globalThis.SF.runtimeModule("open-surface-mark", 1).then(resolve, reject), { once: true })));
 
 /***/ },
 
@@ -14328,14 +14456,14 @@ __webpack_require__.r(__webpack_exports__);
 /***/ "f8651e83c6c6"
 (module) {
 
-module.exports = /*#__PURE__*/JSON.parse('{"$comment":"Dated aliases of sf-view-table for the shim (core/js/aliases.js, standard §16 item 20, vocabulary §9). mode: same-detail (the shim sends the new and the old name), detail-adds (the old name gets the larger new detail), split (the old detail from the element\'s adapter, sfAliasAdapters), host-attribute (no shim).","component":"sf-view-table","since":"2026-10-27","remove_after":"2026-12-01","aliases":[{"from":"aria-label","to":null,"kind":"attribute","component":"sf-view-table","since":"2026-10-27","remove_after":"2026-12-01","mode":"host-attribute","section":"§3.1, §4.8","note":"stays a host attribute, read for the accessible name; no shim"},{"from":"sf-table-action-intent","to":"sf-table-apply","kind":"event","component":"sf-view-table","since":"2026-10-27","remove_after":"2026-12-01","mode":"split","cancelable":false,"section":"§8, §16 item 20, vocabulary §9","note":"vocabulary §5 apply {action, scope, ids, revisions}; the old detail {action_id, record_ids} is made by the element\'s adapter (vocabulary §9: sf-table-action-intent → sf-table-apply)"},{"from":"sf-table-create-intent","to":"sf-table-create","kind":"event","component":"sf-view-table","since":"2026-10-27","remove_after":"2026-12-01","mode":"same-detail","cancelable":false,"section":"§8, §16 item 20, vocabulary §9","note":"vocabulary §5 create; the detail {item} is unchanged"},{"from":"sf-port-output","to":"sf-table-select","kind":"event","component":"sf-view-table","since":"2026-10-27","remove_after":"2026-12-01","mode":"split","cancelable":false,"section":"§8, §16 item 20, vocabulary §9","note":"vocabulary §5 select {ids}; the composition port\'s old detail {port: selection, value} is made by the element\'s adapter"},{"from":"sf-table-query-intent","to":"sf-table-query","kind":"event","component":"sf-view-table","since":"2026-10-27","remove_after":"2026-12-01","mode":"same-detail","cancelable":false,"section":"§8, §16 item 20, vocabulary §9","note":"vocabulary §5.1: sf-table-query-intent → sf-table-query; the detail {reason, context, sequence} is unchanged"},{"from":"sf-table-retry","to":"sf-table-refresh","kind":"event","component":"sf-view-table","since":"2026-10-27","remove_after":"2026-12-01","mode":"same-detail","cancelable":false,"section":"§8, §16 item 20, vocabulary §9","note":"vocabulary §5 refresh (table-retry)"},{"from":"sf-table-tree-toggle","to":"sf-table-expand","kind":"event","component":"sf-view-table","since":"2026-10-27","remove_after":"2026-12-01","mode":"same-detail","cancelable":false,"section":"§8, §16 item 20, vocabulary §9","note":"vocabulary §5 expand; the detail {id, expanded} is unchanged"},{"from":"sf-table-tree-more","to":"sf-table-load-more","kind":"event","component":"sf-view-table","since":"2026-10-27","remove_after":"2026-12-01","mode":"detail-adds","cancelable":false,"section":"§8, §16 item 20, vocabulary §9","note":"vocabulary §5 load-more; the new detail adds direction: after to {parent, cursor}"},{"from":"sf-table-rows-reorder","to":"sf-table-move","kind":"event","component":"sf-view-table","since":"2026-10-27","remove_after":"2026-12-01","mode":"same-detail","cancelable":false,"section":"§8, §16 item 20, vocabulary §9","note":"vocabulary §5 move; the detail {ids, before, order} is unchanged"},{"from":"sf-table-column-settings-change","to":"sf-table-save","kind":"event","component":"sf-view-table","since":"2026-10-27","remove_after":"2026-12-01","mode":"detail-adds","cancelable":false,"section":"§8, §16 item 20, vocabulary §9","note":"vocabulary §5 save {kind: columns}; the new detail adds kind to {reason, columnSettings, tableSettingsKey}","when":{"kind":"columns"}},{"from":"sf-table:column-settings-change","to":"sf-table-save","kind":"event","component":"sf-view-table","since":"2026-10-27","remove_after":"2026-12-01","mode":"detail-adds","cancelable":false,"section":"§8, §16 item 20, vocabulary §9","note":"vocabulary §5.1: sf-table:column-settings-change → sf-table-save {kind: columns}; a colon name (§8)","when":{"kind":"columns"}},{"from":"onColumnSettingsChange","to":"sf-table-save","kind":"event","component":"sf-view-table","since":"2026-10-27","remove_after":"2026-12-01","mode":"detail-adds","cancelable":false,"section":"§8, §16 item 20, vocabulary §9","note":"a camelCase name outside §8 (simai/ui-pro#1); ui-admin listens to it (src/main.ts, src/smart-component-catalog.ts)","when":{"kind":"columns"}},{"from":"onSearchEnd","to":"sf-table-search-change","kind":"event","component":"sf-view-table","since":"2026-10-27","remove_after":"2026-12-01","mode":"split","cancelable":false,"section":"§8, §16 item 20, vocabulary §9","note":"a camelCase name outside §8 (simai/ui-pro#1); its detail was the search text itself, made by the element\'s adapter; ui-admin listens to it (src/main.ts, src/smart-component-catalog.ts)"},{"from":"onTemplateSave","to":"sf-table-template-save","kind":"event","component":"sf-view-table","since":"2026-10-27","remove_after":"2026-12-01","mode":"same-detail","cancelable":false,"section":"§8, §16 item 20, vocabulary §9","note":"a camelCase name outside §8 (simai/ui-pro#1); ui-admin listens to it"},{"from":"onFilterUpdate","to":"sf-table-filter-change","kind":"event","component":"sf-view-table","since":"2026-10-27","remove_after":"2026-12-01","mode":"same-detail","cancelable":false,"section":"§8, §16 item 20, vocabulary §9","note":"a camelCase name outside §8 (simai/ui-pro#1); ui-admin listens to it"},{"from":"sf-table","to":"sf-view-table","kind":"tag","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","section":"rename plan R2 (ui-control RENAME-PLAN-2026-11-03), naming decision 2026-11-02","note":"the element is sf-view-table; sf-table is a subclass defined beside it until the date"},{"from":"sf-table-select","to":"sf-view-table-select","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-apply","to":"sf-view-table-apply","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-save","to":"sf-view-table-save","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-column-settings-reset","to":"sf-view-table-column-settings-reset","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-create","to":"sf-view-table-create","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-filter-change","to":"sf-view-table-filter-change","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-query","to":"sf-view-table-query","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-refresh","to":"sf-view-table-refresh","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-search-change","to":"sf-view-table-search-change","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-sort-change","to":"sf-view-table-sort-change","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-template-delete","to":"sf-view-table-template-delete","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-template-save","to":"sf-view-table-template-save","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-template-select","to":"sf-view-table-template-select","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-toolbar-action","to":"sf-view-table-toolbar-action","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-reference-open","to":"sf-view-table-reference-open","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-expand","to":"sf-view-table-expand","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-load-more","to":"sf-view-table-load-more","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-rows-drag","to":"sf-view-table-rows-drag","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-move","to":"sf-view-table-move","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-cell-set","to":"sf-view-table-cell-set","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-view-change","to":"sf-view-table-view-change","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-window","to":"sf-view-table-window","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"}]}');
+module.exports = /*#__PURE__*/JSON.parse('{"$comment":"Dated aliases of sf-view-table for the shim (core/js/aliases.js, standard §16 item 20, vocabulary §9). mode: same-detail (the shim sends the new and the old name), detail-adds (the old name gets the larger new detail), split (the old detail from the element\'s adapter, sfAliasAdapters), host-attribute (no shim).","component":"sf-view-table","since":"2026-10-27","remove_after":"2026-12-01","aliases":[{"from":"aria-label","to":null,"kind":"attribute","component":"sf-view-table","since":"2026-10-27","remove_after":"2026-12-01","mode":"host-attribute","section":"§3.1, §4.8","note":"stays a host attribute, read for the accessible name; no shim"},{"from":"sf-table-action-intent","to":"sf-table-apply","kind":"event","component":"sf-view-table","since":"2026-10-27","remove_after":"2026-12-01","mode":"split","cancelable":false,"section":"§8, §16 item 20, vocabulary §9","note":"vocabulary §5 apply {action, scope, ids, revisions}; the old detail {action_id, record_ids} is made by the element\'s adapter (vocabulary §9: sf-table-action-intent → sf-table-apply)"},{"from":"sf-table-create-intent","to":"sf-table-create","kind":"event","component":"sf-view-table","since":"2026-10-27","remove_after":"2026-12-01","mode":"same-detail","cancelable":false,"section":"§8, §16 item 20, vocabulary §9","note":"vocabulary §5 create; the detail {item} is unchanged"},{"from":"sf-port-output","to":"sf-table-select","kind":"event","component":"sf-view-table","since":"2026-10-27","remove_after":"2026-12-01","mode":"split","cancelable":false,"section":"§8, §16 item 20, vocabulary §9","note":"vocabulary §5 select {ids}; the composition port\'s old detail {port: selection, value} is made by the element\'s adapter"},{"from":"sf-table-query-intent","to":"sf-table-query","kind":"event","component":"sf-view-table","since":"2026-10-27","remove_after":"2026-12-01","mode":"same-detail","cancelable":false,"section":"§8, §16 item 20, vocabulary §9","note":"vocabulary §5.1: sf-table-query-intent → sf-table-query; the detail {reason, context, sequence} is unchanged"},{"from":"sf-table-retry","to":"sf-table-refresh","kind":"event","component":"sf-view-table","since":"2026-10-27","remove_after":"2026-12-01","mode":"same-detail","cancelable":false,"section":"§8, §16 item 20, vocabulary §9","note":"vocabulary §5 refresh (table-retry)"},{"from":"sf-table-tree-toggle","to":"sf-table-expand","kind":"event","component":"sf-view-table","since":"2026-10-27","remove_after":"2026-12-01","mode":"same-detail","cancelable":false,"section":"§8, §16 item 20, vocabulary §9","note":"vocabulary §5 expand; the detail {id, expanded} is unchanged"},{"from":"sf-table-tree-more","to":"sf-table-load-more","kind":"event","component":"sf-view-table","since":"2026-10-27","remove_after":"2026-12-01","mode":"detail-adds","cancelable":false,"section":"§8, §16 item 20, vocabulary §9","note":"vocabulary §5 load-more; the new detail adds direction: after to {parent, cursor}"},{"from":"sf-table-rows-reorder","to":"sf-table-move","kind":"event","component":"sf-view-table","since":"2026-10-27","remove_after":"2026-12-01","mode":"same-detail","cancelable":false,"section":"§8, §16 item 20, vocabulary §9","note":"vocabulary §5 move; the detail {ids, before, order} is unchanged"},{"from":"sf-table-column-settings-change","to":"sf-table-save","kind":"event","component":"sf-view-table","since":"2026-10-27","remove_after":"2026-12-01","mode":"detail-adds","cancelable":false,"section":"§8, §16 item 20, vocabulary §9","note":"vocabulary §5 save {kind: columns}; the new detail adds kind to {reason, columnSettings, tableSettingsKey}","when":{"kind":"columns"}},{"from":"sf-table:column-settings-change","to":"sf-table-save","kind":"event","component":"sf-view-table","since":"2026-10-27","remove_after":"2026-12-01","mode":"detail-adds","cancelable":false,"section":"§8, §16 item 20, vocabulary §9","note":"vocabulary §5.1: sf-table:column-settings-change → sf-table-save {kind: columns}; a colon name (§8)","when":{"kind":"columns"}},{"from":"onColumnSettingsChange","to":"sf-table-save","kind":"event","component":"sf-view-table","since":"2026-10-27","remove_after":"2026-12-01","mode":"detail-adds","cancelable":false,"section":"§8, §16 item 20, vocabulary §9","note":"a camelCase name outside §8 (simai/ui-pro#1); ui-admin listens to it (src/main.ts, src/smart-component-catalog.ts)","when":{"kind":"columns"}},{"from":"onSearchEnd","to":"sf-table-search-change","kind":"event","component":"sf-view-table","since":"2026-10-27","remove_after":"2026-12-01","mode":"split","cancelable":false,"section":"§8, §16 item 20, vocabulary §9","note":"a camelCase name outside §8 (simai/ui-pro#1); its detail was the search text itself, made by the element\'s adapter; ui-admin listens to it (src/main.ts, src/smart-component-catalog.ts)"},{"from":"onTemplateSave","to":"sf-view-table-template-save","kind":"event","component":"sf-view-table","since":"2026-10-27","remove_after":"2026-12-01","mode":"split","cancelable":false,"section":"§8, §16 item 20, vocabulary §9","note":"a camelCase name outside §8 (simai/ui-pro#1); ui-admin listens to it; its detail was the template object or the array of them, made by the element\'s adapter since template-save carries {templates} (1.16.0)"},{"from":"onFilterUpdate","to":"sf-table-filter-change","kind":"event","component":"sf-view-table","since":"2026-10-27","remove_after":"2026-12-01","mode":"same-detail","cancelable":false,"section":"§8, §16 item 20, vocabulary §9","note":"a camelCase name outside §8 (simai/ui-pro#1); ui-admin listens to it"},{"from":"sf-table","to":"sf-view-table","kind":"tag","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","section":"rename plan R2 (ui-control RENAME-PLAN-2026-11-03), naming decision 2026-11-02","note":"the element is sf-view-table; sf-table is a subclass defined beside it until the date"},{"from":"sf-table-select","to":"sf-view-table-select","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-apply","to":"sf-view-table-apply","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-save","to":"sf-view-table-save","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-column-settings-reset","to":"sf-view-table-column-settings-reset","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-create","to":"sf-view-table-create","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-filter-change","to":"sf-view-table-filter-change","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-query","to":"sf-view-table-query","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-refresh","to":"sf-view-table-refresh","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-search-change","to":"sf-view-table-search-change","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-sort-change","to":"sf-view-table-sort-change","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-template-delete","to":"sf-view-table-template-delete","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-template-save","to":"sf-view-table-template-save","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"split","section":"§8","note":"the event name carries the tag; its detail was the template object or the array of them, made by the element\'s adapter since template-save carries {templates} (1.16.0)"},{"from":"sf-table-template-select","to":"sf-view-table-template-select","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-toolbar-action","to":"sf-view-table-toolbar-action","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-reference-open","to":"sf-view-table-reference-open","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-expand","to":"sf-view-table-expand","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-load-more","to":"sf-view-table-load-more","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-rows-drag","to":"sf-view-table-rows-drag","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-move","to":"sf-view-table-move","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-cell-set","to":"sf-view-table-cell-set","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-view-change","to":"sf-view-table-view-change","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-window","to":"sf-view-table-window","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"}]}');
 
 /***/ },
 
 /***/ "c1f17ed5a348"
 (module) {
 
-module.exports = /*#__PURE__*/JSON.parse('{"id":"smart.view-table","tag":"sf-view-table","version":"1.15.1","kind":"leaf","settings":{"selectable":{"type":"boolean","default":true},"settings":{"type":"boolean","default":true},"actions":{"type":"boolean","default":true},"row-actions":{"type":"boolean","default":true},"creatable":{"type":"boolean","default":true},"filter-templates":{"type":"boolean","default":true},"settings-menu":{"type":"boolean","default":true},"pagin":{"type":"boolean","default":false},"filter-text":{"type":"string","default-from":"runtime.filter-text"},"clear-text":{"type":"string","default-from":"runtime.clear-text"},"search-placeholder":{"type":"string","default-from":"runtime.search-placeholder"},"create-text":{"type":"string","default-from":"runtime.create-text"},"pagination-total":{"type":"number","default":10,"integer":true,"min":0},"pagination-page-size":{"type":"number","default":10,"integer":true,"min":1,"max":100},"page-sizes":{"type":"string","default":"10,20,30,40"},"context-menu-columns":{"type":"number","default":1,"integer":true,"min":1,"max":4},"remember-widths":{"type":"boolean","default":false},"table-settings-key":{"type":"string","default":""},"data-state":{"type":"enum","values":["auto","loading","ready","populated","empty","error"],"default":"auto","x-alias":{"populated":"ready"}},"loading-text":{"type":"string","default-from":"runtime.loading-text"},"empty-text":{"type":"string","default-from":"runtime.empty-text"},"empty-description":{"type":"string"},"error-text":{"type":"string","default-from":"runtime.error-text"},"retry-text":{"type":"string","default-from":"runtime.retry-text"},"toolbar":{"type":"boolean","default":true},"pin-column-label":{"type":"string","default-from":"runtime.pin-column-label"},"unpin-column-label":{"type":"string","default-from":"runtime.unpin-column-label"},"column-move-label":{"type":"string","default-from":"runtime.column-move-label"},"column-search-placeholder":{"type":"string","default-from":"runtime.column-search-placeholder"},"column-search-empty-text":{"type":"string","default-from":"runtime.column-search-empty-text"},"vertical-scroll":{"type":"enum","values":["self","page"],"default":"self"},"filter-apply-text":{"type":"string","default-from":"runtime.filter-apply-text"},"layout":{"type":"enum","values":["auto","table","list"],"default":"table"},"list-below":{"type":"number","default":600},"list-fields":{"type":"number","default":3},"size":{"type":"enum","values":["1/2","1"],"default":"1"},"preferences-key":{"type":"string","default":""},"row-actions-visible":{"type":"enum","values":["hover","always"],"default":"hover"},"drag-rows":{"type":"boolean","default":false},"row-reorder":{"type":"boolean","default":false},"inline-edit":{"type":"boolean","default":false},"active-filter-fields":{"type":"list","entries":{"key":"id"}},"bulk-actions":{"type":"list"},"columns":{"type":"list","of":{"key":"string","label":"string"}},"create-items":{"type":"list"},"filter-fields":{"type":"list"},"rows":{"type":"list","entries":{"key":"id","changes":"revision"},"of":{"id":"id","revision":{"type":"string","optional":true}}},"table-data":{"type":"object"},"table-settings":{"type":"object"},"templates":{"type":"list"},"toolbar-actions":{"type":"list"},"sort":{"type":"list","of":{"key":"string","direction":{"type":"enum","values":["asc","desc"]}},"controlled":true},"current":{"type":"string","default":""}},"values":{"selected":{"type":"id","optional":true},"selection":{"type":"list","default":[]}},"events":{"select":{"carries":{"ids":"list"}},"apply":{"carries":{"action":"string","scope":{"type":"enum","values":["entry","selection","filter"]},"ids":"list","revisions":{"type":"object","optional":true}}},"save":{"carries":{"kind":{"type":"enum","values":["columns"]},"reason":"string","column-settings":{"type":"object"},"table-settings-key":{"type":"string"}}},"column-settings-reset":{"carries":{"target":{"type":"enum","values":["personal"]},"table-settings-key":{"type":"string","nullable":true}},"own-verb":true},"create":{"carries":{"item":{"type":"string","nullable":true,"optional":true}}},"filter-change":{"carries":{"template-key":{"type":"string"},"template-label":{"type":"string"},"values":{"type":"object"},"tags":{"type":"object"}},"own-verb":true},"query":{"carries":{"reason":"string","context":"object","sequence":{"type":"number","integer":true}}},"refresh":{"carries":{}},"search-change":{"carries":{"search":"string"},"own-verb":true},"sort-change":{"carries":{"key":{"type":"string","schema":{"minLength":1}},"direction":{"type":"enum","values":["asc","desc",null],"nullable":true}},"own-verb":true},"template-delete":{"carries":{"key":{"type":"string","schema":{"minLength":1}}},"own-verb":true},"template-save":{"carries":{},"own-verb":true},"template-select":{"carries":{"key":{"type":"string","schema":{"minLength":1}}},"own-verb":true},"toolbar-action":{"carries":{"action":"string","href":{"type":"string","nullable":true,"optional":true}},"cancelable":true,"own-verb":true},"reference-open":{"carries":{"field":"string","value":"object","href":"string"},"cancelable":true,"own-verb":true},"expand":{"carries":{"id":"id","expanded":{"type":"boolean","optional":true}}},"load-more":{"carries":{"direction":{"type":"enum","values":["after"]},"parent":{"type":"id","nullable":true},"cursor":{"type":"string","nullable":true}}},"rows-drag":{"carries":{"ids":{"type":"list","schema":{"items":{"type":"string"},"minItems":1}},"source":{"type":"string","nullable":true}},"own-verb":true},"move":{"carries":{"ids":"list","before":{"type":"id","nullable":true},"order":"list"}},"cell-set":{"carries":{"id":"object","key":"string","value":"object","revision":"object"},"own-verb":true},"view-change":{"carries":{"view":"object","everywhere":"boolean"},"own-verb":true},"window":{"carries":{"first":{"type":"number","integer":true},"last":{"type":"number","integer":true}},"own-verb":true}},"actions":{"add-rows":{"with":{"rows":"list"}},"apply-query-result":{"with":{"sequence":{"type":"number","integer":true,"schema":{"minimum":1}},"rows":"list"}},"clear-selection":{},"request-action-intent":{"with":{"action-id":{"type":"string","schema":{"minLength":1}},"record-ids":{"type":"list","schema":{"items":{"type":["string","integer"],"minLength":1},"minItems":1}}},"emits":"apply"},"request-create-intent":{"with":{"item-id":{"type":"string","optional":true,"nullable":true}},"emits":"create"},"request-retry":{"emits":"refresh"},"set-sort":{"with":{"key":{"type":"string","nullable":true},"direction":{"type":"enum","values":["asc","desc"],"nullable":true}}},"toggle-tree-row":{"with":{"row":"object"},"emits":"expand"},"request-tree-more":{"with":{"row":"object"},"emits":"load-more"},"focus-row":{"with":{"id":"id"}}},"port":{"id":"simai.dataview-port","version":"1.0.0","contract":"src/core/contracts/ports/simai.dataview-port/1.0.0/port.json"},"presentation":{"skeleton":{"late":["rows"]}},"host-states":{"data-sf-view-stripes":"boolean","data-sf-page-scroll":"boolean"},"css-variables":{"--sf-table-row-block-size-1/2":{"type":"length","state":"default"},"--sf-table-row-block-size-1":{"type":"length","state":"default"},"--sf-table-row-2-lines-block-size-1/2":{"type":"length","state":"default"},"--sf-table-row-2-lines-block-size-1":{"type":"length","state":"default"},"--sf-table-head-block-size-1/2":{"type":"length","state":"default"},"--sf-table-head-block-size-1":{"type":"length","state":"default"},"--sf-table-toolbar-block-size-1/2":{"type":"length","state":"default"},"--sf-table-toolbar-block-size-1":{"type":"length","state":"default"},"--sf-table-toolbar-gap":{"type":"length","state":"default"},"--sf-table-head--background-color":{"type":"color","state":"default"},"--sf-table-row--background-color":{"type":"color","state":"default"},"--sf-table--cell-spacing":{"type":"length","state":"default"},"--sf-table-cell--line-clamp":{"type":"number","state":"default"},"--sf-table-context-menu--z-index":{"type":"number","state":"open"},"--sf-table-context-menu--max-width":{"type":"length","state":"open"}}}');
+module.exports = /*#__PURE__*/JSON.parse('{"id":"smart.view-table","tag":"sf-view-table","version":"1.16.0","kind":"leaf","settings":{"selectable":{"type":"boolean","default":true},"settings":{"type":"boolean","default":true},"actions":{"type":"boolean","default":true},"row-actions":{"type":"boolean","default":true},"creatable":{"type":"boolean","default":true},"filter-templates":{"type":"boolean","default":true},"settings-menu":{"type":"boolean","default":true},"pagin":{"type":"boolean","default":false},"filter-text":{"type":"string","default-from":"runtime.filter-text"},"clear-text":{"type":"string","default-from":"runtime.clear-text"},"search-placeholder":{"type":"string","default-from":"runtime.search-placeholder"},"create-text":{"type":"string","default-from":"runtime.create-text"},"pagination-total":{"type":"number","default":10,"integer":true,"min":0},"pagination-page-size":{"type":"number","default":10,"integer":true,"min":1,"max":100},"page-sizes":{"type":"string","default":"10,20,30,40"},"context-menu-columns":{"type":"number","default":1,"integer":true,"min":1,"max":4},"remember-widths":{"type":"boolean","default":false},"table-settings-key":{"type":"string","default":""},"data-state":{"type":"enum","values":["auto","loading","ready","populated","empty","error"],"default":"auto","x-alias":{"populated":"ready"}},"loading-text":{"type":"string","default-from":"runtime.loading-text"},"empty-text":{"type":"string","default-from":"runtime.empty-text"},"empty-description":{"type":"string"},"error-text":{"type":"string","default-from":"runtime.error-text"},"retry-text":{"type":"string","default-from":"runtime.retry-text"},"toolbar":{"type":"boolean","default":true},"pin-column-label":{"type":"string","default-from":"runtime.pin-column-label"},"unpin-column-label":{"type":"string","default-from":"runtime.unpin-column-label"},"column-move-label":{"type":"string","default-from":"runtime.column-move-label"},"column-search-placeholder":{"type":"string","default-from":"runtime.column-search-placeholder"},"column-search-empty-text":{"type":"string","default-from":"runtime.column-search-empty-text"},"vertical-scroll":{"type":"enum","values":["self","page"],"default":"self"},"filter-apply-text":{"type":"string","default-from":"runtime.filter-apply-text"},"layout":{"type":"enum","values":["auto","table","list"],"default":"table"},"list-below":{"type":"number","default":600},"list-fields":{"type":"number","default":3},"size":{"type":"enum","values":["1/2","1"],"default":"1"},"preferences-key":{"type":"string","default":""},"row-actions-visible":{"type":"enum","values":["hover","always"],"default":"hover"},"drag-rows":{"type":"boolean","default":false},"row-reorder":{"type":"boolean","default":false},"inline-edit":{"type":"boolean","default":false},"active-filter-fields":{"type":"list","entries":{"key":"id"}},"bulk-actions":{"type":"list"},"columns":{"type":"list","of":{"key":"string","label":"string"}},"create-items":{"type":"list"},"filter-fields":{"type":"list"},"rows":{"type":"list","entries":{"key":"id","changes":"revision"},"of":{"id":"id","revision":{"type":"string","optional":true}}},"table-data":{"type":"object"},"table-settings":{"type":"object"},"templates":{"type":"list"},"toolbar-actions":{"type":"list"},"sort":{"type":"list","of":{"key":"string","direction":{"type":"enum","values":["asc","desc"]}},"controlled":true},"current":{"type":"string","default":""}},"values":{"selected":{"type":"id","optional":true},"selection":{"type":"list","default":[]}},"events":{"select":{"carries":{"ids":"list"}},"apply":{"carries":{"action":"string","scope":{"type":"enum","values":["entry","selection","filter"]},"ids":"list","revisions":{"type":"object","optional":true}}},"save":{"carries":{"kind":{"type":"enum","values":["columns"]},"reason":"string","column-settings":{"type":"object"},"table-settings-key":{"type":"string"}}},"column-settings-reset":{"carries":{"target":{"type":"enum","values":["personal"]},"table-settings-key":{"type":"string","nullable":true}},"own-verb":true},"create":{"carries":{"item":{"type":"string","nullable":true,"optional":true}}},"filter-change":{"carries":{"template-key":{"type":"string"},"template-label":{"type":"string"},"values":{"type":"object"},"tags":{"type":"object"}},"own-verb":true},"query":{"carries":{"reason":"string","context":"object","sequence":{"type":"number","integer":true}}},"refresh":{"carries":{}},"search-change":{"carries":{"search":"string"},"own-verb":true},"sort-change":{"carries":{"key":{"type":"string","schema":{"minLength":1}},"direction":{"type":"enum","values":["asc","desc",null],"nullable":true}},"own-verb":true},"template-delete":{"carries":{"key":{"type":"string","schema":{"minLength":1}}},"own-verb":true},"template-save":{"carries":{"templates":{"type":"list","of":{"key":"string","label":"string","selected":"boolean","data":"object","settings":"object"},"schema":{"items":{"type":"object","required":["key","label","settings"],"properties":{"key":{"type":"string"},"label":{"type":"string"},"selected":{"type":"boolean"},"data":{"type":"object"},"settings":{"type":"object","properties":{"filter_fields":{"type":"array","items":{"type":"string"}}}}}},"minItems":1}}},"own-verb":true},"template-select":{"carries":{"key":{"type":"string","schema":{"minLength":1}}},"own-verb":true},"toolbar-action":{"carries":{"action":"string","href":{"type":"string","nullable":true,"optional":true}},"cancelable":true,"own-verb":true},"reference-open":{"carries":{"field":"string","value":"object","href":"string"},"cancelable":true,"own-verb":true},"expand":{"carries":{"id":"id","expanded":{"type":"boolean","optional":true}}},"load-more":{"carries":{"direction":{"type":"enum","values":["after"]},"parent":{"type":"id","nullable":true},"cursor":{"type":"string","nullable":true}}},"rows-drag":{"carries":{"ids":{"type":"list","schema":{"items":{"type":"string"},"minItems":1}},"source":{"type":"string","nullable":true}},"own-verb":true},"move":{"carries":{"ids":"list","before":{"type":"id","nullable":true},"order":"list"}},"cell-set":{"carries":{"id":"object","key":"string","value":"object","revision":"object"},"own-verb":true},"view-change":{"carries":{"view":"object","everywhere":"boolean"},"own-verb":true},"window":{"carries":{"first":{"type":"number","integer":true},"last":{"type":"number","integer":true}},"own-verb":true}},"actions":{"add-rows":{"with":{"rows":"list"}},"apply-query-result":{"with":{"sequence":{"type":"number","integer":true,"schema":{"minimum":1}},"rows":"list"}},"clear-selection":{},"request-action-intent":{"with":{"action-id":{"type":"string","schema":{"minLength":1}},"record-ids":{"type":"list","schema":{"items":{"type":["string","integer"],"minLength":1},"minItems":1}}},"emits":"apply"},"request-create-intent":{"with":{"item-id":{"type":"string","optional":true,"nullable":true}},"emits":"create"},"request-retry":{"emits":"refresh"},"set-sort":{"with":{"key":{"type":"string","nullable":true},"direction":{"type":"enum","values":["asc","desc"],"nullable":true}}},"toggle-tree-row":{"with":{"row":"object"},"emits":"expand"},"request-tree-more":{"with":{"row":"object"},"emits":"load-more"},"focus-row":{"with":{"id":"id"}}},"port":{"id":"simai.dataview-port","version":"1.0.0","contract":"src/core/contracts/ports/simai.dataview-port/1.0.0/port.json"},"presentation":{"skeleton":{"late":["rows"]}},"host-states":{"data-sf-view-stripes":"boolean","data-sf-page-scroll":"boolean"},"css-variables":{"--sf-table-row-block-size-1/2":{"type":"length","state":"default"},"--sf-table-row-block-size-1":{"type":"length","state":"default"},"--sf-table-row-2-lines-block-size-1/2":{"type":"length","state":"default"},"--sf-table-row-2-lines-block-size-1":{"type":"length","state":"default"},"--sf-table-head-block-size-1/2":{"type":"length","state":"default"},"--sf-table-head-block-size-1":{"type":"length","state":"default"},"--sf-table-toolbar-block-size-1/2":{"type":"length","state":"default"},"--sf-table-toolbar-block-size-1":{"type":"length","state":"default"},"--sf-table-toolbar-gap":{"type":"length","state":"default"},"--sf-table-head--background-color":{"type":"color","state":"default"},"--sf-table-row--background-color":{"type":"color","state":"default"},"--sf-table--cell-spacing":{"type":"length","state":"default"},"--sf-table-cell--line-clamp":{"type":"number","state":"default"},"--sf-table-context-menu--z-index":{"type":"number","state":"open"},"--sf-table-context-menu--max-width":{"type":"length","state":"open"}}}');
 
 /***/ },
 

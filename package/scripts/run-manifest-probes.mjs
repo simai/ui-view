@@ -18,11 +18,23 @@
 // distribution (core, smart, …). <package output> holds smart/<folder> and
 // smart/rule.js (ui-builder's run-package-product-build.cjs).
 import {spawnSync} from 'node:child_process';
-import {cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, symlinkSync, writeFileSync} from 'node:fs';
+import {existsSync, readdirSync, readFileSync, writeFileSync} from 'node:fs';
 import {join, resolve} from 'node:path';
 import {PACKAGE_ROOT, materializeOverlay, packageNameOf} from './overlay.mjs';
+import {layProbeOutput} from './probe-layout.mjs';
 
 const args = process.argv.slice(2);
+// --set <id>=<output>: a released set this set requires (set.json requires_sets),
+// its output holding smart/<folder> and smart/rule.js. It is laid beside the
+// set's own folders under smart/smart/set-<id>/ and declared on the page with
+// its own base, as a page declares both (data-sf-sets="<set> <required set>").
+const required = [];
+for (let index = args.indexOf('--set'); index !== -1; index = args.indexOf('--set', index)) {
+  const [id, path] = String(args[index + 1] ?? '').split('=');
+  if (!/^[a-z][a-z0-9-]*$/u.test(id ?? '') || !path) throw new Error('--set takes <id>=<output of that set>');
+  required.push({id, output: resolve(path)});
+  args.splice(index, 2);
+}
 const at = args.indexOf('--overlay');
 const overlay = resolve(at === -1 ? join(PACKAGE_ROOT, '.overlay') : args[at + 1]);
 const [freeInput, packageInput, ...folders] = args.filter((value, index) => !value.startsWith('--') && (at === -1 || index !== at + 1));
@@ -33,26 +45,9 @@ if (!existsSync(join(built, 'smart', 'rule.js'))) throw new Error(`the package o
 if (!existsSync(overlay)) materializeOverlay(overlay);
 
 // One output root in the product layout, the package's folders and its rule
-// file inside smart/smart beside the free components.
-// The runner reads <root>/core/core, core/rule, component/component,
-// smart/smart and utility/utility.
-const products = {core: ['core', 'core'], rule: ['core', 'rule'], component: ['component', 'component'], smart: ['smart', 'smart'], utility: ['utility', 'utility']};
-const layout = existsSync(join(free, 'core', 'core', 'js', 'core.js')) ? 'product' : existsSync(join(free, 'core', 'js', 'core.js')) ? 'distr' : '';
-if (!layout) throw new Error(`no core/js/core.js under ${free} (a product output root or a ui distr)`);
-const combined = join(overlay, '.manifest-probe-output');
-rmSync(combined, {force: true, recursive: true});
-for (const [product, [folder, inner]] of Object.entries(products)) {
-  const from = layout === 'product' ? join(free, folder, inner) : join(free, product);
-  if (!existsSync(from)) throw new Error(`the free output has no ${product}: ${free}`);
-  mkdirSync(join(combined, folder), {recursive: true});
-  if (product === 'smart') cpSync(from, join(combined, folder, inner), {recursive: true});
-  else symlinkSync(from, join(combined, folder, inner));
-}
-for (const entry of readdirSync(join(built, 'smart'))) {
-  const destination = join(combined, 'smart', 'smart', entry);
-  if (existsSync(destination)) throw new Error(`the package output would replace the free smart/${entry}`);
-  cpSync(join(built, 'smart', entry), destination, {recursive: true});
-}
+// file inside smart/smart beside the free components (scripts/probe-layout.mjs):
+// the free output, a product root or a ui distr, is read and never written.
+const combined = layProbeOutput({free, built, required, target: join(overlay, '.manifest-probe-output')}).output;
 
 // The free runner, with the page declaring the package. The runner resolves
 // probes from <overlay>/src/smart, where this repository's folders are laid.
@@ -62,7 +57,8 @@ const anchor = 'window.SF_BOOT_CONFIG={preloader:{enabled:false}};';
 if (source.split(anchor).length !== 2) throw new Error(`${runner}: the page's SF_BOOT_CONFIG line moved; this script must follow it`);
 const declared = join(overlay, 'tests', 'browser', '.manifest-probes.package.browser.mjs');
 const name = packageNameOf(join(built, 'smart', 'rule.js'));
-writeFileSync(declared, source.replace(anchor, `window.SF_BOOT_CONFIG={preloader:{enabled:false},packages:{${name}:{base:'/distr/smart/'}}};`));
+const others = required.map(({id}) => `,${id}:{base:'/distr/smart/set-${id}/'}`).join('');
+writeFileSync(declared, source.replace(anchor, `window.SF_BOOT_CONFIG={preloader:{enabled:false},packages:{${name}:{base:'/distr/smart/'}${others}}};`));
 const own = folders.length ? folders : readdirSync(join(PACKAGE_ROOT, 'src', 'smart')).filter((folder) => existsSync(join(PACKAGE_ROOT, 'src', 'smart', folder, 'probe.json')));
 const result = spawnSync(process.execPath, [declared, combined, ...own], {cwd: overlay, stdio: 'inherit'});
 process.exitCode = result.status ?? 1;

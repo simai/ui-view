@@ -659,7 +659,7 @@ __webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __we
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   FILTER_RENDERERS: () => (/* binding */ FILTER_RENDERERS),
-/* harmony export */   PROPERTY_TYPES: () => (/* reexport safe */ _registry_js__WEBPACK_IMPORTED_MODULE_4__.PROPERTY_TYPES),
+/* harmony export */   PROPERTY_TYPES: () => (/* reexport safe */ _registry_js__WEBPACK_IMPORTED_MODULE_5__.PROPERTY_TYPES),
 /* harmony export */   propertyModes: () => (/* binding */ propertyModes),
 /* harmony export */   renderCellField: () => (/* binding */ renderCellField),
 /* harmony export */   renderEditField: () => (/* binding */ renderEditField),
@@ -670,16 +670,18 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var lit_directives_unsafe_html_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__("073f05ff1a81");
 /* harmony import */ var _helpers_option_badge_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__("b30ec5bc0edb");
 /* harmony import */ var _core_js_page_language__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__("43090d1c8307");
-/* harmony import */ var _registry_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__("fc654eb7fab0");
-/* harmony import */ var _datetime_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__("9ce1a42b2a85");
-/* harmony import */ var _mask_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__("dd6973f77245");
-/* harmony import */ var _html_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__("01ae054f01b4");
-/* harmony import */ var _decimal_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__("ab3947ea3647");
-var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([lit__WEBPACK_IMPORTED_MODULE_0__, lit_directives_unsafe_html_js__WEBPACK_IMPORTED_MODULE_1__, _core_js_page_language__WEBPACK_IMPORTED_MODULE_3__, _decimal_js__WEBPACK_IMPORTED_MODULE_8__]);
-([lit__WEBPACK_IMPORTED_MODULE_0__, lit_directives_unsafe_html_js__WEBPACK_IMPORTED_MODULE_1__, _core_js_page_language__WEBPACK_IMPORTED_MODULE_3__, _decimal_js__WEBPACK_IMPORTED_MODULE_8__] = __webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
+/* harmony import */ var _core_js_format_date_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__("e577837dd70a");
+/* harmony import */ var _registry_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__("fc654eb7fab0");
+/* harmony import */ var _datetime_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__("9ce1a42b2a85");
+/* harmony import */ var _mask_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__("dd6973f77245");
+/* harmony import */ var _html_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__("01ae054f01b4");
+/* harmony import */ var _decimal_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__("ab3947ea3647");
+var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([lit__WEBPACK_IMPORTED_MODULE_0__, lit_directives_unsafe_html_js__WEBPACK_IMPORTED_MODULE_1__, _core_js_page_language__WEBPACK_IMPORTED_MODULE_3__, _core_js_format_date_js__WEBPACK_IMPORTED_MODULE_4__, _decimal_js__WEBPACK_IMPORTED_MODULE_9__]);
+([lit__WEBPACK_IMPORTED_MODULE_0__, lit_directives_unsafe_html_js__WEBPACK_IMPORTED_MODULE_1__, _core_js_page_language__WEBPACK_IMPORTED_MODULE_3__, _core_js_format_date_js__WEBPACK_IMPORTED_MODULE_4__, _decimal_js__WEBPACK_IMPORTED_MODULE_9__] = __webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
 /* harmony import */ var lit__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(lit__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var lit_directives_unsafe_html_js__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(lit_directives_unsafe_html_js__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var _core_js_page_language__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__);
+
 
 
 
@@ -1292,8 +1294,8 @@ const CELL_RENDERERS = {
   // 2026» in the record panel, with no way for a consumer to change the
   // first. These two ask the host and fall through to the stored value when
   // it has nothing to say.
-  date: renderHostFormattedCell,
-  datetime: renderHostFormattedCell,
+  date: renderDateCell,
+  datetime: renderDateCell,
   time: renderHostFormattedCell,
   boolean: renderBooleanCell,
   choices: renderChoicesCell,
@@ -1386,14 +1388,14 @@ function renderHostFormattedCell(field, value, host) {
 function renderMoneyCell(field, value, host) {
   const formatted = renderHostFormattedCell(field, value, host);
   if (formatted !== null) return formatted;
-  const text = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_8__.formatMoney)(scalarValue(value), field, (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(host ?? null));
+  const text = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_9__.formatMoney)(scalarValue(value), field, (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(host ?? null));
   return text || null;
 }
 
 function renderPercentCell(field, value, host) {
   const formatted = renderHostFormattedCell(field, value, host);
   if (formatted !== null) return formatted;
-  const text = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_8__.formatPercent)(scalarValue(value), (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(host ?? null));
+  const text = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_9__.formatPercent)(scalarValue(value), (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(host ?? null));
   return text || null;
 }
 
@@ -1405,6 +1407,15 @@ function renderItemsCell(field, value, host) {
     component: SET_NAME,
     count: value.length
   }) : '';
+} // A date in a row reads as it does in the record panel: the host's text, else
+// the page's reading of the day (simai/ui-source#34); null for a value that is
+// not a date, which the table prints as it came.
+
+
+function renderDateCell(field, value, host) {
+  const formatted = renderHostFormattedCell(field, value, host);
+  if (formatted !== null) return formatted;
+  return defaultDateText(field, value, host);
 }
 
 function renderNumericCell(field, value, host) {
@@ -1479,7 +1490,7 @@ function renderLookupCell(field, value) {
 
 
 function renderHtmlCell(field, value) {
-  return (0,_html_js__WEBPACK_IMPORTED_MODULE_7__.htmlText)(value) || null;
+  return (0,_html_js__WEBPACK_IMPORTED_MODULE_8__.htmlText)(value) || null;
 } // What a cell should hold for a field, in the same shape a host would pass: a
 // string, an object with a component, or a list of those. Null means the value
 // is better off as itself. Returning the host's own shape is deliberate -- the
@@ -1641,7 +1652,7 @@ function renderPasswordEdit(field, value, host) {
             ></sf-input>
             <sf-button-icon
                     size=${EDIT_SIZE}
-                    appearance="link"
+                    appearance="ghost"
                     scheme="on-surface"
                     icon="visibility"
                     aria-label=${setText(host, 'showPassword')}
@@ -1718,7 +1729,7 @@ function renderIncludeCell(field, value) {
 }
 
 function renderTextEdit(field, value, host) {
-  const mask = (0,_mask_js__WEBPACK_IMPORTED_MODULE_6__.maskPattern)(field);
+  const mask = (0,_mask_js__WEBPACK_IMPORTED_MODULE_7__.maskPattern)(field);
   if (String(field.variant ?? '') === 'phone') return renderPhoneEdit(field, value, host);
   if (isPasswordField(field)) return renderPasswordEdit(field, value, host);
   if (mask) return renderMaskedEdit(field, value, host, mask);
@@ -1772,7 +1783,7 @@ function renderMaskedEdit(field, value, host, mask) {
   const write = (event, left) => {
     const input = event.currentTarget;
     const text = String(input?.value ?? '');
-    const state = (0,_mask_js__WEBPACK_IMPORTED_MODULE_6__.maskState)(text, mask);
+    const state = (0,_mask_js__WEBPACK_IMPORTED_MODULE_7__.maskState)(text, mask);
 
     if (state === 'incomplete') {
       const message = setText(host, 'maskIncomplete');
@@ -1955,9 +1966,9 @@ function renderNumberEdit(field, value, host) {
   const write = (event, left) => {
     const input = event.currentTarget ?? event.target;
     const text = String(input?.value ?? '');
-    const read = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_8__.readDecimal)(text);
+    const read = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_9__.readDecimal)(text);
     let message = null;
-    if (!read.ok) message = setText(host, 'notNumber');else if (read.value !== null && Number.isInteger(field.precision) && (0,_decimal_js__WEBPACK_IMPORTED_MODULE_8__.fractionDigits)(read.value) > field.precision) {
+    if (!read.ok) message = setText(host, 'notNumber');else if (read.value !== null && Number.isInteger(field.precision) && (0,_decimal_js__WEBPACK_IMPORTED_MODULE_9__.fractionDigits)(read.value) > field.precision) {
       message = (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageWord)(SET_TEXT, 'precisionMax', host ?? null, {
         component: SET_NAME,
         count: field.precision
@@ -2081,7 +2092,7 @@ function minuteStepOf(field) {
 }
 
 function renderDateTimeEdit(field, value, host) {
-  const stored = (0,_datetime_js__WEBPACK_IMPORTED_MODULE_5__.splitDateTime)(value);
+  const stored = (0,_datetime_js__WEBPACK_IMPORTED_MODULE_6__.splitDateTime)(value);
   const shown = stored.date ? `${stored.date}${stored.time ? `T${stored.time}` : ''}` : '';
   const min = typeof field.min === 'string' ? field.min : '';
   const max = typeof field.max === 'string' ? field.max : '';
@@ -2102,7 +2113,7 @@ function renderDateTimeEdit(field, value, host) {
     // The picker's own change, not a native one from its field.
     if (event.target !== event.currentTarget) return;
     const [date = '', time = ''] = String(event.detail?.value ?? '').split('T');
-    const result = (0,_datetime_js__WEBPACK_IMPORTED_MODULE_5__.composeDateTime)(stored, {
+    const result = (0,_datetime_js__WEBPACK_IMPORTED_MODULE_6__.composeDateTime)(stored, {
       date,
       time
     });
@@ -2119,7 +2130,7 @@ function renderDateTimeEdit(field, value, host) {
 
 
 function renderTimeEdit(field, value, host) {
-  const stored = (0,_datetime_js__WEBPACK_IMPORTED_MODULE_5__.splitTime)(value);
+  const stored = (0,_datetime_js__WEBPACK_IMPORTED_MODULE_6__.splitTime)(value);
   const min = typeof field.min === 'string' ? field.min : '';
   const max = typeof field.max === 'string' ? field.max : '';
   const step = minuteStepOf(field);
@@ -2137,7 +2148,7 @@ function renderTimeEdit(field, value, host) {
                 ?required=${Boolean(field.required)}
                 @change=${event => {
     if (event.target !== event.currentTarget) return;
-    const result = (0,_datetime_js__WEBPACK_IMPORTED_MODULE_5__.composeTime)(stored, String(event.detail?.value ?? ''));
+    const result = (0,_datetime_js__WEBPACK_IMPORTED_MODULE_6__.composeTime)(stored, String(event.detail?.value ?? ''));
     if (result.error) return;
     const same = result.value === null ? stored.known && !stored.time : result.value === stored.raw;
     host.setFieldValue(field, same ? undefined : result.value);
@@ -2175,7 +2186,8 @@ function renderBooleanEdit(field, value, host) {
     label: words.no
   }]);
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
-        <sf-button-group
+        <sf-segmented
+                appearance="buttons"
                 size=${EDIT_SIZE}
                 items=${items}
                 value=${value === true ? 'yes' : value === false ? 'no' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
@@ -2184,7 +2196,7 @@ function renderBooleanEdit(field, value, host) {
     const next = event.detail?.value;
     host.setFieldValue(field, next === 'yes' ? true : next === 'no' ? false : null);
   }}
-        ></sf-button-group>
+        ></sf-segmented>
     `;
 }
 
@@ -2289,9 +2301,9 @@ function renderChoiceButtons(field, value, host) {
 
   };
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
-        <sf-button-group
+        <sf-segmented
                 class="sf-field-choice-buttons"
-                appearance="segmented"
+                appearance="track"
                 size=${size}
                 root-class=${locked ? 'flex-wrap pointer-event-none' : 'flex-wrap'}
                 name=${fieldName(field)}
@@ -2306,7 +2318,7 @@ function renderChoiceButtons(field, value, host) {
     const next = String(event.detail?.value ?? '');
     host.setFieldValue(field, next === '' ? null : optionValue(next));
   }}
-        ></sf-button-group>
+        ></sf-segmented>
     `;
 }
 
@@ -2964,7 +2976,7 @@ function renderTextView(field, value, host) {
 
 
 function renderHtmlView(field, value) {
-  const clean = (0,_html_js__WEBPACK_IMPORTED_MODULE_7__.cleanHtml)(value);
+  const clean = (0,_html_js__WEBPACK_IMPORTED_MODULE_8__.cleanHtml)(value);
   return clean ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<div class="sf-field-view sf-field-html">${(0,lit_directives_unsafe_html_js__WEBPACK_IMPORTED_MODULE_1__.unsafeHTML)(clean)}</div>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing;
 } // A number carries its unit when the field declares one, and nothing when it
 // does not -- the set does not guess at a unit, and «42» with an invented «шт»
@@ -2983,13 +2995,63 @@ function renderNumberView(field, value, host) {
 
   const text = viewText(field, value, host);
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-field-view">${field.unit ? `${text} ${field.unit}` : text}</span>`;
-} // A date is the host's to format. The set has no locale and will not invent one:
-// without formatFieldValue it shows what it was given, which is at worst the
-// stored form and never a wrong date confidently rendered.
+} // A date is the host's to format first: formatFieldValue wins, and so does a
+// value that carries its own text. Without it the set used to print the stored
+// form -- «2026-10-25T10:30:00+03:00» (simai/ui-source#34) -- so a host that
+// formats nothing gets the page's medium reading through core format-date:
+// «2 нояб. 2026 г.» / «Nov 2, 2026» for a date, «15 нояб. 2026 г., 10:30» /
+// «Nov 15, 2026, 10:30 AM» for a datetime, the form the View set's table
+// printed before the renderers formatted dates (C19: the set formats, the
+// table inherits). The day and the clock are the record's own (datetime.js
+// reads them as written, in the host's zone): nothing is moved to the reader's
+// time zone, which would show a different day near midnight. A value that is
+// not a date at all is shown as it came, never guessed at.
 
+
+const DATE_VIEW = {
+  dateStyle: 'medium',
+  timeZone: 'UTC'
+};
+const DATETIME_VIEW = {
+  dateStyle: 'medium',
+  timeStyle: 'short',
+  timeZone: 'UTC'
+};
+
+function defaultDateText(field, value, host) {
+  if (carriesText(value)) return null;
+  const parts = (0,_datetime_js__WEBPACK_IMPORTED_MODULE_6__.splitDateTime)(value);
+  if (!parts.known || !parts.date) return null;
+  const [year, month, day] = parts.date.split('-').map(Number);
+  const locale = (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(host ?? null);
+
+  try {
+    const date = new Date(0);
+    date.setUTCFullYear(year, month - 1, day);
+    const type = field?.propertyType || field?.type || field?.dataType;
+    if (type !== 'datetime' || !parts.time) return (0,_core_js_format_date_js__WEBPACK_IMPORTED_MODULE_4__.formatDate)(date, {
+      intl: DATE_VIEW,
+      locale
+    }) || null;
+    const [hours, minutes] = parts.time.split(':').map(Number);
+    date.setUTCHours(hours, minutes, 0, 0);
+    return (0,_core_js_format_date_js__WEBPACK_IMPORTED_MODULE_4__.formatDate)(date, {
+      intl: DATETIME_VIEW,
+      locale
+    }) || null;
+  } catch {
+    return null;
+  }
+}
+
+function dateText(field, value, host) {
+  const formatted = host?.formatFieldValue?.(field, value);
+  if (typeof formatted === 'string') return formatted;
+  return defaultDateText(field, value, host) ?? viewText(field, value, null);
+}
 
 function renderDateView(field, value, host) {
-  const text = viewText(field, value, host);
+  const text = dateText(field, value, host);
   return text ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-field-view">${text}</span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing;
 }
 
@@ -3142,7 +3204,7 @@ const VIEW_RENDERERS = {
 // date belongs. Null when the set has no view for that type.
 
 function propertyModes(type) {
-  return (0,_registry_js__WEBPACK_IMPORTED_MODULE_4__.modesOf)(type, {
+  return (0,_registry_js__WEBPACK_IMPORTED_MODULE_5__.modesOf)(type, {
     view: VIEW_RENDERERS,
     edit: EDIT_RENDERERS,
     cell: CELL_RENDERERS,
@@ -3186,14 +3248,14 @@ if (typeof window !== 'undefined') {
     // normalizeTime(text); and a time of day's: splitTime(value),
     // composeTime(stored, text).
     dateTime: {
-      split: _datetime_js__WEBPACK_IMPORTED_MODULE_5__.splitDateTime,
-      compose: _datetime_js__WEBPACK_IMPORTED_MODULE_5__.composeDateTime,
-      normalizeTime: _datetime_js__WEBPACK_IMPORTED_MODULE_5__.normalizeTime,
-      splitTime: _datetime_js__WEBPACK_IMPORTED_MODULE_5__.splitTime,
-      composeTime: _datetime_js__WEBPACK_IMPORTED_MODULE_5__.composeTime
+      split: _datetime_js__WEBPACK_IMPORTED_MODULE_6__.splitDateTime,
+      compose: _datetime_js__WEBPACK_IMPORTED_MODULE_6__.composeDateTime,
+      normalizeTime: _datetime_js__WEBPACK_IMPORTED_MODULE_6__.normalizeTime,
+      splitTime: _datetime_js__WEBPACK_IMPORTED_MODULE_6__.splitTime,
+      composeTime: _datetime_js__WEBPACK_IMPORTED_MODULE_6__.composeTime
     },
     // The universal properties, each with the modes the set draws for it.
-    registry: _registry_js__WEBPACK_IMPORTED_MODULE_4__.PROPERTY_TYPES.map(entry => ({ ...entry,
+    registry: _registry_js__WEBPACK_IMPORTED_MODULE_5__.PROPERTY_TYPES.map(entry => ({ ...entry,
       modes: propertyModes(entry.type)
     }))
   }; // SF.whenFieldRenderers() settles on this, whichever bundle published the set.
@@ -3773,7 +3835,7 @@ var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_cor
 // a component refusing a host it asked to move. The contract test beside this
 // file compares the list with the manifest.
 
-const SUPPORTED_PORT_VERSIONS = ["1.0.0", "1.1.0", "1.2.0", "1.3.0", "1.4.0", "1.5.0", "1.6.0", "1.7.0", "1.8.0", "1.9.0", "1.10.0", "1.11.0", "1.12.0", "1.13.0", "1.14.0", "1.15.0", "1.16.0", "1.17.0"]; // The surface's mode (owner, 2026-10-14). view: show the object, never offer
+const SUPPORTED_PORT_VERSIONS = ["1.0.0", "1.1.0", "1.2.0", "1.3.0", "1.4.0", "1.5.0", "1.6.0", "1.7.0", "1.8.0", "1.9.0", "1.10.0", "1.11.0", "1.12.0", "1.13.0", "1.14.0", "1.15.0", "1.16.0", "1.17.0", "1.18.0"]; // The surface's mode (owner, 2026-10-14). view: show the object, never offer
 // a change. auto: show it and offer what this person may do. edit: every group
 // open at once, one save. create: an empty object of the collection, every
 // field open, one create.
@@ -3803,13 +3865,19 @@ const versionAtLeast = (version, minimum) => {
   }
 
   return true;
-}; // Every panel open on the page, in the order they were opened. A stack is not one
-// state held for several records: each window is its own element with its own
-// record, its own open group and its own unsaved changes -- which is what «такое
-// же представление поверх» means, and what leaves a half-edited window intact
-// underneath the one above it. What the Framework owns is the behaviour between
-// them: which window Esc closes, which are dimmed, how far each is inset so the
-// one below stays partly visible. That needs no shared state beyond the order.
+}; // Every panel open on the page is a layer of the Framework's one document layer
+// stack (core layer-stack.js, standard 1.3.8 §19), through the sf-drawer that
+// carries it -- the stack sf-modal, the drawers and the menus share. A stack of
+// panels is not one state held for several records: each window is its own
+// element with its own record, its own open group and its own unsaved changes --
+// which is what «такое же представление поверх» means, and what leaves a
+// half-edited window intact underneath the one above it. What lies between the
+// windows is the stack's: which one is on top and takes Escape, how high each is
+// drawn, the dim each modal layer lays over what is below it, and where focus
+// goes when one closes. This component kept a list of its own for that, an
+// Escape listener of its own and a dim of its own until 1.13.0; its list did not
+// know about a modal, so Escape under an sf-modal opened from a panel closed the
+// panel instead of the modal.
 // The same query sf-drawer docks on, written the same way so a reader grepping
 // 48rem finds both. The Framework's own breakpoint array has no 48rem step -- its
 // nearest is md at 720px -- but the panel *is* a drawer, and flipping the panel's
@@ -3818,7 +3886,16 @@ const versionAtLeast = (version, minimum) => {
 // components use is reported rather than settled here.
 
 
-const WIDE_MEDIA_QUERY = "(min-width: 48rem)"; // The column the list of sections takes. It is here rather than in the
+const WIDE_MEDIA_QUERY = "(min-width: 48rem)"; // What the drawer's close reasons (standard 1.3.8 §19.3) are as this panel's:
+// the drawer draws no close control of its own here, so its `close` is a script
+// asking; `outside` is a press on the dimmed page.
+
+const DRAWER_CLOSE_REASONS = {
+  escape: "escape",
+  outside: "outside",
+  close: "api",
+  api: "api"
+}; // The column the list of sections takes. It is here rather than in the
 // stylesheet because the panel's own width is computed from it, and the drawer
 // that carries the panel is placed outside this component's subtree: a custom
 // property declared on the element never reaches it. The stylesheet reads this
@@ -3829,20 +3906,7 @@ const SECTIONS_WIDTH = "14rem"; // How long the copy control shows its tick. The
 // its tick for this long, and two controls that say «copied» for two different
 // lengths are two conventions where there is one act.
 
-const COPY_FEEDBACK_MS = 5000;
-const openPanels = [];
-
-function topPanel() {
-  return openPanels[openPanels.length - 1] ?? null;
-}
-
-function restackPanels() {
-  openPanels.forEach((panel, index) => {
-    panel.setAttribute("data-stack-depth", String(index));
-    panel.toggleAttribute("data-stack-top", panel === topPanel());
-    panel.requestComponentUpdate("stack");
-  });
-} // A payload is copied so that a host cannot mutate what the component still
+const COPY_FEEDBACK_MS = 5000; // A payload is copied so that a host cannot mutate what the component still
 // holds. Copying it through JSON destroys anything that is not plain data, and
 // the upload intent carries a File: it arrived at the host as an empty object,
 // so its name was undefined, the host's own size check never matched, and a file
@@ -3852,7 +3916,6 @@ function restackPanels() {
 // So the plain parts are copied and anything that is not plain is passed by
 // reference. The protection was always about data; a File is not data the
 // component can own a second copy of.
-
 
 const isPlain = value => value === null || ["string", "number", "boolean", "undefined"].includes(typeof value) || typeof value === "object" && (Array.isArray(value) || value.constructor === Object);
 
@@ -4498,19 +4561,11 @@ class SfPropertyView extends PropertyViewElement {
 
   get panelOpen() {
     return this.panel && !this.hidden && this.getAttribute("open") !== "false";
-  }
+  } // The drawer opens and closes with it and takes the panel on and off the
+  // layer stack; there is nothing to register here.
+
 
   syncPanelOpen() {
-    const at = openPanels.indexOf(this);
-
-    if (this.panelOpen && this.isConnected && at < 0) {
-      openPanels.push(this);
-      restackPanels();
-    } else if (!this.panelOpen && at >= 0) {
-      openPanels.splice(at, 1);
-      restackPanels();
-    }
-
     this.requestComponentUpdate("panel-open");
   } // ---------- the manifest's values (§4) ----------
 
@@ -5215,45 +5270,24 @@ class SfPropertyView extends PropertyViewElement {
     if (!this.hasAttribute("data-state") && !this.record) {
       this.setAttribute("data-state", "loading");
       this.setAttribute("aria-busy", "true");
-    }
-
-    if (this.panelOpen && !openPanels.includes(this)) {
-      openPanels.push(this);
-      restackPanels();
-    } // The drawer's own close-on-esc is off, because in a stack Esc must close
-    // the top window and not every one of them.
-    //
-    // The listener is on the document rather than on the element, and that is
-    // not a preference: sf-drawer portals its content out, so an open panel is
-    // not a descendant of this element at all. On the element the handler
-    // would never have fired from a real keypress -- only from an event
-    // dispatched at the element itself, which is exactly what the first probe
-    // did, so it passed while the feature did not work.
-    //
-    // It acts only when the focus is inside this panel, or when nothing is
-    // focused. With a stack the top window is the one holding focus, so the
-    // same rule closes the right window then too.
+    } // Escape is the layer stack's: it hands the press to the top layer only,
+    // after it has passed through the page, so a list, a menu or a modal
+    // opened over this panel takes it first, and a control inside that
+    // handled it (preventDefault) keeps it. The drawer closes on it -- and a
+    // panel never closes itself, so every close the drawer starts (Escape,
+    // a press on the dimmed page, a script calling close()) is refused here
+    // and asked of the host as this component's own cancelable close, with
+    // the count of what is unsaved. Only this panel's own drawer: a drawer
+    // opened inside the panel is portalled with it and never bubbles here.
 
 
-    this._onKeyDown = event => {
-      if (event.key !== "Escape" || !this.panel) return; // A surface opened inside this panel takes the press. Both listen on
-      // the document in capture, where stopPropagation cannot reach a
-      // listener on the same node, so the one that opened last says so on
-      // the root and this one stands back.
-
-      if (document.documentElement.dataset.sfPopoverOpen) return; // An open field-settings surface takes the first Esc. Both handlers
-      // sit on the document in capture, where stopPropagation does not
-      // reach a listener on the same node -- so the two share one.
-      // The top window, and no other. The first version guessed from where
-      // the focus happened to be, which was the best a single panel could
-      // do; with the order known the guess is gone.
-
-      if (topPanel() !== this) return;
-      event.stopPropagation();
-      this.closePanel("escape");
+    this._onDrawerClose = event => {
+      if (event.target !== this._ownDrawer()) return;
+      event.preventDefault();
+      this.closePanel(DRAWER_CLOSE_REASONS[event.detail?.reason] ?? "api");
     };
 
-    document.addEventListener("keydown", this._onKeyDown, true); // The drop is sf-sortable's to report and the component's to apply or
+    this.addEventListener("sf-drawer-close", this._onDrawerClose); // The drop is sf-sortable's to report and the component's to apply or
     // refuse -- that is the seam the mechanism already publishes, so no drag
     // is implemented here. The lists name themselves `field:<group>` and
     // `group:<section>`, which is what `to` carries.
@@ -5363,15 +5397,8 @@ class SfPropertyView extends PropertyViewElement {
     this._standardMenu = null; // Once per connection, so an element moved in the DOM asks again.
 
     this._portRequested = false;
-    const at = openPanels.indexOf(this);
-
-    if (at >= 0) {
-      openPanels.splice(at, 1);
-      restackPanels();
-    }
-
-    if (this._onKeyDown) document.removeEventListener("keydown", this._onKeyDown, true);
-    this._onKeyDown = null; // The settings surface listens on the document, so a panel that goes away
+    if (this._onDrawerClose) this.removeEventListener("sf-drawer-close", this._onDrawerClose);
+    this._onDrawerClose = null; // The settings surface listens on the document, so a panel that goes away
     // while it is open takes that listener with it.
 
     this.configuring = false;
@@ -5572,10 +5599,8 @@ class SfPropertyView extends PropertyViewElement {
       hostSlot: name => this.getSlotContent(name),
       hasHostSlot: name => this.hasSlotContent(name),
       address: this.address,
-      stackDepth: this.stackDepth,
       drawerWidth: this.drawerWidth,
       sectionsWidth: SECTIONS_WIDTH,
-      isTopPanel: this.isTopPanel,
       conflict: this.conflict,
       confirmation: this.confirmation,
       confirmSaveText: (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_8__.pageText)(PROPERTY_VIEW_TEXT, "confirmSaveText", this),
@@ -6106,15 +6131,29 @@ class SfPropertyView extends PropertyViewElement {
       answer: answer?.answer ?? null
     });
     return answer;
-  }
+  } // The drawer that carries this panel: a child of the element (the drawer
+  // portals its content, not itself).
+
+
+  _ownDrawer() {
+    return [...this.children].find(child => child.localName === "sf-drawer") ?? null;
+  } // Read from the layer stack, not kept: how many panels of this component
+  // stand below this one, and whether no window (a modal or another panel)
+  // stands above it. A list or a menu opened inside the panel leaves it on top.
+
 
   get stackDepth() {
-    const at = openPanels.indexOf(this);
-    return at < 0 ? 0 : at;
+    const drawer = this._ownDrawer();
+
+    if (!drawer || !(0,_core_js_layer_stack__WEBPACK_IMPORTED_MODULE_9__.hasLayer)(drawer)) return 0;
+    const panels = (0,_core_js_layer_stack__WEBPACK_IMPORTED_MODULE_9__.openLayers)("panel").filter(owner => owner?.parentElement?.localName === this.localName);
+    return Math.max(0, panels.indexOf(drawer));
   }
 
   get isTopPanel() {
-    return topPanel() === this;
+    const drawer = this._ownDrawer();
+
+    return Boolean(drawer && (0,_core_js_layer_stack__WEBPACK_IMPORTED_MODULE_9__.hasLayer)(drawer) && !(0,_core_js_layer_stack__WEBPACK_IMPORTED_MODULE_9__.hasLayerAbove)(drawer, ["modal", "panel"]));
   } // What a panel's three controls do, and all three are the host's decisions
   // announced rather than carried out here. The component closes itself, says
   // what was copied, and says what should be opened; where a window goes, and
@@ -9263,7 +9302,7 @@ function renderItemsTable(field, rows, columns, ctx, {
 
   const rowActions = index => (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
         <span class="sf-view-items-actions flex items-cross-center gap-1/4" role="cell">
-            <sf-button-icon size="1/2" appearance="link" scheme="secondary" icon="keyboard_arrow_up"
+            <sf-button-icon size="1/2" appearance="ghost" scheme="on-surface-variant" icon="keyboard_arrow_up"
                     data-action="row-up" ?disabled=${index === 0 || index >= rows.length}
                     title=${word(node, 'rowUp')} aria-label=${word(node, 'rowUp')}
                     @click=${() => {
@@ -9271,7 +9310,7 @@ function renderItemsTable(field, rows, columns, ctx, {
     [next[index - 1], next[index]] = [next[index], next[index - 1]];
     reshape(next);
   }}></sf-button-icon>
-            <sf-button-icon size="1/2" appearance="link" scheme="secondary" icon="keyboard_arrow_down"
+            <sf-button-icon size="1/2" appearance="ghost" scheme="on-surface-variant" icon="keyboard_arrow_down"
                     data-action="row-down" ?disabled=${index >= rows.length - 1}
                     title=${word(node, 'rowDown')} aria-label=${word(node, 'rowDown')}
                     @click=${() => {
@@ -9680,9 +9719,9 @@ function renderConfigureBar(context) {
             ${context.resetAsked ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
                         <span class="sf-property-view-reset-ask color-error">${context.resetViewAskText}</span>
                         <sf-button
-                                appearance="link"
+                                appearance="ghost"
                                 size=${context.size}
-                                status="error"
+                                status="danger"
                                 text=${context.resetViewText}
                                 data-action="reset-view-confirm"
                                 @click=${() => context.component.resetView()}
@@ -9699,7 +9738,7 @@ function renderConfigureBar(context) {
                              and asks first; cancel puts back the arrangement this
                              mode was entered with; done keeps what is there. -->
                         <sf-button
-                                appearance="link"
+                                appearance="ghost"
                                 size=${context.size}
                                 text=${context.resetViewText}
                                 data-action="reset-view"
@@ -9735,8 +9774,8 @@ function renderFieldSettings(context, field, key) {
             <sf-button-icon
                     slot="trigger"
                     size="1/2"
-                    appearance="link"
-                    scheme="secondary"
+                    appearance="ghost"
+                    scheme="on-surface-variant"
                     icon="settings"
                     data-action="field-settings"
                     title=${context.fieldSettingsText}
@@ -9829,8 +9868,8 @@ function renderFieldActions(context, field, key) {
         <div class="sf-property-view-field-actions flex items-cross-center gap-1/4">
             <sf-button-icon
                     size="1/2"
-                    appearance="link"
-                    scheme="secondary"
+                    appearance="ghost"
+                    scheme="on-surface-variant"
                     icon=${field.hidden ? 'visibility_off' : 'close'}
                     data-action="remove-field"
                     ?disabled=${locked}
@@ -9871,8 +9910,8 @@ function renderEntryName(context, kind, key, label, titleClass) {
             </h3>
             <sf-button-icon
                     size="1/2"
-                    appearance="link"
-                    scheme="secondary"
+                    appearance="ghost"
+                    scheme="on-surface-variant"
                     icon="edit"
                     data-action="rename"
                     title=${context.renameText}
@@ -9899,13 +9938,18 @@ function renderEntryName(context, kind, key, label, titleClass) {
                     aria-label=${context.renameText}
                     value=${label}
                     @keydown=${event => {
-    if (event.key === 'Enter') commit(event);
-    if (event.key === 'Escape') context.component.cancelRenaming();
+    if (event.key === 'Enter') commit(event); // Escape here leaves the naming row and nothing else: the
+    // layer stack passes over a press a control took.
+
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      context.component.cancelRenaming();
+    }
   }}
             ></sf-input>
             <sf-button-icon
                     size="1/2"
-                    appearance="link"
+                    appearance="ghost"
                     scheme="on-surface"
                     icon="check"
                     data-action="rename-save"
@@ -9915,7 +9959,7 @@ function renderEntryName(context, kind, key, label, titleClass) {
             ></sf-button-icon>
             <sf-button-icon
                     size="1/2"
-                    appearance="link"
+                    appearance="ghost"
                     scheme="on-surface"
                     icon="close"
                     data-action="rename-cancel"
@@ -10090,8 +10134,8 @@ function renderAddField(context, groupKey) {
             <sf-button-icon
                     slot="trigger"
                     size="1/2"
-                    appearance="link"
-                    scheme="secondary"
+                    appearance="ghost"
+                    scheme="on-surface-variant"
                     icon="add"
                     data-action="add-field"
                     title=${context.addFieldText}
@@ -10125,7 +10169,7 @@ function renderGroup(context, section, group) {
   }, (_, at) => (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<div class="sf-skeleton sf-skeleton--animation-pulse" aria-hidden="true">
             <div class="sf-skeleton-text sf-skeleton-text--size-1 ${SKELETON_WIDTHS[at % SKELETON_WIDTHS.length]}"></div></div>`)}` : (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`${fields.map(field => renderField(context, field, editing, String(section.key ?? ''), groupKey))}`;
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
-        <section class="sf-property-view-group bg-surface-0 flex flex-col gap-2 ${editing ? 'sf-property-view-group--editing' : ''}"
+        <section class="sf-property-view-group bg-surface-page flex flex-col gap-2 ${editing ? 'sf-property-view-group--editing' : ''}"
                  data-group=${groupKey}
                  aria-busy=${reading ? 'true' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                  data-sf-sortable-item=${configuring ? groupKey : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
@@ -10141,8 +10185,8 @@ function renderGroup(context, section, group) {
                             ${renderAddField(context, groupKey)}
                             <sf-button-icon
                                     size="1/2"
-                                    appearance="link"
-                                    scheme="secondary"
+                                    appearance="ghost"
+                                    scheme="on-surface-variant"
                                     icon="keyboard_arrow_up"
                                     data-action="group-up"
                                     ?disabled=${context.groupAt(groupKey) === 0}
@@ -10152,8 +10196,8 @@ function renderGroup(context, section, group) {
                             ></sf-button-icon>
                             <sf-button-icon
                                     size="1/2"
-                                    appearance="link"
-                                    scheme="secondary"
+                                    appearance="ghost"
+                                    scheme="on-surface-variant"
                                     icon="keyboard_arrow_down"
                                     data-action="group-down"
                                     ?disabled=${context.groupAt(groupKey) === context.groupCount - 1}
@@ -10163,8 +10207,8 @@ function renderGroup(context, section, group) {
                             ></sf-button-icon>
                             <sf-button-icon
                                     size="1/2"
-                                    appearance="link"
-                                    scheme="secondary"
+                                    appearance="ghost"
+                                    scheme="on-surface-variant"
                                     icon=${group.hidden ? 'visibility_off' : 'delete'}
                                     data-action="remove-group"
                                     ?disabled=${groupLocked}
@@ -10175,7 +10219,7 @@ function renderGroup(context, section, group) {
                             </span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                 ${!configuring && !editing && context.mayEdit && !context.openAll && group.kind !== 'related' && group.editable !== false ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
                             <sf-button
-                                    appearance="link"
+                                    appearance="ghost"
                                     size=${context.size}
                                     text=${context.editText}
                                     data-action="edit"
@@ -10223,7 +10267,7 @@ function renderPhoneSectionHead(context) {
         <div class="sf-property-view-phone-head flex items-cross-center gap-2">
             <sf-button-icon
                     size=${context.size}
-                    appearance="link"
+                    appearance="ghost"
                     icon="arrow_back"
                     data-action="phone-back"
                     aria-label=${context.backLabel}
@@ -10361,12 +10405,15 @@ function renderSectionTabs(context, sections) {
     `;
 } // The type of a view at 1/2: a step down from 1 in every role, so the record
 // reads at the table's size. Variables rather than a class: the panel is drawn
-// in a drawer moved to the page's end, outside the element.
+// in a drawer moved to the page's end, outside the element. The title is rung 2,
+// one below the full title's rung 3, read from the text ladder: the heading-5
+// role it took is a content heading, which the heading ladder (C21) moves to
+// rung 1, the size of the fields under it.
 
 
 function sizeStyle(context) {
   if (context.size !== '1/2') return '';
-  return ' --sf-property-view--title-size: var(--sf-heading-5--size); --sf-property-view--title-height: var(--sf-heading-5--height);' + ' --sf-property-view--group-size: var(--sf-text-medium--size); --sf-property-view--group-height: var(--sf-text-medium--height);' + ' --sf-property-view--label-size: var(--sf-label-medium--size); --sf-property-view--label-height: var(--sf-label-medium--height);' + ' --sf-property-view--value-size: var(--sf-text-small--size); --sf-property-view--value-height: var(--sf-text-small--height);';
+  return ' --sf-property-view--title-size: var(--sf-text--size-2); --sf-property-view--title-height: var(--sf-title--height-2);' + ' --sf-property-view--group-size: var(--sf-text-medium--size); --sf-property-view--group-height: var(--sf-text-medium--height);' + ' --sf-property-view--label-size: var(--sf-label-medium--size); --sf-property-view--label-height: var(--sf-label-medium--height);' + ' --sf-property-view--value-size: var(--sf-text-small--size); --sf-property-view--value-height: var(--sf-text-small--height);';
 } // A save the host makes only once confirmed (port 1.14.0): its words, and the
 // two answers, in the bar where save was pressed -- the same place and the same
 // arrangement as the view's reset question. Going back sends nothing and keeps
@@ -10468,8 +10515,8 @@ function renderActions(context, {
             ${hosted ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<div class="sf-property-view-host-footer flex flex-wrap items-cross-center gap-2">${context.hostSlot('footer')}</div>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
             ${removable ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
                         <sf-button-icon
-                                appearance="link"
-                                status="error"
+                                appearance="ghost"
+                                status="danger"
                                 size=${context.size}
                                 icon="delete"
                                 data-action="delete"
@@ -10591,7 +10638,7 @@ function renderMenuControl(context) {
 
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
         <sf-button-icon
-                appearance="link"
+                appearance="ghost"
                 scheme="on-surface"
                 size=${context.size}
                 icon="more_horiz"
@@ -10619,7 +10666,7 @@ function renderPanelHead(context) {
                      favourite: no star until it has an id (Larena storage
                      review, 2026-10-28). -->
                 ${context.recordId && context.mode !== 'create' ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<sf-button-icon
-                        appearance="link"
+                        appearance="ghost"
                         size=${context.size}
                         icon="star"
                         ?filled=${context.favourite}
@@ -10635,13 +10682,13 @@ function renderPanelHead(context) {
         </header>
     `;
 } // The edge controls stand on a raised surface, elevation 3 as a menu does: its
-// own fill and shadow, and the text role that goes with it. On --sf-surface-0
+// own fill and shadow, and the text role that goes with it. On --sf-surface-page
 // they were the page's darkest colour on a dimmed page in the dark theme and
 // could hardly be found (owner, 2026-10-13). Inline, because the button's own
 // appearance rule outranks any selector this sheet could write.
 
 
-const EDGE_SURFACE = '--sf-icon-button--background-color: var(--sf-elevation-3--surface); --sf-on-surface-variant: var(--sf-on-elevation-3--variant); box-shadow: var(--sf-elevation-3--shadow)'; // Round, and on the panel's outer edge rather than inside its head: in a stack
+const EDGE_SURFACE = '--sf-icon-button--background-color: var(--sf-surface-popup); --sf-on-surface-variant: var(--sf-on-surface-popup-variant); box-shadow: var(--sf-shadow-popup)'; // Round, and on the panel's outer edge rather than inside its head: in a stack
 // each panel keeps its own set visible past the one above it, which is what the
 // mockup shows and what a row inside the head cannot do.
 //
@@ -10773,7 +10820,7 @@ function renderSectionIcon(context, section) {
             <sf-button-icon
                     slot="trigger"
                     size="1/2"
-                    appearance="link"
+                    appearance="ghost"
                     scheme="on-surface"
                     icon=${current || 'folder'}
                     data-action="section-icon"
@@ -10828,8 +10875,8 @@ function renderViewProfiles(context) {
                     </span>
                     <sf-button-icon
                             size="1/2"
-                            appearance="link"
-                            scheme="secondary"
+                            appearance="ghost"
+                            scheme="on-surface-variant"
                             icon="close"
                             data-action="delete-profile"
                             ?disabled=${!context.canDeleteViewProfile(profile.id)}
@@ -10871,13 +10918,18 @@ function renderNewViewName(context) {
                     aria-label=${context.addViewText}
                     placeholder=${context.newViewText}
                     @keydown=${event => {
-    if (event.key === 'Enter') commit(event);
-    if (event.key === 'Escape') context.component.cancelNamingView();
+    if (event.key === 'Enter') commit(event); // Escape here leaves the naming row and nothing else: the
+    // layer stack passes over a press a control took.
+
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      context.component.cancelNamingView();
+    }
   }}
             ></sf-input>
             <sf-button-icon
                     size="1/2"
-                    appearance="link"
+                    appearance="ghost"
                     scheme="on-surface"
                     icon="check"
                     data-action="new-profile-save"
@@ -10887,7 +10939,7 @@ function renderNewViewName(context) {
             ></sf-button-icon>
             <sf-button-icon
                     size="1/2"
-                    appearance="link"
+                    appearance="ghost"
                     scheme="on-surface"
                     icon="close"
                     data-action="new-profile-cancel"
@@ -10964,7 +11016,7 @@ function renderLoading(context) {
   const tabs = (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<div class="sf-property-view-tabs sf-property-view-tabs--skeleton flex items-cross-center gap-2" aria-hidden="true" data-sf-skeleton="tabs" data-sections-as=${context.sectionsAs}>${[0, 1, 2].map(at => (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<div class="flex-none" style="inline-size: 6rem">${bar(at + 3)}</div>`)}</div>`;
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`${tabs}<div class="sf-property-view-loading flex flex-col gap-4" data-state="loading">${Array.from({
     length: SKELETON_GROUPS
-  }, (_, group) => (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<section class="sf-property-view-group bg-surface-0 flex flex-col gap-2" aria-busy="true"><header class="sf-property-view-group-header flex items-cross-center content-main-between gap-2"><div class="flex-1">${bar(group)}</div></header>${Array.from({
+  }, (_, group) => (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<section class="sf-property-view-group bg-surface-page flex flex-col gap-2" aria-busy="true"><header class="sf-property-view-group-header flex items-cross-center content-main-between gap-2"><div class="flex-1">${bar(group)}</div></header>${Array.from({
     length: SKELETON_FIELDS
   }, (_, field) => bar(group + field + 1))}</section>`)}<span class="sr-only" role="status">${context.message}</span></div>`;
 }
@@ -11044,9 +11096,12 @@ function renderBody(context, railOutside = false, withActions = true) {
 // `modal` is on because the drawer draws its overlay only when it is -- the
 // element is marked hidden unless modal and overlay are both set, which was
 // measured rather than assumed. Dimming the page is what the mockup asks for, and
-// a panel that dims the page is modal in the sense that matters. Esc is still
-// handled here rather than by the drawer, because in a stack it must close the top
-// window and not every one of them.
+// a panel that dims the page is modal in the sense that matters. The dim is the
+// drawer's overlay, the same over a panel below as over the page: a panel under
+// another stands under that one's overlay, so it is dimmed and takes no press
+// without a dim of its own (1.13.0). Esc is the drawer's on the layer stack, which
+// hands it to the top layer only; the close it starts is refused and asked of the
+// host (index.js, sf-drawer-close).
 //
 // The drawer is given no `title`: the panel draws its own head, with the collection
 // above the name and the star and the «⋯» beside it, and a drawer title as well
@@ -11079,18 +11134,15 @@ function renderPropertyViewTemplate(context) {
                 size=${context.wide ? context.panelSize : 'full'}
                 width=${context.wide ? context.drawerWidth || lit__WEBPACK_IMPORTED_MODULE_0__.nothing : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                 gutter="var(--sf-space-1)"
-                panel-style=${`--sf-drawer-background: var(--sf-surface-1); --sf-property-view--sections-width: ${context.sectionsWidth}; scrollbar-gutter: auto;${sizeStyle(context)}`}
+                panel-style=${`--sf-drawer-background: var(--sf-surface-area); --sf-property-view--sections-width: ${context.sectionsWidth}; scrollbar-gutter: auto;${sizeStyle(context)}`}
                 show-close="false"
                 close-label=${context.closeLabel}
-                close-on-esc="false"
                 label=${context.panelLabel || context.recordId || ''}
         >
             ${renderPanelControls(context)}
             <div class="sf-property-view-panel relative flex flex-col gap-2${rail ? ' sf-property-view-panel--railed' : ''}${panelFills(context) ? ' sf-property-view-panel--fills' : ''}"
                  style=${panelFills(context) ? `--sf-property-view--edge-room: calc(${context.edgeControlCount} * ${context.edgeControlWidth} + ${context.edgeControlCount - 1} * var(--sf-space-1\\/2));` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                  data-record-id=${context.recordId || ''}
-                 data-stack-depth=${String(context.stackDepth)}
-                 data-stacked=${context.isTopPanel ? 'false' : 'true'}
             >
                 ${renderPanelHead(context)}
                 <div class="sf-property-view-scroll flex-auto min-h-0 ${rail ? 'flex' : 'flex flex-col'}">
@@ -12301,7 +12353,7 @@ module.exports = /*#__PURE__*/JSON.parse('{"$comment":"Dated aliases of sf-view-
 /***/ "3ea81f4c3c20"
 (module) {
 
-module.exports = /*#__PURE__*/JSON.parse('{"id":"smart.view-properties","tag":"sf-view-properties","version":"1.11.1","kind":"leaf","implements":["record-view@1"],"settings":{"add-field-text":{"type":"string","default-from":"runtime.add-field-text"},"add-group-text":{"type":"string","default-from":"runtime.add-group-text"},"add-section-text":{"type":"string","default-from":"runtime.add-section-text"},"back-label":{"type":"string","default-from":"runtime.back-label"},"cancel-configuring-text":{"type":"string","default-from":"runtime.cancel-configuring-text"},"cancel-name-text":{"type":"string","default-from":"runtime.cancel-name-text"},"cancel-text":{"type":"string","default-from":"runtime.cancel-text"},"changed-text":{"type":"string","default-from":"runtime.changed-text"},"close-label":{"type":"string","default-from":"runtime.close-label"},"collection":{"type":"string","default":""},"collection-icon":{"type":"icon","default":""},"collection-label":{"type":"string","default":""},"configure-hint-narrow-text":{"type":"string","default-from":"runtime.configure-hint-narrow-text"},"configure-hint-text":{"type":"string","default-from":"runtime.configure-hint-text"},"configure-text":{"type":"string","default-from":"runtime.configure-text"},"conflict-text":{"type":"string","default-from":"runtime.conflict-text"},"copy-link-label":{"type":"string","default-from":"runtime.copy-link-label"},"delete-text":{"type":"string","default-from":"runtime.delete-text"},"done-configuring-text":{"type":"string","default-from":"runtime.done-configuring-text"},"edit-text":{"type":"string","default-from":"runtime.edit-text"},"empty-record-text":{"type":"string","default-from":"runtime.empty-record-text"},"empty-text":{"type":"string","default-from":"runtime.empty-text"},"errors-text":{"type":"string","default-from":"runtime.errors-text"},"favourite":{"type":"boolean","default":false},"favourite-label":{"type":"string","default-from":"runtime.favourite-label"},"field-label-text":{"type":"string","default-from":"runtime.field-label-text"},"field-settings-text":{"type":"string","default-from":"runtime.field-settings-text"},"hidden-text":{"type":"string","default-from":"runtime.hidden-text"},"hide-rare-text":{"type":"string","default-from":"runtime.hide-rare-text"},"hint-text":{"type":"string","default-from":"runtime.hint-text"},"in-this-group-text":{"type":"string","default-from":"runtime.in-this-group-text"},"inherited-text":{"type":"string","default-from":"runtime.inherited-text"},"link-copied-label":{"type":"string","default-from":"runtime.link-copied-label"},"menu-label":{"type":"string","default-from":"runtime.menu-label"},"move-down-text":{"type":"string","default-from":"runtime.move-down-text"},"move-up-text":{"type":"string","default-from":"runtime.move-up-text"},"new-group-title":{"type":"string","default-from":"runtime.new-group-title"},"new-section-title":{"type":"string","default-from":"runtime.new-section-title"},"no-match-text":{"type":"string","default-from":"runtime.no-match-text"},"open-full-label":{"type":"string","default-from":"runtime.open-full-label"},"panel":{"type":"boolean","default":false},"panel-label":{"type":"string","default":""},"panel-size":{"type":"enum","values":["1/2","1","2","full"],"default":"1"},"size":{"type":"enum","values":["1","1/2"],"default":"1"},"mode":{"type":"enum","values":["view","auto","edit","create"],"default":"auto"},"panel-width":{"type":"string","default":""},"personal-layer-text":{"type":"string","default-from":"runtime.personal-layer-text"},"rare-text":{"type":"string","default-from":"runtime.rare-text"},"record-id":{"type":"id","default":""},"remove-field-text":{"type":"string","default-from":"runtime.remove-field-text"},"remove-group-text":{"type":"string","default-from":"runtime.remove-group-text"},"remove-section-text":{"type":"string","default-from":"runtime.remove-section-text"},"rename-text":{"type":"string","default-from":"runtime.rename-text"},"reset-view-ask-text":{"type":"string","default-from":"runtime.reset-view-ask-text"},"reset-view-text":{"type":"string","default-from":"runtime.reset-view-text"},"save-name-text":{"type":"string","default-from":"runtime.save-name-text"},"save-text":{"type":"string","default-from":"runtime.save-text"},"section-icon-text":{"type":"string","default-from":"runtime.section-icon-text"},"section-icons":{"type":"string","default":""},"sections-as":{"type":"enum","values":["list","tabs"],"default":"list"},"sections-label":{"type":"string","default-from":"runtime.sections-label"},"shared-layer-text":{"type":"string","default-from":"runtime.shared-layer-text"},"show-rare":{"type":"boolean","default":false},"show-rare-text":{"type":"string","default-from":"runtime.show-rare-text"},"shown-text":{"type":"string","default-from":"runtime.shown-text"},"unplaced-hint-text":{"type":"string","default-from":"runtime.unplaced-hint-text"},"unplaced-title":{"type":"string","default-from":"runtime.unplaced-title"},"variant-text":{"type":"string","default-from":"runtime.variant-text"},"view-conflict-text":{"type":"string","default-from":"runtime.view-conflict-text"},"view-denied-text":{"type":"string","default-from":"runtime.view-denied-text"},"width-text":{"type":"string","default-from":"runtime.width-text"},"view-profile-label":{"type":"string","default-from":"runtime.view-profile-label"},"add-view-text":{"type":"string","default-from":"runtime.add-view-text"},"new-view-text":{"type":"string","default-from":"runtime.new-view-text"},"delete-view-text":{"type":"string","default-from":"runtime.delete-view-text"},"last-shared-view-text":{"type":"string","default-from":"runtime.last-shared-view-text"},"full":{"type":"boolean","default":false},"open":{"type":"boolean","default":true}},"values":{"revision":{"type":"string"},"section":{"type":"string"}},"events":{"close":{"carries":{"reason":{"type":"enum","values":["close","escape","cancelled","deleted","api"]},"record_id":{"type":"id","nullable":true},"unsaved_fields":{"type":"list"}},"cancelable":true},"open-full":{"carries":{"id":"id","address":"string","record_id":{"type":"id","nullable":true}}},"saved":{"carries":{"id":"id","revision":{"type":"string","optional":true}}},"failed":{"carries":{"reason":"string","message":{"type":"string","optional":true}}},"open":{"carries":{"field":"string","value":"object","answer":"string"}},"delete":{"carries":{"collection":"string","revision":"string","answer":"string","record_id":{"type":"id","nullable":true}}},"created":{"carries":{"collection":{"type":"string","nullable":true},"record_id":{"type":"id","nullable":true}}},"cancel":{"carries":{"mode":{"type":"enum","values":["auto","edit","create"]},"scope":{"type":"enum","values":["group"],"optional":true},"section":{"type":"string","optional":true},"group":{"type":"string","optional":true}}},"state":{"carries":{"state":"string","message":"string"},"own-verb":true},"address-copy":{"carries":{},"own-verb":true},"favourite":{"carries":{"collection":{"type":"string","nullable":true},"favourite":"boolean","record_id":{"type":"id","nullable":true}},"own-verb":true}},"actions":{"refresh":{},"load":{"with":{"reason":{"type":"string","optional":true}}},"edit-group":{"with":{"section":"string","group":"string"}},"cancel-edit":{},"save-group":{"with":{"options":{"type":"object","optional":true}},"concurrency":"drop"},"select-section":{"with":{"key":"string"}},"close-panel":{"with":{"reason":{"type":"string","optional":true}}},"copy-address":{},"open-full-page":{},"confirm-save":{},"cancel-confirmation":{}},"port":{"id":"simai.property-view-port","version":"1.17.0","contract":"src/core/contracts/ports/simai.property-view-port/1.17.0/port.json"},"presentation":{"skeleton":{"file":"skeleton.html","late":[]}},"css-variables":{"--sf-property-view--sections-width":{"type":"length","state":"default"},"--sf-property-view--title-size":{"type":"length","state":"default"},"--sf-property-view--label-size":{"type":"length","state":"default"},"--sf-property-view--value-size":{"type":"length","state":"default"},"--sf-property-view--group-size":{"type":"length","state":"default"},"--sf-property-view--edge-room":{"type":"length","state":"open"}},"host-states":{"data-state":"string","aria-busy":"string"}}');
+module.exports = /*#__PURE__*/JSON.parse('{"id":"smart.view-properties","tag":"sf-view-properties","version":"1.13.1","kind":"leaf","implements":["record-view@1"],"settings":{"add-field-text":{"type":"string","default-from":"runtime.add-field-text"},"add-group-text":{"type":"string","default-from":"runtime.add-group-text"},"add-section-text":{"type":"string","default-from":"runtime.add-section-text"},"back-label":{"type":"string","default-from":"runtime.back-label"},"cancel-configuring-text":{"type":"string","default-from":"runtime.cancel-configuring-text"},"cancel-name-text":{"type":"string","default-from":"runtime.cancel-name-text"},"cancel-text":{"type":"string","default-from":"runtime.cancel-text"},"changed-text":{"type":"string","default-from":"runtime.changed-text"},"close-label":{"type":"string","default-from":"runtime.close-label"},"collection":{"type":"string","default":""},"collection-icon":{"type":"icon","default":""},"collection-label":{"type":"string","default":""},"configure-hint-narrow-text":{"type":"string","default-from":"runtime.configure-hint-narrow-text"},"configure-hint-text":{"type":"string","default-from":"runtime.configure-hint-text"},"configure-text":{"type":"string","default-from":"runtime.configure-text"},"conflict-text":{"type":"string","default-from":"runtime.conflict-text"},"copy-link-label":{"type":"string","default-from":"runtime.copy-link-label"},"delete-text":{"type":"string","default-from":"runtime.delete-text"},"done-configuring-text":{"type":"string","default-from":"runtime.done-configuring-text"},"edit-text":{"type":"string","default-from":"runtime.edit-text"},"empty-record-text":{"type":"string","default-from":"runtime.empty-record-text"},"empty-text":{"type":"string","default-from":"runtime.empty-text"},"errors-text":{"type":"string","default-from":"runtime.errors-text"},"favourite":{"type":"boolean","default":false},"favourite-label":{"type":"string","default-from":"runtime.favourite-label"},"field-label-text":{"type":"string","default-from":"runtime.field-label-text"},"field-settings-text":{"type":"string","default-from":"runtime.field-settings-text"},"hidden-text":{"type":"string","default-from":"runtime.hidden-text"},"hide-rare-text":{"type":"string","default-from":"runtime.hide-rare-text"},"hint-text":{"type":"string","default-from":"runtime.hint-text"},"in-this-group-text":{"type":"string","default-from":"runtime.in-this-group-text"},"inherited-text":{"type":"string","default-from":"runtime.inherited-text"},"link-copied-label":{"type":"string","default-from":"runtime.link-copied-label"},"menu-label":{"type":"string","default-from":"runtime.menu-label"},"move-down-text":{"type":"string","default-from":"runtime.move-down-text"},"move-up-text":{"type":"string","default-from":"runtime.move-up-text"},"new-group-title":{"type":"string","default-from":"runtime.new-group-title"},"new-section-title":{"type":"string","default-from":"runtime.new-section-title"},"no-match-text":{"type":"string","default-from":"runtime.no-match-text"},"open-full-label":{"type":"string","default-from":"runtime.open-full-label"},"panel":{"type":"boolean","default":false},"panel-label":{"type":"string","default":""},"panel-size":{"type":"enum","values":["1/2","1","2","full"],"default":"1"},"size":{"type":"enum","values":["1","1/2"],"default":"1"},"mode":{"type":"enum","values":["view","auto","edit","create"],"default":"auto"},"panel-width":{"type":"string","default":""},"personal-layer-text":{"type":"string","default-from":"runtime.personal-layer-text"},"rare-text":{"type":"string","default-from":"runtime.rare-text"},"record-id":{"type":"id","default":""},"remove-field-text":{"type":"string","default-from":"runtime.remove-field-text"},"remove-group-text":{"type":"string","default-from":"runtime.remove-group-text"},"remove-section-text":{"type":"string","default-from":"runtime.remove-section-text"},"rename-text":{"type":"string","default-from":"runtime.rename-text"},"reset-view-ask-text":{"type":"string","default-from":"runtime.reset-view-ask-text"},"reset-view-text":{"type":"string","default-from":"runtime.reset-view-text"},"save-name-text":{"type":"string","default-from":"runtime.save-name-text"},"save-text":{"type":"string","default-from":"runtime.save-text"},"section-icon-text":{"type":"string","default-from":"runtime.section-icon-text"},"section-icons":{"type":"string","default":""},"sections-as":{"type":"enum","values":["list","tabs"],"default":"list"},"sections-label":{"type":"string","default-from":"runtime.sections-label"},"shared-layer-text":{"type":"string","default-from":"runtime.shared-layer-text"},"show-rare":{"type":"boolean","default":false},"show-rare-text":{"type":"string","default-from":"runtime.show-rare-text"},"shown-text":{"type":"string","default-from":"runtime.shown-text"},"unplaced-hint-text":{"type":"string","default-from":"runtime.unplaced-hint-text"},"unplaced-title":{"type":"string","default-from":"runtime.unplaced-title"},"variant-text":{"type":"string","default-from":"runtime.variant-text"},"view-conflict-text":{"type":"string","default-from":"runtime.view-conflict-text"},"view-denied-text":{"type":"string","default-from":"runtime.view-denied-text"},"width-text":{"type":"string","default-from":"runtime.width-text"},"view-profile-label":{"type":"string","default-from":"runtime.view-profile-label"},"add-view-text":{"type":"string","default-from":"runtime.add-view-text"},"new-view-text":{"type":"string","default-from":"runtime.new-view-text"},"delete-view-text":{"type":"string","default-from":"runtime.delete-view-text"},"last-shared-view-text":{"type":"string","default-from":"runtime.last-shared-view-text"},"full":{"type":"boolean","default":false},"open":{"type":"boolean","default":true}},"values":{"revision":{"type":"string"},"section":{"type":"string"}},"events":{"close":{"carries":{"reason":{"type":"enum","values":["close","escape","outside","cancelled","deleted","api"]},"record_id":{"type":"id","nullable":true},"unsaved_fields":{"type":"list"}},"cancelable":true},"open-full":{"carries":{"id":"id","address":"string","record_id":{"type":"id","nullable":true}}},"saved":{"carries":{"id":"id","revision":{"type":"string","optional":true}}},"failed":{"carries":{"reason":"string","message":{"type":"string","optional":true}}},"open":{"carries":{"field":"string","value":"object","answer":"string"}},"delete":{"carries":{"collection":"string","revision":"string","answer":"string","record_id":{"type":"id","nullable":true}}},"created":{"carries":{"collection":{"type":"string","nullable":true},"record_id":{"type":"id","nullable":true}}},"cancel":{"carries":{"mode":{"type":"enum","values":["auto","edit","create"]},"scope":{"type":"enum","values":["group"],"optional":true},"section":{"type":"string","optional":true},"group":{"type":"string","optional":true}}},"state":{"carries":{"state":"string","message":"string"},"own-verb":true},"address-copy":{"carries":{},"own-verb":true},"favourite":{"carries":{"collection":{"type":"string","nullable":true},"favourite":"boolean","record_id":{"type":"id","nullable":true}},"own-verb":true}},"actions":{"refresh":{},"load":{"with":{"reason":{"type":"string","optional":true}}},"edit-group":{"with":{"section":"string","group":"string"}},"cancel-edit":{},"save-group":{"with":{"options":{"type":"object","optional":true}},"concurrency":"drop"},"select-section":{"with":{"key":"string"}},"close-panel":{"with":{"reason":{"type":"string","optional":true}}},"copy-address":{},"open-full-page":{},"confirm-save":{},"cancel-confirmation":{}},"port":{"id":"simai.property-view-port","version":"1.18.0","contract":"src/core/contracts/ports/simai.property-view-port/1.18.0/port.json"},"presentation":{"skeleton":{"file":"skeleton.html","late":[]}},"css-variables":{"--sf-property-view--sections-width":{"type":"length","state":"default"},"--sf-property-view--title-size":{"type":"length","state":"default"},"--sf-property-view--label-size":{"type":"length","state":"default"},"--sf-property-view--value-size":{"type":"length","state":"default"},"--sf-property-view--group-size":{"type":"length","state":"default"},"--sf-property-view--edge-room":{"type":"length","state":"open"}},"host-states":{"data-state":"string","aria-busy":"string"}}');
 
 /***/ },
 

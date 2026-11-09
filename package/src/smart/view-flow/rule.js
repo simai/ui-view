@@ -43,7 +43,7 @@ SF.RuleLoader['cl-view-flow'] = {
     { name: 'cl-input-date' },
     { name: 'cl-switch' },
     { name: 'cl-checkbox' },
-    { name: 'cl-button-group', lazy: true },
+    { name: 'cl-segmented', lazy: true },
     // A number with variant stepper.
     { name: 'cl-input-quantity' },
     // An html field edited.

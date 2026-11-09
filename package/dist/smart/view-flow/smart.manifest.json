@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-flow",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "title": "Flow block",
   "summary": "A few properties as a block in a flow (a chat message, a feed, any stream): shows a record's fields, or asks for a few and sends them, then keeps the answer read-only. Fields are sf-view-properties' descriptors drawn by the Framework field renderers; a press is an event, the host answers with settle.",
   "kind": "smart",
@@ -31,7 +31,6 @@
       "smart.avatar",
       "smart.badge",
       "smart.button",
-      "smart.button-group",
       "smart.button-icon",
       "smart.checkbox",
       "smart.dropdown",
@@ -49,6 +48,7 @@
       "smart.list-item",
       "smart.progress-scale",
       "smart.reference-link",
+      "smart.segmented",
       "smart.slider-range",
       "smart.spinner",
       "smart.switch",
@@ -206,9 +206,19 @@
       "summary": "Answer as the person would: accepted true sends (after the block's own check of the fields), false cancels. Refused invalid, closed, disabled or prevented.",
       "arguments": [
         {
-          "name": "accepted",
+          "name": "args",
+          "type": "object",
+          "required": true,
           "schema": {
-            "type": "boolean"
+            "type": "object",
+            "properties": {
+              "accepted": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "accepted"
+            ]
           }
         }
       ],
@@ -237,9 +247,19 @@
       "summary": "The host's answer to an answer, in the record port's words: {answer: applied, values?} shows the values sent, read-only; {answer: refused, errors?, message?} reopens the block with each error under its field; reason closed or expired closes it.",
       "arguments": [
         {
-          "name": "result",
+          "name": "args",
+          "type": "object",
+          "required": true,
           "schema": {
-            "type": "object"
+            "type": "object",
+            "properties": {
+              "result": {
+                "type": "object"
+              }
+            },
+            "required": [
+              "result"
+            ]
           }
         }
       ],
@@ -418,6 +438,13 @@
         "changes": [
           "The block draws the property types money, percent, items, compound and ru.requisites with the record card's controls (view-properties js/set-fields.js, through the shared field value). Nothing changes for a host that sends none of them."
         ]
+      },
+      {
+        "from": "1.1.0",
+        "to": "1.1.1",
+        "changes": [
+          "Over SIMAI Framework ui-cb287da78ab1 (core.runtime 1.45.0; the set needs 1.43.0 or newer): it relates cl-segmented, the rule that serves sf-segmented and sf-button-group since the pair ui-d6f01121baca (cl-button-group is its forwarded former name), and its fill falls back to --sf-surface-page (C16 name of --sf-surface-0, the same value). The reference names one args argument per action (standard §4.4); answer and settle already read one object. Nothing changes on the page."
+        ]
       }
     ]
   },
@@ -439,7 +466,7 @@
       },
       {
         "path": "src/smart/view-flow/js/templates/default.css",
-        "sha256": "1950e47fd8609d263df3d15745cb190d377fbd9a1f59d4e1705e9aa6a4f8f18d"
+        "sha256": "3be8da12912851c8759e9e5f1523152f6302078093c426631778e5cc4141e074"
       },
       {
         "path": "src/smart/view-properties/js/field-value.js",
@@ -451,11 +478,11 @@
       },
       {
         "path": "src/smart/helpers/confirm-surface.js",
-        "sha256": "d46e8651582d9fcba73394af057fed4d8dc79c3ee5b8b525abb689d41a0613c4"
+        "sha256": "1e03066f675959a54eb2e599b691a98ff65ca1e9aaf84d2596220fb6fd631d94"
       },
       {
         "path": "src/smart/view-flow/rule.js",
-        "sha256": "e91d2c9ebaa697679a5911af4a884beeedc9e6eab09667277599e52b7fa6369c"
+        "sha256": "4daca58eea5e866715a1507c78f0749d2efe1ade23d8497f1a4250ebcbf27d53"
       },
       {
         "path": "src/smart/view-flow/docs.md",

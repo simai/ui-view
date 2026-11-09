@@ -3,6 +3,65 @@
 The set `view`, by its npm version `@simai-studio/view`; component versions
 in brackets. The site page «Изменения» says the same in Russian.
 
+## 1.5.0 — 2026-11-09
+
+- Built over SIMAI Framework `ui-cb287da78ab1` (ui-source `44a5efda6649`,
+  npm `@simai-studio/ui@5.20261109.559`, core.runtime 1.45.0); the set now
+  needs core.runtime 1.43.0 or newer (it was 1.25.0): it names the theme
+  roles by their C16 names and the shadow places of C20.
+- `sf-view-table` 1.16.0: `sf-view-table-template-save` carries
+  `{templates}`, a list of one template (saved from the form) or several
+  (Apply on the Templates tab), each `{key, label, selected, data,
+  settings}`, at least one (decision «Event detail that is not a flat
+  object», 2026-11-09). The detail used to be the template itself or an
+  array of them; `sf-table-template-save` (until 2027-01-01) and
+  `onTemplateSave` (until 2026-12-01) keep that detail through the
+  element's adapter. A host listening to `sf-view-table-template-save` reads
+  `detail.templates`.
+- `sf-view` 1.10.0: reads `detail.templates` of the table's template save,
+  and a bare template or array from an older table until 2027-01-01.
+- `sf-view-properties` 1.13.1 and `sf-view-flow` 1.1.1: a choice drawn as
+  buttons relates `cl-segmented`, the rule that serves `sf-segmented` and
+  `sf-button-group` since the pair `ui-d6f01121baca` (`cl-button-group` is
+  its forwarded former name).
+- All four: the theme roles and the background utility by their C16 names
+  (`--sf-surface-page`, `--sf-surface-area`, `--sf-surface-popup`,
+  `--sf-shadow-popup`, `--sf-primary-outline`, `--sf-primary-state-select`,
+  `bg-surface-page`; the former names are dated aliases of the same values);
+  the buttons ask for `appearance="ghost"`, `scheme="on-surface-variant"`
+  and `status="danger"` (link, secondary and error are their former names,
+  drawn the same). The reference names one `args` object per action
+  (standard §4.4); the methods already took that form beside the fields in
+  order. First-paint snapshots retaken over the pair. Nothing changes on the
+  page.
+- `sf-view-table` 1.15.2: its windows (filter, field and settings windows,
+  menus) are a surface of the one layer stack: a press outside and Escape
+  reach them through the stack, only while they are on top, and they are
+  drawn at the stack's height; Escape on a window inside a record panel no
+  longer closes the panel too. `--sf-table-context-menu--z-index` still wins.
+- `sf-view-properties` 1.13.0 (1.12.0 and 1.13.0 in one step, two branches
+  merged; port 1.18.0 and titles in 1.12.0, the layer stack in 1.13.0):
+  speaks `simai.property-view-port` 1.18.0 beside 1.0.0-1.17.0. The port
+  declares the settings the set-drawn types read since 1.11.0 (`currency`,
+  `columns`, `minRows`, `maxRows`, `parts`) and a number field's `min`,
+  `max`, `step` and `precision`, all optional; the SIMAI Framework field
+  renderers (module.smart-field-renderers 1.5.0) draw the cells and filters
+  of money, percent and items and keep a number whose value is a string a
+  decimal string. Titles read the text ladder, not the heading roles, under
+  the heading ladder (C21): the title at size 1/2 keeps rung 2 and a group
+  title rung 1; unchanged on the page. The panels stand on SIMAI Framework's
+  one layer stack (core `layer-stack.js`), the stack `sf-modal`, the drawers
+  and the menus share, instead of a list, an Escape listener and a dim of
+  their own. Escape reaches the top layer only: over an `sf-modal` or a menu
+  opened from a panel it closes that, not the panel, and of two stacked
+  panels the upper one. A panel below another is dimmed by the overlay of
+  the one above (the drawer's scrim), with no opacity of its own. A panel
+  still never closes itself: every close its drawer starts is asked of the
+  host as `sf-view-properties-close` with `unsaved_fields`, now also with
+  `reason` `outside` for a press on the dimmed page, which closed the drawer
+  and left the panel open before. Escape in a naming row leaves the row
+  only. Same pair and core.runtime floor (1.25.0).
+
 ## 1.4.0 — 2026-11-08
 
 - `sf-view` 1.9.0: speaks `simai.dataview-port` 1.14.0 beside 1.0.0-1.13.0;

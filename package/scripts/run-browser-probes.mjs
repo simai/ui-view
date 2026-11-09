@@ -16,55 +16,36 @@
 // made by scripts/test.mjs or here when absent), so their fixtures and imports
 // resolve as they did in ui-source.
 import {execFileSync} from 'node:child_process';
-import {cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, symlinkSync} from 'node:fs';
+import {existsSync, readdirSync, readFileSync} from 'node:fs';
 import {join, resolve} from 'node:path';
 import {PACKAGE_COMPONENTS, PACKAGE_ROOT, materializeOverlay} from './overlay.mjs';
+import {layProbeOutput} from './probe-layout.mjs';
 
 const args = process.argv.slice(2);
+// --set <id>=<output>: a released set this set requires (set.json requires_sets),
+// its output holding smart/<folder> and smart/rule.js, laid under
+// smart/smart/set-<id>/ (tests/browser/package-manifest-probes.browser.mjs
+// declares it with that base).
+const required = [];
+for (let index = args.indexOf('--set'); index !== -1; index = args.indexOf('--set', index)) {
+  const [id, path] = String(args[index + 1] ?? '').split('=');
+  if (!/^[a-z][a-z0-9-]*$/u.test(id ?? '') || !path) throw new Error('--set takes <id>=<output of that set>');
+  required.push({id, output: resolve(path)});
+  args.splice(index, 2);
+}
 const at = args.indexOf('--overlay');
 const overlay = resolve(at === -1 ? join(PACKAGE_ROOT, '.overlay') : args[at + 1]);
 const [freeInput, packageInput] = args.filter((value, index) => !value.startsWith('--') && (at === -1 || index !== at + 1));
 if (!freeInput || !packageInput) throw new Error('usage: run-browser-probes.mjs <free build output> <package build output> [--overlay <directory>]');
 const built = resolve(packageInput);
 if (!existsSync(overlay)) materializeOverlay(overlay);
-// The free output as a product root: as given, or the distr of the ui
-// distribution laid out as one with symbolic links (as run-first-paint.mjs does).
-let free = resolve(freeInput);
-if (!existsSync(join(free, 'core', 'core', 'js', 'core.js')) && existsSync(join(free, 'core', 'js', 'core.js'))) {
-  const root = join(overlay, '.probe-free');
-  rmSync(root, {force: true, recursive: true});
-  const products = {core: ['core', 'core'], rule: ['core', 'rule'], component: ['component', 'component'], smart: ['smart', 'smart'], utility: ['utility', 'utility']};
-  for (const [product, [folder, inner]] of Object.entries(products)) {
-    if (!existsSync(join(free, product))) throw new Error(`the free output has no ${product}: ${free}`);
-    mkdirSync(join(root, folder), {recursive: true});
-    symlinkSync(join(free, product), join(root, folder, inner));
-  }
-  free = root;
-}
-for (const path of ['core/core/js/core.js', 'smart/smart']) {
-  if (!existsSync(join(free, path))) throw new Error(`the free output has no ${path}: ${free}`);
-}
 for (const path of [...PACKAGE_COMPONENTS.map((name) => `smart/${name}`), 'smart/rule.js']) {
   if (!existsSync(join(built, path))) throw new Error(`the package output has no ${path}: ${built}`);
 }
-
-// One output root, laid out like the free one, with the package inside smart/smart.
-const combined = join(overlay, '.probe-output');
-rmSync(combined, {force: true, recursive: true});
-mkdirSync(join(combined, 'smart'), {recursive: true});
-for (const product of ['core', 'component', 'utility']) symlinkSync(join(free, product), join(combined, product));
-cpSync(join(free, 'smart', 'smart'), join(combined, 'smart', 'smart'), {recursive: true});
-for (const entry of readdirSync(join(built, 'smart'))) {
-  const destination = join(combined, 'smart', 'smart', entry);
-  if (existsSync(destination)) throw new Error(`the package output would replace the free smart/${entry}`);
-  cpSync(join(built, 'smart', entry), destination, {recursive: true});
-}
-const roots = {
-  output: combined,
-  smart: join(combined, 'smart', 'smart'),
-  smartParent: join(combined, 'smart'),
-  core: join(combined, 'core'),
-};
+// One output root, laid out like the free one, with the package inside
+// smart/smart (scripts/probe-layout.mjs): the free output, a product root or a
+// ui distr, is read and never written.
+const roots = layProbeOutput({free: freeInput, built, required, target: join(overlay, '.probe-output')});
 
 // Probes that drive a served lab and take URLs; not part of a build's evidence.
 const needsLab = new Set(['admin-menu-position', 'composition-routing', 'loader-hidden-tab', 'table-intents', 'table-search-caret']);

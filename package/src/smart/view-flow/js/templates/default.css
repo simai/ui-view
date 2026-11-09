@@ -13,7 +13,7 @@
     --sf-view-flow--radius: var(--sf-view-flow-radius, var(--sf-radius-2));
     --sf-view-flow--inset: var(--sf-view-flow-inset, var(--sf-space-1\/2) var(--sf-space-1));
     --sf-view-flow--gap: var(--sf-view-flow-gap, var(--sf-space-1\/2));
-    --sf-view-flow--fill: var(--sf-view-flow-background-color, var(--sf-surface-0));
+    --sf-view-flow--fill: var(--sf-view-flow-background-color, var(--sf-surface-page));
     --sf-view-flow--edge: var(--sf-view-flow-border-color, var(--sf-outline-variant));
     --sf-view-flow--label-size: var(--sf-label-medium--size);
     --sf-view-flow--label-height: var(--sf-label-medium--height);
