@@ -11,7 +11,8 @@
 //   columns that line up, quiet when fine and warning or error when not, and
 //   leaves a column without a role out;
 // - the row of the ladder: 48 at size 1/2 and 56 at size 1 on the desktop,
-//   52 on a phone; a table row of two lines at size 1/2 is 48 too (it was 53);
+//   52 on a phone; a table row with a supporting line at size 1/2 is 48 too
+//   (it was 53), and the published two-line box stays the wrapped row's 53;
 // - the phone keeps only the most worrying fact (none when all is well), and
 //   the quick actions fold into «more».
 import {join, resolve} from 'node:path';
@@ -205,7 +206,8 @@ try {
     if (one.some((row) => row.height !== desktop.ladder.row3)) note(theme, {said: 'a list row at size 1 is not the ladder\'s 56', got: one.map((row) => row.height)});
     if (desktop.ladder.row2 !== 48 || desktop.ladder.row3 !== 56) note(theme, {said: 'the desktop ladder is not 48/56', got: desktop.ladder});
     if (!(desktop.rows.grid?.length === 2 && desktop.rows.grid.every((height) => height === 48))) note(theme, {said: 'a table row of two lines at size 1/2 is not 48', got: desktop.rows.grid});
-    if (desktop.published !== '48px') note(theme, {said: '--sf-table-row-2-lines-block-size-1/2 does not say 48', got: desktop.published});
+    // A row whose own text wraps keeps 53, the box the page reserves (docs.md).
+    if (desktop.published !== '53px') note(theme, {said: '--sf-table-row-2-lines-block-size-1/2 is not the wrapped row\'s 53', got: desktop.published});
     if (desktop.hoverTip !== 'Есть замечания') note(theme, {said: 'the dot\'s tooltip does not show on hover', got: desktop.hoverTip});
     if (desk.errors.length) note(theme, {said: 'the console is not clean (desktop)', errors: desk.errors});
 

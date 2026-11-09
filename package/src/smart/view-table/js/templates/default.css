@@ -273,7 +273,7 @@
        one line or two -- and the line under it. */
     --sf-table-row-block-size-1\/2: calc(2 * var(--sf-ui-1\/2--space-y) + max(var(--sf-ui-1\/2--control-height), var(--sf-text-height-1\/2)) + var(--sf-px));
     --sf-table-row-block-size-1: calc(2 * var(--sf-space-1) + max(var(--sf-ui-1--control-height), var(--sf-text-height-1)) + var(--sf-px));
-    --sf-table-row-2-lines-block-size-1\/2: var(--sf-ui-2--control-height);
+    --sf-table-row-2-lines-block-size-1\/2: calc(2 * var(--sf-ui-1\/2--space-y) + max(var(--sf-ui-1\/2--control-height), 2 * var(--sf-text-height-1\/2)) + var(--sf-px));
     --sf-table-row-2-lines-block-size-1: calc(2 * var(--sf-space-1) + max(var(--sf-ui-1--control-height), 2 * var(--sf-text-height-1)) + var(--sf-px));
     /* The head row: the same padding, a line of the head's text, its line. */
     --sf-table-head-block-size-1\/2: calc(2 * var(--sf-ui-1\/2--space-y) + var(--sf-text-height-1\/2) + var(--sf-px));

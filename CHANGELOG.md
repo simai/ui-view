@@ -27,8 +27,10 @@ in brackets. The site page «Изменения» says the same in Russian.
   - On a phone (below 32rem) a list row is `--sf-ui-3--control-height` and
     keeps only its most worrying fact.
   - A list row is a rung of the ladder: 48 at size 1/2, 56 at size 1. A table
-    row of two lines at size 1/2 is 48 (`--sf-ui-2--control-height`), it was
-    53; `--sf-table-row-2-lines-block-size-1/2` says 48px.
+    row with a supporting line at size 1/2 (a link with its subtext, a found
+    tree row with its path) is 48 (`--sf-ui-2--control-height`), it was 53.
+    A row whose own text wraps to two lines keeps 53, and
+    `--sf-table-row-2-lines-block-size-1/2` still publishes that box.
 - `sf-view` 1.11.0 passes its own `layout` on (it used to set `auto` for a
   page's list and `table` for an embedded one), and `layout-switch`,
   `list-below`, `quick-actions` and `row-open` with it; `list-roles="key:role,…"`
