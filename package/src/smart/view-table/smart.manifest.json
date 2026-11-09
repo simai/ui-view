@@ -2683,6 +2683,13 @@
       },
       {
         "from": "1.16.0",
+        "to": "1.16.1",
+        "changes": [
+          "The avatar's max-width reads --sf-table-avatar--max-width with the fallback none: a host may still bound the avatar, and a page that sets nothing draws what it drew (the bare reference was unset, so none). The pair range no longer lists a variable bound by the page. Nothing changes on the page."
+        ]
+      },
+      {
+        "from": "1.16.1",
         "to": "1.17.0",
         "changes": [
           "The list of resources (owner decision C31, 2026-11-09): columns[].list names a column's place in a list row -- status, title, supporting, fact or hidden. With one, a list row is the status dot (its word the tooltip and the accessible text; a stopped resource's word also leads the second line), the title over the supporting fields joined with « · », the facts as sf-badge without labels in columns of one width (8rem; quiet when fine, warning or error when not, the column's label read to a screen reader), then the quick actions and «more». The row is a row of the ladder: 48 at size 1/2, 56 at size 1, 52 on a phone with the title a text step larger. Below 37.5rem only the most worrying fact stays and the quick actions fold into «more». A list without roles is drawn as before.",
@@ -2709,7 +2716,7 @@
       },
       {
         "path": "src/smart/view-table/js/templates/default.css",
-        "sha256": "7d7c281bcdd160a1194e1d75d9e09a9923fc1721836e2623a14dc9b6d2147ba8"
+        "sha256": "f2446db2e02f0cf5e22bca557b6791a6466885766227069fe20e3a1470fe8302"
       },
       {
         "path": "src/smart/helpers/option-badge.js",
