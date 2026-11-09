@@ -46,6 +46,8 @@ const report = {};
 try {
   for (const theme of ['light', 'dark']) {
     const page = await browser.newPage({viewport: {width: 1280, height: 1400}});
+    // The theme the class names and the one the browser asks for agree.
+    await page.emulateMedia({colorScheme: theme});
     const errors = [];
     // Scripts added by path have no address for webpack's automatic publicPath
     // (the same allowance as table-field-cells); every other error counts.
@@ -67,6 +69,9 @@ try {
       }
     }, {columns: COLUMNS, rows: ROWS, actions: ACTIONS});
     await page.waitForFunction((count) => document.querySelectorAll('.sf-table-resource').length === count, WIDTHS.length * ROWS.length, {timeout: 8000});
+    // The page is drawn in the theme it was asked for.
+    const drawn = await page.evaluate(() => getComputedStyle(document.documentElement).colorScheme);
+    if (drawn !== theme) errors.push(`the page is drawn in ${drawn}, not ${theme}`);
     await page.waitForTimeout(500);
 
     // The fold, at each container width.

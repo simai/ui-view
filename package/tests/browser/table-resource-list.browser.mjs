@@ -45,6 +45,8 @@ const browser = await chromium.launch();
 
 async function stand({theme, width, height = 900, body, setup}) {
   const page = await browser.newPage({viewport: {width, height}});
+  // The theme the class names and the one the browser asks for agree.
+  await page.emulateMedia({colorScheme: theme});
   const errors = [];
   page.on('console', (message) => { if (message.type() === 'error' && !/publicPath/u.test(message.text())) errors.push(message.text()); });
   // Scripts added by path have no address for webpack's automatic publicPath
@@ -57,6 +59,9 @@ async function stand({theme, width, height = 900, body, setup}) {
   await page.evaluate(setup, {columns: COLUMNS, rows: ROWS, actions: ACTIONS});
   await page.waitForFunction(() => document.querySelectorAll('.sf-table-resource').length > 0
     || document.querySelectorAll('tbody tr[data-row-id]').length > 0, null, {timeout: 8000}).catch(() => {});
+  // The page is drawn in the theme it was asked for.
+  const drawn = await page.evaluate(() => getComputedStyle(document.documentElement).colorScheme);
+  if (drawn !== theme) errors.push(`the page is drawn in ${drawn}, not ${theme}`);
   await page.waitForTimeout(600);
   return {page, errors};
 }

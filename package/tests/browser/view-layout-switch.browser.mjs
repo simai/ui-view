@@ -53,6 +53,8 @@ const report = {};
 
 const open = async (context, {theme, width, attributes, views = []}) => {
   const page = await context.newPage();
+  // The theme the class names and the one the browser asks for agree.
+  await page.emulateMedia({colorScheme: theme});
   const errors = [];
   page.on('console', (message) => { if (message.type() === 'error' && !/publicPath/u.test(message.text())) errors.push(message.text()); });
   page.on('pageerror', (error) => { if (!/publicPath/u.test(error.message)) errors.push(error.message); });
@@ -90,6 +92,9 @@ const open = async (context, {theme, width, attributes, views = []}) => {
       },
     });
   }, {columns: HOST_COLUMNS, records: RECORDS, kept: views});
+  // The page is drawn in the theme it was asked for.
+  const drawn = await page.evaluate(() => getComputedStyle(document.documentElement).colorScheme);
+  if (drawn !== theme) errors.push(`the page is drawn in ${drawn}, not ${theme}`);
   await page.waitForTimeout(900);
   return {page, errors, skeleton};
 };
