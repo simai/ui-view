@@ -15,6 +15,7 @@ import {elementFromManifest} from "../../core/js/element-manifest";
 // its former tag beside its own (it is not a Smart base element).
 import {defineTagAliases, isTag, tagSelector} from "../../core/js/smart-base";
 import {installAliases} from "../../core/js/aliases.js";
+import {noteDeprecated} from "../../core/js/deprecations.js";
 import {answerActions, settingSetters} from "../view-table/js/manifest-actions.js";
 import manifest from "./component.json";
 import aliases from "./aliases.json";
@@ -106,7 +107,7 @@ function projectColumn(column) {
     return projected;
 }
 
-const SUPPORTED_PORT_VERSIONS = ["1.0.0", "1.1.0", "1.2.0", "1.3.0", "1.4.0", "1.5.0", "1.6.0", "1.7.0", "1.8.0", "1.9.0", "1.10.0", "1.11.0", "1.12.0", "1.13.0", "1.14.0"];
+const SUPPORTED_PORT_VERSIONS = ["1.0.0", "1.1.0", "1.2.0", "1.3.0", "1.4.0", "1.5.0", "1.6.0", "1.7.0", "1.8.0", "1.9.0", "1.10.0", "1.11.0", "1.12.0", "1.13.0", "1.14.0", "1.15.0"];
 
 // Creating a record and saving personal column settings became capabilities in
 // port 1.10.0. A host that declares an earlier version was offered both without
@@ -2276,11 +2277,19 @@ class SfDataView extends DataViewElement {
     }
 
     // The columns with their places in a list row (columns[].list, C31):
-    // the host's own, else what list-roles on the view names
-    // ("state:status, name:title, domain:supporting, ssl:fact").
+    // the host's own -- simai.dataview-port 1.15.0 carries columns[].list,
+    // passed on as the port sent it -- else what list-roles on the view names
+    // ("state:status, name:title, domain:supporting, ssl:fact"). list-roles
+    // is a dated alias of the port field until 2027-01-01 (aliases.json),
+    // noted in SF.deprecations once per view.
     _listColumns(columns = []) {
         const written = String(this.getAttribute("list-roles") ?? "").trim();
         if (!written) return columns;
+        if (!this._listRolesNoted) {
+            this._listRolesNoted = true;
+            noteDeprecated({component: "sf-view", tag: "sf-view", kind: "attribute", attribute: "list-roles",
+                from: "list-roles", to: "columns[].list", since: "2026-11-10", remove_after: "2027-01-01"});
+        }
         const roles = new Map(written.split(/[\s,]+/u).filter(Boolean).map((pair) => pair.split(":").map((part) => part.trim())));
         if (this._listRolesKey !== written || this._listRolesFrom !== columns) {
             this._listRolesKey = written;

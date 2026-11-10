@@ -51,7 +51,7 @@ const note = (theme, detail) => failures.push({theme, ...detail});
 const browser = await chromium.launch();
 const report = {};
 
-const open = async (context, {theme, width, attributes, views = []}) => {
+const open = async (context, {theme, width, attributes, views = [], port = '1.14.0', columns = HOST_COLUMNS}) => {
   const page = await context.newPage();
   // The theme the class names and the one the browser asks for agree.
   await page.emulateMedia({colorScheme: theme});
@@ -70,14 +70,14 @@ const open = async (context, {theme, width, attributes, views = []}) => {
   await page.addScriptTag({path: modules.at(-2), type: 'module'});
   await page.waitForFunction(() => Boolean(customElements.get('sf-view-table') && customElements.get('sf-segmented')), null, {timeout: 8000});
   // The host keeps the person's saved views between pages.
-  await page.evaluate(({columns, records, kept}) => {
+  await page.evaluate(({columns, records, kept, port}) => {
     window.raised = [];
     window.changes = [];
     let views = kept;
     const view = document.getElementById('v');
     view.addEventListener('sf-view-table-layout-change', (event) => window.changes.push(event.detail.layout));
     view.setHostPort({
-      version: '1.14.0', capabilities: ['saved-views'],
+      version: port, capabilities: ['saved-views'],
       async raise(intent, payload) {
         window.raised.push({intent, payload: structuredClone(payload)});
         const data = () => ({records, total: records.length, columns, saved_views: views,
@@ -91,12 +91,14 @@ const open = async (context, {theme, width, attributes, views = []}) => {
         return {answer: 'applied', sequence: payload.sequence, data: data()};
       },
     });
-  }, {columns: HOST_COLUMNS, records: RECORDS, kept: views});
+  }, {columns, records: RECORDS, kept: views, port});
   // The page is drawn in the theme it was asked for.
   const drawn = await page.evaluate(() => getComputedStyle(document.documentElement).colorScheme);
   if (drawn !== theme) errors.push(`the page is drawn in ${drawn}, not ${theme}`);
   await page.waitForTimeout(900);
-  return {page, errors, skeleton};
+  const deprecated = await page.evaluate(() => (globalThis.SF?.deprecations?.list?.() ?? [])
+    .filter((entry) => entry.from === 'list-roles').map((entry) => ({from: entry.from, to: entry.to, remove_after: entry.remove_after})));
+  return {page, errors, skeleton, deprecated};
 };
 const state = (page) => page.evaluate(() => {
   const table = document.getElementById('t');
@@ -104,6 +106,7 @@ const state = (page) => page.evaluate(() => {
   return {
     layout: table.getAttribute('layout'),
     list: table.querySelectorAll('.sf-table-resource').length,
+    listDots: table.querySelectorAll('.sf-table-resource .sf-dot').length,
     rows: table.querySelectorAll('tbody tr[data-row-id]').length,
     // The list roles drawn in table cells too (C31 acceptance 1).
     cells: {dots: table.querySelectorAll('tbody td[data-key="state"] .sf-dot').length,
@@ -142,6 +145,17 @@ try {
     errors.push(...passed.errors);
     await passed.page.close();
     if (passedState.layout !== 'list' || passedState.list !== ROWS.length || passedState.switch) note(theme, {said: 'sf-view does not pass layout="list" on, or draws a switch it was not asked for', got: passedState});
+    // list-roles is a dated alias of the port's columns[].list: noted once.
+    if (JSON.stringify(passed.deprecated) !== '[{"from":"list-roles","to":"columns[].list","remove_after":"2027-01-01"}]') note(theme, {said: 'list-roles is not noted in SF.deprecations as a dated alias', got: passed.deprecated});
+
+    // simai.dataview-port 1.15.0: the host sends columns[].list, no list-roles.
+    const ported = await open(context, {theme, width: 1200, attributes: 'layout="list"', port: '1.15.0', columns: COLUMNS});
+    const portedState = await state(ported.page);
+    errors.push(...ported.errors);
+    await ported.page.close();
+    if (portedState.list !== ROWS.length || ported.deprecated.length) note(theme, {said: 'the port\'s columns[].list does not draw the list, or notes a deprecation', got: {portedState, deprecated: ported.deprecated}});
+    const portedDots = portedState.listDots;
+    if (portedDots !== ROWS.length) note(theme, {said: 'the port\'s list roles do not reach the rows (status dots)', got: portedDots});
 
     // The switch: a table at first, the list on a press, kept.
     const first = await open(context, {theme, width: 1200, attributes});
@@ -193,7 +207,7 @@ try {
     await narrow.page.close();
     if (narrowState.switch || !narrowState.list) note(theme, {said: 'a narrow view draws the switch, or not the list', got: narrowState});
     if (errors.length) note(theme, {said: 'the console is not clean', errors});
-    report[theme] = {passedState, before, after, saved: saved?.settings, skeleton: next.skeleton, nextState, table, reopened, narrowState};
+    report[theme] = {passedState, portedState, before, after, saved: saved?.settings, skeleton: next.skeleton, nextState, table, reopened, narrowState};
     await context.close();
   }
 } finally {

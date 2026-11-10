@@ -149,9 +149,9 @@
       ],
       "host_port": {
         "port": "simai.dataview-port",
-        "version": "1.14.0",
-        "path": "src/core/contracts/ports/simai.dataview-port/1.14.0/port.json",
-        "sha256": "729e7aae0fa1f4425ae11a470de024f75e92d475cd24cc63b7e1d3d020d2955b",
+        "version": "1.15.0",
+        "path": "src/core/contracts/ports/simai.dataview-port/1.15.0/port.json",
+        "sha256": "554e57f2134ce47d92300ab151136a94f395494ec4d7aec4e314547b5fc6a3b7",
         "supported_versions": [
           "1.0.0",
           "1.1.0",
@@ -167,7 +167,8 @@
           "1.11.0",
           "1.12.0",
           "1.13.0",
-          "1.14.0"
+          "1.14.0",
+          "1.15.0"
         ]
       }
     }
@@ -268,7 +269,7 @@
       "list-roles": {
         "type": "string",
         "default": "",
-        "description": "The columns' places in a list row, for a host whose columns do not carry columns[].list (simai.dataview-port 1.14.0 has no field for it): key:role pairs, comma-separated -- state:status, name:title, domain:supporting, kind:supporting, ssl:fact. A column the host gave a list role keeps its own."
+        "description": "The columns' places in a list row as key:role pairs, comma-separated -- state:status, name:title, domain:supporting, kind:supporting, ssl:fact. A dated alias of simai.dataview-port 1.15.0 columns[].list until 2027-01-01 (noted in SF.deprecations): a host on 1.15.0 sends the role with the column, and a column the host gave a list role keeps its own."
       },
       "column-search-placeholder": {
         "type": "string",
@@ -1613,8 +1614,9 @@
         "to": "1.11.0",
         "changes": [
           "The list of resources (owner decision C31, 2026-11-09): layout is passed to the table instead of auto always (a page's list is still auto without it; a layout the host wrote on its table is kept); layout-switch, list-below, quick-actions and row-open go to the table as written; list-roles gives the columns their places in a list row (columns[].list) where the host's columns do not carry them. With the switch, the person's choice is kept under preferences-key by the table, rides in a saved view's settings (settings.layout) and comes back when that view is opened; the first paint draws the layout chosen. Needs sf-view-table 1.17.0 (the same release).",
+          "Speaks simai.dataview-port 1.15.0 (SIMAI Framework pair ui-a0370c0c99fb) beside 1.0.0-1.14.0: a column's list role comes from the port (columns[].list) and is passed to the table as sent. list-roles stays a dated alias until 2027-01-01 for a host on an earlier port (aliases.json, noted in SF.deprecations once per view); a column the host gave a role keeps it.",
           "The controls the view makes and its table are relative (C22, Larena 2026-11-10): a view without a size writes no size on its table, page row, selection band (the action list, Apply, Clear and their options) or Show all, so compact page density moves them with the page (32 at 1280 where they stayed 40); a view with size=\"1\" or \"1/2\" still hands it down. A table given its own size inside a view without one loses it to the view (it used to be overwritten with 1).",
-          "Over SIMAI Framework ui-b4a77681f0a7 (core.runtime 1.47.0; the set still needs 1.43.0 or newer). Nothing to change for a host that does not use the new settings."
+          "Over SIMAI Framework ui-a0370c0c99fb (core.runtime 1.49.0; the set still needs 1.43.0 or newer). Nothing to change for a host that does not use the new settings."
         ]
       }
     ]
@@ -1625,7 +1627,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view/index.js",
-        "sha256": "52a198112b6ae3e85b2398b21031a2bc82bd1572c7ca586f5a437757a61f73b9"
+        "sha256": "bfcf7d95120473636f12acb261eb2abed7979db342ef638bfbd39f645a01e2e7"
       },
       {
         "path": "src/core/contracts/ports/simai.dataview-port/1.5.0/port.json",
@@ -1633,7 +1635,7 @@
       },
       {
         "path": "src/smart/view/docs.md",
-        "sha256": "1b736c394fc90823be215ee335370b7447d09c389f1c08b46eadd380be4cc286"
+        "sha256": "b927d8b2f3171e75cd205dee10485e7a3ad67ebc7950e94b5dda1848df1603e9"
       },
       {
         "path": "tests/fixtures/data-view-composite-lab.html",

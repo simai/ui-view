@@ -135,9 +135,24 @@ payload}`, стандарт §4.9), или из `capabilities` рядом с о�
 списку страницы и `table` встроенному):
 `layout="list"` у `sf-view` — список и на широком экране. Вместе с ним до
 таблицы доходят `layout-switch`, `list-below`, `quick-actions` и `row-open`
-(см. `sf-view-table`, «Список ресурсов»). Роли колонок в списке задаёт
-`list-roles="ключ:роль,…"` — порт данных `simai.dataview-port` 1.14.0 не
-описывает у колонки поля `list`, поэтому роли пишет страница:
+(см. `sf-view-table`, «Список ресурсов»). Роли колонок в списке приходят
+из порта: с `simai.dataview-port` 1.15.0 у колонки есть поле `list`
+(`status`, `title`, `supporting`, `fact`, `hidden`), и представление
+передаёт его таблице как есть:
+
+```js
+// ответ хоста на query.change
+{columns: [
+  {key: 'state', label: 'Состояние', list: 'status'},
+  {key: 'name', label: 'Сайт', role: 'title', list: 'title'},
+  {key: 'domain', label: 'Домен', list: 'supporting'},
+  {key: 'ssl', label: 'SSL', list: 'fact'},
+], records: [/* … */]}
+```
+
+`list-roles="ключ:роль,…"` — прежний способ для хоста на порте 1.14.0 и
+раньше: устаревший псевдоним поля `list` до 2027-01-01, отмечается в
+`SF.deprecations`. Роль, которую колонке дал хост, важнее:
 
 ```html
 <sf-view aria-label="Сайты" preferences-key="sites" layout-switch quick-actions="visit,restart" row-open="row"

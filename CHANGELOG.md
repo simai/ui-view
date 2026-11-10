@@ -5,8 +5,9 @@ in brackets. The site page «Изменения» says the same in Russian.
 
 ## 1.6.0 — 2026-11-09
 
-- Built over SIMAI Framework `ui-b4a77681f0a7` (ui-source `a29cc9989beb`,
-  npm `@simai-studio/ui@5.20261109.1121`, core.runtime 1.47.0).
+- Built over SIMAI Framework `ui-a0370c0c99fb` (ui-source `7d2f4dc74fdf`,
+  npm `@simai-studio/ui@5.20261110.34`, core.runtime 1.49.0); the set still
+  needs core.runtime 1.43.0 or newer.
 - The list of resources (owner decision C31), with no new tag.
   `sf-view-table` 1.17.0:
   - `columns[].list` gives a column its role in a list row: `status` (an
@@ -54,8 +55,10 @@ in brackets. The site page «Изменения» says the same in Russian.
 - `sf-view` 1.11.0 passes its own `layout` on (it used to set `auto` for a
   page's list and `table` for an embedded one), and `layout-switch`,
   `list-below`, `quick-actions` and `row-open` with it; `list-roles="key:role,…"`
-  gives the columns their list roles, which `simai.dataview-port` 1.14.0 has
-  no field for. A saved view carries the layout in `settings.layout` and
+  gives the columns their list roles for a host on `simai.dataview-port`
+  1.14.0 or earlier. The view speaks 1.15.0, whose columns carry `list`, and
+  passes it on; `list-roles` is a dated alias until 2027-01-01, noted in
+  `SF.deprecations`. A saved view carries the layout in `settings.layout` and
   opening it puts the layout back; the first paint draws the person's choice.
   A view without a size writes none on its table, page row, selection band or
   Show all (C22): under compact density they follow the page.
