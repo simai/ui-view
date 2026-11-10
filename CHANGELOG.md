@@ -19,6 +19,19 @@ Carries 1.6.1, which was not published on its own.
     are no longer declared among the view's events: they were the table's
     apply, create and query, which the view hears as `sf-view-table-apply`,
     `-create` and `-query`. No DOM name changes.
+  - The first paint holds the optional toolbar controls known before the
+    answer: the layout switch (`layout-switch`), and the create kinds' arrow
+    and the toolbar actions' button when the page gave its table
+    `createItems` or `toolbarActions` before the first paint. The search
+    field no longer moves when they are drawn. The list's sort button is
+    still drawn with the answer (its column is the port's).
+- `sf-view-table` 1.18.0: the table's own windows by their C32 kind, from
+  the Framework's popup widths: the filter with its saved views and the
+  column settings are panels (`--sf-popup-panel-width`, 20rem, 18rem
+  compact, or the trigger's width when wider); saving a template and a
+  chip's filter are forms (`--sf-popup-form-width`, 20rem, 18rem compact;
+  they were as wide as their content). The menus keep `sf-menu-context`'s
+  widths.
 
 ## 1.6.1 — unreleased (carried by 1.7.0)
 

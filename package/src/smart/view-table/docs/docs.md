@@ -128,6 +128,20 @@ getComputedStyle(document.documentElement).getPropertyValue('--sf-table-row-bloc
 `--sf-data-view-gap` (по умолчанию `--sf-space-3`, 24px); её высота — высота
 `sf-pagination`, которую Framework пока не публикует.
 
+## Ширина окон таблицы (с версии 1.18.0)
+
+Окна таблицы берут ширины Framework (решение C32), они следуют плотности:
+
+| Окно | Вид | Ширина |
+|---|---|---|
+| Фильтр с сохранёнными видами, настройка колонок | панель | `--sf-popup-panel-width` (20rem, в компактной плотности 18rem) или ширина кнопки, если она шире |
+| Сохранение шаблона, фильтр одного поля (чип) | форма | `--sf-popup-form-width` (20rem, в компактной 18rem) |
+| Создание, сортировка списка, действия строки и представления | меню | ширины `sf-menu-context`: 10–18rem (9–16rem) |
+
+Панель в несколько колонок (`context-menu-columns`) шире на свои колонки.
+`--sf-table-context-menu--max-width` по-прежнему ограничивает окно, и окно
+не выходит за место, которое у него есть.
+
 ## Former tag
 
 Until 2027-01-01 the former tag `sf-table` is a dated alias of `sf-view-table`
