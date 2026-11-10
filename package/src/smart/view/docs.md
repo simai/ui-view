@@ -300,6 +300,7 @@ view.dispatchEvent(new CustomEvent('sf-view-save', {detail: {kind: 'view', key: 
 The view raises `view.save_shared`; a detail of another `kind` is left alone.
 The former name `sf-view-saved-view-intent` (and `sf-data-view-saved-view-intent`)
 is still heard until 2027-01-01, its detail read as a view, and each use is
-noted in `SF.deprecations`.
+noted in `SF.deprecations`. The new name sent without `kind` is read as a view
+too and is not noted.
 
 The public CSS variables (`--sf-data-view-*`) and the class names keep the former name.

@@ -632,7 +632,24 @@ class SfDataView extends DataViewElement {
         if (this.getAttribute("data-sf-instance")) this._ownParts();
         this._askForParts(["sf-view-table", "sf-pagination"]);
         // Dated aliases (§16.20), installed once per element as the Smart base does.
-        if (!this.__sfAliases) this.__sfAliases = installAliases(this, aliases, {tag: this.localName, adapters: {}});
+        if (!this.__sfAliases) {
+            this.__sfAliases = installAliases(this, aliases, {tag: this.localName, adapters: {}});
+            // A page's save under a former name is promoted by the alias shim:
+            // sf-view-save arrives first with the detail as it was, without
+            // kind, exactly like the new name sent without kind. Only the call
+            // that sent the former name can tell them apart, so the view counts
+            // the dispatches of the former save names on itself (reading the
+            // event's type is not a use of it) and notes a kind-less save only
+            // inside one of them (D1).
+            const SAVE_FORMER = new Set(["sf-view-saved-view-intent", "sf-data-view-saved-view-intent"]);
+            const aliased = this.dispatchEvent;
+            this._saveByFormerName = 0;
+            Object.defineProperty(this, "dispatchEvent", {configurable: true, writable: true, value: (event) => {
+                if (!SAVE_FORMER.has(event?.type)) return aliased.call(this, event);
+                this._saveByFormerName += 1;
+                try { return aliased.call(this, event); } finally { this._saveByFormerName -= 1; }
+            }});
+        }
         this._bindFileDrop();
         this.epoch += 1;
         // The key reaches the table before its first paint.
@@ -2529,12 +2546,14 @@ class SfDataView extends DataViewElement {
         // ignores the view's own events. The former name
         // sf-view-saved-view-intent arrives here through the alias shim as
         // sf-view-save with its detail as it was, without kind: that is read
-        // as a view and noted. A save of another kind is not the view's.
+        // as a view, and noted only when it came under the former name (the
+        // new name without kind is a view too, and is not noted). A save of
+        // another kind is not the view's.
         if (event.type === "sf-view-save") {
             if (event.currentTarget !== this) return;
             const view = event.detail ?? {};
             if (view.kind !== undefined && view.kind !== "view") return;
-            if (view.kind === undefined) noteDeprecated({component: "sf-view", tag: "sf-view", kind: "event",
+            if (view.kind === undefined && this._saveByFormerName > 0) noteDeprecated({component: "sf-view", tag: "sf-view", kind: "event",
                 from: "sf-view-saved-view-intent", to: "sf-view-save", since: "2026-11-10", remove_after: "2027-01-01"});
             return this.saveView({key: view.key, label: view.label ?? view.key, revision: view.revision, level: "shared", roles: view.roles});
         }

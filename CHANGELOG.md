@@ -14,7 +14,8 @@ Carries 1.6.1, which was not published on its own.
     save of another kind is left alone. The former names
     `sf-view-saved-view-intent` and `sf-data-view-saved-view-intent` are
     dated aliases until 2027-01-01: still heard, their detail read as a
-    view, each use noted in `SF.deprecations`.
+    view, each use noted in `SF.deprecations`. The new name sent without
+    `kind` is read as a view too and is not noted.
   - The first paint holds the optional toolbar controls known before the
     answer: the layout switch (`layout-switch`), and the create kinds' arrow
     and the toolbar actions' button when the page gave its table
