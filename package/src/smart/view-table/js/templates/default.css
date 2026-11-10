@@ -196,20 +196,33 @@
     pointer-events: auto;
   }
 
-  /* A window is as wide as what it holds, from the standard menu's floor to its
-     ceiling or the room the window has: every window was 24rem whatever it
-     held, and a list of two short field names stood with a third of the width
-     empty between the name and its checkbox (owner, 2026-10-14). */
+  /* The window kinds of C32 (owner, 2026-11-09), from the Framework's popup
+     widths, which follow density: a panel (the filter with its saved views,
+     the column settings) is --sf-popup-panel-width or its trigger's width
+     when that is wider; a form (saving a template, a chip's filter) is
+     --sf-popup-form-width. Both are one width whatever they hold, so a
+     panel does not grow under the pointer. A panel in several columns is as
+     wide as they are. --sf-table-context-menu--max-width still caps them,
+     and the room the window has caps everything. */
   .sf-table-context-menu {
-    min-width: min(var(--sf-context-menu--min-inline-size, var(--sf-e8)), var(--sf-table-context-menu--available-inline-size, 100vw));
-    max-width: min(var(--sf-table-context-menu--max-width, var(--sf-g2)), var(--sf-table-context-menu--available-inline-size, 100vw));
-    width: max-content;
+    --sf-table-context-menu--width: max(var(--sf-table-context-menu--trigger-inline-size, 0px), var(--sf-popup-panel-width, var(--sf-g0)));
+    min-width: min(var(--sf-table-context-menu--width), var(--sf-table-context-menu--max-width, 100vw), var(--sf-table-context-menu--available-inline-size, 100vw));
+    max-width: min(var(--sf-table-context-menu--max-width, 100vw), var(--sf-table-context-menu--available-inline-size, 100vw));
+    width: var(--sf-table-context-menu--width);
     /* A window as tall as its content puts its own buttons below the fold as
        soon as a site has fifteen fields, and the page has to be scrolled to
        reach them. The ceiling is the space left under the window's own top
        edge, which only the component knows, so it arrives as a property. */
     max-block-size: var(--sf-table-context-menu--max-block-size, none);
     overflow: hidden;
+  }
+
+  .sf-table-context-menu.sf-table-context-menu--form {
+    --sf-table-context-menu--width: var(--sf-popup-form-width, var(--sf-g0));
+  }
+
+  .sf-table-context-menu.sf-table-context-menu--columns {
+    width: max-content;
   }
 
   /* The chain a bounded window needs: every box between the ceiling and the

@@ -3321,7 +3321,7 @@ class SfTable extends TableElement {
             inset-block-start: calc(${y}px + calc(var(--sf-focus-outline-width) * 2));
             z-index: var(--sf-table-context-menu--z-index, ${this.contextMenuZIndex()});
           "
-                    root-class="sf-table-context-menu ${this.size === "1/2" ? "sf-table-context-menu--dense " : ""}flex flex-col"
+                    root-class="sf-table-context-menu ${this.contextWindowClass('filter-favorites')} ${this.size === "1/2" ? "sf-table-context-menu--dense " : ""}flex flex-col"
                     data-context-main-menu
                     position="${position || ""}"
             >
@@ -4657,8 +4657,9 @@ class SfTable extends TableElement {
             transform: ${pos};
             z-index: var(--sf-table-context-menu--z-index, ${this.contextMenuZIndex()});
             --sf-table-context-menu--max-block-size: calc(100dvh - ${y}px - var(--sf-space-4));
+            --sf-table-context-menu--trigger-inline-size: ${this.contextTriggerInlineSize(data)}px;
           "
-                    root-class="sf-table-context-menu ${this.size === "1/2" ? "sf-table-context-menu--dense " : ""}flex flex-col"
+                    root-class="sf-table-context-menu ${this.contextWindowClass('filter-settings', menuColumnCount)} ${this.size === "1/2" ? "sf-table-context-menu--dense " : ""}flex flex-col"
                     position="${position || ""}"
                     role="dialog"
                     tabs=${contextItems}
@@ -4807,7 +4808,7 @@ class SfTable extends TableElement {
             inset-block-start: calc(${y}px + calc(var(--sf-focus-outline-width) * 2));
             z-index: var(--sf-table-context-menu--z-index, ${this.contextMenuZIndex()});
           "
-                    root-class="sf-table-context-menu ${this.size === "1/2" ? "sf-table-context-menu--dense " : ""}flex flex-col"
+                    root-class="sf-table-context-menu ${this.contextWindowClass('tag-settings')} ${this.size === "1/2" ? "sf-table-context-menu--dense " : ""}flex flex-col"
                     position="${position || ""}"
             >
                 <div class="flex flex-col flex-1 ${this.size === "1/2" ? "p-top-1" : "p-top-3"}" slot="content">
@@ -4943,8 +4944,9 @@ class SfTable extends TableElement {
             transform: ${pos};
             z-index: var(--sf-table-context-menu--z-index, ${this.contextMenuZIndex()});
             --sf-table-context-menu--max-block-size: calc(100dvh - ${y}px - var(--sf-space-4));
+            --sf-table-context-menu--trigger-inline-size: ${this.contextTriggerInlineSize(data)}px;
           "
-                    root-class="sf-table-context-menu ${this.size === "1/2" ? "sf-table-context-menu--dense " : ""}flex flex-col"
+                    root-class="sf-table-context-menu ${this.contextWindowClass('table-settings', menuColumnCount)} ${this.size === "1/2" ? "sf-table-context-menu--dense " : ""}flex flex-col"
                     position="${position || ""}"
                     role="dialog"
                     tabs=${`${this.text('settingsFieldsTab')}|${this.text('settingsViewTab')}`}
@@ -6059,6 +6061,32 @@ class SfTable extends TableElement {
 
     // The window's place on the stack's z-index scale; the Framework's old
     // fixed step until it is on the stack.
+    // The kind of window a menu name opens (C32, owner 2026-11-09): the
+    // table's own windows are not menus -- the menus (create, sort, row and
+    // toolbar actions) are sf-menu-context's own rows and take its widths.
+    // The filter with its saved views and the column settings are panels:
+    // one width, --sf-popup-panel-width (20rem; 18rem compact), or the
+    // trigger's when that is wider. Saving a template and a chip's own
+    // filter are forms: --sf-popup-form-width (20rem; 18rem compact). A
+    // panel laid out in several columns is as wide as they are. Every window
+    // stays inside the room it has (--sf-table-context-menu--available-inline-size).
+    contextWindowClass(menu, columns = 1) {
+        const kind = {
+            'filter-settings': 'panel',
+            'table-settings': 'panel',
+            'filter-favorites': 'form',
+            'tag-settings': 'form',
+        }[menu] ?? 'panel';
+        return `sf-table-context-menu--${kind}${kind === 'panel' && Number(columns) > 1 ? ' sf-table-context-menu--columns' : ''}`;
+    }
+
+    // The trigger's width, for a panel that is at least as wide as the button
+    // that opened it.
+    contextTriggerInlineSize(data = {}) {
+        const width = data.anchor?.getBoundingClientRect?.().width;
+        return Number.isFinite(width) ? Math.ceil(width) : 0;
+    }
+
     contextMenuZIndex() {
         const zIndex = this._contextLayerOwner ? layerZIndex(this._contextLayerOwner) : '';
         return zIndex === '' ? 'var(--sf-z-index-9)' : String(zIndex);
