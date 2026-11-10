@@ -59,6 +59,7 @@ try {
       const idleCell = count(row.querySelector('td[data-key="actions"]'));
       calls = 0; t.setRows(R1000); await settle();
       const window1000 = calls;
+      const drawn = t.querySelectorAll('tbody tr[data-row-id]').length;
       Ctor.prototype.getColumnSettings = get;
       t.setRows(R8); await settle();
       const three = () => t.querySelector('tbody tr[data-row-id="3"]');
@@ -77,7 +78,7 @@ try {
       await settle();
       const focus = {kept: document.activeElement === link && link.isConnected,
         buttons: t.querySelectorAll('tbody tr[data-row-id="6"] td[data-key="actions"] button').length};
-      return {draw8, window1000, drawn: t.querySelectorAll('tbody tr[data-row-id]').length, nodes, idleCell, hovered, same, left, leftNodes, focus};
+      return {draw8, window1000, drawn, nodes, idleCell, hovered, same, left, leftNodes, focus};
     }, {COLUMNS, R8: rows(8), R1000: rows(1000)});
     const where = scheme;
     if (read.draw8 > 12) failures.push(`${where}: a draw of 8 rows read the column settings ${read.draw8} times`);
@@ -87,7 +88,6 @@ try {
     if (read.left !== 0) failures.push(`${where}: the row left keeps ${read.left} buttons`);
     if (!read.focus.kept || read.focus.buttons < 1) failures.push(`${where}: focus into a row: ${JSON.stringify(read.focus)}`);
     if (errors.length) failures.push(`${where}: console ${errors.slice(0, 3).join(' | ')}`);
-    console.error(`${where}: ${JSON.stringify(read)}`);
     await context.close();
   }
 } catch (error) {
