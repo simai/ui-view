@@ -3,7 +3,7 @@
 The set `view`, by its npm version `@simai-studio/view`; component versions
 in brackets. The site page «Изменения» says the same in Russian.
 
-## 1.7.0 — unreleased
+## 1.7.0 — 2026-11-11
 
 Carries 1.6.1, which was not published on its own.
 
@@ -49,7 +49,7 @@ Carries 1.6.1, which was not published on its own.
     phone list (`layout="auto"`) opens its filter as a full-width bottom
     sheet and offers no template saving.
 
-## 1.6.1 — unreleased (carried by 1.7.0)
+## 1.6.1 — not published (carried by 1.7.0)
 
 - Built over SIMAI Framework `ui-2bd5a3ab478a` (ui-source `d25a01f9989d`,
   npm `@simai-studio/ui@5.20261110.1541`, core.runtime 1.51.0); the set now
