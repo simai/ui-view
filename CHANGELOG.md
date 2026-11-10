@@ -28,6 +28,9 @@ Carries 1.6.1, which was not published on its own.
   chip's filter are forms (`--sf-popup-form-width`, 20rem, 18rem compact;
   they were as wide as their content). The menus keep `sf-menu-context`'s
   widths.
+- `sf-view-flow` 1.1.2 (preview): over the new pair a declined answer says
+  nothing (SIMAI Framework C35/R067): the status line is empty where it
+  said «Отменено». Probe `p2-cancel` follows.
 
 ## 1.6.1 — unreleased (carried by 1.7.0)
 
