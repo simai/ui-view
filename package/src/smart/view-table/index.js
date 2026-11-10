@@ -7741,9 +7741,9 @@ class SfTable extends TableElement {
     }
 
     // The column settings of one draw, read once (simai/ui-pro#1): every
-    // column and every cell asked for them, 268 times for a draw of 8 rows
-    // and 518 for a window of 60. Building the template, measuring it after
-    // (afterRender, measurePinnedColumns) and preparing the rows
+    // column and every cell asked for them: counted over one setRows() draw,
+    // 268 times for 8 rows and 343 for 60, now 4. Building the template,
+    // measuring it after (afterRender, measurePinnedColumns) and preparing the rows
     // (normalizeRows) change no setting; a handler they bind runs later,
     // outside, and reads them afresh.
     drawingWith(draw) {

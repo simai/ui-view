@@ -2,9 +2,9 @@
 // Usage: node this-file /absolute/path/to/output
 // sf-view-table 1.17.1, the cost of a row (simai/ui-pro#1 and #2), on the
 // built bytes:
-//   - the column settings are read once a draw, not once a cell: a draw of 8
-//     rows asks getColumnSettings() a handful of times (it asked 338), a
-//     window of 60 rows of 1 000 as few (it asked 513);
+//   - the column settings are read once a draw, not once a cell: counted
+//     over one setRows() draw, 8 rows ask getColumnSettings() a handful of
+//     times (they asked 268), a window of 60 rows of 1 000 as few;
 //   - an idle row's actions cell is the bare <td>: a row of the bench's five
 //     columns with its box, menu and actions is 29 nodes (it was 31, with an
 //     empty box and its marker);

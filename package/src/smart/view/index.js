@@ -21,6 +21,8 @@ import manifest from "./component.json";
 import aliases from "./aliases.json";
 import en from "./lang/en.json";
 import ru from "./lang/ru.json";
+import tableEn from "../view-table/lang/en.json";
+import tableRu from "../view-table/lang/ru.json";
 import BundledPreferences from "../../core/js/preferences.js";
 import {acceptLevel, collapse, createTree, expandKnown, hasLevel, knownRecords, markLoading, visibleRows} from "./js/tree.js";
 const LISTENED = Object.freeze([
@@ -130,6 +132,15 @@ const DATA_VIEW_TEXT = {
     en: camelWords(en.runtime),
     ru: camelWords(ru.runtime),
 };
+// The table's own words for the toolbar it will draw: the skeleton writes the
+// filter and create labels into their blocks, so each block is as wide as the
+// button the table then draws (sf-view 1.11.1). Read under sf-view-table, so
+// words a product registers for the table reach the skeleton too.
+const TABLE_TOOLBAR_TEXT = {
+    en: {filterText: tableEn.runtime["filter-text"], createText: tableEn.runtime["create-text"]},
+    ru: {filterText: tableRu.runtime["filter-text"], createText: tableRu.runtime["create-text"]},
+};
+const escapeText = (text) => String(text).replace(/[&<>"]/gu, (letter) => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"})[letter]);
 
 // The parts this element draws itself and a consumer can leave out. `status` is
 // absent on purpose and cannot be switched off: a list that could not say a load
@@ -887,6 +898,21 @@ class SfDataView extends DataViewElement {
         // where it will stand (DEV decision msg-e39bb812, 2026-11-09). Not
         // declared, the control comes when a port brings it, as before.
         const views = toolbar && this.hostOffers("saved-views");
+        // The toolbar the table draws (sf-view 1.11.1, view161 acceptance O1,
+        // O2): the filter button, then the search field and the create button
+        // at the end; in the compact list the field first and the two as
+        // icons after it. The labels are the table's words, so the blocks are
+        // as wide as the buttons; the sheet orders and sizes them for each.
+        const creatable = this.hostOffers("create-record");
+        const word = (key, attribute) => escapeText(table?.getAttribute?.(attribute) || pageText(TABLE_TOOLBAR_TEXT, key, table ?? this, "sf-view-table"));
+        const label = (kind, text) => `<i class="sf-skeleton-text" data-control="${kind}">${text}</i>`;
+        const toolbarMarkup = '<div class="sf-data-view-skeleton-toolbar">'
+            + `<div data-part="start">${label("filter", word("filterText", "filter-text"))}${views ? control("segment") : ""}</div>`
+            + `<div data-part="end">${control("field")}${creatable ? label("create", word("createText", "create-text")) : ""}</div>`
+            + "</div>";
+        const switchValue = this.getAttribute?.("layout-switch");
+        if (switchValue !== null && switchValue !== undefined && switchValue !== "false" && this.renders("toolbar")) skeleton.setAttribute("data-layout-switch", "");
+        else skeleton.removeAttribute?.("data-layout-switch");
         skeleton.setAttribute("data-layout", ["auto", "table", "list"].includes(layout) ? layout : "table");
         const columns = this.expectedColumns;
         const rows = this.firstPaintRows;
@@ -904,7 +930,7 @@ class SfDataView extends DataViewElement {
             // An own toolbar slot is a row of the view's layout, even empty.
             ownToolbar ? '<div class="sf-data-view-skeleton-own-toolbar"></div>' : "",
             '<div class="sf-data-view-skeleton-records">',
-            toolbar ? `<div class="sf-data-view-skeleton-toolbar">${control("button")}${views ? control("segment") : ""}${control("field")}</div>` : "",
+            toolbar ? toolbarMarkup : "",
             `<div class="sf-data-view-skeleton-table">${row()}${Array.from({length: rows}, () => row()).join("")}</div>`,
             `<div class="sf-data-view-skeleton-list">${record.repeat(rows)}</div>`,
             "</div>",

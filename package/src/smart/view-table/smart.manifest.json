@@ -2708,8 +2708,8 @@
         "changes": [
           "The head row is on the ladder (D2 of the view 1.6.0 acceptance): it is a one-line row of its step, with the rows' padding and rung -- 40 at size 1/2 and 48 at size 1 beside rows with the box and menu, whether it holds the box and sortable column controls or only their names (it was 45 and 57 with the controls, 37/33 and 41 without). --sf-table-head-block-size-* follow: 40 and 48 (they said 33 and 41).",
           "The published box agrees with the drawn tables under page density (C22, D3 of the 1.6.0 acceptance): a written size is stronger than density, so the -1/2 names are the size=\"1/2\" table on every page -- 40, 48 and head 40 on a compact page too (they gave 36, 40 and 29) -- and the -1 names are the table without a size in the density of the element they are read on (40/48/40 on a compact page). The names are also declared on every element with data-sf-density, so a data-sf-density=\"normal\" region of a compact page reads the normal box (the size=\"1\" table there).",
-          "A draw reads the column settings once (simai/ui-pro#1): getColumnSetting() takes them from the draw while the template is built; a draw of 8 rows asked getColumnSettings() 338 times and a window of 60 rows 513, now a handful. An idle row's actions cell is the bare <td> (simai/ui-pro#2): the buttons are bound on the cell, so a row of five columns with its box, menu and actions is 29 nodes (31), the buttons still come with the pointer, the focus and the current row, and the row is not drawn anew when they do. Nothing to change for a host.",
-          "On a selected list item, the open record (aria-current) and a selected table row, --sf-surface-underlay is the place's solid colour (--sf-surface-place), so a tonal badge on that translucent fill lays its tone over a solid base (C43, D1 of the 1.6.0 acceptance: a warning badge on the open record read grey). It needs the SIMAI Framework role --sf-surface-underlay (ui-source fix/c43-badge-on-place, the next pair, core.runtime 1.50.0 or newer); on an older pair the line does nothing."
+          "A draw reads the column settings once (simai/ui-pro#1): getColumnSetting() takes them from the draw while the template is built; counted over one setRows() draw, 8 rows asked getColumnSettings() 268 times and 60 rows 343, now 4. An idle row's actions cell is the bare <td> (simai/ui-pro#2): the buttons are bound on the cell, so a row of five columns with its box, menu and actions is 29 nodes (31), the buttons still come with the pointer, the focus and the current row, and the row is not drawn anew when they do. Nothing to change for a host.",
+          "On a selected list item, the open record (aria-current) and a selected table row, --sf-surface-underlay is the place's solid colour (--sf-surface-place-solid, so a selected row on a soft place leaves the badge alone), so a tonal badge on that translucent fill lays its tone over a solid base (C43, D1 of the 1.6.0 acceptance: a warning badge on the open record read grey). It needs the SIMAI Framework roles --sf-surface-underlay and --sf-surface-place-solid (ui-source fix/c43-badge-on-place c6711098, the next pair, core.runtime 1.50.0 or newer); on an older pair the line does nothing."
         ]
       }
     ]
@@ -2720,7 +2720,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-table/index.js",
-        "sha256": "2acf2196ea38748fa9a3e15c4299227acca32d0e45a18b1d9eb0ec485afc26bf"
+        "sha256": "2219ff795a360691409f5a1ab12100379109c79144324fcc81349c27afb4f68b"
       },
       {
         "path": "src/smart/view-table/js/templates/default.js",
@@ -2728,7 +2728,7 @@
       },
       {
         "path": "src/smart/view-table/js/templates/default.css",
-        "sha256": "6fc67235ebe0c0ff1e43388f9ae0e329a609303eaf1b08939f82d626115e5cb5"
+        "sha256": "e2964172be7d38f42ad1b357525413d691c62609f0ce1ac4d8cc26672da7eb7b"
       },
       {
         "path": "src/smart/helpers/option-badge.js",

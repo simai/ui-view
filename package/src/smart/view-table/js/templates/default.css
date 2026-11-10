@@ -774,10 +774,11 @@
   }
 
   /* A translucent place: what sits on it (a tonal badge) lays its tone over
-     the place's solid colour (C43, core --sf-surface-underlay). On a pair
-     without the role the line does nothing. */
+     the place's solid colour (C43, core --sf-surface-underlay and
+     --sf-surface-place-solid, so a selected row on a soft place leaves the
+     badge alone). On a pair without the roles the line does nothing. */
   :is(sf-view-table, sf-table) .sf-table-list-item[data-selected] {
-    --sf-surface-underlay: var(--sf-surface-place);
+    --sf-surface-underlay: var(--sf-surface-place-solid);
     background-image: linear-gradient(var(--sf-primary-container), var(--sf-primary-container));
   }
 
@@ -790,7 +791,7 @@
      is still seen on the way back from its card (owner C31, 2026-11-09). The
      row the keyboard is on (data-current) shows the focus ring only. */
   :is(sf-view-table, sf-table) .sf-table-list-item[aria-current="true"] {
-    --sf-surface-underlay: var(--sf-surface-place);
+    --sf-surface-underlay: var(--sf-surface-place-solid);
     background-image: linear-gradient(var(--sf-primary-container), var(--sf-primary-container));
   }
 
@@ -1461,7 +1462,7 @@
   }
 
   :is(sf-view-table, sf-table) tbody tr[data-selected] {
-    --sf-surface-underlay: var(--sf-surface-place);
+    --sf-surface-underlay: var(--sf-surface-place-solid);
     background-image: linear-gradient(
       var(--sf-primary-container),
       var(--sf-primary-container)

@@ -16,19 +16,27 @@ in brackets. The site page «Изменения» says the same in Russian.
     without a size in the density they are read in. They are also declared
     on every element with `data-sf-density`, so a normal region of a compact
     page reads the normal box.
-  - A draw reads the column settings once (simai/ui-pro#1: 338 reads for 8
-    rows, 513 for a window of 60, now a handful), and an idle row's actions
-    cell is the bare cell (simai/ui-pro#2: 29 nodes a row, was 31).
+  - A draw reads the column settings once (simai/ui-pro#1, counted over
+    one `setRows()` draw: 268 reads for 8 rows and 343 for 60, now 4), and an
+    idle row's actions cell is the bare cell (simai/ui-pro#2: 29 nodes a row,
+    was 31).
   - A selected row, a selected list item and the open record give a tonal
-    badge on them a solid base (`--sf-surface-underlay: var(--sf-surface-place)`,
-    C43), so a warning or error fact keeps its colour there. Needs the next
-    SIMAI Framework pair (core.runtime 1.50.0 or newer, the role
-    `--sf-surface-underlay`); on an older pair the line does nothing.
+    badge on them a solid base
+    (`--sf-surface-underlay: var(--sf-surface-place-solid)`, C43), so a
+    warning or error fact keeps its colour there. Needs the next SIMAI
+    Framework pair (core.runtime 1.50.0 or newer, the roles
+    `--sf-surface-underlay` and `--sf-surface-place-solid`); on an older pair
+    the line does nothing.
 - `sf-view` 1.11.1: when the page declares saved views before the first
   answer, the first paint holds the saved-views control's place in the
   toolbar, and the search field no longer moves when the control is drawn
   (it moved 54px at 1280); the skeleton's head and toolbar gap follow the
-  table.
+  table. The skeleton's toolbar is the drawn one: the filter at the start,
+  the field and the create button at the end, the buttons as wide as their
+  labels make them (they were a fixed three controls, 9.72 / 16.5 px short),
+  and in the compact list the field first with the two as squares after it
+  (the field moved 116 / 92 px on a phone). The search field no longer moves
+  from the first paint to the drawn toolbar.
 - Proposal, not built: a section rail in the `sf-view-properties` skeleton
   (package/README.md).
 

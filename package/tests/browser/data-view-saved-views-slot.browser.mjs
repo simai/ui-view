@@ -5,13 +5,16 @@
 // saved-views), the first paint holds the saved-views control's place in the
 // toolbar -- a square of the step's control, joined to the filter button --
 // so the toolbar does not move when the answer draws it. Measured on the
-// built bytes, light and dark, at 1280 and 390, without a size and at 1/2:
+// built bytes, light and dark, at 1440 and 390, without a size and at 1/2:
 //   - with saved-views declared, the skeleton's toolbar holds the slot, as
 //     tall and as wide as the control the table then draws (the C27 height of
 //     the step);
 //   - the search field moves from the first paint to the drawn toolbar by
 //     the same length with saved views declared as without them: the control
 //     takes exactly the place held for it (on 1.11.0 it moved 54px further);
+//   - the skeleton's toolbar is the drawn one (view161 acceptance O1, O2):
+//     the search field starts and ends at the first paint where the table
+//     draws it, on a desktop and on a phone, with saved views or without;
 //   - once drawn, the port's answer moves nothing in the toolbar (CLS 0);
 //   - without saved-views declared nothing is held; on a phone the compact
 //     list's toolbar has no such control, and no slot is held;
@@ -53,7 +56,7 @@ const view = (id, capabilities, size) => `<div style="margin-block-end:24px"><sf
 const failures = [];
 const browser = await chromium.launch();
 try {
-  for (const scheme of ['light', 'dark']) for (const width of [1280, 390]) for (const size of ['', '1/2']) {
+  for (const scheme of ['light', 'dark']) for (const width of [1440, 390]) for (const size of ['', '1/2']) {
     const where = `${scheme} ${width} size ${size || 'none'}`;
     const context = await browser.newContext({viewport: {width, height: 1000}, colorScheme: scheme});
     const tab = await context.newPage();
@@ -114,6 +117,17 @@ try {
       const moved = (id) => drawn[id].field && first[id].field ? drawn[id].field.left - first[id].field.left : null;
       if (!near(moved('views'), moved('plain'))) failures.push(`${where}: the search field moves ${moved('views')}px with saved views declared, ${moved('plain')}px without: the toolbar shifts by ${moved('views') - moved('plain')}px`);
     }
+    // The skeleton's toolbar is the drawn one (view161 acceptance O1, O2): the
+    // search field starts and ends where the table then draws it, with saved
+    // views declared or not, on a desktop and on a phone.
+    for (const id of ['views', 'plain']) {
+      const before = first[id].field;
+      const after = drawn[id].field;
+      if (!before || !after) failures.push(`${where} ${id}: no search field to compare (${JSON.stringify({before, after})})`);
+      else if (!near(before.left, after.left) || !near(before.left + before.width, after.left + after.width)) {
+        failures.push(`${where} ${id}: the search field moves from ${before.left}..${before.left + before.width} at the first paint to ${after.left}..${after.left + after.width} drawn`);
+      }
+    }
     if (drawn.later > 0) failures.push(`${where}: the drawn toolbar shifted by ${drawn.later} on the port's answer`);
     if (drawn.views.field && drawn.afterRefresh.field && !near(drawn.views.field.left, drawn.afterRefresh.field.left)) failures.push(`${where}: the field moved on a refresh`);
     if (errors.length) failures.push(`${where}: console ${errors.slice(0, 3).join(' | ')}`);
@@ -129,4 +143,4 @@ if (failures.length) {
   console.error(failures.join('\n'));
   process.exit(1);
 }
-console.log('data-view saved-views slot: a declared saved-views control has its place from the first paint, the toolbar does not move, light and dark, 1280 and 390');
+console.log('data-view saved-views slot: a declared saved-views control has its place from the first paint, the toolbar does not move, light and dark, 1440 and 390');
