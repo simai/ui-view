@@ -3,7 +3,7 @@
 The set `view`, by its npm version `@simai-studio/view`; component versions
 in brackets. The site page «Изменения» says the same in Russian.
 
-## 1.6.0 — 2026-11-09
+## 1.6.0 — 2026-11-10
 
 - Built over SIMAI Framework `ui-a0370c0c99fb` (ui-source `7d2f4dc74fdf`,
   npm `@simai-studio/ui@5.20261110.34`, core.runtime 1.49.0); the set still
