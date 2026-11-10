@@ -1645,7 +1645,7 @@
       },
       {
         "path": "src/smart/view/js/first-paint.css",
-        "sha256": "059abccc0b441cc33602d9677efc57d7cf372e7f94b76ca3421f17cf60accccc"
+        "sha256": "6f2ac90c84b367163cefaa9669cfb6412a75b13dde477f16c06a079c895d77ed"
       }
     ],
     "generated_runtime": []
