@@ -22,9 +22,9 @@ in brackets. The site page «Изменения» says the same in Russian.
     was 31).
   - A selected row, a selected list item and the open record give a tonal
     badge on them a solid base
-    (`--sf-surface-underlay: var(--sf-surface-place-solid)`, C43), so a
-    warning or error fact keeps its colour there. Needs the next SIMAI
-    Framework pair (core.runtime 1.50.0 or newer, the roles
+    (`--sf-surface-underlay: var(--sf-surface-place-solid, var(--sf-surface-place))`,
+    C43), so a warning or error fact keeps its colour there. Needs the next
+    SIMAI Framework pair (core.runtime 1.50.0 or newer, the roles
     `--sf-surface-underlay` and `--sf-surface-place-solid`); on an older pair
     the line does nothing.
 - `sf-view` 1.11.1: when the page declares saved views before the first

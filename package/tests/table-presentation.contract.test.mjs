@@ -68,7 +68,7 @@ test('a row says whether it is selected, and the look follows from that', async 
   assert.match(css, /tbody tr:hover \{\s*background-image: linear-gradient\(\s*var\(--sf-surface-container-hover\),/u);
   // The selected row is a translucent place: a tonal badge on it lays its
   // tone over the place's solid colour (C43, --sf-surface-underlay).
-  assert.match(css, /tbody tr\[data-selected\] \{\s*--sf-surface-underlay: var\(--sf-surface-place-solid\);\s*background-image: linear-gradient\(\s*var\(--sf-primary-container\),/u);
+  assert.match(css, /tbody tr\[data-selected\] \{\s*--sf-surface-underlay: var\(--sf-surface-place-solid, var\(--sf-surface-place\)\);\s*background-image: linear-gradient\(\s*var\(--sf-primary-container\),/u);
   assert.match(
     css,
     /tbody tr\[data-selected\]:hover \{\s*background-image: linear-gradient\(\s*var\(--sf-primary-container-hover\),/u,
