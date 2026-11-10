@@ -5,6 +5,10 @@ in brackets. The site page «Изменения» says the same in Russian.
 
 ## 1.6.1 — unreleased
 
+- Built over SIMAI Framework `ui-2bd5a3ab478a` (ui-source `d25a01f9989d`,
+  npm `@simai-studio/ui@5.20261110.1541`, core.runtime 1.51.0); the set now
+  needs core.runtime 1.51.0 or newer, the pair that carries the roles
+  `--sf-surface-underlay` and `--sf-surface-place-solid` the C43 rows read.
 - `sf-view-table` 1.17.1:
   - The head row is on the ladder: a one-line row of its step, 40 at size
     1/2 and 48 at size 1 beside rows with the box and menu, with or without
@@ -23,10 +27,8 @@ in brackets. The site page «Изменения» says the same in Russian.
   - A selected row, a selected list item and the open record give a tonal
     badge on them a solid base
     (`--sf-surface-underlay: var(--sf-surface-place-solid, var(--sf-surface-place))`,
-    C43), so a warning or error fact keeps its colour there. Needs the next
-    SIMAI Framework pair (core.runtime 1.50.0 or newer, the roles
-    `--sf-surface-underlay` and `--sf-surface-place-solid`); on an older pair
-    the line does nothing.
+    C43), so a warning or error fact keeps its colour there (pair
+    `ui-2bd5a3ab478a` and newer).
 - `sf-view` 1.11.1: when the page declares saved views before the first
   answer, the first paint holds the saved-views control's place in the
   toolbar, and the search field no longer moves when the control is drawn
