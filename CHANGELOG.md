@@ -19,6 +19,11 @@ in brackets. The site page «Изменения» says the same in Russian.
   - A draw reads the column settings once (simai/ui-pro#1: 338 reads for 8
     rows, 513 for a window of 60, now a handful), and an idle row's actions
     cell is the bare cell (simai/ui-pro#2: 29 nodes a row, was 31).
+  - A selected row, a selected list item and the open record give a tonal
+    badge on them a solid base (`--sf-surface-underlay: var(--sf-surface-place)`,
+    C43), so a warning or error fact keeps its colour there. Needs the next
+    SIMAI Framework pair (core.runtime 1.50.0 or newer, the role
+    `--sf-surface-underlay`); on an older pair the line does nothing.
 - `sf-view` 1.11.1: when the page declares saved views before the first
   answer, the first paint holds the saved-views control's place in the
   toolbar, and the search field no longer moves when the control is drawn

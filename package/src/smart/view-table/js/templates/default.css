@@ -773,7 +773,11 @@
     background-image: linear-gradient(var(--sf-surface-container-hover), var(--sf-surface-container-hover));
   }
 
+  /* A translucent place: what sits on it (a tonal badge) lays its tone over
+     the place's solid colour (C43, core --sf-surface-underlay). On a pair
+     without the role the line does nothing. */
   :is(sf-view-table, sf-table) .sf-table-list-item[data-selected] {
+    --sf-surface-underlay: var(--sf-surface-place);
     background-image: linear-gradient(var(--sf-primary-container), var(--sf-primary-container));
   }
 
@@ -786,6 +790,7 @@
      is still seen on the way back from its card (owner C31, 2026-11-09). The
      row the keyboard is on (data-current) shows the focus ring only. */
   :is(sf-view-table, sf-table) .sf-table-list-item[aria-current="true"] {
+    --sf-surface-underlay: var(--sf-surface-place);
     background-image: linear-gradient(var(--sf-primary-container), var(--sf-primary-container));
   }
 
@@ -1456,6 +1461,7 @@
   }
 
   :is(sf-view-table, sf-table) tbody tr[data-selected] {
+    --sf-surface-underlay: var(--sf-surface-place);
     background-image: linear-gradient(
       var(--sf-primary-container),
       var(--sf-primary-container)
