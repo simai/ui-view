@@ -4,8 +4,9 @@
 // the drawn tables under page density (C22, C27). Measured on the built bytes,
 // light and dark, at 1280 and 390, on a normal and a compact page:
 //   - every head -- with the box and sortable column controls or with names
-//     only -- is a one-line row of its step: 40 at 1/2 and 48 at 1 on the
-//     normal ladder (it was 33/41, and 45/57 with controls);
+//     only -- is a one-line row of its own table: 40 at 1/2 and 48 at 1 with
+//     the box and controls, on a desktop names only too (they were 45/57
+//     with controls, 37/41 without; published 33/41);
 //   - --sf-table-head-block-size-* is the head drawn;
 //   - the -1/2 names are the size="1/2" table on every page (a written size
 //     is stronger than density): on a compact page too (they gave 36 there
@@ -87,11 +88,11 @@ try {
     for (const [id, one] of Object.entries(drawn)) {
       if (!near(one.head, one.row)) failures.push(`${where}: ${id} head ${one.head} beside rows of ${one.row}`);
     }
-    // On the normal ladder (desktop, or any phone): 40 at 1/2 and 48 at 1.
-    if (width >= 1000 || density === 'normal') {
-      if (!near(drawn.half.head, 40) || !near(drawn['half-plain'].head, 40)) failures.push(`${where}: the 1/2 heads are ${drawn.half.head}/${drawn['half-plain'].head}, not 40`);
-      if (!near(drawn.one.head, 48) || !near(drawn['one-plain'].head, 48)) failures.push(`${where}: the size-1 heads are ${drawn.one.head}/${drawn['one-plain'].head}, not 48`);
-    }
+    // On the ladder: 40 at 1/2 and 48 at 1 with the box and controls, on a
+    // desktop and on a phone; the heads of names only on a desktop (on a
+    // phone they stand on the phone's rung, 36 and 44, as their rows do).
+    if (!near(drawn.half.head, 40) || !near(drawn.one.head, 48)) failures.push(`${where}: the heads with controls are ${drawn.half.head}/${drawn.one.head}, not 40/48`);
+    if (width >= 1000 && (!near(drawn['half-plain'].head, 40) || !near(drawn['one-plain'].head, 48))) failures.push(`${where}: the heads of names are ${drawn['half-plain'].head}/${drawn['one-plain'].head}, not 40/48`);
     // The -1/2 names are the size="1/2" table; the -1 names the table without a size; a normal region reads size 1.
     const checks = [['row12', drawn.half.row], ['head12', drawn.half.head], ['row1', drawn.none.row], ['head1', drawn.none.head]];
     for (const [key, value] of checks) if (!near(read.page[key], value)) failures.push(`${where}: --${key} reads ${read.page[key]} on the page, the table draws ${value}`);

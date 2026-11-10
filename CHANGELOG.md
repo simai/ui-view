@@ -3,6 +3,30 @@
 The set `view`, by its npm version `@simai-studio/view`; component versions
 in brackets. The site page «Изменения» says the same in Russian.
 
+## 1.6.1 — unreleased
+
+- `sf-view-table` 1.17.1:
+  - The head row is on the ladder: a one-line row of its step, 40 at size
+    1/2 and 48 at size 1 beside rows with the box and menu, with or without
+    the box and the sortable column controls (it was 45 and 57 with them,
+    33 to 41 without). `--sf-table-head-block-size-*` say 40 and 48.
+  - The published box agrees with the tables under page density (C22): the
+    `-1/2` names are the `size="1/2"` table on every page, 40/48/40 on a
+    compact page too (they said 36/40/29); the `-1` names are the table
+    without a size in the density they are read in. They are also declared
+    on every element with `data-sf-density`, so a normal region of a compact
+    page reads the normal box.
+  - A draw reads the column settings once (simai/ui-pro#1: 338 reads for 8
+    rows, 513 for a window of 60, now a handful), and an idle row's actions
+    cell is the bare cell (simai/ui-pro#2: 29 nodes a row, was 31).
+- `sf-view` 1.11.1: when the page declares saved views before the first
+  answer, the first paint holds the saved-views control's place in the
+  toolbar, and the search field no longer moves when the control is drawn
+  (it moved 54px at 1280); the skeleton's head and toolbar gap follow the
+  table.
+- Proposal, not built: a section rail in the `sf-view-properties` skeleton
+  (package/README.md).
+
 ## 1.6.0 — 2026-11-10
 
 - Built over SIMAI Framework `ui-a0370c0c99fb` (ui-source `7d2f4dc74fdf`,

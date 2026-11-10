@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view",
-  "version": "1.11.0",
+  "version": "1.11.1",
   "title": "Data view",
   "summary": "Host-driven data view that composes toolbar, content and pagination around a separate data port.",
   "kind": "composite",
@@ -1617,6 +1617,14 @@
           "Speaks simai.dataview-port 1.15.0 (SIMAI Framework pair ui-a0370c0c99fb) beside 1.0.0-1.14.0: a column's list role comes from the port (columns[].list) and is passed to the table as sent. list-roles stays a dated alias until 2027-01-01 for a host on an earlier port (aliases.json, noted in SF.deprecations once per view); a column the host gave a role keeps it.",
           "The controls the view makes and its table are relative (C22, Larena 2026-11-10): a view without a size writes no size on its table, page row, selection band (the action list, Apply, Clear and their options) or Show all, so compact page density moves them with the page (32 at 1280 where they stayed 40); a view with size=\"1\" or \"1/2\" still hands it down. A table given its own size inside a view without one loses it to the view (it used to be overwritten with 1).",
           "Over SIMAI Framework ui-a0370c0c99fb (core.runtime 1.49.0; the set still needs 1.43.0 or newer). Nothing to change for a host that does not use the new settings."
+        ]
+      },
+      {
+        "from": "1.11.0",
+        "to": "1.11.1",
+        "changes": [
+          "When the page declares saved views before the first answer (its data-sf-port lists saved-views, or a port is given), the first paint holds the saved-views control's place in the toolbar: a square of the step's control joined to the filter button, so the search field does not move when the answer draws the control (DEV decision msg-e39bb812, 2026-11-09; it moved 54px at 1280). Not declared, nothing is held and the control comes when a port brings it, as before; the compact list's toolbar has no such control and holds no place.",
+          "The first paint follows sf-view-table 1.17.1: the head is a row like the others (40 at 1/2, 48 at 1), and the toolbar's gap is the table's (--sf-space-1/2; it was --sf-space-1/3). Needs sf-view-table 1.17.1 (the same release)."
         ]
       }
     ]

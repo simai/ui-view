@@ -3582,9 +3582,7 @@ class SfTable extends TableElement {
     getColumnSetting(columnKey) {
         if (!columnKey) return {};
 
-        // While the template is built the settings are the ones read once for
-        // that draw (template()): every column and every cell asked for them,
-        // 248 times for 8 rows and 423 for a window of 60 (simai/ui-pro#1).
+        // During a draw, the settings read once for it (drawingWith).
         const settings = (this._drawColumnSettings ?? this.getColumnSettings())?.[columnKey];
 
         return settings && typeof settings === "object" && !Array.isArray(settings)
@@ -7650,6 +7648,10 @@ class SfTable extends TableElement {
     }
 
     afterRender() {
+        this.drawingWith(() => this.afterDraw());
+    }
+
+    afterDraw() {
         this._observeResponsiveBox();
         this.bindRowActionsEvents(this.refs.table?.value);
         if (this._windowed) this.bindWindowScroll();
@@ -7728,13 +7730,20 @@ class SfTable extends TableElement {
     template() {
         // Building the template writes nothing to the page: what it reads of
         // the layout (the cap, whether the columns are cramped) is read once,
-        // and so are the column settings (getColumnSetting). Building it
-        // changes no setting either; a handler it draws runs later, after
-        // the draw, and reads them afresh.
+        // and so are the column settings (drawingWith).
+        return this.drawingWith(() => this.readingLayout(() => renderTableTemplate(this.templateContext())));
+    }
+
+    // The column settings of one draw, read once (simai/ui-pro#1): every
+    // column and every cell asked for them, 268 times for a draw of 8 rows
+    // and 518 for a window of 60. Building the template and measuring it
+    // after (afterRender) change no setting; a handler they bind runs later,
+    // outside the draw, and reads them afresh.
+    drawingWith(draw) {
         const outer = this._drawColumnSettings;
         this._drawColumnSettings = outer ?? this.getColumnSettings();
         try {
-            return this.readingLayout(() => renderTableTemplate(this.templateContext()));
+            return draw();
         } finally {
             this._drawColumnSettings = outer;
         }
