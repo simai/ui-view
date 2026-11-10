@@ -6812,7 +6812,13 @@ class SfTable extends TableElement {
         return `position: sticky; inset-inline-${side}: var(--sf-table-pin-${column.key}, 0px); z-index: 2;`;
     }
 
+    // Measured after a draw and on every resize of the box: the column
+    // settings are read once for it (drawingWith).
     measurePinnedColumns() {
+        return this.drawingWith(() => this.measurePinnedColumnsNow());
+    }
+
+    measurePinnedColumnsNow() {
         const table = this.refs.table?.value;
         const scroll = this.refs.scroll?.value;
         if (!table) return this;
@@ -7141,7 +7147,7 @@ class SfTable extends TableElement {
         const systemColumns = this.getSystemColumns();
         this._labelColumnBatch = {};
         try {
-            return rows.map((row) => this.normalizeRow(row, systemColumns));
+            return this.drawingWith(() => rows.map((row) => this.normalizeRow(row, systemColumns)));
         } finally {
             this._labelColumnBatch = null;
         }
@@ -7736,9 +7742,10 @@ class SfTable extends TableElement {
 
     // The column settings of one draw, read once (simai/ui-pro#1): every
     // column and every cell asked for them, 268 times for a draw of 8 rows
-    // and 518 for a window of 60. Building the template and measuring it
-    // after (afterRender) change no setting; a handler they bind runs later,
-    // outside the draw, and reads them afresh.
+    // and 518 for a window of 60. Building the template, measuring it after
+    // (afterRender, measurePinnedColumns) and preparing the rows
+    // (normalizeRows) change no setting; a handler they bind runs later,
+    // outside, and reads them afresh.
     drawingWith(draw) {
         const outer = this._drawColumnSettings;
         this._drawColumnSettings = outer ?? this.getColumnSettings();
