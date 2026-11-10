@@ -20,6 +20,7 @@
 
   :is(sf-view, sf-data-view) > .sf-data-view-skeleton {
     --sf-data-view-skeleton--control: var(--sf-ui-1--control-height);
+    --sf-data-view-skeleton--switch: calc(var(--sf-data-view-skeleton--control) * 2);
     /* A labelled button of the step, from the button's own lengths (sf-button
        size 1): its side padding, its icon a line of the step's text, the
        label's padding and its text. */
@@ -111,6 +112,22 @@
     flex: 1 1 var(--sf-g0);
   }
 
+  /* The optional controls (sf-view 1.12.0): the layout switch is the
+     segmented pair of icon segments; the create kinds' arrow is a square
+     joined to the create button; the toolbar actions' «more» a square. The
+     list's sort button is drawn only in the compact list's toolbar, where
+     the switch, the arrow and «more» are not. */
+  .sf-data-view-skeleton .sf-skeleton-text[data-control="switch"] {
+    inline-size: var(--sf-data-view-skeleton--switch);
+  }
+  .sf-data-view-skeleton-toolbar > [data-part] > [data-part="create"] {
+    display: flex;
+    align-items: center;
+  }
+  .sf-data-view-skeleton .sf-skeleton-text[data-control="sort"] {
+    display: none;
+  }
+
   /* The table's section: its toolbar, then its rows, a step apart. */
   .sf-data-view-skeleton-records {
     display: grid;
@@ -163,13 +180,17 @@
     order: -1;
     flex: 1 1 0;
   }
+  .sf-data-view-skeleton[data-layout="list"]:not([data-layout-switch]) .sf-data-view-skeleton-toolbar [data-control="sort"] {
+    display: block;
+  }
   .sf-data-view-skeleton[data-layout="list"]:not([data-layout-switch]) .sf-data-view-skeleton-toolbar :is([data-control="filter"], [data-control="create"]) {
     inline-size: var(--sf-data-view-skeleton--control);
     padding: 0;
     overflow: hidden;
     font-size: 0;
   }
-  .sf-data-view-skeleton[data-layout="list"]:not([data-layout-switch]) .sf-data-view-skeleton-toolbar [data-control="segment"] {
+    .sf-data-view-skeleton[data-layout="list"]:not([data-layout-switch]) .sf-data-view-skeleton-toolbar :is([data-control="split"], [data-control="switch"], [data-control="actions"]),
+.sf-data-view-skeleton[data-layout="list"]:not([data-layout-switch]) .sf-data-view-skeleton-toolbar [data-control="segment"] {
     display: none;
   }
 
@@ -264,12 +285,16 @@
       order: -1;
       flex: 1 1 0;
     }
+    .sf-data-view-skeleton:is([data-layout="auto"], [data-layout="list"]) .sf-data-view-skeleton-toolbar [data-control="sort"] {
+      display: block;
+    }
     .sf-data-view-skeleton:is([data-layout="auto"], [data-layout="list"]) .sf-data-view-skeleton-toolbar :is([data-control="filter"], [data-control="create"]) {
       inline-size: var(--sf-data-view-skeleton--control);
       padding: 0;
       overflow: hidden;
       font-size: 0;
     }
+    .sf-data-view-skeleton:is([data-layout="auto"], [data-layout="list"]) .sf-data-view-skeleton-toolbar :is([data-control="split"], [data-control="switch"], [data-control="actions"]),
     .sf-data-view-skeleton:is([data-layout="auto"], [data-layout="list"]) .sf-data-view-skeleton-toolbar [data-control="segment"] {
       display: none;
     }

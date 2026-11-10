@@ -906,12 +906,27 @@ class SfDataView extends DataViewElement {
         const creatable = this.hostOffers("create-record");
         const word = (key, attribute) => escapeText(table?.getAttribute?.(attribute) || pageText(TABLE_TOOLBAR_TEXT, key, table ?? this, "sf-view-table"));
         const label = (kind, text) => `<i class="sf-skeleton-text" data-control="${kind}">${text}</i>`;
+        // The optional controls (sf-view 1.12.0, msg-8c5606e7): each is drawn
+        // when what draws it is known before the answer -- the layout switch
+        // from the view's layout-switch, and the table's create kinds
+        // (createItems: the split arrow), its toolbar actions (the «more»
+        // button) and a sortable column (the list's sort button) when the
+        // page gave them to its table before the first paint. A control the
+        // page gives later still comes with the answer, as before.
+        const switchValue = this.getAttribute?.("layout-switch");
+        const layoutSwitch = switchValue !== null && switchValue !== undefined && switchValue !== "false" && this.renders("toolbar");
+        const known = (read) => { try { return read(); } catch { return undefined; } };
+        const createSplit = creatable && (known(() => table?.createItems?.length) ?? 0) > 0;
+        const toolbarActions = settings && (known(() => table?.toolbarActions?.length) ?? 0) > 0;
+        const sortable = (known(() => table?.getColumns?.() ?? table?.columns) ?? []).some?.((column) => column?.sortable && !column.system) === true;
+        const createMarkup = creatable
+            ? (createSplit ? `<span data-part="create">${label("create", word("createText", "create-text"))}${control("split")}</span>` : label("create", word("createText", "create-text")))
+            : "";
         const toolbarMarkup = '<div class="sf-data-view-skeleton-toolbar">'
             + `<div data-part="start">${label("filter", word("filterText", "filter-text"))}${views ? control("segment") : ""}</div>`
-            + `<div data-part="end">${control("field")}${creatable ? label("create", word("createText", "create-text")) : ""}</div>`
+            + `<div data-part="end">${control("field")}${sortable ? control("sort") : ""}${layoutSwitch ? control("switch") : ""}${createMarkup}${toolbarActions ? control("actions") : ""}</div>`
             + "</div>";
-        const switchValue = this.getAttribute?.("layout-switch");
-        if (switchValue !== null && switchValue !== undefined && switchValue !== "false" && this.renders("toolbar")) skeleton.setAttribute("data-layout-switch", "");
+        if (layoutSwitch) skeleton.setAttribute("data-layout-switch", "");
         else skeleton.removeAttribute?.("data-layout-switch");
         skeleton.setAttribute("data-layout", ["auto", "table", "list"].includes(layout) ? layout : "table");
         const columns = this.expectedColumns;
