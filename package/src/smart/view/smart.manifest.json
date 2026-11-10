@@ -1635,7 +1635,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view/index.js",
-        "sha256": "bfcf7d95120473636f12acb261eb2abed7979db342ef638bfbd39f645a01e2e7"
+        "sha256": "4350e2809e6bcfca50a6d9d7f1882ca5b6687e6c1599b7a9b8eeec875a24b0a5"
       },
       {
         "path": "src/core/contracts/ports/simai.dataview-port/1.5.0/port.json",
@@ -1655,7 +1655,7 @@
       },
       {
         "path": "src/smart/view/js/first-paint.css",
-        "sha256": "6f2ac90c84b367163cefaa9669cfb6412a75b13dde477f16c06a079c895d77ed"
+        "sha256": "c547379fec4fe1b775c5b82f775da5536bda06289781584dab7c84c4b0a46633"
       }
     ],
     "generated_runtime": []

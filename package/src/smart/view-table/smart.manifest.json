@@ -2719,15 +2719,15 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-table/index.js",
-        "sha256": "05d95b92c18e67f0649ed11838eed92367a118ced8006decee43ecf5a2c2b8bd"
+        "sha256": "2acf2196ea38748fa9a3e15c4299227acca32d0e45a18b1d9eb0ec485afc26bf"
       },
       {
         "path": "src/smart/view-table/js/templates/default.js",
-        "sha256": "2197b74d2c0de08e6d05581ad90068a35896a83712549a906762df33b6dc5ffb"
+        "sha256": "bd71a4cac9bde3bdb1c1087e149d7ea6499f32c2f87866076c65eea66dc091ce"
       },
       {
         "path": "src/smart/view-table/js/templates/default.css",
-        "sha256": "955ed8b596e067411ba9e2d330cf9379a74f61ab7055deb00db7750fae467fce"
+        "sha256": "acfa37c38f56d9e1ad21b719da2e1741579b94e2463b5f1daeff683330988a5e"
       },
       {
         "path": "src/smart/helpers/option-badge.js",

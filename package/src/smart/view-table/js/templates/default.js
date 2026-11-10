@@ -652,10 +652,10 @@ const ROW_STRINGS = new Map();
 // bound on the cell itself (an element part has no marker): a row whose
 // strings change is drawn anew, and the focus that brought the buttons in
 // would leave with the old row.
-class RowActionsCell extends Directive {
+class ActionsCellDirective extends Directive {
     constructor(part) {
         super(part);
-        if (part.type !== PartType.ELEMENT) throw new Error("rowActions binds an element");
+        if (part.type !== PartType.ELEMENT) throw new Error("actionsCell binds an element");
     }
 
     render() {
@@ -669,7 +669,7 @@ class RowActionsCell extends Directive {
         return nothing;
     }
 }
-const rowActions = directive(RowActionsCell);
+const actionsCell = directive(ActionsCellDirective);
 function rowStrings(kinds) {
     const signature = kinds.join("|");
     const known = ROW_STRINGS.get(signature);
@@ -680,7 +680,7 @@ function rowStrings(kinds) {
         ' tabindex="-1" @mousedown=', ROW_HOLE, ' @click=', ROW_HOLE, ' @dblclick=', ROW_HOLE, ' @keydown=', ROW_HOLE, '>'];
     for (const kind of kinds) {
         pieces.push('<td data-key=', ROW_HOLE, ' data-item=', ROW_HOLE, ' data-sf-pinned=', ROW_HOLE, ' style=', ROW_HOLE);
-        // The actions cell's buttons are bound on the cell (rowActions).
+        // The actions cell's buttons are bound on the cell (actionsCell).
         pieces.push(...(kind === 'actions' ? [' ', ROW_HOLE, '>'] : ['>']));
         if (kind === 'box') {
             pieces.push('<label class=', ROW_HOLE, '><span class="sf-checkbox-box transition flex"><input type="checkbox" data-sf-row-box value=', ROW_HOLE,
@@ -1084,7 +1084,7 @@ export function renderTableTemplate(context) {
                     kinds.push('empty');
                 } else if (column.key === 'actions') {
                     kinds.push('actions');
-                    values.push(rowActions(fullCell(row, column), component));
+                    values.push(actionsCell(fullCell(row, column), component));
                 } else {
                     kinds.push('node');
                     values.push(fullCell(row, column));
