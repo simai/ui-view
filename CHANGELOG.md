@@ -19,9 +19,11 @@ Carries 1.6.1, which was not published on its own.
   - The first paint holds the optional toolbar controls known before the
     answer: the layout switch (`layout-switch`), and the create kinds' arrow
     and the toolbar actions' button when the page gave its table
-    `createItems` or `toolbarActions` before the first paint. The search
-    field no longer moves when they are drawn. The list's sort button is
-    still drawn with the answer (its column is the port's).
+    `createItems` or `toolbarActions` before the first paint. On a desktop
+    table the search field no longer moves when they are drawn. The list's
+    sort button is still drawn with the answer (its column is the port's),
+    so a compact list with a sortable column still moves the field: see the
+    known limits below.
 - `sf-view-table` 1.18.0: the table's own windows by their C32 kind, from
   the Framework's popup widths: the filter with its saved views and the
   column settings are panels (`--sf-popup-panel-width`, 20rem, 18rem
@@ -32,6 +34,20 @@ Carries 1.6.1, which was not published on its own.
 - `sf-view-flow` 1.1.2 (preview): over the new pair a declined answer says
   nothing (SIMAI Framework C35/R067): the status line is empty where it
   said «Отменено». Probe `p2-cancel` follows.
+- Known limits:
+  - The list's sort button is not held by the first paint. A compact list
+    with a sortable column (every phone list by default, and a desktop
+    `layout="list"`) moves the search field when the answer draws the sort
+    button: 44 px at size 1 (48 in a desktop list), 36 px at size 1/2 and
+    under compact density. It moved 132 px on a phone in 1.6.0. The fix
+    needs a first-paint hint in a later `simai.dataview-port`.
+  - Controls the page gives after the first paint (`setCreateItems`,
+    `setToolbarActions` once the skeleton is on screen) are not held.
+  - A table forced to `layout="table"` on a phone opens its forms (saving a
+    template, a chip's filter) as a 320 px window at the trigger, not as the
+    bottom sheet SIMAI Framework C32 asks for on a phone (open, C19). The
+    phone list (`layout="auto"`) opens its filter as a full-width bottom
+    sheet and offers no template saving.
 
 ## 1.6.1 — unreleased (carried by 1.7.0)
 
@@ -68,7 +84,9 @@ Carries 1.6.1, which was not published on its own.
   labels make them (they were a fixed three controls, 9.72 / 16.5 px short),
   and in the compact list the field first with the two as squares after it
   (the field moved 116 / 92 px on a phone). The search field no longer moves
-  from the first paint to the drawn toolbar.
+  from the first paint to the drawn toolbar, except where the list's sort
+  button is drawn: a phone list with a sortable column still moves it 44 px
+  (36 px at size 1/2), see the 1.7.0 known limits.
 - `sf-view-properties` 1.13.3: the controls the panel draws (the open-all
   bar, the group and section buttons, the section tabs, the profile picker,
   the edge controls) carry the panel's size only when it has one (C22), as
