@@ -1022,12 +1022,34 @@
       },
       "canonical": true
     },
-    "sf-view-saved-view-intent": {
-      "summary": "Dated alias of sf-view-save until 2027-01-01 (same-detail).",
+    "sf-table-action-intent": {
+      "summary": "A table event the view listens to: a row or bulk action chosen in its table. The view checks the row allows it and raises record.open (view), record.mutate (one row) or bulk.apply_selected, with the records' revisions; move and create on a tree open the move dialog or view.create_record.",
       "payload": {
-        "type": "object"
-      },
-      "alias_of": "sf-view-save"
+        "type": "object",
+        "required": [
+          "action_id",
+          "record_ids"
+        ],
+        "properties": {
+          "action_id": {
+            "type": "string",
+            "description": "The opaque id of the row or bulk action chosen.",
+            "minLength": 1
+          },
+          "record_ids": {
+            "type": "array",
+            "description": "The records it applies to: the row's own id, or the selected ids for a bulk action.",
+            "items": {
+              "type": [
+                "string",
+                "integer"
+              ]
+            },
+            "minItems": 1
+          }
+        },
+        "additionalProperties": true
+      }
     },
     "sf-table-column-settings-change": {
       "summary": "A table event the view listens to: the person resized, moved, pinned or hid a column. The view writes it to the person's layer (settings.save_personal): the table offers no choice of layer, and the table it draws sends no target. The shared layer is written from page code with saveColumnSettings(settings, {shared: true}).",
@@ -1090,6 +1112,52 @@
               "null"
             ],
             "description": "The table's settings key, or null when it has none."
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "sf-table-create-intent": {
+      "summary": "A table event the view listens to: the create button or one of its menu items was pressed. The view raises view.create_record with the detail as it came.",
+      "payload": {
+        "type": "object",
+        "required": [
+          "item"
+        ],
+        "properties": {
+          "item": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "null for the main create button; the declared create item's id when one was chosen from its menu."
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "sf-table-query-intent": {
+      "summary": "A table event the view listens to: its table's context input port changed. The view ignores the table's sequence and re-reads the list with its own query.change.",
+      "payload": {
+        "type": "object",
+        "required": [
+          "reason",
+          "context",
+          "sequence"
+        ],
+        "properties": {
+          "reason": {
+            "const": "context",
+            "description": "Always context: the context input port changed."
+          },
+          "context": {
+            "type": "object",
+            "description": "The immutable context last received through the context input port."
+          },
+          "sequence": {
+            "type": "integer",
+            "description": "The pending query's sequence; only the newest is applied.",
+            "minimum": 1
           }
         },
         "additionalProperties": true
@@ -1367,6 +1435,13 @@
       },
       "alias_of": "sf-view-save"
     },
+    "sf-view-saved-view-intent": {
+      "summary": "Dated alias of sf-view-save until 2027-01-01 (same-detail).",
+      "payload": {
+        "type": "object"
+      },
+      "alias_of": "sf-view-save"
+    },
     "sf-data-view-list-open": {
       "summary": "Dated alias of sf-view-list-open until 2027-01-01 (same-detail).",
       "payload": {
@@ -1570,7 +1645,6 @@
         "to": "1.12.0",
         "changes": [
           "A page asks the view to save a shared saved view with save {kind: \"view\", key, label, revision?, roles?} on the view (vocabulary 1.1.5 §9: sf-data-view-saved-view-intent -> sf-view-save with kind view). The view raises view.save_shared as before; a save of another kind is left alone. The former names sf-view-saved-view-intent and sf-data-view-saved-view-intent are dated aliases until 2027-01-01 (aliases.json, same-detail): still heard, their detail without kind read as a view, each use noted in SF.deprecations.",
-          "events.table-action-intent, table-create-intent and table-query-intent are no longer declared: they described sf-view-table's own events (its apply, create and query, which the view hears as sf-view-table-apply, -create and -query), and an element declares what it sends (§8). No DOM name changes, so there is no alias: nothing ever sent sf-view-table-*-intent, and the table's former sf-table-*-intent names stay the table's dated aliases.",
           "The first paint holds the optional toolbar controls that are known before the answer: the layout switch (layout-switch; the segmented track, two controls less the track's padding: 76 at size 1, 62 at 1/2 and compact), and, when the page gave its table createItems or toolbarActions before the first paint, the create kinds' arrow joined to Create and the toolbar actions' button. The search field then stands where it will stand (its end edge moved 66 to 172 px at 1440 when they were drawn). The compact list's toolbar has none of them. The list's sort button is not held: it comes with a sortable column, which only the port's answer names."
         ]
       }

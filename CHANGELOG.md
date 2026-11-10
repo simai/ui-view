@@ -15,10 +15,6 @@ Carries 1.6.1, which was not published on its own.
     `sf-view-saved-view-intent` and `sf-data-view-saved-view-intent` are
     dated aliases until 2027-01-01: still heard, their detail read as a
     view, each use noted in `SF.deprecations`.
-  - `table-action-intent`, `table-create-intent` and `table-query-intent`
-    are no longer declared among the view's events: they were the table's
-    apply, create and query, which the view hears as `sf-view-table-apply`,
-    `-create` and `-query`. No DOM name changes.
   - The first paint holds the optional toolbar controls known before the
     answer: the layout switch (`layout-switch`), and the create kinds' arrow
     and the toolbar actions' button when the page gave its table

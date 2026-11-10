@@ -478,7 +478,7 @@
       },
       {
         "path": "src/smart/helpers/confirm-surface.js",
-        "sha256": "1e03066f675959a54eb2e599b691a98ff65ca1e9aaf84d2596220fb6fd631d94"
+        "sha256": "c8c1a7c64adc424006991093c90c8f3efd7904a6def12fb60861278162985512"
       },
       {
         "path": "src/smart/view-flow/rule.js",

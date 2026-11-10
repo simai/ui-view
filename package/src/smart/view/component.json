@@ -393,7 +393,8 @@
           "values": [
             "view"
           ],
-          "summary": "What is saved: a saved view. A detail without kind is the former name's and is read as view."
+          "summary": "What is saved: a saved view. A detail without kind is the former name's and is read as view.",
+          "optional": true
         },
         "key": {
           "type": "string",
@@ -421,6 +422,32 @@
         }
       },
       "summary": "A page raises it on the view to save a shared saved view (vocabulary 1.1.5 §9 save, kind view; port 1.1.0 or later): the view raises view.save_shared with the detail's key and label. A detail of another kind is not the view's and is left alone. The former name sf-view-saved-view-intent (and sf-data-view-saved-view-intent) is still heard until 2027-01-01 and noted in SF.deprecations."
+    },
+    "table-action-intent": {
+      "shared": "table-intents@1",
+      "carries": {
+        "action_id": {
+          "type": "string",
+          "summary": "The opaque id of the row or bulk action chosen.",
+          "schema": {
+            "minLength": 1
+          }
+        },
+        "record_ids": {
+          "type": "list",
+          "summary": "The records it applies to: the row's own id, or the selected ids for a bulk action.",
+          "schema": {
+            "items": {
+              "type": [
+                "string",
+                "integer"
+              ]
+            },
+            "minItems": 1
+          }
+        }
+      },
+      "summary": "A table event the view listens to: a row or bulk action chosen in its table. The view checks the row allows it and raises record.open (view), record.mutate (one row) or bulk.apply_selected, with the records' revisions; move and create on a tree open the move dialog or view.create_record."
     },
     "table-column-settings-change": {
       "shared": "table-intents@1",
@@ -488,6 +515,47 @@
         }
       },
       "summary": "A table event the view listens to: the person asked for the default columns back. The view calls resetColumnSettings, an empty personal layer written against its revision; the host supplies the defaults."
+    },
+    "table-create-intent": {
+      "shared": "table-intents@1",
+      "carries": {
+        "item": {
+          "type": "string",
+          "summary": "null for the main create button; the declared create item's id when one was chosen from its menu.",
+          "schema": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "summary": "A table event the view listens to: the create button or one of its menu items was pressed. The view raises view.create_record with the detail as it came."
+    },
+    "table-query-intent": {
+      "shared": "table-intents@1",
+      "carries": {
+        "reason": {
+          "type": "enum",
+          "values": [
+            "context"
+          ],
+          "summary": "Always context: the context input port changed."
+        },
+        "context": {
+          "type": "object",
+          "summary": "The immutable context last received through the context input port."
+        },
+        "sequence": {
+          "type": "number",
+          "integer": true,
+          "summary": "The pending query's sequence; only the newest is applied.",
+          "schema": {
+            "minimum": 1
+          }
+        }
+      },
+      "summary": "A table event the view listens to: its table's context input port changed. The view ignores the table's sequence and re-reads the list with its own query.change."
     },
     "table-template-delete": {
       "shared": "table-intents@1",
@@ -1096,7 +1164,7 @@
     "version": "1.0.0 → 1.1.0, a minor while sf-table-tree-intent holds a dated alias (§4.10).",
     "events": "open {id} is a cancelable request (vocabulary §5 open): sent when a row's view action is chosen, and the host's record.open follows unless a listener refused it; deleted {ids} is the fact after an applied delete (vocabulary §4). The tree's port intents are announced as tree {intent, payload}, sf-data-view-tree; the old sf-table-tree-intent follows once. answer and state keep their DOM names and details (instance_id stays snake_case until the next major).",
     "re-emit": "simai/ui-pro#1 item 3: the view sends none of the table's events as its own; the sf-table-* events a page hears are the inner table's, once each (§8: an element never re-emits a part's event). The converter's apply, save, create, query, template-*, column-settings-*, cell-set and move are the table's and are not declared here.",
-    "alias-conflict": "sf-view-save (kind view) is not this view's own event but a page's request to it (a shared save), named by vocabulary 1.1.5 §9 save; the former sf-view-saved-view-intent and sf-data-view-saved-view-intent are dated aliases until 2027-01-01 (aliases.json). The table's apply, create and query are the table's events (its aliases.json) and are not declared here: the view hears sf-view-table-apply, -create and -query.",
+    "alias-conflict": "sf-view-save (kind view) is not this view's own event but a page's request to it (a shared save), named by vocabulary 1.1.5 §9 save; the former sf-view-saved-view-intent and sf-data-view-saved-view-intent are dated aliases until 2027-01-01 (aliases.json). table-action-intent, table-create-intent and table-query-intent stay declared: every published simai.dataview-port version (1.0.0-1.15.0, frozen) names sf-table-action-intent, sf-table-create-intent and sf-table-query-intent as the events its intents are raised by, and the port's conformance test holds the manifest to them. The view hears the table's current names (sf-view-table-apply, -create, -query); the three go when a port version names those (simai.dataview-port 1.16.0, ui-source).",
     "carries": "a carried field is one the detail holds under that very name (SF.Assembly checks it on every event); the rest is named in x-detail.",
     "own-verb-words": "answer, state, tree and files-drop are verbs of this view alone; their words are lang events.<verb>.label.",
     "bulk-actions": "a page gives the marked rows' actions on its page row's markup (ui-admin: actions=\"publish:…|delete:…\"); a view placed by an assembly makes its own table and page row (light DOM, where the page's sheets reach them) and takes the actions as the list setting bulk-actions [{id, label}], the label from the assembly's language file (§11.3). Stand 24 on the real parts measured the gap.",
@@ -1446,7 +1514,6 @@
           "to": "1.12.0",
           "changes": [
             "A page asks the view to save a shared saved view with save {kind: \"view\", key, label, revision?, roles?} on the view (vocabulary 1.1.5 §9: sf-data-view-saved-view-intent -> sf-view-save with kind view). The view raises view.save_shared as before; a save of another kind is left alone. The former names sf-view-saved-view-intent and sf-data-view-saved-view-intent are dated aliases until 2027-01-01 (aliases.json, same-detail): still heard, their detail without kind read as a view, each use noted in SF.deprecations.",
-            "events.table-action-intent, table-create-intent and table-query-intent are no longer declared: they described sf-view-table's own events (its apply, create and query, which the view hears as sf-view-table-apply, -create and -query), and an element declares what it sends (§8). No DOM name changes, so there is no alias: nothing ever sent sf-view-table-*-intent, and the table's former sf-table-*-intent names stay the table's dated aliases.",
             "The first paint holds the optional toolbar controls that are known before the answer: the layout switch (layout-switch; the segmented track, two controls less the track's padding: 76 at size 1, 62 at 1/2 and compact), and, when the page gave its table createItems or toolbarActions before the first paint, the create kinds' arrow joined to Create and the toolbar actions' button. The search field then stands where it will stand (its end edge moved 66 to 172 px at 1440 when they were drawn). The compact list's toolbar has none of them. The list's sort button is not held: it comes with a sortable column, which only the port's answer names."
           ]
         }
