@@ -3,7 +3,24 @@
 The set `view`, by its npm version `@simai-studio/view`; component versions
 in brackets. The site page «Изменения» says the same in Russian.
 
-## 1.6.1 — unreleased
+## 1.7.0 — unreleased
+
+Carries 1.6.1, which was not published on its own.
+
+- `sf-view` 1.12.0:
+  - A page asks the view to save a shared saved view with `save`
+    (`sf-view-save {kind: "view", key, label, revision?, roles?}`,
+    vocabulary 1.1.5 §9). The view raises `view.save_shared` as before; a
+    save of another kind is left alone. The former names
+    `sf-view-saved-view-intent` and `sf-data-view-saved-view-intent` are
+    dated aliases until 2027-01-01: still heard, their detail read as a
+    view, each use noted in `SF.deprecations`.
+  - `table-action-intent`, `table-create-intent` and `table-query-intent`
+    are no longer declared among the view's events: they were the table's
+    apply, create and query, which the view hears as `sf-view-table-apply`,
+    `-create` and `-query`. No DOM name changes.
+
+## 1.6.1 — unreleased (carried by 1.7.0)
 
 - Built over SIMAI Framework `ui-2bd5a3ab478a` (ui-source `d25a01f9989d`,
   npm `@simai-studio/ui@5.20261110.1541`, core.runtime 1.51.0); the set now

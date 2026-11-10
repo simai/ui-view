@@ -31,7 +31,7 @@ const LISTENED = Object.freeze([
     "sf-view-table-expand", "sf-view-table-load-more", "sf-view-table-reference-open", "sf-view-table-cell-set", "sf-view-table-move",
     "sf-pagination-change", "sf-pagination-size-change", "sf-pagination-apply", "sf-pagination-load-more",
     "sf-pagination-selection-clear", "sf-pagination-count", "sf-pagination-action-change",
-    "sf-pagination-action-for-all-change", "sf-view-saved-view-intent",
+    "sf-pagination-action-for-all-change", "sf-view-save",
 ]);
 // The table's and the page row's events by their names since standard 1.3.8
 // (vocabulary 1.1.5): the old names they still send until 2026-12-01 are not
@@ -2509,11 +2509,18 @@ class SfDataView extends DataViewElement {
         if (this._seenEvents.has(event)) return;
         this._seenEvents.add(event);
         // The port's event for a shared saved view (view.save_shared): a page
-        // raises it on the view itself, so it is taken before the rule that
-        // ignores the view's own events. It was declared and never listened to.
-        if (event.type === "sf-view-saved-view-intent") {
+        // raises save {kind: "view", key, label} on the view itself (vocabulary
+        // 1.1.5 §9; sf-view 1.12.0), so it is taken before the rule that
+        // ignores the view's own events. The former name
+        // sf-view-saved-view-intent arrives here through the alias shim as
+        // sf-view-save with its detail as it was, without kind: that is read
+        // as a view and noted. A save of another kind is not the view's.
+        if (event.type === "sf-view-save") {
             if (event.currentTarget !== this) return;
             const view = event.detail ?? {};
+            if (view.kind !== undefined && view.kind !== "view") return;
+            if (view.kind === undefined) noteDeprecated({component: "sf-view", tag: "sf-view", kind: "event",
+                from: "sf-view-saved-view-intent", to: "sf-view-save", since: "2026-11-10", remove_after: "2027-01-01"});
             return this.saveView({key: view.key, label: view.label ?? view.key, revision: view.revision, level: "shared", roles: view.roles});
         }
         if (event.target === this || event.target?.closest?.(tagSelector("sf-view")) !== this && !this.shadowRoot.contains(event.target)) return;

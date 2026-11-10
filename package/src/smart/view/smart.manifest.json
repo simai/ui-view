@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view",
-  "version": "1.11.1",
+  "version": "1.12.0",
   "title": "Data view",
   "summary": "Host-driven data view that composes toolbar, content and pagination around a separate data port.",
   "kind": "composite",
@@ -96,7 +96,7 @@
         "sf-view-tree",
         "sf-view-files-drop",
         "sf-pagination-count",
-        "sf-view-saved-view-intent",
+        "sf-view-save",
         "sf-table-action-intent",
         "sf-table-column-settings-change",
         "sf-table-column-settings-reset",
@@ -985,8 +985,8 @@
         "additionalProperties": true
       }
     },
-    "sf-view-saved-view-intent": {
-      "summary": "An event a page raises on the view to save a shared saved view (port 1.1.0 or later): the view raises view.save_shared with the detail's key and label.",
+    "sf-view-save": {
+      "summary": "A page raises it on the view to save a shared saved view (vocabulary 1.1.5 §9 save, kind view; port 1.1.0 or later): the view raises view.save_shared with the detail's key and label. A detail of another kind is not the view's and is left alone. The former name sf-view-saved-view-intent (and sf-data-view-saved-view-intent) is still heard until 2027-01-01 and noted in SF.deprecations.",
       "payload": {
         "type": "object",
         "required": [
@@ -994,6 +994,10 @@
           "label"
         ],
         "properties": {
+          "kind": {
+            "const": "view",
+            "description": "What is saved: a saved view. A detail without kind is the former name's and is read as view."
+          },
           "key": {
             "type": "string",
             "description": "The saved view's key."
@@ -1018,34 +1022,12 @@
       },
       "canonical": true
     },
-    "sf-table-action-intent": {
-      "summary": "A table event the view listens to: a row or bulk action chosen in its table. The view checks the row allows it and raises record.open (view), record.mutate (one row) or bulk.apply_selected, with the records' revisions; move and create on a tree open the move dialog or view.create_record.",
+    "sf-view-saved-view-intent": {
+      "summary": "Dated alias of sf-view-save until 2027-01-01 (same-detail).",
       "payload": {
-        "type": "object",
-        "required": [
-          "action_id",
-          "record_ids"
-        ],
-        "properties": {
-          "action_id": {
-            "type": "string",
-            "description": "The opaque id of the row or bulk action chosen.",
-            "minLength": 1
-          },
-          "record_ids": {
-            "type": "array",
-            "description": "The records it applies to: the row's own id, or the selected ids for a bulk action.",
-            "items": {
-              "type": [
-                "string",
-                "integer"
-              ]
-            },
-            "minItems": 1
-          }
-        },
-        "additionalProperties": true
-      }
+        "type": "object"
+      },
+      "alias_of": "sf-view-save"
     },
     "sf-table-column-settings-change": {
       "summary": "A table event the view listens to: the person resized, moved, pinned or hid a column. The view writes it to the person's layer (settings.save_personal): the table offers no choice of layer, and the table it draws sends no target. The shared layer is written from page code with saveColumnSettings(settings, {shared: true}).",
@@ -1108,52 +1090,6 @@
               "null"
             ],
             "description": "The table's settings key, or null when it has none."
-          }
-        },
-        "additionalProperties": true
-      }
-    },
-    "sf-table-create-intent": {
-      "summary": "A table event the view listens to: the create button or one of its menu items was pressed. The view raises view.create_record with the detail as it came.",
-      "payload": {
-        "type": "object",
-        "required": [
-          "item"
-        ],
-        "properties": {
-          "item": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "description": "null for the main create button; the declared create item's id when one was chosen from its menu."
-          }
-        },
-        "additionalProperties": true
-      }
-    },
-    "sf-table-query-intent": {
-      "summary": "A table event the view listens to: its table's context input port changed. The view ignores the table's sequence and re-reads the list with its own query.change.",
-      "payload": {
-        "type": "object",
-        "required": [
-          "reason",
-          "context",
-          "sequence"
-        ],
-        "properties": {
-          "reason": {
-            "const": "context",
-            "description": "Always context: the context input port changed."
-          },
-          "context": {
-            "type": "object",
-            "description": "The immutable context last received through the context input port."
-          },
-          "sequence": {
-            "type": "integer",
-            "description": "The pending query's sequence; only the newest is applied.",
-            "minimum": 1
           }
         },
         "additionalProperties": true
@@ -1425,11 +1361,11 @@
       "alias_of": "sf-view-files-drop"
     },
     "sf-data-view-saved-view-intent": {
-      "summary": "Dated alias of sf-view-saved-view-intent until 2027-01-01 (same-detail).",
+      "summary": "Dated alias of sf-view-save until 2027-01-01 (same-detail).",
       "payload": {
         "type": "object"
       },
-      "alias_of": "sf-view-saved-view-intent"
+      "alias_of": "sf-view-save"
     },
     "sf-data-view-list-open": {
       "summary": "Dated alias of sf-view-list-open until 2027-01-01 (same-detail).",
@@ -1628,6 +1564,14 @@
           "The first paint's toolbar is the one the table draws (view161 acceptance O1, O2): the filter group at the start and the search field with the create button at the end; the filter and create blocks hold the table's own words in the button's type, unseen, so each is as wide as its button (the side padding, the filter's icon, the label's padding and its words; a fixed three controls was 9.72 / 16.5 px short); in the compact list the field comes first and the two are squares after it (the field moved 116 / 92 px on a phone). The search field no longer moves from the first paint to the drawn toolbar. The create block is held when the port offers create-record. Nothing to change for a host.",
           "Over SIMAI Framework ui-2bd5a3ab478a (ui-source d25a01f9989d, core.runtime 1.51.0), which the set now needs (core.runtime 1.51.0 or newer): the pair that carries the roles --sf-surface-underlay and --sf-surface-place-solid. Nothing to change for a host on that pair."
         ]
+      },
+      {
+        "from": "1.11.1",
+        "to": "1.12.0",
+        "changes": [
+          "A page asks the view to save a shared saved view with save {kind: \"view\", key, label, revision?, roles?} on the view (vocabulary 1.1.5 §9: sf-data-view-saved-view-intent -> sf-view-save with kind view). The view raises view.save_shared as before; a save of another kind is left alone. The former names sf-view-saved-view-intent and sf-data-view-saved-view-intent are dated aliases until 2027-01-01 (aliases.json, same-detail): still heard, their detail without kind read as a view, each use noted in SF.deprecations.",
+          "events.table-action-intent, table-create-intent and table-query-intent are no longer declared: they described sf-view-table's own events (its apply, create and query, which the view hears as sf-view-table-apply, -create and -query), and an element declares what it sends (§8). No DOM name changes, so there is no alias: nothing ever sent sf-view-table-*-intent, and the table's former sf-table-*-intent names stay the table's dated aliases."
+        ]
       }
     ]
   },
@@ -1637,7 +1581,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view/index.js",
-        "sha256": "c5a8b784f59fe6a82c0e6ec4129e60fe7ead135e3a5d035245c432788b58d1b3"
+        "sha256": "812b1e6239332f5f40deeec22a566caf2e20702d6709990d56e75f3241e39a30"
       },
       {
         "path": "src/core/contracts/ports/simai.dataview-port/1.5.0/port.json",
@@ -1645,7 +1589,7 @@
       },
       {
         "path": "src/smart/view/docs.md",
-        "sha256": "b927d8b2f3171e75cd205dee10485e7a3ad67ebc7950e94b5dda1848df1603e9"
+        "sha256": "1b9615f1f661c7c8c67905407072346dc4d4838c4a6bc7c696e7a6f107354a2f"
       },
       {
         "path": "tests/fixtures/data-view-composite-lab.html",
