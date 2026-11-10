@@ -360,6 +360,16 @@ SF.RuleLoader.registerPackage("view", {
         {
           "lazy": true,
           "name": "cl-slider-range"
+        },
+        {
+          "name": "dot"
+        },
+        {
+          "lazy": true,
+          "name": "tooltip"
+        },
+        {
+          "name": "cl-segmented"
         }
       ],
       "tags": [
