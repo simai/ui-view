@@ -3582,7 +3582,10 @@ class SfTable extends TableElement {
     getColumnSetting(columnKey) {
         if (!columnKey) return {};
 
-        const settings = this.getColumnSettings()?.[columnKey];
+        // While the template is built the settings are the ones read once for
+        // that draw (template()): every column and every cell asked for them,
+        // 248 times for 8 rows and 423 for a window of 60 (simai/ui-pro#1).
+        const settings = (this._drawColumnSettings ?? this.getColumnSettings())?.[columnKey];
 
         return settings && typeof settings === "object" && !Array.isArray(settings)
             ? settings
@@ -7724,8 +7727,17 @@ class SfTable extends TableElement {
 
     template() {
         // Building the template writes nothing to the page: what it reads of
-        // the layout (the cap, whether the columns are cramped) is read once.
-        return this.readingLayout(() => renderTableTemplate(this.templateContext()));
+        // the layout (the cap, whether the columns are cramped) is read once,
+        // and so are the column settings (getColumnSetting). Building it
+        // changes no setting either; a handler it draws runs later, after
+        // the draw, and reads them afresh.
+        const outer = this._drawColumnSettings;
+        this._drawColumnSettings = outer ?? this.getColumnSettings();
+        try {
+            return this.readingLayout(() => renderTableTemplate(this.templateContext()));
+        } finally {
+            this._drawColumnSettings = outer;
+        }
     }
 }
 

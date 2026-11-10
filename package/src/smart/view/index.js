@@ -880,12 +880,20 @@ class SfDataView extends DataViewElement {
         const select = this.renders("select") && !hostWroteOff(table, "selectable");
         const settings = this.renders("settings") && !hostWroteOff(table, "settings");
         const layout = this._firstPaintLayout(table);
+        // The saved-views control (the filter's bookmark segment), when the
+        // page declared it before the first answer -- a data-sf-port that
+        // lists saved-views, or a port already given: its place is held from
+        // the first paint, a control of the step, and the search field stands
+        // where it will stand (DEV decision msg-e39bb812, 2026-11-09). Not
+        // declared, the control comes when a port brings it, as before.
+        const views = toolbar && this.hostOffers("saved-views");
         skeleton.setAttribute("data-layout", ["auto", "table", "list"].includes(layout) ? layout : "table");
         const columns = this.expectedColumns;
         const rows = this.firstPaintRows;
         const listFields = Number.parseInt(table?.getAttribute("list-fields") ?? "", 10);
         const fields = Math.min(columns - 1, Number.isFinite(listFields) && listFields >= 0 ? listFields : FIRST_PAINT_LIST_FIELDS);
-        const row = (head) => `<div>${select ? `<span data-chrome>${bar}</span>` : ""}${settings ? `<span data-chrome>${head ? bar : control()}</span>` : ""}${`<span>${bar}</span>`.repeat(columns)}</div>`;
+        // The head is a row like the others (sf-view-table 1.17.1).
+        const row = () => `<div>${select ? `<span data-chrome>${bar}</span>` : ""}${settings ? `<span data-chrome>${control()}</span>` : ""}${`<span>${bar}</span>`.repeat(columns)}</div>`;
         const record = `<div>${select ? bar : "<span></span>"}<div>${bar.repeat(fields + 1)}</div>${settings ? control() : "<span></span>"}</div>`;
         const pageRow = `<nav class="sf-pagination sf-pagination--size-${this.size} flex flex-col"><div class="sf-pagination-main flex items-cross-center content-main-between">`
             + `<div class="sf-pagination-left flex items-cross-center">${bar}</div>`
@@ -896,8 +904,8 @@ class SfDataView extends DataViewElement {
             // An own toolbar slot is a row of the view's layout, even empty.
             ownToolbar ? '<div class="sf-data-view-skeleton-own-toolbar"></div>' : "",
             '<div class="sf-data-view-skeleton-records">',
-            toolbar ? `<div class="sf-data-view-skeleton-toolbar">${control("button")}${control("field")}</div>` : "",
-            `<div class="sf-data-view-skeleton-table">${row(true)}${Array.from({length: rows}, () => row(false)).join("")}</div>`,
+            toolbar ? `<div class="sf-data-view-skeleton-toolbar">${control("button")}${views ? control("segment") : ""}${control("field")}</div>` : "",
+            `<div class="sf-data-view-skeleton-table">${row()}${Array.from({length: rows}, () => row()).join("")}</div>`,
             `<div class="sf-data-view-skeleton-list">${record.repeat(rows)}</div>`,
             "</div>",
             this.renders("pagination") ? pageRow : "",

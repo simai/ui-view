@@ -74,3 +74,17 @@ window.SF_BOOT_CONFIG = {packages: {view: {base: '/assets/ui-view/smart', versio
 Change `framework.lock.json` and `set.json` `framework.source_revision` to the
 ui-source revision of a newer released pair, run the gates against it and
 build. A set is built and tested against exactly one revision.
+
+## Proposals, not built
+
+Recorded here so they are not lost. None of them is in the set; each needs a
+prototype and the owner's yes first (a new look, decision D11e).
+
+- **A rail in the `sf-view-properties` skeleton** (simai/ui-pro#3.2,
+  2026-11-09). In the default `sections-as="list"` a record of two or more
+  sections draws a section rail (224px) beside its groups once the data
+  comes, so the first group moves right and narrows (900 to 644px at the
+  measured width). The skeleton could draw the rail's place when the number
+  of sections is known before the first answer (a printed answer, or a
+  declared `sections` count), and keep the full-width 3x3 shape otherwise,
+  as it is now. Not built: it is a new look of the first paint.
