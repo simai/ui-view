@@ -37,6 +37,12 @@ in brackets. The site page «Изменения» says the same in Russian.
   and in the compact list the field first with the two as squares after it
   (the field moved 116 / 92 px on a phone). The search field no longer moves
   from the first paint to the drawn toolbar.
+- `sf-view-properties` 1.13.3: the controls the panel draws (the open-all
+  bar, the group and section buttons, the section tabs, the profile picker,
+  the edge controls) carry the panel's size only when it has one (C22), as
+  `sf-view` and `sf-view-table` do since 1.6.0: under compact density a
+  panel with no size draws them at 32, size 1 keeps 40. Probe
+  `property-view-density-controls`. Nothing to change for a host.
 - Proposal, not built: a section rail in the `sf-view-properties` skeleton
   (package/README.md).
 
