@@ -14,8 +14,8 @@
     "spdx": "PolyForm-Small-Business-1.0.0 OR PolyForm-Noncommercial-1.0.0 OR LicenseRef-SIMAI-Commercial"
   },
   "framework": {
-    "core_runtime": ">=1.43.0",
-    "source_revision": "a29cc9989bebace9a98c235b074ce23998ad39c6"
+    "core_runtime": ">=1.51.0",
+    "source_revision": "d25a01f9989df2ec920364a23ed76d494d91844c"
   },
   "requires_sets": [],
   "families": [
@@ -71,6 +71,7 @@
         "cl-radio",
         "cl-reference-link",
         "cl-resizer",
+        "cl-segmented",
         "cl-slider-range",
         "cl-sortable",
         "cl-spinner",

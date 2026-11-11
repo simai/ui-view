@@ -4185,7 +4185,32 @@ const TABLE_TEXT = {
   en: camelWords(_lang_en_json__WEBPACK_IMPORTED_MODULE_5__.runtime),
   ru: camelWords(_lang_ru_json__WEBPACK_IMPORTED_MODULE_6__.runtime)
 };
-const SYSTEM_COLUMN_KEYS = new Set(["select", "settings", "actions"]);
+const SYSTEM_COLUMN_KEYS = new Set(["select", "settings", "actions"]); // The list of resources (C31): a column's place in a list row, and what a
+// status value and a fact's status mean there.
+
+const LIST_ROLES = new Set(["status", "title", "supporting", "fact", "hidden"]);
+const MAX_QUICK_ACTIONS = 3;
+const STATUS_DOTS = Object.freeze({
+  ok: "success",
+  warning: "warning",
+  error: "error",
+  stopped: "neutral",
+  success: "success",
+  danger: "error",
+  neutral: "neutral",
+  info: "info",
+  primary: "primary"
+});
+const STATUS_WORDS = Object.freeze({
+  ok: "statusOk",
+  warning: "statusWarning",
+  error: "statusError",
+  stopped: "statusStopped"
+});
+const FACT_LEVELS = Object.freeze({
+  warning: 1,
+  error: 2
+});
 
 const positioning = () => globalThis.SF?.Position || (_core_js_position_js__WEBPACK_IMPORTED_MODULE_17___default()); // Published Composition ports (simai.composition.port-manifest.v1, sf-view-table@1.0.0).
 
@@ -4334,6 +4359,30 @@ class SfTable extends TableElement {
         attribute: 'list-fields',
         type: Number,
         default: 3
+      },
+      // The list of resources (owner decision C31, 2026-11-09). The row
+      // actions drawn in a list row as icon buttons, always visible (at
+      // most three, by id); the rest are the row's «more» menu, and on a
+      // narrow list these fold into it as well.
+      quickActions: {
+        attribute: 'quick-actions',
+        default: ''
+      },
+      // What a press on a row opens: `title`, the title link alone (and
+      // a double click, Enter); `row`, anywhere in the row but its
+      // controls, through the same view intent.
+      rowOpen: {
+        attribute: 'row-open',
+        default: 'title',
+        values: ['title', 'row']
+      },
+      // A list/table switch in the toolbar, before Create. The person's
+      // choice is kept with the table's preferences and in its saved
+      // views; below list-below there is only the list and no switch.
+      layoutSwitch: {
+        attribute: 'layout-switch',
+        type: Boolean,
+        default: false
       },
       toolbar: {
         type: Boolean,
@@ -4711,8 +4760,13 @@ class SfTable extends TableElement {
       scroll: this.createRef(),
       rail: this.createRef(),
       resizeGuide: this.createRef()
-    };
+    }; // Two rows, kept apart: the record the page has open (current,
+    // aria-current) and the row the person is on (the keyboard's and the
+    // pointer's place, data-current). The keys used to write the first, so
+    // ↑/↓ moved «the open record» (C31 acceptance, 2026-11-09).
+
     this._currentRowId = null;
+    this._cursorRowId = null;
     this._checkboxMeasureToken = 0;
     this._responsiveWidth = 0;
     this._responsiveObserver = null;
@@ -4907,7 +4961,9 @@ class SfTable extends TableElement {
 
   set current(id) {
     const value = id === null || id === undefined ? "" : String(id);
-    this._currentRowId = value || null;
+    this._currentRowId = value || null; // Opening a record puts the person on it.
+
+    this._cursorRowId = null;
 
     if ((this.getAttribute("current") ?? "") !== value) {
       if (value) this.setAttribute("current", value);else this.removeAttribute("current");
@@ -4917,7 +4973,11 @@ class SfTable extends TableElement {
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
-    if (name === "current" && oldValue !== newValue) this._currentRowId = newValue || null;
+    if (name === "current" && oldValue !== newValue) {
+      this._currentRowId = newValue || null;
+      this._cursorRowId = null;
+    }
+
     super.attributeChangedCallback?.(name, oldValue, newValue);
   }
 
@@ -5278,7 +5338,7 @@ class SfTable extends TableElement {
 
     return (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
             <sf-menu-context
-                    size=${this.size === "1/2" ? "1/2" : "1"}
+                    size=${this.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_12__.nothing}
                     :key=${x + y}
                     aria-label=${this.getContextMenuLabel({ ...data,
       menu: 'toolbar-actions'
@@ -5337,7 +5397,7 @@ class SfTable extends TableElement {
     const items = [option(this.text('sortNone'), null, null), ...sortable.flatMap(column => [option(`${column.label ?? column.key}, ${this.text('sortAscending')}`, column.key, 'asc'), option(`${column.label ?? column.key}, ${this.text('sortDescending')}`, column.key, 'desc')])];
     return (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
             <sf-menu-context
-                    size=${this.size === "1/2" ? "1/2" : "1"}
+                    size=${this.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_12__.nothing}
                     :key=${x + y}
                     aria-label=${this.getContextMenuLabel({ ...data,
       menu: 'list-sort'
@@ -5374,7 +5434,7 @@ class SfTable extends TableElement {
 
     return (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
             <sf-menu-context
-                    size=${this.size === "1/2" ? "1/2" : "1"}
+                    size=${this.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_12__.nothing}
                     :key=${x + y}
                     aria-label=${this.getContextMenuLabel({ ...data,
       menu: 'create'
@@ -5553,8 +5613,19 @@ class SfTable extends TableElement {
 
 
   handleRowClick(event, row, index = -1) {
-    this.focusRow(this.getRowKey(row, index));
-    this.openReferenceFromCell(event, row);
+    // A list row's own buttons keep the focus a press gives them: the menu
+    // they open goes back to them.
+    this.focusRow(this.getRowKey(row, index), {
+      focus: !(this.isList && this.isRowControlTarget(event?.target))
+    });
+    this.openReferenceFromCell(event, row); // row-open="row" (C31): a press anywhere in the row but its controls
+    // opens the record, as the title link and Enter do. A press that
+    // selected text, or one with a modifier, is not a press to open.
+
+    if (this.getAttribute("row-open") === "row" && !event?.defaultPrevented && !(event?.button > 0) && !event?.metaKey && !event?.ctrlKey && !event?.shiftKey && !event?.altKey && !(event?.detail > 1) && !String(globalThis.getSelection?.() ?? "")) {
+      this.handleRowOpen(event, row);
+    }
+
     return this;
   } // A value that points at another record -- a person, a file, a related
   // record -- opens that record in the page's panel instead of loading a page
@@ -5741,11 +5812,19 @@ class SfTable extends TableElement {
     }, {
       signal
     });
-  }
+  } // The record the page has open (aria-current).
+
 
   isCurrentRow(row, index = -1) {
     const key = this.getRowKey(row, index);
     return key !== "" && String(this._currentRowId ?? "") === key;
+  } // The row the person is on (data-current): where the keys and the last
+  // press left them, else the open record.
+
+
+  isCursorRow(row, index = -1) {
+    const key = this.getRowKey(row, index);
+    return key !== "" && String(this._cursorRowId ?? this._currentRowId ?? "") === key;
   } // ---------- many entries (§18.4) ----------
   // The rows drawn now, when the list is long enough to be windowed: the
   // range, and the heights of the spacers that stand for the rest.
@@ -5946,7 +6025,10 @@ class SfTable extends TableElement {
     // brought the buttons in would leave with the old row.
 
 
-    if (column.system || column.component || column.renderer === "link" || column.role === "title") return null;
+    if (column.system || column.component || column.renderer === "link" || column.role === "title") return null; // A status or a fact (C31) is the full renderer's: the dot with its
+    // word, the badge.
+
+    if (column.list === "status" || column.list === "fact") return null;
     if (this.isTree() || row.path || this.cellEditable(row, column)) return null;
     const value = row[key];
     if (value === null || typeof value === "undefined") return {
@@ -5997,12 +6079,32 @@ class SfTable extends TableElement {
 
 
   focusRow(rowId, {
-    reveal = false
+    reveal = false,
+    focus = true
   } = {}) {
     // The action focus-row {id} (component.json) answers an outcome.
     if (rowId && typeof rowId === "object") return this.focusRowAction(rowId);
     if (rowId == null || rowId === "") return this;
-    this._currentRowId = String(rowId);
+    this._cursorRowId = String(rowId); // The list's rows: the item is marked, and the focus goes to its title
+    // link where it has one (the row's tab stop), else to the item.
+
+    if (this.isList) {
+      const selector = `.sf-table-list-item[data-row-id="${String(rowId).replace(/"/gu, '\\"')}"]`;
+
+      for (const marked of this.querySelectorAll(".sf-table-list-item[data-current]")) marked.removeAttribute("data-current");
+
+      const item = this.querySelector(selector);
+      item?.setAttribute("data-current", "");
+      if (reveal) item?.scrollIntoView?.({
+        block: "nearest",
+        behavior: "instant"
+      });
+      if (focus) (item?.querySelector(".sf-table-title-link") ?? item)?.focus?.({
+        preventScroll: true
+      });
+      return this;
+    }
+
     const table = this.refs.table?.value;
     if (!table) return this;
     const selector = `tbody tr[data-row-id="${String(rowId).replace(/"/gu, '\\"')}"]`;
@@ -6054,7 +6156,10 @@ class SfTable extends TableElement {
   }
 
   handleRowOpen(event, row) {
-    if (this.isRowControlTarget(event?.target) || !this.canOpenRow(row)) return this;
+    if (this.isRowControlTarget(event?.target) || !this.canOpenRow(row)) return this; // With row-open="row" the first click of a double click has opened
+    // the record already: the second is the same wish, not a second one.
+
+    if (event?.type === "dblclick" && this.getAttribute("row-open") === "row") return this;
     const id = row?.id;
     if (id == null) return this;
     return this.requestActionIntent("view", [id]);
@@ -6118,7 +6223,10 @@ class SfTable extends TableElement {
   }
 
   handleRowKeydown(event, row) {
-    if (event?.target !== event?.currentTarget) return this; // A treegrid row: the right arrow opens a closed node, the left arrow
+    // In the list the row's title link is its tab stop: the arrows, Home
+    // and End move from it as from the row.
+    const fromTitle = event?.target !== event?.currentTarget && event?.target?.matches?.(".sf-table-title-link") && ["ArrowDown", "ArrowUp", "Home", "End"].includes(event?.key);
+    if (event?.target !== event?.currentTarget && !fromTitle) return this; // A treegrid row: the right arrow opens a closed node, the left arrow
     // closes an open one.
 
     if (row?.__tree?.hasChildren && (event.key === "ArrowRight" || event.key === "ArrowLeft")) {
@@ -6737,10 +6845,16 @@ class SfTable extends TableElement {
     }
 
     if (!detail || typeof detail !== 'object') return detail;
-    const fields = Array.isArray(detail.data?.tags) ? [] : Object.keys(detail.data?.tags || {}).filter(key => detail.data.tags[key]?.active);
+    const fields = Array.isArray(detail.data?.tags) ? [] : Object.keys(detail.data?.tags || {}).filter(key => detail.data.tags[key]?.active); // With the layout switch the view's layout rides with it too (C31):
+    // a saved view opens as the list or the table it was saved as.
+
+    const layout = this.hasLayoutSwitch ? this.chosenLayout || (this.isList ? "list" : "table") : null;
     return { ...detail,
       settings: { ...(detail.settings || {}),
-        filter_fields: fields.length ? fields : this.getActiveFilterFieldKeys(filter)
+        filter_fields: fields.length ? fields : this.getActiveFilterFieldKeys(filter),
+        ...(layout ? {
+          layout
+        } : {})
       }
     };
   }
@@ -7013,11 +7127,202 @@ class SfTable extends TableElement {
 
 
   get isList() {
-    const layout = this.getProp?.("layout") ?? "table";
+    const layout = this.resolvedLayout;
     if (layout === "list") return true;
     if (layout === "table") return false;
+    return this.isNarrow;
+  } // Whether the table's container is below list-below: a phone, or a list
+  // beside an open panel.
+
+
+  get isNarrow() {
     const below = Number(this.getProp?.("listBelow")) || 600;
     return this._responsiveWidth > 0 && this._responsiveWidth < below;
+  } // The layout drawn (C31). Without the switch, the layout attribute. With
+  // it, the person's choice: a list is a list at every width, a table is a
+  // table while there is room for it and the list below list-below; with no
+  // choice yet, the attribute, where `table` is read as that same `auto`.
+
+
+  get resolvedLayout() {
+    const own = this.getProp?.("layout") ?? "table";
+    if (!this.hasLayoutSwitch) return own;
+    const chosen = this.chosenLayout;
+    if (chosen === "list") return "list";
+    if (chosen === "table") return "auto";
+    return own === "table" ? "auto" : own;
+  }
+
+  get hasLayoutSwitch() {
+    const value = this.getAttribute?.("layout-switch");
+    return value !== null && value !== undefined && value !== "false";
+  } // Where the choice is kept: the table's view preference (preferences-key,
+  // else table-settings-key, else remember-widths' own key), else the page
+  // session.
+
+
+  get layoutPreferenceKey() {
+    return this.viewPreferenceKey || this.rememberedWidthsKey || "";
+  }
+
+  get chosenLayout() {
+    const key = this.layoutPreferenceKey;
+    const kept = key ? preferences()?.read(key)?.layout : this._sessionLayout;
+    return kept === "list" || kept === "table" ? kept : "";
+  } // The switch's answer, and the action set-layout {layout}: kept for this
+  // person and drawn. A saved view that is opened brings its own (sf-view).
+
+
+  setLayoutChoice(layout, {
+    emit = true
+  } = {}) {
+    if (this.isActionParameters?.(layout, ["layout"])) layout = layout.layout;
+    if (layout !== "list" && layout !== "table") return {
+      outcome: "refused",
+      reason: "unknown-layout"
+    };
+    if (layout === this.chosenLayout) return {
+      outcome: "unchanged"
+    };
+    const key = this.layoutPreferenceKey;
+    if (key) this.writeTablePreference(key, {
+      layout
+    });else this._sessionLayout = layout;
+    this.applyTableView();
+    this.requestComponentUpdate("layout");
+    if (emit) this.emitTableEvent("layout-change", Object.freeze({
+      layout
+    }));
+    return {
+      outcome: "applied"
+    };
+  } // The switch's two items, kept while the words are the same (a new array
+  // on every render would draw the switch again).
+
+
+  layoutSwitchItems() {
+    const list = this.text("layoutList");
+    const table = this.text("layoutTable");
+
+    if (this._layoutSwitchItems?.key !== `${list}|${table}`) {
+      this._layoutSwitchItems = {
+        key: `${list}|${table}`,
+        items: [{
+          value: "list",
+          label: list,
+          icon: "view_agenda",
+          iconOnly: true
+        }, {
+          value: "table",
+          label: table,
+          icon: "table_rows",
+          iconOnly: true
+        }]
+      };
+    }
+
+    return this._layoutSwitchItems.items;
+  } // The action set-layout {layout}.
+
+
+  setLayout(layout) {
+    return this.setLayoutChoice(layout);
+  } // ─── the list of resources (C31) ─────────────────────────────────────────
+  // A list row is a resource row when a column names its place in it
+  // (columns[].list: status, title, supporting, fact or hidden).
+
+
+  listRoles(columns = this.getColumns?.() ?? []) {
+    const roles = {
+      status: null,
+      title: null,
+      supporting: [],
+      facts: [],
+      any: false
+    };
+
+    for (const column of columns) {
+      const role = column?.list;
+      if (!column?.key || SYSTEM_COLUMN_KEYS.has(column.key) || column.system) continue;
+      if (!LIST_ROLES.has(role)) continue;
+      roles.any = true;
+      if (role === "status") roles.status ??= column;else if (role === "title") roles.title ??= column;else if (role === "supporting") roles.supporting.push(column);else if (role === "fact") roles.facts.push(column);
+    }
+
+    return roles;
+  } // The ids of the quick actions, in the order written, at most three.
+
+
+  get quickActionIds() {
+    const written = String(this.getAttribute?.("quick-actions") ?? "");
+    return [...new Set(written.split(/[\s,]+/u).filter(Boolean))].slice(0, MAX_QUICK_ACTIONS);
+  } // A row's actions split for the list: the quick ones (as the row offers
+  // them) and the rest, which the «more» menu holds.
+
+
+  listRowActions(row) {
+    const items = this.rowActionItems(row).filter(item => !Array.isArray(item?.members) || item.members.length);
+    const ids = this.quickActionIds;
+    const quick = ids.map(id => items.find(item => item?.id === id)).filter(Boolean);
+    const rest = items.filter(item => !quick.includes(item));
+    return {
+      quick,
+      rest
+    };
+  } // The words of a value shown as text in the list: a link cell's text, a
+  // choice's label, a typed value formatted as its cell would be.
+
+
+  listText(column, value) {
+    if (value === null || value === undefined || value === "") return "";
+    if (Array.isArray(value)) return value.map(item => this.listText(column, item)).filter(Boolean).join(", ");
+
+    if (typeof value === "object") {
+      const props = value.component?.props;
+      if (props) return String(props.text ?? props.label ?? "");
+      return String(value.label ?? value.text ?? value.value ?? "");
+    }
+
+    const option = Array.isArray(column?.options) ? column.options.find(item => String(item?.value) === String(value)) : null;
+    if (option) return String(option.label ?? option.value);
+    return String(this.cellText?.(column, value) ?? value);
+  } // The state a status column gives a row: the dot's colour and its word.
+  // The value is ok, warning, error or stopped (or the dot's own names); an
+  // option of the column may name its `status` and its label.
+
+
+  listStatus(column, row) {
+    const raw = row?.[column?.key];
+    if (raw === null || raw === undefined || raw === "") return null;
+    const value = typeof raw === "object" ? raw.value ?? raw.status ?? "" : raw;
+    const option = Array.isArray(column?.options) ? column.options.find(item => String(item?.value) === String(value)) : null;
+    const named = String(option?.status ?? (typeof raw === "object" ? raw.status : "") ?? "") || String(value);
+    const dot = STATUS_DOTS[named] ?? "neutral";
+    const word = (typeof raw === "object" ? raw.label ?? raw.text : null) ?? option?.label ?? (STATUS_WORDS[named] ? this.text(STATUS_WORDS[named]) : String(value));
+    return {
+      dot,
+      word: String(word),
+      value: String(value)
+    };
+  } // A fact: its words, how worrying it is (0 fine, 1 warning, 2 error) and
+  // what it says on hover. A plain value is fine; an object or a badge
+  // component carries its status; an option of the column may name one.
+
+
+  listFact(column, row) {
+    const raw = row?.[column?.key];
+    if (raw === null || raw === undefined || raw === "") return null;
+    const props = typeof raw === "object" && !Array.isArray(raw) ? raw.component?.props ?? raw : null;
+    const option = !props && Array.isArray(column?.options) ? column.options.find(item => String(item?.value) === String(raw)) : null;
+    const status = String(props?.status ?? props?.level ?? option?.status ?? "").replace(/^danger$/u, "error");
+    const text = this.listText(column, raw);
+    if (!text) return null;
+    return {
+      text,
+      level: FACT_LEVELS[status] ?? 0,
+      status: FACT_LEVELS[status] ? status : "",
+      tip: String(props?.tip ?? props?.title ?? option?.tip ?? "")
+    };
   }
 
   get actionsColumnWidth() {
@@ -7511,7 +7816,7 @@ class SfTable extends TableElement {
     const template = this.getSelectedFilterTemplate();
     return (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
             <sf-menu-context
-                    size=${this.size === "1/2" ? "1/2" : "1"}
+                    size=${this.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_12__.nothing}
                     :key=${x + y + this._renderToken}
                     aria-label=${this.getContextMenuLabel({ ...data,
       menu: 'filter-favorites'
@@ -7522,7 +7827,7 @@ class SfTable extends TableElement {
             inset-block-start: calc(${y}px + calc(var(--sf-focus-outline-width) * 2));
             z-index: var(--sf-table-context-menu--z-index, ${this.contextMenuZIndex()});
           "
-                    root-class="sf-table-context-menu ${this.size === "1/2" ? "sf-table-context-menu--dense " : ""}flex flex-col"
+                    root-class="sf-table-context-menu ${this.contextWindowClass('filter-favorites')} ${this.size === "1/2" ? "sf-table-context-menu--dense " : ""}flex flex-col"
                     data-context-main-menu
                     position="${position || ""}"
             >
@@ -7645,7 +7950,7 @@ class SfTable extends TableElement {
 
     return (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
             <sf-menu-context
-                    size=${this.size === "1/2" ? "1/2" : "1"}
+                    size=${this.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_12__.nothing}
                     :key=${x + y}
                     aria-label=${this.getContextMenuLabel({ ...data,
       menu: 'row-settings'
@@ -7777,8 +8082,9 @@ class SfTable extends TableElement {
   }
 
   getColumnSetting(columnKey) {
-    if (!columnKey) return {};
-    const settings = this.getColumnSettings()?.[columnKey];
+    if (!columnKey) return {}; // During a draw, the settings read once for it (drawingWith).
+
+    const settings = (this._drawColumnSettings ?? this.getColumnSettings())?.[columnKey];
     return settings && typeof settings === "object" && !Array.isArray(settings) ? settings : {};
   }
 
@@ -8821,7 +9127,7 @@ class SfTable extends TableElement {
     let contextItems = `${this.text('templatesTabText')}|${this.text('fieldsTabText')}`;
     return (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
             <sf-menu-context
-                    size=${this.size === "1/2" ? "1/2" : "1"}
+                    size=${this.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_12__.nothing}
                     :key=${x + y + this._renderToken}
                     aria-label=${this.getContextMenuLabel({ ...data,
       menu: 'filter-settings'
@@ -8833,8 +9139,9 @@ class SfTable extends TableElement {
             transform: ${pos};
             z-index: var(--sf-table-context-menu--z-index, ${this.contextMenuZIndex()});
             --sf-table-context-menu--max-block-size: calc(100dvh - ${y}px - var(--sf-space-4));
+            --sf-table-context-menu--trigger-inline-size: ${this.contextTriggerInlineSize(data)}px;
           "
-                    root-class="sf-table-context-menu ${this.size === "1/2" ? "sf-table-context-menu--dense " : ""}flex flex-col"
+                    root-class="sf-table-context-menu ${this.contextWindowClass('filter-settings', menuColumnCount)} ${this.size === "1/2" ? "sf-table-context-menu--dense " : ""}flex flex-col"
                     position="${position || ""}"
                     role="dialog"
                     tabs=${contextItems}
@@ -8950,7 +9257,7 @@ class SfTable extends TableElement {
     };
     return (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
             <sf-menu-context
-                    size=${this.size === "1/2" ? "1/2" : "1"}
+                    size=${this.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_12__.nothing}
                     :key=${x + y + this._renderToken}
                     aria-label=${this.getContextMenuLabel({ ...data,
       menu: 'tag-settings'
@@ -8961,7 +9268,7 @@ class SfTable extends TableElement {
             inset-block-start: calc(${y}px + calc(var(--sf-focus-outline-width) * 2));
             z-index: var(--sf-table-context-menu--z-index, ${this.contextMenuZIndex()});
           "
-                    root-class="sf-table-context-menu ${this.size === "1/2" ? "sf-table-context-menu--dense " : ""}flex flex-col"
+                    root-class="sf-table-context-menu ${this.contextWindowClass('tag-settings')} ${this.size === "1/2" ? "sf-table-context-menu--dense " : ""}flex flex-col"
                     position="${position || ""}"
             >
                 <div class="flex flex-col flex-1 ${this.size === "1/2" ? "p-top-1" : "p-top-3"}" slot="content">
@@ -9069,7 +9376,7 @@ class SfTable extends TableElement {
 
     return (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
             <sf-menu-context
-                    size=${this.size === "1/2" ? "1/2" : "1"}
+                    size=${this.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_12__.nothing}
                     :key=${x + y + this._renderToken}
                     aria-label=${this.getContextMenuLabel({ ...data,
       menu: 'table-settings'
@@ -9081,8 +9388,9 @@ class SfTable extends TableElement {
             transform: ${pos};
             z-index: var(--sf-table-context-menu--z-index, ${this.contextMenuZIndex()});
             --sf-table-context-menu--max-block-size: calc(100dvh - ${y}px - var(--sf-space-4));
+            --sf-table-context-menu--trigger-inline-size: ${this.contextTriggerInlineSize(data)}px;
           "
-                    root-class="sf-table-context-menu ${this.size === "1/2" ? "sf-table-context-menu--dense " : ""}flex flex-col"
+                    root-class="sf-table-context-menu ${this.contextWindowClass('table-settings', menuColumnCount)} ${this.size === "1/2" ? "sf-table-context-menu--dense " : ""}flex flex-col"
                     position="${position || ""}"
                     role="dialog"
                     tabs=${`${this.text('settingsFieldsTab')}|${this.text('settingsViewTab')}`}
@@ -9242,7 +9550,7 @@ class SfTable extends TableElement {
     const isDefaultTemplate = (temp || template).default === true;
     return (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
             <sf-menu-context
-                    size=${this.size === "1/2" ? "1/2" : "1"}
+                    size=${this.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_12__.nothing}
                     :key=${`${template.key || ''}-${x}-${y}`}
                     aria-label=${this.getContextMenuLabel({ ...data,
       type: 'filter-template-actions'
@@ -9721,7 +10029,9 @@ class SfTable extends TableElement {
         this.setColumnSettings(host && typeof host === "object" && !Array.isArray(host) ? { ...host
         } : {}, "preferences", false);
       }
-      this.applyTableView();
+      this.applyTableView(); // The layout chosen on another tab, or by the host's copy.
+
+      if (this.hasLayoutSwitch && this._renderedList !== undefined && this.isList !== this._renderedList) this.requestComponentUpdate("layout");
     });
     const general = preferences()?.subscribe(GENERAL_TABLE_PREFERENCE, () => this.applyTableView());
 
@@ -10298,7 +10608,33 @@ class SfTable extends TableElement {
     this._contextEventBound = false;
   } // The window's place on the stack's z-index scale; the Framework's old
   // fixed step until it is on the stack.
+  // The kind of window a menu name opens (C32, owner 2026-11-09): the
+  // table's own windows are not menus -- the menus (create, sort, row and
+  // toolbar actions) are sf-menu-context's own rows and take its widths.
+  // The filter with its saved views and the column settings are panels:
+  // one width, --sf-popup-panel-width (20rem; 18rem compact), or the
+  // trigger's when that is wider. Saving a template and a chip's own
+  // filter are forms: --sf-popup-form-width (20rem; 18rem compact). A
+  // panel laid out in several columns is as wide as they are. Every window
+  // stays inside the room it has (--sf-table-context-menu--available-inline-size).
 
+
+  contextWindowClass(menu, columns = 1) {
+    const kind = {
+      'filter-settings': 'panel',
+      'table-settings': 'panel',
+      'filter-favorites': 'form',
+      'tag-settings': 'form'
+    }[menu] ?? 'panel';
+    return `sf-table-context-menu--${kind}${kind === 'panel' && Number(columns) > 1 ? ' sf-table-context-menu--columns' : ''}`;
+  } // The trigger's width, for a panel that is at least as wide as the button
+  // that opened it.
+
+
+  contextTriggerInlineSize(data = {}) {
+    const width = data.anchor?.getBoundingClientRect?.().width;
+    return Number.isFinite(width) ? Math.ceil(width) : 0;
+  }
 
   contextMenuZIndex() {
     const zIndex = this._contextLayerOwner ? (0,_core_js_layer_stack_js__WEBPACK_IMPORTED_MODULE_19__.layerZIndex)(this._contextLayerOwner) : '';
@@ -10846,13 +11182,7 @@ class SfTable extends TableElement {
 
     for (const name of [...element.getAttributeNames()]) element.removeAttribute(name);
 
-    const size = this.size !== "1" && String(props.size) === "1" ? this.size : props.size;
-
-    for (const [key, value] of Object.entries({ ...props,
-      ...(size !== undefined ? {
-        size
-      } : {})
-    })) {
+    for (const [key, value] of Object.entries(this.relativeSize(props))) {
       if (value === undefined || value === null || value === false) continue;
       const attribute = key.replace(/[A-Z]/gu, letter => `-${letter.toLowerCase()}`);
       if (typeof value === "object" || typeof value === "function") element[key] = value;else element.setAttribute(attribute, value === true ? "" : String(value));
@@ -10870,19 +11200,33 @@ class SfTable extends TableElement {
 
   renderSmartElement(type, props = {}) {
     type = (0,_core_js_smart_base__WEBPACK_IMPORTED_MODULE_0__.canonicalTag)(`sf-${String(type ?? "").replace(/^sf-/u, "")}`);
-    const size = this.size;
-
-    if (size !== "1" && props && String(props.size) === "1") {
-      return super.renderSmartElement(type, { ...props,
-        size
-      });
-    }
-
-    return super.renderSmartElement(type, props);
+    return super.renderSmartElement(type, this.relativeSize(props));
   }
 
   get size() {
     return this.getEnumAttr("size", ["1/2", "1"], "1");
+  } // The size a control inside is written with (C22): the host's own when it
+  // has one, none when it has not. A control written at size 1 in a host
+  // without a size stayed 40 under compact page density, where the page's
+  // own controls were 32 (Larena, 2026-11-10).
+
+
+  get controlSize() {
+    const size = this.getAttribute("size");
+    return size === "1/2" || size === "1" ? size : null;
+  } // A control a column or an action names at size 1 is "this table's
+  // size": the host's size when it has one, otherwise no size at all.
+
+
+  relativeSize(props) {
+    if (!props || String(props.size) !== "1") return props;
+    const {
+      size: _size,
+      ...rest
+    } = props;
+    return this.controlSize ? { ...rest,
+      size: this.controlSize
+    } : rest;
   }
 
   getSelectColumn() {
@@ -11008,9 +11352,15 @@ class SfTable extends TableElement {
     // selected or hovered row.
 
     return `position: sticky; inset-inline-${side}: var(--sf-table-pin-${column.key}, 0px); z-index: 2;`;
-  }
+  } // Measured after a draw and on every resize of the box: the column
+  // settings are read once for it (drawingWith).
+
 
   measurePinnedColumns() {
+    return this.drawingWith(() => this.measurePinnedColumnsNow());
+  }
+
+  measurePinnedColumnsNow() {
     const table = this.refs.table?.value;
     const scroll = this.refs.scroll?.value;
     if (!table) return this;
@@ -11098,11 +11448,12 @@ class SfTable extends TableElement {
   // for the row, or the action's own handler where it has one.
 
 
-  async openRowMenu(event, row = {}) {
+  async openRowMenu(event, row = {}, only = null) {
     const anchor = event?.currentTarget?.querySelector?.("button") ?? event?.target?.closest?.("button") ?? event?.currentTarget;
     if (!(anchor instanceof Element)) return null;
-    const selection = Array.isArray(row.actions) && row.actions.every(item => typeof item === "string") ? row.actions : null;
-    const items = this.getActionRowItems(row);
+    const selection = Array.isArray(row.actions) && row.actions.every(item => typeof item === "string") ? row.actions : null; // The list's «more» menu holds the actions its row does not show.
+
+    const items = Array.isArray(only) ? only : this.getActionRowItems(row);
 
     const iconOf = action => action?.icon ?? action?.component?.props?.icon ?? undefined;
 
@@ -11369,7 +11720,7 @@ class SfTable extends TableElement {
     this._labelColumnBatch = {};
 
     try {
-      return rows.map(row => this.normalizeRow(row, systemColumns));
+      return this.drawingWith(() => rows.map(row => this.normalizeRow(row, systemColumns)));
     } finally {
       this._labelColumnBatch = null;
     }
@@ -11789,7 +12140,18 @@ class SfTable extends TableElement {
     const props = this.getPropsContext();
     return this.createTemplateContext({ ...props,
       component: this,
-      list: this.isList,
+      list: this._renderedList = this.isList,
+      // The list's toolbar is the compact one, unless the person chose
+      // the list on a container wide enough for the table's toolbar and
+      // its layout switch (C31).
+      compactToolbar: this._renderedList && !(this.hasLayoutSwitch && !this.isNarrow),
+      layoutSwitch: this.hasLayoutSwitch && !this.isNarrow,
+      shownLayout: this._renderedList ? "list" : "table",
+      quickActionIds: this.quickActionIds,
+      // The size the controls inside are written with: the host's own,
+      // or none, so a host without a size keeps its controls relative
+      // and page density moves them (C22).
+      controlSize: this.controlSize,
       rootClass: this.getRootClass(),
       rootStyle: this.getRootStyle(),
       filterText: this.text("filterText", "filter-text"),
@@ -11871,6 +12233,10 @@ class SfTable extends TableElement {
   }
 
   afterRender() {
+    this.drawingWith(() => this.afterDraw());
+  }
+
+  afterDraw() {
     this._observeResponsiveBox();
 
     this.bindRowActionsEvents(this.refs.table?.value);
@@ -11957,8 +12323,26 @@ class SfTable extends TableElement {
 
   template() {
     // Building the template writes nothing to the page: what it reads of
-    // the layout (the cap, whether the columns are cramped) is read once.
-    return this.readingLayout(() => (0,_js_templates_default__WEBPACK_IMPORTED_MODULE_7__.renderTableTemplate)(this.templateContext()));
+    // the layout (the cap, whether the columns are cramped) is read once,
+    // and so are the column settings (drawingWith).
+    return this.drawingWith(() => this.readingLayout(() => (0,_js_templates_default__WEBPACK_IMPORTED_MODULE_7__.renderTableTemplate)(this.templateContext())));
+  } // The column settings of one draw, read once (simai/ui-pro#1): every
+  // column and every cell asked for them: counted over one setRows() draw,
+  // 268 times for 8 rows and 343 for 60, now 4. Building the template,
+  // measuring it after (afterRender, measurePinnedColumns) and preparing the rows
+  // (normalizeRows) change no setting; a handler they bind runs later,
+  // outside, and reads them afresh.
+
+
+  drawingWith(draw) {
+    const outer = this._drawColumnSettings;
+    this._drawColumnSettings = outer ?? this.getColumnSettings();
+
+    try {
+      return draw();
+    } finally {
+      this._drawColumnSettings = outer;
+    }
   }
 
 }
@@ -12185,19 +12569,22 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   resolvedDataState: () => (/* binding */ resolvedDataState)
 /* harmony export */ });
 /* harmony import */ var lit__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("2a080a730149");
-/* harmony import */ var lit_directives_keyed_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__("9d9903b87148");
-/* harmony import */ var lit_directives_repeat_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__("efa66f8927d1");
-/* harmony import */ var lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__("8137feb490e0");
-/* harmony import */ var lit_directive_helpers_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__("80c480e5196c");
-/* harmony import */ var _default_css__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__("68a281c549b5");
-/* harmony import */ var _link_cell_contract_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__("5bfdd9ec12a1");
-var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([lit__WEBPACK_IMPORTED_MODULE_0__, lit_directives_keyed_js__WEBPACK_IMPORTED_MODULE_1__, lit_directives_repeat_js__WEBPACK_IMPORTED_MODULE_2__, lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_3__, lit_directive_helpers_js__WEBPACK_IMPORTED_MODULE_4__]);
-([lit__WEBPACK_IMPORTED_MODULE_0__, lit_directives_keyed_js__WEBPACK_IMPORTED_MODULE_1__, lit_directives_repeat_js__WEBPACK_IMPORTED_MODULE_2__, lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_3__, lit_directive_helpers_js__WEBPACK_IMPORTED_MODULE_4__] = __webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
+/* harmony import */ var lit_directive_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__("0816a19adc72");
+/* harmony import */ var lit_directives_keyed_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__("9d9903b87148");
+/* harmony import */ var lit_directives_repeat_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__("efa66f8927d1");
+/* harmony import */ var lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__("8137feb490e0");
+/* harmony import */ var lit_directive_helpers_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__("80c480e5196c");
+/* harmony import */ var _default_css__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__("68a281c549b5");
+/* harmony import */ var _link_cell_contract_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__("5bfdd9ec12a1");
+var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([lit__WEBPACK_IMPORTED_MODULE_0__, lit_directive_js__WEBPACK_IMPORTED_MODULE_1__, lit_directives_keyed_js__WEBPACK_IMPORTED_MODULE_2__, lit_directives_repeat_js__WEBPACK_IMPORTED_MODULE_3__, lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_4__, lit_directive_helpers_js__WEBPACK_IMPORTED_MODULE_5__]);
+([lit__WEBPACK_IMPORTED_MODULE_0__, lit_directive_js__WEBPACK_IMPORTED_MODULE_1__, lit_directives_keyed_js__WEBPACK_IMPORTED_MODULE_2__, lit_directives_repeat_js__WEBPACK_IMPORTED_MODULE_3__, lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_4__, lit_directive_helpers_js__WEBPACK_IMPORTED_MODULE_5__] = __webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
 /* harmony import */ var lit__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(lit__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var lit_directives_keyed_js__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(lit_directives_keyed_js__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var lit_directives_repeat_js__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(lit_directives_repeat_js__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_3__);
-/* harmony import */ var lit_directive_helpers_js__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(lit_directive_helpers_js__WEBPACK_IMPORTED_MODULE_4__);
+/* harmony import */ var lit_directive_js__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(lit_directive_js__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var lit_directives_keyed_js__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(lit_directives_keyed_js__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var lit_directives_repeat_js__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(lit_directives_repeat_js__WEBPACK_IMPORTED_MODULE_3__);
+/* harmony import */ var lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_4__);
+/* harmony import */ var lit_directive_helpers_js__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(lit_directive_helpers_js__WEBPACK_IMPORTED_MODULE_5__);
+
 
 
 
@@ -12247,7 +12634,7 @@ function renderListToolbar(context) {
              data-sf-filter-tags="${active.length ? '1' : '0'}">
             <div class="flex items-cross-center gap-1/3 min-w-0">
                 <sf-input
-                        size=${context.size}
+                        size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                         root-class="sf-search-input flex-1 min-w-0"
                         appearance="bordered"
                         value="${value}"
@@ -12263,7 +12650,7 @@ function renderListToolbar(context) {
                 ></sf-input>
                 ${context.component.offersFilter(active.length) ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-table-list-filter">
                     <sf-button-icon
-                            size=${context.size}
+                            size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                             appearance=${active.length ? 'default' : 'outline'}
                             scheme="primary"
                             icon="filter_list"
@@ -12277,7 +12664,7 @@ function renderListToolbar(context) {
                 </span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                 ${context.component.getColumns().some(column => column?.sortable && !column.system) ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
                     <sf-button-icon
-                            size=${context.size}
+                            size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                             appearance=${state.sort?.key ? 'default' : 'outline'}
                             scheme=${state.sort?.key ? 'primary' : 'on-surface'}
                             icon="swap_vert"
@@ -12290,7 +12677,7 @@ function renderListToolbar(context) {
                     ></sf-button-icon>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                 ${context.actions && context.creatable ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
                     <sf-button-icon
-                            size=${context.size}
+                            size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                             appearance="outline"
                             scheme="on-surface"
                             icon="add"
@@ -12307,7 +12694,7 @@ function renderListToolbar(context) {
     const filterValue = filterValues?.[k] || {};
     const count = Array.isArray(filterValue.values) ? filterValue.values.length : tag.count || '';
     return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
-                            <sf-tag type="default" size=${context.size} text='${tag.label}' interactive closable :key=${k}
+                            <sf-tag type="default" size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing} text='${tag.label}' interactive closable :key=${k}
                                     root-class="active" count='${count}'
                                     @close="${() => context.component.removeFilterTag(k)}"
                                     @click=${e => context.component.openContextMenu(e, {
@@ -12318,7 +12705,7 @@ function renderListToolbar(context) {
     })}
                             ></sf-tag>`;
   })}
-                    <sf-button size=${context.size} appearance="ghost" scheme="on-surface" text=${context.clearText}
+                    <sf-button size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing} appearance="ghost" scheme="on-surface" text=${context.clearText}
                                @click="${() => context.component.removeFilterTag()}"></sf-button>
                 </div>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
         </div>
@@ -12344,7 +12731,7 @@ function renderToolbar(context) {
             <div class="sf-table-toolbar-start flex items-cross-center gap-1/3 flex-wrap min-w-0">
                 ${context.component.offersFilter(activeFilterTags.length) ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<div class="flex items-cross-center">
                     <sf-button
-                            size=${context.size}
+                            size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                             appearance="default"
                             scheme="primary"
                             text=${context.filterText}
@@ -12359,7 +12746,7 @@ function renderToolbar(context) {
                     ></sf-button>
                     ${context.filterTemplates ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
                     <sf-button-icon
-                            size=${context.size}
+                            size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                             appearance="default"
                             scheme="primary"
                             aria-label="Сохранить шаблон фильтра"
@@ -12383,7 +12770,7 @@ function renderToolbar(context) {
                         <div class="sf-table-tags">
                             <sf-tag
                                     type="default"
-                                    size=${context.size}
+                                    size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                                     text='${tag.label}'
                                     interactive
                                     closable
@@ -12407,7 +12794,7 @@ function renderToolbar(context) {
                 ${activeFilterTags.length || hasUnsavedFilterDataChanges ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
                     ${hasUnsavedFilterDataChanges ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
                         <sf-button
-                                size=${context.size}
+                                size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                                 appearance="default"
                                 scheme="primary"
                                 text="Сохранить"
@@ -12416,7 +12803,7 @@ function renderToolbar(context) {
                     ` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                     ${activeFilterTags.length ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
                         <sf-button
-                                size=${context.size}
+                                size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                                 appearance="outline"
                                 scheme="on-surface"
                                 text=${context.clearText}
@@ -12428,7 +12815,7 @@ function renderToolbar(context) {
 
             <div class="sf-table-toolbar-end flex items-cross-center gap-1/3 flex-wrap flex-auto min-w-0">
                 <sf-input
-                        size=${context.size}
+                        size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                         root-class="sf-search-input m-inline-start-auto"
                         appearance="bordered"
                         value="${value}"
@@ -12449,7 +12836,7 @@ function renderToolbar(context) {
                 >
           <span slot="right">
                 <sf-button-icon
-                        size=${context.size}
+                        size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                         appearance="ghost"
                         scheme="on-surface"
                         icon=${value.length ? 'close' : 'search'}
@@ -12467,10 +12854,20 @@ function renderToolbar(context) {
           </span>
                 </sf-input>
 
+                ${context.layoutSwitch ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+                    <sf-segmented class="sf-table-layout-switch" size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                            aria-label=${context.component.text('layoutSwitchLabel')}
+                            value=${context.shownLayout}
+                            .items=${context.component.layoutSwitchItems()}
+                            @change=${e => {
+    const chosen = e.detail?.value;
+    if (chosen === 'list' || chosen === 'table') context.component.setLayoutChoice(chosen);
+  }}></sf-segmented>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+
                 ${context.actions && context.creatable ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
                             <div class="flex items-cross-center">
                                 <sf-button
-                                        size=${context.size}
+                                        size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                                         appearance="outline"
                                         scheme="on-surface"
                                         text=${context.createText}
@@ -12479,7 +12876,7 @@ function renderToolbar(context) {
                                 ></sf-button>
                                 ${state.createItems?.length ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
                                     <sf-button-icon
-                                            size=${context.size}
+                                            size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                                             appearance="outline"
                                             scheme="primary"
                                             segment="end"
@@ -12503,7 +12900,7 @@ function renderToolbar(context) {
                      no control, because an empty menu is a dead end. -->
                 ${context.settings && state.toolbarActions?.length ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
                             <sf-button-icon
-                                    size=${context.size}
+                                    size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                                     appearance="outline"
                                     scheme="primary"
                                     icon="more_vert"
@@ -12597,7 +12994,7 @@ function renderHead(context) {
         <thead class="sticky top-0 z-5">
         <tr>
             ${columns.map((column, k) => {
-    return (0,lit_directives_keyed_js__WEBPACK_IMPORTED_MODULE_1__.keyed)(`head:${column.key}`, (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+    return (0,lit_directives_keyed_js__WEBPACK_IMPORTED_MODULE_2__.keyed)(`head:${column.key}`, (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
                             <th
                                     class="relative"
                                     data-key="${column.key}"
@@ -12719,7 +13116,7 @@ function renderColgroup(context) {
     // page -- and the data columns were measured as cramped beside
     // it and held at their floor.
     const style = columnStyle(context.component, column);
-    return (0,lit_directives_keyed_js__WEBPACK_IMPORTED_MODULE_1__.keyed)(`col:${column.key}`, (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+    return (0,lit_directives_keyed_js__WEBPACK_IMPORTED_MODULE_2__.keyed)(`col:${column.key}`, (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
                     <col
                             data-key=${column.key || lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                             style=${style || lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
@@ -12767,7 +13164,7 @@ function renderCellItem(item, owner) {
   // markup, so only a table could show it (admin polygon, 2026-10-10).
 
 
-  if ((0,lit_directive_helpers_js__WEBPACK_IMPORTED_MODULE_4__.isTemplateResult)(item)) {
+  if ((0,lit_directive_helpers_js__WEBPACK_IMPORTED_MODULE_5__.isTemplateResult)(item)) {
     return item;
   }
 
@@ -12794,7 +13191,7 @@ function renderCellItem(item, owner) {
 }
 
 function renderLinkCell(value) {
-  const cell = (0,_link_cell_contract_js__WEBPACK_IMPORTED_MODULE_6__.normalizeTableLinkCell)(value);
+  const cell = (0,_link_cell_contract_js__WEBPACK_IMPORTED_MODULE_7__.normalizeTableLinkCell)(value);
 
   if (!cell) {
     return lit__WEBPACK_IMPORTED_MODULE_0__.nothing;
@@ -12820,7 +13217,36 @@ function renderLinkCell(value) {
 
 
 const ROW_HOLE = Symbol("row-hole");
-const ROW_STRINGS = new Map();
+const ROW_STRINGS = new Map(); // The actions cell (view 1.6.1, simai/ui-pro#2): its buttons stand only in
+// the row a person is on, and an idle row's cell is the bare <td>. It was a
+// child part with an empty box in it (a marker and a <div>, 31 nodes a row
+// where 29 do). The cell keeps one kind whether its buttons show or not,
+// bound on the cell itself (an element part has no marker): a row whose
+// strings change is drawn anew, and the focus that brought the buttons in
+// would leave with the old row.
+
+class ActionsCellDirective extends lit_directive_js__WEBPACK_IMPORTED_MODULE_1__.Directive {
+  constructor(part) {
+    super(part);
+    if (part.type !== lit_directive_js__WEBPACK_IMPORTED_MODULE_1__.PartType.ELEMENT) throw new Error("actionsCell binds an element");
+  }
+
+  render() {
+    return lit__WEBPACK_IMPORTED_MODULE_0__.nothing;
+  }
+
+  update(part, [content, host]) {
+    // A cell never drawn into stays bare; once drawn, Lit's own part
+    // empties it.
+    if (content !== lit__WEBPACK_IMPORTED_MODULE_0__.nothing || part.element.childNodes.length) (0,lit__WEBPACK_IMPORTED_MODULE_0__.render)(content, part.element, {
+      host
+    });
+    return lit__WEBPACK_IMPORTED_MODULE_0__.nothing;
+  }
+
+}
+
+const actionsCell = (0,lit_directive_js__WEBPACK_IMPORTED_MODULE_1__.directive)(ActionsCellDirective);
 
 function rowStrings(kinds) {
   const signature = kinds.join("|");
@@ -12829,7 +13255,9 @@ function rowStrings(kinds) {
   const pieces = ['<tr data-selected=', ROW_HOLE, ' draggable=', ROW_HOLE, ' aria-level=', ROW_HOLE, ' aria-expanded=', ROW_HOLE, ' aria-setsize=', ROW_HOLE, ' aria-posinset=', ROW_HOLE, ' aria-busy=', ROW_HOLE, ' aria-rowindex=', ROW_HOLE, ' data-row-id=', ROW_HOLE, ' data-current=', ROW_HOLE, ' aria-current=', ROW_HOLE, ' tabindex="-1" @mousedown=', ROW_HOLE, ' @click=', ROW_HOLE, ' @dblclick=', ROW_HOLE, ' @keydown=', ROW_HOLE, '>'];
 
   for (const kind of kinds) {
-    pieces.push('<td data-key=', ROW_HOLE, ' data-item=', ROW_HOLE, ' data-sf-pinned=', ROW_HOLE, ' style=', ROW_HOLE, '>');
+    pieces.push('<td data-key=', ROW_HOLE, ' data-item=', ROW_HOLE, ' data-sf-pinned=', ROW_HOLE, ' style=', ROW_HOLE); // The actions cell's buttons are bound on the cell (actionsCell).
+
+    pieces.push(...(kind === 'actions' ? [' ', ROW_HOLE, '>'] : ['>']));
 
     if (kind === 'box') {
       pieces.push('<label class=', ROW_HOLE, '><span class="sf-checkbox-box transition flex"><input type="checkbox" data-sf-row-box value=', ROW_HOLE, ' .checked=', ROW_HOLE, ' aria-label=', ROW_HOLE, ' @change=', ROW_HOLE, '></span></label>');
@@ -12966,6 +13394,8 @@ function renderTableTemplate(context) {
 
     const select = columns.find(column => column.key === 'select');
     const menu = columns.find(column => column.key === 'settings');
+    const roles = context.component.listRoles?.(columns);
+    if (roles?.any) return renderResourceList(columns, rows, dataState, roles, select, menu);
     const data = columns.filter(column => column?.key && !['select', 'settings', 'actions'].includes(column.key) && !column.system && column.visible !== false);
     const title = data.find(column => column.role === 'title') ?? data[0]; // The title the host marked opens its record with one click here as
     // in the table's title column; a list on a laptop is the same admin.
@@ -12985,15 +13415,16 @@ function renderTableTemplate(context) {
     return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
             <ul class="sf-table-list" role="list" aria-label=${context.ariaLabel || lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                 aria-busy=${dataState === 'loading' ? 'true' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}>
-                ${rows.map((row, rowIndex) => row.__tree?.more ? (0,lit_directives_keyed_js__WEBPACK_IMPORTED_MODULE_1__.keyed)(`item:${row.id}`, (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+                ${rows.map((row, rowIndex) => row.__tree?.more ? (0,lit_directives_keyed_js__WEBPACK_IMPORTED_MODULE_2__.keyed)(`item:${row.id}`, (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
                         <li class="sf-table-list-more" style=${`--sf-table-tree--level: ${row.__tree.level}`}>
                             <sf-button appearance="ghost" size="1/2" text=${context.component.text('treeMore')}
                                        @click=${() => context.component.requestTreeMore(row)}></sf-button>
-                        </li>`) : (0,lit_directives_keyed_js__WEBPACK_IMPORTED_MODULE_1__.keyed)(`item:${context.component.rowsGeneration?.() ?? 0}:${row.id ?? rowIndex}`, (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+                        </li>`) : (0,lit_directives_keyed_js__WEBPACK_IMPORTED_MODULE_2__.keyed)(`item:${context.component.rowsGeneration?.() ?? 0}:${row.id ?? rowIndex}`, (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
                         <li class="sf-table-list-item"
                             data-row-id=${context.component.getRowKey(row, rowIndex)}
                             data-selected=${row.select?.component?.props?.checked === true ? '' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
-                            data-current=${context.component.isCurrentRow(row, rowIndex) ? '' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                            data-current=${context.component.isCursorRow(row, rowIndex) ? '' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                            aria-current=${context.component.isCurrentRow(row, rowIndex) ? 'true' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                             aria-level=${row.__tree ? String(row.__tree.level + 1) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                             aria-expanded=${row.__tree?.hasChildren ? String(row.__tree.expanded === true) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                             tabindex="-1"
@@ -13013,9 +13444,147 @@ function renderTableTemplate(context) {
                                             </span>`)}
                                     </div>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                             </div>
-                            ${menu ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-table-list-menu">${renderCellValue(row, menu)}</span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                            ${context.quickActionIds?.length ? renderListActions(row, menu) : menu ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-table-list-menu">${renderCellValue(row, menu)}</span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                         </li>`))}
             </ul>`;
+  } // ─── the list of resources (owner decision C31) ─────────────────────────
+  // A row is the status dot, the title over a supporting line («domain ·
+  // kind»), the facts as badges without labels in columns of one width,
+  // and the quick actions with the «more» menu. The roles are the columns'
+  // (columns[].list); a column without one is the record panel's.
+
+
+  function renderResourceList(columns, rows, dataState, roles, select, menu) {
+    const component = context.component;
+
+    const visible = column => column && column.visible !== false;
+
+    const status = visible(roles.status) ? roles.status : null;
+    const data = columns.filter(column => column?.key && !['select', 'settings', 'actions'].includes(column.key) && !column.system);
+    const title = roles.title ?? data.find(column => column.role === 'title' && column.list !== 'hidden') ?? data.find(column => !column.list) ?? data[0];
+    const supporting = roles.supporting.filter(visible);
+    const facts = roles.facts.filter(visible);
+    const opensRow = component.getAttribute('row-open') === 'row';
+
+    const titleOf = row => {
+      const text = component.listText(title, row[title?.key]);
+      return title?.role === 'title' || roles.title || opensRow ? renderTitleLink(context, row, text) : text;
+    };
+
+    return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+            <ul class="sf-table-list sf-table-list--resource" role="list" aria-label=${context.ariaLabel || lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                aria-busy=${dataState === 'loading' ? 'true' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                style=${`--sf-table-resource--actions: ${Math.max(1, (context.quickActionIds?.length ?? 0) + (menu ? 1 : 0))}`}>
+                ${rows.map((row, rowIndex) => {
+      if (row.__tree?.more) return (0,lit_directives_keyed_js__WEBPACK_IMPORTED_MODULE_2__.keyed)(`item:${row.id}`, (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+                        <li class="sf-table-list-more" style=${`--sf-table-tree--level: ${row.__tree.level}`}>
+                            <sf-button appearance="ghost" size="1/2" text=${component.text('treeMore')}
+                                       @click=${() => component.requestTreeMore(row)}></sf-button>
+                        </li>`);
+      const state = status ? component.listStatus(status, row) : null;
+      const shown = facts.map(column => ({
+        column,
+        fact: component.listFact(column, row)
+      })); // The most worrying fact, the one a narrow list keeps.
+
+      const worst = shown.reduce((found, item) => (item.fact?.level ?? 0) > (found?.fact?.level ?? 0) ? item : found, null);
+      const words = supporting.map(column => component.listText(column, row[column.key])).filter(Boolean);
+      const lead = state?.dot === 'neutral' ? state.word : '';
+      return (0,lit_directives_keyed_js__WEBPACK_IMPORTED_MODULE_2__.keyed)(`item:${component.rowsGeneration?.() ?? 0}:${row.id ?? rowIndex}`, (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+                        <li class="sf-table-list-item sf-table-resource"
+                            data-row-id=${component.getRowKey(row, rowIndex)}
+                            data-selected=${row.select?.component?.props?.checked === true ? '' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                            data-current=${component.isCursorRow(row, rowIndex) ? '' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                            aria-current=${component.isCurrentRow(row, rowIndex) ? 'true' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                            data-status=${state?.dot ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                            data-open=${opensRow && component.canOpenRow?.(row) ? 'row' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                            aria-level=${row.__tree ? String(row.__tree.level + 1) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                            aria-expanded=${row.__tree?.hasChildren ? String(row.__tree.expanded === true) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                            tabindex="-1"
+                            @mousedown=${event => component.handleRowPointerDown(event)}
+                            @click=${event => component.handleRowClick(event, row, rowIndex)}
+                            @dblclick=${event => component.handleRowOpen(event, row)}
+                            @keydown=${event => component.handleRowKeydown(event, row)}>
+                            ${select ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-table-list-select">${renderCellValue(row, select)}</span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                            ${status ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-table-resource-status">${state ? tooltip((0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+                                <span class="sf-dot sf-dot--${state.dot}" data-tooltip="" data-status=${state.value}>
+                                    <span class="sf-dot-item"></span>
+                                    <span class="sf-table-visually-hidden">${state.word}</span>
+                                </span>`, state.word) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}</span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                            <span class="sf-table-resource-main">
+                                <span class="sf-table-resource-title">${title ? row.__tree || row.path ? renderTreeCell(context, row, titleOf(row)) : titleOf(row) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}</span>
+                                ${lead || words.length ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-table-resource-supporting">${lead ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-table-resource-lead">${lead}</span>${words.length ? ' · ' : ''}` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}${words.join(' · ')}</span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                            </span>
+                            ${facts.length ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-table-resource-facts">${shown.map(({
+        column,
+        fact
+      }) => (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+                                <span class="sf-table-resource-fact" data-worst=${fact && worst?.column === column && fact.level > 0 ? '' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}>${fact ? renderFact(column, fact) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}</span>`)}</span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                            ${renderListActions(row, menu)}
+                        </li>`);
+    })}
+            </ul>`;
+  } // A fact: a badge without its column's label, which a screen reader
+  // still hears; quiet when all is well, warning or error when not.
+
+
+  function renderFact(column, fact) {
+    return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-table-visually-hidden">${column.label ?? column.key}: </span>${renderFactBadge(fact)}`;
+  } // The badge of a fact, in a list row and in a table cell alike.
+
+
+  function renderFactBadge(fact) {
+    const size = context.size === '1/2' ? '1/3' : '1/2';
+    const badge = (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<sf-badge size=${size} appearance="tonal"
+                scheme=${fact.status ? lit__WEBPACK_IMPORTED_MODULE_0__.nothing : 'neutral'} status=${fact.status || lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                text=${fact.text} data-tooltip=${fact.tip ? '' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}></sf-badge>`;
+    return fact.tip ? tooltip(badge, fact.tip) : badge;
+  } // The Framework's tooltip: the trigger and its surface in one anchor
+  // (component tooltip), shown on hover and on keyboard focus.
+
+
+  function tooltip(trigger, text) {
+    return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-tooltip-anchor">${trigger}<span class="sf-tooltip sf-tooltip--dark sf-tooltip--size-1/3 sf-tooltip--arrow-bottom-center" hidden><span class="sf-tooltip-content"><span class="sf-tooltip-text">${text}</span></span></span></span>`;
+  } // A list row's actions (C31): up to three quick ones as icon buttons,
+  // always shown, then «more» (more_horiz) with the rest -- and, on a
+  // narrow list, the quick ones too: the sheet folds them away, and the
+  // menu asks it what is shown.
+
+
+  function renderListActions(row, menu) {
+    const component = context.component; // The rest is the row menu's, and a table without its menu column
+    // (settings="false") has none: then only the quick ones are drawn.
+
+    const split = component.listRowActions(row);
+    const quick = split.quick;
+    const rest = menu ? split.rest : [];
+    if (!quick.length && !rest.length) return lit__WEBPACK_IMPORTED_MODULE_0__.nothing;
+    const size = context.size === '1/2' ? '1/2' : '1';
+    const button = 'sf-icon-button sf-icon-button--icon sf-icon-button--ghost sf-icon-button--on-surface-variant flex items-cross-center';
+
+    const iconOf = action => action?.icon ?? action?.component?.props?.icon ?? '';
+
+    const press = action => event => {
+      event.stopPropagation();
+      const handler = action?.component?.props?.['@click'] ?? action?.component?.props?.onClick;
+      if (typeof handler === 'function') handler(event);else component.requestActionIntent(action.id, [row.id]);
+    };
+
+    return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-table-resource-actions" data-only-quick=${rest.length ? lit__WEBPACK_IMPORTED_MODULE_0__.nothing : ''}>
+            ${quick.length ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-table-resource-quick">${quick.map(action => iconOf(action) ? tooltip((0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<button type="button" class=${`${button} sf-icon-button--size-${size}`} data-tooltip=""
+                        data-quick-action=${action.id} aria-label=${action.name ?? action.id}
+                        @click=${press(action)}><i class="sf-icon" aria-hidden="true">${iconOf(action)}</i></button>`, action.name ?? action.id) : (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<sf-button size=${size} appearance="ghost" scheme="on-surface-variant" data-quick-action=${action.id}
+                        text=${action.name ?? action.id} @click=${press(action)}></sf-button>`)}</span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+            <button type="button" class=${`${button} sf-icon-button--size-${size} sf-table-resource-more`}
+                    aria-label=${component.text('moreActionsLabel')} aria-haspopup="menu" data-sf-row-menu
+                    @click=${event => {
+      event.stopPropagation();
+      const item = event.currentTarget.closest('.sf-table-resource-actions');
+      const box = item?.querySelector('.sf-table-resource-quick');
+      const folded = Boolean(box) && getComputedStyle(box).display === 'none';
+      component.openRowMenu(event, row, folded ? [...quick, ...rest] : rest);
+    }}><i class="sf-icon" aria-hidden="true">more_horiz</i></button>
+        </span>`;
   } // The title opens its record with one click (owner, 2026-10-14): the
   // column the host marked as the title is a link to the record's view when
   // the row offers it, so a record is a click away rather than a double
@@ -13074,8 +13643,9 @@ function renderTableTemplate(context) {
     const renderRow = (row, at) => {
       const index = at + offset;
       const current = component.isCurrentRow(row, index);
+      const cursor = component.isCursorRow(row, index);
       const kinds = [];
-      const values = [row.select?.component?.props?.checked === true ? '' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing, draggable && !row.__tree?.more ? 'true' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing, row.__tree ? String(row.__tree.level + 1) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing, row.__tree?.hasChildren ? String(row.__tree.expanded === true) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing, row.__tree ? String(row.__tree.setsize) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing, row.__tree ? String(row.__tree.posinset) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing, row.__tree?.loading ? 'true' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing, slice ? String(index + 2) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing, component.getRowKey(row, index), current ? '' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing, current ? 'true' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing, component.rowPointerDown, event => component.handleRowClick(event, row, index), event => component.handleRowOpen(event, row), event => component.handleRowKeydown(event, row)];
+      const values = [row.select?.component?.props?.checked === true ? '' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing, draggable && !row.__tree?.more ? 'true' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing, row.__tree ? String(row.__tree.level + 1) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing, row.__tree?.hasChildren ? String(row.__tree.expanded === true) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing, row.__tree ? String(row.__tree.setsize) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing, row.__tree ? String(row.__tree.posinset) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing, row.__tree?.loading ? 'true' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing, slice ? String(index + 2) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing, component.getRowKey(row, index), cursor ? '' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing, current ? 'true' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing, component.rowPointerDown, event => component.handleRowClick(event, row, index), event => component.handleRowOpen(event, row), event => component.handleRowKeydown(event, row)];
       columns.forEach((column, cellIndex) => {
         const mark = component.rowMarkupCell?.(row, column) ?? null;
         values.push(column.key, `${row.id}_${column.key}`, pinned[cellIndex], sticky[cellIndex]);
@@ -13091,6 +13661,9 @@ function renderTableTemplate(context) {
           values.push(mark.className, mark.title ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing, mark.text);
         } else if (mark?.kind === 'empty') {
           kinds.push('empty');
+        } else if (column.key === 'actions') {
+          kinds.push('actions');
+          values.push(actionsCell(fullCell(row, column), component));
         } else {
           kinds.push('node');
           values.push(fullCell(row, column));
@@ -13099,7 +13672,7 @@ function renderTableTemplate(context) {
       return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)(rowStrings(kinds), ...values);
     };
 
-    return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<tbody data-busy=${busy ? '' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing} data-sf-window=${slice ? `${slice.first}-${slice.last}` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}>${slice ? spacer(slice.before, 'before') : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}${slice && slice.first % 2 === 0 ? spacer(0, 'parity') : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}${(0,lit_directives_repeat_js__WEBPACK_IMPORTED_MODULE_2__.repeat)(shown, (row, at) => row.__tree?.more ? `more:${row.id}` : `row:${component.rowsGeneration?.() ?? 0}:${row.id ?? row.value ?? at + offset}`, (row, at) => row.__tree?.more ? renderMoreRow(context, columns, row) : renderRow(row, at))}${slice ? spacer(slice.after, 'after') : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}</tbody>`;
+    return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<tbody data-busy=${busy ? '' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing} data-sf-window=${slice ? `${slice.first}-${slice.last}` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}>${slice ? spacer(slice.before, 'before') : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}${slice && slice.first % 2 === 0 ? spacer(0, 'parity') : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}${(0,lit_directives_repeat_js__WEBPACK_IMPORTED_MODULE_3__.repeat)(shown, (row, at) => row.__tree?.more ? `more:${row.id}` : `row:${component.rowsGeneration?.() ?? 0}:${row.id ?? row.value ?? at + offset}`, (row, at) => row.__tree?.more ? renderMoreRow(context, columns, row) : renderRow(row, at))}${slice ? spacer(slice.after, 'after') : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}</tbody>`;
   } // The first cell of a tree row: indented by its level, with the button that
   // opens or closes it when the host said it has children, and -- in a search
   // over a tree -- the path it lives under, so a found row says where it is.
@@ -13193,6 +13766,23 @@ function renderTableTemplate(context) {
     if (column.key === 'actions' && context.component?.getActionRowItems) {
       const built = Array.isArray(value) && value.length && value.every(item => item && typeof item === 'object');
       if (!built) value = context.component.rowActionItems(row);
+    } // A column with a list role (C31) draws its value the same way in a
+    // table cell as in a list row: a status is the dot with its word, a
+    // fact the badge, quiet or warning/error. Without this, the switch to
+    // «Таблица» showed a status's raw value (ok, stopped) and dropped a
+    // fact given as {text, status, tip} altogether.
+
+
+    if (column.list === 'status') {
+      const state = context.component.listStatus(column, row);
+      return state ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-table-status flex items-cross-center gap-1/3" data-status=${state.dot}>
+                <span class="sf-dot sf-dot--${state.dot}" aria-hidden="true"><span class="sf-dot-item"></span></span>
+                <span>${state.word}</span></span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing;
+    }
+
+    if (column.list === 'fact') {
+      const fact = context.component.listFact(column, row);
+      return fact ? renderFactBadge(fact) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing;
     } // A boolean the host lets this person write is a checkbox in the cell;
     // it is disabled while the host answers.
 
@@ -13300,10 +13890,7 @@ function renderTableTemplate(context) {
         // pointer, with the focus, or current -- and the column keeps its
         // width in the others (owner, 2026-10-15): drawn in every row they
         // were most of a page's elements.
-        if (!context.component.actionsShownFor?.(row)) {
-          return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<div class="sf-table-row-actions" data-row-actions="idle"></div>`;
-        }
-
+        if (!context.component.actionsShownFor?.(row)) return lit__WEBPACK_IMPORTED_MODULE_0__.nothing;
         return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
                     <div class="sf-table-row-actions flex items-cross-center gap-1/3">
                         ${value.map(item => renderCellItem(item, context.component))}
@@ -13337,23 +13924,23 @@ function renderTableTemplate(context) {
                 data-state=${resolvedDataState(context)}
                 aria-busy=${resolvedDataState(context) === 'loading' ? 'true' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
         >
-            ${context.toolbar ? context.list ? renderListToolbar(context) : renderToolbar(context) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+            ${context.toolbar ? context.compactToolbar ? renderListToolbar(context) : renderToolbar(context) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
             ${context.component.renderBulkActions()}
 
             <div class="table-wrap min-w-0 max-w-full flex flex-col flex-1 min-h-0">
                 <div class="sf-table-scroll min-h-0 min-w-0 overflow-auto flex-1 relative"
-                     ${(0,lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_3__.ref)(context.component.refs.scroll)}
+                     ${(0,lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_4__.ref)(context.component.refs.scroll)}
                      data-sf-vertical-scroll=${context.verticalScroll}>
                     <div class="sf-table-resize-guide" aria-hidden="true" hidden
-                         ${(0,lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_3__.ref)(context.component.refs.resizeGuide)}></div>
+                         ${(0,lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_4__.ref)(context.component.refs.resizeGuide)}></div>
                     ${resolvedDataState(context) === 'loading' && (context.component.getTableData()?.rows?.length ?? 0) > 0 ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
                             <div class="sf-table-busy" role="status">
-                                <sf-spinner size=${context.size} label="" aria-label=${context.loadingText}></sf-spinner>
+                                <sf-spinner size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing} label="" aria-label=${context.loadingText}></sf-spinner>
                             </div>
                         ` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                     ${context.list ? renderList() : (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
                     <table
-                            ${(0,lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_3__.ref)(context.component.refs.table)}
+                            ${(0,lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_4__.ref)(context.component.refs.table)}
                             class="table border-separate border-spacing-0 min-w-full ${context.component?.hasContentWidths ? 'sf-table-content-sized' : 'w-max'} table-fixed transition"
                             role=${context.component.isTree?.() ? 'treegrid' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                             aria-label=${context.ariaLabel || lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
@@ -13364,7 +13951,7 @@ function renderTableTemplate(context) {
                         ${renderBody(context)}
                     </table>`}
                 </div>
-                ${context.verticalScroll === 'page' && !context.list ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<div class="sf-table-rail" aria-hidden="true" hidden ${(0,lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_3__.ref)(context.component.refs.rail)}>
+                ${context.verticalScroll === 'page' && !context.list ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<div class="sf-table-rail" aria-hidden="true" hidden ${(0,lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_4__.ref)(context.component.refs.rail)}>
                             <div class="sf-table-rail-track"></div></div>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
 
                 ${context.pagin ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
@@ -13472,6 +14059,13 @@ module.exports = (globalThis.SF && globalThis.SF.runtimeModule ? globalThis.SF.r
 (module) {
 
 module.exports = (globalThis.SF && globalThis.SF.runtimeModule ? globalThis.SF.runtimeModule("lit/directive-helpers.js", 1) : new Promise((resolve, reject) => globalThis.addEventListener("sf-runtime-ready", () => globalThis.SF.runtimeModule("lit/directive-helpers.js", 1).then(resolve, reject), { once: true })));
+
+/***/ },
+
+/***/ "0816a19adc72"
+(module) {
+
+module.exports = (globalThis.SF && globalThis.SF.runtimeModule ? globalThis.SF.runtimeModule("lit/directive.js", 1) : new Promise((resolve, reject) => globalThis.addEventListener("sf-runtime-ready", () => globalThis.SF.runtimeModule("lit/directive.js", 1).then(resolve, reject), { once: true })));
 
 /***/ },
 
@@ -14463,21 +15057,21 @@ module.exports = /*#__PURE__*/JSON.parse('{"$comment":"Dated aliases of sf-view-
 /***/ "c1f17ed5a348"
 (module) {
 
-module.exports = /*#__PURE__*/JSON.parse('{"id":"smart.view-table","tag":"sf-view-table","version":"1.16.1","kind":"leaf","settings":{"selectable":{"type":"boolean","default":true},"settings":{"type":"boolean","default":true},"actions":{"type":"boolean","default":true},"row-actions":{"type":"boolean","default":true},"creatable":{"type":"boolean","default":true},"filter-templates":{"type":"boolean","default":true},"settings-menu":{"type":"boolean","default":true},"pagin":{"type":"boolean","default":false},"filter-text":{"type":"string","default-from":"runtime.filter-text"},"clear-text":{"type":"string","default-from":"runtime.clear-text"},"search-placeholder":{"type":"string","default-from":"runtime.search-placeholder"},"create-text":{"type":"string","default-from":"runtime.create-text"},"pagination-total":{"type":"number","default":10,"integer":true,"min":0},"pagination-page-size":{"type":"number","default":10,"integer":true,"min":1,"max":100},"page-sizes":{"type":"string","default":"10,20,30,40"},"context-menu-columns":{"type":"number","default":1,"integer":true,"min":1,"max":4},"remember-widths":{"type":"boolean","default":false},"table-settings-key":{"type":"string","default":""},"data-state":{"type":"enum","values":["auto","loading","ready","populated","empty","error"],"default":"auto","x-alias":{"populated":"ready"}},"loading-text":{"type":"string","default-from":"runtime.loading-text"},"empty-text":{"type":"string","default-from":"runtime.empty-text"},"empty-description":{"type":"string"},"error-text":{"type":"string","default-from":"runtime.error-text"},"retry-text":{"type":"string","default-from":"runtime.retry-text"},"toolbar":{"type":"boolean","default":true},"pin-column-label":{"type":"string","default-from":"runtime.pin-column-label"},"unpin-column-label":{"type":"string","default-from":"runtime.unpin-column-label"},"column-move-label":{"type":"string","default-from":"runtime.column-move-label"},"column-search-placeholder":{"type":"string","default-from":"runtime.column-search-placeholder"},"column-search-empty-text":{"type":"string","default-from":"runtime.column-search-empty-text"},"vertical-scroll":{"type":"enum","values":["self","page"],"default":"self"},"filter-apply-text":{"type":"string","default-from":"runtime.filter-apply-text"},"layout":{"type":"enum","values":["auto","table","list"],"default":"table"},"list-below":{"type":"number","default":600},"list-fields":{"type":"number","default":3},"size":{"type":"enum","values":["1/2","1"],"default":"1"},"preferences-key":{"type":"string","default":""},"row-actions-visible":{"type":"enum","values":["hover","always"],"default":"hover"},"drag-rows":{"type":"boolean","default":false},"row-reorder":{"type":"boolean","default":false},"inline-edit":{"type":"boolean","default":false},"active-filter-fields":{"type":"list","entries":{"key":"id"}},"bulk-actions":{"type":"list"},"columns":{"type":"list","of":{"key":"string","label":"string"}},"create-items":{"type":"list"},"filter-fields":{"type":"list"},"rows":{"type":"list","entries":{"key":"id","changes":"revision"},"of":{"id":"id","revision":{"type":"string","optional":true}}},"table-data":{"type":"object"},"table-settings":{"type":"object"},"templates":{"type":"list"},"toolbar-actions":{"type":"list"},"sort":{"type":"list","of":{"key":"string","direction":{"type":"enum","values":["asc","desc"]}},"controlled":true},"current":{"type":"string","default":""}},"values":{"selected":{"type":"id","optional":true},"selection":{"type":"list","default":[]}},"events":{"select":{"carries":{"ids":"list"}},"apply":{"carries":{"action":"string","scope":{"type":"enum","values":["entry","selection","filter"]},"ids":"list","revisions":{"type":"object","optional":true}}},"save":{"carries":{"kind":{"type":"enum","values":["columns"]},"reason":"string","column-settings":{"type":"object"},"table-settings-key":{"type":"string"}}},"column-settings-reset":{"carries":{"target":{"type":"enum","values":["personal"]},"table-settings-key":{"type":"string","nullable":true}},"own-verb":true},"create":{"carries":{"item":{"type":"string","nullable":true,"optional":true}}},"filter-change":{"carries":{"template-key":{"type":"string"},"template-label":{"type":"string"},"values":{"type":"object"},"tags":{"type":"object"}},"own-verb":true},"query":{"carries":{"reason":"string","context":"object","sequence":{"type":"number","integer":true}}},"refresh":{"carries":{}},"search-change":{"carries":{"search":"string"},"own-verb":true},"sort-change":{"carries":{"key":{"type":"string","schema":{"minLength":1}},"direction":{"type":"enum","values":["asc","desc",null],"nullable":true}},"own-verb":true},"template-delete":{"carries":{"key":{"type":"string","schema":{"minLength":1}}},"own-verb":true},"template-save":{"carries":{"templates":{"type":"list","of":{"key":"string","label":"string","selected":"boolean","data":"object","settings":"object"},"schema":{"items":{"type":"object","required":["key","label","settings"],"properties":{"key":{"type":"string"},"label":{"type":"string"},"selected":{"type":"boolean"},"data":{"type":"object"},"settings":{"type":"object","properties":{"filter_fields":{"type":"array","items":{"type":"string"}}}}}},"minItems":1}}},"own-verb":true},"template-select":{"carries":{"key":{"type":"string","schema":{"minLength":1}}},"own-verb":true},"toolbar-action":{"carries":{"action":"string","href":{"type":"string","nullable":true,"optional":true}},"cancelable":true,"own-verb":true},"reference-open":{"carries":{"field":"string","value":"object","href":"string"},"cancelable":true,"own-verb":true},"expand":{"carries":{"id":"id","expanded":{"type":"boolean","optional":true}}},"load-more":{"carries":{"direction":{"type":"enum","values":["after"]},"parent":{"type":"id","nullable":true},"cursor":{"type":"string","nullable":true}}},"rows-drag":{"carries":{"ids":{"type":"list","schema":{"items":{"type":"string"},"minItems":1}},"source":{"type":"string","nullable":true}},"own-verb":true},"move":{"carries":{"ids":"list","before":{"type":"id","nullable":true},"order":"list"}},"cell-set":{"carries":{"id":"object","key":"string","value":"object","revision":"object"},"own-verb":true},"view-change":{"carries":{"view":"object","everywhere":"boolean"},"own-verb":true},"window":{"carries":{"first":{"type":"number","integer":true},"last":{"type":"number","integer":true}},"own-verb":true}},"actions":{"add-rows":{"with":{"rows":"list"}},"apply-query-result":{"with":{"sequence":{"type":"number","integer":true,"schema":{"minimum":1}},"rows":"list"}},"clear-selection":{},"request-action-intent":{"with":{"action-id":{"type":"string","schema":{"minLength":1}},"record-ids":{"type":"list","schema":{"items":{"type":["string","integer"],"minLength":1},"minItems":1}}},"emits":"apply"},"request-create-intent":{"with":{"item-id":{"type":"string","optional":true,"nullable":true}},"emits":"create"},"request-retry":{"emits":"refresh"},"set-sort":{"with":{"key":{"type":"string","nullable":true},"direction":{"type":"enum","values":["asc","desc"],"nullable":true}}},"toggle-tree-row":{"with":{"row":"object"},"emits":"expand"},"request-tree-more":{"with":{"row":"object"},"emits":"load-more"},"focus-row":{"with":{"id":"id"}}},"port":{"id":"simai.dataview-port","version":"1.0.0","contract":"src/core/contracts/ports/simai.dataview-port/1.0.0/port.json"},"presentation":{"skeleton":{"late":["rows"]}},"host-states":{"data-sf-view-stripes":"boolean","data-sf-page-scroll":"boolean"},"css-variables":{"--sf-table-row-block-size-1/2":{"type":"length","state":"default"},"--sf-table-row-block-size-1":{"type":"length","state":"default"},"--sf-table-row-2-lines-block-size-1/2":{"type":"length","state":"default"},"--sf-table-row-2-lines-block-size-1":{"type":"length","state":"default"},"--sf-table-head-block-size-1/2":{"type":"length","state":"default"},"--sf-table-head-block-size-1":{"type":"length","state":"default"},"--sf-table-toolbar-block-size-1/2":{"type":"length","state":"default"},"--sf-table-toolbar-block-size-1":{"type":"length","state":"default"},"--sf-table-toolbar-gap":{"type":"length","state":"default"},"--sf-table-head--background-color":{"type":"color","state":"default"},"--sf-table-row--background-color":{"type":"color","state":"default"},"--sf-table--cell-spacing":{"type":"length","state":"default"},"--sf-table-cell--line-clamp":{"type":"number","state":"default"},"--sf-table-context-menu--z-index":{"type":"number","state":"open"},"--sf-table-context-menu--max-width":{"type":"length","state":"open"}}}');
+module.exports = /*#__PURE__*/JSON.parse('{"id":"smart.view-table","tag":"sf-view-table","version":"1.18.0","kind":"leaf","settings":{"selectable":{"type":"boolean","default":true},"settings":{"type":"boolean","default":true},"actions":{"type":"boolean","default":true},"row-actions":{"type":"boolean","default":true},"creatable":{"type":"boolean","default":true},"filter-templates":{"type":"boolean","default":true},"settings-menu":{"type":"boolean","default":true},"pagin":{"type":"boolean","default":false},"filter-text":{"type":"string","default-from":"runtime.filter-text"},"clear-text":{"type":"string","default-from":"runtime.clear-text"},"search-placeholder":{"type":"string","default-from":"runtime.search-placeholder"},"create-text":{"type":"string","default-from":"runtime.create-text"},"pagination-total":{"type":"number","default":10,"integer":true,"min":0},"pagination-page-size":{"type":"number","default":10,"integer":true,"min":1,"max":100},"page-sizes":{"type":"string","default":"10,20,30,40"},"context-menu-columns":{"type":"number","default":1,"integer":true,"min":1,"max":4},"remember-widths":{"type":"boolean","default":false},"table-settings-key":{"type":"string","default":""},"data-state":{"type":"enum","values":["auto","loading","ready","populated","empty","error"],"default":"auto","x-alias":{"populated":"ready"}},"loading-text":{"type":"string","default-from":"runtime.loading-text"},"empty-text":{"type":"string","default-from":"runtime.empty-text"},"empty-description":{"type":"string"},"error-text":{"type":"string","default-from":"runtime.error-text"},"retry-text":{"type":"string","default-from":"runtime.retry-text"},"toolbar":{"type":"boolean","default":true},"pin-column-label":{"type":"string","default-from":"runtime.pin-column-label"},"unpin-column-label":{"type":"string","default-from":"runtime.unpin-column-label"},"column-move-label":{"type":"string","default-from":"runtime.column-move-label"},"column-search-placeholder":{"type":"string","default-from":"runtime.column-search-placeholder"},"column-search-empty-text":{"type":"string","default-from":"runtime.column-search-empty-text"},"vertical-scroll":{"type":"enum","values":["self","page"],"default":"self"},"filter-apply-text":{"type":"string","default-from":"runtime.filter-apply-text"},"layout":{"type":"enum","values":["auto","table","list"],"default":"table"},"layout-switch":{"type":"boolean","default":false},"list-below":{"type":"number","default":600},"list-fields":{"type":"number","default":3},"quick-actions":{"type":"string","default":""},"row-open":{"type":"enum","values":["title","row"],"default":"title"},"size":{"type":"enum","values":["1/2","1"],"default":"1"},"preferences-key":{"type":"string","default":""},"row-actions-visible":{"type":"enum","values":["hover","always"],"default":"hover"},"drag-rows":{"type":"boolean","default":false},"row-reorder":{"type":"boolean","default":false},"inline-edit":{"type":"boolean","default":false},"active-filter-fields":{"type":"list","entries":{"key":"id"}},"bulk-actions":{"type":"list"},"columns":{"type":"list","of":{"key":"string","label":"string"}},"create-items":{"type":"list"},"filter-fields":{"type":"list"},"rows":{"type":"list","entries":{"key":"id","changes":"revision"},"of":{"id":"id","revision":{"type":"string","optional":true}}},"table-data":{"type":"object"},"table-settings":{"type":"object"},"templates":{"type":"list"},"toolbar-actions":{"type":"list"},"sort":{"type":"list","of":{"key":"string","direction":{"type":"enum","values":["asc","desc"]}},"controlled":true},"current":{"type":"string","default":""}},"values":{"selected":{"type":"id","optional":true},"selection":{"type":"list","default":[]}},"events":{"select":{"carries":{"ids":"list"}},"apply":{"carries":{"action":"string","scope":{"type":"enum","values":["entry","selection","filter"]},"ids":"list","revisions":{"type":"object","optional":true}}},"save":{"carries":{"kind":{"type":"enum","values":["columns"]},"reason":"string","column-settings":{"type":"object"},"table-settings-key":{"type":"string"}}},"column-settings-reset":{"carries":{"target":{"type":"enum","values":["personal"]},"table-settings-key":{"type":"string","nullable":true}},"own-verb":true},"create":{"carries":{"item":{"type":"string","nullable":true,"optional":true}}},"filter-change":{"carries":{"template-key":{"type":"string"},"template-label":{"type":"string"},"values":{"type":"object"},"tags":{"type":"object"}},"own-verb":true},"query":{"carries":{"reason":"string","context":"object","sequence":{"type":"number","integer":true}}},"refresh":{"carries":{}},"search-change":{"carries":{"search":"string"},"own-verb":true},"sort-change":{"carries":{"key":{"type":"string","schema":{"minLength":1}},"direction":{"type":"enum","values":["asc","desc",null],"nullable":true}},"own-verb":true},"template-delete":{"carries":{"key":{"type":"string","schema":{"minLength":1}}},"own-verb":true},"template-save":{"carries":{"templates":{"type":"list","of":{"key":"string","label":"string","selected":"boolean","data":"object","settings":"object"},"schema":{"items":{"type":"object","required":["key","label","settings"],"properties":{"key":{"type":"string"},"label":{"type":"string"},"selected":{"type":"boolean"},"data":{"type":"object"},"settings":{"type":"object","properties":{"filter_fields":{"type":"array","items":{"type":"string"}}}}}},"minItems":1}}},"own-verb":true},"template-select":{"carries":{"key":{"type":"string","schema":{"minLength":1}}},"own-verb":true},"toolbar-action":{"carries":{"action":"string","href":{"type":"string","nullable":true,"optional":true}},"cancelable":true,"own-verb":true},"reference-open":{"carries":{"field":"string","value":"object","href":"string"},"cancelable":true,"own-verb":true},"expand":{"carries":{"id":"id","expanded":{"type":"boolean","optional":true}}},"load-more":{"carries":{"direction":{"type":"enum","values":["after"]},"parent":{"type":"id","nullable":true},"cursor":{"type":"string","nullable":true}}},"rows-drag":{"carries":{"ids":{"type":"list","schema":{"items":{"type":"string"},"minItems":1}},"source":{"type":"string","nullable":true}},"own-verb":true},"move":{"carries":{"ids":"list","before":{"type":"id","nullable":true},"order":"list"}},"cell-set":{"carries":{"id":"object","key":"string","value":"object","revision":"object"},"own-verb":true},"view-change":{"carries":{"view":"object","everywhere":"boolean"},"own-verb":true},"window":{"carries":{"first":{"type":"number","integer":true},"last":{"type":"number","integer":true}},"own-verb":true},"layout-change":{"carries":{"layout":{"type":"enum","values":["list","table"]}},"own-verb":true}},"actions":{"add-rows":{"with":{"rows":"list"}},"apply-query-result":{"with":{"sequence":{"type":"number","integer":true,"schema":{"minimum":1}},"rows":"list"}},"clear-selection":{},"request-action-intent":{"with":{"action-id":{"type":"string","schema":{"minLength":1}},"record-ids":{"type":"list","schema":{"items":{"type":["string","integer"],"minLength":1},"minItems":1}}},"emits":"apply"},"request-create-intent":{"with":{"item-id":{"type":"string","optional":true,"nullable":true}},"emits":"create"},"request-retry":{"emits":"refresh"},"set-sort":{"with":{"key":{"type":"string","nullable":true},"direction":{"type":"enum","values":["asc","desc"],"nullable":true}}},"toggle-tree-row":{"with":{"row":"object"},"emits":"expand"},"request-tree-more":{"with":{"row":"object"},"emits":"load-more"},"focus-row":{"with":{"id":"id"}},"set-layout":{"with":{"layout":{"type":"enum","values":["list","table"]}},"emits":"layout-change"}},"port":{"id":"simai.dataview-port","version":"1.0.0","contract":"src/core/contracts/ports/simai.dataview-port/1.0.0/port.json"},"presentation":{"skeleton":{"late":["rows"]}},"host-states":{"data-sf-view-stripes":"boolean","data-sf-page-scroll":"boolean"},"css-variables":{"--sf-table-row-block-size-1/2":{"type":"length","state":"default"},"--sf-table-row-block-size-1":{"type":"length","state":"default"},"--sf-table-row-2-lines-block-size-1/2":{"type":"length","state":"default"},"--sf-table-row-2-lines-block-size-1":{"type":"length","state":"default"},"--sf-table-head-block-size-1/2":{"type":"length","state":"default"},"--sf-table-head-block-size-1":{"type":"length","state":"default"},"--sf-table-toolbar-block-size-1/2":{"type":"length","state":"default"},"--sf-table-toolbar-block-size-1":{"type":"length","state":"default"},"--sf-table-toolbar-gap":{"type":"length","state":"default"},"--sf-table-head--background-color":{"type":"color","state":"default"},"--sf-table-row--background-color":{"type":"color","state":"default"},"--sf-table--cell-spacing":{"type":"length","state":"default"},"--sf-table-cell--line-clamp":{"type":"number","state":"default"},"--sf-table-context-menu--z-index":{"type":"number","state":"open"},"--sf-table-context-menu--max-width":{"type":"length","state":"open"}}}');
 
 /***/ },
 
 /***/ "678dc07d76bf"
 (module) {
 
-module.exports = /*#__PURE__*/JSON.parse('{"title":"Table","events":{"column-settings-reset":{"label":"Column settings reset"},"filter-change":{"label":"Filter changed"},"search-change":{"label":"Search changed"},"sort-change":{"label":"Order changed"},"template-delete":{"label":"Template deleted"},"template-save":{"label":"Template saved"},"template-select":{"label":"Template chosen"},"toolbar-action":{"label":"Toolbar action"},"reference-open":{"label":"Open the linked record"},"rows-drag":{"label":"Rows dragged"},"cell-set":{"label":"Cell value changed"},"view-change":{"label":"Table view changed"},"window":{"label":"Rows shown"}},"runtime":{"actions-column-label":"Actions","apply-text":"Apply","clear-text":"Clear","close-text":"Close","column-move-label":"Move the column","column-search-empty-text":"No field matches","column-search-placeholder":"Search the fields","context-create-options-label":"Ways to create","context-field-filter-label":"Filtering by","context-filter-settings-label":"Filter settings","context-row-actions-label":"Row actions","context-save-template-label":"Saving the filter as a template","context-table-settings-label":"Table settings","context-template-actions-label":"Template actions","context-view-actions-label":"View actions","create-options-label":"Ways to create","create-text":"Create","default-template-text":"Default","delete-action-text":"Delete","edit-action-text":"Edit","empty-text":"No data","error-text":"The data could not be loaded","field-word-text":"field","fields-tab-text":"Fields","filter-apply-text":"Apply","filter-settings-label":"Filter settings","filter-text":"Filter","list-filter-label":"Filter, {count} active","loading-text":"Loading","make-default-label":"Make it the default","menu-label":"Menu","operator-any":"Any date","operator-between":"Range","operator-contains":"Contains","operator-eq":"Exactly","operator-gt":"Greater than","operator-gte":"Greater or equal","operator-in":"In the list","operator-lt":"Less than","operator-lte":"Less or equal","operator-month":"This month","operator-starts-with":"Starts with","operator-today":"Today","operator-week":"This week","pin-column-label":"Pin the column","rename-text":"Rename","reset-both-text":"Reset the search and filters","reset-filters-text":"Reset the filters","reset-search-text":"Clear the search","reset-text":"Reset","restore-text":"Restore","retry-text":"Try again","row-actions-label":"Row actions","save-for-everyone-label":"Save for everyone","save-template-label":"Save the filter as a template","search-placeholder":"Search","select-all-label":"Select every row","select-row-label":"Select the row","settings-column-label":"Settings","settings-fields-tab":"Fields","settings-view-tab":"View","sort-ascending":"ascending","sort-descending":"descending","sort-label":"Sort","sort-none":"As the host orders it","template-actions-label":"Template actions","template-move-label":"Move the template","template-name-placeholder":"Name","template-pin-label":"Keep the template at the top","templates-tab-text":"Templates","tree-collapse":"Collapse","tree-expand":"Expand","tree-more":"Show more","unpin-column-label":"Unpin the column","untitled-template-text":"All records","view-action-text":"View","view-density":"Rows","view-density-compact":"Compact","view-density-normal":"Normal","view-density-spacious":"Spacious","view-everywhere":"For all my tables","view-lines":"Lines between columns","view-reset":"Reset the view","view-single-line":"Text on one line","view-sticky-head":"Keep the filter and the head in view","view-stripes":"Alternate rows"}}');
+module.exports = /*#__PURE__*/JSON.parse('{"title":"Table","events":{"column-settings-reset":{"label":"Column settings reset"},"filter-change":{"label":"Filter changed"},"search-change":{"label":"Search changed"},"sort-change":{"label":"Order changed"},"template-delete":{"label":"Template deleted"},"template-save":{"label":"Template saved"},"template-select":{"label":"Template chosen"},"toolbar-action":{"label":"Toolbar action"},"reference-open":{"label":"Open the linked record"},"rows-drag":{"label":"Rows dragged"},"cell-set":{"label":"Cell value changed"},"view-change":{"label":"Table view changed"},"window":{"label":"Rows shown"}},"runtime":{"actions-column-label":"Actions","apply-text":"Apply","clear-text":"Clear","close-text":"Close","column-move-label":"Move the column","column-search-empty-text":"No field matches","column-search-placeholder":"Search the fields","context-create-options-label":"Ways to create","context-field-filter-label":"Filtering by","context-filter-settings-label":"Filter settings","context-row-actions-label":"Row actions","context-save-template-label":"Saving the filter as a template","context-table-settings-label":"Table settings","context-template-actions-label":"Template actions","context-view-actions-label":"View actions","create-options-label":"Ways to create","create-text":"Create","default-template-text":"Default","delete-action-text":"Delete","edit-action-text":"Edit","empty-text":"No data","error-text":"The data could not be loaded","field-word-text":"field","fields-tab-text":"Fields","filter-apply-text":"Apply","filter-settings-label":"Filter settings","filter-text":"Filter","layout-list":"List","layout-switch-label":"Layout","layout-table":"Table","list-filter-label":"Filter, {count} active","loading-text":"Loading","make-default-label":"Make it the default","menu-label":"Menu","more-actions-label":"More actions","operator-any":"Any date","operator-between":"Range","operator-contains":"Contains","operator-eq":"Exactly","operator-gt":"Greater than","operator-gte":"Greater or equal","operator-in":"In the list","operator-lt":"Less than","operator-lte":"Less or equal","operator-month":"This month","operator-starts-with":"Starts with","operator-today":"Today","operator-week":"This week","pin-column-label":"Pin the column","rename-text":"Rename","reset-both-text":"Reset the search and filters","reset-filters-text":"Reset the filters","reset-search-text":"Clear the search","reset-text":"Reset","restore-text":"Restore","retry-text":"Try again","row-actions-label":"Row actions","save-for-everyone-label":"Save for everyone","save-template-label":"Save the filter as a template","search-placeholder":"Search","select-all-label":"Select every row","select-row-label":"Select the row","settings-column-label":"Settings","settings-fields-tab":"Fields","settings-view-tab":"View","sort-ascending":"ascending","sort-descending":"descending","sort-label":"Sort","sort-none":"As the host orders it","status-error":"Error","status-ok":"Working","status-stopped":"Stopped","status-warning":"Needs attention","template-actions-label":"Template actions","template-move-label":"Move the template","template-name-placeholder":"Name","template-pin-label":"Keep the template at the top","templates-tab-text":"Templates","tree-collapse":"Collapse","tree-expand":"Expand","tree-more":"Show more","unpin-column-label":"Unpin the column","untitled-template-text":"All records","view-action-text":"View","view-density":"Rows","view-density-compact":"Compact","view-density-normal":"Normal","view-density-spacious":"Spacious","view-everywhere":"For all my tables","view-lines":"Lines between columns","view-reset":"Reset the view","view-single-line":"Text on one line","view-sticky-head":"Keep the filter and the head in view","view-stripes":"Alternate rows"}}');
 
 /***/ },
 
 /***/ "32294b89604f"
 (module) {
 
-module.exports = /*#__PURE__*/JSON.parse('{"title":"Таблица","events":{"column-settings-reset":{"label":"Настройки столбцов сброшены"},"filter-change":{"label":"Фильтр изменён"},"search-change":{"label":"Поиск изменён"},"sort-change":{"label":"Порядок изменён"},"template-delete":{"label":"Шаблон удалён"},"template-save":{"label":"Шаблон сохранён"},"template-select":{"label":"Шаблон выбран"},"toolbar-action":{"label":"Действие панели"},"reference-open":{"label":"Открыть связанную запись"},"rows-drag":{"label":"Строки перетащены"},"cell-set":{"label":"Значение в ячейке изменено"},"view-change":{"label":"Вид таблицы изменён"},"window":{"label":"Показаны строки"}},"runtime":{"actions-column-label":"Действия","apply-text":"Применить","clear-text":"Очистить","close-text":"Закрыть","column-move-label":"Переместить столбец","column-search-empty-text":"Поля не найдены","column-search-placeholder":"Поиск по полям","context-create-options-label":"Варианты создания","context-field-filter-label":"Настройка фильтра","context-filter-settings-label":"Настройки фильтра","context-row-actions-label":"Действия со строкой","context-save-template-label":"Сохранение шаблона фильтра","context-table-settings-label":"Настройки таблицы","context-template-actions-label":"Действия с шаблоном","context-view-actions-label":"Действия с представлением","create-options-label":"Варианты создания","create-text":"Создать","default-template-text":"По умолчанию","delete-action-text":"Удалить","edit-action-text":"Редактировать","empty-text":"Нет данных","error-text":"Не удалось загрузить данные","field-word-text":"поле","fields-tab-text":"Поля","filter-apply-text":"Применить","filter-settings-label":"Настройки фильтра","filter-text":"Фильтр","list-filter-label":"Фильтр, активных условий: {count}","loading-text":"Загрузка данных","make-default-label":"Сделать по умолчанию","menu-label":"Меню","operator-any":"Любая дата","operator-between":"Диапазон","operator-contains":"Содержит","operator-eq":"Точно","operator-gt":"Больше чем","operator-gte":"Больше или равно","operator-in":"В списке","operator-lt":"Меньше чем","operator-lte":"Меньше или равно","operator-month":"Месяц","operator-starts-with":"Начинается с","operator-today":"Сегодня","operator-week":"Неделя","pin-column-label":"Закрепить столбец","rename-text":"Переименовать","reset-both-text":"Сбросить поиск и фильтры","reset-filters-text":"Сбросить фильтры","reset-search-text":"Очистить поиск","reset-text":"Сбросить","restore-text":"Восстановить","retry-text":"Повторить","row-actions-label":"Действия со строкой","save-for-everyone-label":"Сохранить для всех","save-template-label":"Сохранение шаблона фильтра","search-placeholder":"Поиск","select-all-label":"Выбрать все строки","select-row-label":"Выбрать строку","settings-column-label":"Настройки","settings-fields-tab":"Поля","settings-view-tab":"Вид","sort-ascending":"по возрастанию","sort-descending":"по убыванию","sort-label":"Сортировка","sort-none":"Как задано источником","template-actions-label":"Действия с шаблоном","template-move-label":"Переместить шаблон","template-name-placeholder":"Название","template-pin-label":"Закрепить шаблон сверху","templates-tab-text":"Шаблоны","tree-collapse":"Свернуть","tree-expand":"Развернуть","tree-more":"Показать ещё","unpin-column-label":"Открепить столбец","untitled-template-text":"Все записи","view-action-text":"Посмотреть","view-density":"Строки","view-density-compact":"Компактно","view-density-normal":"Обычно","view-density-spacious":"Просторно","view-everywhere":"Для всех моих таблиц","view-lines":"Линии между столбцами","view-reset":"Сбросить вид","view-single-line":"Текст в одну строку","view-sticky-head":"Закреплять фильтр и шапку","view-stripes":"Чередовать строки"}}');
+module.exports = /*#__PURE__*/JSON.parse('{"title":"Таблица","events":{"column-settings-reset":{"label":"Настройки столбцов сброшены"},"filter-change":{"label":"Фильтр изменён"},"search-change":{"label":"Поиск изменён"},"sort-change":{"label":"Порядок изменён"},"template-delete":{"label":"Шаблон удалён"},"template-save":{"label":"Шаблон сохранён"},"template-select":{"label":"Шаблон выбран"},"toolbar-action":{"label":"Действие панели"},"reference-open":{"label":"Открыть связанную запись"},"rows-drag":{"label":"Строки перетащены"},"cell-set":{"label":"Значение в ячейке изменено"},"view-change":{"label":"Вид таблицы изменён"},"window":{"label":"Показаны строки"}},"runtime":{"actions-column-label":"Действия","apply-text":"Применить","clear-text":"Очистить","close-text":"Закрыть","column-move-label":"Переместить столбец","column-search-empty-text":"Поля не найдены","column-search-placeholder":"Поиск по полям","context-create-options-label":"Варианты создания","context-field-filter-label":"Настройка фильтра","context-filter-settings-label":"Настройки фильтра","context-row-actions-label":"Действия со строкой","context-save-template-label":"Сохранение шаблона фильтра","context-table-settings-label":"Настройки таблицы","context-template-actions-label":"Действия с шаблоном","context-view-actions-label":"Действия с представлением","create-options-label":"Варианты создания","create-text":"Создать","default-template-text":"По умолчанию","delete-action-text":"Удалить","edit-action-text":"Редактировать","empty-text":"Нет данных","error-text":"Не удалось загрузить данные","field-word-text":"поле","fields-tab-text":"Поля","filter-apply-text":"Применить","filter-settings-label":"Настройки фильтра","filter-text":"Фильтр","layout-list":"Список","layout-switch-label":"Вид","layout-table":"Таблица","list-filter-label":"Фильтр, активных условий: {count}","loading-text":"Загрузка данных","make-default-label":"Сделать по умолчанию","menu-label":"Меню","more-actions-label":"Ещё действия","operator-any":"Любая дата","operator-between":"Диапазон","operator-contains":"Содержит","operator-eq":"Точно","operator-gt":"Больше чем","operator-gte":"Больше или равно","operator-in":"В списке","operator-lt":"Меньше чем","operator-lte":"Меньше или равно","operator-month":"Месяц","operator-starts-with":"Начинается с","operator-today":"Сегодня","operator-week":"Неделя","pin-column-label":"Закрепить столбец","rename-text":"Переименовать","reset-both-text":"Сбросить поиск и фильтры","reset-filters-text":"Сбросить фильтры","reset-search-text":"Очистить поиск","reset-text":"Сбросить","restore-text":"Восстановить","retry-text":"Повторить","row-actions-label":"Действия со строкой","save-for-everyone-label":"Сохранить для всех","save-template-label":"Сохранение шаблона фильтра","search-placeholder":"Поиск","select-all-label":"Выбрать все строки","select-row-label":"Выбрать строку","settings-column-label":"Настройки","settings-fields-tab":"Поля","settings-view-tab":"Вид","sort-ascending":"по возрастанию","sort-descending":"по убыванию","sort-label":"Сортировка","sort-none":"Как задано источником","status-error":"Ошибка","status-ok":"Работает","status-stopped":"Остановлен","status-warning":"Есть замечания","template-actions-label":"Действия с шаблоном","template-move-label":"Переместить шаблон","template-name-placeholder":"Название","template-pin-label":"Закрепить шаблон сверху","templates-tab-text":"Шаблоны","tree-collapse":"Свернуть","tree-expand":"Развернуть","tree-more":"Показать ещё","unpin-column-label":"Открепить столбец","untitled-template-text":"Все записи","view-action-text":"Посмотреть","view-density":"Строки","view-density-compact":"Компактно","view-density-normal":"Обычно","view-density-spacious":"Просторно","view-everywhere":"Для всех моих таблиц","view-lines":"Линии между столбцами","view-reset":"Сбросить вид","view-single-line":"Текст в одну строку","view-sticky-head":"Закреплять фильтр и шапку","view-stripes":"Чередовать строки"}}');
 
 /***/ }
 
