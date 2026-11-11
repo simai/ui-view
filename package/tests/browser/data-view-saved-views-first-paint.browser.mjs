@@ -198,7 +198,10 @@ try {
     tab.on('response', (response) => { if (response.status() >= 400) errors.push(`${response.status()} ${new URL(response.url()).pathname}`); });
     try {
       await tab.goto(origin + path);
-      await tab.waitForFunction(() => window.__fp?.released && !document.querySelector('#stage sf-view').hasAttribute('data-sf-awaiting'), null, {timeout: 60000});
+      // Data first does not wait for the sheets, so wait here until a frame
+      // with every sheet in has been drawn (late sheets under load).
+      await tab.waitForFunction(() => window.__fp?.released && !document.querySelector('#stage sf-view').hasAttribute('data-sf-awaiting')
+        && window.__fp.frames.some((frame) => frame.phase === 'drawn' && frame.sheetsIn), null, {timeout: 60000});
       await tab.waitForTimeout(700);
       await tab.evaluate(() => document.querySelector('#stage sf-view').refresh?.('again'));
       await tab.waitForTimeout(700);
