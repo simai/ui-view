@@ -1113,7 +1113,7 @@
      from a 32px button on a phone leaves no room for its fields. The menu
      lives in the table's portal, outside sf-view-table, and places itself with
      inline styles from the button; the sheet's rule overrides them. */
-  .sf-table-context-layer[data-sf-sheet] .sf-table-context-menu {
+  .sf-table-context-layer[data-sf-sheet="screen"] .sf-table-context-menu {
     position: fixed !important;
     inset: 0 !important;
     transform: none !important;
@@ -1133,11 +1133,41 @@
   }
 
   /* The sheet's way out: nothing outside it is left to press. */
-  .sf-table-context-layer[data-sf-sheet] .sf-table-sheet-close {
+  .sf-table-context-layer[data-sf-sheet="screen"] .sf-table-sheet-close {
     position: fixed;
     inset-block-start: var(--sf-a8);
     inset-inline-end: var(--sf-a8);
     z-index: calc(var(--sf-z-index-9) + 1);
+  }
+
+  /* A form on a phone (C32, below the Framework's md breakpoint, 44rem):
+     a sheet docked to the bottom edge, the screen's whole width up to 44rem
+     (--sf-h1), centred, over the scrim, with the modal shadow and only its
+     top corners rounded -- sf-menu-context's own sheet (C20). The layer is
+     the scrim, and a tap on it closes the sheet. The window places itself
+     with inline styles from its trigger; the sheet's rules override them.
+     Its content keeps clear of a phone's home indicator. */
+  .sf-table-context-layer[data-sf-sheet="bottom"] {
+    position: fixed;
+    inset: 0;
+    background-color: var(--sf-scrim-color);
+  }
+
+  .sf-table-context-layer[data-sf-sheet="bottom"] .sf-table-context-menu {
+    --sf-table-context-menu--width: 100%;
+    --sf-table-context-menu--max-block-size: calc(100dvh - var(--sf-space-4));
+    --sf-context-menu--box-shadow: var(--sf-shadow-modal);
+    position: fixed !important;
+    inset: auto 0 0 !important;
+    transform: none !important;
+    translate: none !important;
+    inline-size: 100% !important;
+    min-inline-size: 0 !important;
+    max-inline-size: var(--sf-h1) !important;
+    margin: 0 auto !important;
+    border-end-start-radius: 0 !important;
+    border-end-end-radius: 0 !important;
+    padding-block-end: env(safe-area-inset-bottom, var(--sf-a0));
   }
 }
 @layer sf.states {

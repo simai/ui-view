@@ -929,19 +929,26 @@ class SfDataView extends DataViewElement {
         // (createItems: the split arrow) and its toolbar actions (the «more»
         // button) when the page gave them to its table before the first
         // paint. A control the page gives later still comes with the answer,
-        // as before. The list's sort button is not held: it comes with a
-        // sortable column, and the columns are the port's answer.
+        // as before. The compact list's sort button comes with a sortable
+        // column, and the columns are the port's answer; it is held when the
+        // page's printed query sorts (the declared port's first query.change,
+        // or a sort the person kept in this browser), since a sort names a
+        // sortable column (sf-view 1.12.1). A list that sorts by nothing until
+        // asked still draws the button with the answer.
         const switchValue = this.getAttribute?.("layout-switch");
         const layoutSwitch = switchValue !== null && switchValue !== undefined && switchValue !== "false" && this.renders("toolbar");
         const known = (read) => { try { return read(); } catch { return undefined; } };
         const createSplit = creatable && (known(() => table?.createItems?.length) ?? 0) > 0;
         const toolbarActions = settings && (known(() => table?.toolbarActions?.length) ?? 0) > 0;
+        const sorts = (value) => (Array.isArray(value) ? value.length > 0 : Boolean(value && typeof value === "object" && Object.keys(value).length));
+        const declaredFirst = this._declaredPort?.first;
+        const sortHeld = toolbar && (sorts(declaredFirst?.intent === "query.change" ? declaredFirst.payload?.query?.sort : null) || sorts(this._keptState?.sort) || sorts(this.query?.sort));
         const createMarkup = creatable
             ? (createSplit ? `<span data-part="create">${label("create", word("createText", "create-text"))}${control("split")}</span>` : label("create", word("createText", "create-text")))
             : "";
         const toolbarMarkup = '<div class="sf-data-view-skeleton-toolbar">'
             + `<div data-part="start">${label("filter", word("filterText", "filter-text"))}${views ? control("segment") : ""}</div>`
-            + `<div data-part="end">${control("field")}${layoutSwitch ? control("switch") : ""}${createMarkup}${toolbarActions ? control("actions") : ""}</div>`
+            + `<div data-part="end">${control("field")}${layoutSwitch ? control("switch") : ""}${sortHeld ? control("sort") : ""}${createMarkup}${toolbarActions ? control("actions") : ""}</div>`
             + "</div>";
         if (layoutSwitch) skeleton.setAttribute("data-layout-switch", "");
         else skeleton.removeAttribute?.("data-layout-switch");

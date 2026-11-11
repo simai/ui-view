@@ -2,7 +2,7 @@
   "$comment": "sf-table from its component.json (standard simai.smart-component 1.3.8, vocabulary 1.1.5), migrated from ui-control control/smart-architecture/migration/out/table (convert-1.3.8.mjs over ui-pro 9cbe061); every x-todo decided in x-decisions.",
   "id": "smart.view-table",
   "tag": "sf-view-table",
-  "version": "1.18.1",
+  "version": "1.18.2",
   "kind": "leaf",
   "family": "table",
   "settings": {
@@ -2370,6 +2370,13 @@
           "to": "1.18.1",
           "changes": [
             "The content table of an sf-view whose code has not arrived yet does not draw on its own (DEV decision msg-e39bb812, zero toolbar shift when saved views are declared): the Loader defines the table before the view, and the table drew its own toolbar -- the search field across the whole row, the filter button and the saved-views control coming in a frame later -- for a frame or two before the view's first paint replaced it with the skeleton, so the toolbar moved by the controls' width (182 px with saved views declared and 142 px without at 1440; at 390 the bar went from 80 to 36 px tall). It draws once sf-view is defined, with the settings the view gave it, and the first toolbar on the page is the skeleton, which stands where the answer draws it. A table whose static markup the server printed is adopted as before. Nothing to change for a host."
+          ]
+        },
+        {
+          "from": "1.18.1",
+          "to": "1.18.2",
+          "changes": [
+            "A form on a phone is a sheet at the bottom of the screen (owner decision C32, addendum 2026-11-09), whatever the layout: below the Framework's md breakpoint (44rem) saving a template (filter-favorites) and a chip's own filter (tag-settings) open docked to the bottom edge, the screen's whole width up to 44rem (--sf-h1), centred, over the scrim (--sf-scrim-color), with the modal shadow and only the top corners rounded, as sf-menu-context's own form sheet; a tap on the scrim closes it. They opened as a 320 px window at the trigger in a table forced to layout=\"table\" on a phone, and the compact list's chip filter covered the whole screen. The compact list's filter (filter-settings, a panel) still covers the screen with its own way out. The sheet is decided when the window opens. Nothing to change for a host."
           ]
         }
       ]

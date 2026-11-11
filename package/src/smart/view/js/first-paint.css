@@ -123,6 +123,13 @@
   .sf-data-view-skeleton .sf-skeleton-text[data-control="switch"] {
     inline-size: var(--sf-data-view-skeleton--switch);
   }
+  /* The compact list's sort button (sf-view 1.12.1): a square of the step's
+     control between the filter and create, held when the page's printed
+     query sorts (a sortable column is then known before the answer). The
+     table's toolbar has none: its sort is in the column heads. */
+  .sf-data-view-skeleton .sf-skeleton-text[data-control="sort"] {
+    display: none;
+  }
   .sf-data-view-skeleton-toolbar > [data-part] > [data-part="create"] {
     display: flex;
     align-items: center;
@@ -179,6 +186,9 @@
   .sf-data-view-skeleton[data-layout="list"]:not([data-layout-switch]) .sf-data-view-skeleton-toolbar [data-control="field"] {
     order: -1;
     flex: 1 1 0;
+  }
+  .sf-data-view-skeleton[data-layout="list"]:not([data-layout-switch]) .sf-data-view-skeleton-toolbar [data-control="sort"] {
+    display: block;
   }
   .sf-data-view-skeleton[data-layout="list"]:not([data-layout-switch]) .sf-data-view-skeleton-toolbar :is([data-control="filter"], [data-control="create"]) {
     inline-size: var(--sf-data-view-skeleton--control);
@@ -281,6 +291,9 @@
     .sf-data-view-skeleton:is([data-layout="auto"], [data-layout="list"]) .sf-data-view-skeleton-toolbar [data-control="field"] {
       order: -1;
       flex: 1 1 0;
+    }
+    .sf-data-view-skeleton:is([data-layout="auto"], [data-layout="list"]) .sf-data-view-skeleton-toolbar [data-control="sort"] {
+      display: block;
     }
     .sf-data-view-skeleton:is([data-layout="auto"], [data-layout="list"]) .sf-data-view-skeleton-toolbar :is([data-control="filter"], [data-control="create"]) {
       inline-size: var(--sf-data-view-skeleton--control);

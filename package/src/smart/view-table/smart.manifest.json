@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-table",
-  "version": "1.18.1",
+  "version": "1.18.2",
   "title": "Table",
   "summary": "Complete server-backed collection view with search, filters, table preferences, row and bulk actions, and pagination.",
   "kind": "composite",
@@ -2726,6 +2726,13 @@
         "changes": [
           "The content table of an sf-view whose code has not arrived yet does not draw on its own (DEV decision msg-e39bb812, zero toolbar shift when saved views are declared): the Loader defines the table before the view, and the table drew its own toolbar -- the search field across the whole row, the filter button and the saved-views control coming in a frame later -- for a frame or two before the view's first paint replaced it with the skeleton, so the toolbar moved by the controls' width (182 px with saved views declared and 142 px without at 1440; at 390 the bar went from 80 to 36 px tall). It draws once sf-view is defined, with the settings the view gave it, and the first toolbar on the page is the skeleton, which stands where the answer draws it. A table whose static markup the server printed is adopted as before. Nothing to change for a host."
         ]
+      },
+      {
+        "from": "1.18.1",
+        "to": "1.18.2",
+        "changes": [
+          "A form on a phone is a sheet at the bottom of the screen (owner decision C32, addendum 2026-11-09), whatever the layout: below the Framework's md breakpoint (44rem) saving a template (filter-favorites) and a chip's own filter (tag-settings) open docked to the bottom edge, the screen's whole width up to 44rem (--sf-h1), centred, over the scrim (--sf-scrim-color), with the modal shadow and only the top corners rounded, as sf-menu-context's own form sheet; a tap on the scrim closes it. They opened as a 320 px window at the trigger in a table forced to layout=\"table\" on a phone, and the compact list's chip filter covered the whole screen. The compact list's filter (filter-settings, a panel) still covers the screen with its own way out. The sheet is decided when the window opens. Nothing to change for a host."
+        ]
       }
     ]
   },
@@ -2735,7 +2742,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-table/index.js",
-        "sha256": "488c1fa1066901859c2ba08f87f1f6cb1aa1becd6c7f4e474b6269b2e76b15b5"
+        "sha256": "d62b78eba0d4a57e6a3448456783f1d163317f42f7561427e9b11b06e4ea1b14"
       },
       {
         "path": "src/smart/view-table/js/templates/default.js",
@@ -2743,7 +2750,7 @@
       },
       {
         "path": "src/smart/view-table/js/templates/default.css",
-        "sha256": "fd90ba30cdd6f795b7caed96763299e1d1b0f5d23659017b7dd3443a14b2734a"
+        "sha256": "1413b67e938f241f03866dec87a40ee8284ef6cb9d24bfe60a3e09eaee637a96"
       },
       {
         "path": "src/smart/helpers/option-badge.js",

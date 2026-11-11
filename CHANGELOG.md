@@ -3,6 +3,27 @@
 The set `view`, by its npm version `@simai-studio/view`; component versions
 in brackets. The site page «Изменения» says the same in Russian.
 
+## 1.7.2 — not released
+
+- `sf-view-table` 1.18.2: a form on a phone is a sheet at the bottom of the
+  screen (owner decision C32, addendum 2026-11-09). Below the SIMAI
+  Framework's md breakpoint (44rem) saving a template (`filter-favorites`)
+  and a chip's own filter (`tag-settings`) open docked to the bottom edge,
+  the screen's width up to 44rem (`--sf-h1`), centred, over the scrim
+  (`--sf-scrim-color`), with the modal shadow and only the top corners
+  rounded, as `sf-menu-context`'s own form sheet; a tap on the scrim closes
+  it. They opened as a 320 px window at the trigger in a table kept to
+  `layout="table"` on a phone, and the compact list's chip filter covered the
+  whole screen. The compact list's filter (`filter-settings`, a panel) still
+  covers the screen with its own way out. Menus, field lists and panels keep
+  the C32 widths of 1.18.0.
+- `sf-view` 1.12.1: the first paint holds the compact list's sort button
+  when the printed query sorts (the declared port's first `query.change`, a
+  sort kept in this browser, or the view's own query), so the search field
+  stands where it will stand.
+- Known limit: a list that sorts by nothing until asked has no sort in its
+  printed query; its sort button still arrives with the answer.
+
 ## 1.7.1 — not released
 
 - `sf-view-table` 1.18.1: the toolbar holds still from its first frame when

@@ -5199,13 +5199,13 @@ class SfTable extends TableElement {
             html`
                 <div
                         class="sf-table-context-layer"
-                        data-sf-sheet=${this.isList && ["filter-settings", "tag-settings"].includes(data.menu) ? "" : nothing}
+                        data-sf-sheet=${this.contextSheet(data.menu) ?? nothing}
                         ${ref(this.refs.contextMenu)}
                         @click=${(event) => this.handleContextLayerClick(event)}
                 >
                     ${this.renderMainContextMenu(data)}
                     ${data.submenu?.open ? this.renderContextSubmenu(data.submenu) : nothing}
-                    ${this.isList && ["filter-settings", "tag-settings"].includes(data.menu) ? html`
+                    ${this.contextSheet(data.menu) === "screen" ? html`
                         <div class="sf-table-sheet-close">
                             <sf-button-icon size=${this.size} appearance="ghost" scheme="on-surface"
                                             icon="close" aria-label=${this.text('closeText')}
@@ -6106,6 +6106,22 @@ class SfTable extends TableElement {
     // filter are forms: --sf-popup-form-width (20rem; 18rem compact). A
     // panel laid out in several columns is as wide as they are. Every window
     // stays inside the room it has (--sf-table-context-menu--available-inline-size).
+    // Where a window opens on a phone (C32: a form on a phone is a sheet at
+    // the bottom of the screen, the screen's whole width up to 44rem): the
+    // compact list's filter covers the screen ("screen", its own way out, as
+    // before), a form -- saving a template, a chip's own filter -- below the
+    // Framework's md breakpoint is a sheet docked to the bottom ("bottom",
+    // over the scrim, a tap on the scrim closes it), whatever the layout. The
+    // breakpoint is read the way sf-menu-context reads it: --sf-breakpoint-md
+    // is declared only from 44rem up. Decided when the window opens.
+    contextSheet(menu) {
+        if (this.isList && menu === 'filter-settings') return 'screen';
+        if (!['filter-favorites', 'tag-settings'].includes(menu)) return null;
+        const root = globalThis.document?.documentElement;
+        if (!root || typeof getComputedStyle !== 'function') return null;
+        return getComputedStyle(root).getPropertyValue('--sf-breakpoint-md').trim() ? null : 'bottom';
+    }
+
     contextWindowClass(menu, columns = 1) {
         const kind = {
             'filter-settings': 'panel',
@@ -6625,6 +6641,13 @@ class SfTable extends TableElement {
         const target = event.target;
 
         if (!(target instanceof Element)) {
+            return;
+        }
+
+        // The scrim behind a bottom sheet is the layer itself: a tap on it
+        // closes the sheet, as sf-menu-context's sheet does.
+        if (target === event.currentTarget && target.getAttribute?.('data-sf-sheet') === 'bottom') {
+            this.closeContextMenu();
             return;
         }
 
