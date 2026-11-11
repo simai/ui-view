@@ -3,6 +3,107 @@
 The set `view`, by its npm version `@simai-studio/view`; component versions
 in brackets. The site page «Изменения» says the same in Russian.
 
+## 1.7.0 — 2026-11-11
+
+Carries 1.6.1, which was not published on its own.
+
+- `sf-view` 1.12.0:
+  - A page asks the view to save a shared saved view with `save`
+    (`sf-view-save {kind: "view", key, label, revision?, roles?}`,
+    vocabulary 1.1.5 §9). The view raises `view.save_shared` as before; a
+    save of another kind is left alone. The former names
+    `sf-view-saved-view-intent` and `sf-data-view-saved-view-intent` are
+    dated aliases until 2027-01-01: still heard, their detail read as a
+    view, each use noted in `SF.deprecations`. The new name sent without
+    `kind` is read as a view too and is not noted.
+  - The first paint holds the optional toolbar controls known before the
+    answer: the layout switch (`layout-switch`), and the create kinds' arrow
+    and the toolbar actions' button when the page gave its table
+    `createItems` or `toolbarActions` before the first paint. On a desktop
+    table the search field no longer moves when they are drawn. The list's
+    sort button is still drawn with the answer (its column is the port's),
+    so a compact list with a sortable column still moves the field: see the
+    known limits below.
+- `sf-view-table` 1.18.0: the table's own windows by their C32 kind, from
+  the Framework's popup widths: the filter with its saved views and the
+  column settings are panels (`--sf-popup-panel-width`, 20rem, 18rem
+  compact, or the trigger's width when wider); saving a template and a
+  chip's filter are forms (`--sf-popup-form-width`, 20rem, 18rem compact;
+  they were as wide as their content). The menus keep `sf-menu-context`'s
+  widths.
+- `sf-view-flow` 1.1.2 (preview): over the new pair a declined answer says
+  nothing (SIMAI Framework C35/R067): the status line is empty where it
+  said «Отменено». Probe `p2-cancel` follows.
+- Known limits:
+  - The list's sort button is not held by the first paint. A compact list
+    with a sortable column (every phone list by default, and a desktop
+    `layout="list"`) moves the search field when the answer draws the sort
+    button: 44 px at size 1 (48 in a desktop list), 36 px at size 1/2 and
+    under compact density. It moved 132 px on a phone in 1.6.0. The fix
+    needs a first-paint hint in a later `simai.dataview-port`.
+  - Controls the page gives after the first paint (`setCreateItems`,
+    `setToolbarActions` once the skeleton is on screen) are not held.
+  - A table forced to `layout="table"` on a phone opens its forms (saving a
+    template, a chip's filter) as a 320 px window at the trigger, not as the
+    bottom sheet SIMAI Framework C32 asks for on a phone (open, C19). The
+    phone list (`layout="auto"`) opens its filter as a full-width bottom
+    sheet and offers no template saving.
+  - On a page where the icon font arrives late, a date field drawn by
+    `sf-view-flow` (its `sf-input-date`) is 1 px shorter once the icon font
+    is in (29 → 28 px line, the flow 339 → 338 at 390). The date control's
+    wrapper sits on the baseline of the calendar icon, which the SIMAI
+    Framework holds at size 0 until its font is loaded. The fix is in the
+    SIMAI Framework (`sf-input-date`'s wrapper aligned to the top); the
+    first-paint gate lists `view-flow/ask` as a known failure until the set
+    is repinned on the pair that carries it (DEV waiver, this release only).
+
+## 1.6.1 — not published (carried by 1.7.0)
+
+- Built over SIMAI Framework `ui-2bd5a3ab478a` (ui-source `d25a01f9989d`,
+  npm `@simai-studio/ui@5.20261110.1541`, core.runtime 1.51.0); the set now
+  needs core.runtime 1.51.0 or newer, the pair that carries the roles
+  `--sf-surface-underlay` and `--sf-surface-place-solid` the C43 rows read.
+- `sf-view-table` 1.17.1:
+  - The head row is on the ladder: a one-line row of its step, 40 at size
+    1/2 and 48 at size 1 beside rows with the box and menu, with or without
+    the box and the sortable column controls (it was 45 and 57 with them,
+    33 to 41 without). `--sf-table-head-block-size-*` say 40 and 48.
+  - The published box agrees with the tables under page density (C22): the
+    `-1/2` names are the `size="1/2"` table on every page, 40/48/40 on a
+    compact page too (they said 36/40/29); the `-1` names are the table
+    without a size in the density they are read in. They are also declared
+    on every element with `data-sf-density`, so a normal region of a compact
+    page reads the normal box.
+  - A draw reads the column settings once (simai/ui-pro#1, counted over
+    one `setRows()` draw: 268 reads for 8 rows and 343 for 60, now 4), and an
+    idle row's actions cell is the bare cell (simai/ui-pro#2: 29 nodes a row,
+    was 31).
+  - A selected row, a selected list item and the open record give a tonal
+    badge on them a solid base
+    (`--sf-surface-underlay: var(--sf-surface-place-solid, var(--sf-surface-place))`,
+    C43), so a warning or error fact keeps its colour there (pair
+    `ui-2bd5a3ab478a` and newer).
+- `sf-view` 1.11.1: when the page declares saved views before the first
+  answer, the first paint holds the saved-views control's place in the
+  toolbar, and the search field no longer moves when the control is drawn
+  (it moved 54px at 1280); the skeleton's head and toolbar gap follow the
+  table. The skeleton's toolbar is the drawn one: the filter at the start,
+  the field and the create button at the end, the buttons as wide as their
+  labels make them (they were a fixed three controls, 9.72 / 16.5 px short),
+  and in the compact list the field first with the two as squares after it
+  (the field moved 116 / 92 px on a phone). The search field no longer moves
+  from the first paint to the drawn toolbar, except where the list's sort
+  button is drawn: a phone list with a sortable column still moves it 44 px
+  (36 px at size 1/2), see the 1.7.0 known limits.
+- `sf-view-properties` 1.13.3: the controls the panel draws (the open-all
+  bar, the group and section buttons, the section tabs, the profile picker,
+  the edge controls) carry the panel's size only when it has one (C22), as
+  `sf-view` and `sf-view-table` do since 1.6.0: under compact density a
+  panel with no size draws them at 32, size 1 keeps 40. Probe
+  `property-view-density-controls`. Nothing to change for a host.
+- Proposal, not built: a section rail in the `sf-view-properties` skeleton
+  (package/README.md).
+
 ## 1.6.0 — 2026-11-10
 
 - Built over SIMAI Framework `ui-a0370c0c99fb` (ui-source `7d2f4dc74fdf`,

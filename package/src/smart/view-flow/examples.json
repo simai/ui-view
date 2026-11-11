@@ -348,7 +348,7 @@
         },
         {
           "id": "p2-cancel",
-          "title": "Cancel answers {id, accepted: false}; the block is pending, then declined when the host settles it, and shows only «Отменено»",
+          "title": "Cancel answers {id, accepted: false}; the block is pending, then declined when the host settles it, and says nothing (SIMAI Framework C35/R067: a declined answer changed nothing, the status line is empty)",
           "covers": "actions.cancel, events.answer, actions.settle",
           "steps": [
             {
@@ -389,7 +389,7 @@
                   "outcome": "applied"
                 }
               },
-              "check": "document.querySelector('#b').state === 'declined' && !document.querySelector('#b .sf-view-flow__groups') && document.querySelector('#b .sf-view-flow__status span').textContent.trim() === 'Отменено'"
+              "check": "document.querySelector('#b').state === 'declined' && !document.querySelector('#b .sf-view-flow__groups') && document.querySelector('#b .sf-view-flow__status').textContent.trim() === ''"
             }
           ]
         },

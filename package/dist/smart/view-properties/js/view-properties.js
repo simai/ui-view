@@ -4592,6 +4592,16 @@ class SfPropertyView extends PropertyViewElement {
 
   get size() {
     return this.getAttribute("size") === "1/2" ? "1/2" : "1";
+  } // The size written on the controls the panel draws: the host's own when it
+  // has one, none when it has not, so page density moves them with the page
+  // (C22), as sf-view and sf-view-table do since view 1.6.0. With size 1
+  // written on them they stayed 40 under compact density beside the page's
+  // 32. `size` still chooses the panel's own type steps (1/2 or 1).
+
+
+  get controlSize() {
+    const size = this.getAttribute("size");
+    return size === "1/2" || size === "1" ? size : null;
   }
 
   get mode() {
@@ -5553,6 +5563,7 @@ class SfPropertyView extends PropertyViewElement {
       hostPort: this.hostPort,
       viewHost: this.viewHost,
       size: this.size,
+      controlSize: this.controlSize,
       mode: this.mode,
       mayEdit: this.mayEdit,
       openAll: this.openAll,
@@ -9687,7 +9698,7 @@ function renderConfigureBar(context) {
   const writable = context.editableLayers ?? [];
   const chooser = (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
         <sf-profile-picker
-                size=${context.size}
+                size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                 data-action="view-profile"
                 label=${context.viewProfileLabel}
                 current=${context.viewProfile ?? ''}
@@ -9720,7 +9731,7 @@ function renderConfigureBar(context) {
                         <span class="sf-property-view-reset-ask color-error">${context.resetViewAskText}</span>
                         <sf-button
                                 appearance="ghost"
-                                size=${context.size}
+                                size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                                 status="danger"
                                 text=${context.resetViewText}
                                 data-action="reset-view-confirm"
@@ -9728,7 +9739,7 @@ function renderConfigureBar(context) {
                         ></sf-button>
                         <sf-button
                                 appearance="outline"
-                                size=${context.size}
+                                size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                                 text=${context.cancelConfiguringText}
                                 data-action="reset-view-cancel"
                                 @click=${() => context.component.cancelReset()}
@@ -9739,21 +9750,21 @@ function renderConfigureBar(context) {
                              mode was entered with; done keeps what is there. -->
                         <sf-button
                                 appearance="ghost"
-                                size=${context.size}
+                                size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                                 text=${context.resetViewText}
                                 data-action="reset-view"
                                 @click=${() => context.component.askReset()}
                         ></sf-button>
                         <sf-button
                                 appearance="outline"
-                                size=${context.size}
+                                size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                                 text=${context.cancelConfiguringText}
                                 data-action="cancel-configuring"
                                 @click=${() => context.component.cancelConfiguringView()}
                         ></sf-button>
                         <sf-button
                                 appearance="default"
-                                size=${context.size}
+                                size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                                 text=${context.doneConfiguringText}
                                 data-action="done-configuring"
                                 @click=${() => context.component.stopConfiguringView()}
@@ -10220,7 +10231,7 @@ function renderGroup(context, section, group) {
                 ${!configuring && !editing && context.mayEdit && !context.openAll && group.kind !== 'related' && group.editable !== false ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
                             <sf-button
                                     appearance="ghost"
-                                    size=${context.size}
+                                    size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                                     text=${context.editText}
                                     data-action="edit"
                                     @click=${() => context.component.editGroup(String(section.key ?? ''), groupKey)}
@@ -10266,7 +10277,7 @@ function renderPhoneSectionHead(context) {
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
         <div class="sf-property-view-phone-head flex items-cross-center gap-2">
             <sf-button-icon
-                    size=${context.size}
+                    size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                     appearance="ghost"
                     icon="arrow_back"
                     data-action="phone-back"
@@ -10393,7 +10404,7 @@ function renderSectionTabs(context, sections) {
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
         <sf-tabs
                 class="sf-property-view-tabs"
-                size=${context.size}
+                size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                 active-index=${String(at)}
                 aria-label=${context.sectionsLabel}
                 items=${sections.map(section => tabLabel(context, section)).join('|')}
@@ -10428,14 +10439,14 @@ function renderConfirmation(context) {
             <span class="grow"></span>
             <sf-button
                     appearance="default"
-                    size=${context.size}
+                    size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                     text=${context.confirmSaveText}
                     data-action="confirm-save"
                     @click=${() => context.component.confirmSave()}
             ></sf-button>
             <sf-button
                     appearance="outline"
-                    size=${context.size}
+                    size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                     text=${context.keepEditingText}
                     data-action="keep-editing"
                     @click=${() => context.component.cancelConfirmation()}
@@ -10453,7 +10464,7 @@ function renderOpenAllBar(context) {
         <div class="sf-property-view-actions flex items-cross-center gap-2 flex-wrap" role="group">
             <sf-button
                     appearance="default"
-                    size=${context.size}
+                    size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                     text=${creating ? context.createText : context.saveText}
                     data-action=${creating ? 'create' : 'save'}
                     ?disabled=${!creating && context.changed.size === 0 || context.inputsInvalid}
@@ -10461,7 +10472,7 @@ function renderOpenAllBar(context) {
             ></sf-button>
             <sf-button
                     appearance="outline"
-                    size=${context.size}
+                    size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                     text=${context.cancelText}
                     data-action="cancel"
                     @click=${() => context.component.cancelEdit()}
@@ -10496,7 +10507,7 @@ function renderActions(context, {
             ${context.editing ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
                         <sf-button
                                 appearance="default"
-                                size=${context.size}
+                                size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                                 text=${context.saveText}
                                 data-action="save"
                                 ?disabled=${context.changed.size === 0 || context.inputsInvalid}
@@ -10504,7 +10515,7 @@ function renderActions(context, {
                         ></sf-button>
                         <sf-button
                                 appearance="outline"
-                                size=${context.size}
+                                size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                                 text=${context.cancelText}
                                 data-action="cancel"
                                 @click=${() => context.component.cancelEdit()}
@@ -10517,7 +10528,7 @@ function renderActions(context, {
                         <sf-button-icon
                                 appearance="ghost"
                                 status="danger"
-                                size=${context.size}
+                                size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                                 icon="delete"
                                 data-action="delete"
                                 title=${context.deleteText}
@@ -10640,7 +10651,7 @@ function renderMenuControl(context) {
         <sf-button-icon
                 appearance="ghost"
                 scheme="on-surface"
-                size=${context.size}
+                size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                 icon="more_horiz"
                 data-action="menu"
                 aria-haspopup="menu"
@@ -10667,7 +10678,7 @@ function renderPanelHead(context) {
                      review, 2026-10-28). -->
                 ${context.recordId && context.mode !== 'create' ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<sf-button-icon
                         appearance="ghost"
-                        size=${context.size}
+                        size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                         icon="star"
                         ?filled=${context.favourite}
                         data-action="favourite"
@@ -10710,7 +10721,7 @@ function renderPanelControls(context) {
                     appearance="tonal"
                     scheme="on-surface"
                     root-style=${EDGE_SURFACE}
-                    size=${context.size}
+                    size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                     icon="close"
                     data-action="close"
                     aria-label=${context.closeLabel}
@@ -10721,7 +10732,7 @@ function renderPanelControls(context) {
                         <sf-button-copy
                                 appearance="tonal"
                                 root-style=${EDGE_SURFACE}
-                                size=${context.size}
+                                size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                                 icon="link"
                                 value=${context.addressUrl}
                                 label=${context.copyLinkLabel}
@@ -10737,7 +10748,7 @@ function renderPanelControls(context) {
                                 appearance="tonal"
                                 scheme="on-surface"
                                 root-style=${EDGE_SURFACE}
-                                size=${context.size}
+                                size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                                 icon="open_in_full"
                                 aria-label=${context.openFullLabel}
                                 title=${context.openFullLabel}
@@ -10957,7 +10968,7 @@ function renderArrangementAdditions(context, section) {
             <sf-button
                     appearance="outline"
                     scheme="on-surface"
-                    size=${context.size}
+                    size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                     text=${context.addGroupText}
                     data-action="add-group"
                     @click=${() => context.component.addGroup(section ? String(section.key) : '')}
@@ -12358,7 +12369,7 @@ module.exports = /*#__PURE__*/JSON.parse('{"$comment":"Dated aliases of sf-view-
 /***/ "3ea81f4c3c20"
 (module) {
 
-module.exports = /*#__PURE__*/JSON.parse('{"id":"smart.view-properties","tag":"sf-view-properties","version":"1.13.2","kind":"leaf","implements":["record-view@1"],"settings":{"add-field-text":{"type":"string","default-from":"runtime.add-field-text"},"add-group-text":{"type":"string","default-from":"runtime.add-group-text"},"add-section-text":{"type":"string","default-from":"runtime.add-section-text"},"back-label":{"type":"string","default-from":"runtime.back-label"},"cancel-configuring-text":{"type":"string","default-from":"runtime.cancel-configuring-text"},"cancel-name-text":{"type":"string","default-from":"runtime.cancel-name-text"},"cancel-text":{"type":"string","default-from":"runtime.cancel-text"},"changed-text":{"type":"string","default-from":"runtime.changed-text"},"close-label":{"type":"string","default-from":"runtime.close-label"},"collection":{"type":"string","default":""},"collection-icon":{"type":"icon","default":""},"collection-label":{"type":"string","default":""},"configure-hint-narrow-text":{"type":"string","default-from":"runtime.configure-hint-narrow-text"},"configure-hint-text":{"type":"string","default-from":"runtime.configure-hint-text"},"configure-text":{"type":"string","default-from":"runtime.configure-text"},"conflict-text":{"type":"string","default-from":"runtime.conflict-text"},"copy-link-label":{"type":"string","default-from":"runtime.copy-link-label"},"delete-text":{"type":"string","default-from":"runtime.delete-text"},"done-configuring-text":{"type":"string","default-from":"runtime.done-configuring-text"},"edit-text":{"type":"string","default-from":"runtime.edit-text"},"empty-record-text":{"type":"string","default-from":"runtime.empty-record-text"},"empty-text":{"type":"string","default-from":"runtime.empty-text"},"errors-text":{"type":"string","default-from":"runtime.errors-text"},"favourite":{"type":"boolean","default":false},"favourite-label":{"type":"string","default-from":"runtime.favourite-label"},"field-label-text":{"type":"string","default-from":"runtime.field-label-text"},"field-settings-text":{"type":"string","default-from":"runtime.field-settings-text"},"hidden-text":{"type":"string","default-from":"runtime.hidden-text"},"hide-rare-text":{"type":"string","default-from":"runtime.hide-rare-text"},"hint-text":{"type":"string","default-from":"runtime.hint-text"},"in-this-group-text":{"type":"string","default-from":"runtime.in-this-group-text"},"inherited-text":{"type":"string","default-from":"runtime.inherited-text"},"link-copied-label":{"type":"string","default-from":"runtime.link-copied-label"},"menu-label":{"type":"string","default-from":"runtime.menu-label"},"move-down-text":{"type":"string","default-from":"runtime.move-down-text"},"move-up-text":{"type":"string","default-from":"runtime.move-up-text"},"new-group-title":{"type":"string","default-from":"runtime.new-group-title"},"new-section-title":{"type":"string","default-from":"runtime.new-section-title"},"no-match-text":{"type":"string","default-from":"runtime.no-match-text"},"open-full-label":{"type":"string","default-from":"runtime.open-full-label"},"panel":{"type":"boolean","default":false},"panel-label":{"type":"string","default":""},"panel-size":{"type":"enum","values":["1/2","1","2","full"],"default":"1"},"size":{"type":"enum","values":["1","1/2"],"default":"1"},"mode":{"type":"enum","values":["view","auto","edit","create"],"default":"auto"},"panel-width":{"type":"string","default":""},"personal-layer-text":{"type":"string","default-from":"runtime.personal-layer-text"},"rare-text":{"type":"string","default-from":"runtime.rare-text"},"record-id":{"type":"id","default":""},"remove-field-text":{"type":"string","default-from":"runtime.remove-field-text"},"remove-group-text":{"type":"string","default-from":"runtime.remove-group-text"},"remove-section-text":{"type":"string","default-from":"runtime.remove-section-text"},"rename-text":{"type":"string","default-from":"runtime.rename-text"},"reset-view-ask-text":{"type":"string","default-from":"runtime.reset-view-ask-text"},"reset-view-text":{"type":"string","default-from":"runtime.reset-view-text"},"save-name-text":{"type":"string","default-from":"runtime.save-name-text"},"save-text":{"type":"string","default-from":"runtime.save-text"},"section-icon-text":{"type":"string","default-from":"runtime.section-icon-text"},"section-icons":{"type":"string","default":""},"sections-as":{"type":"enum","values":["list","tabs"],"default":"list"},"sections-label":{"type":"string","default-from":"runtime.sections-label"},"shared-layer-text":{"type":"string","default-from":"runtime.shared-layer-text"},"show-rare":{"type":"boolean","default":false},"show-rare-text":{"type":"string","default-from":"runtime.show-rare-text"},"shown-text":{"type":"string","default-from":"runtime.shown-text"},"unplaced-hint-text":{"type":"string","default-from":"runtime.unplaced-hint-text"},"unplaced-title":{"type":"string","default-from":"runtime.unplaced-title"},"variant-text":{"type":"string","default-from":"runtime.variant-text"},"view-conflict-text":{"type":"string","default-from":"runtime.view-conflict-text"},"view-denied-text":{"type":"string","default-from":"runtime.view-denied-text"},"width-text":{"type":"string","default-from":"runtime.width-text"},"view-profile-label":{"type":"string","default-from":"runtime.view-profile-label"},"add-view-text":{"type":"string","default-from":"runtime.add-view-text"},"new-view-text":{"type":"string","default-from":"runtime.new-view-text"},"delete-view-text":{"type":"string","default-from":"runtime.delete-view-text"},"last-shared-view-text":{"type":"string","default-from":"runtime.last-shared-view-text"},"full":{"type":"boolean","default":false},"open":{"type":"boolean","default":true}},"values":{"revision":{"type":"string"},"section":{"type":"string"}},"events":{"close":{"carries":{"reason":{"type":"enum","values":["close","escape","outside","cancelled","deleted","api"]},"record_id":{"type":"id","nullable":true},"unsaved_fields":{"type":"list"}},"cancelable":true},"open-full":{"carries":{"id":"id","address":"string","record_id":{"type":"id","nullable":true}}},"saved":{"carries":{"id":"id","revision":{"type":"string","optional":true}}},"failed":{"carries":{"reason":"string","message":{"type":"string","optional":true}}},"open":{"carries":{"field":"string","value":"object","answer":"string"}},"delete":{"carries":{"collection":"string","revision":"string","answer":"string","record_id":{"type":"id","nullable":true}}},"created":{"carries":{"collection":{"type":"string","nullable":true},"record_id":{"type":"id","nullable":true}}},"cancel":{"carries":{"mode":{"type":"enum","values":["auto","edit","create"]},"scope":{"type":"enum","values":["group"],"optional":true},"section":{"type":"string","optional":true},"group":{"type":"string","optional":true}}},"state":{"carries":{"state":"string","message":"string"},"own-verb":true},"address-copy":{"carries":{},"own-verb":true},"favourite":{"carries":{"collection":{"type":"string","nullable":true},"favourite":"boolean","record_id":{"type":"id","nullable":true}},"own-verb":true}},"actions":{"refresh":{},"load":{"with":{"reason":{"type":"string","optional":true}}},"edit-group":{"with":{"section":"string","group":"string"}},"cancel-edit":{},"save-group":{"with":{"options":{"type":"object","optional":true}},"concurrency":"drop"},"select-section":{"with":{"key":"string"}},"close-panel":{"with":{"reason":{"type":"string","optional":true}}},"copy-address":{},"open-full-page":{},"confirm-save":{},"cancel-confirmation":{}},"port":{"id":"simai.property-view-port","version":"1.18.0","contract":"src/core/contracts/ports/simai.property-view-port/1.18.0/port.json"},"presentation":{"skeleton":{"file":"skeleton.html","late":[]}},"css-variables":{"--sf-property-view--sections-width":{"type":"length","state":"default"},"--sf-property-view--title-size":{"type":"length","state":"default"},"--sf-property-view--label-size":{"type":"length","state":"default"},"--sf-property-view--value-size":{"type":"length","state":"default"},"--sf-property-view--group-size":{"type":"length","state":"default"},"--sf-property-view--edge-room":{"type":"length","state":"open"}},"host-states":{"data-state":"string","aria-busy":"string"}}');
+module.exports = /*#__PURE__*/JSON.parse('{"id":"smart.view-properties","tag":"sf-view-properties","version":"1.13.3","kind":"leaf","implements":["record-view@1"],"settings":{"add-field-text":{"type":"string","default-from":"runtime.add-field-text"},"add-group-text":{"type":"string","default-from":"runtime.add-group-text"},"add-section-text":{"type":"string","default-from":"runtime.add-section-text"},"back-label":{"type":"string","default-from":"runtime.back-label"},"cancel-configuring-text":{"type":"string","default-from":"runtime.cancel-configuring-text"},"cancel-name-text":{"type":"string","default-from":"runtime.cancel-name-text"},"cancel-text":{"type":"string","default-from":"runtime.cancel-text"},"changed-text":{"type":"string","default-from":"runtime.changed-text"},"close-label":{"type":"string","default-from":"runtime.close-label"},"collection":{"type":"string","default":""},"collection-icon":{"type":"icon","default":""},"collection-label":{"type":"string","default":""},"configure-hint-narrow-text":{"type":"string","default-from":"runtime.configure-hint-narrow-text"},"configure-hint-text":{"type":"string","default-from":"runtime.configure-hint-text"},"configure-text":{"type":"string","default-from":"runtime.configure-text"},"conflict-text":{"type":"string","default-from":"runtime.conflict-text"},"copy-link-label":{"type":"string","default-from":"runtime.copy-link-label"},"delete-text":{"type":"string","default-from":"runtime.delete-text"},"done-configuring-text":{"type":"string","default-from":"runtime.done-configuring-text"},"edit-text":{"type":"string","default-from":"runtime.edit-text"},"empty-record-text":{"type":"string","default-from":"runtime.empty-record-text"},"empty-text":{"type":"string","default-from":"runtime.empty-text"},"errors-text":{"type":"string","default-from":"runtime.errors-text"},"favourite":{"type":"boolean","default":false},"favourite-label":{"type":"string","default-from":"runtime.favourite-label"},"field-label-text":{"type":"string","default-from":"runtime.field-label-text"},"field-settings-text":{"type":"string","default-from":"runtime.field-settings-text"},"hidden-text":{"type":"string","default-from":"runtime.hidden-text"},"hide-rare-text":{"type":"string","default-from":"runtime.hide-rare-text"},"hint-text":{"type":"string","default-from":"runtime.hint-text"},"in-this-group-text":{"type":"string","default-from":"runtime.in-this-group-text"},"inherited-text":{"type":"string","default-from":"runtime.inherited-text"},"link-copied-label":{"type":"string","default-from":"runtime.link-copied-label"},"menu-label":{"type":"string","default-from":"runtime.menu-label"},"move-down-text":{"type":"string","default-from":"runtime.move-down-text"},"move-up-text":{"type":"string","default-from":"runtime.move-up-text"},"new-group-title":{"type":"string","default-from":"runtime.new-group-title"},"new-section-title":{"type":"string","default-from":"runtime.new-section-title"},"no-match-text":{"type":"string","default-from":"runtime.no-match-text"},"open-full-label":{"type":"string","default-from":"runtime.open-full-label"},"panel":{"type":"boolean","default":false},"panel-label":{"type":"string","default":""},"panel-size":{"type":"enum","values":["1/2","1","2","full"],"default":"1"},"size":{"type":"enum","values":["1","1/2"],"default":"1"},"mode":{"type":"enum","values":["view","auto","edit","create"],"default":"auto"},"panel-width":{"type":"string","default":""},"personal-layer-text":{"type":"string","default-from":"runtime.personal-layer-text"},"rare-text":{"type":"string","default-from":"runtime.rare-text"},"record-id":{"type":"id","default":""},"remove-field-text":{"type":"string","default-from":"runtime.remove-field-text"},"remove-group-text":{"type":"string","default-from":"runtime.remove-group-text"},"remove-section-text":{"type":"string","default-from":"runtime.remove-section-text"},"rename-text":{"type":"string","default-from":"runtime.rename-text"},"reset-view-ask-text":{"type":"string","default-from":"runtime.reset-view-ask-text"},"reset-view-text":{"type":"string","default-from":"runtime.reset-view-text"},"save-name-text":{"type":"string","default-from":"runtime.save-name-text"},"save-text":{"type":"string","default-from":"runtime.save-text"},"section-icon-text":{"type":"string","default-from":"runtime.section-icon-text"},"section-icons":{"type":"string","default":""},"sections-as":{"type":"enum","values":["list","tabs"],"default":"list"},"sections-label":{"type":"string","default-from":"runtime.sections-label"},"shared-layer-text":{"type":"string","default-from":"runtime.shared-layer-text"},"show-rare":{"type":"boolean","default":false},"show-rare-text":{"type":"string","default-from":"runtime.show-rare-text"},"shown-text":{"type":"string","default-from":"runtime.shown-text"},"unplaced-hint-text":{"type":"string","default-from":"runtime.unplaced-hint-text"},"unplaced-title":{"type":"string","default-from":"runtime.unplaced-title"},"variant-text":{"type":"string","default-from":"runtime.variant-text"},"view-conflict-text":{"type":"string","default-from":"runtime.view-conflict-text"},"view-denied-text":{"type":"string","default-from":"runtime.view-denied-text"},"width-text":{"type":"string","default-from":"runtime.width-text"},"view-profile-label":{"type":"string","default-from":"runtime.view-profile-label"},"add-view-text":{"type":"string","default-from":"runtime.add-view-text"},"new-view-text":{"type":"string","default-from":"runtime.new-view-text"},"delete-view-text":{"type":"string","default-from":"runtime.delete-view-text"},"last-shared-view-text":{"type":"string","default-from":"runtime.last-shared-view-text"},"full":{"type":"boolean","default":false},"open":{"type":"boolean","default":true}},"values":{"revision":{"type":"string"},"section":{"type":"string"}},"events":{"close":{"carries":{"reason":{"type":"enum","values":["close","escape","outside","cancelled","deleted","api"]},"record_id":{"type":"id","nullable":true},"unsaved_fields":{"type":"list"}},"cancelable":true},"open-full":{"carries":{"id":"id","address":"string","record_id":{"type":"id","nullable":true}}},"saved":{"carries":{"id":"id","revision":{"type":"string","optional":true}}},"failed":{"carries":{"reason":"string","message":{"type":"string","optional":true}}},"open":{"carries":{"field":"string","value":"object","answer":"string"}},"delete":{"carries":{"collection":"string","revision":"string","answer":"string","record_id":{"type":"id","nullable":true}}},"created":{"carries":{"collection":{"type":"string","nullable":true},"record_id":{"type":"id","nullable":true}}},"cancel":{"carries":{"mode":{"type":"enum","values":["auto","edit","create"]},"scope":{"type":"enum","values":["group"],"optional":true},"section":{"type":"string","optional":true},"group":{"type":"string","optional":true}}},"state":{"carries":{"state":"string","message":"string"},"own-verb":true},"address-copy":{"carries":{},"own-verb":true},"favourite":{"carries":{"collection":{"type":"string","nullable":true},"favourite":"boolean","record_id":{"type":"id","nullable":true}},"own-verb":true}},"actions":{"refresh":{},"load":{"with":{"reason":{"type":"string","optional":true}}},"edit-group":{"with":{"section":"string","group":"string"}},"cancel-edit":{},"save-group":{"with":{"options":{"type":"object","optional":true}},"concurrency":"drop"},"select-section":{"with":{"key":"string"}},"close-panel":{"with":{"reason":{"type":"string","optional":true}}},"copy-address":{},"open-full-page":{},"confirm-save":{},"cancel-confirmation":{}},"port":{"id":"simai.property-view-port","version":"1.18.0","contract":"src/core/contracts/ports/simai.property-view-port/1.18.0/port.json"},"presentation":{"skeleton":{"file":"skeleton.html","late":[]}},"css-variables":{"--sf-property-view--sections-width":{"type":"length","state":"default"},"--sf-property-view--title-size":{"type":"length","state":"default"},"--sf-property-view--label-size":{"type":"length","state":"default"},"--sf-property-view--value-size":{"type":"length","state":"default"},"--sf-property-view--group-size":{"type":"length","state":"default"},"--sf-property-view--edge-room":{"type":"length","state":"open"}},"host-states":{"data-state":"string","aria-busy":"string"}}');
 
 /***/ },
 

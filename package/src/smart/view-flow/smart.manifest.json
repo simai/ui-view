@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-flow",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "title": "Flow block",
   "summary": "A few properties as a block in a flow (a chat message, a feed, any stream): shows a record's fields, or asks for a few and sends them, then keeps the answer read-only. Fields are sf-view-properties' descriptors drawn by the Framework field renderers; a press is an event, the host answers with settle.",
   "kind": "smart",
@@ -445,6 +445,13 @@
         "changes": [
           "Over SIMAI Framework ui-cb287da78ab1 (core.runtime 1.45.0; the set needs 1.43.0 or newer): it relates cl-segmented, the rule that serves sf-segmented and sf-button-group since the pair ui-d6f01121baca (cl-button-group is its forwarded former name), and its fill falls back to --sf-surface-page (C16 name of --sf-surface-0, the same value). The reference names one args argument per action (standard §4.4); answer and settle already read one object. Nothing changes on the page."
         ]
+      },
+      {
+        "from": "1.1.1",
+        "to": "1.1.2",
+        "changes": [
+          "Over SIMAI Framework ui-2bd5a3ab478a (core.runtime 1.51.0) the confirm surface says nothing when the answer is declined (owner decision C35, remark R067; module.smart-helpers 1.4.0): a Cancel the host settles leaves the block declined with an empty status line, where it said «Отменено». The probe p2-cancel expects that. Nothing to change for a host."
+        ]
       }
     ]
   },
@@ -478,7 +485,7 @@
       },
       {
         "path": "src/smart/helpers/confirm-surface.js",
-        "sha256": "1e03066f675959a54eb2e599b691a98ff65ca1e9aaf84d2596220fb6fd631d94"
+        "sha256": "c8c1a7c64adc424006991093c90c8f3efd7904a6def12fb60861278162985512"
       },
       {
         "path": "src/smart/view-flow/rule.js",

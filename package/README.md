@@ -23,8 +23,8 @@ and tested in an **overlay**: ui-source at the revision `framework.lock.json`
 pins (from git, never a working tree), with this folder's `src/`, `tests/`
 and `docs/` laid over it. A file here may not replace a ui-source file.
 
-The pin is `7d2f4dc74fdf`, the source of the released pair
-`ui-a0370c0c99fb` (core.runtime 1.49.0). The passport names the same commit.
+The pin is `d25a01f9989d`, the source of the released pair
+`ui-2bd5a3ab478a` (core.runtime 1.51.0). The passport names the same commit.
 
 ```bash
 node scripts/test.mjs                                   # unit and contract suite in the overlay
@@ -35,7 +35,7 @@ node scripts/run-first-paint.mjs check|gate <free> <set build>
 ```
 
 `<free>` is the `distr` of the released pair (`git -C <ui> archive
-a0370c0c99fb distr`), `<set build>` the build output holding `smart/`
+2bd5a3ab478a distr`), `<set build>` the build output holding `smart/`
 (`wave-1/output/package/view` of the build below). `scripts/gates.sh` runs
 the whole chain: two builds, the receipt, the suite, the probes and the first
 paint.
@@ -60,7 +60,7 @@ and tags `view-<12>`; it is not run yet.
 ## Connecting it
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@simai-studio/ui@5.20261110.34/distr/core/js/core.min.js" data-sf-sets="view"></script>
+<script src="https://cdn.jsdelivr.net/npm/@simai-studio/ui@5.20261110.1541/distr/core/js/core.min.js" data-sf-sets="view"></script>
 ```
 
 or, from a base the page serves itself:
@@ -74,3 +74,17 @@ window.SF_BOOT_CONFIG = {packages: {view: {base: '/assets/ui-view/smart', versio
 Change `framework.lock.json` and `set.json` `framework.source_revision` to the
 ui-source revision of a newer released pair, run the gates against it and
 build. A set is built and tested against exactly one revision.
+
+## Proposals, not built
+
+Recorded here so they are not lost. None of them is in the set; each needs a
+prototype and the owner's yes first (a new look, decision D11e).
+
+- **A rail in the `sf-view-properties` skeleton** (simai/ui-pro#3.2,
+  2026-11-09). In the default `sections-as="list"` a record of two or more
+  sections draws a section rail (224px) beside its groups once the data
+  comes, so the first group moves right and narrows (900 to 644px at the
+  measured width). The skeleton could draw the rail's place when the number
+  of sections is known before the first answer (a printed answer, or a
+  declared `sections` count), and keep the full-width 3x3 shape otherwise,
+  as it is now. Not built: it is a new look of the first paint.

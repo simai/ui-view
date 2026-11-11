@@ -2,7 +2,7 @@
   "$comment": "sf-table from its component.json (standard simai.smart-component 1.3.8, vocabulary 1.1.5), migrated from ui-control control/smart-architecture/migration/out/table (convert-1.3.8.mjs over ui-pro 9cbe061); every x-todo decided in x-decisions.",
   "id": "smart.view-table",
   "tag": "sf-view-table",
-  "version": "1.17.0",
+  "version": "1.18.0",
   "kind": "leaf",
   "family": "table",
   "settings": {
@@ -2345,6 +2345,24 @@
             "The list's look points (owner, 2026-11-09): the record's title is the surface's text colour (--sf-on-surface), medium weight, underlined while the row is pointed at or the link focused (it was the link colour), and the link draws no ring of its own inside the row's ring. The open record (current, aria-current) has the primary container fill (--sf-primary-container: 12 light, 24 dark); the row the keyboard is on shows the focus ring only. On a phone the row's buttons and «more» are --sf-ui-1--control-height (36; 28 at size 1/2 before). The list has no inline padding and an empty toolbar start takes no gap, so the search field, Create and the rows' fill are on one line (R077). The quick actions still fold below a 37.5rem container.",
             "The controls inside are relative (C22, Larena 2026-11-10): a table without a size writes no size on its toolbar (filter, search, Create, gear, layout switch, chips), its menus or the row controls it draws; a component a column or an action names at size 1 takes the host's size, or none when the host has none. Compact page density then moves them a rung down with the page (32 at 1280); a host with size=\"1\" or \"1/2\" hands that size down as before.",
             "Over SIMAI Framework ui-a0370c0c99fb (core.runtime 1.49.0; the set still needs 1.43.0 or newer). New relations: dot, tooltip, cl-segmented. Nothing to change for a host that does not use the new settings."
+          ]
+        },
+        {
+          "from": "1.17.0",
+          "to": "1.17.1",
+          "changes": [
+            "The head row is on the ladder (D2 of the view 1.6.0 acceptance): it is a one-line row of its step, with the rows' padding and rung -- 40 at size 1/2 and 48 at size 1 beside rows with the box and menu, whether it holds the box and sortable column controls or only their names (it was 45 and 57 with the controls, 37/33 and 41 without). --sf-table-head-block-size-* follow: 40 and 48 (they said 33 and 41).",
+            "The published box agrees with the drawn tables under page density (C22, D3 of the 1.6.0 acceptance): a written size is stronger than density, so the -1/2 names are the size=\"1/2\" table on every page -- 40, 48 and head 40 on a compact page too (they gave 36, 40 and 29) -- and the -1 names are the table without a size in the density of the element they are read on (40/48/40 on a compact page). The names are also declared on every element with data-sf-density, so a data-sf-density=\"normal\" region of a compact page reads the normal box (the size=\"1\" table there).",
+            "A draw reads the column settings once (simai/ui-pro#1): getColumnSetting() takes them from the draw while the template is built; counted over one setRows() draw, 8 rows asked getColumnSettings() 268 times and 60 rows 343, now 4. An idle row's actions cell is the bare <td> (simai/ui-pro#2): the buttons are bound on the cell, so a row of five columns with its box, menu and actions is 29 nodes (31), the buttons still come with the pointer, the focus and the current row, and the row is not drawn anew when they do. Nothing to change for a host.",
+            "On a selected list item, the open record (aria-current) and a selected table row, --sf-surface-underlay is the place's solid colour (--sf-surface-place-solid, else --sf-surface-place, so a selected row on a soft place leaves the badge alone), so a tonal badge on that translucent fill lays its tone over a solid base (C43, D1 of the 1.6.0 acceptance: a warning badge on the open record read grey). It needs the SIMAI Framework roles --sf-surface-underlay and --sf-surface-place-solid (ui-source fix/c43-badge-on-place c6711098, the next pair, core.runtime 1.50.0 or newer); on an older pair the line does nothing.",
+            "Over SIMAI Framework ui-2bd5a3ab478a (ui-source d25a01f9989d, core.runtime 1.51.0), which the set now needs (core.runtime 1.51.0 or newer): the pair that carries the roles --sf-surface-underlay and --sf-surface-place-solid. Nothing to change for a host on that pair."
+          ]
+        },
+        {
+          "from": "1.17.1",
+          "to": "1.18.0",
+          "changes": [
+            "The table's own windows by their kind (owner decision C32, 2026-11-09), from the Framework's popup widths, which follow density: the filter with its saved views (filter-settings) and the column settings (table-settings) are panels, --sf-popup-panel-width (20rem; 18rem compact) or the trigger's width when wider; saving a template (filter-favorites) and a chip's own filter (tag-settings) are forms, --sf-popup-form-width (20rem; 18rem compact), where they were as wide as their content (295 / 283 compact / 250 on a phone, now 320 / 288 / 320). A panel in several columns (context-menu-columns) is as wide as its columns. --sf-table-context-menu--max-width still caps every window, and the room a window has caps it. The menus (create, list sort, row and toolbar actions) are sf-menu-context's rows and keep its menu widths (10-18rem)."
           ]
         }
       ]
