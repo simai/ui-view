@@ -3,13 +3,17 @@
 //
 // sf-view-table 1.18.0, owner decision C32 (2026-11-09): the table's own
 // windows by their kind, from the Framework's popup widths, measured on the
-// built bytes at 1440 normal, 1440 compact and 390, light and dark:
+// built bytes at 1440 and 390, normal and compact, light and dark, three
+// loads; at 390 also in the compact list (layout="list"):
 //   - the filter with its saved views and the column settings are panels,
 //     --sf-popup-panel-width (320; 288 compact) or the trigger when wider;
 //   - saving a template and a chip's filter are forms, --sf-popup-form-width
 //     (320; 288 compact), whatever they hold;
 //   - the menus (create, toolbar actions, list sort) stay sf-menu-context's,
 //     between --sf-popup-menu-min-width and --sf-popup-menu-max-width;
+//   - on a phone (below md, 44rem) the forms are a sheet at the bottom of
+//     the screen, its width up to 44rem, over the scrim (1.18.2); the
+//     compact list's filter covers the screen; nothing passes the screen;
 //   - a clean console.
 import {resolve, join} from 'node:path';
 import {chromium} from 'playwright';
@@ -30,15 +34,15 @@ const browser = await chromium.launch();
 const results = [];
 const failures = [];
 try {
-  for (const load of [1]) for (const scheme of ['light', 'dark']) for (const [width, density] of [[1440, 'normal'], [1440, 'compact'], [390, 'normal']]) {
-    const where = `${scheme} ${width} ${density}`;
+  for (const load of [1, 2, 3]) for (const scheme of ['light', 'dark']) for (const [width, density, layout] of [[1440, 'normal', 'table'], [1440, 'compact', 'table'], [390, 'normal', 'table'], [390, 'compact', 'table'], [390, 'normal', 'list'], [390, 'compact', 'list']]) {
+    const where = `${scheme} ${width} ${density} ${layout} load ${load}`;
     const context = await browser.newContext({viewport: {width, height: 900}, colorScheme: scheme});
     const tab = await context.newPage();
     const errors = [];
     tab.on('console', (m) => { if (m.type() === 'error' || m.type() === 'warning') errors.push(`${m.type()}: ${m.text()}`); });
     tab.on('pageerror', (e) => { if (!/publicPath/u.test(e.message)) errors.push(`pageerror: ${e.message}`); });
     await tab.setContent(`<!doctype html><html class="theme-${scheme}" lang="ru" data-sf-density="${density}"><head><meta charset="utf-8"></head><body style="margin:0;padding:16px">
-      <sf-view-table id="t" aria-label="Каталог" filter-templates="true" layout="table"></sf-view-table></body></html>`);
+      <sf-view-table id="t" aria-label="Каталог" filter-templates="true" layout="${layout}"></sf-view-table></body></html>`);
     for (const s of STYLES) { const f = join(out, s); if (existsSync(f)) await tab.addStyleTag({path: f}); }
     for (const m of MODULES) { const f = join(out, m); if (existsSync(f)) await tab.addScriptTag({path: f, type: 'module'}); }
     await tab.waitForFunction(() => customElements.get('sf-view-table'), null, {timeout: 20000});
@@ -57,7 +61,7 @@ try {
         for (const node of root.querySelectorAll('*')) if (node.shadowRoot) { const inner = deep(node.shadowRoot, selector); if (inner) return inner; }
         return null;
       };
-      const filterButton = t.querySelector('.sf-table-toolbar-start sf-button button') || t.querySelector('.sf-table-toolbar sf-button-icon button') || t.querySelector('.sf-table-toolbar button');
+      const filterButton = t.querySelector('.sf-table-toolbar-start sf-button button') || t.querySelector('.sf-table-toolbar sf-button-icon[icon="filter_list"] button') || t.querySelector('.sf-table-toolbar sf-button-icon button') || t.querySelector('.sf-table-toolbar button');
       const fake = (target) => ({currentTarget: target, target, preventDefault() {}, stopPropagation() {}, composedPath: () => [target]});
       const open = async (menu, extra = {}) => {
         t.closeContextMenu?.(false);
@@ -71,7 +75,9 @@ try {
           target = host && (host.firstElementChild || host);
         }
         const r = target?.getBoundingClientRect();
-        return r ? {width: Math.round(r.width * 100) / 100, left: Math.round(r.left), right: Math.round(r.right), classes: target.className?.baseVal ?? target.className} : null;
+        const layer = target?.closest?.('.sf-table-context-layer');
+        const scrim = layer ? getComputedStyle(layer).backgroundColor : null;
+        return r ? {width: Math.round(r.width * 100) / 100, left: Math.round(r.left), right: Math.round(r.right), top: Math.round(r.top), bottom: Math.round(r.bottom), sheet: layer?.getAttribute('data-sf-sheet') ?? null, scrim: Boolean(scrim && scrim !== 'rgba(0, 0, 0, 0)'), classes: target.className?.baseVal ?? target.className} : null;
       };
       const trigger = filterButton?.getBoundingClientRect().width ?? null;
       const out = {trigger};
@@ -84,7 +90,9 @@ try {
       out['list-sort (menu)'] = await open('list-sort');
       t.closeContextMenu?.(false);
       const vars = getComputedStyle(document.documentElement);
-      out.vars = Object.fromEntries(['--sf-popup-panel-width', '--sf-popup-form-width', '--sf-popup-menu-min-width', '--sf-popup-menu-max-width'].map((n) => [n, vars.getPropertyValue(n).trim()]));
+      out.vars = Object.fromEntries(['--sf-popup-panel-width', '--sf-popup-form-width', '--sf-popup-menu-min-width', '--sf-popup-menu-max-width', '--sf-h1'].map((n) => [n, vars.getPropertyValue(n).trim()]));
+      out.phone = !vars.getPropertyValue('--sf-breakpoint-md').trim();
+      out.viewport = [innerWidth, innerHeight];
       return out;
     }, {COLUMNS, ROWS});
     if (shots && load === 1) {
@@ -96,7 +104,7 @@ try {
       });
       await tab.screenshot({path: join(shots, `${label}-filter-panel-${width}-${density}-${scheme}.png`)});
     }
-    results.push({load, where, ...measured, errors: errors.length, errorText: errors.slice(0, 3)});
+    results.push({load, where, width, density, layout, scheme, ...measured, errors: errors.length, errorText: errors.slice(0, 3)});
     if (errors.length) failures.push(`${where}: ${errors.slice(0, 2).join(' | ')}`);
     await context.close();
   }
@@ -108,11 +116,22 @@ for (const r of results) {
   const panel = px(r.vars['--sf-popup-panel-width']), form = px(r.vars['--sf-popup-form-width']);
   const min = px(r.vars['--sf-popup-menu-min-width']), max = px(r.vars['--sf-popup-menu-max-width']);
   const want = Math.max(panel, Math.ceil(r.trigger ?? 0));
-  for (const [name, expected] of [['filter-settings (panel)', want], ['table-settings (panel)', want], ['filter-favorites (form)', form], ['tag-settings (form)', form]]) {
+  const [vw, vh] = r.viewport;
+  const sheet = Math.min(vw, px(r.vars['--sf-h1']));
+  const list = r.layout === 'list';
+  const expect = [['filter-settings (panel)', list ? vw : want], ['filter-favorites (form)', r.phone ? sheet : form], ['tag-settings (form)', r.phone ? sheet : form]];
+  if (!list) expect.push(['table-settings (panel)', want]);
+  for (const [name, expected] of expect) {
     if (!r[name] || Math.abs(r[name].width - expected) > 0.5) failures.push(`${r.where}: ${name} is ${r[name]?.width}, expected ${expected}`);
+    else if (r[name].left < -0.5 || r[name].right > vw + 0.5) failures.push(`${r.where}: ${name} passes the screen (${r[name].left}..${r[name].right})`);
   }
-  for (const name of ['create (menu)', 'toolbar-actions (menu)', 'list-sort (menu)']) {
+  if (r.phone) for (const name of ['filter-favorites (form)', 'tag-settings (form)']) {
+    const w = r[name];
+    if (w && !(w.sheet === 'bottom' && Math.abs(w.bottom - vh) <= 1 && w.scrim)) failures.push(`${r.where}: ${name} is not a bottom sheet over the scrim (${JSON.stringify(w)})`);
+  }
+  for (const name of list ? ['create (menu)', 'toolbar-actions (menu)'] : ['create (menu)', 'toolbar-actions (menu)', 'list-sort (menu)']) {
     if (!r[name] || r[name].width < min - 0.5 || r[name].width > max + 0.5) failures.push(`${r.where}: ${name} is ${r[name]?.width}, outside ${min}-${max}`);
+    else if (r[name].left < -0.5 || r[name].right > vw + 0.5) failures.push(`${r.where}: ${name} passes the screen (${r[name].left}..${r[name].right})`);
   }
 }
 console.log(JSON.stringify(results));

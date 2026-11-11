@@ -7,8 +7,9 @@
 // place from the first paint: each held block is the control the table then
 // draws, and the search field does not move (1440 normal and compact, 390,
 // light and dark; at 390 the compact list's toolbar holds none of them). The
-// list's sort button is not held (its column is the port's answer): the
-// probe records how far the field moves for it and does not fail on it.
+// list's sort button is held when the printed query sorts (1.12.1, the
+// cases *Sorted); a list that sorts by nothing has no hint, and the probe
+// records how far the field moves for it and does not fail on it.
 import {resolve, join} from 'node:path';
 import {existsSync} from 'node:fs';
 import {chromium} from 'playwright';
@@ -29,10 +30,13 @@ const CASES = {
   switch12: {attrs: ' layout-switch size="1/2"', table: ''},
   kinds12: {attrs: ' size="1/2"', table: '', pre: {createItems: [{id: 'page', name: 'Страница'}, {id: 'folder', name: 'Папка'}], toolbarActions: [{id: 'export', label: 'Выгрузить'}]}},
   list: {attrs: '', table: ' layout="list"'},
+  listSorted: {attrs: '', table: ' layout="list"', sort: [{key: 'title', direction: 'asc'}]},
+  autoSorted: {attrs: '', table: '', sort: [{key: 'title', direction: 'asc'}]},
+  listSorted12: {attrs: ' size="1/2"', table: ' layout="list"', sort: [{key: 'title', direction: 'asc'}]},
   all: {attrs: ' layout-switch', table: '', pre: {createItems: [{id: 'page', name: 'Страница'}, {id: 'folder', name: 'Папка'}], toolbarActions: [{id: 'export', label: 'Выгрузить'}]}},
 };
 const view = (id, c) => `<div style="margin-block-end:24px"><sf-view id="${id}" aria-label="Каталог"${c.attrs}>
-  <script type="application/json" data-sf-port>${JSON.stringify({port: 'simai.dataview-port', version: '1.12.0', url: '/port', capabilities: BASE, first: {intent: 'query.change', payload: {query: QUERY}}})}</script>
+  <script type="application/json" data-sf-port>${JSON.stringify({port: 'simai.dataview-port', version: '1.12.0', url: '/port', capabilities: BASE, first: {intent: 'query.change', payload: {query: c.sort ? {...QUERY, sort: c.sort} : QUERY}}})}</script>
   <sf-view-table slot="content" aria-label="Каталог"${c.table}></sf-view-table>
   <sf-pagination slot="pagination" page-size="20" current="1" total="0"></sf-pagination></sf-view></div>`;
 const pre = Object.fromEntries(Object.entries(CASES).map(([id, c]) => [id, c.pre ?? null]));
@@ -40,8 +44,8 @@ const browser = await chromium.launch();
 const rows = [];
 const failures = [];
 try {
-  for (const load of [1]) for (const scheme of ['light', 'dark']) for (const [width, density] of [[1440, 'normal'], [1440, 'compact'], [390, 'normal']]) {
-    const where = `${scheme} ${width} ${density}`;
+  for (const load of [1, 2, 3]) for (const scheme of ['light', 'dark']) for (const [width, density] of [[1440, 'normal'], [1440, 'compact'], [390, 'normal'], [390, 'compact']]) {
+    const where = `${scheme} ${width} ${density} load ${load}`;
     const context = await browser.newContext({viewport: {width, height: 1400}, colorScheme: scheme});
     const tab = await context.newPage();
     const errors = [];
@@ -87,7 +91,7 @@ try {
       const f = first[id].blocks.field, d = drawn[id].blocks.field;
       const move = f && d ? [Math.round((d[0] - f[0]) * 100) / 100, Math.round((d[1] - f[1]) * 100) / 100] : null;
       const held = Object.fromEntries(['sort', 'switch', 'split', 'actions'].map((k) => [k, {first: first[id].blocks[k], drawn: drawn[id].blocks[k]}]));
-      rows.push({load, where, case: id, awaiting: first[id].awaiting, list: drawn[id].list, fieldMove: move, held, errors: errors.length});
+      rows.push({load, where, case: id, sorted: Boolean(CASES[id].sort), awaiting: first[id].awaiting, list: drawn[id].list, fieldMove: move, held, errors: errors.length});
     }
     if (errors.length) failures.push(`${where}: ${errors.slice(0, 2).join(' | ')}`);
     await context.close();
@@ -97,11 +101,11 @@ const near = (a, b) => Math.abs(a - b) <= 0.5;
 for (const r of rows) {
   if (!r.awaiting) failures.push(`${r.where} ${r.case}: the first paint is not the skeleton`);
   for (const [kind, {first, drawn}] of Object.entries(r.held)) {
-    if (kind === 'sort') continue;
+    if (kind === 'sort' && !r.sorted) continue;
     if (Boolean(first) !== Boolean(drawn)) failures.push(`${r.where} ${r.case}: ${kind} held ${JSON.stringify(first)}, drawn ${JSON.stringify(drawn)}`);
     else if (first && !(near(first[0], drawn[0]) && near(first[1], drawn[1]) && near(first[2], drawn[2]))) failures.push(`${r.where} ${r.case}: ${kind} held ${first}, drawn ${drawn}`);
   }
-  const sorted = Boolean(r.held.sort?.drawn);
+  const sorted = !r.sorted && Boolean(r.held.sort?.drawn);
   if (!sorted && !(r.fieldMove && near(r.fieldMove[0], 0) && near(r.fieldMove[1], 0))) failures.push(`${r.where} ${r.case}: the search field moves ${JSON.stringify(r.fieldMove)}`);
 }
 console.log(JSON.stringify(rows));
