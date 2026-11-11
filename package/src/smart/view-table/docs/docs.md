@@ -142,6 +142,11 @@ getComputedStyle(document.documentElement).getPropertyValue('--sf-table-row-bloc
 `--sf-table-context-menu--max-width` по-прежнему ограничивает окно, и окно
 не выходит за место, которое у него есть.
 
+На телефоне (уже 44rem, брейкпоинт md) формы — сохранение шаблона и фильтр
+чипа — открываются листом снизу экрана (с версии 1.18.2): во всю ширину
+экрана до 44rem, по центру, поверх затемнения; нажатие на затемнение
+закрывает лист. Фильтр компактного списка по-прежнему занимает весь экран.
+
 ## Former tag
 
 Until 2027-01-01 the former tag `sf-table` is a dated alias of `sf-view-table`
