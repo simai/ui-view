@@ -48,6 +48,14 @@ Carries 1.6.1, which was not published on its own.
     bottom sheet SIMAI Framework C32 asks for on a phone (open, C19). The
     phone list (`layout="auto"`) opens its filter as a full-width bottom
     sheet and offers no template saving.
+  - On a page where the icon font arrives late, a date field drawn by
+    `sf-view-flow` (its `sf-input-date`) is 1 px shorter once the icon font
+    is in (29 → 28 px line, the flow 339 → 338 at 390). The date control's
+    wrapper sits on the baseline of the calendar icon, which the SIMAI
+    Framework holds at size 0 until its font is loaded. The fix is in the
+    SIMAI Framework (`sf-input-date`'s wrapper aligned to the top); the
+    first-paint gate lists `view-flow/ask` as a known failure until the set
+    is repinned on the pair that carries it (DEV waiver, this release only).
 
 ## 1.6.1 — not published (carried by 1.7.0)
 
