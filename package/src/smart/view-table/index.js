@@ -1,4 +1,4 @@
-import SfBaseElement, {canonicalTag} from "../../core/js/smart-base";
+import SfBaseElement, {canonicalTag, isTag} from "../../core/js/smart-base";
 import {elementFromManifest} from "../../core/js/element-manifest";
 import {settingSetters} from "./js/manifest-actions.js";
 import manifest from "./component.json";
@@ -1685,6 +1685,42 @@ class SfTable extends TableElement {
             context: this._routeContext,
             sequence,
         }));
+    }
+
+    // A table that is the content of an sf-view whose code has not arrived
+    // yet does not draw on its own (DEV decision msg-e39bb812: zero toolbar
+    // shift when saved views are declared). The Loader defines the table
+    // before the view, and drawn alone it showed its own toolbar -- the
+    // search field across the whole row, the filter button and the
+    // saved-views control coming in a frame later -- for the frames before
+    // the view's first paint replaced it with the skeleton, whose toolbar
+    // stands where the answer draws it: the toolbar moved by the width of
+    // the controls (181 px with saved views declared, 141 px without, at
+    // 1440). It draws once the view is defined, with what the view gave it.
+    // A table the server printed (its static markup) is adopted as before.
+    canScheduleComponentUpdate(reason = "unknown") {
+        if (this._waitsForView()) return false;
+        return super.canScheduleComponentUpdate(reason);
+    }
+
+    _waitsForView() {
+        if (this._viewDefined) return false;
+        const host = this.parentElement;
+        const waits = Boolean(host) && isTag(host, "sf-view") && this.getAttribute("slot") === "content"
+            && !globalThis.customElements?.get?.(host.localName)
+            && !this.querySelector("[data-sf-static]");
+        if (!waits) {
+            this._viewDefined = true;
+            return false;
+        }
+        if (!this._viewWait) {
+            this._viewWait = globalThis.customElements.whenDefined(host.localName).then(() => {
+                this._viewWait = null;
+                this._viewDefined = true;
+                if (this.isConnected) this.requestComponentUpdate("host-view");
+            });
+        }
+        return true;
     }
 
     onConnected() {

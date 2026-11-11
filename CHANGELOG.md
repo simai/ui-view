@@ -3,6 +3,29 @@
 The set `view`, by its npm version `@simai-studio/view`; component versions
 in brackets. The site page «Изменения» says the same in Russian.
 
+## 1.7.1 — not released
+
+- `sf-view-table` 1.18.1: the toolbar holds still from its first frame when
+  the page declares saved views (DEV decision msg-e39bb812). The table that
+  is an `sf-view`'s content no longer draws on its own while the view's
+  code is still on its way: the Loader defines the table first, and for a
+  frame or two it showed its own toolbar (the search field across the whole
+  row, the filter button and the saved-views control coming a frame later)
+  before the view's skeleton replaced it, so the toolbar moved by the
+  controls' width (182 px with saved views declared and 142 px without at
+  1440; at 390 the bar went from 80 to 36 px tall). It draws once `sf-view`
+  is defined, and the first toolbar on the page is the skeleton, whose
+  saved-views slot (since 1.6.1) is the drawn control's place. Static
+  markup a server printed is adopted as before. Probe
+  `data-view-saved-views-first-paint` watches it frame by frame through the
+  real Loader: sheets in the head, withheld and late, three loads, light and
+  dark, 1440 and 390, with saved views and without.
+- Known limit: at 1440 the filter button, the saved-views control and the
+  search field's start still move 1.1 px once, with saved views and
+  without, in the frame the icon font's subset is replaced (R078): the
+  button's label is set again 1.1 px wider. It is the SIMAI Framework's
+  font loading, not the set's; the probe reports it as a font step.
+
 ## 1.7.0 — 2026-11-11
 
 Carries 1.6.1, which was not published on its own.

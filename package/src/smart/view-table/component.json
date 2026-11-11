@@ -2,7 +2,7 @@
   "$comment": "sf-table from its component.json (standard simai.smart-component 1.3.8, vocabulary 1.1.5), migrated from ui-control control/smart-architecture/migration/out/table (convert-1.3.8.mjs over ui-pro 9cbe061); every x-todo decided in x-decisions.",
   "id": "smart.view-table",
   "tag": "sf-view-table",
-  "version": "1.18.0",
+  "version": "1.18.1",
   "kind": "leaf",
   "family": "table",
   "settings": {
@@ -2363,6 +2363,13 @@
           "to": "1.18.0",
           "changes": [
             "The table's own windows by their kind (owner decision C32, 2026-11-09), from the Framework's popup widths, which follow density: the filter with its saved views (filter-settings) and the column settings (table-settings) are panels, --sf-popup-panel-width (20rem; 18rem compact) or the trigger's width when wider; saving a template (filter-favorites) and a chip's own filter (tag-settings) are forms, --sf-popup-form-width (20rem; 18rem compact), where they were as wide as their content (295 / 283 compact / 250 on a phone, now 320 / 288 / 320). A panel in several columns (context-menu-columns) is as wide as its columns. --sf-table-context-menu--max-width still caps every window, and the room a window has caps it. The menus (create, list sort, row and toolbar actions) are sf-menu-context's rows and keep its menu widths (10-18rem)."
+          ]
+        },
+        {
+          "from": "1.18.0",
+          "to": "1.18.1",
+          "changes": [
+            "The content table of an sf-view whose code has not arrived yet does not draw on its own (DEV decision msg-e39bb812, zero toolbar shift when saved views are declared): the Loader defines the table before the view, and the table drew its own toolbar -- the search field across the whole row, the filter button and the saved-views control coming in a frame later -- for a frame or two before the view's first paint replaced it with the skeleton, so the toolbar moved by the controls' width (182 px with saved views declared and 142 px without at 1440; at 390 the bar went from 80 to 36 px tall). It draws once sf-view is defined, with the settings the view gave it, and the first toolbar on the page is the skeleton, which stands where the answer draws it. A table whose static markup the server printed is adopted as before. Nothing to change for a host."
           ]
         }
       ]
