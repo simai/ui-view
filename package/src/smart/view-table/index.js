@@ -36,6 +36,12 @@ const preferences = () => globalThis.SF?.Preferences || BundledPreferences;
 const tablePreferenceKey = (key) => `sf-table/${String(key).replace(/[^\w.:-]+/gu, "-")}`;
 // What a cell may draw as markup rather than as an element of its own.
 const LIGHT_CELL_TAGS = new Set(["sf-badge", "sf-tag", "sf-avatar"]);
+// How long the content table of an sf-view waits for the view's code before
+// it draws on its own (saved-views r2, D2), and the grace after the view's
+// script errs, for the Loader's one try of the module's other form.
+const VIEW_WAIT_MS = 3000;
+const VIEW_SCRIPT_RETRY_MS = 500;
+const VIEW_SCRIPT = /\/view\/js\/view(?:\.min)?\.js(?:[?#]|$)/u;
 const GENERAL_TABLE_PREFERENCE = "sf-table/*";
 const TABLE_VIEW_DEFAULTS = Object.freeze({density: "normal", stripes: false, lines: false, singleLine: false, stickyHead: true});
 
@@ -1698,6 +1704,11 @@ class SfTable extends TableElement {
     // the controls (181 px with saved views declared, 141 px without, at
     // 1440). It draws once the view is defined, with what the view gave it.
     // A table the server printed (its static markup) is adopted as before.
+    // The wait is bounded (saved-views r2, D2): when the view's code fails to
+    // load (its script errs; the Loader's other form is given half a second)
+    // or has not come in VIEW_WAIT_MS, the table draws on its own, without
+    // the view's toolbar, and says so once in the console. Without the bound
+    // a view whose code never came left the area blank for the page's life.
     canScheduleComponentUpdate(reason = "unknown") {
         if (this._waitsForView()) return false;
         return super.canScheduleComponentUpdate(reason);
@@ -1714,11 +1725,28 @@ class SfTable extends TableElement {
             return false;
         }
         if (!this._viewWait) {
-            this._viewWait = globalThis.customElements.whenDefined(host.localName).then(() => {
+            const done = (reason) => {
+                if (this._viewDefined) return;
+                clearTimeout(this._viewWaitTimer);
+                this._viewWaitAbort?.abort();
                 this._viewWait = null;
                 this._viewDefined = true;
+                if (reason !== "defined") {
+                    console.warn(`sf-view-table: the ${host.localName} around this table ${reason === "failed" ? "failed to load" : `was not defined in ${VIEW_WAIT_MS} ms`}; the table draws on its own, without the view's toolbar.`);
+                }
                 if (this.isConnected) this.requestComponentUpdate("host-view");
-            });
+            };
+            this._viewWait = globalThis.customElements.whenDefined(host.localName).then(() => done("defined"));
+            this._viewWaitTimer = setTimeout(() => done("timeout"), VIEW_WAIT_MS);
+            this._viewWaitAbort = new AbortController();
+            // A script of the view's own module that errs: the Loader tries
+            // the module's other form once, so the table waits a little more.
+            document.addEventListener("error", (event) => {
+                const src = event.target?.localName === "script" ? String(event.target.src || "") : "";
+                if (!VIEW_SCRIPT.test(src)) return;
+                clearTimeout(this._viewWaitTimer);
+                this._viewWaitTimer = setTimeout(() => done("failed"), VIEW_SCRIPT_RETRY_MS);
+            }, {capture: true, signal: this._viewWaitAbort.signal});
         }
         return true;
     }
@@ -7551,6 +7579,10 @@ class SfTable extends TableElement {
             clearTimeout(page.searchTimer);
         }
         this._filterOptionPages.clear();
+        clearTimeout(this._viewWaitTimer);
+        this._viewWaitAbort?.abort();
+        this._viewWaitAbort = null;
+        this._viewWait = null;
         this._responsiveObserver?.disconnect();
         this._responsiveObserver = null;
         this._responsiveWidth = 0;
@@ -7624,6 +7656,7 @@ class SfTable extends TableElement {
     }
 
     templateContext() {
+        this._readResponsiveWidthNow();
         this._renderedCramped = this.columnsAreCramped;
         const props = this.getPropsContext();
 
@@ -7699,6 +7732,31 @@ class SfTable extends TableElement {
         this.applyTableView();
         this._checkboxMeasureToken++;
         this.refs.items = new Map();
+    }
+
+    // The width the first render is chosen by (saved-views r2, D1): the
+    // observer below reports a width only after the first paint, so a table
+    // whose answer was in by the time its code was defined drew its first
+    // frame as if it were wide -- at 390 the desktop toolbar, the search
+    // field across the row and Create and Filter on the rows below, 80-124 px
+    // tall, then the compact 36 px bar one or two frames later. The compact
+    // toolbar and the list are other markup, not a restyle, and list-below is
+    // the table's own attribute, which a container query cannot read; so
+    // until the observer has spoken, the width is read here, before the
+    // render and so before any paint: the content box of the nearest
+    // ancestor that has a box (the table's own tag and sf-view are
+    // display: contents), as the observer measures it.
+    _readResponsiveWidthNow() {
+        if (this._responsiveWidth > 0 || !this.isConnected) return;
+        for (let element = this.querySelector(".sf-table") ?? this.parentElement; element; element = element.parentElement) {
+            const box = element.getBoundingClientRect?.();
+            if (!box || box.width <= 0) continue;
+            const style = globalThis.getComputedStyle?.(element);
+            const edge = (side) => (parseFloat(style?.[`padding${side}`]) || 0) + (parseFloat(style?.[`border${side}Width`]) || 0);
+            const width = Math.floor(box.width - edge("Left") - edge("Right"));
+            if (width > 0) this._responsiveWidth = width;
+            return;
+        }
     }
 
     // SfBaseElement is display: contents, so its own box has no width: the

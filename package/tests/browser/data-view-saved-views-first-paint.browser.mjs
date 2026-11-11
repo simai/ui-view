@@ -8,9 +8,12 @@
 // first frame to the drawn answer. Watched frame by frame on a served page
 // through the real Loader -- Core runs the declared port's first call, the
 // components' code is held back, the port's answer comes once the skeleton
-// has stood -- with the first paint's sheets in the head, withheld (the
-// Loader links them) or late (after the code), three loads each, light and
-// dark, at 1440 and 390, with saved views declared and without:
+// has stood (skeleton first), or at once, so it is in before the code is
+// defined (data first: Core's early call answered quickly, the normal case on
+// a fast host; saved-views r2, D1) -- with the first paint's sheets in the
+// head, withheld (the Loader links them) or late (after the code), three
+// loads each, light and dark, at 1440 and 390, with saved views declared and
+// without:
 //   - no frame shows the table's own toolbar before the view is defined: the
 //     first toolbar on the page is the view's first paint (sf-view-table
 //     1.18.1; the Loader defines the table first, and the table drew its
@@ -26,7 +29,12 @@
 //     toolbar frame: a square of the step's control, as tall as the filter
 //     button beside it (C27), and the drawn control stands in it; without
 //     them nothing is held; the phone's compact list has no such control;
-//   - a clean console: no error, no warning, no failed request.
+//   - at 390 the first drawn frame is the compact toolbar in either order
+//     (it was the desktop one when the data came first: 80-124 px, then 36);
+//   - a clean console: no error, no warning, no failed request. Chrome's
+//     note that a preloaded file was not used within a few seconds is not a
+//     defect of the page and is left out (it reddened a correct build under
+//     load, M1).
 import {createServer} from 'node:http';
 import {existsSync, readFileSync, statSync} from 'node:fs';
 import {extname, join, resolve, sep} from 'node:path';
@@ -70,8 +78,10 @@ const server = createServer(async (request, response) => {
     const call = JSON.parse(body || '{}');
     const one = pages.get(call.page);
     // The first answer waits until the page has watched its skeleton stand
-    // (/release); a later one comes at once.
-    if (one && !one.answered) {
+    // (/release), unless the data comes first; a later one comes at once.
+    if (one && !one.answered && one.order === 'data-first') {
+      one.answered = true;
+    } else if (one && !one.answered) {
       one.answered = true;
       await new Promise((done) => { one.release = done; setTimeout(done, 8000); });
     } else await new Promise((done) => setTimeout(done, 120));
@@ -153,11 +163,11 @@ const WATCH = `(() => {
   requestAnimationFrame(tick);
 })();`;
 
-const html = ({scheme, sheets, capabilities}) => `<!doctype html><html lang="ru" class="theme-${scheme}"><head><meta charset="utf-8">
+const html = ({scheme, sheets, capabilities, dataFirst}) => `<!doctype html><html lang="ru" class="theme-${scheme}"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1"><title>saved views first paint</title><link rel="icon" href="data:,">
 ${sheets.map((href) => `<link rel="stylesheet" href="/distr/${href}">`).join('\n')}
 <script>window.sfPath='/distr/';window.sfSmartPath='/distr/';window.SF_BOOT_CONFIG=${JSON.stringify(BOOT)};</script>
-<script>${WATCH}</script><script src="/distr/core/js/core.js"></script></head>
+<script>${WATCH}${dataFirst ? 'window.__fp.released = true;' : ''}</script><script src="/distr/core/js/core.js"></script></head>
 <body style="margin:0;padding:16px"><div id="stage"><sf-view aria-label="Каталог">
 <script type="application/json" data-sf-port>${JSON.stringify({port: 'simai.dataview-port', version: '1.12.0', url: '/port', capabilities, first: {intent: 'query.change', payload: {query: QUERY}}})}</script>
 <sf-view-table slot="content" aria-label="Каталог"></sf-view-table>
@@ -170,15 +180,20 @@ const rows = [];
 const failures = [];
 const browser = await chromium.launch();
 try {
-  for (let load = 1; load <= LOADS; load += 1) for (const mode of ['head', 'withheld', 'late']) for (const scheme of ['light', 'dark']) for (const width of [1440, 390]) for (const views of [true, false]) {
-    const where = `load ${load} ${mode} ${scheme} ${width} ${views ? 'saved-views' : 'plain'}`;
-    const path = `/p/${load}/${mode}/${scheme}/${width}/${views ? 'views' : 'plain'}`;
-    pages.set(path, {mode, html: html({scheme, sheets: mode === 'withheld' ? ['core/css/core.css'] : FIRST_PAINT_SHEETS,
+  for (let load = 1; load <= LOADS; load += 1) for (const order of ['skeleton-first', 'data-first']) for (const mode of ['head', 'withheld', 'late']) for (const scheme of ['light', 'dark']) for (const width of [1440, 390]) for (const views of [true, false]) {
+    const where = `load ${load} ${order} ${mode} ${scheme} ${width} ${views ? 'saved-views' : 'plain'}`;
+    const path = `/p/${load}/${order}/${mode}/${scheme}/${width}/${views ? 'views' : 'plain'}`;
+    pages.set(path, {mode, order, html: html({scheme, dataFirst: order === 'data-first', sheets: mode === 'withheld' ? ['core/css/core.css'] : FIRST_PAINT_SHEETS,
       capabilities: views ? [...BASE, 'saved-views'] : BASE})});
     const context = await browser.newContext({viewport: {width, height: 900}, colorScheme: scheme});
     const tab = await context.newPage();
     const errors = [];
-    tab.on('console', (message) => { if (message.type() === 'error' || message.type() === 'warning') errors.push(`${message.type()}: ${message.text()}`); });
+    tab.on('console', (message) => {
+      if (message.type() !== 'error' && message.type() !== 'warning') return;
+      // Chrome's own note on an unused preload, not the page's (M1).
+      if (/was preloaded using link preload but not used within a few seconds/u.test(message.text())) return;
+      errors.push(`${message.type()}: ${message.text()}`);
+    });
     tab.on('pageerror', (error) => errors.push(`pageerror: ${error.message}`));
     tab.on('response', (response) => { if (response.status() >= 400) errors.push(`${response.status()} ${new URL(response.url()).pathname}`); });
     try {
@@ -211,12 +226,15 @@ try {
       else { steps.push(at); shift = Math.max(shift, step); }
     }
     const phases = [...new Set(frames.map((frame) => frame.phase))];
-    const row = {where, frames: frames.length, phases: phases.join('>'), tableAlone: alone, toolbarShift: shift === Infinity ? 'appears' : Math.round(shift * 100) / 100,
+    const row = {where, order, width, firstBar: first?.bar ?? null, lastBar: last?.bar ?? null, frames: frames.length, phases: phases.join('>'), tableAlone: alone, toolbarShift: shift === Infinity ? 'appears' : Math.round(shift * 100) / 100,
       steps, fontSteps, slotFirst: first?.slot ?? null, slotLast: last?.slot ?? null, filter: last?.filter ?? null,
       cls: Math.round(fp.shifts.reduce((sum, entry) => sum + entry.value, 0) * 1e5) / 1e5, console: errors};
     rows.push(row);
     if (alone) failures.push(`${where}: ${alone} frames show the table's own toolbar before the view is defined`);
-    if (!phases.includes('skeleton') || phases.at(-1) !== 'drawn') failures.push(`${where}: the frames are ${row.phases}, not the skeleton then the drawn toolbar`);
+    if ((order === 'skeleton-first' && !phases.includes('skeleton')) || phases.at(-1) !== 'drawn') failures.push(`${where}: the frames are ${row.phases}, not ${order === 'skeleton-first' ? 'the skeleton then ' : ''}the drawn toolbar`);
+    // At 390 the first toolbar frame is the compact one: one row, as tall as
+    // the bar it ends as (D1: the desktop toolbar came first, 80-124 px).
+    if (width < 600 && first && last && Math.abs(first.bar[3] - last.bar[3]) > TOLERANCE) failures.push(`${where}: the first toolbar is ${first.bar[3]} px tall (${first.phase}), the drawn one ${last.bar[3]} px`);
     if (steps.length) failures.push(`${where}: the toolbar moves ${JSON.stringify(steps.slice(0, 3))}`);
     const desktop = width >= 600;
     if (views && desktop) {
@@ -238,4 +256,4 @@ if (failures.length) {
   console.error(failures.join('\n'));
   process.exit(1);
 }
-console.log(`data-view saved-views first paint: ${rows.length} pages watched frame by frame, the toolbar holds still from its first frame (saved views declared and not; sheets in the head, withheld and late; light and dark; 1440 and 390; ${LOADS} loads)`);
+console.log(`data-view saved-views first paint: ${rows.length} pages watched frame by frame, the toolbar holds still from its first frame (saved views declared and not; skeleton first and data first; sheets in the head, withheld and late; light and dark; 1440 and 390; ${LOADS} loads)`);

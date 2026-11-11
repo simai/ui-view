@@ -20,6 +20,24 @@ in brackets. The site page «Изменения» says the same in Russian.
   `data-view-saved-views-first-paint` watches it frame by frame through the
   real Loader: sheets in the head, withheld and late, three loads, light and
   dark, 1440 and 390, with saved views and without.
+- `sf-view-table` 1.18.1, also: on a phone the first drawn frame is the
+  compact toolbar and the list when the answer was in before the code was
+  defined (Core's early port call answered quickly, the normal case on a
+  fast host; DEV acceptance D1). The table chose its layout by a width it
+  read only after the first paint, so for one or two frames it drew the
+  desktop toolbar (the search field across the row, Create and Filter on
+  the rows below, 80-124 px, then 36; the field moved 88 px and Create 322
+  px), also over a server-printed table. It reads its box's width before
+  the first render now. Probe `data-view-saved-views-first-paint` adds the
+  data-first order (the answer at once) beside skeleton-first.
+- `sf-view-table` 1.18.1, also: the content table waits for `sf-view` at
+  most 3 s, or half a second after the view's script fails to load (the
+  Loader tries the other form once), and then draws on its own, without the
+  view's toolbar, with one console warning; a view whose code never came
+  left the area blank for the page's life (D2). Probe
+  `data-view-table-without-view`.
+- The site page «Изменения» lists every version since 1.2.0 (it stopped at
+  1.1.0).
 - Known limit: at 1440 the filter button, the saved-views control and the
   search field's start still move 1.1 px once, with saved views and
   without, in the frame the icon font's subset is replaced (R078): the
