@@ -13,7 +13,7 @@
 //     about 3 s with one warning, and when the view comes it takes the table
 //     over (the view's toolbar is drawn, no error);
 //   - the view's script comes in time: no warning, the table is the view's.
-// Light, 1440 and 390, two loads.
+// Light, 1440 and 390, three loads.
 import {createServer} from 'node:http';
 import {existsSync, readFileSync, statSync} from 'node:fs';
 import {extname, join, resolve, sep} from 'node:path';
@@ -81,7 +81,7 @@ const failures = [];
 const rows = [];
 const browser = await chromium.launch();
 try {
-  for (let load = 1; load <= 2; load += 1) for (const view of ['missing', 'late', 'in-time']) for (const width of [1440, 390]) {
+  for (let load = 1; load <= 3; load += 1) for (const view of ['missing', 'late', 'in-time']) for (const width of [1440, 390]) {
     const where = `load ${load} view ${view} ${width}`;
     const path = `/w/${load}/${view}/${width}`;
     pages.set(path, {view, html: html()});
