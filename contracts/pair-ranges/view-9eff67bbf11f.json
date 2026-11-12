@@ -1,0 +1,480 @@
+{
+  "schema": "simai.framework.set-pair-range",
+  "schema_version": 1,
+  "set": "view",
+  "release": "view-9eff67bbf11f",
+  "version": "1.7.1",
+  "repository": "simai/ui-view",
+  "package": {
+    "source_revision": "9eff67bbf11fc24d813f1113f1ae1099a6f102b5",
+    "build_revision": "9ec0aad141a8fc5194d692a91bb762583230c4d0",
+    "receipt_sha256": "722ae108b4a63cdd40e520593f9bde5926e4440cce16cb9ea3d59d6dd633c2bb",
+    "manifest_sha256": "499cca38207ffd0e013c20af5dd622e97aad46de89edc6ed887187532adf7260",
+    "archive_sha256": "9bae791b3599b127af6ca80bad8981f1bf7d1dc09bd4e70dbaf8e5ed874e04ae",
+    "files_count": 161
+  },
+  "built_over": {
+    "pair": "ui-7fb26d395af2",
+    "commit": "7fb26d395af28dfcaac2a5df9de254b3067dc4ae",
+    "source_revision": "8c13bf45aecaae2c31188b729ef4765fc91bffae"
+  },
+  "requires": {
+    "core_runtime": ">=1.51.0",
+    "runtime": {
+      "abi": 1,
+      "modules": {
+        "aliases": [
+          "installAliases"
+        ],
+        "deprecations": [
+          "noteDeprecated"
+        ],
+        "element-manifest": [
+          "applied",
+          "elementFromManifest",
+          "refused"
+        ],
+        "instance-path": [
+          "instancePath",
+          "partId"
+        ],
+        "layer-stack": [
+          "FOCUSABLE",
+          "hasLayer",
+          "hasLayerAbove",
+          "layerZIndex",
+          "openLayers"
+        ],
+        "lit": [
+          "html",
+          "nothing",
+          "render"
+        ],
+        "lit/directive-helpers.js": [
+          "isTemplateResult"
+        ],
+        "lit/directive.js": [
+          "Directive",
+          "PartType",
+          "directive"
+        ],
+        "lit/directives/keyed.js": [
+          "keyed"
+        ],
+        "lit/directives/ref.js": [
+          "ref"
+        ],
+        "lit/directives/repeat.js": [
+          "repeat"
+        ],
+        "lit/directives/unsafe-html.js": [
+          "unsafeHTML"
+        ],
+        "open-surface-mark": [
+          "holdOpenSurfaceMark"
+        ],
+        "page-language": [
+          "pageLocale",
+          "pageText",
+          "pageWord"
+        ],
+        "position": [
+          "default"
+        ],
+        "smart-base": [
+          "canonicalTag",
+          "default",
+          "defineTagAliases",
+          "isTag",
+          "tagSelector"
+        ]
+      }
+    },
+    "relations": [
+      {
+        "name": "accordion",
+        "resolves_to": "accordion"
+      },
+      {
+        "name": "cl-avatar",
+        "resolves_to": "cl-avatar"
+      },
+      {
+        "name": "cl-badge",
+        "resolves_to": "cl-badge"
+      },
+      {
+        "name": "cl-button",
+        "resolves_to": "cl-button"
+      },
+      {
+        "name": "cl-button-copy",
+        "resolves_to": "cl-button-copy"
+      },
+      {
+        "name": "cl-button-icon",
+        "resolves_to": "cl-button-icon"
+      },
+      {
+        "name": "cl-checkbox",
+        "resolves_to": "cl-checkbox"
+      },
+      {
+        "name": "cl-drawer",
+        "resolves_to": "cl-drawer"
+      },
+      {
+        "name": "cl-dropdown",
+        "resolves_to": "cl-dropdown"
+      },
+      {
+        "name": "cl-empty-state",
+        "resolves_to": "cl-empty-state"
+      },
+      {
+        "name": "cl-file-preview",
+        "resolves_to": "cl-file-preview"
+      },
+      {
+        "name": "cl-file-upload",
+        "resolves_to": "cl-file-upload"
+      },
+      {
+        "name": "cl-help-mark",
+        "resolves_to": "cl-help-mark"
+      },
+      {
+        "name": "cl-icon",
+        "resolves_to": "cl-icon"
+      },
+      {
+        "name": "cl-input",
+        "resolves_to": "cl-input"
+      },
+      {
+        "name": "cl-input-color",
+        "resolves_to": "cl-input-color"
+      },
+      {
+        "name": "cl-input-country",
+        "resolves_to": "cl-input-country"
+      },
+      {
+        "name": "cl-input-date",
+        "resolves_to": "cl-input-date"
+      },
+      {
+        "name": "cl-input-image",
+        "resolves_to": "cl-input-image"
+      },
+      {
+        "name": "cl-input-quantity",
+        "resolves_to": "cl-input-quantity"
+      },
+      {
+        "name": "cl-input-rich",
+        "resolves_to": "cl-input-rich"
+      },
+      {
+        "name": "cl-input-textarea",
+        "resolves_to": "cl-input-textarea"
+      },
+      {
+        "name": "cl-list-item",
+        "resolves_to": "cl-list-item"
+      },
+      {
+        "name": "cl-menu-context",
+        "resolves_to": "cl-menu-context"
+      },
+      {
+        "name": "cl-modal",
+        "resolves_to": "cl-modal"
+      },
+      {
+        "name": "cl-pagination",
+        "resolves_to": "cl-pagination"
+      },
+      {
+        "name": "cl-popover",
+        "resolves_to": "cl-popover"
+      },
+      {
+        "name": "cl-profile-picker",
+        "resolves_to": "cl-profile-picker"
+      },
+      {
+        "name": "cl-progress-bar",
+        "resolves_to": "cl-progress-bar"
+      },
+      {
+        "name": "cl-progress-scale",
+        "resolves_to": "cl-progress-scale"
+      },
+      {
+        "name": "cl-radio",
+        "resolves_to": "cl-radio"
+      },
+      {
+        "name": "cl-reference-link",
+        "resolves_to": "cl-reference-link"
+      },
+      {
+        "name": "cl-resizer",
+        "resolves_to": "cl-resizer"
+      },
+      {
+        "name": "cl-segmented",
+        "resolves_to": "cl-segmented"
+      },
+      {
+        "name": "cl-slider-range",
+        "resolves_to": "cl-slider-range"
+      },
+      {
+        "name": "cl-sortable",
+        "resolves_to": "cl-sortable"
+      },
+      {
+        "name": "cl-spinner",
+        "resolves_to": "cl-spinner"
+      },
+      {
+        "name": "cl-switch",
+        "resolves_to": "cl-switch"
+      },
+      {
+        "name": "cl-tabs",
+        "resolves_to": "cl-tabs"
+      },
+      {
+        "name": "cl-tag",
+        "resolves_to": "cl-tag"
+      },
+      {
+        "name": "cl-toast",
+        "resolves_to": "cl-toast"
+      },
+      {
+        "name": "cl-tree",
+        "resolves_to": "cl-tree"
+      },
+      {
+        "name": "cl-tree-item",
+        "resolves_to": "cl-tree-item"
+      },
+      {
+        "name": "dot",
+        "resolves_to": "dot"
+      },
+      {
+        "name": "icons",
+        "resolves_to": "icons"
+      },
+      {
+        "name": "tooltip",
+        "resolves_to": "tooltip"
+      }
+    ],
+    "elements": [
+      "sf-data-view",
+      "sf-property-view",
+      "sf-table",
+      "sf-view",
+      "sf-view-flow",
+      "sf-view-properties",
+      "sf-view-table"
+    ],
+    "free_elements": [
+      "sf-avatar",
+      "sf-badge",
+      "sf-button",
+      "sf-button-copy",
+      "sf-button-icon",
+      "sf-checkbox",
+      "sf-drawer",
+      "sf-dropdown",
+      "sf-empty-state",
+      "sf-file-preview",
+      "sf-file-upload",
+      "sf-help-mark",
+      "sf-icon",
+      "sf-input",
+      "sf-input-color",
+      "sf-input-country",
+      "sf-input-date",
+      "sf-input-image",
+      "sf-input-quantity",
+      "sf-input-rich",
+      "sf-input-textarea",
+      "sf-list-item",
+      "sf-menu-context",
+      "sf-modal",
+      "sf-pagination",
+      "sf-popover",
+      "sf-profile-picker",
+      "sf-progress-scale",
+      "sf-radio",
+      "sf-reference-link",
+      "sf-segmented",
+      "sf-slider-range",
+      "sf-sortable",
+      "sf-spinner",
+      "sf-switch",
+      "sf-tabs",
+      "sf-tag",
+      "sf-toast",
+      "sf-tree"
+    ],
+    "core_folder": null,
+    "variables": [
+      "--sf-a2",
+      "--sf-a3",
+      "--sf-a4",
+      "--sf-a6",
+      "--sf-a8",
+      "--sf-animation",
+      "--sf-b0",
+      "--sf-b6",
+      "--sf-code--background",
+      "--sf-code--color",
+      "--sf-code--font-family",
+      "--sf-code--radius",
+      "--sf-context-menu--block-space",
+      "--sf-context-menu--inset-end",
+      "--sf-context-menu--inset-start",
+      "--sf-context-menu-tail-corner-offset",
+      "--sf-duration-fast",
+      "--sf-duration-normal",
+      "--sf-e6",
+      "--sf-ease-exit",
+      "--sf-error",
+      "--sf-f0",
+      "--sf-focus--color",
+      "--sf-focus--style",
+      "--sf-focus--width",
+      "--sf-focus-outline-width",
+      "--sf-font-weight-bold",
+      "--sf-font-weight-medium",
+      "--sf-g0",
+      "--sf-g3",
+      "--sf-g4",
+      "--sf-heading--space-bottom",
+      "--sf-heading--space-top",
+      "--sf-icon-size-1",
+      "--sf-icon-size-2",
+      "--sf-label-large--height",
+      "--sf-label-large--size",
+      "--sf-label-medium--height",
+      "--sf-label-medium--size",
+      "--sf-label-small--height",
+      "--sf-label-small--size",
+      "--sf-link",
+      "--sf-neutral-50",
+      "--sf-neutral-90",
+      "--sf-on-error",
+      "--sf-on-primary-container",
+      "--sf-on-success-container",
+      "--sf-on-surface",
+      "--sf-on-surface-popup-variant",
+      "--sf-outline",
+      "--sf-outline-variant",
+      "--sf-primary",
+      "--sf-primary-container",
+      "--sf-primary-container-hover",
+      "--sf-primary-outline",
+      "--sf-primary-state-select",
+      "--sf-px",
+      "--sf-radius--surface",
+      "--sf-radius--ui",
+      "--sf-radius-1",
+      "--sf-radius-2",
+      "--sf-radius-circle",
+      "--sf-shadow-popup",
+      "--sf-space-1",
+      "--sf-space-2",
+      "--sf-space-3",
+      "--sf-space-4",
+      "--sf-surface-2",
+      "--sf-surface-area",
+      "--sf-surface-container-hover",
+      "--sf-surface-page",
+      "--sf-surface-place",
+      "--sf-surface-popup",
+      "--sf-surface-state-hover",
+      "--sf-surface-state-select",
+      "--sf-text--family",
+      "--sf-text--height",
+      "--sf-text--height-1",
+      "--sf-text--size",
+      "--sf-text--size-1",
+      "--sf-text--size-2",
+      "--sf-text--size-3",
+      "--sf-text--size-4",
+      "--sf-text-height-1",
+      "--sf-text-medium--height",
+      "--sf-text-medium--size",
+      "--sf-text-size-1",
+      "--sf-text-small--height",
+      "--sf-text-small--size",
+      "--sf-title--height-1",
+      "--sf-title--height-2",
+      "--sf-title--height-3",
+      "--sf-title--height-4",
+      "--sf-ui-1--control-height",
+      "--sf-ui-1--space-x",
+      "--sf-ui-1--space-y",
+      "--sf-ui-1--space-y-tightness-default",
+      "--sf-ui-1--space-y-tightness-low",
+      "--sf-ui-1--text-space-x",
+      "--sf-ui-2--control-height",
+      "--sf-ui-3--control-height",
+      "--sf-z-index-9"
+    ],
+    "js_api": [
+      "Assembly",
+      "Loader",
+      "Loader.watch",
+      "Position",
+      "Preferences",
+      "Preferences.remove",
+      "Resizer.attach",
+      "RuleLoader",
+      "Sortable.attach",
+      "deprecations",
+      "fieldRenderers",
+      "fieldRenderers.dateTime",
+      "format",
+      "icons",
+      "icons.choices",
+      "language.register",
+      "notify",
+      "runtimeModule",
+      "whenFieldRenderers"
+    ]
+  },
+  "interface_sha256": "da0f2c836d61d8595136c07ff96212704af8f7d6755c9c4048e54a0e41fa6897",
+  "expires": null,
+  "not_covered": [
+    "behaviour behind an unchanged interface: token values, free component looks, smart-base behaviour under the same ABI",
+    "Framework code a bundle inlined at build time: a rebuild over the pair may give other bytes (pair-receipt.py equivalence)",
+    "the set gates over the pair: unit, manifest, browser and first-paint probes",
+    "the attributes, events and slots of the free elements the set renders (renamed only with dated aliases)",
+    "window.SF reached through an alias the scan cannot see (const s = SF; s.x)"
+  ],
+  "tooling": {
+    "repository": "simai/ui-builder",
+    "revision": "16e9a81c1f2838f7cfeebbbd19654016743c9672",
+    "clean": true,
+    "as_of": "2026-11-12",
+    "notes": {
+      "relations_to_required_sets": [],
+      "variables_bound_by_the_page": [],
+      "js_names_not_public": []
+    }
+  },
+  "created_on": "2026-11-12",
+  "claims": {
+    "production_ready": false
+  }
+}
