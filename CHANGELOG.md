@@ -3,6 +3,22 @@
 The set `view`, by its npm version `@simai-studio/view`; component versions
 in brackets. The site page «Изменения» says the same in Russian.
 
+## Next — not released
+
+- `sf-view-properties` 1.14.0 (TR-13, decision C96 point 5): the section
+  list beside the groups is vertical tabs, `sf-tabs type="vertical"`, not an
+  `sf-tree`: a named tablist (`aria-label` is the sections label, one tab
+  `aria-selected`), walked with the up and down arrows. A section's own icon
+  is its tab's icon; a section without one no longer gets the tree's folder,
+  while reading or arranging. The column is no longer a `nav` landmark while
+  reading; while arranging it is still the `nav` of the component's own rows.
+  The rule loads `cl-tabs` and no longer `cl-tree` / `cl-tree-item` (the
+  passport's requires follow). A host that read
+  `.sf-tree-item[data-value]` in `.sf-property-view-sections` reads
+  `[role="tab"]` there; `selectSection`, the section events and the settings
+  are unchanged. Made in ui-pro ahead of this set (2026-11-12). Contract test
+  `view-properties-section-tabs`, probe `property-view`.
+
 ## 1.7.1 — not released
 
 - `sf-view-table` 1.18.1: the toolbar holds still from its first frame when
