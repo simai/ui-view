@@ -48,5 +48,8 @@
     "mobile_toc": "auto",
     "toc_depth": 3,
     "previous_next": true
-  }
+  },
+  "page_transforms": [
+    {"command": ["node", "scripts/name-column-transform.mjs"]}
+  ]
 }

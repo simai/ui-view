@@ -39,6 +39,11 @@ node site/scripts/evidence.mjs <site URL> docs/evidence/<date>
   live example. It runs on the local review copy (`publish-local.sh`), not
   in the verified build: Docara requests 14 and 15. A public deployment needs those requests or the
   same step in its pipeline, with verify-static run before it.
+- `scripts/name-column-transform.mjs` — keeps the names in the first column
+  of the reference tables whole (decision C10: the documentation gives the
+  «Имя» column a width). A Docara page transform (`docara.json`
+  `page_transforms`, Docara request 16): it adds one rule to the head of each
+  page with a Markdown table, so it runs in the verified build.
 - `scripts/field-demo.js` — the engine and catalogue of the «Поля»
   examples; `node site/scripts/build-field-examples.mjs` writes
   `examples/fields/<family>/` from it (`--check` fails on drift).

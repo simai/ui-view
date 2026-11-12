@@ -92,3 +92,16 @@ belongs to its own thread; nothing here was written in simai/docara.
     Workaround: the home-page transform runs on the local review copy, not
     in the build. Wanted: recompute the shell plans after the transforms (the
     builder already republishes the vendor assets there).
+16. **A name column that keeps its names whole.** SIMAI Framework (C10) lets
+    code in a table cell wrap at any point, so a value cannot push the table
+    wider than the page. Markdown tables are laid out automatically, so on a
+    phone the first column shrank to about 80 px and names split between two
+    letters (`intege/r`, `query.chan/ge`: 58 names on 13 pages at 390 px). The
+    site cannot style it: Docara takes no CSS from settings and no attributes on
+    a table. Workaround: `site/scripts/name-column-transform.mjs`, a
+    `page_transforms` command, adds `.table > :is(thead, tbody) > tr >
+    :first-child code { overflow-wrap: normal; }` to the head of each page with
+    a table. verify-static hashes the body without its style elements, so the
+    check holds, unlike request 15. Wanted: Docara's table gives its first
+    (name) column this rule itself, or a table option for it, such as
+    `{names=first}`.
