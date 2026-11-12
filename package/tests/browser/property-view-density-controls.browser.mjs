@@ -23,7 +23,7 @@ const styles = [
   'component/component/badges/css/badges.css', 'component/component/inputs/css/inputs.css',
   'component/component/buttons/css/buttons.css', 'component/component/icon-buttons/css/icon-buttons.css',
   'component/component/dropdown/css/dropdown.css', 'component/component/skeleton/css/skeleton.css',
-  'component/component/tabs/css/tabs.css', 'smart/smart/tabs/css/tabs.css',
+  'component/component/tabs/css/tabs.css',
   'smart/smart/drawer/css/drawer.css', 'smart/smart/popover/css/popover.css',
   'smart/smart/empty-state/css/empty-state.css', 'component/component/context-menu/css/context-menu.css',
   'smart/smart/view-properties/css/view-properties.css', 'smart/smart/sortable/css/sortable.css',
