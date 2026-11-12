@@ -626,6 +626,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   FILTER_RENDERERS: () => (/* binding */ FILTER_RENDERERS),
 /* harmony export */   PROPERTY_TYPES: () => (/* reexport safe */ _registry_js__WEBPACK_IMPORTED_MODULE_5__.PROPERTY_TYPES),
+/* harmony export */   dateTimeAttribute: () => (/* binding */ dateTimeAttribute),
 /* harmony export */   propertyModes: () => (/* binding */ propertyModes),
 /* harmony export */   renderCellField: () => (/* binding */ renderCellField),
 /* harmony export */   renderEditField: () => (/* binding */ renderEditField),
@@ -1099,7 +1100,7 @@ function renderColorCell(field, value) {
 
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
         <sf-input-color size="1/2" appearance="plain" value=${String(hex)}
-                  label=${field.label || field.key || ''} disabled></sf-input-color>
+                  aria-label=${field.label || field.key || ''} disabled></sf-input-color>
     `;
 } // Reads what port 1.8.0 declares: `inherited` says a value comes from somewhere
 // else, `inheritedValue` says what it is. A view that drew the inherited colour as
@@ -1117,7 +1118,7 @@ function renderColorView(field, value) {
                 appearance="plain"
                 value=${hex ? String(hex) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                 inherited-value=${inherited ? String(inherited) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
-                label=${field.label || field.key || ''}
+                aria-label=${field.label || field.key || ''}
                 disabled
         ></sf-input-color>
     `;
@@ -1136,7 +1137,7 @@ function renderColorEdit(field, value, host) {
                 swatches=${field.swatches ? String(field.swatches) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                 ?clearable=${Boolean(inherited) || field.required !== true}
                 ?disabled=${field.readonly === true}
-                label=${field.label || field.key || ''}
+                aria-label=${field.label || field.key || ''}
                 @change=${event => host.setFieldValue(field, event.detail?.value ?? '')}
         ></sf-input-color>
     `;
@@ -3014,11 +3015,26 @@ function dateText(field, value, host) {
   const formatted = host?.formatFieldValue?.(field, value);
   if (typeof formatted === 'string') return formatted;
   return defaultDateText(field, value, host) ?? viewText(field, value, null);
+} // The machine reading of a date (C40: every moment the Framework prints is a
+// time element): the record's own day and clock as written, «2026-11-15» or
+// «2026-11-15T10:30», with no zone, because the view never moves a record to
+// the reader's zone. That is also why the view is not sf-time, which reads a
+// moment in the reader's zone: a date near midnight would show another day.
+// '' when the value is no date.
+
+
+function dateTimeAttribute(field, value) {
+  const parts = (0,_datetime_js__WEBPACK_IMPORTED_MODULE_6__.splitDateTime)(value);
+  if (!parts.known || !parts.date) return '';
+  const type = field?.propertyType || field?.type || field?.dataType;
+  return type === 'datetime' && parts.time ? `${parts.date}T${parts.time}` : parts.date;
 }
 
 function renderDateView(field, value, host) {
   const text = dateText(field, value, host);
-  return text ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-field-view">${text}</span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing;
+  if (!text) return lit__WEBPACK_IMPORTED_MODULE_0__.nothing;
+  const datetime = dateTimeAttribute(field, value);
+  return datetime ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<time class="sf-field-view" datetime=${datetime}>${text}</time>` : (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-field-view">${text}</span>`;
 }
 
 function renderBooleanView(field, value, host) {
@@ -4101,6 +4117,13 @@ function confirmSurface(Base, {
           value: null
         }
       });
+    } // The question took «no» and nothing came after: declined, or the
+    // decline on its way with no outcome from the host. A window that is
+    // opened again puts such a question again (sf-modal, decision C39).
+
+
+    get answeredNo() {
+      return this.state === "declined" || this.state === "pending" && this._pressed === false;
     }
 
     focusStatus() {
@@ -4155,14 +4178,20 @@ function confirmSurface(Base, {
 // told apart by more than the red of a word. Both stand on the element's size
 // (context.size, 1 unless the page gives one); a size a template gives is
 // relative, so a compact region (data-sf-density, C22) moves them down a step.
+//
+// In a window (sf-confirm appearance="window", decision C39) the declining
+// answer of a dangerous question is tonal, the window's quiet answer beside
+// the filled one, and the answers come before the status line, at the start.
 
 function renderConfirmFooter(context, block, {
-  acceptStatus = ""
+  acceptStatus = "",
+  window = false
 } = {}) {
   const {
     component
   } = context;
   const danger = acceptStatus === "danger" || acceptStatus === "error";
+  const quiet = window ? "tonal" : "ghost";
   const size = context.size || "1";
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
             <footer class="${block}__footer">
@@ -4189,7 +4218,7 @@ function renderConfirmFooter(context, block, {
                             @click=${() => component.confirm()}
                     ></sf-button>
                     <sf-button
-                            appearance=${danger ? "ghost" : "outline"}
+                            appearance=${danger ? quiet : "outline"}
                             scheme="on-surface"
                             size=${size}
                             text=${context.declineText}
@@ -7473,7 +7502,24 @@ const sameFormat = (a, b) => a.strong === b.strong && a.em === b.em && a.href ==
 // Inline leaves made canonical: adjacent text of one format joined, runs of
 // spaces made one, spaces at the edges and around a line break removed, a link
 // with nothing but spaces made text.
+//
+// The steps run again until a pass changes nothing (2026-11-11 acceptance,
+// M2): dropping a space or an empty run makes new neighbours, so one pass left
+// "<p>a <em><br>n</em></p>" for the next load-and-save to make
+// "<p>a<em><br>n</em></p>". The stored value is the fixed point at once.
 function tidyLeaves(leaves, mode) {
+  let current = leaves;
+  let key = null;
+  for (let pass = 0; pass < 64; pass += 1) {
+    current = tidyLeavesOnce(current, mode);
+    const next = JSON.stringify(current);
+    if (next === key) break;
+    key = next;
+  }
+  return current;
+}
+
+function tidyLeavesOnce(leaves, mode) {
   const out = [];
   for (const item of leaves) {
     if (item.kind === 'text' && !item.value) continue;
@@ -7498,12 +7544,21 @@ function tidyLeaves(leaves, mode) {
   }
   let kept = out.filter((item) => item.kind === 'br' || item.value);
   if (mode === 'value') {
-    while (kept[0]?.kind === 'br') kept.shift();
-    while (kept.at(-1)?.kind === 'br') kept.pop();
-    if (kept[0]?.kind === 'text') kept[0].value = kept[0].value.replace(/^[\s\u00a0]+/u, '');
-    const end = kept.at(-1);
-    if (end?.kind === 'text') end.value = end.value.replace(/[\s\u00a0]+$/u, '');
-    kept = kept.filter((item) => item.kind === 'br' || item.value);
+    // Edge breaks and edge white space go together, until neither is left: a
+    // run of only white space (&nbsp;) at an edge hid the break behind it, so
+    // the first pass kept "<p>&nbsp;<br>a</p>" as "<p><br>a</p>" and only the
+    // next load-and-save gave "<p>a</p>" (2026-11-10 review, Q6). The value is
+    // now what that second pass gave, at once, and cleaning it again keeps it.
+    let length = -1;
+    while (length !== kept.length) {
+      length = kept.length;
+      while (kept[0]?.kind === 'br') kept.shift();
+      while (kept.at(-1)?.kind === 'br') kept.pop();
+      if (kept[0]?.kind === 'text') kept[0].value = kept[0].value.replace(/^[\s\u00a0]+/u, '');
+      const end = kept.at(-1);
+      if (end?.kind === 'text') end.value = end.value.replace(/[\s\u00a0]+$/u, '');
+      kept = kept.filter((item) => item.kind === 'br' || item.value);
+    }
   }
   // A link of nothing but spaces is not a link.
   const groups = new Map();

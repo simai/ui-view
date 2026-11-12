@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-table",
-  "version": "1.18.0",
+  "version": "1.18.1",
   "title": "Table",
   "summary": "Complete server-backed collection view with search, filters, table preferences, row and bulk actions, and pagination.",
   "kind": "composite",
@@ -2719,6 +2719,15 @@
         "changes": [
           "The table's own windows by their kind (owner decision C32, 2026-11-09), from the Framework's popup widths, which follow density: the filter with its saved views (filter-settings) and the column settings (table-settings) are panels, --sf-popup-panel-width (20rem; 18rem compact) or the trigger's width when wider; saving a template (filter-favorites) and a chip's own filter (tag-settings) are forms, --sf-popup-form-width (20rem; 18rem compact), where they were as wide as their content (295 / 283 compact / 250 on a phone, now 320 / 288 / 320). A panel in several columns (context-menu-columns) is as wide as its columns. --sf-table-context-menu--max-width still caps every window, and the room a window has caps it. The menus (create, list sort, row and toolbar actions) are sf-menu-context's rows and keep its menu widths (10-18rem)."
         ]
+      },
+      {
+        "from": "1.18.0",
+        "to": "1.18.1",
+        "changes": [
+          "The content table of an sf-view whose code has not arrived yet does not draw on its own (DEV decision msg-e39bb812, zero toolbar shift when saved views are declared): the Loader defines the table before the view, and the table drew its own toolbar -- the search field across the whole row, the filter button and the saved-views control coming in a frame later -- for a frame or two before the view's first paint replaced it with the skeleton, so the toolbar moved by the controls' width (182 px with saved views declared and 142 px without at 1440; at 390 the bar went from 80 to 36 px tall). It draws once sf-view is defined, with the settings the view gave it, and the first toolbar on the page is the skeleton, which stands where the answer draws it. A table whose static markup the server printed is adopted as before. Nothing to change for a host.",
+          "Also 1.18.1 (saved-views r2, DEV acceptance D1): the first render reads the width of the table's box before it draws, so at 390 a table whose answer was in when its code was defined draws the compact toolbar and the list from its first frame; it drew the desktop toolbar first (80-124 px, then 36), because the box was measured only after the first paint.",
+          "Also 1.18.1 (D2): the content table waits for sf-view at most 3 s, or half a second after the view's script errs, then draws on its own without the view's toolbar and warns once; a view whose code never came left the area blank."
+        ]
       }
     ]
   },
@@ -2728,7 +2737,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-table/index.js",
-        "sha256": "c0d935ed5e550c7c4561f5f1d264e58a074e4b1fc5a48f7305dbb3c0652a5d2d"
+        "sha256": "bd7ceb437538368b9a059de32d74163abc56cdf95b7bff6fc491098014752b8a"
       },
       {
         "path": "src/smart/view-table/js/templates/default.js",
@@ -2736,7 +2745,7 @@
       },
       {
         "path": "src/smart/view-table/js/templates/default.css",
-        "sha256": "fd90ba30cdd6f795b7caed96763299e1d1b0f5d23659017b7dd3443a14b2734a"
+        "sha256": "5251608a4f16a3584440490246df29b02dfb963c03ed17d371ff796b48e15a51"
       },
       {
         "path": "src/smart/helpers/option-badge.js",

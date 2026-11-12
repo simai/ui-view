@@ -891,6 +891,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   FILTER_RENDERERS: () => (/* binding */ FILTER_RENDERERS),
 /* harmony export */   PROPERTY_TYPES: () => (/* reexport safe */ _registry_js__WEBPACK_IMPORTED_MODULE_5__.PROPERTY_TYPES),
+/* harmony export */   dateTimeAttribute: () => (/* binding */ dateTimeAttribute),
 /* harmony export */   propertyModes: () => (/* binding */ propertyModes),
 /* harmony export */   renderCellField: () => (/* binding */ renderCellField),
 /* harmony export */   renderEditField: () => (/* binding */ renderEditField),
@@ -1364,7 +1365,7 @@ function renderColorCell(field, value) {
 
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
         <sf-input-color size="1/2" appearance="plain" value=${String(hex)}
-                  label=${field.label || field.key || ''} disabled></sf-input-color>
+                  aria-label=${field.label || field.key || ''} disabled></sf-input-color>
     `;
 } // Reads what port 1.8.0 declares: `inherited` says a value comes from somewhere
 // else, `inheritedValue` says what it is. A view that drew the inherited colour as
@@ -1382,7 +1383,7 @@ function renderColorView(field, value) {
                 appearance="plain"
                 value=${hex ? String(hex) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                 inherited-value=${inherited ? String(inherited) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
-                label=${field.label || field.key || ''}
+                aria-label=${field.label || field.key || ''}
                 disabled
         ></sf-input-color>
     `;
@@ -1401,7 +1402,7 @@ function renderColorEdit(field, value, host) {
                 swatches=${field.swatches ? String(field.swatches) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                 ?clearable=${Boolean(inherited) || field.required !== true}
                 ?disabled=${field.readonly === true}
-                label=${field.label || field.key || ''}
+                aria-label=${field.label || field.key || ''}
                 @change=${event => host.setFieldValue(field, event.detail?.value ?? '')}
         ></sf-input-color>
     `;
@@ -3279,11 +3280,26 @@ function dateText(field, value, host) {
   const formatted = host?.formatFieldValue?.(field, value);
   if (typeof formatted === 'string') return formatted;
   return defaultDateText(field, value, host) ?? viewText(field, value, null);
+} // The machine reading of a date (C40: every moment the Framework prints is a
+// time element): the record's own day and clock as written, «2026-11-15» or
+// «2026-11-15T10:30», with no zone, because the view never moves a record to
+// the reader's zone. That is also why the view is not sf-time, which reads a
+// moment in the reader's zone: a date near midnight would show another day.
+// '' when the value is no date.
+
+
+function dateTimeAttribute(field, value) {
+  const parts = (0,_datetime_js__WEBPACK_IMPORTED_MODULE_6__.splitDateTime)(value);
+  if (!parts.known || !parts.date) return '';
+  const type = field?.propertyType || field?.type || field?.dataType;
+  return type === 'datetime' && parts.time ? `${parts.date}T${parts.time}` : parts.date;
 }
 
 function renderDateView(field, value, host) {
   const text = dateText(field, value, host);
-  return text ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-field-view">${text}</span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing;
+  if (!text) return lit__WEBPACK_IMPORTED_MODULE_0__.nothing;
+  const datetime = dateTimeAttribute(field, value);
+  return datetime ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<time class="sf-field-view" datetime=${datetime}>${text}</time>` : (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-field-view">${text}</span>`;
 }
 
 function renderBooleanView(field, value, host) {
@@ -4155,7 +4171,13 @@ const preferences = () => globalThis.SF?.Preferences || _core_js_preferences_js_
 const tablePreferenceKey = key => `sf-table/${String(key).replace(/[^\w.:-]+/gu, "-")}`; // What a cell may draw as markup rather than as an element of its own.
 
 
-const LIGHT_CELL_TAGS = new Set(["sf-badge", "sf-tag", "sf-avatar"]);
+const LIGHT_CELL_TAGS = new Set(["sf-badge", "sf-tag", "sf-avatar"]); // How long the content table of an sf-view waits for the view's code before
+// it draws on its own (saved-views r2, D2), and the grace after the view's
+// script errs, for the Loader's one try of the module's other form.
+
+const VIEW_WAIT_MS = 3000;
+const VIEW_SCRIPT_RETRY_MS = 500;
+const VIEW_SCRIPT = /\/view\/js\/view(?:\.min)?\.js(?:[?#]|$)/u;
 const GENERAL_TABLE_PREFERENCE = "sf-table/*";
 const TABLE_VIEW_DEFAULTS = Object.freeze({
   density: "normal",
@@ -6326,6 +6348,71 @@ class SfTable extends TableElement {
       context: this._routeContext,
       sequence
     }));
+  } // A table that is the content of an sf-view whose code has not arrived
+  // yet does not draw on its own (DEV decision msg-e39bb812: zero toolbar
+  // shift when saved views are declared). The Loader defines the table
+  // before the view, and drawn alone it showed its own toolbar -- the
+  // search field across the whole row, the filter button and the
+  // saved-views control coming in a frame later -- for the frames before
+  // the view's first paint replaced it with the skeleton, whose toolbar
+  // stands where the answer draws it: the toolbar moved by the width of
+  // the controls (181 px with saved views declared, 141 px without, at
+  // 1440). It draws once the view is defined, with what the view gave it.
+  // A table the server printed (its static markup) is adopted as before.
+  // The wait is bounded (saved-views r2, D2): when the view's code fails to
+  // load (its script errs; the Loader's other form is given half a second)
+  // or has not come in VIEW_WAIT_MS, the table draws on its own, without
+  // the view's toolbar, and says so once in the console. Without the bound
+  // a view whose code never came left the area blank for the page's life.
+
+
+  canScheduleComponentUpdate(reason = "unknown") {
+    if (this._waitsForView()) return false;
+    return super.canScheduleComponentUpdate(reason);
+  }
+
+  _waitsForView() {
+    if (this._viewDefined) return false;
+    const host = this.parentElement;
+    const waits = Boolean(host) && (0,_core_js_smart_base__WEBPACK_IMPORTED_MODULE_0__.isTag)(host, "sf-view") && this.getAttribute("slot") === "content" && !globalThis.customElements?.get?.(host.localName) && !this.querySelector("[data-sf-static]");
+
+    if (!waits) {
+      this._viewDefined = true;
+      return false;
+    }
+
+    if (!this._viewWait) {
+      const done = reason => {
+        if (this._viewDefined) return;
+        clearTimeout(this._viewWaitTimer);
+        this._viewWaitAbort?.abort();
+        this._viewWait = null;
+        this._viewDefined = true;
+
+        if (reason !== "defined") {
+          console.warn(`sf-view-table: the ${host.localName} around this table ${reason === "failed" ? "failed to load" : `was not defined in ${VIEW_WAIT_MS} ms`}; the table draws on its own, without the view's toolbar.`);
+        }
+
+        if (this.isConnected) this.requestComponentUpdate("host-view");
+      };
+
+      this._viewWait = globalThis.customElements.whenDefined(host.localName).then(() => done("defined"));
+      this._viewWaitTimer = setTimeout(() => done("timeout"), VIEW_WAIT_MS);
+      this._viewWaitAbort = new AbortController(); // A script of the view's own module that errs: the Loader tries
+      // the module's other form once, so the table waits a little more.
+
+      document.addEventListener("error", event => {
+        const src = event.target?.localName === "script" ? String(event.target.src || "") : "";
+        if (!VIEW_SCRIPT.test(src)) return;
+        clearTimeout(this._viewWaitTimer);
+        this._viewWaitTimer = setTimeout(() => done("failed"), VIEW_SCRIPT_RETRY_MS);
+      }, {
+        capture: true,
+        signal: this._viewWaitAbort.signal
+      });
+    }
+
+    return true;
   }
 
   onConnected() {
@@ -12050,6 +12137,10 @@ class SfTable extends TableElement {
 
     this._filterOptionPages.clear();
 
+    clearTimeout(this._viewWaitTimer);
+    this._viewWaitAbort?.abort();
+    this._viewWaitAbort = null;
+    this._viewWait = null;
     this._responsiveObserver?.disconnect();
     this._responsiveObserver = null;
     this._responsiveWidth = 0;
@@ -12136,6 +12227,8 @@ class SfTable extends TableElement {
   }
 
   templateContext() {
+    this._readResponsiveWidthNow();
+
     this._renderedCramped = this.columnsAreCramped;
     const props = this.getPropsContext();
     return this.createTemplateContext({ ...props,
@@ -12214,6 +12307,34 @@ class SfTable extends TableElement {
     this.applyTableView();
     this._checkboxMeasureToken++;
     this.refs.items = new Map();
+  } // The width the first render is chosen by (saved-views r2, D1): the
+  // observer below reports a width only after the first paint, so a table
+  // whose answer was in by the time its code was defined drew its first
+  // frame as if it were wide -- at 390 the desktop toolbar, the search
+  // field across the row and Create and Filter on the rows below, 80-124 px
+  // tall, then the compact 36 px bar one or two frames later. The compact
+  // toolbar and the list are other markup, not a restyle, and list-below is
+  // the table's own attribute, which a container query cannot read; so
+  // until the observer has spoken, the width is read here, before the
+  // render and so before any paint: the content box of the nearest
+  // ancestor that has a box (the table's own tag and sf-view are
+  // display: contents), as the observer measures it.
+
+
+  _readResponsiveWidthNow() {
+    if (this._responsiveWidth > 0 || !this.isConnected) return;
+
+    for (let element = this.querySelector(".sf-table") ?? this.parentElement; element; element = element.parentElement) {
+      const box = element.getBoundingClientRect?.();
+      if (!box || box.width <= 0) continue;
+      const style = globalThis.getComputedStyle?.(element);
+
+      const edge = side => (parseFloat(style?.[`padding${side}`]) || 0) + (parseFloat(style?.[`border${side}Width`]) || 0);
+
+      const width = Math.floor(box.width - edge("Left") - edge("Right"));
+      if (width > 0) this._responsiveWidth = width;
+      return;
+    }
   } // SfBaseElement is display: contents, so its own box has no width: the
   // nearest visible container is observed instead of the custom tag. The
   // box is chosen again once the one observed has left the document: a
@@ -14772,7 +14893,24 @@ const sameFormat = (a, b) => a.strong === b.strong && a.em === b.em && a.href ==
 // Inline leaves made canonical: adjacent text of one format joined, runs of
 // spaces made one, spaces at the edges and around a line break removed, a link
 // with nothing but spaces made text.
+//
+// The steps run again until a pass changes nothing (2026-11-11 acceptance,
+// M2): dropping a space or an empty run makes new neighbours, so one pass left
+// "<p>a <em><br>n</em></p>" for the next load-and-save to make
+// "<p>a<em><br>n</em></p>". The stored value is the fixed point at once.
 function tidyLeaves(leaves, mode) {
+  let current = leaves;
+  let key = null;
+  for (let pass = 0; pass < 64; pass += 1) {
+    current = tidyLeavesOnce(current, mode);
+    const next = JSON.stringify(current);
+    if (next === key) break;
+    key = next;
+  }
+  return current;
+}
+
+function tidyLeavesOnce(leaves, mode) {
   const out = [];
   for (const item of leaves) {
     if (item.kind === 'text' && !item.value) continue;
@@ -14797,12 +14935,21 @@ function tidyLeaves(leaves, mode) {
   }
   let kept = out.filter((item) => item.kind === 'br' || item.value);
   if (mode === 'value') {
-    while (kept[0]?.kind === 'br') kept.shift();
-    while (kept.at(-1)?.kind === 'br') kept.pop();
-    if (kept[0]?.kind === 'text') kept[0].value = kept[0].value.replace(/^[\s\u00a0]+/u, '');
-    const end = kept.at(-1);
-    if (end?.kind === 'text') end.value = end.value.replace(/[\s\u00a0]+$/u, '');
-    kept = kept.filter((item) => item.kind === 'br' || item.value);
+    // Edge breaks and edge white space go together, until neither is left: a
+    // run of only white space (&nbsp;) at an edge hid the break behind it, so
+    // the first pass kept "<p>&nbsp;<br>a</p>" as "<p><br>a</p>" and only the
+    // next load-and-save gave "<p>a</p>" (2026-11-10 review, Q6). The value is
+    // now what that second pass gave, at once, and cleaning it again keeps it.
+    let length = -1;
+    while (length !== kept.length) {
+      length = kept.length;
+      while (kept[0]?.kind === 'br') kept.shift();
+      while (kept.at(-1)?.kind === 'br') kept.pop();
+      if (kept[0]?.kind === 'text') kept[0].value = kept[0].value.replace(/^[\s\u00a0]+/u, '');
+      const end = kept.at(-1);
+      if (end?.kind === 'text') end.value = end.value.replace(/[\s\u00a0]+$/u, '');
+      kept = kept.filter((item) => item.kind === 'br' || item.value);
+    }
   }
   // A link of nothing but spaces is not a link.
   const groups = new Map();
@@ -15057,7 +15204,7 @@ module.exports = /*#__PURE__*/JSON.parse('{"$comment":"Dated aliases of sf-view-
 /***/ "c1f17ed5a348"
 (module) {
 
-module.exports = /*#__PURE__*/JSON.parse('{"id":"smart.view-table","tag":"sf-view-table","version":"1.18.0","kind":"leaf","settings":{"selectable":{"type":"boolean","default":true},"settings":{"type":"boolean","default":true},"actions":{"type":"boolean","default":true},"row-actions":{"type":"boolean","default":true},"creatable":{"type":"boolean","default":true},"filter-templates":{"type":"boolean","default":true},"settings-menu":{"type":"boolean","default":true},"pagin":{"type":"boolean","default":false},"filter-text":{"type":"string","default-from":"runtime.filter-text"},"clear-text":{"type":"string","default-from":"runtime.clear-text"},"search-placeholder":{"type":"string","default-from":"runtime.search-placeholder"},"create-text":{"type":"string","default-from":"runtime.create-text"},"pagination-total":{"type":"number","default":10,"integer":true,"min":0},"pagination-page-size":{"type":"number","default":10,"integer":true,"min":1,"max":100},"page-sizes":{"type":"string","default":"10,20,30,40"},"context-menu-columns":{"type":"number","default":1,"integer":true,"min":1,"max":4},"remember-widths":{"type":"boolean","default":false},"table-settings-key":{"type":"string","default":""},"data-state":{"type":"enum","values":["auto","loading","ready","populated","empty","error"],"default":"auto","x-alias":{"populated":"ready"}},"loading-text":{"type":"string","default-from":"runtime.loading-text"},"empty-text":{"type":"string","default-from":"runtime.empty-text"},"empty-description":{"type":"string"},"error-text":{"type":"string","default-from":"runtime.error-text"},"retry-text":{"type":"string","default-from":"runtime.retry-text"},"toolbar":{"type":"boolean","default":true},"pin-column-label":{"type":"string","default-from":"runtime.pin-column-label"},"unpin-column-label":{"type":"string","default-from":"runtime.unpin-column-label"},"column-move-label":{"type":"string","default-from":"runtime.column-move-label"},"column-search-placeholder":{"type":"string","default-from":"runtime.column-search-placeholder"},"column-search-empty-text":{"type":"string","default-from":"runtime.column-search-empty-text"},"vertical-scroll":{"type":"enum","values":["self","page"],"default":"self"},"filter-apply-text":{"type":"string","default-from":"runtime.filter-apply-text"},"layout":{"type":"enum","values":["auto","table","list"],"default":"table"},"layout-switch":{"type":"boolean","default":false},"list-below":{"type":"number","default":600},"list-fields":{"type":"number","default":3},"quick-actions":{"type":"string","default":""},"row-open":{"type":"enum","values":["title","row"],"default":"title"},"size":{"type":"enum","values":["1/2","1"],"default":"1"},"preferences-key":{"type":"string","default":""},"row-actions-visible":{"type":"enum","values":["hover","always"],"default":"hover"},"drag-rows":{"type":"boolean","default":false},"row-reorder":{"type":"boolean","default":false},"inline-edit":{"type":"boolean","default":false},"active-filter-fields":{"type":"list","entries":{"key":"id"}},"bulk-actions":{"type":"list"},"columns":{"type":"list","of":{"key":"string","label":"string"}},"create-items":{"type":"list"},"filter-fields":{"type":"list"},"rows":{"type":"list","entries":{"key":"id","changes":"revision"},"of":{"id":"id","revision":{"type":"string","optional":true}}},"table-data":{"type":"object"},"table-settings":{"type":"object"},"templates":{"type":"list"},"toolbar-actions":{"type":"list"},"sort":{"type":"list","of":{"key":"string","direction":{"type":"enum","values":["asc","desc"]}},"controlled":true},"current":{"type":"string","default":""}},"values":{"selected":{"type":"id","optional":true},"selection":{"type":"list","default":[]}},"events":{"select":{"carries":{"ids":"list"}},"apply":{"carries":{"action":"string","scope":{"type":"enum","values":["entry","selection","filter"]},"ids":"list","revisions":{"type":"object","optional":true}}},"save":{"carries":{"kind":{"type":"enum","values":["columns"]},"reason":"string","column-settings":{"type":"object"},"table-settings-key":{"type":"string"}}},"column-settings-reset":{"carries":{"target":{"type":"enum","values":["personal"]},"table-settings-key":{"type":"string","nullable":true}},"own-verb":true},"create":{"carries":{"item":{"type":"string","nullable":true,"optional":true}}},"filter-change":{"carries":{"template-key":{"type":"string"},"template-label":{"type":"string"},"values":{"type":"object"},"tags":{"type":"object"}},"own-verb":true},"query":{"carries":{"reason":"string","context":"object","sequence":{"type":"number","integer":true}}},"refresh":{"carries":{}},"search-change":{"carries":{"search":"string"},"own-verb":true},"sort-change":{"carries":{"key":{"type":"string","schema":{"minLength":1}},"direction":{"type":"enum","values":["asc","desc",null],"nullable":true}},"own-verb":true},"template-delete":{"carries":{"key":{"type":"string","schema":{"minLength":1}}},"own-verb":true},"template-save":{"carries":{"templates":{"type":"list","of":{"key":"string","label":"string","selected":"boolean","data":"object","settings":"object"},"schema":{"items":{"type":"object","required":["key","label","settings"],"properties":{"key":{"type":"string"},"label":{"type":"string"},"selected":{"type":"boolean"},"data":{"type":"object"},"settings":{"type":"object","properties":{"filter_fields":{"type":"array","items":{"type":"string"}}}}}},"minItems":1}}},"own-verb":true},"template-select":{"carries":{"key":{"type":"string","schema":{"minLength":1}}},"own-verb":true},"toolbar-action":{"carries":{"action":"string","href":{"type":"string","nullable":true,"optional":true}},"cancelable":true,"own-verb":true},"reference-open":{"carries":{"field":"string","value":"object","href":"string"},"cancelable":true,"own-verb":true},"expand":{"carries":{"id":"id","expanded":{"type":"boolean","optional":true}}},"load-more":{"carries":{"direction":{"type":"enum","values":["after"]},"parent":{"type":"id","nullable":true},"cursor":{"type":"string","nullable":true}}},"rows-drag":{"carries":{"ids":{"type":"list","schema":{"items":{"type":"string"},"minItems":1}},"source":{"type":"string","nullable":true}},"own-verb":true},"move":{"carries":{"ids":"list","before":{"type":"id","nullable":true},"order":"list"}},"cell-set":{"carries":{"id":"object","key":"string","value":"object","revision":"object"},"own-verb":true},"view-change":{"carries":{"view":"object","everywhere":"boolean"},"own-verb":true},"window":{"carries":{"first":{"type":"number","integer":true},"last":{"type":"number","integer":true}},"own-verb":true},"layout-change":{"carries":{"layout":{"type":"enum","values":["list","table"]}},"own-verb":true}},"actions":{"add-rows":{"with":{"rows":"list"}},"apply-query-result":{"with":{"sequence":{"type":"number","integer":true,"schema":{"minimum":1}},"rows":"list"}},"clear-selection":{},"request-action-intent":{"with":{"action-id":{"type":"string","schema":{"minLength":1}},"record-ids":{"type":"list","schema":{"items":{"type":["string","integer"],"minLength":1},"minItems":1}}},"emits":"apply"},"request-create-intent":{"with":{"item-id":{"type":"string","optional":true,"nullable":true}},"emits":"create"},"request-retry":{"emits":"refresh"},"set-sort":{"with":{"key":{"type":"string","nullable":true},"direction":{"type":"enum","values":["asc","desc"],"nullable":true}}},"toggle-tree-row":{"with":{"row":"object"},"emits":"expand"},"request-tree-more":{"with":{"row":"object"},"emits":"load-more"},"focus-row":{"with":{"id":"id"}},"set-layout":{"with":{"layout":{"type":"enum","values":["list","table"]}},"emits":"layout-change"}},"port":{"id":"simai.dataview-port","version":"1.0.0","contract":"src/core/contracts/ports/simai.dataview-port/1.0.0/port.json"},"presentation":{"skeleton":{"late":["rows"]}},"host-states":{"data-sf-view-stripes":"boolean","data-sf-page-scroll":"boolean"},"css-variables":{"--sf-table-row-block-size-1/2":{"type":"length","state":"default"},"--sf-table-row-block-size-1":{"type":"length","state":"default"},"--sf-table-row-2-lines-block-size-1/2":{"type":"length","state":"default"},"--sf-table-row-2-lines-block-size-1":{"type":"length","state":"default"},"--sf-table-head-block-size-1/2":{"type":"length","state":"default"},"--sf-table-head-block-size-1":{"type":"length","state":"default"},"--sf-table-toolbar-block-size-1/2":{"type":"length","state":"default"},"--sf-table-toolbar-block-size-1":{"type":"length","state":"default"},"--sf-table-toolbar-gap":{"type":"length","state":"default"},"--sf-table-head--background-color":{"type":"color","state":"default"},"--sf-table-row--background-color":{"type":"color","state":"default"},"--sf-table--cell-spacing":{"type":"length","state":"default"},"--sf-table-cell--line-clamp":{"type":"number","state":"default"},"--sf-table-context-menu--z-index":{"type":"number","state":"open"},"--sf-table-context-menu--max-width":{"type":"length","state":"open"}}}');
+module.exports = /*#__PURE__*/JSON.parse('{"id":"smart.view-table","tag":"sf-view-table","version":"1.18.1","kind":"leaf","settings":{"selectable":{"type":"boolean","default":true},"settings":{"type":"boolean","default":true},"actions":{"type":"boolean","default":true},"row-actions":{"type":"boolean","default":true},"creatable":{"type":"boolean","default":true},"filter-templates":{"type":"boolean","default":true},"settings-menu":{"type":"boolean","default":true},"pagin":{"type":"boolean","default":false},"filter-text":{"type":"string","default-from":"runtime.filter-text"},"clear-text":{"type":"string","default-from":"runtime.clear-text"},"search-placeholder":{"type":"string","default-from":"runtime.search-placeholder"},"create-text":{"type":"string","default-from":"runtime.create-text"},"pagination-total":{"type":"number","default":10,"integer":true,"min":0},"pagination-page-size":{"type":"number","default":10,"integer":true,"min":1,"max":100},"page-sizes":{"type":"string","default":"10,20,30,40"},"context-menu-columns":{"type":"number","default":1,"integer":true,"min":1,"max":4},"remember-widths":{"type":"boolean","default":false},"table-settings-key":{"type":"string","default":""},"data-state":{"type":"enum","values":["auto","loading","ready","populated","empty","error"],"default":"auto","x-alias":{"populated":"ready"}},"loading-text":{"type":"string","default-from":"runtime.loading-text"},"empty-text":{"type":"string","default-from":"runtime.empty-text"},"empty-description":{"type":"string"},"error-text":{"type":"string","default-from":"runtime.error-text"},"retry-text":{"type":"string","default-from":"runtime.retry-text"},"toolbar":{"type":"boolean","default":true},"pin-column-label":{"type":"string","default-from":"runtime.pin-column-label"},"unpin-column-label":{"type":"string","default-from":"runtime.unpin-column-label"},"column-move-label":{"type":"string","default-from":"runtime.column-move-label"},"column-search-placeholder":{"type":"string","default-from":"runtime.column-search-placeholder"},"column-search-empty-text":{"type":"string","default-from":"runtime.column-search-empty-text"},"vertical-scroll":{"type":"enum","values":["self","page"],"default":"self"},"filter-apply-text":{"type":"string","default-from":"runtime.filter-apply-text"},"layout":{"type":"enum","values":["auto","table","list"],"default":"table"},"layout-switch":{"type":"boolean","default":false},"list-below":{"type":"number","default":600},"list-fields":{"type":"number","default":3},"quick-actions":{"type":"string","default":""},"row-open":{"type":"enum","values":["title","row"],"default":"title"},"size":{"type":"enum","values":["1/2","1"],"default":"1"},"preferences-key":{"type":"string","default":""},"row-actions-visible":{"type":"enum","values":["hover","always"],"default":"hover"},"drag-rows":{"type":"boolean","default":false},"row-reorder":{"type":"boolean","default":false},"inline-edit":{"type":"boolean","default":false},"active-filter-fields":{"type":"list","entries":{"key":"id"}},"bulk-actions":{"type":"list"},"columns":{"type":"list","of":{"key":"string","label":"string"}},"create-items":{"type":"list"},"filter-fields":{"type":"list"},"rows":{"type":"list","entries":{"key":"id","changes":"revision"},"of":{"id":"id","revision":{"type":"string","optional":true}}},"table-data":{"type":"object"},"table-settings":{"type":"object"},"templates":{"type":"list"},"toolbar-actions":{"type":"list"},"sort":{"type":"list","of":{"key":"string","direction":{"type":"enum","values":["asc","desc"]}},"controlled":true},"current":{"type":"string","default":""}},"values":{"selected":{"type":"id","optional":true},"selection":{"type":"list","default":[]}},"events":{"select":{"carries":{"ids":"list"}},"apply":{"carries":{"action":"string","scope":{"type":"enum","values":["entry","selection","filter"]},"ids":"list","revisions":{"type":"object","optional":true}}},"save":{"carries":{"kind":{"type":"enum","values":["columns"]},"reason":"string","column-settings":{"type":"object"},"table-settings-key":{"type":"string"}}},"column-settings-reset":{"carries":{"target":{"type":"enum","values":["personal"]},"table-settings-key":{"type":"string","nullable":true}},"own-verb":true},"create":{"carries":{"item":{"type":"string","nullable":true,"optional":true}}},"filter-change":{"carries":{"template-key":{"type":"string"},"template-label":{"type":"string"},"values":{"type":"object"},"tags":{"type":"object"}},"own-verb":true},"query":{"carries":{"reason":"string","context":"object","sequence":{"type":"number","integer":true}}},"refresh":{"carries":{}},"search-change":{"carries":{"search":"string"},"own-verb":true},"sort-change":{"carries":{"key":{"type":"string","schema":{"minLength":1}},"direction":{"type":"enum","values":["asc","desc",null],"nullable":true}},"own-verb":true},"template-delete":{"carries":{"key":{"type":"string","schema":{"minLength":1}}},"own-verb":true},"template-save":{"carries":{"templates":{"type":"list","of":{"key":"string","label":"string","selected":"boolean","data":"object","settings":"object"},"schema":{"items":{"type":"object","required":["key","label","settings"],"properties":{"key":{"type":"string"},"label":{"type":"string"},"selected":{"type":"boolean"},"data":{"type":"object"},"settings":{"type":"object","properties":{"filter_fields":{"type":"array","items":{"type":"string"}}}}}},"minItems":1}}},"own-verb":true},"template-select":{"carries":{"key":{"type":"string","schema":{"minLength":1}}},"own-verb":true},"toolbar-action":{"carries":{"action":"string","href":{"type":"string","nullable":true,"optional":true}},"cancelable":true,"own-verb":true},"reference-open":{"carries":{"field":"string","value":"object","href":"string"},"cancelable":true,"own-verb":true},"expand":{"carries":{"id":"id","expanded":{"type":"boolean","optional":true}}},"load-more":{"carries":{"direction":{"type":"enum","values":["after"]},"parent":{"type":"id","nullable":true},"cursor":{"type":"string","nullable":true}}},"rows-drag":{"carries":{"ids":{"type":"list","schema":{"items":{"type":"string"},"minItems":1}},"source":{"type":"string","nullable":true}},"own-verb":true},"move":{"carries":{"ids":"list","before":{"type":"id","nullable":true},"order":"list"}},"cell-set":{"carries":{"id":"object","key":"string","value":"object","revision":"object"},"own-verb":true},"view-change":{"carries":{"view":"object","everywhere":"boolean"},"own-verb":true},"window":{"carries":{"first":{"type":"number","integer":true},"last":{"type":"number","integer":true}},"own-verb":true},"layout-change":{"carries":{"layout":{"type":"enum","values":["list","table"]}},"own-verb":true}},"actions":{"add-rows":{"with":{"rows":"list"}},"apply-query-result":{"with":{"sequence":{"type":"number","integer":true,"schema":{"minimum":1}},"rows":"list"}},"clear-selection":{},"request-action-intent":{"with":{"action-id":{"type":"string","schema":{"minLength":1}},"record-ids":{"type":"list","schema":{"items":{"type":["string","integer"],"minLength":1},"minItems":1}}},"emits":"apply"},"request-create-intent":{"with":{"item-id":{"type":"string","optional":true,"nullable":true}},"emits":"create"},"request-retry":{"emits":"refresh"},"set-sort":{"with":{"key":{"type":"string","nullable":true},"direction":{"type":"enum","values":["asc","desc"],"nullable":true}}},"toggle-tree-row":{"with":{"row":"object"},"emits":"expand"},"request-tree-more":{"with":{"row":"object"},"emits":"load-more"},"focus-row":{"with":{"id":"id"}},"set-layout":{"with":{"layout":{"type":"enum","values":["list","table"]}},"emits":"layout-change"}},"port":{"id":"simai.dataview-port","version":"1.0.0","contract":"src/core/contracts/ports/simai.dataview-port/1.0.0/port.json"},"presentation":{"skeleton":{"late":["rows"]}},"host-states":{"data-sf-view-stripes":"boolean","data-sf-page-scroll":"boolean"},"css-variables":{"--sf-table-row-block-size-1/2":{"type":"length","state":"default"},"--sf-table-row-block-size-1":{"type":"length","state":"default"},"--sf-table-row-2-lines-block-size-1/2":{"type":"length","state":"default"},"--sf-table-row-2-lines-block-size-1":{"type":"length","state":"default"},"--sf-table-head-block-size-1/2":{"type":"length","state":"default"},"--sf-table-head-block-size-1":{"type":"length","state":"default"},"--sf-table-toolbar-block-size-1/2":{"type":"length","state":"default"},"--sf-table-toolbar-block-size-1":{"type":"length","state":"default"},"--sf-table-toolbar-gap":{"type":"length","state":"default"},"--sf-table-head--background-color":{"type":"color","state":"default"},"--sf-table-row--background-color":{"type":"color","state":"default"},"--sf-table--cell-spacing":{"type":"length","state":"default"},"--sf-table-cell--line-clamp":{"type":"number","state":"default"},"--sf-table-context-menu--z-index":{"type":"number","state":"open"},"--sf-table-context-menu--max-width":{"type":"length","state":"open"}}}');
 
 /***/ },
 

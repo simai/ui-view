@@ -3742,11 +3742,13 @@
     width: var(--sf-a4);
     inline-size: var(--sf-a4);
     pointer-events: none;
-    /* `--sf-alpha-8` is the neutral ink of the current theme at 8%, so the
-       shadow follows light and dark without a colour of its own. The direction
-       is written physically because a gradient takes no logical keyword; the
-       RTL pipeline mirrors it, as it does for the row's focus bar. */
-    background-image: linear-gradient(to right, var(--sf-alpha-8), transparent);
+    /* `--sf-surface-state-select` is the surface role at the 8% state step
+       (the Framework's components read the surface roles, not --sf-alpha-*,
+       since DEV acceptance 2026-11-10 Q3), so the shadow follows light, dark
+       and the place without a colour of its own. The direction is written
+       physically because a gradient takes no logical keyword; the RTL
+       pipeline mirrors it, as it does for the row's focus bar. */
+    background-image: linear-gradient(to right, var(--sf-surface-state-select), transparent);
   }
   _:-ms-input-placeholder, html:not([dir="rtl"]) sf-table .sf-table-scroll[data-sf-pin-scrolled] [data-sf-pin-edge]::after{
     right: calc(var(--sf-a4) * -1);
@@ -3780,11 +3782,13 @@
     width: var(--sf-a4);
     inline-size: var(--sf-a4);
     pointer-events: none;
-    /* `--sf-alpha-8` is the neutral ink of the current theme at 8%, so the
-       shadow follows light and dark without a colour of its own. The direction
-       is written physically because a gradient takes no logical keyword; the
-       RTL pipeline mirrors it, as it does for the row's focus bar. */
-    background-image: linear-gradient(to right, var(--sf-alpha-8), transparent);
+    /* `--sf-surface-state-select` is the surface role at the 8% state step
+       (the Framework's components read the surface roles, not --sf-alpha-*,
+       since DEV acceptance 2026-11-10 Q3), so the shadow follows light, dark
+       and the place without a colour of its own. The direction is written
+       physically because a gradient takes no logical keyword; the RTL
+       pipeline mirrors it, as it does for the row's focus bar. */
+    background-image: linear-gradient(to right, var(--sf-surface-state-select), transparent);
   }
   /* A row says whether it is selected, so the look is a rule rather than a
      reading of the checkbox in its cell. `data-selected` and not
