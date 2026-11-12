@@ -2745,7 +2745,7 @@
       },
       {
         "path": "src/smart/view-table/js/templates/default.css",
-        "sha256": "fd90ba30cdd6f795b7caed96763299e1d1b0f5d23659017b7dd3443a14b2734a"
+        "sha256": "5251608a4f16a3584440490246df29b02dfb963c03ed17d371ff796b48e15a51"
       },
       {
         "path": "src/smart/helpers/option-badge.js",

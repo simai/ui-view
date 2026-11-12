@@ -28,11 +28,9 @@ const known = (component, from) => recorded.has(`${component}|${from}`) || recor
 
 // Former event names of package components the journal does not record yet,
 // by component. Each has a dated row in its aliases.json.
-const PENDING = {
-  // sf-view 1.12.0: the page's shared save is save {kind: view} (vocabulary
-  // 1.1.5 §9); the former name is a dated row until 2027-01-01.
-  'sf-view': ['sf-view-saved-view-intent'],
-};
+// Nothing pending: since the pin on ui-source 8c13bf45 (pair ui-7fb26d395af2)
+// the journal records sf-view-saved-view-intent (event-view-save-kind-view).
+const PENDING = {};
 
 // The package's folders (scripts/overlay.mjs PACKAGE_COMPONENTS; the overlay
 // holds src/, tests/ and docs/ of this repository, not its scripts).

@@ -23,8 +23,8 @@ and tested in an **overlay**: ui-source at the revision `framework.lock.json`
 pins (from git, never a working tree), with this folder's `src/`, `tests/`
 and `docs/` laid over it. A file here may not replace a ui-source file.
 
-The pin is `d25a01f9989d`, the source of the released pair
-`ui-2bd5a3ab478a` (core.runtime 1.51.0). The passport names the same commit.
+The pin is `8c13bf45aeca`, the source of the released pair
+`ui-7fb26d395af2` (core.runtime 1.54.2). The passport names the same commit.
 
 ```bash
 node scripts/test.mjs                                   # unit and contract suite in the overlay
@@ -35,7 +35,7 @@ node scripts/run-first-paint.mjs check|gate <free> <set build>
 ```
 
 `<free>` is the `distr` of the released pair (`git -C <ui> archive
-2bd5a3ab478a distr`), `<set build>` the build output holding `smart/`
+7fb26d395af2 distr`), `<set build>` the build output holding `smart/`
 (`wave-1/output/package/view` of the build below). `scripts/gates.sh` runs
 the whole chain: two builds, the receipt, the suite, the probes and the first
 paint.
@@ -60,7 +60,7 @@ and tags `view-<12>`; it is not run yet.
 ## Connecting it
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@simai-studio/ui@5.20261110.1541/distr/core/js/core.min.js" data-sf-sets="view"></script>
+<script src="https://cdn.jsdelivr.net/npm/@simai-studio/ui@5.20261112.1807/distr/core/js/core.min.js" data-sf-sets="view"></script>
 ```
 
 or, from a base the page serves itself:

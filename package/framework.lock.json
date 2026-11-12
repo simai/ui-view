@@ -1,10 +1,10 @@
 {
   "schema": "simai.framework.product-package-source-lock",
   "schema_version": 1,
-  "summary": "The ui-source revision the set view is built and tested against: the overlay is ui-source at this revision with this folder's src/, tests/ and docs/ laid over it, and ui-builder's package build builds the same (standards simai.component-set 1.0.0 and simai.component-package 1.1.1). It is the source of the released SIMAI Framework pair ui-2bd5a3ab478a (simai/ui contracts/releases/ui-2bd5a3ab478a.lock.json, build_inputs.source). The same commit is framework.source_revision in set.json.",
+  "summary": "The ui-source revision the set view is built and tested against: the overlay is ui-source at this revision with this folder's src/, tests/ and docs/ laid over it, and ui-builder's package build builds the same (standards simai.component-set 1.0.0 and simai.component-package 1.1.1). It is the source of the released SIMAI Framework pair ui-7fb26d395af2 (simai/ui contracts/releases/ui-7fb26d395af2.lock.json, build_inputs.source). The same commit is framework.source_revision in set.json.",
   "package": "view",
   "source": {
     "repository": "simai/ui-source",
-    "revision": "d25a01f9989df2ec920364a23ed76d494d91844c"
+    "revision": "8c13bf45aecaae2c31188b729ef4765fc91bffae"
   }
 }

@@ -20,8 +20,9 @@ test("the package composites are generated into the searchable registry beside t
   // the free registry holds 78 (sf-language, sf-settings, sf-wizard,
   // sf-wizard-step, sf-tile-metric, sf-list-attention, sf-progress-run
   // joined): 82. At da48ba8f (pair ui-0c23f6a0af12) it holds 81
-  // (sf-input-choice, sf-list-description, sf-list-timeline): 85.
-  assert.equal(registry.entries.length, 85);
+  // (sf-input-choice, sf-list-description, sf-list-timeline): 85. At 8c13bf45
+  // (pair ui-7fb26d395af2) it holds 83 (sf-change, sf-time): 87.
+  assert.equal(registry.entries.length, 87);
   assert.ok(registry.entries.some((entry) => entry.id === "smart.confirm-change"), "sf-confirm-change, the Framework's");
   for (const id of ["smart.view-table", "smart.view", "smart.view-properties", "smart.view-flow"]) {
     assert.ok(registry.entries.some((entry) => entry.id === id), id);

@@ -3,8 +3,19 @@
 The set `view`, by its npm version `@simai-studio/view`; component versions
 in brackets. The site page «Изменения» says the same in Russian.
 
-## 1.7.1 — not released
+## 1.7.1 — 2026-11-12
 
+- Built over SIMAI Framework `ui-7fb26d395af2` (ui-source `8c13bf45aeca`,
+  npm `@simai-studio/ui@5.20261112.1807`, core.runtime 1.54.2); the set
+  still needs core.runtime 1.51.0 or newer. That pair's journal records the
+  former save names of `sf-view` (`event-view-save-kind-view`), so the set
+  no longer keeps them pending.
+- `sf-view-table` 1.18.1, also: the shadow at the end of the pinned columns
+  is the surface role `--sf-surface-state-select` (the 8% state step) in
+  place of `--sf-alpha-8`. The Framework's components read the surface
+  roles since that pair (DEV acceptance 2026-11-10 Q3), so the shadow
+  follows a coloured place too; on a neutral place it is the theme's
+  neutral at 8% where it was black or white at 8%.
 - `sf-view-table` 1.18.1: the toolbar holds still from its first frame when
   the page declares saved views (DEV decision msg-e39bb812). The table that
   is an `sf-view`'s content no longer draws on its own while the view's
