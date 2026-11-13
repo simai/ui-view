@@ -7559,7 +7559,10 @@ class SfTable extends TableElement {
         if (kind === "no-access") return {kind, size, headingLevel, title: message, text: "", actions: []};
         if (kind === "nothing-found") {
             const key = {search: "resetSearchText", filters: "resetFiltersText"}[context.reset] ?? "resetBothText";
-            return {kind, size, headingLevel, title: "", text: "",
+            // A list empty only because of its filters says so by its glyph
+            // (owner decision C120 (3)): filter_alt_off; a search, or a search
+            // and filters together, keep the brick's own search_off.
+            return {kind, size, headingLevel, title: "", text: "", icon: context.reset === "filters" ? "filter_alt_off" : "",
                 actions: [{id: "reset-query", text: this.text(key), appearance: "outline"}]};
         }
         const creatable = this.getBooleanAttr("actions", true) && this.getBooleanAttr("creatable", true);

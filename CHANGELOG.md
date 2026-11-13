@@ -3,6 +3,26 @@
 The set `view`, by its npm version `@simai-studio/view`; component versions
 in brackets. The site page «Изменения» says the same in Russian.
 
+## 1.7.2 — not released
+
+- Needs the next SIMAI Framework pair (sf-spinner 1.4.0 for `label-hidden`);
+  not built or released over `ui-7fb26d395af2`.
+- `sf-view-table` 1.18.2: rows name their fill to the SIMAI Framework core
+  mix `sf-place-fill` (C43 D3, D4). A hovered, selected, open and
+  selected-and-hovered row, in the table and in the phone list, declares
+  `--sf-surface-underlay` as the row's own opaque base and
+  `--sf-surface-place-fill` as the tint it paints: a tonal badge on the row
+  keeps its tone, and an anchored badge's ring takes the row's tint, where
+  on a hovered row it cut the tint out to the bare place colour.
+- `sf-view-table` 1.18.2: the busy overlay's spinner carries its words as
+  `label` with `label-hidden` (owner decision C138) instead of an empty
+  label and an `aria-label`; the status region says them once. Over a pair
+  without sf-spinner 1.4.0 the attribute is ignored and the words show
+  beside the spinner.
+- `sf-view-table` 1.18.2: a list empty only because of its filters draws
+  `filter_alt_off` in its «nothing found» brick (owner decision C120 (3));
+  a search, or a search with filters, keeps `search_off`.
+
 ## 1.7.1 — 2026-11-12
 
 - Built over SIMAI Framework `ui-7fb26d395af2` (ui-source `8c13bf45aeca`,

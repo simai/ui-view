@@ -783,20 +783,26 @@
   }
 
   :is(sf-view-table, sf-table) .sf-table-list-item:hover {
+    --sf-surface-underlay: var(--sf-table-row--background-color, var(--sf-surface-page));
+    --sf-surface-place-fill: var(--sf-surface-container-hover);
     background-image: linear-gradient(var(--sf-surface-container-hover), var(--sf-surface-container-hover));
   }
 
-  /* A translucent place: what sits on it (a tonal badge) lays its tone over
-     the place's solid colour (C43, core --sf-surface-underlay and
-     --sf-surface-place-solid, so a selected row on a soft place leaves the
-     badge alone; a pair without it takes the place's colour). On a pair
-     without the underlay role the line does nothing. */
+  /* A row's state is a translucent tint (an image) over the row's own opaque
+     base, so the row names both to core mix sf-place-fill (C43 D3, D4): a
+     tonal badge lays its tone over the base (--sf-surface-underlay), and an
+     anchored badge's ring takes the tint (--sf-surface-place-fill) over the
+     place. Hovered, selected, open and selected-and-hovered rows, in the list
+     and in the table. On a pair without the roles the lines do nothing. */
   :is(sf-view-table, sf-table) .sf-table-list-item[data-selected] {
-    --sf-surface-underlay: var(--sf-surface-place-solid, var(--sf-surface-place));
+    --sf-surface-underlay: var(--sf-table-row--background-color, var(--sf-surface-page));
+    --sf-surface-place-fill: var(--sf-primary-container);
     background-image: linear-gradient(var(--sf-primary-container), var(--sf-primary-container));
   }
 
   :is(sf-view-table, sf-table) .sf-table-list-item[data-selected]:hover {
+    --sf-surface-underlay: var(--sf-table-row--background-color, var(--sf-surface-page));
+    --sf-surface-place-fill: var(--sf-primary-container-hover);
     background-image: linear-gradient(var(--sf-primary-container-hover), var(--sf-primary-container-hover));
   }
 
@@ -805,11 +811,14 @@
      is still seen on the way back from its card (owner C31, 2026-11-09). The
      row the keyboard is on (data-current) shows the focus ring only. */
   :is(sf-view-table, sf-table) .sf-table-list-item[aria-current="true"] {
-    --sf-surface-underlay: var(--sf-surface-place-solid, var(--sf-surface-place));
+    --sf-surface-underlay: var(--sf-table-row--background-color, var(--sf-surface-page));
+    --sf-surface-place-fill: var(--sf-primary-container);
     background-image: linear-gradient(var(--sf-primary-container), var(--sf-primary-container));
   }
 
   :is(sf-view-table, sf-table) .sf-table-list-item[aria-current="true"]:hover {
+    --sf-surface-underlay: var(--sf-table-row--background-color, var(--sf-surface-page));
+    --sf-surface-place-fill: var(--sf-primary-container-hover);
     background-image: linear-gradient(var(--sf-primary-container-hover), var(--sf-primary-container-hover));
   }
 
@@ -1471,6 +1480,8 @@
   }
 
   :is(sf-view-table, sf-table) tbody tr:hover {
+    --sf-surface-underlay: var(--sf-table-row--background-color, var(--sf-surface-page));
+    --sf-surface-place-fill: var(--sf-surface-container-hover);
     background-image: linear-gradient(
       var(--sf-surface-container-hover),
       var(--sf-surface-container-hover)
@@ -1478,7 +1489,8 @@
   }
 
   :is(sf-view-table, sf-table) tbody tr[data-selected] {
-    --sf-surface-underlay: var(--sf-surface-place-solid, var(--sf-surface-place));
+    --sf-surface-underlay: var(--sf-table-row--background-color, var(--sf-surface-page));
+    --sf-surface-place-fill: var(--sf-primary-container);
     background-image: linear-gradient(
       var(--sf-primary-container),
       var(--sf-primary-container)
@@ -1519,6 +1531,8 @@
   }
 
   :is(sf-view-table, sf-table) tbody tr[data-selected]:hover {
+    --sf-surface-underlay: var(--sf-table-row--background-color, var(--sf-surface-page));
+    --sf-surface-place-fill: var(--sf-primary-container-hover);
     background-image: linear-gradient(
       var(--sf-primary-container-hover),
       var(--sf-primary-container-hover)

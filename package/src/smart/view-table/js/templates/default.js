@@ -335,7 +335,7 @@ function renderEmptyState(context, dataState) {
     if (component?.hasSlotContent?.('empty')) return component.getSlotContent('empty');
     const brick = component.emptyBrick(dataState);
     return html`<sf-empty-state kind=${brick.kind} size=${brick.size} heading-level=${brick.headingLevel}
-                                heading=${brick.title || nothing} text=${brick.text || nothing} live=${brick.live || nothing}
+                                icon=${brick.icon || nothing} heading=${brick.title || nothing} text=${brick.text || nothing} live=${brick.live || nothing}
                                 .actions=${brick.actions}></sf-empty-state>`;
 }
 
@@ -1366,7 +1366,11 @@ export function renderTableTemplate(context) {
                     ${resolvedDataState(context) === 'loading' && (context.component.getTableData()?.rows?.length ?? 0) > 0
                         ? html`
                             <div class="sf-table-busy" role="status">
-                                <sf-spinner size=${context.controlSize ?? nothing} label="" aria-label=${context.loadingText}></sf-spinner>
+                                <!-- The words are the spinner's label, kept for a screen reader
+                                     and hidden from the eye (label-hidden, owner decision C138,
+                                     SP-06): the spinner keeps one name mechanism and the status
+                                     region says them once. -->
+                                <sf-spinner size=${context.controlSize ?? nothing} label=${context.loadingText} label-hidden></sf-spinner>
                             </div>
                         `
                         : nothing}
