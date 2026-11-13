@@ -71,7 +71,7 @@ try {
         if (window.mode === 'unavailable') return {answer: 'unavailable', reason: 'down', sequence: payload.sequence};
         return {answer: 'applied', sequence: payload.sequence, data: {
           records: [], total: 0, columns: [{key: 'name', label: 'Название', role: 'title'}],
-          echo: {search: payload.query.search ?? '', filters: {}, sort: [], page: 1, per_page: 25},
+          echo: {search: payload.query.search ?? '', filters: payload.query.filters ?? {}, sort: [], page: 1, per_page: 25},
         }};
       },
     });
