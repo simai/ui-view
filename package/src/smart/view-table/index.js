@@ -8059,6 +8059,9 @@ class SfTable extends TableElement {
     openRowMenuOf(rowElement, from) {
         const row = this.rowOfElement(rowElement);
         if (!row || !this.getActionRowItems(row).length) return false;
+        // The menu key sends a keydown and then a contextmenu: the second
+        // must not close what the first opened.
+        if (this._rowMenu?.isOpen && this._rowMenuContext?.row === row) return true;
         const button = rowElement.querySelector("[data-sf-row-menu]");
         const anchor = button ?? from?.closest?.("td") ?? rowElement;
         this.openRowMenu({currentTarget: anchor, target: anchor}, row);

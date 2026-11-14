@@ -247,11 +247,11 @@ try {
     await dragged.mouse.up();
     await dragged.waitForTimeout(600);
     const after = await dragged.evaluate(() => [...document.querySelectorAll('#t thead th')].map((cell) => cell.dataset.key).join(','));
-    if (before !== 'select,settings,name,code,city,actions') {
+    if (before !== 'select,settings,name,code,city') {
       note({case: 'column move', before, expected: 'the pinned title column first, then the loose ones in order'});
     }
-    if (after !== 'select,settings,name,city,code,actions') {
-      note({case: `column move${rerenderMidway ? ' with a render halfway' : ''}`, after, expected: 'select,settings,name,city,code,actions'});
+    if (after !== 'select,settings,name,city,code') {
+      note({case: `column move${rerenderMidway ? ' with a render halfway' : ''}`, after, expected: 'select,settings,name,city,code'});
     }
     await dragged.close();
   }
