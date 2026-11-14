@@ -3,6 +3,23 @@
 The set `view`, by its npm version `@simai-studio/view`; component versions
 in brackets. The site page «Изменения» says the same in Russian.
 
+## 1.8.0 — not released
+
+- Needs the next SIMAI Framework pair (utility.table 1.3.0, field-renderers
+  1.9.0 with sf-input-lookup 1.10.0); built and probed over SIMAI Framework
+  group build 4 (ui-source `09cf1b0f`, local), not over `ui-7fb26d395af2`.
+- `sf-view-table` 1.19.0: `--sf-table--row-text-inset` is the cell spacing
+  plus `--sf-space-1` (16 at 1440, 12 compact and on a phone), the edge
+  inset the SIMAI Framework table gives the first cell from utility.table
+  1.3.0 (C77, C105 H6); it was the cell spacing plus `--sf-a8`. A related
+  list in `sf-view-properties` keeps its row text on the field-label axis.
+- `sf-view-properties` 1.15.0: a record, a relation, a user and a paged
+  lookup field are edited in `sf-input-lookup` (owner decision C139 (1)):
+  focus shows the host's first page, typing searches through the host,
+  «Показать ещё» follows the cursor, the value is written as
+  `{value, label}`. The rule relates `cl-input-lookup` (lazy). A short list
+  given whole stays `sf-dropdown`.
+
 ## 1.7.2 — not released
 
 - Needs the next SIMAI Framework pair (sf-spinner 1.4.0 for `label-hidden`);

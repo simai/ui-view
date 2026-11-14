@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-table",
-  "version": "1.18.2",
+  "version": "1.19.0",
   "title": "Table",
   "summary": "Complete server-backed collection view with search, filters, table preferences, row and bulk actions, and pagination.",
   "kind": "composite",
@@ -2737,6 +2737,13 @@
           "The busy overlay's spinner carries its words as label with label-hidden (owner decision C138; SP-06 of the skeleton and spinner study) instead of an empty label and an aria-label, so the spinner keeps one name mechanism and the status region says the words once. label-hidden ships with sf-spinner 1.4.0 in the next SIMAI Framework pair; on an older pair the attribute is ignored and the words show beside the spinner, so this version is released over a pair with sf-spinner 1.4.0.",
           "A list empty only because of its filters says so by its glyph (owner decision C120 (3)): the nothing-found brick draws filter_alt_off (sf-empty-state icon); found nothing by a search, or by a search and filters, keeps the brick's own search_off."
         ]
+      },
+      {
+        "from": "1.18.2",
+        "to": "1.19.0",
+        "changes": [
+          "A row's text starts where the SIMAI Framework table now puts it: the published --sf-table--row-text-inset is the cell spacing plus --sf-space-1 (16 at 1440, 12 under compact density and on a phone), the edge inset a list row has, which the table classes give the first cell from utility.table 1.3.0 (ui-source fix/table-classes-g4, C77, C105 H6); it was the cell spacing plus --sf-a8, the 8 every cell had. sf-view-properties pulls a related list out by this number, so the list's row text stays on the field-label axis (with the old number it would stand 8, 4 compact, off it). Needs the SIMAI Framework pair with utility.table 1.3.0; over an older pair a related list stands 8 (4) left of the labels. Made in ui-pro first (fix/pro-g4 as 1.17.3, 2026-11-14) and taken here. Nothing to change for a host."
+        ]
       }
     ]
   },
@@ -2754,7 +2761,7 @@
       },
       {
         "path": "src/smart/view-table/js/templates/default.css",
-        "sha256": "fcf0fcdfc171344f1ba671dccd9b9e25404ce945e38263bdf376f7915b7fb958"
+        "sha256": "ed42f0425dcd05479785ab0b8268ed0ecf521b9b85cc7177ca2dfa66a837b72d"
       },
       {
         "path": "src/smart/helpers/option-badge.js",
