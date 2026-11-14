@@ -6446,10 +6446,8 @@ class SfTable extends TableElement {
             // A menu belonging to a control at the end of its row aligns to that
             // control's end edge; otherwise it hangs past the button and over
             // whatever is beside it. The create arrow and the view's actions are
-            // both such controls, and so is the row's «more», which stands at
-            // the row's end since 1.19.0 (C146 (5)), in a table and a list.
-            const toTheEnd = ['create', 'toolbar-actions'].includes(data.menu)
-                || Boolean(anchor.closest('td[data-sf-cell="end"], .sf-table-resource-actions'));
+            // both such controls.
+            const toTheEnd = ['create', 'toolbar-actions'].includes(data.menu);
             return {anchor, side: 'block-end', align: toTheEnd ? 'end' : 'start', tail: null};
         }
         const suffix = family[2] || '';
@@ -7098,7 +7096,9 @@ class SfTable extends TableElement {
     }
 
     // The row's menu is the Framework's standard menu (owner, 2026-10-12): it
-    // opens below its button and start-aligned, in the top layer, and a group
+    // opens below its button, in the top layer, aligned to the button's end
+    // edge where the button stands at the row's end (C146 (5), since 1.19.0;
+    // start-aligned it hung past the row), and a group
     // of the host's row_actions is a real submenu rather than a second menu
     // swapped in over the first. What a choice does is unchanged -- an intent
     // for the row, or the action's own handler where it has one.
@@ -7128,7 +7128,8 @@ class SfTable extends TableElement {
         menu.setAttribute("aria-label", this.getContextMenuLabel({row, menu: "row-settings"}));
         menu.entries = entries;
         this._rowMenuContext = {row, items, anchor};
-        return menu.toggleFor(anchor);
+        const atEnd = Boolean(anchor.closest('td[data-sf-cell="end"], .sf-table-resource-actions'));
+        return menu.toggleFor(anchor, atEnd ? {align: "end"} : {});
     }
 
     rowMenu() {
