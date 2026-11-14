@@ -1600,7 +1600,7 @@ class SfDataView extends DataViewElement {
                 <span class="sf-pagination-actions-count" data-sf-bulk="count"></span>
                 <span class="sf-pagination-actions-separator" aria-hidden="true"></span>
                 <sf-dropdown data-sf-bulk="actions" appearance="outlined" search="false" mode="select"></sf-dropdown>
-                <sf-button data-sf-bulk="apply" appearance="outline" scheme="on-surface"></sf-button>
+                <sf-button data-sf-bulk="apply" data-sf-bulk-danger="false" appearance="outline" scheme="on-surface"></sf-button>
                 <span class="sf-pagination-actions-separator" aria-hidden="true" data-sf-bulk="for-all-separator"></span>
                 <sf-checkbox data-sf-bulk="for-all"></sf-checkbox>
                 <sf-button-icon data-sf-bulk="clear" class="sf-pagination-actions-clear" appearance="ghost" scheme="on-surface" icon="close"></sf-button-icon>`;
@@ -1631,7 +1631,21 @@ class SfDataView extends DataViewElement {
         // C116: Apply is a regular button in a band of controls (outline
         // on-surface), never the filled main one; over an action that
         // deletes it is the outlined danger, and that action is listed last.
-        chosen(parts.apply, "status", this._bulkDestructive(actions.find((item) => item.value === action)) ? "error" : null);
+        // A Smart button draws its look once, as class markup over a native
+        // button: a look that changes is a new button in the same place.
+        const danger = this._bulkDestructive(actions.find((item) => item.value === action));
+        if ((parts.apply.dataset.sfBulkDanger === "true") !== danger) {
+            const apply = document.createElement("sf-button");
+            apply.dataset.sfBulk = "apply";
+            apply.dataset.sfBulkDanger = String(danger);
+            apply.setAttribute("appearance", "outline");
+            apply.setAttribute("scheme", "on-surface");
+            if (danger) apply.setAttribute("status", "error");
+            chosen(apply, "size", this.controlSize);
+            apply.addEventListener("click", () => this.applyBulkAction());
+            parts.apply.replaceWith(apply);
+            parts.apply = apply;
+        }
         chosen(parts.apply, "text", pagination.actionApplyText);
         chosen(parts.apply, "disabled", !action);
         chosen(parts["for-all"], "label", forAllLabel);
