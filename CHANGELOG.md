@@ -5,6 +5,13 @@ in brackets. The site page «Изменения» says the same in Russian.
 
 ## 1.8.0 — not released
 
+- `sf-view-table` 1.19.1: every menu of the table is on the table's step
+  (owner remark 2026-11-15): the row menu, which lives on `<body>` or in the
+  open dialog, takes the table's resolved size (the attribute, else 1) and the
+  density of the table's area on every opening; it had no size and opened at
+  the menu's own 1/2 (32 px rows, 14 px text) beside a size-1 table. The
+  menus the table draws itself take the resolved size too. `sf-view-properties`
+  1.15.1: its «⋯» and view menu the same. Works on the released pair.
 - Needs the next SIMAI Framework pair (utility.table 1.3.0, field-renderers
   1.9.0 with sf-input-lookup 1.10.0); built and probed over SIMAI Framework
   group build 4 (ui-source `09cf1b0f`, local), not over `ui-7fb26d395af2`.

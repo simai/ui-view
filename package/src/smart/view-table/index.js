@@ -18,6 +18,7 @@ import {setLoaderDragState} from "../helpers/loaderDragState";
 import BundledPosition from "../../core/js/position.js";
 import {holdOpenSurfaceMark} from "../../core/js/open-surface-mark.js";
 import {layerZIndex} from "../../core/js/layer-stack.js";
+import {followDensity} from "../../core/js/density.js";
 import BundledPreferences from "../../core/js/preferences.js";
 
 // Sized for what they hold rather than for reading, so they take no floor.
@@ -970,7 +971,7 @@ class SfTable extends TableElement {
         };
         return html`
             <sf-menu-context
-                    size=${this.controlSize ?? nothing}
+                    size=${this.menuSize}
                     :key=${x + y}
                     aria-label=${this.getContextMenuLabel({...data, menu: 'toolbar-actions'})}
                     style="
@@ -1018,7 +1019,7 @@ class SfTable extends TableElement {
         ];
         return html`
             <sf-menu-context
-                    size=${this.controlSize ?? nothing}
+                    size=${this.menuSize}
                     :key=${x + y}
                     aria-label=${this.getContextMenuLabel({...data, menu: 'list-sort'})}
                     style="
@@ -1045,7 +1046,7 @@ class SfTable extends TableElement {
         };
         return html`
             <sf-menu-context
-                    size=${this.controlSize ?? nothing}
+                    size=${this.menuSize}
                     :key=${x + y}
                     aria-label=${this.getContextMenuLabel({...data, menu: 'create'})}
                     style="
@@ -3416,7 +3417,7 @@ class SfTable extends TableElement {
         const template = this.getSelectedFilterTemplate();
         return html`
             <sf-menu-context
-                    size=${this.controlSize ?? nothing}
+                    size=${this.menuSize}
                     :key=${x + y + this._renderToken}
                     aria-label=${this.getContextMenuLabel({...data, menu: 'filter-favorites'})}
                     style="
@@ -3545,7 +3546,7 @@ class SfTable extends TableElement {
         }
         return html`
             <sf-menu-context
-                    size=${this.controlSize ?? nothing}
+                    size=${this.menuSize}
                     :key=${x + y}
                     aria-label=${this.getContextMenuLabel({...data, menu: 'row-settings'})}
                     style="
@@ -4751,7 +4752,7 @@ class SfTable extends TableElement {
         let contextItems = `${this.text('templatesTabText')}|${this.text('fieldsTabText')}`;
         return html`
             <sf-menu-context
-                    size=${this.controlSize ?? nothing}
+                    size=${this.menuSize}
                     :key=${x + y + this._renderToken}
                     aria-label=${this.getContextMenuLabel({...data, menu: 'filter-settings'})}
                     style="
@@ -4903,7 +4904,7 @@ class SfTable extends TableElement {
         };
         return html`
             <sf-menu-context
-                    size=${this.controlSize ?? nothing}
+                    size=${this.menuSize}
                     :key=${x + y + this._renderToken}
                     aria-label=${this.getContextMenuLabel({...data, menu: 'tag-settings'})}
                     style="
@@ -5038,7 +5039,7 @@ class SfTable extends TableElement {
         // them taught nobody anything.
         return html`
             <sf-menu-context
-                    size=${this.controlSize ?? nothing}
+                    size=${this.menuSize}
                     :key=${x + y + this._renderToken}
                     aria-label=${this.getContextMenuLabel({...data, menu: 'table-settings'})}
                     style="
@@ -5184,7 +5185,7 @@ class SfTable extends TableElement {
         const isDefaultTemplate = (temp || template).default === true;
         return html`
             <sf-menu-context
-                    size=${this.controlSize ?? nothing}
+                    size=${this.menuSize}
                     :key=${`${template.key || ''}-${x}-${y}`}
                     aria-label=${this.getContextMenuLabel({...data, type: 'filter-template-actions'})}
                     style="
@@ -6788,6 +6789,15 @@ class SfTable extends TableElement {
         return size === "1/2" || size === "1" ? size : null;
     }
 
+    // Every menu the table opens is on the table's step (owner remark
+    // 2026-11-15): its resolved size -- the attribute, else the default "1" --
+    // as its rows, checkboxes and buttons already are. A menu with no size
+    // fell back to the menu's own default 1/2: a table of size 1 (rows 48,
+    // text 16) opened 32 px rows with 14 px text.
+    get menuSize() {
+        return this.size === "1/2" ? "1/2" : "1";
+    }
+
     // A control a column or an action names at size 1 is "this table's
     // size": the host's size when it has one, otherwise no size at all.
     relativeSize(props) {
@@ -7096,6 +7106,12 @@ class SfTable extends TableElement {
         // page is ready, and asked for here if a press comes first.
         await globalThis.SF?.Loader?.ensure?.(["sf-menu-context"]);
         const menu = this.rowMenu();
+        // On every opening, as the table stands now: the row menu lives on
+        // <body> or in the open dialog, outside the table, so it has neither
+        // the table's size nor the density of the table's area unless it is
+        // given them (owner remark 2026-11-15).
+        menu.setAttribute("size", this.menuSize);
+        followDensity(menu, this);
         menu.setAttribute("aria-label", this.getContextMenuLabel({row, menu: "row-settings"}));
         menu.entries = entries;
         this._rowMenuContext = {row, items, anchor, ids: many ? ids.map(String) : null};

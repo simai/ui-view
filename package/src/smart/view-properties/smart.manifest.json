@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-properties",
-  "version": "1.15.0",
+  "version": "1.15.1",
   "title": "Property view",
   "summary": "One object's fields shown as sections, groups and fields, each drawn by the per-type field renderer set, behind a separate host port. A group is edited and saved as one revision by the button, and a reference field is picked from the host's own candidates a page at a time. The pair to the data view: that one is a set of records, this one is a single object.",
   "kind": "composite",
@@ -1632,6 +1632,13 @@
         "changes": [
           "A record, a relation, a user and a paged lookup field are edited in sf-input-lookup (field-renderers 1.9.0, owner decision C139 (1)): focus asks the host for the first page (the quiet page asked as the group opens is reused), typing searches through loadFieldOptions, «Show more» follows the cursor, and the chosen value is written as {value, label}. The rule relates cl-input-lookup (lazy). A row's caption, avatar ({src} or {initials}, or avatarText) and icon reach the lookup as the host sends them in options_page.items; property-view-port 1.18.0 names only value and label, so a host that wants them needs the port to say so. A short list given whole stays sf-dropdown. The renderer set is built into this bundle, so the change comes with a package built over a ui-source that has field-renderers 1.9.0, and the page needs the pair with sf-input-lookup 1.10.0; a package built over an older ui-source keeps the searchable sf-dropdown. 1.14.0 is held by another branch (fix/view-properties-section-tabs). Made in ui-pro first (fix/pro-g4, 2026-11-14) and taken here; the view set releases the same change."
         ]
+      },
+      {
+        "from": "1.15.0",
+        "to": "1.15.1",
+        "changes": [
+          "The panel's «⋯» and view menu is on the panel's step (owner remark 2026-11-15): the menu lives on <body> or in the open dialog, had no size and fell back to the menu's own 1/2 beside a panel of size 1. On every opening it now takes the panel's size (1, or 1/2) and the density of the panel's area (core followDensity). Nothing to change for a host."
+        ]
       }
     ]
   },
@@ -1641,7 +1648,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-properties/index.js",
-        "sha256": "6d5d01b4bc168dcde94091531e0d50d9df47f3e0efe1b62bb9954a09d90a1c52"
+        "sha256": "4a7fae3cb0490523deb53889b16b10530eeadfabc92f9981844ee269dad709ee"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.js",
