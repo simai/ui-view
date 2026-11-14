@@ -1209,11 +1209,18 @@
      under the pointer, the row with the focus and the person's row; on a
      touch screen, where nothing hovers, always. Hidden, they keep their
      room, so nothing moves when they show. */
-  :is(sf-view-table, sf-table) .sf-table-row-end {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: var(--sf-space-1\/4);
+  :is(sf-view-table, sf-table) tbody td[data-sf-cell="end"] {
+    text-align: end;
+    white-space: nowrap;
+  }
+
+  :is(sf-view-table, sf-table) tbody td[data-sf-cell="end"] > button {
+    display: inline-flex;
+    vertical-align: middle;
+  }
+
+  :is(sf-view-table, sf-table) tbody td[data-sf-cell="end"] > button + button {
+    margin-inline-start: var(--sf-space-1\/4);
   }
 
   /* The gear in the head of the row end stands over the rows' «more». */
