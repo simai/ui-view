@@ -5,13 +5,14 @@
 //   - the column settings are read once a draw, not once a cell: counted
 //     over one setRows() draw, 8 rows ask getColumnSettings() a handful of
 //     times (they asked 268), a window of 60 rows of 1 000 as few;
-//   - since 1.19.0 (owner decision C146 (5)) a row ends in one cell: its two
-//     quick actions and «more», drawn once and shown by the sheet -- under
-//     the pointer and with the focus -- so a row of the bench's five columns
-//     with its box and its end stays within thirty nodes (standard 1.3.8
-//     gate 17) and is never drawn anew for a hover;
-//   - the pointer and the focus show the quick actions without drawing the
-//     row again, and the focus stays where it is;
+//   - since 1.19.0 (owner decision C146 (5)) a row ends in one cell: «more»
+//     in every row, the two quick actions in the row a person is on (under
+//     the pointer, with the focus, the current one); an idle row of the
+//     bench's five columns with its box and its end is 29 nodes (standard
+//     1.3.8 gate 17: thirty);
+//   - the pointer and the focus bring the quick actions in without drawing
+//     the row anew, they leave with the pointer, and the focus stays where it
+//     is;
 //   - a clean console.
 import {resolve, join} from 'node:path';
 import {chromium} from 'playwright';
@@ -91,14 +92,14 @@ try {
     const where = scheme;
     if (read.draw8 > 12) failures.push(`${where}: a draw of 8 rows read the column settings ${read.draw8} times`);
     if (read.window1000 > 12) failures.push(`${where}: a window of ${read.drawn} rows read the column settings ${read.window1000} times`);
-    if (read.nodes > 30 || read.idleCell.buttons !== 3 || read.idleCell.shown.some((opacity) => opacity !== '0')) {
-      failures.push(`${where}: an idle row is ${read.nodes} nodes, its end ${JSON.stringify(read.idleCell)} (two quick actions hidden and «more»)`);
+    if (read.nodes > 30 || read.idleCell.buttons !== 1 || read.idleCell.shown.length) {
+      failures.push(`${where}: an idle row is ${read.nodes} nodes, its end ${JSON.stringify(read.idleCell)} («more» alone)`);
     }
     if (!read.hover.same || read.hover.shown.length !== 2 || read.hover.shown.some((opacity) => opacity !== '1')) {
       failures.push(`${where}: the row under the pointer: ${JSON.stringify(read.hover)}`);
     }
     if (read.left.some((opacity) => opacity !== '0')) failures.push(`${where}: the row left keeps its quick actions shown (${read.left})`);
-    if (!read.focus.kept || read.focus.shown.some((opacity) => opacity !== '1')) failures.push(`${where}: focus into a row: ${JSON.stringify(read.focus)}`);
+    if (!read.focus.kept || read.focus.shown.length !== 2 || read.focus.shown.some((opacity) => opacity !== '1')) failures.push(`${where}: focus into a row: ${JSON.stringify(read.focus)}`);
     if (errors.length) failures.push(`${where}: console ${errors.slice(0, 3).join(' | ')}`);
     await context.close();
   }
