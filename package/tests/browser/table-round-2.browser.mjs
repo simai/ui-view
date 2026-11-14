@@ -125,7 +125,9 @@ try {
   if (!current) {
     note({case: 'current row', expected: 'a click still marks the row'});
   } else {
-    if (current.firstCellShadow !== 'none') {
+    // The row's line under it (C146 (4), since 1.19.0 an inset shadow of a
+    // pixel at the cell's bottom) is not a bar; an offset to a side is.
+    if (current.firstCellShadow !== 'none' && !/^\S+(?: \S+)*\) 0px -1px 0px 0px inset$/u.test(current.firstCellShadow)) {
       note({case: 'current row', got: current.firstCellShadow, expected: 'no bar in the first cell'});
     }
     if (current.ringContent !== 'none') {
@@ -231,7 +233,9 @@ try {
 
   // 4. The toolbar: the search row sits above the chips when they do not fit,
   // whether or not the field has focus.
-  const narrow = await open('<div style="width:520px"><sf-view-table id="t"></sf-view-table></div>');
+  // layout="table": below list-below (600) the records are a list since 1.19.0
+  // (TB-11), and the table's toolbar is what is read here.
+  const narrow = await open('<div style="width:520px"><sf-view-table id="t" layout="table"></sf-view-table></div>');
   await fill(
     narrow,
     [{key: 'name', label: 'Name', role: 'title', width: 200}],

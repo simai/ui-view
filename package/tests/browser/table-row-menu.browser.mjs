@@ -4,7 +4,9 @@
 // The row menu is the Framework's standard menu (owner, 2026-10-12). Before,
 // it opened beside its button, centred on it, with a tail, and a group of the
 // host's row_actions replaced the menu with a second one. Measured here: it
-// opens below its button and start-aligned, in the top layer; a group is a
+// opens below its button and aligned to its end edge (the button stands at
+// the row's end since 1.19.0, C146 (5); it was start-aligned when the
+// button led the row), in the top layer; a group is a
 // submenu of the members the record allows; choosing a member raises the
 // record's intent with that member's id; and the focus goes back to the button.
 import {resolve, join} from 'node:path';
@@ -96,7 +98,7 @@ try {
       found: Boolean(menu),
       top: surface?.matches(':popover-open') ?? false,
       below: box && at ? box.top >= at.bottom - 0.5 : false,
-      start: box && at ? Math.abs(box.left - at.left) <= 1 : false,
+      end: box && at ? Math.abs(box.right - at.right) <= 1 : false,
       tail: Boolean(surface?.querySelector('.sf-context-menu-tooltip')),
       labels: [...(surface?.querySelectorAll('.sf-context-menu-item-label') ?? [])].map((node) => node.textContent.trim()),
       submenu: surface?.querySelector('[aria-haspopup="menu"] .sf-context-menu-item-label')?.textContent.trim() ?? null,
@@ -105,7 +107,7 @@ try {
     };
   });
   if (!opened.found || !opened.top) note({case: 'the row menu is the standard menu, in the top layer', got: opened});
-  if (!opened.below || !opened.start || opened.tail) note({case: 'below its button, start-aligned, no tail', got: opened});
+  if (!opened.below || !opened.end || opened.tail) note({case: 'below its button, end-aligned, no tail', got: opened});
   if (opened.labels.join('|') !== 'Переименовать|Опубликовать|В архив') note({case: 'the record\'s actions, a group once', got: opened.labels});
   if (opened.submenu !== 'Опубликовать') note({case: 'a group is a submenu', got: opened.submenu});
   if (opened.danger !== 'В архив') note({case: 'a dangerous action is marked', got: opened.danger});
