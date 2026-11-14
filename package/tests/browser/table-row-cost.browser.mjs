@@ -7,7 +7,8 @@
 //     times (they asked 268), a window of 60 rows of 1 000 as few;
 //   - variant В (C146 (5), R239): no «Действия» column, so no row carries
 //     hover-only buttons; a row of the bench's five columns with its box and
-//     ≡ menu is ROW_NODES nodes (29 with the bare actions cell before);
+//     ≡ menu is ROW_NODES nodes: 29, the box's tick glyph in and the bare
+//     actions cell out (it was 29 with that cell and no glyph);
 //   - the pointer over a row draws nothing into it and focus on the name
 //     link stays where it is (the row is not drawn anew);
 //   - a clean console.
@@ -25,7 +26,7 @@ const modules = ['core/core/js/core.js', 'core/core/js/smart-base.js', 'smart/sm
   'smart/smart/spinner/js/spinner.js', 'smart/smart/pagination/js/pagination.js', 'smart/smart/menu-context/js/menu-context.js',
   'smart/smart/resizer/js/resizer.js', 'smart/smart/view-table/js/view-table.js'].map((p) => join(out, p));
 
-const ROW_NODES = Number(process.env.ROW_NODES ?? 28);
+const ROW_NODES = Number(process.env.ROW_NODES ?? 29);
 const COLUMNS = [{key: 'title', label: 'Название', sortable: true, role: 'title'}, {key: 'status', label: 'Статус'}, {key: 'owner', label: 'Владелец'}, {key: 'amount', label: 'Сумма', type: 'number'}, {key: 'published', label: 'Опубликовано', type: 'boolean'}];
 const rows = (n) => Array.from({length: n}, (_, i) => ({id: String(i + 1), title: `Запись ${i + 1}`, status: 'active', owner: 'Сотрудник', amount: i, published: i % 2 === 0, revision: 'r1', actions: ['view', 'edit', 'delete']}));
 
