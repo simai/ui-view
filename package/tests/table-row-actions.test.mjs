@@ -11,8 +11,7 @@ const systemColumns = new Function(body);
 const useBody = source.split('    settingsColumnHasUse(props = this.getPropsContext()) {')[1].split('\n    getSystemColumns() {')[0].trim().replace(/\}\s*$/, '');
 const settingsColumnHasUse = new Function('props = this.getPropsContext()', useBody);
 
-function table(props, actionActive = true, rowMenu = [{id: 'delete'}], quickCount = 2) {
-    const widths = [];
+function table(props, actionActive = true, rowMenu = [{id: 'delete'}]) {
     return {
         getPropsContext: () => ({selectable: false, settings: true, actions: true, rowActions: true, ...props}),
         settingsColumnHasUse,
@@ -21,28 +20,17 @@ function table(props, actionActive = true, rowMenu = [{id: 'delete'}], quickCoun
         state: {actionActive},
         TABLE_SETTINGS_COLUMN: {key: 'settings'},
         TABLE_ACTIONS_COLUMN: {key: 'actions'},
-        tableQuickActionCount: () => quickCount,
-        rowEndWidth: (menu, quick) => { widths.push([menu, quick]); return 'w'; },
-        widths,
         systemColumns,
     };
 }
 const keys = (owner) => owner.systemColumns().map((column) => column.key);
 
-// One column at the row's end (owner decision C146 (5)): the gear in its head,
-// up to two quick actions and the row's «more» in each row. The hover-only
-// column «Действия» is gone.
-test('the row end is one column, with the quick actions and «more» in it', () => {
-    const owner = table({});
-    assert.deepEqual(keys(owner), ['settings']);
-    assert.deepEqual(owner.widths, [[true, true]], 'its width holds the menu and the quick actions');
-    assert.ok(!/columns\.push\(this\.TABLE_ACTIONS_COLUMN\)/u.test(source), 'no separate action column');
+test('the row action column shows by default', () => {
+    assert.deepEqual(keys(table({})), ['settings', 'actions']);
 });
 
-test('row-actions false takes only the quick actions away', () => {
-    const owner = table({rowActions: false});
-    assert.deepEqual(keys(owner), ['settings']);
-    assert.deepEqual(owner.widths, [[true, false]]);
+test('row-actions false hides only the row action column', () => {
+    assert.deepEqual(keys(table({rowActions: false})), ['settings']);
     assert.match(source, /rowActions: \{attribute: "row-actions", type: Boolean, default: true\}/);
     // The create button stays behind actions, and behind creatable, which a
     // data view turns off for a host that does not announce create-record.
@@ -50,13 +38,9 @@ test('row-actions false takes only the quick actions away', () => {
     assert.ok(!template.includes('rowActions'), 'the create button does not follow row-actions');
 });
 
-test('actions false and a hidden action column in the table settings still take the quick actions away', () => {
-    const off = table({actions: false});
-    assert.deepEqual(keys(off), ['settings']);
-    assert.deepEqual(off.widths, [[true, false]]);
-    const hidden = table({}, false);
-    assert.deepEqual(keys(hidden), ['settings']);
-    assert.deepEqual(hidden.widths, [[true, false]]);
+test('actions false and a hidden column in the table settings still hide it', () => {
+    assert.deepEqual(keys(table({actions: false})), ['settings']);
+    assert.deepEqual(keys(table({}, false)), ['settings']);
 });
 
 test('the manifest declares row-actions with its default', () => {
@@ -67,28 +51,23 @@ test('the manifest declares row-actions with its default', () => {
     assert.ok(arrived.changes.some((change) => change.includes('row-actions')));
 });
 
-// The row end is the gear in its head and the row's «more» and quick actions.
-// A table with none of them -- no column settings, no row menu, no reordering,
-// no quick actions -- draws no column of buttons that open nothing (Larena,
-// the sites list, 2026-11-05).
-test('the row end goes when it has nothing to open', () => {
-    assert.deepEqual(keys(table({settingsMenu: false}, true, [], 0)), []);
+// The settings column is the gear in its head and the ≡ of each row's menu.
+// A table with neither -- no column settings, no row actions, no reordering --
+// draws no column of buttons that open nothing (Larena, the sites list,
+// 2026-11-05).
+test('the settings column goes when it has nothing to open', () => {
+    assert.deepEqual(keys(table({settingsMenu: false}, true, [])), ['actions']);
     assert.deepEqual(keys(table({settingsMenu: false, actions: false}, true, [])), []);
-    // Quick actions alone keep it.
-    assert.deepEqual(keys(table({settingsMenu: false}, true, [])), ['settings']);
 });
 
-test('the row end stays for the gear, a row menu or reordering', () => {
-    assert.deepEqual(keys(table({settingsMenu: true}, true, [], 0)), ['settings']);
-    assert.deepEqual(keys(table({settingsMenu: false}, true, [{id: 'delete'}], 0)), ['settings']);
-    assert.deepEqual(keys(table({settingsMenu: false, rowReorder: true}, true, [], 0)), ['settings']);
-    // A host whose actions live in the row menu alone (row-actions="false") keeps «more».
+test('the settings column stays for the gear, a row menu or reordering', () => {
+    assert.deepEqual(keys(table({settingsMenu: true}, true, [])), ['settings', 'actions']);
+    assert.deepEqual(keys(table({settingsMenu: false})), ['settings', 'actions']);
+    assert.deepEqual(keys(table({settingsMenu: false, rowReorder: true}, true, [])), ['settings', 'actions']);
+    // A host whose actions live in the row menu alone (row-actions="false") keeps the ≡.
     assert.deepEqual(keys(table({settingsMenu: false, rowActions: false})), ['settings']);
 });
 
-test('settings false is the word of the host for the menu, whatever the table could offer', () => {
-    const owner = table({settings: false, settingsMenu: true, rowReorder: true});
-    assert.deepEqual(keys(owner), ['settings'], 'the quick actions still stand at the row end');
-    assert.deepEqual(owner.widths, [[false, true]]);
-    assert.deepEqual(keys(table({settings: false, settingsMenu: true, rowReorder: true}, true, [{id: 'delete'}], 0)), []);
+test('settings false is the word of the host, whatever the table could offer', () => {
+    assert.deepEqual(keys(table({settings: false, settingsMenu: true, rowReorder: true})), ['actions']);
 });

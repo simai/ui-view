@@ -17,8 +17,8 @@ test('the person decides what is pinned, and the title column starts pinned', as
   // pinned until the person says otherwise.
   assert.match(
     source,
-    /isColumnPinned\(column\) \{[\s\S]*?if \(column\.key === "select"\) return true;/u,
-    'the box is always pinned; the row end pins itself through sticky: "end" (C146 (5))',
+    /isColumnPinned\(column\) \{[\s\S]*?if \(column\.key === "select" \|\| column\.key === "settings"\) return true;/u,
+    'the box and the row menu are always pinned',
   );
   assert.match(
     source,

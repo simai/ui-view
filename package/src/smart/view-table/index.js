@@ -72,9 +72,6 @@ const SYSTEM_COLUMN_KEYS = new Set(["select", "settings", "actions"]);
 // status value and a fact's status mean there.
 const LIST_ROLES = new Set(["status", "title", "supporting", "fact", "hidden"]);
 const MAX_QUICK_ACTIONS = 3;
-// A table row's quick actions (owner decision C146 (5)): at most two, beside
-// the row's «more» at the row's end.
-const MAX_TABLE_QUICK_ACTIONS = 2;
 // The column types whose values are numbers (C146 (3)): end-aligned, digits of
 // one width, never wrapped.
 const NUMBER_TYPES = new Set(["integer", "number", "money", "percent"]);
@@ -467,16 +464,10 @@ class SfTable extends TableElement {
             system: true,
         }
 
-        // The row's end (owner decision C146 (5)): the head holds the gear of
-        // the column settings, each row its quick actions and its «more»
-        // (more_horiz), which stays in view when the table scrolls sideways.
-        // It was the start column of the gear and a menu (≡) in every row,
-        // with the actions in a hover-only column «Действия» at the end.
         this.TABLE_SETTINGS_COLUMN = {
             key: "settings",
             label: "settings",
             system: true,
-            sticky: "end",
             width: 'calc(var(--sf-text-height-1) + (var(--sf-ui-1--space-y-tightness-default) * 2) + var(--sf-b6))',
             component: {
                 type: "button-icon",
@@ -2896,64 +2887,9 @@ class SfTable extends TableElement {
         return {text, level: FACT_LEVELS[status] ?? 0, status: FACT_LEVELS[status] ? status : "", tip: String(props?.tip ?? props?.title ?? option?.tip ?? "")};
     }
 
-    // A table row's quick actions (C146 (5)): the ids quick-actions names,
-    // the first two; without it the first two of the catalogue that are
-    // neither a group nor destructive and have an icon. They show on hover
-    // and focus (always on a touch screen); «more» holds every action.
-    tableQuickActions(row) {
-        const items = this.rowActionItems(row).filter((item) => !Array.isArray(item?.members));
-        const ids = this.quickActionIds;
-        const icon = (item) => item?.icon ?? item?.component?.props?.icon;
-        const quick = ids.length
-            ? ids.map((id) => items.find((item) => item?.id === id)).filter(Boolean)
-            : items.filter((item) => item?.danger !== true && item?.inline !== false && icon(item));
-        return quick.slice(0, MAX_TABLE_QUICK_ACTIONS);
-    }
-
-    // Whether the row end shows quick actions: the host's actions and
-    // row-actions, and the action column the person has not hidden.
-    rowEndHasQuick(props = this.getPropsContext()) {
-        return Boolean(props.actions && props.rowActions && this.state.actionActive);
-    }
-
-    // The quick actions the table's catalogue offers (any row's are among
-    // them), at most two.
-    tableQuickCatalogue() {
-        const catalogue = (this.ACTIONS_SETTINGS_ROW ?? []).filter((item) => !Array.isArray(item?.members));
-        const ids = this.quickActionIds;
-        const icon = (item) => item?.icon ?? item?.component?.props?.icon;
-        const quick = ids.length
-            ? ids.map((id) => catalogue.find((item) => item?.id === id)).filter(Boolean)
-            : catalogue.filter((item) => item?.danger !== true && item?.inline !== false && icon(item));
-        return quick.slice(0, MAX_TABLE_QUICK_ACTIONS);
-    }
-
-    // How many quick actions a row of this table can show: the room the end
-    // column keeps for them, so a row does not move when they appear.
-    tableQuickActionCount() {
-        return this.tableQuickCatalogue().length;
-    }
-
-    // Whether a row draws its quick actions: the row a person is on, or every
-    // row where nothing hovers.
-    quickShownFor(row) {
-        return this.actionsShownFor(row) || Boolean(globalThis.matchMedia?.("(hover: none)")?.matches);
-    }
-
-    // The id of one of the table's shared tooltips (a quick action's, or the
-    // cut name's).
+    // The id of the table's shared name tooltip (C146 (7)).
     tipId(key) {
         return `${this.getInstanceId()}--tip--${String(key).replace(/[^\w-]+/gu, "-")}`;
-    }
-
-    // The end column: its icon buttons (the quick ones and «more», or the
-    // gear alone) side by side at the step's control size, the gap between
-    // them, and the cell's padding on both sides (the table's edge inset at
-    // the end, the cell spacing at the start).
-    rowEndWidth(menu = true, quick = true) {
-        const count = Math.max(1, (quick ? this.tableQuickActionCount() : 0) + (menu ? 1 : 0));
-        const control = this.size === "1/2" ? "var(--sf-ui-1\\/2--control-height)" : "var(--sf-ui-1--control-height)";
-        return `calc(${count} * ${control} + ${count - 1} * var(--sf-space-1\\/4) + var(--sf-space-1\\/3) + var(--sf-space-1))`;
     }
 
     // Whether a column holds numbers (C146 (3)): its type, or the host's
@@ -3296,13 +3232,11 @@ class SfTable extends TableElement {
         if (props.selectable) {
             columns.push(this.getSelectColumn());
         }
-        // One column at the row's end (C146 (5)): the gear in its head, the
-        // quick actions and «more» in its rows. The hover-only column
-        // «Действия» is gone; its buttons are the quick actions.
-        const menu = Boolean(props.settings && this.settingsColumnHasUse(props));
-        const quick = Boolean(props.actions && props.rowActions && this.state.actionActive && this.tableQuickActionCount() > 0);
-        if (menu || quick) {
-            columns.push({...this.TABLE_SETTINGS_COLUMN, width: this.rowEndWidth(menu, quick)});
+        if (props.settings && this.settingsColumnHasUse(props)) {
+            columns.push(this.TABLE_SETTINGS_COLUMN);
+        }
+        if (props.actions && props.rowActions && this.state.actionActive) {
+            columns.push(this.TABLE_ACTIONS_COLUMN);
         }
 
         return columns;
@@ -6867,7 +6801,7 @@ class SfTable extends TableElement {
         const dataColumns = this.getTableData().columns || [];
         const systemColumns = this.getSystemColumns();
         const systemKeys = new Set(systemColumns.map((column) => column.key));
-        const rightSystemKeys = new Set(['settings', 'actions']);
+        const rightSystemKeys = new Set(['actions']);
         const originalIndexByKey = new Map(
             dataColumns.map((column, index) => [column?.key, index]),
         );
@@ -6963,7 +6897,7 @@ class SfTable extends TableElement {
     // always pinned and are not offered a toggle.
     isColumnPinned(column) {
         if (!column?.key) return false;
-        if (column.key === "select") return true;
+        if (column.key === "select" || column.key === "settings") return true;
         if (column.system) return false;
         const pending = this.tempSettings?.cols?.[column.key];
         const setting = this.getColumnSetting(column.key) || {};
@@ -7096,9 +7030,7 @@ class SfTable extends TableElement {
     }
 
     // The row's menu is the Framework's standard menu (owner, 2026-10-12): it
-    // opens below its button, in the top layer, aligned to the button's end
-    // edge where the button stands at the row's end (C146 (5), since 1.19.0;
-    // start-aligned it hung past the row), and a group
+    // opens below its button and start-aligned, in the top layer, and a group
     // of the host's row_actions is a real submenu rather than a second menu
     // swapped in over the first. What a choice does is unchanged -- an intent
     // for the row, or the action's own handler where it has one.
@@ -7128,8 +7060,7 @@ class SfTable extends TableElement {
         menu.setAttribute("aria-label", this.getContextMenuLabel({row, menu: "row-settings"}));
         menu.entries = entries;
         this._rowMenuContext = {row, items, anchor};
-        const atEnd = Boolean(anchor.closest('td[data-sf-cell="end"], .sf-table-resource-actions'));
-        return menu.toggleFor(anchor, atEnd ? {align: "end"} : {});
+        return menu.toggleFor(anchor);
     }
 
     rowMenu() {
@@ -7997,13 +7928,13 @@ class SfTable extends TableElement {
     }
 
     // ─── the table as a grid (owner decision C146 (8)) ──────────────────────
-    // A table whose rows hold controls -- the box, the name's link, the quick
-    // actions, «more» -- is a grid: one Tab stop, the arrows between its rows
+    // A table whose rows hold controls -- the box, the row menu, the name's
+    // link, the row's buttons -- is a grid: one Tab stop, the arrows between its rows
     // and between the controls of a row (WAI-ARIA APG grid). Up and down keep
     // the place in the row; left and right walk the row's controls, the row
     // itself first; Home and End go to the row's first and last, with Ctrl to
-    // the first and last row; Enter opens, Space marks the row; Shift+F10 and
-    // the menu key open «more». The head is the grid's first row: its sort
+    // the first and last row; Enter opens, Space marks the row. The head is
+    // the grid's first row: its sort
     // buttons, the edges that set a width, the box for all and the gear. A
     // plain table, with nothing to press in its rows, stays a table.
     gridControls(row) {
@@ -8067,32 +7998,6 @@ class SfTable extends TableElement {
             this.syncGrid();
         }, {signal});
         table.addEventListener("keydown", (event) => this.handleGridKeydown(event, table), {signal});
-        // A right click on a row opens the row's «more» menu (C146 (5)):
-        // Shift keeps the browser's own menu, and a link or a field keeps it
-        // too.
-        table.addEventListener("contextmenu", (event) => {
-            if (event.shiftKey) return;
-            const target = event.target instanceof Element ? event.target : null;
-            if (!target || target.closest("a[href], input, textarea, select, [contenteditable]")) return;
-            const row = target.closest("tbody > tr[data-row-id]");
-            const more = row?.querySelector("[data-sf-row-more]");
-            if (!more) return;
-            event.preventDefault();
-            this.openRowMenuOf(row, more);
-        }, {signal});
-    }
-
-    rowOfElement(element) {
-        const key = element?.closest?.("[data-row-id]")?.dataset.rowId;
-        if (key == null) return null;
-        const rows = this.getTableData().rows || [];
-        return rows.find((row, index) => this.getRowKey(row, index) === key) ?? null;
-    }
-
-    openRowMenuOf(rowElement, more) {
-        const row = this.rowOfElement(rowElement);
-        if (!row) return null;
-        return this.openRowMenu({currentTarget: more, target: more}, row);
     }
 
     handleGridKeydown(event, table) {
@@ -8107,13 +8012,6 @@ class SfTable extends TableElement {
         const rowIndex = rows.findIndex((row) => row === target || row.contains(target));
         if (rowIndex < 0) return;
         const row = rows[rowIndex];
-        if ((event.key === "F10" && event.shiftKey) || event.key === "ContextMenu") {
-            const more = row.querySelector("[data-sf-row-more]");
-            if (!more) return;
-            event.preventDefault();
-            this.openRowMenuOf(row, more);
-            return;
-        }
         const controls = this.gridControls(row);
         const at = controls.indexOf(target);
         // The row's own keys (handleRowKeydown) move between rows from the

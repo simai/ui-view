@@ -107,7 +107,7 @@ try {
   // 2 and 7. The current row shows nothing of its own, and a keyboard focus
   // draws one ring over the pinned cells rather than segments between them.
   // Since 1.19.0 the cells draw it, each its share (a pseudo-element on the row
-  // moved the cells pinned at the row's end, C146 (5)).
+  // moved a cell pinned at the row's end).
   await table.click('tbody tr[data-row-id="a"] td[data-key="city"]');
   await table.waitForTimeout(120);
   const current = await table.evaluate(() => {

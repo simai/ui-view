@@ -252,15 +252,10 @@
     width: var(--sf-table--select-column-width);
   }
 
-  /* The row's end (C146 (5)): the gear in the head and the row's buttons
-     stand at the end of the cell; the cell's width is its <col>'s
-     (rowEndWidth), the room of its buttons. */
   :is(sf-view-table, sf-table) > .sf-table thead th[data-key="settings"] {
-    text-align: end;
-  }
-
-  :is(sf-view-table, sf-table) > .sf-table thead th[data-key="settings"] > * {
-    margin-inline-start: auto;
+    --sf-table--settigs-column-width: calc(var(--sf-text-height-1) + var(--sf-ui-1--space-y-tightness-default));
+    width: var(--sf-table--settigs-column-width);
+    text-align: center;
   }
 
   /* The table's cell spacing, declared rather than inherited. Measured at 2px,
@@ -1181,47 +1176,6 @@
     --sf-table-cell--line-clamp: 2;
   }
 
-  /* The row's end (owner decision C146 (5)): the quick actions, then «more»
-     (more_horiz), which is always there. The quick ones show in the row
-     under the pointer, the row with the focus and the person's row; on a
-     touch screen, where nothing hovers, always. Hidden, they keep their
-     room, so nothing moves when they show. */
-  :is(sf-view-table, sf-table) tbody td[data-sf-cell="end"] {
-    text-align: end;
-    white-space: nowrap;
-  }
-
-  :is(sf-view-table, sf-table) tbody td[data-sf-cell="end"] > button {
-    display: inline-flex;
-    vertical-align: middle;
-  }
-
-  :is(sf-view-table, sf-table) tbody td[data-sf-cell="end"] > button + button {
-    margin-inline-start: var(--sf-space-1\/4);
-  }
-
-  /* The gear in the head of the row end stands over the rows' «more». */
-  :is(sf-view-table, sf-table) thead th[data-sf-cell="end"] > sf-button-icon > button {
-    margin-inline-start: auto;
-  }
-
-  :is(sf-view-table, sf-table) .sf-table-row-quick {
-    opacity: 0;
-    pointer-events: none;
-  }
-
-  :is(sf-view-table, sf-table) tbody tr:is(:hover, :focus-within, [data-current]) .sf-table-row-quick {
-    opacity: 1;
-    pointer-events: auto;
-  }
-
-  @media (hover: none) {
-    :is(sf-view-table, sf-table) .sf-table-row-quick {
-      opacity: 1;
-      pointer-events: auto;
-    }
-  }
-
   /* The state of a table with no rows -- empty, failed -- stands in the part
      of the table a person sees: as wide as the scroll area and held at its
      start, not centred over the whole width of the columns, which on a phone
@@ -1600,10 +1554,10 @@
   /* The ring is drawn by the row's cells, each its share of it (the top and
      the bottom, the first cell the start, the last the end), on a
      pseudo-element above the cell's content. A pseudo-element on the row
-     itself -- the ring until 1.19.0 -- moved every cell pinned at the row's
-     end (C146 (5)) out of its place while the row had the focus: Chrome lays
-     a row's own generated box out against the sticky cells. A cell that is
-     not pinned is positioned only while its row has the ring. */
+     itself -- the ring until 1.19.0 -- moved a cell pinned at the row's end
+     out of its place while the row had the focus: Chrome lays a row's own
+     generated box out against the sticky cells. A cell that is not pinned
+     is positioned only while its row has the ring. */
   :is(sf-view-table, sf-table) tbody tr:focus-visible {
     outline: none;
   }

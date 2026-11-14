@@ -359,7 +359,7 @@ function renderHeadLabel(context, column) {
     // The gear opens the column settings; without them (settings-menu="false",
     // a host that saves no personal settings) the column keeps its row menus and
     // its heading is only a name.
-    if (column.key === 'settings' && (context.settingsMenu === false || context.component.getProp?.('settings') === false)) {
+    if (column.key === 'settings' && context.settingsMenu === false) {
         return html`<span class="sf-table-visually-hidden">${context.component.text('settingsColumnLabel')}</span>`;
     }
     const content = column.component
@@ -448,16 +448,12 @@ function renderHead(context) {
     `
 }
 
-// The tooltips of the row end and of a cut name: one surface per quick
-// action and one for the name, in the head of the last column (the row
-// end when there is one), which every
-// row's trigger names by id (data-tooltip). A surface in each row cost
-// about ten nodes a button and broke the thirty nodes a row of a long
-// list (standard 1.3.8 gate 17).
+// The tooltip of a cut name (owner decision C146 (7)): one surface for the
+// table, in the head of the last column, which every cut name names by id
+// (data-tooltip). A surface in each row cost about ten nodes a row and broke
+// the thirty nodes a row of a long list (standard 1.3.8 gate 17).
 function renderTipSurfaces(context) {
-    const component = context.component;
-    const surface = (key, text, arrow) => html`<span class="sf-tooltip sf-tooltip--dark sf-tooltip--size-1/3 sf-tooltip--arrow-${arrow}" hidden id=${component.tipId(key)}><span class="sf-tooltip-content"><span class="sf-tooltip-text">${text}</span></span></span>`;
-    return html`${(component.rowEndHasQuick() ? component.tableQuickCatalogue() : []).map((action) => surface(action.id, action.name ?? action.id, 'bottom-center'))}${surface('title', '', 'bottom-inline-start')}`;
+    return html`<span class="sf-tooltip sf-tooltip--dark sf-tooltip--size-1/3 sf-tooltip--arrow-bottom-inline-start" hidden id=${context.component.tipId('title')}><span class="sf-tooltip-content"><span class="sf-tooltip-text"></span></span></span>`;
 }
 
 function toColumnSize(value) {
@@ -666,11 +662,9 @@ const ROW_HOLE = Symbol("row-hole");
 // What a column's cells are to the look (owner decision C146): `number`,
 // end-aligned with digits of one width and never wrapped (3); `title`, the
 // record's name, up to two lines and then an ellipsis with the whole name
-// in a tooltip (7); `end`, the row's end with its quick actions and «more»
-// (5). Other cells keep one line.
+// in a tooltip (7). Other cells keep one line.
 function cellKind(component, column, columns) {
     if (!column?.key) return nothing;
-    if (column.key === 'settings') return 'end';
     if (component?.isNumberColumn?.(column)) return 'number';
     if (!column.system && column.role === 'title') return 'title';
     if (!column.system && !columns?.some((one) => one?.role === 'title')
@@ -886,7 +880,9 @@ export function renderTableTemplate(context) {
                                             </span>`)}
                                     </div>` : nothing}
                             </div>
-                            ${renderListActions(row, menu)}
+                            ${context.quickActionIds?.length
+                                ? renderListActions(row, menu)
+                                : menu ? html`<span class="sf-table-list-menu">${renderCellValue(row, menu)}</span>` : nothing}
                         </li>`))}
             </ul>`;
     }
@@ -1028,44 +1024,6 @@ export function renderTableTemplate(context) {
         </span>`;
     }
 
-    // The row's end in the table (owner decision C146 (5)): up to two quick
-    // actions, shown on hover and with the focus (always on a touch screen,
-    // the sheet's rule), and «more» (more_horiz), always shown, with every
-    // action the row offers -- the same menu a right click opens. The menu
-    // is there while the table has its menu column (settings), as the
-    // list's is.
-    function renderRowEnd(row) {
-        const component = context.component;
-        // The quick actions are drawn in the row a person is on -- under the
-        // pointer, with the focus, the current one -- and in every row of a
-        // touch screen (C146 (5)); the column keeps their room in the others.
-        const quick = component.rowEndHasQuick() && component.quickShownFor(row) ? component.tableQuickActions(row) : [];
-        const menu = component.getProp?.('settings') !== false && component.settingsColumnHasUse?.();
-        const all = menu ? component.rowActionItems(row).filter((item) => !Array.isArray(item?.members) || item.members.length) : [];
-        if (!quick.length && !all.length) return nothing;
-        const size = context.size === '1/2' ? '1/2' : '1';
-        // Inline in the cell (data-sf-cell="end" sets them in a row at its end).
-        const button = `sf-icon-button sf-icon-button--icon sf-icon-button--ghost sf-icon-button--on-surface-variant sf-icon-button--size-${size} items-cross-center`;
-        const iconOf = (action) => action?.icon ?? action?.component?.props?.icon ?? '';
-        const press = (action) => (event) => {
-            event.stopPropagation();
-            const handler = action?.component?.props?.['@click'] ?? action?.component?.props?.onClick;
-            if (typeof handler === 'function') handler(event);
-            else component.requestActionIntent(action.id, [row.id]);
-        };
-        // The buttons stand in the cell itself, written without spaces between the parts and with the glyph as a
-        // property: every text node and part marker is a node of every row of
-        // a long list (thirty a row, standard 1.3.8 gate 17).
-        const more = all.length ? html`<button type="button" class=${`${button} sf-table-row-more`} aria-label=${component.text('moreActionsLabel')} aria-haspopup="menu" data-sf-row-menu data-sf-row-more @click=${(event) => {
-            event.stopPropagation();
-            component.openRowMenu(event, row);
-        }}><i class="sf-icon" aria-hidden="true">more_horiz</i></button>` : nothing;
-        if (!quick.length) return more;
-        return [...quick.map((action) => html`<button type="button" class=${`${button} sf-table-row-quick`} data-tooltip=${component.tipId(action.id)} data-quick-action=${action.id} aria-label=${action.name ?? action.id} @click=${press(action)}><i class="sf-icon" aria-hidden="true" .textContent=${iconOf(action)}></i></button>`), more];
-    }
-
-
-
     // The title opens its record with one click (owner, 2026-10-14): the
     // column the host marked as the title is a link to the record's view when
     // the row offers it, so a record is a click away rather than a double
@@ -1146,10 +1104,7 @@ export function renderTableTemplate(context) {
             columns.forEach((column, cellIndex) => {
                 const mark = component.rowMarkupCell?.(row, column) ?? null;
                 values.push(column.key, `${row.id}_${column.key}`, cellKinds[cellIndex], pinned[cellIndex], sticky[cellIndex]);
-                if (column.key === 'settings') {
-                    kinds.push('node');
-                    values.push(renderRowEnd(row));
-                } else if (cellKinds[cellIndex] === 'title' && mark?.kind === 'text') {
+                if (cellKinds[cellIndex] === 'title' && mark?.kind === 'text') {
                     // The name as text: two lines by its cell (C146 (7)).
                     kinds.push('text');
                     values.push('sf-table-cell-text', nothing, mark.text);
