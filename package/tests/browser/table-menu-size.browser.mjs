@@ -71,8 +71,13 @@ async function stand(width, theme, density, run) {
       <button id="plain" type="button">Обычная кнопка</button>
       ${views}
     </section>
-    <sf-menu-context id="ref-1" popup size="1" aria-label="Образец 1"></sf-menu-context>
-    <sf-menu-context id="ref-h" popup size="1/2" aria-label="Образец 1/2"></sf-menu-context>
+    ${['normal', 'compact'].map((step) => `<div data-sf-density="${step}">
+      <button id="plain-${step}" type="button">Образец ${step}</button>
+      <sf-menu-context id="ref-1-${step}" popup size="1" aria-label="Образец 1"></sf-menu-context>
+      <sf-menu-context id="ref-h-${step}" popup size="1/2" aria-label="Образец 1/2"></sf-menu-context>
+      <sf-menu-context id="ref-1-${step}-r" popup size="1" data-sf-size-relative aria-label="Образец 1, от хозяина"></sf-menu-context>
+      <sf-menu-context id="ref-h-${step}-r" popup size="1/2" data-sf-size-relative aria-label="Образец 1/2, от хозяина"></sf-menu-context>
+    </div>`).join('')}
   </body></html>`);
   for (const style of styles) await page.addStyleTag({path: style});
   for (const module of modules) await page.addScriptTag({path: module, type: 'module'});
@@ -103,8 +108,15 @@ async function stand(width, theme, density, run) {
   await page.evaluate(() => document.fonts.ready);
   await page.waitForTimeout(500);
 
-  const measure = () => page.evaluate(() => {
-    const menu = [...document.querySelectorAll('sf-menu-context')].find((one) => one.isOpen);
+  // The open menu (a menu the table draws itself is found by its host), and
+  // the density the table stands in: the menu is measured against a page menu
+  // of the same size in that density.
+  const measure = (host) => page.evaluate((at) => {
+    const owner = at ? document.querySelector(at) : null;
+    const menu = owner ? owner.querySelector('sf-menu-context[data-context-main-menu]')
+      : [...document.querySelectorAll('sf-menu-context')].find((one) => one.isOpen);
+    const table = owner ?? (menu?.dataset.sfTableMenu ? document.querySelector('sf-view-table[data-sf-row-menu-open]') : null);
+    const densityOf = (node) => node?.closest?.('[data-sf-density]')?.getAttribute('data-sf-density') ?? 'normal';
     const surface = menu?.querySelector(':scope > .sf-context-menu');
     const item = surface?.querySelector('.sf-context-menu-item');
     const label = item?.querySelector('.sf-context-menu-item-label') ?? item;
@@ -112,55 +124,81 @@ async function stand(width, theme, density, run) {
       menu: menu.id || menu.dataset.sfTableMenu || 'table',
       size: menu.getAttribute('size'),
       menuDensity: menu.getAttribute('data-sf-density'),
-      density: surface?.getAttribute('data-sf-density') ?? menu.closest('[data-sf-density]')?.getAttribute('data-sf-density') ?? null,
+      density: surface?.getAttribute('data-sf-density') ?? densityOf(menu),
+      tableDensity: table ? densityOf(table) : null,
+      tableSized: Boolean(table?.hasAttribute('size')),
+      tableRow: table ? Math.round((table.querySelector('tbody tr, .sf-table-list-row, [role="row"]:not(:first-child)')?.getBoundingClientRect().height ?? 0) * 100) / 100 : null,
       row: item ? Math.round(item.getBoundingClientRect().height * 100) / 100 : null,
       text: label ? parseFloat(getComputedStyle(label).fontSize) : null,
     } : null;
-  });
+  }, host ?? null);
   const closeAll = () => page.evaluate(() => {
     for (const menu of document.querySelectorAll('sf-menu-context')) if (menu.isOpen) menu.close({restoreFocus: false, reason: 'api'});
     document.body.click();
   });
   const cases = [];
-  const take = async (label, want, open) => {
+  const take = async (label, want, open, host = null, table = null) => {
     await closeAll();
     await page.waitForTimeout(100);
+    if (table) await page.evaluate((at) => document.querySelector(at)?.setAttribute('data-sf-row-menu-open', ''), table);
     const opened = await open();
     await page.waitForTimeout(400);
-    cases.push({name: label, want, skipped: opened === false, ...(opened === false ? {} : await measure())});
+    cases.push({name: label, want, skipped: opened === false, ...(opened === false ? {} : await measure(host))});
+    if (table) await page.evaluate((at) => document.querySelector(at)?.removeAttribute('data-sf-row-menu-open'), table);
     await closeAll();
     await page.waitForTimeout(100);
   };
-  const toggle = (id) => page.evaluate((menu) => { document.getElementById(menu).toggleFor(document.getElementById('plain')); }, id);
-  await take('reference 1', '1', () => toggle('ref-1'));
-  await take('reference 1/2', '1/2', () => toggle('ref-h'));
-  const reference = {'1': cases[0], '1/2': cases[1]};
+  const toggle = (id, step) => page.evaluate(([menu, at]) => { document.getElementById(menu).toggleFor(document.getElementById(at)); }, [id, `plain-${step}`]);
+  // A page menu of each size in each density, its size written by the page
+  // and, as a host writes it for a part it sizes, marked relative: on a pair
+  // before C79 a written size kept the normal ladder in a compact area and a
+  // relative one followed it; from C79 both follow it.
+  const reference = {};
+  for (const step of ['normal', 'compact']) for (const kind of ['', '-r']) for (const [size, key] of [['1', '1'], ['1/2', 'h']]) {
+    await take(`reference ${size} (${step}${kind ? ', relative' : ''})`, size, () => toggle(`ref-${key}-${step}${kind}`, step));
+    reference[`${step}${kind} ${size}`] = cases.at(-1);
+  }
   for (const {id, want} of VIEWS) {
-    await take(`view ${id}: row menu`, want, () => page.locator(`#v-${id} tbody tr td button[data-sf-row-menu]`).first().click());
+    await take(`view ${id}: row menu`, want, () => page.locator(`#v-${id} tbody tr td button[data-sf-row-menu]`).first().click(), null, `#v-${id} sf-view-table`);
   }
   // The same row menu again after the first view's size changed.
   await page.evaluate(() => document.getElementById('v-one').setAttribute('size', '1/2'));
   await page.waitForTimeout(400);
-  await take('view one, now 1/2: row menu again', '1/2', () => page.locator('#v-one tbody tr td button[data-sf-row-menu]').first().click());
+  await take('view one, now 1/2: row menu again', '1/2', () => page.locator('#v-one tbody tr td button[data-sf-row-menu]').first().click(), null, '#v-one sf-view-table');
   for (const {id, want} of VIEWS) {
     await take(`list ${id}: sort menu`, want, async () => {
-      const button = page.locator(`#l-${id} sf-button-icon[icon="swap_vert"] button, #l-${id} sf-button-icon[icon="swap_vert"]`).first();
+      // sf-button-icon draws no box of its own (display: contents): its button is pressed.
+      const button = page.locator(`#l-${id} sf-button-icon[icon="swap_vert"] button`).first();
       if (!await button.count()) return false;
+      await button.scrollIntoViewIfNeeded();
       await button.click();
       return true;
-    });
+    }, `#l-${id}`);
   }
 
+  // A pair before C79 keeps a written size on the normal ladder in a compact
+  // area (its density helper answers "normal" for it); from C79 it follows.
+  const c79 = reference['compact 1']?.row === reference['compact-r 1']?.row && reference['compact 1']?.text === reference['compact-r 1']?.text;
   for (const one of cases) {
-    const row = {stand: name, ...one, refRow: reference[one.want]?.row, refText: reference[one.want]?.text};
+    // The density the menu should be in: the table's (a sized table may hold
+    // its own), the reference's own area for a reference.
+    const own = one.name.startsWith('reference');
+    const step = own ? (one.name.includes('compact') ? 'compact' : 'normal') : (one.tableDensity ?? density);
+    // A table without a size of its own gives its menus a size relative to it.
+    const relative = own ? one.name.includes('relative') : !one.tableSized;
+    const ref = reference[`${step}${relative ? '-r' : ''} ${one.want}`];
+    // A menu the table draws inside itself stands in the table's area; the row
+    // menu on <body> carries the table's density (core followDensity).
+    const carried = own || one.menu !== 'row' ? step : (one.tableSized && !c79 ? 'normal' : step);
+    const row = {stand: name, ...one, expectedDensity: carried, c79, refRow: ref?.row, refText: ref?.text};
     rows.push(row);
     if (one.skipped) continue;
     check(`${name}: ${one.name}: the menu opened`, typeof one.row === 'number', {got: one});
-    check(`${name}: ${one.name}: rows and text as a page menu of size ${one.want}`, one.row === reference[one.want]?.row && one.text === reference[one.want]?.text, {got: row});
-    check(`${name}: ${one.name}: the area's density`, one.density === density, {got: one});
+    check(`${name}: ${one.name}: rows and text as a page menu of size ${one.want} in ${step}`, one.row === ref?.row && one.text === ref?.text, {got: row});
+    check(`${name}: ${one.name}: the density of the table's area`, one.density === carried, {got: row});
     if (!one.name.startsWith('reference')) check(`${name}: ${one.name}: size ${one.want} written on the menu`, one.size === one.want, {got: one.size});
-    if (width === 1440) {
-      const [height, text] = LADDER[density][one.want];
+    if (width === 1440 && step === 'normal') {
+      const [height, text] = LADDER[step][one.want];
       check(`${name}: ${one.name}: the ladder value ${height}/${text}`, one.row === height && one.text === text, {got: row});
     }
   }
