@@ -83,18 +83,20 @@ const measure = async (capabilities) => {
   return measured;
 };
 
+// Since sf-view-table 1.19.0 (owner decision C146 (5)) a row's actions live in
+// one column at the row's end (key settings): «more» and the quick actions.
 try {
   const claimed = await measure(['row-actions']);
   const unclaimed = await measure([]);
 
-  if (!claimed.columns.includes('actions')) {
+  if (!claimed.columns.includes('settings')) {
     failures.push({said: 'the host claims row-actions and the list offers none', claimed});
   }
   if (!(claimed.controlsInLastCell > 0)) {
     failures.push({said: 'the host claims row-actions and the row draws no control', claimed});
   }
-  if (unclaimed.columns.includes('actions')) {
-    failures.push({said: 'the host claims no row-actions and the list draws the actions column anyway', unclaimed});
+  if (unclaimed.columns.includes('settings')) {
+    failures.push({said: 'the host claims no row-actions and the list draws the row end anyway', unclaimed});
   }
   if (unclaimed.controlsInLastCell > 0) {
     failures.push({said: 'the host claims no row-actions and the row still draws controls', unclaimed});

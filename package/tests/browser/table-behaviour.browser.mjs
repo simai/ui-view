@@ -152,10 +152,12 @@ try {
       return cell && {
         position: getComputedStyle(cell).position,
         offset: getComputedStyle(cell).insetInlineStart,
+        end: getComputedStyle(cell).insetInlineEnd,
         left: Math.round(cell.getBoundingClientRect().left),
+        right: Math.round(cell.getBoundingClientRect().right),
       };
     };
-    const widths = ['select', 'settings'].map((key) => head(key)?.getBoundingClientRect().width ?? 0);
+    const widths = ['select'].map((key) => head(key)?.getBoundingClientRect().width ?? 0);
     area.scrollLeft = 300;
     await new Promise((done) => setTimeout(done, 200));
     const areaLeft = Math.round(area.getBoundingClientRect().left);
@@ -166,6 +168,7 @@ try {
       loose: read('city'),
       widths: widths.map((value) => Math.round(value)),
       areaLeft,
+      areaRight: Math.round(area.getBoundingClientRect().left + area.clientWidth),
       scrolled: area.hasAttribute('data-sf-pin-scrolled'),
       edge: [...element.querySelectorAll('[data-sf-pin-edge]')].map((cell) => cell.dataset.key).slice(0, 2),
       scrollLeft: area.scrollLeft,
@@ -182,20 +185,25 @@ try {
   if (pinned.select?.offset !== '0px') {
     note({case: 'pinned offsets', got: pinned.select?.offset, expected: 'the box sits at the start'});
   }
-  const expectedSettings = `${pinned.widths[0]}px`;
-  if (pinned.settings?.offset !== expectedSettings) {
-    note({case: 'pinned offsets', got: pinned.settings?.offset, expected: `${expectedSettings}, the measured width of the box column`});
+  // Since 1.19.0 (owner decision C146 (5)) the row end -- the gear, the quick
+  // actions, «more» -- is one column pinned at the row's end; the box and the
+  // title start the row.
+  if (pinned.settings?.end !== '0px') {
+    note({case: 'pinned offsets', got: pinned.settings?.end, expected: 'the row end sits at the end'});
   }
-  const expectedTitle = `${pinned.widths[0] + pinned.widths[1]}px`;
+  const expectedTitle = `${pinned.widths[0]}px`;
   if (pinned.title?.offset !== expectedTitle) {
-    note({case: 'pinned offsets', got: pinned.title?.offset, expected: `${expectedTitle}, the two system columns measured`});
+    note({case: 'pinned offsets', got: pinned.title?.offset, expected: `${expectedTitle}, the box column measured`});
   }
-  // Placed, not merely sticky: while the rows are scrolled the three cells must
-  // sit side by side at the start of the area, not on top of each other.
+  // Placed, not merely sticky: while the rows are scrolled the box and the
+  // title sit side by side at the start of the area, the row end at its end.
   if (pinned.scrollLeft > 0) {
-    const places = [pinned.select?.left, pinned.settings?.left, pinned.title?.left];
-    if (!(places[0] === pinned.areaLeft && places[1] > places[0] && places[2] > places[1])) {
-      note({case: 'pinned placement', got: places, areaLeft: pinned.areaLeft, expected: 'three cells in a row from the start of the area'});
+    const places = [pinned.select?.left, pinned.title?.left];
+    if (!(places[0] === pinned.areaLeft && places[1] > places[0])) {
+      note({case: 'pinned placement', got: places, areaLeft: pinned.areaLeft, expected: 'the box and the title in a row from the start of the area'});
+    }
+    if (Math.abs((pinned.settings?.right ?? 0) - pinned.areaRight) > 1) {
+      note({case: 'pinned placement', got: pinned.settings?.right, areaRight: pinned.areaRight, expected: 'the row end at the end of the area'});
     }
     if (!pinned.scrolled) note({case: 'pinned edge', expected: 'the area says it is scrolled, so the shadow shows'});
   } else {
@@ -247,11 +255,11 @@ try {
     await dragged.mouse.up();
     await dragged.waitForTimeout(600);
     const after = await dragged.evaluate(() => [...document.querySelectorAll('#t thead th')].map((cell) => cell.dataset.key).join(','));
-    if (before !== 'select,settings,name,code,city,actions') {
+    if (before !== 'select,name,code,city,settings') {
       note({case: 'column move', before, expected: 'the pinned title column first, then the loose ones in order'});
     }
-    if (after !== 'select,settings,name,city,code,actions') {
-      note({case: `column move${rerenderMidway ? ' with a render halfway' : ''}`, after, expected: 'select,settings,name,city,code,actions'});
+    if (after !== 'select,name,city,code,settings') {
+      note({case: `column move${rerenderMidway ? ' with a render halfway' : ''}`, after, expected: 'select,name,city,code,settings'});
     }
     await dragged.close();
   }
