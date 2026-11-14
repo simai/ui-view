@@ -1642,9 +1642,11 @@ class SfDataView extends DataViewElement {
             apply.setAttribute("scheme", "on-surface");
             if (danger) apply.setAttribute("status", "error");
             chosen(apply, "size", this.controlSize);
-            apply.addEventListener("click", () => this.applyBulkAction());
             parts.apply.replaceWith(apply);
-            parts.apply = apply;
+            // Bound once it is in the band and drawn, as the first one is
+            // (bound on the element still to be drawn, a press arrived twice).
+            parts.apply = band.querySelector('[data-sf-bulk="apply"]') ?? apply;
+            parts.apply.addEventListener("click", () => this.applyBulkAction());
         }
         chosen(parts.apply, "text", pagination.actionApplyText);
         chosen(parts.apply, "disabled", !action);
