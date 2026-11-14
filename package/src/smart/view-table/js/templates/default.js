@@ -1109,9 +1109,11 @@ export function renderTableTemplate(context) {
                 (event) => component.handleRowKeydown(event, row),
             ];
             columns.forEach((column, cellIndex) => {
-                const mark = component.rowMarkupCell?.(row, column) ?? null;
+                // The main field of a row that opens is its link, not markup.
+                const opens = column.key === titleColumn && component.canOpenRow?.(row) && row?.id != null;
+                const mark = opens ? null : (component.rowMarkupCell?.(row, column) ?? null);
                 values.push(column.key, `${row.id}_${column.key}`, cellKinds[cellIndex], pinned[cellIndex], sticky[cellIndex]);
-                if (cellKinds[cellIndex] === 'title' && mark?.kind === 'text' && column.key !== titleColumn) {
+                if (cellKinds[cellIndex] === 'title' && mark?.kind === 'text') {
                     // The name as text: two lines by its cell (C146 (7)).
                     kinds.push('text');
                     values.push('sf-table-cell-text', nothing, mark.text);
