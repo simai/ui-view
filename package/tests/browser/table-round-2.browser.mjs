@@ -61,8 +61,10 @@ try {
   const table = await open('<div style="width:800px"><sf-view-table id="t" toolbar="false"></sf-view-table></div>');
   await fill(
     table,
-    [{key: 'name', label: 'Name', role: 'title', width: 220, sortable: true}, {key: 'city', label: 'City', width: 220}],
-    [{id: 'a', name: 'A', city: 'X', actions: ['view']}, {id: 'b', name: 'B', city: 'Y', actions: ['view']}],
+    // The last column has no edge to drag; with the «Действия» column gone
+    // (C146 (5), variant В) a third column keeps city's edge in the middle.
+    [{key: 'name', label: 'Name', role: 'title', width: 220, sortable: true}, {key: 'city', label: 'City', width: 220}, {key: 'note', label: 'Note', width: 160}],
+    [{id: 'a', name: 'A', city: 'X', note: 'n', actions: ['view']}, {id: 'b', name: 'B', city: 'Y', note: 'm', actions: ['view']}],
   );
   const handle = await table.evaluate(() => {
     const cell = document.querySelector('#t thead th[data-key="city"]');

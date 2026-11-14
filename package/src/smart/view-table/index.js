@@ -861,8 +861,14 @@ class SfTable extends TableElement {
     renderBulkActions() {
         if (!this.state.bulkActions?.length) return nothing;
         const selected = this.getSelectedRecordIds();
+        // C116: a bulk action is a regular button (outline on-surface); one
+        // that deletes opens a confirmation, so it is the outlined danger and
+        // stands last (C164 (5)). None is the filled main button.
+        const destructive = (action) => /^(delete|remove|destroy|trash)\b/iu.test(String(action.id));
+        const ordered = [...this.state.bulkActions].sort((a, b) => Number(destructive(a)) - Number(destructive(b)));
         return html`<div class="flex flex-wrap gap-1/3">
-            ${this.state.bulkActions.map((action) => html`<sf-button
+            ${ordered.map((action) => html`<sf-button
+                appearance="outline" scheme="on-surface" status=${destructive(action) ? "error" : nothing}
                 text=${action.name} ?disabled=${selected.length === 0}
                 @click=${() => {
                     const ids = this.getSelectedRecordIds();
@@ -8074,6 +8080,27 @@ class SfTable extends TableElement {
         return rows.find((row, index) => String(this.getRowKey(row, index)) === key) ?? null;
     }
 
+    // The rows a context menu over `row` acts on (C164): a selected row
+    // speaks for the whole selection; a row outside it becomes the selection
+    // first. ids is null for the row alone.
+    //
+    // The table's own context wiring (the contextmenu listener and the menu
+    // key in handleGridKeydown, both through openRowMenuOf) stands in for the
+    // SIMAI Framework engine, sf-menu-context 1.21.0 `for="<table id>"` with
+    // its cancellable `open` event (ui-source fix/context-menu-c164). Once a
+    // pair carries it, the switch is: bind the row menu with `for`, drop the
+    // two triggers, and in the `open` handler take `targets` as the ids and
+    // fill the entries with openRowMenu's list -- this function and the entry
+    // building stay.
+    rowMenuTargets(row) {
+        if (!this.getPropsContext().selectable) return {ids: null, reselected: false};
+        const selected = this.getSelectedRecordIds().map(String);
+        if (selected.includes(String(row.id))) return {ids: selected, reselected: false};
+        if (selected.length) this.clearSelection();
+        this.applyRowSelection(row.id, true);
+        return {ids: null, reselected: true};
+    }
+
     // Opens a row's «≡» menu as its button would, under the button; a table
     // without the button (settings="false") opens it under the cell.
     openRowMenuOf(rowElement, from) {
@@ -8082,19 +8109,7 @@ class SfTable extends TableElement {
         // The menu key sends a keydown and then a contextmenu: the second
         // must not close what the first opened.
         if (this._rowMenu?.isOpen && this._rowMenuContext?.row === row) return true;
-        // C164: a selected row speaks for the whole selection; a row outside
-        // it becomes the selection first, then its menu opens.
-        let ids = null;
-        let reselected = false;
-        if (this.getPropsContext().selectable) {
-            const selected = this.getSelectedRecordIds().map(String);
-            if (selected.includes(String(row.id))) ids = selected;
-            else {
-                if (selected.length) this.clearSelection();
-                this.applyRowSelection(row.id, true);
-                reselected = true;
-            }
-        }
+        const {ids, reselected} = this.rowMenuTargets(row);
         const key = rowElement.dataset.rowId;
         const cellKey = from?.closest?.("td")?.dataset.key;
         const open = () => {

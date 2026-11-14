@@ -713,7 +713,12 @@ function rowStrings(kinds) {
         pieces.push(...(kind === 'actions' ? [' ', ROW_HOLE, '>'] : ['>']));
         if (kind === 'box') {
             pieces.push('<label class=', ROW_HOLE, '><span class="sf-checkbox-box transition flex"><input type="checkbox" data-sf-row-box value=', ROW_HOLE,
-                ' .checked=', ROW_HOLE, ' aria-label=', ROW_HOLE, ' @change=', ROW_HOLE, '></span></label>');
+                ' .checked=', ROW_HOLE, ' aria-label=', ROW_HOLE, ' @change=', ROW_HOLE,
+                // The tick: checkbox class markup draws the glyph of the
+                // .sf-icon inside the box (sf-checkbox's own template does the
+                // same with sf-icon); without it a checked row showed a filled
+                // box and no tick (DEV recipes p1, 2026-11-15).
+                '><i class="sf-icon sf-icon--weight-regular pointer-event-none" aria-hidden="true" .textContent=', ROW_HOLE, '></i></span></label>');
         } else if (kind === 'menu') {
             pieces.push('<button type="button" class=', ROW_HOLE, ' aria-label=', ROW_HOLE, ' value="menu" data-sf-row-menu @click=', ROW_HOLE,
                 '><i class="sf-icon sf-icon--weight-regular pointer-event-none" aria-hidden="true">menu</i></button>');
@@ -1119,7 +1124,7 @@ export function renderTableTemplate(context) {
                     values.push('sf-table-cell-text', nothing, mark.text);
                 } else if (mark?.kind === 'box') {
                     kinds.push('box');
-                    values.push(`sf-checkbox sf-checkbox--size-${mark.size} flex content-main-between cursor-pointer`, mark.value, mark.checked, mark.label, mark.change);
+                    values.push(`sf-checkbox sf-checkbox--size-${mark.size} flex content-main-between cursor-pointer`, mark.value, mark.checked, mark.label, mark.change, mark.checked ? 'check' : '');
                 } else if (mark?.kind === 'menu') {
                     kinds.push('menu');
                     values.push(`sf-icon-button sf-icon-button--size-${mark.size} sf-icon-button--icon sf-icon-button--link flex items-cross-center sf-icon-button--on-surface`, mark.label, mark.click);

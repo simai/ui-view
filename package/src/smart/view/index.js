@@ -1600,7 +1600,7 @@ class SfDataView extends DataViewElement {
                 <span class="sf-pagination-actions-count" data-sf-bulk="count"></span>
                 <span class="sf-pagination-actions-separator" aria-hidden="true"></span>
                 <sf-dropdown data-sf-bulk="actions" appearance="outlined" search="false" mode="select"></sf-dropdown>
-                <sf-button data-sf-bulk="apply" appearance="default" scheme="primary"></sf-button>
+                <sf-button data-sf-bulk="apply" appearance="outline" scheme="on-surface"></sf-button>
                 <span class="sf-pagination-actions-separator" aria-hidden="true" data-sf-bulk="for-all-separator"></span>
                 <sf-checkbox data-sf-bulk="for-all"></sf-checkbox>
                 <sf-button-icon data-sf-bulk="clear" class="sf-pagination-actions-clear" appearance="ghost" scheme="on-surface" icon="close"></sf-button-icon>`;
@@ -1623,11 +1623,15 @@ class SfDataView extends DataViewElement {
         chosen(parts.actions, "aria-label", pagination.actionsLabel);
         parts.actions.options = [
             {type: "text", size: this.controlSize ?? undefined, text: pagination.actionChooseLabel, value: "", selected: !action},
-            ...actions.map((item) => ({
+            ...[...actions].sort((a, b) => Number(this._bulkDestructive(a)) - Number(this._bulkDestructive(b))).map((item) => ({
                 type: "text", size: this.controlSize ?? undefined, text: item.text, value: item.value,
                 selected: item.value === action, disabled: Boolean(item.disabled),
             })),
         ];
+        // C116: Apply is a regular button in a band of controls (outline
+        // on-surface), never the filled main one; over an action that
+        // deletes it is the outlined danger, and that action is listed last.
+        chosen(parts.apply, "status", this._bulkDestructive(actions.find((item) => item.value === action)) ? "error" : null);
         chosen(parts.apply, "text", pagination.actionApplyText);
         chosen(parts.apply, "disabled", !action);
         chosen(parts["for-all"], "label", forAllLabel);
@@ -1640,6 +1644,10 @@ class SfDataView extends DataViewElement {
         chosen(parts.clear, "aria-label", pagination.clearSelectionLabel);
 
         return this;
+    }
+
+    _bulkDestructive(item) {
+        return Boolean(item) && (item.danger === true || /^(delete|remove|destroy|trash)\b/iu.test(String(item.value ?? item.id ?? "")));
     }
 
     // Apply is the band's only write, and it goes the same way it went from the

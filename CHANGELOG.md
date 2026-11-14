@@ -22,7 +22,10 @@ in brackets. The site page «Изменения» says the same in Russian.
   every action, the hover-only «Действия» column is gone, the main field is
   the link that opens the record, the right button, Shift+F10 and the menu
   key open the same «≡» menu (on a selected row it acts on the whole
-  selection, «Выбрано N»; «Удалить» last after a divider, C164); cell badges tonal (C140); the sort mark only on the sorted column; a title up to two
+  selection, «Выбрано N»; «Удалить» last after a divider, C164); bulk
+  actions are regular buttons, the deleting one outlined danger and last
+  (C116; also the Apply of `sf-view`'s bulk band, 1.12.1); a checked row box
+  draws its tick again; cell badges tonal (C140); the sort mark only on the sorted column; a title up to two
   lines, then an ellipsis and a tooltip; a table with actions is a grid with
   one Tab stop and arrow keys, column-resize edges are no Tab stops (RS-10);
   `layout` defaults to `auto` (a list below `list-below`), a plain table on a

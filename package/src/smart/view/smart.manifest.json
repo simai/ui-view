@@ -1652,7 +1652,8 @@
         "from": "1.12.0",
         "to": "1.12.1",
         "changes": [
-          "The first paint's rows are the table's C146 rows (sf-view-table 1.19.0): the step's control, 40 at size 1 and 32 at 1/2 and compact, the head as tall; they were the rung above (48 and 40). Nothing to change for a host."
+          "The first paint's rows are the table's C146 rows (sf-view-table 1.19.0): the step's control, 40 at size 1 and 32 at 1/2 and compact, the head as tall; they were the rung above (48 and 40). Nothing to change for a host.",
+          "The bulk band's Apply is a regular button (outline on-surface, C116), the outlined danger over an action that deletes (delete, remove, destroy, trash), and such an action is listed last (C164 (5)); it was the filled main button. Nothing to change for a host."
         ]
       }
     ]
@@ -1663,7 +1664,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view/index.js",
-        "sha256": "e9697bf4b62a6532e669912f7646688c46c48a25cde4f74c68d352c90c4c5724"
+        "sha256": "ba762d3d370fa61965752e3c40e9931dc9ba65f13a4608f0dda28a777650ddf4"
       },
       {
         "path": "src/core/contracts/ports/simai.dataview-port/1.5.0/port.json",
