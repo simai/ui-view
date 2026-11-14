@@ -193,8 +193,8 @@
   }
 
   /* A row (the head first) as tall as the table's: the step's control, the
-     line under it inside (box-sizing), as the table draws its line inside
-     the cell. */
+     line under it drawn inside, as the table draws its line inside the cell
+     (a border under a control-tall bar made each row a pixel taller). */
   .sf-data-view-skeleton-table > div {
     display: flex;
     align-items: center;
@@ -202,7 +202,7 @@
     box-sizing: border-box;
     min-block-size: var(--sf-data-view-skeleton--row);
     padding-block: var(--sf-data-view-skeleton--row-pad);
-    border-block-end: var(--sf-px) solid var(--sf-outline-variant);
+    box-shadow: inset 0 calc(-1 * var(--sf-px)) 0 var(--sf-outline-variant);
   }
 
   .sf-data-view-skeleton-table > div > span {
