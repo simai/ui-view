@@ -2934,6 +2934,12 @@ class SfTable extends TableElement {
         return this.tableQuickCatalogue().length;
     }
 
+    // Whether a row draws its quick actions: the row a person is on, or every
+    // row where nothing hovers.
+    quickShownFor(row) {
+        return this.actionsShownFor(row) || Boolean(globalThis.matchMedia?.("(hover: none)")?.matches);
+    }
+
     // The id of one of the table's shared tooltips (a quick action's, or the
     // cut name's).
     tipId(key) {
@@ -7966,7 +7972,7 @@ class SfTable extends TableElement {
         const table = this.refs.table?.value;
         if (!table) return;
         const tip = this.tipId("title");
-        for (const clamp of table.querySelectorAll("tbody .sf-table-title-clamp")) {
+        for (const clamp of table.querySelectorAll('tbody td[data-sf-cell="title"] .sf-table-cell-text')) {
             const clipped = clamp.scrollHeight > clamp.clientHeight + 1 || clamp.scrollWidth > clamp.clientWidth + 1;
             if (clipped !== clamp.hasAttribute("data-sf-clipped")) clamp.toggleAttribute("data-sf-clipped", clipped);
             // A cut name is a trigger of the table's name tooltip; a whole
@@ -7979,7 +7985,7 @@ class SfTable extends TableElement {
         // The name tooltip says the name the pointer or the focus is on,
         // written before the tooltip's delay ends.
         const write = (event) => {
-            const clamp = event.target instanceof Element ? event.target.closest(".sf-table-title-clamp[data-sf-clipped]") : null;
+            const clamp = event.target instanceof Element ? event.target.closest('td[data-sf-cell="title"] .sf-table-cell-text[data-sf-clipped]') : null;
             const text = clamp ? document.getElementById(tip)?.querySelector(".sf-tooltip-text") : null;
             if (text && text.textContent !== clamp.textContent.trim()) text.textContent = clamp.textContent.trim();
         };

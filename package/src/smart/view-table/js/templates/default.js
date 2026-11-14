@@ -1036,7 +1036,10 @@ export function renderTableTemplate(context) {
     // list's is.
     function renderRowEnd(row) {
         const component = context.component;
-        const quick = component.rowEndHasQuick() ? component.tableQuickActions(row) : [];
+        // The quick actions are drawn in the row a person is on -- under the
+        // pointer, with the focus, the current one -- and in every row of a
+        // touch screen (C146 (5)); the column keeps their room in the others.
+        const quick = component.rowEndHasQuick() && component.quickShownFor(row) ? component.tableQuickActions(row) : [];
         const menu = component.getProp?.('settings') !== false && component.settingsColumnHasUse?.();
         const all = menu ? component.rowActionItems(row).filter((item) => !Array.isArray(item?.members) || item.members.length) : [];
         if (!quick.length && !all.length) return nothing;
@@ -1057,17 +1060,10 @@ export function renderTableTemplate(context) {
             event.stopPropagation();
             component.openRowMenu(event, row);
         }}><i class="sf-icon" aria-hidden="true">more_horiz</i></button>` : nothing;
+        if (!quick.length) return more;
         return [...quick.map((action) => html`<button type="button" class=${`${button} sf-table-row-quick`} data-tooltip=${component.tipId(action.id)} data-quick-action=${action.id} aria-label=${action.name ?? action.id} @click=${press(action)}><i class="sf-icon" aria-hidden="true" .textContent=${iconOf(action)}></i></button>`), more];
     }
 
-    // The record's name in the table (owner decision C146 (7)): up to two
-    // lines, then an ellipsis; the whole name is the Framework tooltip's,
-    // shown only when the name is cut: the table marks a cut name after
-    // drawing it (markClippedTitles), which links it to the table's one name
-    // tooltip and writes the name into it when the pointer comes.
-    function renderTitleClamp(row, column, value) {
-        return html`<span class="sf-table-title-clamp">${value}</span>`;
-    }
 
 
     // The title opens its record with one click (owner, 2026-10-14): the
@@ -1120,8 +1116,10 @@ export function renderTableTemplate(context) {
         const spacer = (height, key) => html`<tr class="sf-table-window-spacer" aria-hidden="true" data-sf-window-spacer=${key}><td colspan=${span} style=${`block-size: ${Math.max(0, Math.round(height))}px`}></td></tr>`;
         const fullCell = (row, column, kind) => {
             const value = column.key === titleColumn ? renderTitleLink(context, row, renderCellValue(row, column)) : renderCellValue(row, column);
-            if (column.key === treeColumn) return renderTreeCell(context, row, kind === 'title' ? renderTitleClamp(row, column, value) : value);
-            return kind === 'title' ? renderTitleClamp(row, column, value) : value;
+            // The name's two lines (C146 (7)) are its cell's text, by the
+            // cell's data-sf-cell="title": no element around it.
+            if (column.key === treeColumn) return renderTreeCell(context, row, value);
+            return value;
         };
         const renderRow = (row, at) => {
             const index = at + offset;
@@ -1152,10 +1150,9 @@ export function renderTableTemplate(context) {
                     kinds.push('node');
                     values.push(renderRowEnd(row));
                 } else if (cellKinds[cellIndex] === 'title' && mark?.kind === 'text') {
-                    // The name as text: the text cell itself is the clamp
-                    // (two lines), with no element around it.
+                    // The name as text: two lines by its cell (C146 (7)).
                     kinds.push('text');
-                    values.push('sf-table-cell-text sf-table-title-clamp', nothing, mark.text);
+                    values.push('sf-table-cell-text', nothing, mark.text);
                 } else if (mark?.kind === 'box') {
                     kinds.push('box');
                     values.push(`sf-checkbox sf-checkbox--size-${mark.size} flex content-main-between cursor-pointer`, mark.value, mark.checked, mark.label, mark.change);

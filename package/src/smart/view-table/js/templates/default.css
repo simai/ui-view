@@ -1188,21 +1188,8 @@
 
   /* The record's name (owner decision C146 (7)): two lines at most, then an
      ellipsis; the tooltip with the whole name shows only on a cut name. */
-  :is(sf-view-table, sf-table) .sf-table-title-clamp {
+  :is(sf-view-table, sf-table) td[data-sf-cell="title"] {
     --sf-table-cell--line-clamp: 2;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
-    overflow: hidden;
-    overflow-wrap: anywhere;
-  }
-
-  /* The text inside the name is the name's lines, not a one-line cell's. */
-  :is(sf-view-table, sf-table) .sf-table-title-clamp .sf-table-cell-text {
-    display: inline;
-    -webkit-line-clamp: none;
-    line-clamp: none;
   }
 
   /* The row's end (owner decision C146 (5)): the quick actions, then «more»

@@ -5,12 +5,13 @@
 //   - the column settings are read once a draw, not once a cell: counted
 //     over one setRows() draw, 8 rows ask getColumnSettings() a handful of
 //     times (they asked 268), a window of 60 rows of 1 000 as few;
-//   - an idle row's actions cell is the bare <td>: a row of the bench's five
-//     columns with its box, menu and actions is 29 nodes (it was 31, with an
-//     empty box and its marker);
-//   - the buttons still come into the row under the pointer and leave it,
-//     and focus that brings them in stays where it is (the row is not drawn
-//     anew);
+//   - since 1.19.0 (owner decision C146 (5)) a row ends in one cell: its two
+//     quick actions and «more», drawn once and shown by the sheet -- under
+//     the pointer and with the focus -- so a row of the bench's five columns
+//     with its box and its end stays within thirty nodes (standard 1.3.8
+//     gate 17) and is never drawn anew for a hover;
+//   - the pointer and the focus show the quick actions without drawing the
+//     row again, and the focus stays where it is;
 //   - a clean console.
 import {resolve, join} from 'node:path';
 import {chromium} from 'playwright';
@@ -56,37 +57,48 @@ try {
       const draw8 = calls;
       const row = t.querySelector('tbody tr[data-row-id="2"]');
       const nodes = count(row);
-      const idleCell = count(row.querySelector('td[data-key="actions"]'));
+      const endCell = row.querySelector('td[data-key="settings"]');
+      const idleCell = {buttons: endCell?.querySelectorAll('button').length ?? 0,
+        shown: [...(endCell?.querySelectorAll('[data-quick-action]') ?? [])].map((button) => getComputedStyle(button).opacity)};
       calls = 0; t.setRows(R1000); await settle();
       const window1000 = calls;
       const drawn = t.querySelectorAll('tbody tr[data-row-id]').length;
       Ctor.prototype.getColumnSettings = get;
       t.setRows(R8); await settle();
       const three = () => t.querySelector('tbody tr[data-row-id="3"]');
-      const before = three();
-      before.querySelector('td[data-key="owner"]').dispatchEvent(new PointerEvent('pointerover', {bubbles: true}));
-      await settle();
-      const hovered = three().querySelectorAll('td[data-key="actions"] button').length;
-      const same = three() === before;
-      t.querySelector('tbody tr[data-row-id="5"] td[data-key="owner"]').dispatchEvent(new PointerEvent('pointerover', {bubbles: true}));
-      await settle();
-      const left = three().querySelectorAll('td[data-key="actions"] button').length;
-      const leftNodes = count(three());
-      // Focus into row 6: its buttons come in, the focus stays on the link.
+      window.__three = three();
+      // Focus into row 6: its quick actions show, the focus stays on the link.
       const link = t.querySelector('tbody tr[data-row-id="6"] .sf-table-title-link');
       link?.focus();
       await settle();
       const focus = {kept: document.activeElement === link && link.isConnected,
-        buttons: t.querySelectorAll('tbody tr[data-row-id="6"] td[data-key="actions"] button').length};
-      return {draw8, window1000, drawn, nodes, idleCell, hovered, same, left, leftNodes, focus};
+        shown: [...t.querySelectorAll('tbody tr[data-row-id="6"] [data-quick-action]')].map((button) => getComputedStyle(button).opacity)};
+      link?.blur();
+      return {draw8, window1000, drawn, nodes, idleCell, focus};
     }, {COLUMNS, R8: rows(8), R1000: rows(1000)});
+    // The pointer: a real one, the sheet's :hover.
+    await tab.hover('tbody tr[data-row-id="3"] td[data-key="owner"]');
+    await tab.waitForTimeout(300);
+    const hover = await tab.evaluate(() => {
+      const three = document.querySelector('#t tbody tr[data-row-id="3"]');
+      return {same: three === window.__three, shown: [...three.querySelectorAll('[data-quick-action]')].map((button) => getComputedStyle(button).opacity)};
+    });
+    await tab.hover('tbody tr[data-row-id="5"] td[data-key="owner"]');
+    await tab.waitForTimeout(300);
+    const left = await tab.evaluate(() => [...document.querySelectorAll('#t tbody tr[data-row-id="3"] [data-quick-action]')].map((button) => getComputedStyle(button).opacity));
+    read.hover = hover;
+    read.left = left;
     const where = scheme;
     if (read.draw8 > 12) failures.push(`${where}: a draw of 8 rows read the column settings ${read.draw8} times`);
     if (read.window1000 > 12) failures.push(`${where}: a window of ${read.drawn} rows read the column settings ${read.window1000} times`);
-    if (read.nodes !== 29 || read.idleCell !== 1) failures.push(`${where}: an idle row is ${read.nodes} nodes, its actions cell ${read.idleCell}`);
-    if (read.hovered < 1 || !read.same) failures.push(`${where}: the row under the pointer has ${read.hovered} buttons (row kept: ${read.same})`);
-    if (read.left !== 0) failures.push(`${where}: the row left keeps ${read.left} buttons`);
-    if (!read.focus.kept || read.focus.buttons < 1) failures.push(`${where}: focus into a row: ${JSON.stringify(read.focus)}`);
+    if (read.nodes > 30 || read.idleCell.buttons !== 3 || read.idleCell.shown.some((opacity) => opacity !== '0')) {
+      failures.push(`${where}: an idle row is ${read.nodes} nodes, its end ${JSON.stringify(read.idleCell)} (two quick actions hidden and «more»)`);
+    }
+    if (!read.hover.same || read.hover.shown.length !== 2 || read.hover.shown.some((opacity) => opacity !== '1')) {
+      failures.push(`${where}: the row under the pointer: ${JSON.stringify(read.hover)}`);
+    }
+    if (read.left.some((opacity) => opacity !== '0')) failures.push(`${where}: the row left keeps its quick actions shown (${read.left})`);
+    if (!read.focus.kept || read.focus.shown.some((opacity) => opacity !== '1')) failures.push(`${where}: focus into a row: ${JSON.stringify(read.focus)}`);
     if (errors.length) failures.push(`${where}: console ${errors.slice(0, 3).join(' | ')}`);
     await context.close();
   }
@@ -100,4 +112,4 @@ if (failures.length) {
   console.error(failures.join('\n'));
   process.exit(1);
 }
-console.log('table row cost: the column settings read once a draw, an idle row 29 nodes, the buttons come and go with the pointer and the focus');
+console.log('table row cost: the column settings read once a draw, a row within thirty nodes, the quick actions shown by the pointer and the focus without a redraw');
