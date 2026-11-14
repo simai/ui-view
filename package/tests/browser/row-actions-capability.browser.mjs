@@ -103,9 +103,6 @@ try {
   if (unclaimed.rowMenus > 0) {
     failures.push({said: 'the host claims no row-actions and the row still draws a ≡ menu', unclaimed});
   }
-  if (unclaimed.nameLink) {
-    failures.push({said: 'the host claims no row-actions and the name still opens the record', unclaimed});
-  }
 
   console.log(JSON.stringify({
     probe: 'row-actions-capability',

@@ -72,5 +72,11 @@ test('the settings column stays for the gear, a row menu or reordering', () => {
 });
 
 test('settings false is the word of the host, whatever the table could offer', () => {
-    assert.deepEqual(keys(table({settings: false, settingsMenu: true, rowReorder: true})), []);
+    assert.deepEqual(keys(table({settings: false, settingsMenu: true, rowReorder: true, rowActions: false})), []);
+    assert.deepEqual(keys(table({settings: false, settingsMenu: true, rowReorder: true}, false)), []);
+});
+
+test('row actions keep the ≡ column when settings are off (variant В)', () => {
+    assert.deepEqual(keys(table({settings: false})), ['settings']);
+    assert.deepEqual(keys(table({settings: false}, true, [])), []);
 });

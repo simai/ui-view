@@ -2761,11 +2761,11 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-table/index.js",
-        "sha256": "b235ae30ba1ca8f07e62178c3366c9a0e706c7f608c2faec256805ae3c4f5590"
+        "sha256": "cd3374eef5e3fd4ab566a31f00d468c750c3d6ee5e85943d9404f994fbdea8d7"
       },
       {
         "path": "src/smart/view-table/js/templates/default.js",
-        "sha256": "76df533366e7c88f67c0a2a8b7bacc56cf427f0206d138465618b596fa01e4e1"
+        "sha256": "7f61f13fec17c33557ac20f4880ca8a58640b0bd8d7676703f3a66ec069b6938"
       },
       {
         "path": "src/smart/view-table/js/templates/default.css",

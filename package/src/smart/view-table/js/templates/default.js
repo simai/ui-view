@@ -359,7 +359,8 @@ function renderHeadLabel(context, column) {
     // The gear opens the column settings; without them (settings-menu="false",
     // a host that saves no personal settings) the column keeps its row menus and
     // its heading is only a name.
-    if (column.key === 'settings' && context.settingsMenu === false) {
+    // settings="false" with row actions keeps the column for the «≡» alone.
+    if (column.key === 'settings' && (context.settingsMenu === false || context.settings === false)) {
         return html`<span class="sf-table-visually-hidden">${context.component.text('settingsColumnLabel')}</span>`;
     }
     const content = column.component

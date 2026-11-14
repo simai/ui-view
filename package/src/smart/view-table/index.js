@@ -3233,13 +3233,18 @@ class SfTable extends TableElement {
         if (props.selectable) {
             columns.push(this.getSelectColumn());
         }
-        if (props.settings && this.settingsColumnHasUse(props)) {
-            columns.push(this.TABLE_SETTINGS_COLUMN);
-        }
         // No «Действия» column (owner decision C146 (5), variant В): every
         // action of a row is in its «≡» menu, which the right button, the
         // menu key and Shift+F10 open too; opening the record is the main
-        // field's link. The hover-only column of buttons is gone.
+        // field's link. The hover-only column of buttons is gone, so the
+        // «≡» column carries the row actions wherever that column stood:
+        // settings="false" (a view whose chrome draws no settings) takes the
+        // gear from its head and keeps the row menus.
+        const rowMenus = Boolean(props.actions && props.rowActions && this.state.actionActive
+            && (this.ACTIONS_SETTINGS_ROW ?? []).length);
+        if ((props.settings && this.settingsColumnHasUse(props)) || rowMenus) {
+            columns.push(this.TABLE_SETTINGS_COLUMN);
+        }
 
         return columns;
     }
