@@ -423,9 +423,13 @@ function renderHead(context) {
                                          two headers. There is no handle to find
                                          first: this is the line's own hit strip,
                                          invisible, astride the separator, and
-                                         still a button, so the keyboard keeps
-                                         the name and the arrows it had. -->
+                                         still a button with its name and its
+                                         arrows. It is no Tab stop of its own
+                                         (owner decision C146 (8), the resizer
+                                         study RS-10): the table is one stop,
+                                         and a width is set by the pointer. -->
                                     <button type="button"
+                                            tabindex="-1"
                                             role="separator"
                                             aria-orientation="vertical"
                                             class="sf-table-column-resizer"
@@ -1020,8 +1024,7 @@ export function renderTableTemplate(context) {
     // list's is.
     function renderRowEnd(row) {
         const component = context.component;
-        const quick = component.getProp?.('actions') !== false && component.getProp?.('rowActions') !== false
-            ? component.tableQuickActions(row) : [];
+        const quick = component.rowEndHasQuick() ? component.tableQuickActions(row) : [];
         const menu = component.getProp?.('settings') !== false && component.settingsColumnHasUse?.();
         const all = menu ? component.rowActionItems(row).filter((item) => !Array.isArray(item?.members) || item.members.length) : [];
         if (!quick.length && !all.length) return nothing;

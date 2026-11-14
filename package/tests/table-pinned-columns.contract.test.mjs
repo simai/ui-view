@@ -17,12 +17,12 @@ test('the person decides what is pinned, and the title column starts pinned', as
   // pinned until the person says otherwise.
   assert.match(
     source,
-    /isColumnPinned\(column\) \{[\s\S]*?if \(column\.key === "select" \|\| column\.key === "settings"\) return true;/u,
-    'the box and the row menu are always pinned',
+    /isColumnPinned\(column\) \{[\s\S]*?if \(column\.key === "select"\) return true;/u,
+    'the box is always pinned; the row end pins itself through sticky: "end" (C146 (5))',
   );
   assert.match(
     source,
-    /const chosen = pending\?\.pinned \?\? setting\.pinned \?\? column\.pinned;\s*if \(typeof chosen === "boolean"\) return chosen;\s*\n\s*return column\.role === "title";/u,
+    /const chosen = pending\?\.pinned \?\? setting\.pinned \?\? column\.pinned;\s*if \(typeof chosen === "boolean"\) return chosen;\s*\n\s*if \(column\.role === "title"\) return true;/u,
     'a stored answer wins, and without one the title column is the pinned one',
   );
   assert.match(

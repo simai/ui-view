@@ -131,6 +131,11 @@
       "default": true,
       "summary": "Show the built-in toolbar; a composite can provide its own toolbar slot."
     },
+    "stripes": {
+      "type": "boolean",
+      "default": false,
+      "summary": "Alternate rows (zebra), the report author's choice for a wide table that is only read (owner decision C146 (4)). A person's view no longer offers it; lines between the rows and the hovered and selected row's fill are the table's own."
+    },
     "pin-column-label": {
       "type": "string",
       "default-from": "runtime.pin-column-label",
@@ -177,8 +182,8 @@
         "table",
         "list"
       ],
-      "default": "table",
-      "summary": "How the records are drawn: a table, a compact list of records, or auto -- a table while the table's container is at least list-below pixels wide, the list below that. sf-view asks for auto on a page's list. With layout-switch, the person's choice comes first."
+      "default": "auto",
+      "summary": "How the records are drawn: a table, a compact list of records, or auto (the default since 1.19.0, owner decisions C31 and C146) -- a table while the table's container is at least list-below pixels wide, the list below that. `table` keeps a table at every width; in a narrow box it scrolls sideways with its first column standing still (C146 (9)). With layout-switch, the person's choice comes first."
     },
     "layout-switch": {
       "type": "boolean",
@@ -198,7 +203,7 @@
     "quick-actions": {
       "type": "string",
       "default": "",
-      "summary": "The row actions a list row shows as icon buttons, always visible: their ids, comma-separated, at most three (owner decision C31). The rest stay in the row menu, which in the list is «more» (more_horiz) instead of the menu icon; on a narrow list (below 37.5rem) the quick ones fold into it too. An action without an icon is a text button."
+      "summary": "The row actions shown as icon buttons: their ids, comma-separated. In the list, at most three, always visible (owner decision C31); in the table, the first two, beside «more» at the row's end, shown on hover and focus and always on a touch screen (C146 (5)). Without it the table shows the first two actions of the catalogue that are neither a group nor destructive and have an icon; the list shows none. «More» (more_horiz) holds every action, in the table the same menu a right click on the row opens."
     },
     "row-open": {
       "type": "enum",

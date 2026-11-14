@@ -127,6 +127,15 @@
     box-shadow: inset 0 calc(-1 * var(--sf-px)) 0 var(--sf-table-line-color, var(--sf-outline-variant));
   }
 
+  /* A head cell keeps its side borders (the edge a width is set by shows
+     on them): its line is its background's last pixel, which reaches under
+     the borders, where an inset shadow would stop short of them. */
+  :is(sf-view-table, sf-table) > * .table > thead > tr > th {
+    box-shadow: none;
+    background-image: linear-gradient(to top, var(--sf-table-line-color, var(--sf-outline-variant)) var(--sf-px), transparent var(--sf-px));
+    background-origin: border-box;
+  }
+
   :is(sf-view-table, sf-table) > * .table > :is(thead, tbody) > tr {
     block-size: var(--sf-ui-1--control-height);
   }
@@ -1191,6 +1200,13 @@
     line-clamp: 2;
     overflow: hidden;
     overflow-wrap: anywhere;
+  }
+
+  /* The text inside the name is the name's lines, not a one-line cell's. */
+  :is(sf-view-table, sf-table) .sf-table-title-clamp .sf-table-cell-text {
+    display: inline;
+    -webkit-line-clamp: none;
+    line-clamp: none;
   }
 
   :is(sf-view-table, sf-table) .sf-table-title-anchor:not([data-sf-clipped]) > .sf-tooltip {

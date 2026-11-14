@@ -95,6 +95,7 @@
         "error-text",
         "retry-text",
         "toolbar",
+        "stripes",
         "pin-column-label",
         "unpin-column-label",
         "column-move-label",
@@ -316,6 +317,11 @@
         "default": true,
         "description": "Show the built-in toolbar; a composite can provide its own toolbar slot."
       },
+      "stripes": {
+        "type": "boolean",
+        "default": false,
+        "description": "Alternate rows (zebra), the report author's choice for a wide table that is only read (owner decision C146 (4)). A person's view no longer offers it; lines between the rows and the hovered and selected row's fill are the table's own."
+      },
       "pin-column-label": {
         "type": "string",
         "description": "Accessible name and tooltip of the control that pins a column."
@@ -351,8 +357,8 @@
       },
       "layout": {
         "type": "string",
-        "default": "table",
-        "description": "How the records are drawn: a table, a compact list of records, or auto -- a table while the table's container is at least list-below pixels wide, the list below that. sf-view asks for auto on a page's list. With layout-switch, the person's choice comes first.",
+        "default": "auto",
+        "description": "How the records are drawn: a table, a compact list of records, or auto (the default since 1.19.0, owner decisions C31 and C146) -- a table while the table's container is at least list-below pixels wide, the list below that. `table` keeps a table at every width; in a narrow box it scrolls sideways with its first column standing still (C146 (9)). With layout-switch, the person's choice comes first.",
         "enum": [
           "auto",
           "table",
@@ -377,7 +383,7 @@
       "quick-actions": {
         "type": "string",
         "default": "",
-        "description": "The row actions a list row shows as icon buttons, always visible: their ids, comma-separated, at most three (owner decision C31). The rest stay in the row menu, which in the list is «more» (more_horiz) instead of the menu icon; on a narrow list (below 37.5rem) the quick ones fold into it too. An action without an icon is a text button."
+        "description": "The row actions shown as icon buttons: their ids, comma-separated. In the list, at most three, always visible (owner decision C31); in the table, the first two, beside «more» at the row's end, shown on hover and focus and always on a touch screen (C146 (5)). Without it the table shows the first two actions of the catalogue that are neither a group nor destructive and have an icon; the list shows none. «More» (more_horiz) holds every action, in the table the same menu a right click on the row opens."
       },
       "row-open": {
         "type": "string",
@@ -2753,15 +2759,15 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-table/index.js",
-        "sha256": "4966868cb54faa658356e6c5a84162c98e93606695e80823d3f60f8536d78c47"
+        "sha256": "97efa7cd5f52be010ec47dda9faebb9e5dec4fdd91948044c0e15c5d8e3317a0"
       },
       {
         "path": "src/smart/view-table/js/templates/default.js",
-        "sha256": "62602d10352ae6a522c409bd6cfc344fc3b833e797b151da295cfa9f8b365611"
+        "sha256": "2e39428f7462feda32c9deac94235cfdaecffcfc705e71fe858cbb224e37f1ab"
       },
       {
         "path": "src/smart/view-table/js/templates/default.css",
-        "sha256": "ed42f0425dcd05479785ab0b8268ed0ecf521b9b85cc7177ca2dfa66a837b72d"
+        "sha256": "a03b267c0209b29b0eb1b8e91e8a77957432b468ec340f91094ddf7e3875c6f7"
       },
       {
         "path": "src/smart/helpers/option-badge.js",

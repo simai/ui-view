@@ -2910,6 +2910,12 @@ class SfTable extends TableElement {
         return quick.slice(0, MAX_TABLE_QUICK_ACTIONS);
     }
 
+    // Whether the row end shows quick actions: the host's actions and
+    // row-actions, and the action column the person has not hidden.
+    rowEndHasQuick(props = this.getPropsContext()) {
+        return Boolean(props.actions && props.rowActions && this.state.actionActive);
+    }
+
     // How many quick actions a row of this table can show: the room the end
     // column keeps for them, so a row does not move when they appear.
     tableQuickActionCount() {
@@ -7966,8 +7972,10 @@ class SfTable extends TableElement {
     // plain table, with nothing to press in its rows, stays a table.
     gridControls(row) {
         const own = row.parentElement?.tagName === "TBODY" ? [row] : [];
+        // A column edge is no stop of the grid (C146 (8), RS-10): the person
+        // sets a width with the pointer.
         const controls = [...row.querySelectorAll("a[href], button:not([disabled]), input:not([disabled]):not([type=hidden]), select:not([disabled]), textarea:not([disabled])")]
-            .filter((element) => !element.closest(".sf-tooltip, [hidden]"));
+            .filter((element) => !element.closest(".sf-tooltip, [hidden]") && !element.matches("[data-sf-column-resizer]"));
         return [...own, ...controls];
     }
 
