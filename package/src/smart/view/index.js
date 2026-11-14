@@ -1604,8 +1604,12 @@ class SfDataView extends DataViewElement {
                 <span class="sf-pagination-actions-separator" aria-hidden="true" data-sf-bulk="for-all-separator"></span>
                 <sf-checkbox data-sf-bulk="for-all"></sf-checkbox>
                 <sf-button-icon data-sf-bulk="clear" class="sf-pagination-actions-clear" appearance="ghost" scheme="on-surface" icon="close"></sf-button-icon>`;
-            band.querySelector('[data-sf-bulk="apply"]')
-                .addEventListener("click", () => this.applyBulkAction());
+            // One listener on the band: Apply is drawn anew when its look
+            // changes, and a press must reach the view once.
+            band.addEventListener("click", (event) => {
+                const apply = event.target instanceof Element ? event.target.closest('[data-sf-bulk="apply"]') : null;
+                if (apply && !apply.disabled && !apply.hasAttribute("disabled")) this.applyBulkAction();
+            });
             band.querySelector('[data-sf-bulk="actions"]')
                 .addEventListener("change", (event) => pagination.setAction?.(event.detail?.value ?? ""));
             band.querySelector('[data-sf-bulk="for-all"]')
@@ -1643,10 +1647,7 @@ class SfDataView extends DataViewElement {
             if (danger) apply.setAttribute("status", "error");
             chosen(apply, "size", this.controlSize);
             parts.apply.replaceWith(apply);
-            // Bound once it is in the band and drawn, as the first one is
-            // (bound on the element still to be drawn, a press arrived twice).
             parts.apply = band.querySelector('[data-sf-bulk="apply"]') ?? apply;
-            parts.apply.addEventListener("click", () => this.applyBulkAction());
         }
         chosen(parts.apply, "text", pagination.actionApplyText);
         chosen(parts.apply, "disabled", !action);
