@@ -75,9 +75,11 @@ try {
       avatars: body.querySelectorAll('.sf-avatar').length, cell: box(badge), alone: box(ref)};
   });
   if (weight.elements !== 0 || !weight.badges || !weight.tags || !weight.avatars) note({case: 'shown values are markup, not elements', got: weight});
-  // The row's buttons are in the row a person is on, and follow the pointer.
+  // The row's quick actions are in the row a person is on, and follow the
+  // pointer (since 1.19.0, C146 (5): «more» stands in every row's end, the
+  // quick actions beside it only where the person is).
   const actions = async () => page.evaluate(() => [...document.querySelectorAll('#t tbody tr[data-row-id]')]
-    .filter((row) => row.querySelector('td[data-key="actions"] sf-button-icon, td[data-key="actions"] .sf-icon-button')).map((row) => row.dataset.rowId));
+    .filter((row) => row.querySelector('td[data-sf-cell="end"] .sf-table-row-quick')).map((row) => row.dataset.rowId));
   const idle = await actions();
   await page.hover('#t tbody tr[data-row-id]:nth-child(3) td[data-key="name"]');
   await page.waitForTimeout(250);

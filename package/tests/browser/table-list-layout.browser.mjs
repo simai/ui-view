@@ -77,7 +77,9 @@ try {
       items: items.length,
       labels,
       select: items.every((item) => item.querySelector('.sf-table-list-select')),
-      menu: items.every((item) => item.querySelector('.sf-table-list-menu')),
+      // Since 1.19.0 a list row ends as a table row does (C146 (5)): «more»,
+      // with the quick actions beside it.
+      menu: items.every((item) => item.querySelector('.sf-table-resource-actions [data-sf-row-menu]')),
       oneLine: new Set(tops).size === 1 && heights.length > 0 && heights.every((height) => height > 0),
       heights,
       // The row of the toolbar stays inside the table: it overran it to the
