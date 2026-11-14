@@ -1635,25 +1635,28 @@
     outline: none;
   }
 
-  :is(sf-view-table, sf-table) tbody tr:focus-visible > :is(td, th) {
+  :is(sf-view-table, sf-table) tbody tr:focus-visible > * {
     position: relative;
   }
 
-  :is(sf-view-table, sf-table) tbody tr:focus-visible > :is(td, th)::before {
+  /* Written short: each logical side and each selector of a ring rule is
+     multiplied by the build's fallbacks (direction, :focus-visible). */
+  :is(sf-view-table, sf-table) tbody tr:focus-visible > *::before {
     content: "";
     position: absolute;
     inset: 0;
     z-index: 3;
     pointer-events: none;
-    border-block: var(--sf-focus--width) var(--sf-focus--style) var(--sf-focus--color);
+    border: var(--sf-focus--width) var(--sf-focus--style) var(--sf-focus--color);
+    border-inline-width: 0;
   }
 
-  :is(sf-view-table, sf-table) tbody tr:focus-visible > :is(td, th):first-child::before {
-    border-inline-start: var(--sf-focus--width) var(--sf-focus--style) var(--sf-focus--color);
+  :is(sf-view-table, sf-table) tbody tr:focus-visible > :first-child::before {
+    border-inline-start-width: var(--sf-focus--width);
   }
 
-  :is(sf-view-table, sf-table) tbody tr:focus-visible > :is(td, th):last-child::before {
-    border-inline-end: var(--sf-focus--width) var(--sf-focus--style) var(--sf-focus--color);
+  :is(sf-view-table, sf-table) tbody tr:focus-visible > :last-child::before {
+    border-inline-end-width: var(--sf-focus--width);
   }
 
   :is(sf-view-table, sf-table) tbody tr[data-selected]:hover {
