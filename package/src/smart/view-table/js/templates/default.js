@@ -414,7 +414,7 @@ function renderHead(context) {
                                             : nothing}
                             >
                                 ${column.system || k === columns.length - 1 ?
-                                        renderHeadLabel(context, column) :
+                                        html`${renderHeadLabel(context, column)}${column.key === 'settings' ? renderTipSurfaces() : nothing}` :
                                 html`<div
                                         class="sidebar-resizer flex items-cross-center h-full select-none"
                                 >
@@ -1038,9 +1038,10 @@ export function renderTableTemplate(context) {
             else component.requestActionIntent(action.id, [row.id]);
         };
         return html`<span class="sf-table-row-end">
-            ${quick.length ? html`<span class="sf-table-row-quick">${quick.map((action) => tooltip(html`<button type="button" class=${button} data-tooltip=""
+            ${quick.length ? html`<span class="sf-table-row-quick">${quick.map((action) => html`<button type="button" class=${button}
+                    data-tooltip=${component.tipId(action.id)}
                     data-quick-action=${action.id} aria-label=${action.name ?? action.id}
-                    @click=${press(action)}><i class="sf-icon" aria-hidden="true">${iconOf(action)}</i></button>`, action.name ?? action.id))}</span>` : nothing}
+                    @click=${press(action)}><i class="sf-icon" aria-hidden="true">${iconOf(action)}</i></button>`)}</span>` : nothing}
             ${all.length ? html`<button type="button" class=${`${button} sf-table-row-more`}
                     aria-label=${component.text('moreActionsLabel')} aria-haspopup="menu" data-sf-row-menu data-sf-row-more
                     @click=${(event) => {
@@ -1052,12 +1053,22 @@ export function renderTableTemplate(context) {
 
     // The record's name in the table (owner decision C146 (7)): up to two
     // lines, then an ellipsis; the whole name is the Framework tooltip's,
-    // shown only when the name is cut (the table marks the cell after
-    // drawing it, markClippedTitles).
+    // shown only when the name is cut: the table marks a cut name after
+    // drawing it (markClippedTitles), which links it to the table's one name
+    // tooltip and writes the name into it when the pointer comes.
     function renderTitleClamp(row, column, value) {
-        const words = context.component.listText?.(column, row?.[column.key]) ?? '';
-        if (!words) return value;
-        return html`<span class="sf-tooltip-anchor sf-table-title-anchor"><span class="sf-table-title-clamp" data-tooltip="">${value}</span><span class="sf-tooltip sf-tooltip--dark sf-tooltip--size-1/3 sf-tooltip--arrow-bottom-inline-start" hidden><span class="sf-tooltip-content"><span class="sf-tooltip-text">${words}</span></span></span></span>`;
+        return html`<span class="sf-table-title-clamp">${value}</span>`;
+    }
+
+    // The tooltips of the row end and of a cut name: one surface per quick
+    // action and one for the name, in the head of the row end, which every
+    // row's trigger names by id (data-tooltip). A surface in each row cost
+    // about ten nodes a button and broke the thirty nodes a row of a long
+    // list (standard 1.3.8 gate 17).
+    function renderTipSurfaces() {
+        const component = context.component;
+        const surface = (key, text, arrow) => html`<span class="sf-tooltip sf-tooltip--dark sf-tooltip--size-1/3 sf-tooltip--arrow-${arrow}" hidden id=${component.tipId(key)}><span class="sf-tooltip-content"><span class="sf-tooltip-text">${text}</span></span></span>`;
+        return html`${(component.rowEndHasQuick() ? component.tableQuickCatalogue() : []).map((action) => surface(action.id, action.name ?? action.id, 'bottom-center'))}${surface('title', '', 'bottom-inline-start')}`;
     }
 
     // The title opens its record with one click (owner, 2026-10-14): the

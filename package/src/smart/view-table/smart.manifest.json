@@ -2761,15 +2761,15 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-table/index.js",
-        "sha256": "97efa7cd5f52be010ec47dda9faebb9e5dec4fdd91948044c0e15c5d8e3317a0"
+        "sha256": "8c765f48ed39efe5345aeae1ad80f746123c391950b79e710f79f98ec85cb1e0"
       },
       {
         "path": "src/smart/view-table/js/templates/default.js",
-        "sha256": "2e39428f7462feda32c9deac94235cfdaecffcfc705e71fe858cbb224e37f1ab"
+        "sha256": "9a56c49e512cf4d0848499701b187c6356a7827e8c0a1e83745356515ed057af"
       },
       {
         "path": "src/smart/view-table/js/templates/default.css",
-        "sha256": "369540edfb3cc540644b877c4ebe2ee36232ea61a3f1dd61d76f6a393f861931"
+        "sha256": "653ba151a58f1a8b4233f94f6457671b6bfce70b261946262285efac9677aae3"
       },
       {
         "path": "src/smart/helpers/option-badge.js",

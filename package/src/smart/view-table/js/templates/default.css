@@ -1188,11 +1188,6 @@
 
   /* The record's name (owner decision C146 (7)): two lines at most, then an
      ellipsis; the tooltip with the whole name shows only on a cut name. */
-  :is(sf-view-table, sf-table) .sf-table-title-anchor {
-    display: block;
-    min-inline-size: 0;
-  }
-
   :is(sf-view-table, sf-table) .sf-table-title-clamp {
     display: -webkit-box;
     -webkit-box-orient: vertical;
@@ -1207,10 +1202,6 @@
     display: inline;
     -webkit-line-clamp: none;
     line-clamp: none;
-  }
-
-  :is(sf-view-table, sf-table) .sf-table-title-anchor:not([data-sf-clipped]) > .sf-tooltip {
-    display: none !important;
   }
 
   /* The row's end (owner decision C146 (5)): the quick actions, then «more»

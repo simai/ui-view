@@ -2916,16 +2916,28 @@ class SfTable extends TableElement {
         return Boolean(props.actions && props.rowActions && this.state.actionActive);
     }
 
-    // How many quick actions a row of this table can show: the room the end
-    // column keeps for them, so a row does not move when they appear.
-    tableQuickActionCount() {
+    // The quick actions the table's catalogue offers (any row's are among
+    // them), at most two.
+    tableQuickCatalogue() {
         const catalogue = (this.ACTIONS_SETTINGS_ROW ?? []).filter((item) => !Array.isArray(item?.members));
         const ids = this.quickActionIds;
         const icon = (item) => item?.icon ?? item?.component?.props?.icon;
         const quick = ids.length
-            ? ids.filter((id) => catalogue.some((item) => item?.id === id))
+            ? ids.map((id) => catalogue.find((item) => item?.id === id)).filter(Boolean)
             : catalogue.filter((item) => item?.danger !== true && item?.inline !== false && icon(item));
-        return Math.min(quick.length, MAX_TABLE_QUICK_ACTIONS);
+        return quick.slice(0, MAX_TABLE_QUICK_ACTIONS);
+    }
+
+    // How many quick actions a row of this table can show: the room the end
+    // column keeps for them, so a row does not move when they appear.
+    tableQuickActionCount() {
+        return this.tableQuickCatalogue().length;
+    }
+
+    // The id of one of the table's shared tooltips (a quick action's, or the
+    // cut name's).
+    tipId(key) {
+        return `${this.getInstanceId()}--tip--${String(key).replace(/[^\w-]+/gu, "-")}`;
     }
 
     // The end column: its icon buttons (the quick ones and «more», or the
@@ -7953,11 +7965,26 @@ class SfTable extends TableElement {
     markClippedTitles() {
         const table = this.refs.table?.value;
         if (!table) return;
+        const tip = this.tipId("title");
         for (const clamp of table.querySelectorAll("tbody .sf-table-title-clamp")) {
             const clipped = clamp.scrollHeight > clamp.clientHeight + 1 || clamp.scrollWidth > clamp.clientWidth + 1;
-            const anchor = clamp.parentElement;
-            if (clipped !== anchor.hasAttribute("data-sf-clipped")) anchor.toggleAttribute("data-sf-clipped", clipped);
+            if (clipped !== clamp.hasAttribute("data-sf-clipped")) clamp.toggleAttribute("data-sf-clipped", clipped);
+            // A cut name is a trigger of the table's name tooltip; a whole
+            // one is none (the Framework's tooltip unlinks it).
+            if (clipped && clamp.getAttribute("data-tooltip") !== tip) clamp.setAttribute("data-tooltip", tip);
+            else if (!clipped && clamp.hasAttribute("data-tooltip")) clamp.removeAttribute("data-tooltip");
         }
+        if (this._titleTipTable === table) return;
+        this._titleTipTable = table;
+        // The name tooltip says the name the pointer or the focus is on,
+        // written before the tooltip's delay ends.
+        const write = (event) => {
+            const clamp = event.target instanceof Element ? event.target.closest(".sf-table-title-clamp[data-sf-clipped]") : null;
+            const text = clamp ? document.getElementById(tip)?.querySelector(".sf-tooltip-text") : null;
+            if (text && text.textContent !== clamp.textContent.trim()) text.textContent = clamp.textContent.trim();
+        };
+        table.addEventListener("pointerover", write);
+        table.addEventListener("focusin", write);
     }
 
     // ─── the table as a grid (owner decision C146 (8)) ──────────────────────
