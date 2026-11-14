@@ -414,7 +414,7 @@ function renderHead(context) {
                                             : nothing}
                             >
                                 ${column.system || k === columns.length - 1 ?
-                                        html`${renderHeadLabel(context, column)}${column.key === 'settings' ? renderTipSurfaces() : nothing}` :
+                                        html`${renderHeadLabel(context, column)}${k === columns.length - 1 ? renderTipSurfaces(context) : nothing}` :
                                 html`<div
                                         class="sidebar-resizer flex items-cross-center h-full select-none"
                                 >
@@ -446,6 +446,18 @@ function renderHead(context) {
         </tr>
         </thead>
     `
+}
+
+// The tooltips of the row end and of a cut name: one surface per quick
+// action and one for the name, in the head of the last column (the row
+// end when there is one), which every
+// row's trigger names by id (data-tooltip). A surface in each row cost
+// about ten nodes a button and broke the thirty nodes a row of a long
+// list (standard 1.3.8 gate 17).
+function renderTipSurfaces(context) {
+    const component = context.component;
+    const surface = (key, text, arrow) => html`<span class="sf-tooltip sf-tooltip--dark sf-tooltip--size-1/3 sf-tooltip--arrow-${arrow}" hidden id=${component.tipId(key)}><span class="sf-tooltip-content"><span class="sf-tooltip-text">${text}</span></span></span>`;
+    return html`${(component.rowEndHasQuick() ? component.tableQuickCatalogue() : []).map((action) => surface(action.id, action.name ?? action.id, 'bottom-center'))}${surface('title', '', 'bottom-inline-start')}`;
 }
 
 function toColumnSize(value) {
@@ -1060,16 +1072,6 @@ export function renderTableTemplate(context) {
         return html`<span class="sf-table-title-clamp">${value}</span>`;
     }
 
-    // The tooltips of the row end and of a cut name: one surface per quick
-    // action and one for the name, in the head of the row end, which every
-    // row's trigger names by id (data-tooltip). A surface in each row cost
-    // about ten nodes a button and broke the thirty nodes a row of a long
-    // list (standard 1.3.8 gate 17).
-    function renderTipSurfaces() {
-        const component = context.component;
-        const surface = (key, text, arrow) => html`<span class="sf-tooltip sf-tooltip--dark sf-tooltip--size-1/3 sf-tooltip--arrow-${arrow}" hidden id=${component.tipId(key)}><span class="sf-tooltip-content"><span class="sf-tooltip-text">${text}</span></span></span>`;
-        return html`${(component.rowEndHasQuick() ? component.tableQuickCatalogue() : []).map((action) => surface(action.id, action.name ?? action.id, 'bottom-center'))}${surface('title', '', 'bottom-inline-start')}`;
-    }
 
     // The title opens its record with one click (owner, 2026-10-14): the
     // column the host marked as the title is a link to the record's view when
