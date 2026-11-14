@@ -106,13 +106,15 @@ try {
 
   // 2 and 7. The current row shows nothing of its own, and a keyboard focus
   // draws one ring over the pinned cells rather than segments between them.
+  // Since 1.19.0 the cells draw it, each its share (a pseudo-element on the row
+  // moved the cells pinned at the row's end, C146 (5)).
   await table.click('tbody tr[data-row-id="a"] td[data-key="city"]');
   await table.waitForTimeout(120);
   const current = await table.evaluate(() => {
     const row = document.querySelector('#t tbody tr[data-current]');
     if (!row) return null;
     const first = row.querySelector('td');
-    const ring = getComputedStyle(row, '::after');
+    const ring = getComputedStyle(first, '::before');
     return {
       id: row.dataset.rowId,
       firstCellShadow: getComputedStyle(first).boxShadow,
@@ -137,21 +139,23 @@ try {
     row.dispatchEvent(new KeyboardEvent('keydown', {key: 'ArrowDown', bubbles: true}));
     await new Promise((done) => setTimeout(done, 80));
     const matches = row.matches(':focus-visible');
-    const ring = getComputedStyle(row, '::after');
-    const pinned = getComputedStyle(row.querySelector('[data-sf-pinned]'));
+    const cells = [...row.children];
+    const shares = cells.map((cell) => getComputedStyle(cell, '::before'));
     return {
       matches,
-      outline: ring.outlineStyle,
-      ringZ: ring.zIndex,
-      pinnedZ: pinned.zIndex,
-      cellBorders: [...row.querySelectorAll('td')].map((cell) => getComputedStyle(cell).borderBlockStartColor),
+      blocks: shares.every((ring) => ring.borderBlockStartStyle !== 'none' && ring.borderBlockEndStyle !== 'none'),
+      start: shares[0].borderInlineStartStyle,
+      end: shares[shares.length - 1].borderInlineEndStyle,
+      // Each share stands above its cell's content, the pinned cells' too.
+      ringZ: shares.map((ring) => ring.zIndex),
+      positioned: cells.every((cell) => getComputedStyle(cell).position !== 'static'),
     };
   });
-  if (keyboard.matches && keyboard.outline === 'none') {
-    note({case: 'row ring', got: keyboard, expected: 'one outline on the row under :focus-visible'});
+  if (keyboard.matches && (!keyboard.blocks || keyboard.start === 'none' || keyboard.end === 'none')) {
+    note({case: 'row ring', got: keyboard, expected: 'one ring around the row under :focus-visible, drawn by its cells'});
   }
-  if (keyboard.matches && Number(keyboard.ringZ) <= Number(keyboard.pinnedZ)) {
-    note({case: 'row ring', ring: keyboard.ringZ, pinned: keyboard.pinnedZ, expected: 'the ring above the pinned cells'});
+  if (keyboard.matches && (!keyboard.positioned || keyboard.ringZ.some((z) => Number(z) < 1))) {
+    note({case: 'row ring', got: keyboard, expected: 'each share of the ring above its cell, the pinned ones too'});
   }
 
   // 3. The pin toggle, the pinned block and the reset.

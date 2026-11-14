@@ -13,6 +13,20 @@ in brackets. The site page «Изменения» says the same in Russian.
   inset the SIMAI Framework table gives the first cell from utility.table
   1.3.0 (C77, C105 H6); it was the cell spacing plus `--sf-a8`. A related
   list in `sf-view-properties` keeps its row text on the field-label axis.
+- `sf-view-table` 1.19.0, the table of owner decision C146: rows 40 (32 at
+  `size="1/2"` and compact, 48 with a second line), the head as tall, quiet
+  (medium, `--sf-on-surface-variant`, no fill); number columns end-aligned
+  with tabular digits and no wrap; lines, hover and selection fill, stripes
+  only by the author's new `stripes` attribute (the person's «Вид» no longer
+  offers it); one row end -- «more» always shown, up to two quick actions on
+  hover and focus (always on touch), the same menu on right click -- in
+  place of the leading ≡ and the hover-only «Действия» column; cell badges
+  tonal (C140); the sort mark only on the sorted column; a title up to two
+  lines, then an ellipsis and a tooltip; a table with actions is a grid with
+  one Tab stop and arrow keys, column-resize edges are no Tab stops (RS-10);
+  `layout` defaults to `auto` (a list below `list-below`), a plain table on a
+  phone scrolls in its frame with its first column pinned, and the empty
+  state stays in view (TB-11, TB-12).
 - `sf-view-properties` 1.15.0: a record, a relation, a user and a paged
   lookup field are edited in `sf-input-lookup` (owner decision C139 (1)):
   focus shows the host's first page, typing searches through the host,

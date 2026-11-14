@@ -1225,6 +1225,11 @@
     gap: var(--sf-space-1\/4);
   }
 
+  /* The gear in the head of the row end stands over the rows' «more». */
+  :is(sf-view-table, sf-table) thead th[data-sf-cell="end"] > sf-button-icon > button {
+    margin-inline-start: auto;
+  }
+
   :is(sf-view-table, sf-table) .sf-table-row-quick {
     display: flex;
     gap: var(--sf-space-1\/4);
@@ -1614,30 +1619,41 @@
      person is is answered by the focus ring instead, and only when the keyboard
      is what put them there.
 
-     The ring is one ring around the row, drawn by a pseudo-element above the
-     pinned cells. A plain outline on the row is painted over by them — a cell
-     is a child of the row, so its background covers the parent's outline — and
-     that is what the consumer saw: blue segments across the loose cells only,
-     appearing the moment a modifier key switched the browser into keyboard
-     modality. */
-  /* Only a row that has the keyboard focus is positioned, because only then is
-     there a ring to hang on it. Positioning every row made each one a stacking
-     context of its own, and a consumer saw pinned cells left unpainted while
-     scrolling a table with two pinned columns — the kind of compositing
-     difference that costs nothing to avoid. */
+     The ring is one ring around the row, drawn above the pinned cells. A
+     plain outline on the row is painted over by them — a cell is a child of
+     the row, so its background covers the parent's outline — and that is what
+     the consumer saw: blue segments across the loose cells only, appearing the
+     moment a modifier key switched the browser into keyboard modality. */
+  /* The ring is drawn by the row's cells, each its share of it (the top and
+     the bottom, the first cell the start, the last the end), on a
+     pseudo-element above the cell's content. A pseudo-element on the row
+     itself -- the ring until 1.19.0 -- moved every cell pinned at the row's
+     end (C146 (5)) out of its place while the row had the focus: Chrome lays
+     a row's own generated box out against the sticky cells. A cell that is
+     not pinned is positioned only while its row has the ring. */
   :is(sf-view-table, sf-table) tbody tr:focus-visible {
-    position: relative;
     outline: none;
   }
 
-  :is(sf-view-table, sf-table) tbody tr:focus-visible::after {
+  :is(sf-view-table, sf-table) tbody tr:focus-visible > :is(td, th) {
+    position: relative;
+  }
+
+  :is(sf-view-table, sf-table) tbody tr:focus-visible > :is(td, th)::before {
     content: "";
     position: absolute;
     inset: 0;
     z-index: 3;
     pointer-events: none;
-    outline: var(--sf-focus--width) var(--sf-focus--style) var(--sf-focus--color);
-    outline-offset: calc(var(--sf-focus--width) * -1);
+    border-block: var(--sf-focus--width) var(--sf-focus--style) var(--sf-focus--color);
+  }
+
+  :is(sf-view-table, sf-table) tbody tr:focus-visible > :is(td, th):first-child::before {
+    border-inline-start: var(--sf-focus--width) var(--sf-focus--style) var(--sf-focus--color);
+  }
+
+  :is(sf-view-table, sf-table) tbody tr:focus-visible > :is(td, th):last-child::before {
+    border-inline-end: var(--sf-focus--width) var(--sf-focus--style) var(--sf-focus--color);
   }
 
   :is(sf-view-table, sf-table) tbody tr[data-selected]:hover {
