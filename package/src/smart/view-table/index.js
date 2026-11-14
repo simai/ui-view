@@ -7998,6 +7998,23 @@ class SfTable extends TableElement {
             this.syncGrid();
         }, {signal});
         table.addEventListener("keydown", (event) => this.handleGridKeydown(event, table), {signal});
+        // A row's buttons come after the draw: the «Действия» buttons of the
+        // row a person is on, and a Smart button's own <button>, which its
+        // element draws once defined. Each new control leaves the Tab order
+        // in the next frame, or it would be a second stop.
+        let queued = 0;
+        const observer = new MutationObserver((records) => {
+            if (queued || !records.some((record) => [...record.addedNodes].some((node) => node.nodeType === 1))) return;
+            queued = requestAnimationFrame(() => {
+                queued = 0;
+                if (this._gridTable === table) this.syncGrid();
+            });
+        });
+        observer.observe(table, {childList: true, subtree: true});
+        signal.addEventListener("abort", () => {
+            observer.disconnect();
+            if (queued) cancelAnimationFrame(queued);
+        });
     }
 
     handleGridKeydown(event, table) {
