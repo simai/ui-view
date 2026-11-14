@@ -18,8 +18,10 @@ in brackets. The site page «Изменения» says the same in Russian.
   (medium, `--sf-on-surface-variant`, no fill); number columns end-aligned
   with tabular digits and no wrap; lines, hover and selection fill, stripes
   only by the author's new `stripes` attribute (the person's «Вид» no longer
-  offers it); row actions unchanged (the leading ≡ and the «Действия»
-  column stay: C146 (5) is reopened, R239); cell badges tonal (C140); the sort mark only on the sorted column; a title up to two
+  offers it); row actions as variant В (R239): «≡» at the row's start holds
+  every action, the hover-only «Действия» column is gone, the main field is
+  the link that opens the record, the right button, Shift+F10 and the menu
+  key open the same «≡» menu; cell badges tonal (C140); the sort mark only on the sorted column; a title up to two
   lines, then an ellipsis and a tooltip; a table with actions is a grid with
   one Tab stop and arrow keys, column-resize edges are no Tab stops (RS-10);
   `layout` defaults to `auto` (a list below `list-below`), a plain table on a

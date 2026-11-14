@@ -1060,7 +1060,13 @@ export function renderTableTemplate(context) {
     function renderRows(context, columns, rows, {busy = false} = {}) {
         const component = context.component;
         const treeColumn = component.treeColumnKey?.(columns);
-        const titleColumn = columns.find((column) => column?.role === 'title' && !column.system)?.key ?? null;
+        // The main field is the link that opens the record (owner decision
+        // C146 (5), variant В): the column the host marked as the title, else
+        // the first data column when it shows a plain value (a column with a
+        // renderer or a component of its own keeps it).
+        const firstData = columns.find((column) => column?.key && !SYSTEM_COLUMNS.has(column.key) && !column.system);
+        const titleColumn = columns.find((column) => column?.role === 'title' && !column.system)?.key
+            ?? (firstData && !firstData.renderer && !firstData.component && !component.isNumberColumn?.(firstData) ? firstData.key : null);
         const slice = component.windowSlice?.(rows) ?? null;
         const shown = slice ? rows.slice(slice.first, slice.last + 1) : rows;
         const offset = slice ? slice.first : 0;
@@ -1104,7 +1110,7 @@ export function renderTableTemplate(context) {
             columns.forEach((column, cellIndex) => {
                 const mark = component.rowMarkupCell?.(row, column) ?? null;
                 values.push(column.key, `${row.id}_${column.key}`, cellKinds[cellIndex], pinned[cellIndex], sticky[cellIndex]);
-                if (cellKinds[cellIndex] === 'title' && mark?.kind === 'text') {
+                if (cellKinds[cellIndex] === 'title' && mark?.kind === 'text' && column.key !== titleColumn) {
                     // The name as text: two lines by its cell (C146 (7)).
                     kinds.push('text');
                     values.push('sf-table-cell-text', nothing, mark.text);

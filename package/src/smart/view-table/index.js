@@ -432,6 +432,7 @@ class SfTable extends TableElement {
                     // delete in a host catalogue only to restore the red row is
                     // no longer the price of leaving it to the kit (Larena
                     // storage QA, 2026-10-22). The icon in the actions column
+                    // (gone with variant В, C146 (5); kept for list rows)
                     // says the same with `status: 'error'` (decided 2026-10-23,
                     // control/VISUAL-DECISIONS.md «Разрушительное действие
                     // строкой»): one act must not look like two on the two
@@ -3235,9 +3236,10 @@ class SfTable extends TableElement {
         if (props.settings && this.settingsColumnHasUse(props)) {
             columns.push(this.TABLE_SETTINGS_COLUMN);
         }
-        if (props.actions && props.rowActions && this.state.actionActive) {
-            columns.push(this.TABLE_ACTIONS_COLUMN);
-        }
+        // No «Действия» column (owner decision C146 (5), variant В): every
+        // action of a row is in its «≡» menu, which the right button, the
+        // menu key and Shift+F10 open too; opening the record is the main
+        // field's link. The hover-only column of buttons is gone.
 
         return columns;
     }
@@ -7002,6 +7004,20 @@ class SfTable extends TableElement {
     // moving through the column hears each box by the row's first data cell,
     // instead of a run of unnamed checkboxes it cannot tell apart.
     getRowSelectLabel(row) {
+        const text = this.getRowNameText(row);
+        return text ? `${this.text("selectRowLabel")}: ${text}` : this.text("selectRowLabel");
+    }
+
+    // The row's «≡» says whose actions it holds (owner decision C146 (5),
+    // variant В): «Действия: <name>», as the SIMAI Framework table recipe
+    // names it (utility.table 1.5.0).
+    getRowMenuLabel(row) {
+        const text = this.getRowNameText(row);
+        return text ? `${this.text("actionsColumnLabel")}: ${text}` : this.text("menuLabel");
+    }
+
+    // The text a row is named by: its first data column's value, else its id.
+    getRowNameText(row) {
         const batch = this._labelColumnBatch;
         const column = batch && "column" in batch
             ? batch.column
@@ -7009,8 +7025,7 @@ class SfTable extends TableElement {
         if (batch) batch.column = column;
         const raw = column ? row?.[column.key] : undefined;
         const value = raw !== null && typeof raw === "object" ? (raw.text ?? raw.label ?? raw.value ?? "") : raw;
-        const text = String(value ?? "").trim() || String(row?.id ?? "").trim();
-        return text ? `${this.text("selectRowLabel")}: ${text}` : this.text("selectRowLabel");
+        return String(value ?? "").trim() || String(row?.id ?? "").trim();
     }
 
     createRowComponentCell(component, props = {}) {
@@ -7053,6 +7068,9 @@ class SfTable extends TableElement {
                     .map((member) => ({id: member.id, text: member.name, icon: iconOf(member), danger: member.danger === true})),
             }
             : {id: action.id, text: action.name, icon: iconOf(action), danger: action.danger === true}));
+        // A destructive entry closes the menu (C164 (5)): whatever order a host
+        // catalogue gives, «Удалить» is the last entry, the rest keep theirs.
+        entries.sort((a, b) => Number(a.danger === true) - Number(b.danger === true));
         // The standard menu is a lazy relation of the table: fetched after the
         // page is ready, and asked for here if a press comes first.
         await globalThis.SF?.Loader?.ensure?.(["sf-menu-context"]);
@@ -7228,7 +7246,7 @@ class SfTable extends TableElement {
                     appearance: "link",
                     scheme: "on-surface",
                     icon: "menu",
-                    ariaLabel: this.text("menuLabel"),
+                    ariaLabel: this.getRowMenuLabel(row),
                     value: "menu",
                     "@click": (e) => this.openRowMenu(e, row),
                 },
@@ -7933,7 +7951,8 @@ class SfTable extends TableElement {
     // and between the controls of a row (WAI-ARIA APG grid). Up and down keep
     // the place in the row; left and right walk the row's controls, the row
     // itself first; Home and End go to the row's first and last, with Ctrl to
-    // the first and last row; Enter opens, Space marks the row. The head is
+    // the first and last row; Enter opens, Space marks the row; Shift+F10 and
+    // the menu key open the row's «≡» (C146 (5)). The head is
     // the grid's first row: its sort
     // buttons, the edges that set a width, the box for all and the gear. A
     // plain table, with nothing to press in its rows, stays a table.
@@ -7998,6 +8017,17 @@ class SfTable extends TableElement {
             this.syncGrid();
         }, {signal});
         table.addEventListener("keydown", (event) => this.handleGridKeydown(event, table), {signal});
+        // The right button on a row opens the row's «≡» menu (C146 (5),
+        // variant В; C164 (2): the same list). Shift keeps the browser's own
+        // menu, and so do a link (open in a new tab) and a field.
+        table.addEventListener("contextmenu", (event) => {
+            if (event.shiftKey) return;
+            const target = event.target instanceof Element ? event.target : null;
+            if (!target || target.closest("a[href], input, textarea, select, [contenteditable]")) return;
+            const row = target.closest("tbody > tr[data-row-id]");
+            if (!row || !table.contains(row)) return;
+            if (this.openRowMenuOf(row, target)) event.preventDefault();
+        }, {signal});
         // A row's buttons come after the draw: the «Действия» buttons of the
         // row a person is on, and a Smart button's own <button>, which its
         // element draws once defined. Each new control leaves the Tab order
@@ -8017,6 +8047,24 @@ class SfTable extends TableElement {
         });
     }
 
+    rowOfElement(element) {
+        const key = element?.closest?.("[data-row-id]")?.dataset.rowId;
+        if (key == null) return null;
+        const rows = this.getTableData().rows || [];
+        return rows.find((row, index) => String(this.getRowKey(row, index)) === key) ?? null;
+    }
+
+    // Opens a row's «≡» menu as its button would, under the button; a table
+    // without the button (settings="false") opens it under the cell.
+    openRowMenuOf(rowElement, from) {
+        const row = this.rowOfElement(rowElement);
+        if (!row || !this.getActionRowItems(row).length) return false;
+        const button = rowElement.querySelector("[data-sf-row-menu]");
+        const anchor = button ?? from?.closest?.("td") ?? rowElement;
+        this.openRowMenu({currentTarget: anchor, target: anchor}, row);
+        return true;
+    }
+
     handleGridKeydown(event, table) {
         if (event.defaultPrevented || !this.isGrid) return;
         const target = event.target instanceof Element ? event.target : null;
@@ -8029,6 +8077,10 @@ class SfTable extends TableElement {
         const rowIndex = rows.findIndex((row) => row === target || row.contains(target));
         if (rowIndex < 0) return;
         const row = rows[rowIndex];
+        if (((event.key === "F10" && event.shiftKey) || event.key === "ContextMenu") && row.parentElement?.tagName === "TBODY") {
+            if (this.openRowMenuOf(row, target)) event.preventDefault();
+            return;
+        }
         const controls = this.gridControls(row);
         const at = controls.indexOf(target);
         // The row's own keys (handleRowKeydown) move between rows from the
