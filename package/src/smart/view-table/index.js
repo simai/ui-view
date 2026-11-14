@@ -72,6 +72,12 @@ const SYSTEM_COLUMN_KEYS = new Set(["select", "settings", "actions"]);
 // status value and a fact's status mean there.
 const LIST_ROLES = new Set(["status", "title", "supporting", "fact", "hidden"]);
 const MAX_QUICK_ACTIONS = 3;
+// A table row's quick actions (owner decision C146 (5)): at most two, beside
+// the row's «more» at the row's end.
+const MAX_TABLE_QUICK_ACTIONS = 2;
+// The column types whose values are numbers (C146 (3)): end-aligned, digits of
+// one width, never wrapped.
+const NUMBER_TYPES = new Set(["integer", "number", "money", "percent"]);
 const STATUS_DOTS = Object.freeze({
     ok: "success", warning: "warning", error: "error", stopped: "neutral",
     success: "success", danger: "error", neutral: "neutral", info: "info", primary: "primary",
@@ -194,7 +200,12 @@ class SfTable extends TableElement {
             // `table` and `list` hold one of them whatever the width (owner,
             // 2026-10-12: one mobile view, the compact list). A table is a table
             // unless asked: sf-view asks for auto on a page's list.
-            layout: {default: 'table', values: ['auto', 'table', 'list']},
+            // Auto by default since 1.19.0 (owner decisions C31, C146; TB-11 of
+            // the table study): a table alone on a phone stayed a table, wider
+            // than the screen, with the box and the menu covering the title.
+            // `table` keeps a table at every width; then a narrow box scrolls
+            // it sideways with the first column standing still (C146 (9)).
+            layout: {default: 'auto', values: ['auto', 'table', 'list']},
             listBelow: {attribute: 'list-below', type: Number, default: 600},
             // How many fields a record shows under its title in the list, chosen
             // by the columns' priority (lower first).
@@ -213,6 +224,11 @@ class SfTable extends TableElement {
             // views; below list-below there is only the list and no switch.
             layoutSwitch: {attribute: 'layout-switch', type: Boolean, default: false},
             toolbar: {type: Boolean, default: true},
+            // Alternate rows (zebra), the report author's choice for a wide
+            // table that is only read (owner decision C146 (4)); a person's view
+            // no longer offers it. Lines between the rows, the hovered and the
+            // selected row's fill are the table's own.
+            stripes: {type: Boolean, default: false},
             settings: {type: Boolean, default: true},
             pagin: {type: Boolean, default: false},
             actions: {type: Boolean, default: true},
@@ -451,10 +467,16 @@ class SfTable extends TableElement {
             system: true,
         }
 
+        // The row's end (owner decision C146 (5)): the head holds the gear of
+        // the column settings, each row its quick actions and its «more»
+        // (more_horiz), which stays in view when the table scrolls sideways.
+        // It was the start column of the gear and a menu (≡) in every row,
+        // with the actions in a hover-only column «Действия» at the end.
         this.TABLE_SETTINGS_COLUMN = {
             key: "settings",
             label: "settings",
             system: true,
+            sticky: "end",
             width: 'calc(var(--sf-text-height-1) + (var(--sf-ui-1--space-y-tightness-default) * 2) + var(--sf-b6))',
             component: {
                 type: "button-icon",
@@ -1616,7 +1638,8 @@ class SfTable extends TableElement {
     handleRowKeydown(event, row) {
         // In the list the row's title link is its tab stop: the arrows, Home
         // and End move from it as from the row.
-        const fromTitle = event?.target !== event?.currentTarget
+        // In the table the grid walks from a control (C146 (8)).
+        const fromTitle = this.isList && event?.target !== event?.currentTarget
             && event?.target?.matches?.(".sf-table-title-link")
             && ["ArrowDown", "ArrowUp", "Home", "End"].includes(event?.key);
         if (event?.target !== event?.currentTarget && !fromTitle) return this;
@@ -2873,6 +2896,50 @@ class SfTable extends TableElement {
         return {text, level: FACT_LEVELS[status] ?? 0, status: FACT_LEVELS[status] ? status : "", tip: String(props?.tip ?? props?.title ?? option?.tip ?? "")};
     }
 
+    // A table row's quick actions (C146 (5)): the ids quick-actions names,
+    // the first two; without it the first two of the catalogue that are
+    // neither a group nor destructive and have an icon. They show on hover
+    // and focus (always on a touch screen); «more» holds every action.
+    tableQuickActions(row) {
+        const items = this.rowActionItems(row).filter((item) => !Array.isArray(item?.members));
+        const ids = this.quickActionIds;
+        const icon = (item) => item?.icon ?? item?.component?.props?.icon;
+        const quick = ids.length
+            ? ids.map((id) => items.find((item) => item?.id === id)).filter(Boolean)
+            : items.filter((item) => item?.danger !== true && item?.inline !== false && icon(item));
+        return quick.slice(0, MAX_TABLE_QUICK_ACTIONS);
+    }
+
+    // How many quick actions a row of this table can show: the room the end
+    // column keeps for them, so a row does not move when they appear.
+    tableQuickActionCount() {
+        const catalogue = (this.ACTIONS_SETTINGS_ROW ?? []).filter((item) => !Array.isArray(item?.members));
+        const ids = this.quickActionIds;
+        const icon = (item) => item?.icon ?? item?.component?.props?.icon;
+        const quick = ids.length
+            ? ids.filter((id) => catalogue.some((item) => item?.id === id))
+            : catalogue.filter((item) => item?.danger !== true && item?.inline !== false && icon(item));
+        return Math.min(quick.length, MAX_TABLE_QUICK_ACTIONS);
+    }
+
+    // The end column: its icon buttons (the quick ones and «more», or the
+    // gear alone) side by side at the step's control size, the gap between
+    // them, and the cell's padding on both sides (the table's edge inset at
+    // the end, the cell spacing at the start).
+    rowEndWidth(menu = true, quick = true) {
+        const count = Math.max(1, (quick ? this.tableQuickActionCount() : 0) + (menu ? 1 : 0));
+        const control = this.size === "1/2" ? "var(--sf-ui-1\\/2--control-height)" : "var(--sf-ui-1--control-height)";
+        return `calc(${count} * ${control} + ${count - 1} * var(--sf-space-1\\/4) + var(--sf-space-1\\/3) + var(--sf-space-1))`;
+    }
+
+    // Whether a column holds numbers (C146 (3)): its type, or the host's
+    // own word for it (align: end).
+    isNumberColumn(column) {
+        if (!column?.key || column.system) return false;
+        if (column.align === "end" || column.numeric === true) return true;
+        return NUMBER_TYPES.has(column.propertyType ?? column.property_type ?? column.type);
+    }
+
     get actionsColumnWidth() {
         const inline = (this.ACTIONS_SETTINGS_ROW ?? []).filter((action) => action?.inline !== false).length;
         if (!inline) return "";
@@ -3205,11 +3272,13 @@ class SfTable extends TableElement {
         if (props.selectable) {
             columns.push(this.getSelectColumn());
         }
-        if (props.settings && this.settingsColumnHasUse(props)) {
-            columns.push(this.TABLE_SETTINGS_COLUMN);
-        }
-        if (props.actions && props.rowActions && this.state.actionActive) {
-            columns.push(this.TABLE_ACTIONS_COLUMN);
+        // One column at the row's end (C146 (5)): the gear in its head, the
+        // quick actions and «more» in its rows. The hover-only column
+        // «Действия» is gone; its buttons are the quick actions.
+        const menu = Boolean(props.settings && this.settingsColumnHasUse(props));
+        const quick = Boolean(props.actions && props.rowActions && this.state.actionActive && this.tableQuickActionCount() > 0);
+        if (menu || quick) {
+            columns.push({...this.TABLE_SETTINGS_COLUMN, width: this.rowEndWidth(menu, quick)});
         }
 
         return columns;
@@ -5094,7 +5163,6 @@ class SfTable extends TableElement {
                                   @change=${() => this.setTableView({density: value}, {everywhere})}></sf-radio>
                         <span>${this.text(label[value])}</span></label>`)}
                 </div>
-                ${check("stripes", "viewStripes")}
                 ${check("lines", "viewLines")}
                 ${check("singleLine", "viewSingleLine")}
                 ${this.getAttribute("vertical-scroll") === "page" ? check("stickyHead", "viewStickyHead") : nothing}
@@ -5597,7 +5665,9 @@ class SfTable extends TableElement {
         const flag = (name, on) => (on ? this.setAttribute(name, "") : this.removeAttribute(name));
         if (view.density === "normal") this.removeAttribute("data-sf-view-density");
         else this.setAttribute("data-sf-view-density", view.density);
-        flag("data-sf-view-stripes", view.stripes === true);
+        // Zebra is the author's (C146 (4)): a person's stored choice is no
+        // longer read.
+        flag("data-sf-view-stripes", this.hasAttribute("stripes") && this.getAttribute("stripes") !== "false");
         flag("data-sf-view-lines", view.lines === true);
         flag("data-sf-view-single-line", view.singleLine === true);
         const page = this.getAttribute("vertical-scroll") === "page" && !this.isList;
@@ -6695,6 +6765,11 @@ class SfTable extends TableElement {
     // anything interactive, or a component not defined yet, stays an element.
     renderCellElement(type, props = {}) {
         const tag = canonicalTag(`sf-${String(type ?? "").replace(/^sf-/u, "")}`);
+        // A status or a value in a cell is a tonal badge (owner decision C140
+        // (2), (4); TB-6 of the table study): the host's main, or no
+        // appearance on a pair whose default is still main, draws tonal; an
+        // outline stays an outline.
+        if (tag === "sf-badge" && props.appearance !== "outline") props = {...props, appearance: "tonal"};
         const shown = LIGHT_CELL_TAGS.has(tag)
             && props.interactive !== true && props.closable !== true && props.type !== "checkbox"
             && !Object.keys(props).some((key) => key.startsWith("@") || /^on[A-Z]/u.test(key));
@@ -6768,7 +6843,7 @@ class SfTable extends TableElement {
         const dataColumns = this.getTableData().columns || [];
         const systemColumns = this.getSystemColumns();
         const systemKeys = new Set(systemColumns.map((column) => column.key));
-        const rightSystemKeys = new Set(['actions']);
+        const rightSystemKeys = new Set(['settings', 'actions']);
         const originalIndexByKey = new Map(
             dataColumns.map((column, index) => [column?.key, index]),
         );
@@ -6864,14 +6939,19 @@ class SfTable extends TableElement {
     // always pinned and are not offered a toggle.
     isColumnPinned(column) {
         if (!column?.key) return false;
-        if (column.key === "select" || column.key === "settings") return true;
+        if (column.key === "select") return true;
         if (column.system) return false;
         const pending = this.tempSettings?.cols?.[column.key];
         const setting = this.getColumnSetting(column.key) || {};
         const chosen = pending?.pinned ?? setting.pinned ?? column.pinned;
         if (typeof chosen === "boolean") return chosen;
 
-        return column.role === "title";
+        if (column.role === "title") return true;
+        // Without a title, the first data column stands still when the table
+        // scrolls sideways (owner decision C146 (9)): a plain table on a phone
+        // keeps the name of each row in view.
+        const data = (this.getTableData().columns || []).filter((one) => one?.key && !SYSTEM_COLUMN_KEYS.has(one.key) && !one.system);
+        return !data.some((one) => one.role === "title") && data[0]?.key === column.key;
     }
 
     getPinnedColumnKeys(columns = this.getColumns()) {
@@ -7785,6 +7865,7 @@ class SfTable extends TableElement {
     afterDraw() {
         this._observeResponsiveBox();
         this.bindRowActionsEvents(this.refs.table?.value);
+        this.syncGrid();
         if (this._windowed) this.bindWindowScroll();
         // A row the keyboard asked for outside the drawn range is drawn now:
         // it is focused and scrolled into view, and the scroll that brings
@@ -7807,6 +7888,7 @@ class SfTable extends TableElement {
             this.fitCellValues();
             this.measurePinnedColumns();
             this.syncWindow();
+            this.markClippedTitles();
             return;
         }
         // A render that only moved a row's buttons changed no width.
@@ -7856,6 +7938,181 @@ class SfTable extends TableElement {
         this.bindColumnResizeEvent();
         this.bindColumnDragEvent();
         this.syncWindow();
+        this.markClippedTitles();
+    }
+
+    // A name cut by its two lines (C146 (7)) says so on its cell, and the
+    // Framework tooltip over it shows the whole name; a name that fits has
+    // no tooltip.
+    markClippedTitles() {
+        const table = this.refs.table?.value;
+        if (!table) return;
+        for (const clamp of table.querySelectorAll("tbody .sf-table-title-clamp")) {
+            const clipped = clamp.scrollHeight > clamp.clientHeight + 1 || clamp.scrollWidth > clamp.clientWidth + 1;
+            const anchor = clamp.parentElement;
+            if (clipped !== anchor.hasAttribute("data-sf-clipped")) anchor.toggleAttribute("data-sf-clipped", clipped);
+        }
+    }
+
+    // ─── the table as a grid (owner decision C146 (8)) ──────────────────────
+    // A table whose rows hold controls -- the box, the name's link, the quick
+    // actions, «more» -- is a grid: one Tab stop, the arrows between its rows
+    // and between the controls of a row (WAI-ARIA APG grid). Up and down keep
+    // the place in the row; left and right walk the row's controls, the row
+    // itself first; Home and End go to the row's first and last, with Ctrl to
+    // the first and last row; Enter opens, Space marks the row; Shift+F10 and
+    // the menu key open «more». The head is the grid's first row: its sort
+    // buttons, the edges that set a width, the box for all and the gear. A
+    // plain table, with nothing to press in its rows, stays a table.
+    gridControls(row) {
+        const own = row.parentElement?.tagName === "TBODY" ? [row] : [];
+        const controls = [...row.querySelectorAll("a[href], button:not([disabled]), input:not([disabled]):not([type=hidden]), select:not([disabled]), textarea:not([disabled])")]
+            .filter((element) => !element.closest(".sf-tooltip, [hidden]"));
+        return [...own, ...controls];
+    }
+
+    gridRows(table = this.refs.table?.value) {
+        if (!table) return [];
+        return [...table.querySelectorAll(":scope > thead > tr, :scope > tbody > tr[data-row-id]")];
+    }
+
+    get isGrid() {
+        const table = this.refs.table?.value;
+        if (!table || this.isList) return false;
+        return Boolean(table.querySelector(":scope > tbody > tr[data-row-id] :is(a[href], button, input)"));
+    }
+
+    syncGrid() {
+        const table = this.refs.table?.value;
+        if (!(table instanceof HTMLTableElement)) return;
+        this.bindGridKeys(table);
+        const grid = this.isGrid;
+        if (!this.isTree()) {
+            if (grid) table.setAttribute("role", "grid");
+            else if (table.getAttribute("role") === "grid") table.removeAttribute("role");
+        }
+        if (!grid) return;
+        const rows = this.gridRows(table);
+        const stops = rows.flatMap((row) => this.gridControls(row));
+        // The one stop: the control the person was on, else the row the
+        // person is on, else the first row.
+        let stop = this._gridStop?.isConnected && stops.includes(this._gridStop) ? this._gridStop : null;
+        stop ??= table.querySelector(":scope > tbody > tr[data-current]")
+            ?? table.querySelector(":scope > tbody > tr[data-row-id]");
+        for (const element of stops) {
+            const index = element === stop ? "0" : "-1";
+            if (element.getAttribute("tabindex") !== index) element.setAttribute("tabindex", index);
+        }
+        this._gridStop = stop;
+    }
+
+    bindGridKeys(table) {
+        if (this._gridTable === table) return;
+        this._gridAbort?.abort();
+        this._gridAbort = new AbortController();
+        this._gridTable = table;
+        const {signal} = this._gridAbort;
+        // Wherever the focus lands -- a click, a Tab into a control the grid
+        // has not seen yet -- that is the one stop.
+        table.addEventListener("focusin", (event) => {
+            if (!this.isGrid) return;
+            const target = event.target;
+            if (!(target instanceof Element) || target === this._gridStop) return;
+            if (!this.gridRows(table).some((row) => row.contains(target))) return;
+            this._gridStop = target;
+            this.syncGrid();
+        }, {signal});
+        table.addEventListener("keydown", (event) => this.handleGridKeydown(event, table), {signal});
+        // A right click on a row opens the row's «more» menu (C146 (5)):
+        // Shift keeps the browser's own menu, and a link or a field keeps it
+        // too.
+        table.addEventListener("contextmenu", (event) => {
+            if (event.shiftKey) return;
+            const target = event.target instanceof Element ? event.target : null;
+            if (!target || target.closest("a[href], input, textarea, select, [contenteditable]")) return;
+            const row = target.closest("tbody > tr[data-row-id]");
+            const more = row?.querySelector("[data-sf-row-more]");
+            if (!more) return;
+            event.preventDefault();
+            this.openRowMenuOf(row, more);
+        }, {signal});
+    }
+
+    rowOfElement(element) {
+        const key = element?.closest?.("[data-row-id]")?.dataset.rowId;
+        if (key == null) return null;
+        const rows = this.getTableData().rows || [];
+        return rows.find((row, index) => this.getRowKey(row, index) === key) ?? null;
+    }
+
+    openRowMenuOf(rowElement, more) {
+        const row = this.rowOfElement(rowElement);
+        if (!row) return null;
+        return this.openRowMenu({currentTarget: more, target: more}, row);
+    }
+
+    handleGridKeydown(event, table) {
+        if (event.defaultPrevented || !this.isGrid) return;
+        const target = event.target instanceof Element ? event.target : null;
+        if (!target) return;
+        // A field keeps its own keys.
+        if (target.closest("textarea, select, [contenteditable]") || (target.matches("input") && !/^(checkbox|radio)$/u.test(target.type))) return;
+        // An edge that sets a width keeps its arrows, Home and End.
+        if (target.matches("[data-sf-column-resizer]") && /^(ArrowLeft|ArrowRight|Home|End|Enter)$/u.test(event.key)) return;
+        const rows = this.gridRows(table);
+        const rowIndex = rows.findIndex((row) => row === target || row.contains(target));
+        if (rowIndex < 0) return;
+        const row = rows[rowIndex];
+        if ((event.key === "F10" && event.shiftKey) || event.key === "ContextMenu") {
+            const more = row.querySelector("[data-sf-row-more]");
+            if (!more) return;
+            event.preventDefault();
+            this.openRowMenuOf(row, more);
+            return;
+        }
+        const controls = this.gridControls(row);
+        const at = controls.indexOf(target);
+        // The row's own keys (handleRowKeydown) move between rows from the
+        // row itself, drawn or not; these move from a control, and across.
+        const inBody = row.parentElement?.tagName === "TBODY";
+        const place = (index, list, from) => {
+            // A body row starts with the row itself; the head row does not.
+            const fromBody = from.parentElement?.tagName === "TBODY";
+            const toBody = list[0]?.tagName === "TR";
+            const shift = (toBody ? 1 : 0) - (fromBody ? 1 : 0);
+            return Math.max(0, Math.min(list.length - 1, index + shift));
+        };
+        let next = null;
+        if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
+            const forward = (event.key === "ArrowRight") !== this.isRightToLeft();
+            next = controls[at + (forward ? 1 : -1)] ?? null;
+            // A tree row opens and closes with the arrows from the row itself.
+            if (target === row && row.hasAttribute("aria-expanded")) return;
+        } else if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+            // From a row the row's own keys moved already, when there was a
+            // row to move to; from the first one, up is the head.
+            const other = rows[rowIndex + (event.key === "ArrowDown" ? 1 : -1)];
+            if (other) {
+                const list = this.gridControls(other);
+                next = list[place(at, list, row)] ?? null;
+            }
+        } else if (event.key === "Home" || event.key === "End") {
+            if (event.ctrlKey) {
+                const body = rows.filter((one) => one.parentElement?.tagName === "TBODY");
+                next = (event.key === "Home" ? body[0] : body[body.length - 1]) ?? null;
+            } else if (target !== row || !inBody) {
+                next = event.key === "Home" ? controls[0] : controls[controls.length - 1];
+            } else {
+                return;
+            }
+        } else {
+            return;
+        }
+        if (!next || next === target) return;
+        event.preventDefault();
+        this._gridStop = next;
+        this.syncGrid();
+        next.focus({preventScroll: false});
     }
 
     template() {
