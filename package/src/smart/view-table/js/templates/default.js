@@ -1152,8 +1152,10 @@ export function renderTableTemplate(context) {
                     kinds.push('node');
                     values.push(renderRowEnd(row));
                 } else if (cellKinds[cellIndex] === 'title' && mark?.kind === 'text') {
-                    kinds.push('node');
-                    values.push(renderTitleClamp(row, column, mark.text));
+                    // The name as text: the text cell itself is the clamp
+                    // (two lines), with no element around it.
+                    kinds.push('text');
+                    values.push('sf-table-cell-text sf-table-title-clamp', nothing, mark.text);
                 } else if (mark?.kind === 'box') {
                     kinds.push('box');
                     values.push(`sf-checkbox sf-checkbox--size-${mark.size} flex content-main-between cursor-pointer`, mark.value, mark.checked, mark.label, mark.change);

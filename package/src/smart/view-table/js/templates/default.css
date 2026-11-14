@@ -1189,6 +1189,7 @@
   /* The record's name (owner decision C146 (7)): two lines at most, then an
      ellipsis; the tooltip with the whole name shows only on a cut name. */
   :is(sf-view-table, sf-table) .sf-table-title-clamp {
+    --sf-table-cell--line-clamp: 2;
     display: -webkit-box;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
