@@ -28,10 +28,11 @@
     --sf-data-view-skeleton--label-x: var(--sf-ui-1--text-space-x);
     --sf-data-view-skeleton--icon: var(--sf-text-height-1);
     --sf-data-view-skeleton--label-size: var(--sf-text-size-1);
-    /* The table's row model (C31 look points): a body row's padding from the
-       rung of two lines of the step's text, the row on the rung below it. */
-    --sf-data-view-skeleton--row-pad: calc((var(--sf-ui-3--control-height) - 2 * var(--sf-text-height-1) - var(--sf-px)) / 2);
-    --sf-data-view-skeleton--row: var(--sf-ui-2--control-height);
+    /* The table's row model (owner decision C146 (1), sf-view-table 1.19.0):
+       a row is the control of its step, with no padding of its own. It was
+       the rung above, with a padding from the two-line rung (C31). */
+    --sf-data-view-skeleton--row-pad: 0px;
+    --sf-data-view-skeleton--row: var(--sf-ui-1--control-height);
     display: grid;
     gap: var(--sf-data-view-gap, var(--sf-space-3));
     container-type: inline-size;
@@ -44,8 +45,8 @@
     --sf-data-view-skeleton--label-x: var(--sf-ui-1\/2--text-space-x);
     --sf-data-view-skeleton--icon: var(--sf-text-height-1\/2);
     --sf-data-view-skeleton--label-size: var(--sf-text-size-1\/2);
-    --sf-data-view-skeleton--row-pad: calc((var(--sf-ui-2--control-height) - 2 * var(--sf-text-height-1\/2) - var(--sf-px)) / 2);
-    --sf-data-view-skeleton--row: var(--sf-ui-1--control-height);
+    --sf-data-view-skeleton--row-pad: 0px;
+    --sf-data-view-skeleton--row: var(--sf-ui-1\/2--control-height);
   }
 
   /* A bar is a line of the row's text (its line height, the letters' height
@@ -191,9 +192,9 @@
     display: none;
   }
 
-  /* A row (the head first) as tall as the table's: the cell padding, the
-     row's tallest content -- a line of text, or the row menu's control -- and
-     the line under it. */
+  /* A row (the head first) as tall as the table's: the step's control, the
+     line under it inside (box-sizing), as the table draws its line inside
+     the cell. */
   .sf-data-view-skeleton-table > div {
     display: flex;
     align-items: center;
