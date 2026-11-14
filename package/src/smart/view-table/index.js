@@ -7054,7 +7054,7 @@ class SfTable extends TableElement {
     // of the host's row_actions is a real submenu rather than a second menu
     // swapped in over the first. What a choice does is unchanged -- an intent
     // for the row, or the action's own handler where it has one.
-    async openRowMenu(event, row = {}, only = null) {
+    async openRowMenu(event, row = {}, only = null, {ids = null} = {}) {
         const anchor = event?.currentTarget?.querySelector?.("button")
             ?? event?.target?.closest?.("button")
             ?? event?.currentTarget;
@@ -7063,7 +7063,13 @@ class SfTable extends TableElement {
             ? row.actions
             : null;
         // The list's «more» menu holds the actions its row does not show.
-        const items = Array.isArray(only) ? only : this.getActionRowItems(row);
+        // Several selected rows (C164): the actions every one of them offers.
+        const many = Array.isArray(ids) && ids.length > 1;
+        let items = Array.isArray(only) ? only : this.getActionRowItems(row);
+        if (many) {
+            const rows = this.getTableData().rows.filter((one) => ids.some((id) => String(id) === String(one.id)));
+            items = items.filter((action) => rows.every((one) => this.getActionRowItems(one).some((other) => other.id === action.id)));
+        }
         const iconOf = (action) => action?.icon ?? action?.component?.props?.icon ?? undefined;
         const entries = items.map((action) => (Array.isArray(action.members)
             ? {
@@ -7076,13 +7082,17 @@ class SfTable extends TableElement {
         // A destructive entry closes the menu (C164 (5)): whatever order a host
         // catalogue gives, «Удалить» is the last entry, the rest keep theirs.
         entries.sort((a, b) => Number(a.danger === true) - Number(b.danger === true));
+        // …after a divider, when anything stands above it (C164).
+        const firstDanger = entries.findIndex((entry) => entry.danger === true);
+        if (firstDanger > 0) entries.splice(firstDanger, 0, {type: "separator"});
+        if (many) entries.unshift({type: "heading", text: `${this.text("selectedRowsHeading")} ${ids.length}`});
         // The standard menu is a lazy relation of the table: fetched after the
         // page is ready, and asked for here if a press comes first.
         await globalThis.SF?.Loader?.ensure?.(["sf-menu-context"]);
         const menu = this.rowMenu();
         menu.setAttribute("aria-label", this.getContextMenuLabel({row, menu: "row-settings"}));
         menu.entries = entries;
-        this._rowMenuContext = {row, items, anchor};
+        this._rowMenuContext = {row, items, anchor, ids: many ? ids.map(String) : null};
         return menu.toggleFor(anchor);
     }
 
@@ -7095,7 +7105,12 @@ class SfTable extends TableElement {
             const context = this._rowMenuContext;
             if (!context) return;
             const id = event.detail?.id;
-            const {row, items, anchor} = context;
+            const {row, items, anchor, ids} = context;
+            // A menu over several selected rows acts on all of them.
+            if (ids && id) {
+                this.requestActionIntent(id, ids);
+                return;
+            }
             const action = items.find((item) => item.id === id);
             const member = action ? null : items.flatMap((item) => item.members ?? []).find((item) => item.id === id);
             if (member) {
@@ -8067,9 +8082,30 @@ class SfTable extends TableElement {
         // The menu key sends a keydown and then a contextmenu: the second
         // must not close what the first opened.
         if (this._rowMenu?.isOpen && this._rowMenuContext?.row === row) return true;
-        const button = rowElement.querySelector("[data-sf-row-menu]");
-        const anchor = button ?? from?.closest?.("td") ?? rowElement;
-        this.openRowMenu({currentTarget: anchor, target: anchor}, row);
+        // C164: a selected row speaks for the whole selection; a row outside
+        // it becomes the selection first, then its menu opens.
+        let ids = null;
+        let reselected = false;
+        if (this.getPropsContext().selectable) {
+            const selected = this.getSelectedRecordIds().map(String);
+            if (selected.includes(String(row.id))) ids = selected;
+            else {
+                if (selected.length) this.clearSelection();
+                this.applyRowSelection(row.id, true);
+                reselected = true;
+            }
+        }
+        const key = rowElement.dataset.rowId;
+        const cellKey = from?.closest?.("td")?.dataset.key;
+        const open = () => {
+            // The selection redraws the row: anchor on the row drawn now.
+            const drawn = [...this.querySelectorAll("tbody > tr[data-row-id]")].find((tr) => tr.dataset.rowId === key) ?? rowElement;
+            const anchor = drawn.querySelector("[data-sf-row-menu]")
+                ?? (cellKey ? drawn.querySelector(`td[data-key="${CSS.escape(cellKey)}"]`) : null) ?? drawn;
+            this.openRowMenu({currentTarget: anchor, target: anchor}, this.rowOfElement(drawn) ?? row, null, {ids});
+        };
+        if (reselected) requestAnimationFrame(open);
+        else open();
         return true;
     }
 
