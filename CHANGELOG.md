@@ -26,7 +26,9 @@ in brackets. The site page «Изменения» says the same in Russian.
   one Tab stop and arrow keys, column-resize edges are no Tab stops (RS-10);
   `layout` defaults to `auto` (a list below `list-below`), a plain table on a
   phone scrolls in its frame with its first column pinned, and the empty
-  state stays in view (TB-11, TB-12).
+  state stays in view (TB-11, TB-12). Density now moves a table with a size
+  too (C79), and the published `--sf-table-*-block-size-1/2` names follow
+  it (28 on a compact page; they held 40 there).
 - `sf-view-properties` 1.15.0: a record, a relation, a user and a paged
   lookup field are edited in `sf-input-lookup` (owner decision C139 (1)):
   focus shows the host's first page, typing searches through the host,

@@ -4,16 +4,17 @@
 // the drawn tables under page density (C22, C27). Measured on the built bytes,
 // light and dark, at 1280 and 390, on a normal and a compact page:
 //   - every head -- with the box and sortable column controls or with names
-//     only -- is a one-line row of its own table: 40 at 1/2 and 48 at 1 with
-//     the box and controls, on a desktop names only too (they were 45/57
-//     with controls, 37/41 without; published 33/41);
+//     only -- is a one-line row of its own table; since 1.19.0 (owner
+//     decision C146 (1)) a row is a control of its step, so the head of a
+//     size="1/2" table is the 1/2 control height and of a size="1" table the
+//     1 control height, read where the table stands (32/40 at 1280; they
+//     were 40/48 to 1.18.x);
 //   - --sf-table-head-block-size-* is the head drawn;
-//   - the -1/2 names are the size="1/2" table on every page (a written size
-//     is stronger than density): on a compact page too (they gave 36 there
-//     beside the 40 drawn);
-//   - the -1 names are the table without a size in the density they are read
-//     in: on a compact page the compact table, in a data-sf-density="normal"
-//     region the size="1" table.
+//   - the names follow the density they are read in, for a table with a
+//     size or without (C79: a size is a step on the region's ladder; to
+//     1.18.x a size="1/2" table held the normal ladder on a compact page):
+//     on a compact page the compact tables, in a data-sf-density="normal"
+//     region the normal ones.
 import {resolve, join} from 'node:path';
 import {chromium} from 'playwright';
 
@@ -41,7 +42,9 @@ const modules = [
 
 const COLUMNS = [{key: 'title', label: 'Название', role: 'title', sortable: true}, {key: 'status', label: 'Статус', sortable: true}, {key: 'owner', label: 'Владелец'}];
 const ROWS = [1, 2, 3].map((n) => ({id: String(n), title: `Запись ${n}`, status: 'active', owner: 'Сотрудник', revision: 'r', actions: ['view']}));
-const table = (id, attrs) => `<sf-view-table id="${id}" ${attrs} toolbar="false" aria-label="${id}"></sf-view-table>`;
+// layout="table": on a phone the table is a list by default since 1.19.0
+// (TB-11), and the head is what is measured here.
+const table = (id, attrs) => `<sf-view-table id="${id}" ${attrs} layout="table" toolbar="false" aria-label="${id}"></sf-view-table>`;
 const page = (density) => `<!doctype html><html lang="ru"${density === 'compact' ? ' data-sf-density="compact"' : ''}><head><meta charset="utf-8"></head><body style="margin:0;padding:16px">
   ${table('half', 'size="1/2"')}${table('one', 'size="1"')}${table('none', '')}
   ${table('half-plain', 'size="1/2" selectable="false" settings="false"')}${table('one-plain', 'size="1" selectable="false" settings="false"')}
@@ -75,12 +78,13 @@ try {
       };
       const drawn = Object.fromEntries([...document.querySelectorAll('sf-view-table')].map((one) => [one.id, {
         head: height(one.querySelector('thead tr')), row: height(one.querySelector('tbody tr[data-row-id]')),
-        controls: one.querySelectorAll('thead input, thead button, thead [data-sort], thead .sf-table-sort').length}]));
+        controls: one.querySelectorAll('thead input, thead button, thead [data-sort], thead .sf-table-sort').length,
+        rung: px(one.getAttribute('size') === '1/2' ? '--sf-ui-1\\/2--control-height' : '--sf-ui-1--control-height', one.parentElement)}]));
       const published = (host) => ({
         row12: px('--sf-table-row-block-size-1\\/2', host), head12: px('--sf-table-head-block-size-1\\/2', host),
         row1: px('--sf-table-row-block-size-1', host), head1: px('--sf-table-head-block-size-1', host)});
       return {drawn, page: published(document.body), region: published(document.getElementById('normal')),
-        ladder: {one: px('--sf-ui-1--control-height', document.getElementById('normal')), two: px('--sf-ui-2--control-height', document.getElementById('normal'))}};
+        ladder: {half: px('--sf-ui-1\\/2--control-height', document.getElementById('normal')), one: px('--sf-ui-1--control-height', document.getElementById('normal')), two: px('--sf-ui-2--control-height', document.getElementById('normal'))}};
     });
     const {drawn} = read;
     const near = (a, b) => typeof a === 'number' && typeof b === 'number' && Math.abs(a - b) <= 0.5;
@@ -88,15 +92,15 @@ try {
     for (const [id, one] of Object.entries(drawn)) {
       if (!near(one.head, one.row)) failures.push(`${where}: ${id} head ${one.head} beside rows of ${one.row}`);
     }
-    // On the ladder: 40 at 1/2 and 48 at 1 with the box and controls, on a
-    // desktop and on a phone; the heads of names only on a desktop (on a
-    // phone they stand on the phone's rung, 36 and 44, as their rows do).
-    if (!near(drawn.half.head, 40) || !near(drawn.one.head, 48)) failures.push(`${where}: the heads with controls are ${drawn.half.head}/${drawn.one.head}, not 40/48`);
-    if (width >= 1000 && (!near(drawn['half-plain'].head, 40) || !near(drawn['one-plain'].head, 48))) failures.push(`${where}: the heads of names are ${drawn['half-plain'].head}/${drawn['one-plain'].head}, not 40/48`);
+    // On the ladder: each head is the control height of its step where it
+    // stands (C146 (1)), with controls or names only.
+    for (const id of ['half', 'one', 'half-plain', 'one-plain']) {
+      if (!near(drawn[id].head, drawn[id].rung)) failures.push(`${where}: the ${id} head is ${drawn[id].head}, its control height ${drawn[id].rung}`);
+    }
     // The -1/2 names are the size="1/2" table; the -1 names the table without a size; a normal region reads size 1.
     const checks = [['row12', drawn.half.row], ['head12', drawn.half.head], ['row1', drawn.none.row], ['head1', drawn.none.head]];
     for (const [key, value] of checks) if (!near(read.page[key], value)) failures.push(`${where}: --${key} reads ${read.page[key]} on the page, the table draws ${value}`);
-    for (const [key, value] of [['row1', drawn['region-one'].row], ['head1', drawn['region-one'].head], ['row12', drawn.half.row]]) {
+    for (const [key, value] of [['row1', drawn['region-one'].row], ['head1', drawn['region-one'].head], ['row12', read.ladder.half]]) {
       if (!near(read.region[key], value)) failures.push(`${where}: --${key} reads ${read.region[key]} in a normal region, the table draws ${value}`);
     }
     if (drawn.half.controls < 1) failures.push(`${where}: the 1/2 head draws no controls (${JSON.stringify(drawn.half)})`);
@@ -113,4 +117,4 @@ if (failures.length) {
   console.error(failures.join('\n'));
   process.exit(1);
 }
-console.log('table head ladder: heads are one-line rows (40/48), the published box is the drawn one on normal and compact pages, light and dark, 1280 and 390');
+console.log('table head ladder: heads are one-line rows at the control height of their step, the published box is the drawn one on normal and compact pages, light and dark, 1280 and 390');

@@ -331,19 +331,15 @@
      menu) or its text, one line or two, and never below the rung it
      stands on. The head is a one-line row (view 1.6.1).
 
-     Density (C22, view 1.6.1). A size the page writes is stronger than the
-     page's density, so a table of size="1/2" draws the normal ladder on a
-     compact page too, and the -1/2 names say that table on every page. A
-     table without a size is the one density moves: the -1 names follow the
-     density of the element they are read on. Declared on every element that
+     Density (C22, C79). Since 1.19.0 a row is the control of its step
+     (C146 (1)), and a written size is a step on the region's ladder (C79),
+     so density moves every table, with a size or without: each name follows
+     the density of the element it is read on. Declared on every element that
      sets a density as well as on the root, so a region of data-sf-density
-     reads the box of its own density. On a compact page the -1/2 names are
-     the step above in the compact ladder, which is the normal 1/2 (C22: each
-     step holds the value of the step below), so a table without a size
-     there is exactly the -1/2 box. Desktop only, as the density itself
-     (SIMAI Framework _sf_css__density.scss: 60rem). The 1.6.0 names gave 36
-     on a compact page beside the 40 the 1/2 table draws (D3 of the 1.6.0
-     acceptance). */
+     reads the box of its own density. Desktop only, as the density itself
+     (SIMAI Framework _sf_css__density.scss: 60rem). To 1.18.x a size="1/2"
+     table held the normal ladder on a compact page and the -1/2 names said
+     so. */
   :root,
   [data-sf-density] {
     --sf-table-row-block-size-1\/2: var(--sf-ui-1\/2--control-height);
@@ -360,13 +356,6 @@
     --sf-table-toolbar-gap: var(--sf-space-1\/3);
   }
 
-  @media (min-width: 60rem) {
-    [data-sf-density="compact"] {
-      --sf-table-row-block-size-1\/2: var(--sf-ui-1--control-height);
-      --sf-table-row-2-lines-block-size-1\/2: max(var(--sf-ui-1--control-height), 2 * var(--sf-text-height-1));
-      --sf-table-toolbar-block-size-1\/2: var(--sf-ui-1--control-height);
-    }
-  }
 
   /* The moment the table is measured for its content widths (see
      measureContentWidths): laid out by content at its widest, with no column
