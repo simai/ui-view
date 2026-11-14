@@ -2765,11 +2765,11 @@
       },
       {
         "path": "src/smart/view-table/js/templates/default.js",
-        "sha256": "0e984855ffd1ffdbbcfbc4803814a47fb26b4fd8f42563b93e73bd6cb59ed3eb"
+        "sha256": "38e8912fd37fc9e1939d1ed16c3420c828f97cbb737c2fcb829f5ccc7628d6b5"
       },
       {
         "path": "src/smart/view-table/js/templates/default.css",
-        "sha256": "653ba151a58f1a8b4233f94f6457671b6bfce70b261946262285efac9677aae3"
+        "sha256": "0e3ff752841e548b23a9ec26ef17f58e6d341c86ac6cf9dd8a2477d3bc930688"
       },
       {
         "path": "src/smart/helpers/option-badge.js",

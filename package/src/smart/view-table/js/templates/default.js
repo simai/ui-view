@@ -1049,18 +1049,14 @@ export function renderTableTemplate(context) {
             if (typeof handler === 'function') handler(event);
             else component.requestActionIntent(action.id, [row.id]);
         };
-        return html`<span class="sf-table-row-end">
-            ${quick.length ? html`<span class="sf-table-row-quick">${quick.map((action) => html`<button type="button" class=${button}
-                    data-tooltip=${component.tipId(action.id)}
-                    data-quick-action=${action.id} aria-label=${action.name ?? action.id}
-                    @click=${press(action)}><i class="sf-icon" aria-hidden="true">${iconOf(action)}</i></button>`)}</span>` : nothing}
-            ${all.length ? html`<button type="button" class=${`${button} sf-table-row-more`}
-                    aria-label=${component.text('moreActionsLabel')} aria-haspopup="menu" data-sf-row-menu data-sf-row-more
-                    @click=${(event) => {
-                        event.stopPropagation();
-                        component.openRowMenu(event, row);
-                    }}><i class="sf-icon" aria-hidden="true">more_horiz</i></button>` : nothing}
-        </span>`;
+        // Written without spaces between the parts and with the glyph as a
+        // property: every text node and part marker is a node of every row of
+        // a long list (thirty a row, standard 1.3.8 gate 17).
+        const more = all.length ? html`<button type="button" class=${`${button} sf-table-row-more`} aria-label=${component.text('moreActionsLabel')} aria-haspopup="menu" data-sf-row-menu data-sf-row-more @click=${(event) => {
+            event.stopPropagation();
+            component.openRowMenu(event, row);
+        }}><i class="sf-icon" aria-hidden="true">more_horiz</i></button>` : nothing;
+        return html`<span class="sf-table-row-end">${quick.map((action) => html`<button type="button" class=${`${button} sf-table-row-quick`} data-tooltip=${component.tipId(action.id)} data-quick-action=${action.id} aria-label=${action.name ?? action.id} @click=${press(action)}><i class="sf-icon" aria-hidden="true" .textContent=${iconOf(action)}></i></button>`)}${more}</span>`;
     }
 
     // The record's name in the table (owner decision C146 (7)): up to two

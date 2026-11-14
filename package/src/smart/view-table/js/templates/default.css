@@ -1222,8 +1222,6 @@
   }
 
   :is(sf-view-table, sf-table) .sf-table-row-quick {
-    display: flex;
-    gap: var(--sf-space-1\/4);
     opacity: 0;
     pointer-events: none;
   }
