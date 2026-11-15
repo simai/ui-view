@@ -5,6 +5,15 @@ in brackets. The site page «Изменения» says the same in Russian.
 
 ## 1.8.0 — not released
 
+- `sf-view-table` 1.19.2: the toolbar's view actions and a filter template's
+  actions draw ⋯ (`more_horiz`), not ⋮ (C155 (2), TL-1). A right click on a
+  row opens its menu at the pointer (C164 (1); sf-menu-context's point
+  anchor), not under the row's ≡; the keys still open it at the ≡. The list's
+  rows get the same right click, context-menu key and Shift+F10, with the
+  list their own button opens. `sf-view` 1.12.2: the bulk band's Apply over a
+  deleting action writes `status="danger"`, not the former `error` (same look;
+  the destructive rule is sf-pagination 1.6.0's). Needs the pair's
+  sf-menu-context 1.18.0 point anchor (group build 4 / `ui-994f9db407fa`).
 - `sf-view-table` 1.19.1: every menu of the table is on the table's step
   (owner remark 2026-11-15): the row menu, which lives on `<body>` or in the
   open dialog, takes the table's resolved size (the attribute, else 1) and the

@@ -2,7 +2,7 @@
   "$comment": "sf-table from its component.json (standard simai.smart-component 1.3.8, vocabulary 1.1.5), migrated from ui-control control/smart-architecture/migration/out/table (convert-1.3.8.mjs over ui-pro 9cbe061); every x-todo decided in x-decisions.",
   "id": "smart.view-table",
   "tag": "sf-view-table",
-  "version": "1.19.1",
+  "version": "1.19.2",
   "kind": "leaf",
   "family": "table",
   "settings": {
@@ -2402,6 +2402,13 @@
           "to": "1.19.1",
           "changes": [
             "Every menu of the table is on the table's step (owner remark 2026-11-15, recipe-list-toolbar): the row menu (data-sf-table-menu=\"row\"), which lives on <body> or in the open dialog, had no size and fell back to the menu's own 1/2 (32 px rows, 14 px text) beside a table of size 1 (rows 48, text 16). On every opening it now takes the table's resolved size (the size attribute, else the default 1) and the density of the table's area (data-sf-density, core followDensity); the menus the table draws itself (settings, filters, sort, create, tags, toolbar actions, template actions) take the resolved size too, where they took it only from a written attribute. Size 1 is 40 px rows and 16 px text (32 and 14 under compact density), 1/2 is 32 and 14 (28 compact). Works on the released pair ui-7fb26d395af2; SIMAI Framework fix/menu-opener-size makes every menu without a size follow its opener as well. Nothing to change for a host."
+          ]
+        },
+        {
+          "from": "1.19.1",
+          "to": "1.19.2",
+          "changes": [
+            "The view's actions button in the toolbar and a filter template's actions button draw ⋯ (more_horiz), not ⋮ (more_vert): owner decision C155 (2), defect TL-1 of the ui-pro admin set (K-1). A right click on a row opens the row's menu at the pointer, its corner at the point (C164 (1), ui-control research 2026-11-14-context-menu CM-1; sf-menu-context's point anchor, a fixed box of no size removed when the menu closes); it opened under the row's ≡ button. The keys still open it at that button. The list's rows (layout list, the narrow table) get the same: a right click, the context-menu key and Shift+F10 open the list their own button opens -- the ≡ of a plain list every action, the ⋯ of a list with quick actions what the row does not show (all of them while a narrow list folds the quick ones away); before, only the button opened it. A link, a field and Shift with the right button keep the browser's menu, as in the table. Nothing to change for a host."
           ]
         }
       ]

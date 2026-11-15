@@ -1634,7 +1634,9 @@ class SfDataView extends DataViewElement {
         ];
         // C116: Apply is a regular button in a band of controls (outline
         // on-surface), never the filled main one; over an action that
-        // deletes it is the outlined danger, and that action is listed last.
+        // deletes it is the outlined danger (status danger: error is the
+        // control's former word, kept by sf-button until 2027-01-01), and
+        // that action is listed last.
         // A Smart button draws its look once, as class markup over a native
         // button: a look that changes is a new button in the same place.
         const danger = this._bulkDestructive(actions.find((item) => item.value === action));
@@ -1644,7 +1646,7 @@ class SfDataView extends DataViewElement {
             apply.dataset.sfBulkDanger = String(danger);
             apply.setAttribute("appearance", "outline");
             apply.setAttribute("scheme", "on-surface");
-            if (danger) apply.setAttribute("status", "error");
+            if (danger) apply.setAttribute("status", "danger");
             chosen(apply, "size", this.controlSize);
             parts.apply.replaceWith(apply);
             parts.apply = band.querySelector('[data-sf-bulk="apply"]') ?? apply;
@@ -1663,6 +1665,11 @@ class SfDataView extends DataViewElement {
         return this;
     }
 
+    // The rule SIMAI Framework sf-pagination 1.6.0 reads for its own band
+    // (isDestructiveAction, smart/pagination/js/actions.js): the action's
+    // danger flag ({danger: true}, or "delete:Delete::danger" once the
+    // pagination parses it) or a value that deletes. Kept here until the pair
+    // this set is pinned to carries that module.
     _bulkDestructive(item) {
         return Boolean(item) && (item.danger === true || /^(delete|remove|destroy|trash)\b/iu.test(String(item.value ?? item.id ?? "")));
     }

@@ -48,6 +48,26 @@ const TABLE_VIEW_DEFAULTS = Object.freeze({density: "normal", stripes: false, li
 
 // The nearest box that scrolls vertically above an element, across shadow
 // roots; null when it is the page.
+// Where a right click was, as a menu anchor (C164 (1); ui-control research
+// 2026-11-14-context-menu, CM-1): a fixed box of no size at the pointer.
+// sf-menu-context reads such an anchor as a point (1.18.0): the menu's corner
+// is the point, and the focus goes back to the control under it. The table
+// removes it when the menu closes.
+function menuPointAt({x, y}) {
+    const point = document.createElement("span");
+    point.dataset.sfTableMenuPoint = "";
+    point.style.cssText = `position: fixed; left: ${x}px; top: ${y}px; inline-size: 0; block-size: 0`;
+    document.body.append(point);
+    return point;
+}
+
+// The context-menu key and Shift+F10 (C164 (1), C184 (5)).
+const isMenuKey = (event) => event?.key === "ContextMenu" || (event?.key === "F10" && event?.shiftKey === true);
+
+// A target that keeps the browser's own menu: a link (open in a new tab) and
+// a field a person types in.
+const keepsBrowserMenu = (target) => Boolean(target?.closest?.("a[href], input, textarea, select, [contenteditable]"));
+
 function verticalScroller(element) {
     for (let node = element; node; node = node.parentElement ?? node.getRootNode?.()?.host ?? null) {
         if (node === document.body || node === document.documentElement) return null;
@@ -1635,6 +1655,14 @@ class SfTable extends TableElement {
     }
 
     handleRowKeydown(event, row) {
+        // A list row's menu from the keyboard (C164 (1)): the context-menu
+        // key and Shift+F10 on the row or a control in it, not in a field.
+        // The table's rows have theirs in handleGridKeydown.
+        if (this.isList && isMenuKey(event) && !keepsBrowserMenu(event?.target)
+            && event?.currentTarget?.matches?.("li.sf-table-list-item[data-row-id]")) {
+            if (this.openListRowMenu(event.currentTarget)) event.preventDefault?.();
+            return this;
+        }
         // In the list the row's title link is its tab stop: the arrows, Home
         // and End move from it as from the row.
         // In the table the grid walks from a control (C146 (8)).
@@ -1775,6 +1803,19 @@ class SfTable extends TableElement {
 
     onConnected() {
         super.onConnected();
+        // A right click on a list row (C164 (1)(2)); a table's rows are
+        // heard by the grid (bindGridKeys).
+        if (!this._listContextMenu) {
+            this._listContextMenu = (event) => {
+                if (event.defaultPrevented || event.shiftKey || !this.isList) return;
+                const target = event.target instanceof Element ? event.target : null;
+                if (!target || keepsBrowserMenu(target)) return;
+                const item = target.closest("li.sf-table-list-item[data-row-id]");
+                if (!item || !this.contains(item)) return;
+                if (this.openListRowMenu(item, {x: event.clientX, y: event.clientY})) event.preventDefault();
+            };
+            this.addEventListener("contextmenu", this._listContextMenu);
+        }
         // The content widths are read once the rows are drawn, and a font or
         // a component's stylesheet that arrives after that makes the same
         // content wider: columns measured before it stayed narrow and their
@@ -4734,7 +4775,7 @@ class SfTable extends TableElement {
                                     data-context-submenu-anchor="${col.key}"
                                     scheme="on-surface"
                                     aria-label=${`${this.text("templateActionsLabel")}: ${col.label}`}
-                                    icon="more_vert"
+                                    icon="more_horiz"
                                     @click=${(event) => {
                                         this.openContextSubmenu(event, {
                                             type: 'filter-template-actions',
@@ -7070,11 +7111,18 @@ class SfTable extends TableElement {
     // of the host's row_actions is a real submenu rather than a second menu
     // swapped in over the first. What a choice does is unchanged -- an intent
     // for the row, or the action's own handler where it has one.
-    async openRowMenu(event, row = {}, only = null, {ids = null} = {}) {
+    //
+    // at: a point anchor (menuPointAt) for a right click -- the menu opens at
+    // the pointer, while a handler of the host still gets the row's button
+    // as its anchor; the point leaves the page when the menu closes.
+    async openRowMenu(event, row = {}, only = null, {ids = null, at = null} = {}) {
         const anchor = event?.currentTarget?.querySelector?.("button")
             ?? event?.target?.closest?.("button")
             ?? event?.currentTarget;
-        if (!(anchor instanceof Element)) return null;
+        if (!(anchor instanceof Element)) {
+            at?.remove();
+            return null;
+        }
         const selection = Array.isArray(row.actions) && row.actions.every((item) => typeof item === "string")
             ? row.actions
             : null;
@@ -7115,7 +7163,13 @@ class SfTable extends TableElement {
         menu.setAttribute("aria-label", this.getContextMenuLabel({row, menu: "row-settings"}));
         menu.entries = entries;
         this._rowMenuContext = {row, items, anchor, ids: many ? ids.map(String) : null};
-        return menu.toggleFor(anchor);
+        if (!at) return menu.toggleFor(anchor);
+        // Bound once the menu is open: opening it again closes the previous
+        // opening first, and that close must not take the new point.
+        const opened = await menu.toggleFor(at);
+        if (menu.isOpen) menu.addEventListener("sf-menu-context-closed", () => at.remove(), {once: true});
+        else at.remove();
+        return opened;
     }
 
     rowMenu() {
@@ -8060,15 +8114,16 @@ class SfTable extends TableElement {
         }, {signal});
         table.addEventListener("keydown", (event) => this.handleGridKeydown(event, table), {signal});
         // The right button on a row opens the row's «≡» menu (C146 (5),
-        // variant В; C164 (2): the same list). Shift keeps the browser's own
-        // menu, and so do a link (open in a new tab) and a field.
+        // variant В; C164 (2): the same list), at the pointer (C164 (1)).
+        // Shift keeps the browser's own menu, and so do a link (open in a
+        // new tab) and a field.
         table.addEventListener("contextmenu", (event) => {
             if (event.shiftKey) return;
             const target = event.target instanceof Element ? event.target : null;
-            if (!target || target.closest("a[href], input, textarea, select, [contenteditable]")) return;
+            if (!target || keepsBrowserMenu(target)) return;
             const row = target.closest("tbody > tr[data-row-id]");
             if (!row || !table.contains(row)) return;
-            if (this.openRowMenuOf(row, target)) event.preventDefault();
+            if (this.openRowMenuOf(row, target, {x: event.clientX, y: event.clientY})) event.preventDefault();
         }, {signal});
         // A row's buttons come after the draw: the «Действия» buttons of the
         // row a person is on, and a Smart button's own <button>, which its
@@ -8118,8 +8173,9 @@ class SfTable extends TableElement {
     }
 
     // Opens a row's «≡» menu as its button would, under the button; a table
-    // without the button (settings="false") opens it under the cell.
-    openRowMenuOf(rowElement, from) {
+    // without the button (settings="false") opens it under the cell. pointer
+    // ({x, y}, a right click) opens it at the pointer instead.
+    openRowMenuOf(rowElement, from, pointer = null) {
         const row = this.rowOfElement(rowElement);
         if (!row || !this.getActionRowItems(row).length) return false;
         // The menu key sends a keydown and then a contextmenu: the second
@@ -8133,10 +8189,37 @@ class SfTable extends TableElement {
             const drawn = [...this.querySelectorAll("tbody > tr[data-row-id]")].find((tr) => tr.dataset.rowId === key) ?? rowElement;
             const anchor = drawn.querySelector("[data-sf-row-menu]")
                 ?? (cellKey ? drawn.querySelector(`td[data-key="${CSS.escape(cellKey)}"]`) : null) ?? drawn;
-            this.openRowMenu({currentTarget: anchor, target: anchor}, this.rowOfElement(drawn) ?? row, null, {ids});
+            this.openRowMenu({currentTarget: anchor, target: anchor}, this.rowOfElement(drawn) ?? row, null,
+                {ids, at: pointer ? menuPointAt(pointer) : null});
         };
         if (reselected) requestAnimationFrame(open);
         else open();
+        return true;
+    }
+
+    // A list row's menu (C164 (2)): the list its own button opens -- the
+    // «≡» of a plain list every action, the «⋯» of a list with quick actions
+    // what its row does not show (all of them while the narrow list folds
+    // the quick ones away) -- at the pointer for a right click, else at that
+    // button. A row without the button keeps the browser's menu. Answers
+    // whether it opened.
+    openListRowMenu(item, pointer = null) {
+        const row = this.rowOfElement(item);
+        const button = item.querySelector("[data-sf-row-menu], .sf-table-list-menu button");
+        if (!row || !button) return false;
+        // The menu key sends a keydown and then a contextmenu: the second
+        // must not close what the first opened.
+        if (this._rowMenu?.isOpen && String(this._rowMenuContext?.row?.id) === String(row.id)) return true;
+        let only = null;
+        const actions = button.closest(".sf-table-resource-actions");
+        if (actions) {
+            const {quick, rest} = this.listRowActions(row);
+            const box = actions.querySelector(".sf-table-resource-quick");
+            const folded = Boolean(box) && getComputedStyle(box).display === "none";
+            only = folded ? [...quick, ...rest] : rest;
+            if (!only.length) return false;
+        } else if (!this.getActionRowItems(row).length) return false;
+        this.openRowMenu({currentTarget: button, target: button}, row, only, {at: pointer ? menuPointAt(pointer) : null});
         return true;
     }
 
@@ -8152,7 +8235,7 @@ class SfTable extends TableElement {
         const rowIndex = rows.findIndex((row) => row === target || row.contains(target));
         if (rowIndex < 0) return;
         const row = rows[rowIndex];
-        if (((event.key === "F10" && event.shiftKey) || event.key === "ContextMenu") && row.parentElement?.tagName === "TBODY") {
+        if (isMenuKey(event) && row.parentElement?.tagName === "TBODY") {
             if (this.openRowMenuOf(row, target)) event.preventDefault();
             return;
         }
