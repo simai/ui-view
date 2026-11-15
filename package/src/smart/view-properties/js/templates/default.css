@@ -884,13 +884,13 @@
 
   .sf-property-view-title {
     margin: 0;
-    /* A panel's title is on rung 2 of the text ladder (C157 (7): 20/24, 16 on
-       a phone), the step of every window title (C159 (5)); density does not
-       move it (C44). It was rung 3 (24/32), a step above the other windows. A
-       record's name is not a content heading, so it reads the text ladder,
-       not a heading role (C21). */
-    font-size: var(--sf-property-view--title-size, var(--sf-text--size-2));
-    line-height: var(--sf-property-view--title-height, var(--sf-title--height-2));
+    /* A panel's title is on the window step (C157 (7) = C159 (5): h4, 20/24,
+       16 on a phone), the role sf-drawer and sf-modal title their windows
+       with. The heading-4 role, not rung 2 of the text ladder: density does
+       not move a heading (C44), and rung 2 is 16 on a compact page. It was
+       rung 3 (24/32), a step above every other window. */
+    font-size: var(--sf-property-view--title-size, var(--sf-heading-4--size));
+    line-height: var(--sf-property-view--title-height, var(--sf-heading-4--height));
     font-weight: 700;
     text-overflow: ellipsis;
     white-space: nowrap;
