@@ -3,6 +3,33 @@
 The set `view`, by its npm version `@simai-studio/view`; component versions
 in brackets. The site page «Изменения» says the same in Russian.
 
+## 1.8.1 — not released
+
+- Over the same SIMAI Framework pair `ui-141822273efe`.
+- `sf-view-table` 1.19.6: a checked row box draws its tick at once. The
+  tick was in the row (1.19.0) but its glyph waited for an icon font that
+  had it: an unchecked box names no glyph, so the page's first font had no
+  «check» and the first box checked stayed empty for a second font (0.6 s on
+  a fast line, more on a slow one; DEV recipes p1). A table with boxes asks
+  for «check» and «remove» with its first font, and a drawing hands a newly
+  checked box's tick to the Loader. The bulk buttons were already per C116
+  (regular, «Удалить» outlined danger and last; measured again).
+- `sf-view-properties` 1.16.0, the record panel against the drawer decisions
+  (R243 study; C14, C96, C99, C144, C148, C153, C157, C159): one head with
+  the SIMAI Framework's `sf-button-close` last in it (it was a round button
+  of the panel's own on the scrim); on a phone a section opened from the
+  list is a level of the panel with «Назад» and the section's name in that
+  head (it was a second head row); the title on rung 2 of the text ladder
+  (20/24, 16 on a phone; it was 24/32); action rows 8 apart, 4 compact (were
+  20 and 16); «Отмена» and «Вернуться к правке» quiet; «Изменить» with a
+  capital; while a group is edited the labels and their «*» in the text
+  colour; no lines between the phone's section rows; the section column is
+  vertical `sf-tabs` (C96 (5), TR-13) without the tree's folder icons. The
+  strip beside the panel keeps copy-link and open-full and is gone without
+  them. A host that found the close in `.sf-property-view-edge` finds
+  `[data-action="close"]` in `.sf-property-view-head`; a host that read
+  `.sf-tree-item` in `.sf-property-view-sections` reads `[role="tab"]`.
+
 ## 1.8.0 — 2026-11-15
 
 - Pinned to SIMAI Framework `ui-141822273efe` (ui-source `f92aeee74518`,
