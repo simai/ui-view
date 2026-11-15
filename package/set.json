@@ -125,8 +125,6 @@
         "cl-switch",
         "cl-tabs",
         "cl-tag",
-        "cl-tree",
-        "cl-tree-item",
         "cl-view",
         "cl-view-table"
       ],

@@ -715,12 +715,6 @@
       "name": "cl-drawer"
     },
     {
-      "name": "cl-tree"
-    },
-    {
-      "name": "cl-tree-item"
-    },
-    {
       "name": "cl-avatar"
     },
     {
@@ -892,7 +886,8 @@
     {
       "name": "cl-tabs",
       "$comment": [
-        "Sections laid out as a row of tabs rather than a list beside the fields."
+        "The sections are tabs either way: a row above the groups, or vertical",
+        "tabs beside them (decision C96 point 5)."
       ]
     }
   ],

@@ -66,8 +66,6 @@
       "smart.switch",
       "smart.tabs",
       "smart.tag",
-      "smart.tree",
-      "smart.tree-item",
       "smart.view",
       "smart.view-table"
     ],
@@ -1659,7 +1657,7 @@
       },
       {
         "path": "src/smart/view-properties/js/templates/default.js",
-        "sha256": "737883a29aa0d85eb2e4753248bab856e5ff390db92f4b423d8017acd888d744"
+        "sha256": "c329e5059e2c75edbfc83aaa1e3fdd394ea2391b997be643ef3cb9ac6ebfa3cc"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.css",
