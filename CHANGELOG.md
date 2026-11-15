@@ -3,7 +3,7 @@
 The set `view`, by its npm version `@simai-studio/view`; component versions
 in brackets. The site page «Изменения» says the same in Russian.
 
-## 1.8.0 — not released
+## 1.8.0 — 2026-11-15
 
 - Pinned to SIMAI Framework `ui-141822273efe` (ui-source `f92aeee74518`,
   npm `@simai-studio/ui@5.20261115.29`, core.runtime 1.56.0); the set still
