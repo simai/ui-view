@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-table",
-  "version": "1.19.2",
+  "version": "1.19.3",
   "title": "Table",
   "summary": "Complete server-backed collection view with search, filters, table preferences, row and bulk actions, and pagination.",
   "kind": "composite",
@@ -2766,6 +2766,13 @@
         "changes": [
           "The view's actions button in the toolbar and a filter template's actions button draw ⋯ (more_horiz), not ⋮ (more_vert): owner decision C155 (2), defect TL-1 of the ui-pro admin set (K-1). A right click on a row opens the row's menu at the pointer, its corner at the point (C164 (1), ui-control research 2026-11-14-context-menu CM-1; sf-menu-context's point anchor, a fixed box of no size removed when the menu closes); it opened under the row's ≡ button. The keys still open it at that button. The list's rows (layout list, the narrow table) get the same: a right click, the context-menu key and Shift+F10 open the list their own button opens -- the ≡ of a plain list every action, the ⋯ of a list with quick actions what the row does not show (all of them while a narrow list folds the quick ones away); before, only the button opened it. A link, a field and Shift with the right button keep the browser's menu, as in the table. Nothing to change for a host."
         ]
+      },
+      {
+        "from": "1.19.2",
+        "to": "1.19.3",
+        "changes": [
+          "A list row's context menu follows the table's selection rule (C164 (3), dispatcher decision: one behaviour for both layouts): a right click, the context-menu key or Shift+F10 on a selected list row opens the menu over the whole selection -- the «Выбрано N» heading and only the actions every selected row offers, a choice acting on all of them -- and on a row outside the selection that row becomes the selection first, as in the table. Before, the list opened the row's own button list and left the selection as it was. With one row (alone or the only selected) the list keeps its own button's list (C164 (2)): the ≡ of a plain list every action, the ⋯ of a list with quick actions what the row does not show. Table and list go through one path (openRowContextMenu over rowMenuTargets); a second opening while the first waits for the redraw of a new selection is ignored in both. Nothing to change for a host."
+        ]
       }
     ]
   },
@@ -2775,7 +2782,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-table/index.js",
-        "sha256": "2236c11157aa096414d980a40476de98bd90d6cec5da64ba02f4324bb976962f"
+        "sha256": "508026711f46eb0b3d51949f3ba6740ffce9d801b4dea2ac369bf6cd3aa464ae"
       },
       {
         "path": "src/smart/view-table/js/templates/default.js",

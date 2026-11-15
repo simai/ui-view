@@ -61,6 +61,10 @@ function menuPointAt({x, y}) {
     return point;
 }
 
+// A list row's own menu button: «≡» of a plain list, «⋯» of a list with
+// quick actions.
+const LIST_ROW_MENU_BUTTON = "[data-sf-row-menu], .sf-table-list-menu button";
+
 // The context-menu key and Shift+F10 (C164 (1), C184 (5)).
 const isMenuKey = (event) => event?.key === "ContextMenu" || (event?.key === "F10" && event?.shiftKey === true);
 
@@ -8178,38 +8182,25 @@ class SfTable extends TableElement {
     openRowMenuOf(rowElement, from, pointer = null) {
         const row = this.rowOfElement(rowElement);
         if (!row || !this.getActionRowItems(row).length) return false;
-        // The menu key sends a keydown and then a contextmenu: the second
-        // must not close what the first opened.
-        if (this._rowMenu?.isOpen && this._rowMenuContext?.row === row) return true;
-        const {ids, reselected} = this.rowMenuTargets(row);
-        const key = rowElement.dataset.rowId;
         const cellKey = from?.closest?.("td")?.dataset.key;
-        const open = () => {
-            // The selection redraws the row: anchor on the row drawn now.
-            const drawn = [...this.querySelectorAll("tbody > tr[data-row-id]")].find((tr) => tr.dataset.rowId === key) ?? rowElement;
-            const anchor = drawn.querySelector("[data-sf-row-menu]")
-                ?? (cellKey ? drawn.querySelector(`td[data-key="${CSS.escape(cellKey)}"]`) : null) ?? drawn;
-            this.openRowMenu({currentTarget: anchor, target: anchor}, this.rowOfElement(drawn) ?? row, null,
-                {ids, at: pointer ? menuPointAt(pointer) : null});
-        };
-        if (reselected) requestAnimationFrame(open);
-        else open();
-        return true;
+        return this.openRowContextMenu(rowElement, row, "tbody > tr[data-row-id]", (drawn) => ({
+            anchor: drawn.querySelector("[data-sf-row-menu]")
+                ?? (cellKey ? drawn.querySelector(`td[data-key="${CSS.escape(cellKey)}"]`) : null) ?? drawn,
+        }), pointer);
     }
 
     // A list row's menu (C164 (2)): the list its own button opens -- the
     // «≡» of a plain list every action, the «⋯» of a list with quick actions
     // what its row does not show (all of them while the narrow list folds
     // the quick ones away) -- at the pointer for a right click, else at that
-    // button. A row without the button keeps the browser's menu. Answers
-    // whether it opened.
+    // button. A row without the button keeps the browser's menu. Over several
+    // selected rows it is the table's menu (C164 (3)): every action they all
+    // offer, under «Выбрано N» -- a quick button acts on its row alone.
+    // Answers whether it opened.
     openListRowMenu(item, pointer = null) {
         const row = this.rowOfElement(item);
-        const button = item.querySelector("[data-sf-row-menu], .sf-table-list-menu button");
+        const button = item.querySelector(LIST_ROW_MENU_BUTTON);
         if (!row || !button) return false;
-        // The menu key sends a keydown and then a contextmenu: the second
-        // must not close what the first opened.
-        if (this._rowMenu?.isOpen && String(this._rowMenuContext?.row?.id) === String(row.id)) return true;
         let only = null;
         const actions = button.closest(".sf-table-resource-actions");
         if (actions) {
@@ -8219,7 +8210,36 @@ class SfTable extends TableElement {
             only = folded ? [...quick, ...rest] : rest;
             if (!only.length) return false;
         } else if (!this.getActionRowItems(row).length) return false;
-        this.openRowMenu({currentTarget: button, target: button}, row, only, {at: pointer ? menuPointAt(pointer) : null});
+        return this.openRowContextMenu(item, row, "li.sf-table-list-item[data-row-id]", (drawn, ids) => ({
+            anchor: drawn.querySelector(LIST_ROW_MENU_BUTTON) ?? button,
+            only: ids?.length > 1 ? null : only,
+        }), pointer);
+    }
+
+    // The one path of a row's context menu, table row and list row alike
+    // (C164 (3)): the selection rule (rowMenuTargets), then the menu on the
+    // row as drawn after it -- a row outside the selection becomes the
+    // selection and is drawn again first. place(drawn, ids) gives the anchor
+    // and the entries (only) on that drawn row. Answers true: it opens.
+    openRowContextMenu(rowElement, row, rowSelector, place, pointer = null) {
+        const key = rowElement.dataset.rowId;
+        // The menu key sends a keydown and then a contextmenu: the second
+        // must not close what the first opened, or is opening.
+        if (this._rowMenuPending === key) return true;
+        if (this._rowMenu?.isOpen && String(this._rowMenuContext?.row?.id) === String(row.id)) return true;
+        const {ids, reselected} = this.rowMenuTargets(row);
+        const open = () => {
+            if (this._rowMenuPending === key) this._rowMenuPending = null;
+            // The selection redraws the row: anchor on the row drawn now.
+            const drawn = [...this.querySelectorAll(rowSelector)].find((element) => element.dataset.rowId === key) ?? rowElement;
+            const {anchor, only = null} = place(drawn, ids);
+            this.openRowMenu({currentTarget: anchor, target: anchor}, this.rowOfElement(drawn) ?? row, only,
+                {ids, at: pointer ? menuPointAt(pointer) : null});
+        };
+        if (reselected) {
+            this._rowMenuPending = key;
+            requestAnimationFrame(open);
+        } else open();
         return true;
     }
 

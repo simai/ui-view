@@ -48,7 +48,8 @@ test('sf-view-table: a list row opens its menu on a right click, the context-men
   assert.match(keydown, /this\.isList && isMenuKey\(event\) && !keepsBrowserMenu\(event\?\.target\)/);
   assert.match(source, /this\.addEventListener\("contextmenu", this\._listContextMenu\);/);
   const list = source.slice(source.indexOf('    openListRowMenu(item, pointer = null) {'), source.indexOf('    handleGridKeydown(event, table) {'));
-  assert.match(list, /item\.querySelector\("\[data-sf-row-menu\], \.sf-table-list-menu button"\)/);
+  assert.match(source, /const LIST_ROW_MENU_BUTTON = "\[data-sf-row-menu\], \.sf-table-list-menu button";/);
+  assert.match(list, /item\.querySelector\(LIST_ROW_MENU_BUTTON\)/);
   assert.match(list, /only = folded \? \[\.\.\.quick, \.\.\.rest\] : rest;/);
   assert.match(source, /const keepsBrowserMenu = \(target\) => Boolean\(target\?\.closest\?\.\("a\[href\], input, textarea, select, \[contenteditable\]"\)\);/);
 });

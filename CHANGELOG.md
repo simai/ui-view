@@ -5,6 +5,12 @@ in brackets. The site page «Изменения» says the same in Russian.
 
 ## 1.8.0 — not released
 
+- `sf-view-table` 1.19.3: a list row's context menu (right click,
+  context-menu key, Shift+F10) follows the table's selection rule (C164 (3)):
+  on a selected row it acts on the whole selection under «Выбрано N» with the
+  actions all of them offer; a row outside the selection becomes the
+  selection first. Table and list share one code path. Before, the list left
+  the selection alone and opened only the row's own button list.
 - `sf-view-table` 1.19.2: the toolbar's view actions and a filter template's
   actions draw ⋯ (`more_horiz`), not ⋮ (C155 (2), TL-1). A right click on a
   row opens its menu at the pointer (C164 (1); sf-menu-context's point
