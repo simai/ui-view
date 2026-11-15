@@ -140,6 +140,13 @@
     block-size: var(--sf-ui-1--control-height);
   }
 
+  /* The row holds the step, its cells follow it. The Framework's class table
+     puts the step-1 control height on every cell since utility.table 1.4.0
+     (C146 (1)), which held a size 1/2 row and head at 40 (36 on a phone). */
+  :is(sf-view-table, sf-table) > * .table > :not(caption) > * > * {
+    block-size: auto;
+  }
+
   :is(sf-view-table, sf-table)[size="1/2"] > * .table > :is(thead, tbody) > tr {
     block-size: var(--sf-ui-1\/2--control-height);
   }

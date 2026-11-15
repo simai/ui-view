@@ -351,9 +351,14 @@
   /* Its strip is a tab's height: the control height of the view's size, the
      height sf-tabs gives its buttons. The hairline under it and the empty panel
      below are the tabs' sheet's (.sf-tabs-top-container, .sf-tabs-main-container),
-     so the record's tabs take the same box when they come (simai/ui-pro#3). */
+     so the record's tabs take the same box when they come (simai/ui-pro#3).
+     The strip stands over the hairline by its width, as sf-tabs' underline
+     strip does since the SIMAI Framework's tabs spacing (C105, in the pair
+     ui-141822273efe): a tab's line is drawn on the hairline, so the box is the
+     strip's height and the skeleton was a pixel taller. */
   .sf-property-view-tabs-skeleton-strip {
     min-block-size: var(--sf-ui-1--control-height);
+    margin-block-end: calc(var(--sf-tabs-border-width, var(--sf-tabs--border-width, var(--sf-px))) * -1);
   }
 
   .sf-property-view-tabs--skeleton[data-size="1/2"] .sf-property-view-tabs-skeleton-strip {

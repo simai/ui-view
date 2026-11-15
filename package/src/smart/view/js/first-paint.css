@@ -69,9 +69,16 @@
     --sf-skeleton-text--line: var(--sf-text-height-1\/2);
   }
 
+  /* A control block is the control's box, not a line of text: the skeleton
+     component draws a text bar at the capitals' height (owner decision C136
+     (1), 0.727 of --sf-skeleton-text--height), which made a 40 control block
+     30 and the toolbar's held places smaller than the controls that come. */
   .sf-data-view-skeleton .sf-skeleton-text[data-control] {
     --sf-skeleton-text--height: var(--sf-data-view-skeleton--control);
     --sf-skeleton-text--line: var(--sf-data-view-skeleton--control);
+    --sf-skeleton-text--bar: var(--sf-data-view-skeleton--control);
+    block-size: var(--sf-data-view-skeleton--control);
+    margin-block: 0;
     inline-size: var(--sf-data-view-skeleton--control);
     flex: none;
   }
