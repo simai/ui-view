@@ -1667,7 +1667,8 @@
         "from": "1.12.2",
         "to": "1.12.3",
         "changes": [
-          "The first paint's control blocks (the toolbar's saved-views place, the layout switch, the create split arrow and the actions button) are the controls' boxes again over the SIMAI Framework pair ui-141822273efe. That pair's skeleton draws a text bar at the capitals' height (owner decision C136 (1), 0.727 of the text size), and the view's control blocks are skeleton text: they were held at 30 of 40 (24 of 32 compact, 20 of 28 at 1/2 compact) while the controls that came were whole, so the toolbar looked different from its first frame. A control block now sets its own bar, height and margin. Text bars take the pair's capital height. Nothing to change for a host."
+          "The first paint's control blocks (the toolbar's saved-views place, the layout switch, the create split arrow and the actions button) are the controls' boxes again over the SIMAI Framework pair ui-141822273efe. That pair's skeleton draws a text bar at the capitals' height (owner decision C136 (1), 0.727 of the text size), and the view's control blocks are skeleton text: they were held at 30 of 40 (24 of 32 compact, 20 of 28 at 1/2 compact) while the controls that came were whole, so the toolbar looked different from its first frame. A control block now sets its own bar, height and margin. Text bars take the pair's capital height. Nothing to change for a host.",
+          "The first paint's page row is the one SIMAI Framework sf-pagination 1.5 draws (owner decision C97, the compatible footer): the range, the arrows to the first and the previous page, the page field with its «из N», the arrows to the next and the last, and the page-size button. It held the 1.4 row (a label and one control for the pages, a label and a field for the size), which fit one line on a phone where the drawn row puts the pages on a line of their own: the view grew 48 px when its answer came (1211 to 1259 at 390). Nothing to change for a host."
         ]
       }
     ]
@@ -1678,7 +1679,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view/index.js",
-        "sha256": "37ec080daa05e935195e74ee734e6021b5fb527c6c06a18004c8a523ff22e4f0"
+        "sha256": "c672f1bb0368d175e18c59f1aec88f93e6d8b247a1fc0cbcc85fb43c99e47c99"
       },
       {
         "path": "src/core/contracts/ports/simai.dataview-port/1.5.0/port.json",
@@ -1698,7 +1699,7 @@
       },
       {
         "path": "src/smart/view/js/first-paint.css",
-        "sha256": "10e1515fa18832c3ad2af1b948739be690e3e54388d8470c2a5fcf0209d56c40"
+        "sha256": "7bc17ee46303702e371e405d8172d278312f12c7cc0183e51c3ca6876b731e56"
       }
     ],
     "generated_runtime": []

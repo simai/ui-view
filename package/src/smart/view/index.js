@@ -953,10 +953,16 @@ class SfDataView extends DataViewElement {
         // The head is a row like the others (sf-view-table 1.17.1).
         const row = () => `<div>${select ? `<span data-chrome>${bar}</span>` : ""}${settings ? `<span data-chrome>${control()}</span>` : ""}${`<span>${bar}</span>`.repeat(columns)}</div>`;
         const record = `<div>${select ? bar : "<span></span>"}<div>${bar.repeat(fields + 1)}</div>${settings ? control() : "<span></span>"}</div>`;
-        const pageRow = `<nav class="sf-pagination sf-pagination--size-${this.size} flex flex-col"><div class="sf-pagination-main flex items-cross-center content-main-between">`
+        // The page row as sf-pagination 1.5 draws its compatible footer (C97):
+        // the range, then the arrows to the first and the previous page, the
+        // page field with «из N», the arrows to the next and the last, and the
+        // page-size button. The markup keeps the 1.4 order (range, pages,
+        // size); the pagination sheet puts the pages last and, on a narrow
+        // page, on a line of their own, so the skeleton wraps where the row does.
+        const pageRow = `<nav class="sf-pagination sf-pagination--size-${this.size} sf-pagination--footer flex flex-col"><div class="sf-pagination-main flex items-cross-center content-main-between">`
             + `<div class="sf-pagination-left flex items-cross-center">${bar}</div>`
-            + `<div class="sf-pagination-container flex items-cross-center"><span class="sf-pagination-pages-label">${bar}</span>${control()}</div>`
-            + `<div class="sf-pagination-count flex items-cross-center">${bar}${control("field")}</div>`
+            + `<div class="sf-pagination-container flex items-cross-center">${control()}${control()}${control("page")}${control()}${control()}</div>`
+            + `<div class="sf-pagination-count flex items-cross-center">${control("size")}</div>`
             + "</div></nav>";
         return [
             // An own toolbar slot is a row of the view's layout, even empty.

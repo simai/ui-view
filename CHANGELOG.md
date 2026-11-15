@@ -14,6 +14,8 @@ in brackets. The site page «Изменения» says the same in Russian.
   the layout switch, the create split arrow, the actions button) are the
   controls' boxes again. The pair's skeleton draws a text bar at the capitals'
   height (C136 (1)), which held them at 30 of 40 (24 of 32 compact).
+  The page row of the first paint is sf-pagination 1.5's compatible footer
+  (C97): on a phone the view no longer grows 48 px when its answer comes.
 - `sf-view-table` 1.19.4: a size 1/2 table is 32 again (28 compact and on a
   phone): the row holds the step and its cells follow it. The pair's class
   table puts the step-1 control height on every cell (utility.table 1.4.0,
