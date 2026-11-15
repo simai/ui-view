@@ -10,6 +10,21 @@ in brackets. The site page «Изменения» says the same in Russian.
   needs core.runtime 1.51.0 or newer. The pair carries what the entries
   below needed (sf-menu-context's point anchor, utility.table 1.3.0,
   field-renderers 1.9.0 with sf-input-lookup 1.10.0, sf-spinner 1.4.0).
+  1.7.2 was never released: its entries (`sf-view-table` 1.18.2) are
+  folded into this one, at the end.
+- `sf-view-table` 1.19.5: the printed first paint and the drawn table lay
+  the columns out by one rule (gate 24): every data column at its content
+  width on one line, the last data column nobody sized taking the spare
+  room, the select, settings and actions columns at their declared widths.
+  The printed table shared the spare room between every column and drew the
+  select column as wide as its box's label wanted, and the measured widths
+  were rounded up to a 4 px grid, so every printed cell moved when the code
+  measured (CLS 0.035 at 1280, 0.041 at 1440). A table with rows is
+  content-sized from its first render, and a content-sized table takes no
+  column floor (its last column stood at 160 on a phone). The column
+  window's footer stands on the menu's own inset (C105 H4, C106): its
+  buttons stood at 11 from the panel's padding edge beside the search and
+  the rows at 15, where the Framework's panel rows put their text.
 - `sf-view` 1.12.3: the first paint's control blocks (the saved-views place,
   the layout switch, the create split arrow, the actions button) are the
   controls' boxes again. The pair's skeleton draws a text bar at the capitals'
@@ -39,8 +54,7 @@ in brackets. The site page «Изменения» says the same in Russian.
   rows get the same right click, context-menu key and Shift+F10, with the
   list their own button opens. `sf-view` 1.12.2: the bulk band's Apply over a
   deleting action writes `status="danger"`, not the former `error` (same look;
-  the destructive rule is sf-pagination 1.6.0's). Needs the pair's
-  sf-menu-context 1.18.0 point anchor (group build 4 / `ui-994f9db407fa`).
+  the destructive rule is sf-pagination 1.6.0's).
 - `sf-view-table` 1.19.1: every menu of the table is on the table's step
   (owner remark 2026-11-15): the row menu, which lives on `<body>` or in the
   open dialog, takes the table's resolved size (the attribute, else 1) and the
@@ -48,9 +62,6 @@ in brackets. The site page «Изменения» says the same in Russian.
   the menu's own 1/2 (32 px rows, 14 px text) beside a size-1 table. The
   menus the table draws itself take the resolved size too. `sf-view-properties`
   1.15.1: its «⋯» and view menu the same. Works on the released pair.
-- Needs the next SIMAI Framework pair (utility.table 1.3.0, field-renderers
-  1.9.0 with sf-input-lookup 1.10.0); built and probed over SIMAI Framework
-  group build 4 (ui-source `09cf1b0f`, local), not over `ui-7fb26d395af2`.
 - `sf-view-table` 1.19.0: `--sf-table--row-text-inset` is the cell spacing
   plus `--sf-space-1` (16 at 1440, 12 compact and on a phone), the edge
   inset the SIMAI Framework table gives the first cell from utility.table
@@ -82,11 +93,6 @@ in brackets. The site page «Изменения» says the same in Russian.
   «Показать ещё» follows the cursor, the value is written as
   `{value, label}`. The rule relates `cl-input-lookup` (lazy). A short list
   given whole stays `sf-dropdown`.
-
-## 1.7.2 — not released
-
-- Needs the next SIMAI Framework pair (sf-spinner 1.4.0 for `label-hidden`);
-  not built or released over `ui-7fb26d395af2`.
 - `sf-view-table` 1.18.2: rows name their fill to the SIMAI Framework core
   mix `sf-place-fill` (C43 D3, D4). A hovered, selected, open and
   selected-and-hovered row, in the table and in the phone list, declares
@@ -96,9 +102,7 @@ in brackets. The site page «Изменения» says the same in Russian.
   on a hovered row it cut the tint out to the bare place colour.
 - `sf-view-table` 1.18.2: the busy overlay's spinner carries its words as
   `label` with `label-hidden` (owner decision C138) instead of an empty
-  label and an `aria-label`; the status region says them once. Over a pair
-  without sf-spinner 1.4.0 the attribute is ignored and the words show
-  beside the spinner.
+  label and an `aria-label`; the status region says them once.
 - `sf-view-table` 1.18.2: a list empty only because of its filters draws
   `filter_alt_off` in its «nothing found» brick (owner decision C120 (3));
   a search, or a search with filters, keeps `search_off`.
