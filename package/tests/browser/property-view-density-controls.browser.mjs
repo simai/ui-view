@@ -8,8 +8,10 @@
 // since view 1.6.0; first made in ui-pro on 2026-11-10): a panel without a size writes no size on its buttons and
 // tabs, so compact page density (data-sf-density="compact", desktop) moves
 // them a rung down with the page -- --sf-ui-1--control-height reads 32 there --
-// and normal density keeps 40. A panel with a size keeps the rung it set:
-// size="1" 40 and size="1/2" 32 under either density. Measured on the open-all
+// and normal density keeps 40. A panel with a size moves with density too
+// (owner decision C79, which changed C22; SIMAI Framework since group build 4):
+// size="1" 40 and size="1/2" 32 under normal density, 32 and 28 under compact,
+// the page's own ladder in both. Measured on the open-all
 // bar (Save, Cancel) and the section tabs of an edit surface, light and dark,
 // 1280, clean console; every height is compared with the page's own ladder.
 import {join, resolve} from 'node:path';
@@ -104,7 +106,8 @@ try {
     report[key] = m;
     if (density === 'normal') normal[theme] = m.ladder;
     for (const {id, size} of HOSTS) {
-      const want = id === 'none' ? m.ladder.one : (id === 'half' ? normal[theme].half : normal[theme].one);
+      // C79: an explicit size is a rung of the area's ladder, as no size is.
+      const want = id === 'half' ? m.ladder.half : m.ladder.one;
       const host = m.hosts[id];
       if (!host.bar.length) note({host: id, group: 'bar', said: 'no control found'});
       for (const control of host.bar) if (control.height !== want) note({host: id, group: 'bar', said: 'a control is not its rung', control, want, ladder: m.ladder});
@@ -119,7 +122,7 @@ try {
       const normalTab = tab(`${theme}-normal`, 'none');
       const compactTab = tab(key, 'none');
       if (!(compactTab < normalTab)) note({host: 'none', group: 'tabs', said: 'the tabs do not follow compact density', normalTab, compactTab});
-      if (tab(key, 'one') !== tab(`${theme}-normal`, 'one')) note({host: 'one', group: 'tabs', said: 'size 1 tabs move with density', got: [tab(`${theme}-normal`, 'one'), tab(key, 'one')]});
+      if (!(tab(key, 'one') < tab(`${theme}-normal`, 'one'))) note({host: 'one', group: 'tabs', said: 'size 1 tabs do not move with density (C79)', got: [tab(`${theme}-normal`, 'one'), tab(key, 'one')]});
     }
     if (density === 'compact' && m.ladder.one !== 32) note({said: 'compact density does not move --sf-ui-1--control-height to 32 at 1280', ladder: m.ladder});
     if (density === 'normal' && m.ladder.one !== 40) note({said: 'normal density is not 40 at 1280', ladder: m.ladder});

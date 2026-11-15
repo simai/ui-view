@@ -86,7 +86,10 @@ const look = (page) => page.evaluate(() => {
     // The fields belong to the other tab, so none of their ticks may be on
     // screen while the templates tab is the one selected.
     fieldTicksOnScreen: [...menu.querySelectorAll('input[type="checkbox"]')].filter(visible).length,
-    tabTitles: [...menu.querySelectorAll('.sf-tabs-top-container button')].map((node) => node.textContent.trim()),
+    // The tabs drawn: sf-tabs keeps its «Ещё» overflow button in the row,
+    // display: none while every tab fits (SIMAI Framework sf-tabs since
+    // ui-994f9db407fa), so only buttons with a box are tabs on screen.
+    tabTitles: [...menu.querySelectorAll('.sf-tabs-top-container button')].filter(visible).map((node) => node.textContent.trim()),
   };
 });
 

@@ -234,14 +234,17 @@ try {
       ofN: /из \d/u.test(text),
       fieldBetweenArrows: Boolean(list?.querySelector('.sf-pagination-item-field .sf-pagination-page-input')),
       numbersLeft: numbers.filter((item) => /^\d+$/u.test(item.textContent.trim())).length,
-      showMoreRow: Boolean(document.querySelector('#p .sf-pagination-top')),
-      showMoreInFooter: Boolean(main?.querySelector('.sf-pagination-more sf-button')),
+      showMoreRow: Boolean(document.querySelector('#p .sf-pagination-top .sf-pagination-more-button')),
+      showMoreInFooter: Boolean(main?.querySelector('.sf-pagination-more-button')),
       hasField: Boolean(field),
     };
   });
-  if (footer.marked || footer.ofN || !footer.fieldBetweenArrows || footer.numbersLeft > 0
-      || footer.showMoreRow || !footer.showMoreInFooter) {
-    note({case: 'footer', got: footer, expected: 'one row: no marked count, the field between the arrows, Show more beside them'});
+  // Owner decision C97 (sf-pagination 1.5.0, pair ui-141822273efe): the field
+  // reads «‹ [3] из 12 ›» for an exact count, and Show more is never in one row
+  // with the arrows -- the compatible footer draws it on a line above.
+  if (footer.marked || !footer.ofN || !footer.fieldBetweenArrows || footer.numbersLeft > 0
+      || !footer.showMoreRow || footer.showMoreInFooter) {
+    note({case: 'footer', got: footer, expected: 'one row: no marked count, the field between the arrows with «из N», Show more on its own line above (C97)'});
   }
 
   // 4. The menus stay under their buttons.

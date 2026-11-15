@@ -8,8 +8,10 @@
 // buttons, row menus and row actions, so compact page density
 // (data-sf-density="compact", desktop) moves them a rung down with the page
 // -- --sf-ui-1--control-height reads 32 there -- and normal density keeps
-// 40. A host with a size still hands it down: it keeps the rung it set,
-// size="1" 40 and size="1/2" 32 under either density. Light and dark, 1280, clean
+// 40. A host with a size still hands it down, and the size moves with density
+// too (owner decision C79, which changed C22; SIMAI Framework since group
+// build 4): size="1" 40 and size="1/2" 32 under normal density, 32 and 28 under
+// compact. Light and dark, 1280, clean
 // console; every height is compared with the page's own ladder token.
 import {join, resolve} from 'node:path';
 import {existsSync} from 'node:fs';
@@ -129,7 +131,8 @@ try {
     for (const {id} of HOSTS) {
       // A host with a size keeps the rung it set, the normal ladder's; a host
       // without one takes the rung of the page's density.
-      const want = id === 'none' ? m.ladder.one : (id === 'half' ? normal[theme].half : normal[theme].one);
+      // C79: an explicit size is a rung of the area's ladder, as no size is.
+      const want = id === 'half' ? m.ladder.half : m.ladder.one;
       const host = m.hosts[id];
       for (const group of ['toolbar', 'rowMenus', 'listActions', 'listToolbar', 'viewToolbar', 'switches']) {
         if (!host[group].length) { note({host: id, group, said: 'no control found'}); continue; }
