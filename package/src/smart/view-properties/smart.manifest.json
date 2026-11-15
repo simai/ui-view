@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-properties",
-  "version": "1.15.1",
+  "version": "1.15.2",
   "title": "Property view",
   "summary": "One object's fields shown as sections, groups and fields, each drawn by the per-type field renderer set, behind a separate host port. A group is edited and saved as one revision by the button, and a reference field is picked from the host's own candidates a page at a time. The pair to the data view: that one is a set of records, this one is a single object.",
   "kind": "composite",
@@ -1639,6 +1639,13 @@
         "changes": [
           "The panel's «⋯» and view menu is on the panel's step (owner remark 2026-11-15): the menu lives on <body> or in the open dialog, had no size and fell back to the menu's own 1/2 beside a panel of size 1. On every opening it now takes the panel's size (1, or 1/2) and the density of the panel's area (core followDensity). Nothing to change for a host."
         ]
+      },
+      {
+        "from": "1.15.1",
+        "to": "1.15.2",
+        "changes": [
+          "Over the SIMAI Framework pair ui-141822273efe: (1) in the arranging mode and in an open panel the bar of actions stands on the drawer's floor again. sf-drawer 1.10.5 keeps no stable scrollbar gutter (C105 H6, the scroll-area rule of C106), so its block padding is the gutter alone; the panel took back the gutter and a scrollbar's 14 px and its foot stood 14 px below the floor. It takes back the gutter now. (2) The skeleton's tab strip stands over the hairline by its width, as sf-tabs' underline strip does since the pair's tabs spacing (C105): the skeleton was a pixel taller than the tabs, and the first group moved by a pixel when the record came. Nothing to change for a host."
+        ]
       }
     ]
   },
@@ -1656,7 +1663,7 @@
       },
       {
         "path": "src/smart/view-properties/js/templates/default.css",
-        "sha256": "0da687f91d4dd4f5b439dbf462259a346131cf65239aed3a2bed6aba8f4e2524"
+        "sha256": "ed1ad9673d0fa310a847c2b03062f8ca2da2a4e140af6cf161b9d9fc477aba4a"
       },
       {
         "path": "src/smart/view-properties/js/conditions.js",

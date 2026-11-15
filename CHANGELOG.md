@@ -5,6 +5,25 @@ in brackets. The site page «Изменения» says the same in Russian.
 
 ## 1.8.0 — not released
 
+- Pinned to SIMAI Framework `ui-141822273efe` (ui-source `f92aeee74518`,
+  npm `@simai-studio/ui@5.20261115.29`, core.runtime 1.56.0); the set still
+  needs core.runtime 1.51.0 or newer. The pair carries what the entries
+  below needed (sf-menu-context's point anchor, utility.table 1.3.0,
+  field-renderers 1.9.0 with sf-input-lookup 1.10.0, sf-spinner 1.4.0).
+- `sf-view` 1.12.3: the first paint's control blocks (the saved-views place,
+  the layout switch, the create split arrow, the actions button) are the
+  controls' boxes again. The pair's skeleton draws a text bar at the capitals'
+  height (C136 (1)), which held them at 30 of 40 (24 of 32 compact).
+- `sf-view-table` 1.19.4: a size 1/2 table is 32 again (28 compact and on a
+  phone): the row holds the step and its cells follow it. The pair's class
+  table puts the step-1 control height on every cell (utility.table 1.4.0,
+  C146 (1)), which held size 1/2 rows and the head at 40 (36 on a phone).
+  The toolbar holds its own gaps: a table drawn before its sheets moved its
+  search field by 12 px when the gap utility came.
+- `sf-view-properties` 1.15.2: the bar of actions stands on the drawer's
+  floor again (sf-drawer 1.10.5 keeps no stable scrollbar gutter, C105 H6;
+  the panel's foot stood 14 px below it), and the skeleton's tab strip stands
+  over the hairline as sf-tabs' underline strip does (it was a pixel taller).
 - `sf-view-table` 1.19.3: a list row's context menu (right click,
   context-menu key, Shift+F10) follows the table's selection rule (C164 (3)):
   on a selected row it acts on the whole selection under «Выбрано N» with the

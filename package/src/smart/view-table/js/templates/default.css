@@ -33,6 +33,22 @@
     align-items: stretch;
   }
 
+  /* The toolbar's gaps are this sheet's, the same steps its gap-* classes
+     name: the class sheet is a utility the Loader fetches when it sees the
+     class, and over the pair ui-141822273efe it came a frame after a table
+     drawn before its sheets, so the search field moved 12 px (16 in the
+     list's toolbar) under the person's eyes (saved-views first-paint probe,
+     sheets withheld, data first). */
+  :is(sf-view-table, sf-table) .sf-table-toolbar {
+    gap: var(--sf-space-1\/2);
+  }
+
+  :is(sf-view-table, sf-table) :is(.sf-table-toolbar-start, .sf-table-toolbar-end),
+  :is(sf-view-table, sf-table) .sf-table-toolbar--list,
+  :is(sf-view-table, sf-table) .sf-table-toolbar--list > div {
+    gap: var(--sf-space-1\/3);
+  }
+
   /* The search row keeps a usable width or goes to the line above. Without a
      floor it simply shrank instead of wrapping, and the field ended up a stub
      beside the chips. */
