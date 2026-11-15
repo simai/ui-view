@@ -1089,12 +1089,15 @@ function renderMenuControl(context) {
 // second head row «← Цены» under this one (R243 study, VP-6 and VP-7). The
 // section screen of a phone is a level of the same panel: its back arrow is in
 // this row and the title names the section, as a record opened from the panel
-// names that record.
+// names that record. The row's layout (a row, centred, 8 apart, the spacer
+// before the host's actions) is the component's own sheet, not utilities: the
+// Loader asks for a utility sheet only after the first render, so the close
+// stood beside the star for ~115 ms and then jumped to the end (D1, 1.16.3).
 function renderPanelHead(context) {
     const level = phoneLevel(context);
     return html`
         <header class="sf-property-view-head flex flex-col gap-1">
-            <div class="sf-property-view-title-row flex items-cross-center gap-1/3 min-w-0">
+            <div class="sf-property-view-title-row">
                 ${level ? html`<sf-button-icon
                         size=${context.controlSize ?? nothing}
                         appearance="ghost"
@@ -1124,7 +1127,7 @@ function renderPanelHead(context) {
                         aria-label=${context.favouriteLabel}
                         @click=${() => context.component.toggleFavourite()}
                 ></sf-button-icon>` : nothing}
-                <span class="grow"></span>
+                <span class="sf-property-view-head-spacer"></span>
                 ${context.hasHostSlot('actions') ? context.hostSlot('actions') : nothing}
                 ${renderMenuControl(context)}
                 <sf-button-close

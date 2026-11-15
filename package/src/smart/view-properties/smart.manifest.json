@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-properties",
-  "version": "1.16.0",
+  "version": "1.16.3",
   "title": "Property view",
   "summary": "One object's fields shown as sections, groups and fields, each drawn by the per-type field renderer set, behind a separate host port. A group is edited and saved as one revision by the button, and a reference field is picked from the host's own candidates a page at a time. The pair to the data view: that one is a set of records, this one is a single object.",
   "kind": "composite",
@@ -1652,6 +1652,13 @@
         "changes": [
           "In its panel (R243 study, decisions C14, C96, C99, C144, C153, C157, C159): (1) one head: the close is the SIMAI Framework's sf-button-close, last in the panel's head (it was a round sf-button-icon of the panel's own on the scrim outside the panel); the strip beside the panel keeps copy-link and open-full and is not drawn without them; on a phone a section opened from the list is a level of the panel, with «Назад» and the section's name in the same head (it was a second head row «← Цены» under it). (2) The title is on the window step, heading-4 (20/24, 16 on a phone), as sf-drawer's and sf-modal's (it was rung 3, 24/32). (3) The action rows (save, the confirmation, the open-all form, arranging, the host's footer) stand 8 apart, 4 compact (C144; they were 20); «Отмена» and «Вернуться к правке» are quiet (ghost on-surface, C116 (2), C159 (4)); the Russian word is «Отмена» (was «Отменить»). (4) «Изменить» / «Edit» starts with a capital. (5) While a group is edited a field's label and its «*» are in the text colour (C153 (1), (2)); reading keeps the quieter label. (6) The phone's list of sections has no lines between rows (C148 (4)). (7) The section list beside the groups is vertical tabs, sf-tabs type=\"vertical\" (C96 (5), TR-13), not an sf-tree: a named tablist, one tab aria-selected, walked with the up and down arrows; a section without an icon of its own no longer gets the tree's folder, while reading or arranging; the column is no longer a nav landmark while reading. The rule loads cl-tabs and cl-button-close and no longer cl-tree / cl-tree-item. A host that read .sf-tree-item[data-value] in .sf-property-view-sections reads [role=tab] there; one that found the close as .sf-property-view-edge [data-action=\"close\"] finds it as [data-action=\"close\"] in .sf-property-view-head. selectSection, the events and the settings are unchanged."
         ]
+      },
+      {
+        "from": "1.16.0",
+        "to": "1.16.3",
+        "changes": [
+          "In its panel's head (D1 of the 1.8.1 acceptance): the row of back, title, star, the host's actions, the «⋯» and the close is laid out by the component's own sheet (a row, centred, 8 apart, C105 H5; a spacer before the host's actions), not by the grow and gap-1/3 utilities. The Loader asks for utility sheets only after the first render, so on the first open of a panel the close was drawn beside the star and moved to the row's end 113-124 ms later (94-118 px at 1440). It is at the end from the first drawn frame now. Nothing to change for a host. (1.16.1 and 1.16.2 are the versions of ui-pro's own patched copies in its release pro-2ba35fabb343; they are not in this set.)"
+        ]
       }
     ]
   },
@@ -1665,11 +1672,11 @@
       },
       {
         "path": "src/smart/view-properties/js/templates/default.js",
-        "sha256": "f29c3ac412d20924ef638dfe9955497fc573b1261d7d93b93c6ad8f2309c53c9"
+        "sha256": "d1abc1e69bdd47443185cf6627847b1a59a57b94aba37caed4c273651056ad2b"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.css",
-        "sha256": "185f03c41f512e427663c61faaaec1e081c704635799035fd96923b6a116582d"
+        "sha256": "765b6c1efa6e9be1aa1516eabb85d8a69da9c19ce0cb03cf1a07050b80a49e0a"
       },
       {
         "path": "src/smart/view-properties/js/conditions.js",

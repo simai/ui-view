@@ -879,8 +879,21 @@
     background-color: var(--sf-surface-area);
     border-block-end: var(--sf-px) solid var(--sf-outline-variant);
   }
-
-
+  /* The head's one row: back, title, star, a spacer, the host's actions, the
+     «⋯» and the close. Laid out here, in the sheet that comes with the
+     component, not by utilities: the Loader asks for utility sheets only after
+     the first render, so a row on grow and gap-1/3 drew the close beside the
+     star and moved it to the end ~115 ms later (D1, 1.16.3). The controls are
+     buttons of one group, 8 apart (C105 H5). */
+  .sf-property-view-title-row {
+    display: flex;
+    align-items: center;
+    gap: var(--sf-space-1\/3);
+    min-inline-size: 0;
+  }
+  .sf-property-view-head-spacer {
+    flex: 1 1 auto;
+  }
 
   .sf-property-view-title {
     margin: 0;

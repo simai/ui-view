@@ -2,7 +2,7 @@
   "$comment": "sf-property-view from its component.json (standard simai.smart-component 1.3.8, vocabulary 1.1.5), migrated from ui-control control/smart-architecture/migration/out/property-view; every x-todo decided in x-decisions.",
   "id": "smart.view-properties",
   "tag": "sf-view-properties",
-  "version": "1.16.0",
+  "version": "1.16.3",
   "kind": "leaf",
   "family": "record",
   "implements": [
@@ -1782,6 +1782,13 @@
           "to": "1.16.0",
           "changes": [
             "In its panel (R243 study, decisions C14, C96, C99, C144, C153, C157, C159): (1) one head: the close is the SIMAI Framework's sf-button-close, last in the panel's head (it was a round sf-button-icon of the panel's own on the scrim outside the panel); the strip beside the panel keeps copy-link and open-full and is not drawn without them; on a phone a section opened from the list is a level of the panel, with «Назад» and the section's name in the same head (it was a second head row «← Цены» under it). (2) The title is on the window step, heading-4 (20/24, 16 on a phone), as sf-drawer's and sf-modal's (it was rung 3, 24/32). (3) The action rows (save, the confirmation, the open-all form, arranging, the host's footer) stand 8 apart, 4 compact (C144; they were 20); «Отмена» and «Вернуться к правке» are quiet (ghost on-surface, C116 (2), C159 (4)); the Russian word is «Отмена» (was «Отменить»). (4) «Изменить» / «Edit» starts with a capital. (5) While a group is edited a field's label and its «*» are in the text colour (C153 (1), (2)); reading keeps the quieter label. (6) The phone's list of sections has no lines between rows (C148 (4)). (7) The section list beside the groups is vertical tabs, sf-tabs type=\"vertical\" (C96 (5), TR-13), not an sf-tree: a named tablist, one tab aria-selected, walked with the up and down arrows; a section without an icon of its own no longer gets the tree's folder, while reading or arranging; the column is no longer a nav landmark while reading. The rule loads cl-tabs and cl-button-close and no longer cl-tree / cl-tree-item. A host that read .sf-tree-item[data-value] in .sf-property-view-sections reads [role=tab] there; one that found the close as .sf-property-view-edge [data-action=\"close\"] finds it as [data-action=\"close\"] in .sf-property-view-head. selectSection, the events and the settings are unchanged."
+          ]
+        },
+        {
+          "from": "1.16.0",
+          "to": "1.16.3",
+          "changes": [
+            "In its panel's head (D1 of the 1.8.1 acceptance): the row of back, title, star, the host's actions, the «⋯» and the close is laid out by the component's own sheet (a row, centred, 8 apart, C105 H5; a spacer before the host's actions), not by the grow and gap-1/3 utilities. The Loader asks for utility sheets only after the first render, so on the first open of a panel the close was drawn beside the star and moved to the row's end 113-124 ms later (94-118 px at 1440). It is at the end from the first drawn frame now. Nothing to change for a host. (1.16.1 and 1.16.2 are the versions of ui-pro's own patched copies in its release pro-2ba35fabb343; they are not in this set.)"
           ]
         }
       ]
