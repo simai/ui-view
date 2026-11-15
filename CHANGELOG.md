@@ -3,7 +3,7 @@
 The set `view`, by its npm version `@simai-studio/view`; component versions
 in brackets. The site page «Изменения» says the same in Russian.
 
-## 1.8.1 — not released
+## 1.8.1 — 2026-11-15
 
 - Over the same SIMAI Framework pair `ui-141822273efe`.
 - `sf-view-table` 1.19.6: a checked row box draws its tick at once. The
@@ -30,6 +30,17 @@ in brackets. The site page «Изменения» says the same in Russian.
   them. A host that found the close in `.sf-property-view-edge` finds
   `[data-action="close"]` in `.sf-property-view-head`; a host that read
   `.sf-tree-item` in `.sf-property-view-sections` reads `[role="tab"]`.
+- `sf-view-properties` 1.16.3: the panel's head row is laid out by the
+  component's own sheet, not by the `grow` and `gap-1/3` utilities, which
+  the Loader asks for only after the first render. On the first open of a
+  panel the close was drawn beside the star and moved to the row's end
+  113-124 ms later (94-118 px at 1440); it stands at the end from the first
+  drawn frame now. (1.16.1 and 1.16.2 are the versions of ui-pro's own
+  patched copies; they are not in this set.)
+- Known limit, as in 1.8.0: the `view-flow/ask` first-paint case at 390 px
+  stays on the set's known-failure list. The `sf-input-date` fix (its
+  wrapper aligned to the top) is not in a released SIMAI Framework pair yet;
+  the case is dropped at the repin on the pair that carries it.
 
 ## 1.8.0 — 2026-11-15
 
