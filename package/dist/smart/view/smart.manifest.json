@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view",
-  "version": "1.12.0",
+  "version": "1.12.3",
   "title": "Data view",
   "summary": "Host-driven data view that composes toolbar, content and pagination around a separate data port.",
   "kind": "composite",
@@ -1647,6 +1647,29 @@
           "A page asks the view to save a shared saved view with save {kind: \"view\", key, label, revision?, roles?} on the view (vocabulary 1.1.5 §9: sf-data-view-saved-view-intent -> sf-view-save with kind view). The view raises view.save_shared as before; a save of another kind is left alone. The former names sf-view-saved-view-intent and sf-data-view-saved-view-intent are dated aliases until 2027-01-01 (aliases.json, same-detail): still heard, their detail without kind read as a view, each use noted in SF.deprecations.",
           "The first paint holds the optional toolbar controls that are known before the answer: the layout switch (layout-switch; the segmented track, two controls less the track's padding: 76 at size 1, 62 at 1/2 and compact), and, when the page gave its table createItems or toolbarActions before the first paint, the create kinds' arrow joined to Create and the toolbar actions' button. The search field then stands where it will stand (its end edge moved 66 to 172 px at 1440 when they were drawn). The compact list's toolbar has none of them. The list's sort button is not held: it comes with a sortable column, which only the port's answer names."
         ]
+      },
+      {
+        "from": "1.12.0",
+        "to": "1.12.1",
+        "changes": [
+          "The first paint's rows are the table's C146 rows (sf-view-table 1.19.0): the step's control, 40 at size 1 and 32 at 1/2 and compact, the head as tall; they were the rung above (48 and 40). Nothing to change for a host.",
+          "The bulk band's Apply is a regular button (outline on-surface, C116), the outlined danger over an action that deletes (delete, remove, destroy, trash), and such an action is listed last (C164 (5)); it was the filled main button. Nothing to change for a host."
+        ]
+      },
+      {
+        "from": "1.12.1",
+        "to": "1.12.2",
+        "changes": [
+          "The bulk band's Apply over an action that deletes writes status=\"danger\", the button's word for it (rule C13, C116 (4)); it wrote status=\"error\", the control's former word, which SIMAI Framework sf-button keeps as an alias until 2027-01-01. The look is the same outlined danger. Which action deletes is the rule SIMAI Framework sf-pagination 1.6.0 reads for its own band (isDestructiveAction): the action's danger flag or a value delete, remove, destroy or trash; that action is listed last. Nothing to change for a host."
+        ]
+      },
+      {
+        "from": "1.12.2",
+        "to": "1.12.3",
+        "changes": [
+          "The first paint's control blocks (the toolbar's saved-views place, the layout switch, the create split arrow and the actions button) are the controls' boxes again over the SIMAI Framework pair ui-141822273efe. That pair's skeleton draws a text bar at the capitals' height (owner decision C136 (1), 0.727 of the text size), and the view's control blocks are skeleton text: they were held at 30 of 40 (24 of 32 compact, 20 of 28 at 1/2 compact) while the controls that came were whole, so the toolbar looked different from its first frame. A control block now sets its own bar, height and margin. Text bars take the pair's capital height. Nothing to change for a host.",
+          "The first paint's page row is the one SIMAI Framework sf-pagination 1.5 draws (owner decision C97, the compatible footer): the range, the arrows to the first and the previous page, the page field with its «из N», the arrows to the next and the last, and the page-size button. It held the 1.4 row (a label and one control for the pages, a label and a field for the size), which fit one line on a phone where the drawn row puts the pages on a line of their own: the view grew 48 px when its answer came (1211 to 1259 at 390). Nothing to change for a host."
+        ]
       }
     ]
   },
@@ -1656,7 +1679,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view/index.js",
-        "sha256": "e9697bf4b62a6532e669912f7646688c46c48a25cde4f74c68d352c90c4c5724"
+        "sha256": "c672f1bb0368d175e18c59f1aec88f93e6d8b247a1fc0cbcc85fb43c99e47c99"
       },
       {
         "path": "src/core/contracts/ports/simai.dataview-port/1.5.0/port.json",
@@ -1676,7 +1699,7 @@
       },
       {
         "path": "src/smart/view/js/first-paint.css",
-        "sha256": "64b5763f33f6c08943a9e2899586b870d29d3d2e6891de5aa5ca701d2195bd90"
+        "sha256": "7bc17ee46303702e371e405d8172d278312f12c7cc0183e51c3ca6876b731e56"
       }
     ],
     "generated_runtime": []

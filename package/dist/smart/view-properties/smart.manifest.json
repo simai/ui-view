@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-properties",
-  "version": "1.13.3",
+  "version": "1.15.2",
   "title": "Property view",
   "summary": "One object's fields shown as sections, groups and fields, each drawn by the per-type field renderer set, behind a separate host port. A group is edited and saved as one revision by the button, and a reference field is picked from the host's own candidates a page at a time. The pair to the data view: that one is a set of records, this one is a single object.",
   "kind": "composite",
@@ -51,6 +51,7 @@
       "smart.input-color",
       "smart.input-country",
       "smart.input-date",
+      "smart.input-lookup",
       "smart.input-textarea",
       "smart.list-item",
       "smart.popover",
@@ -1624,6 +1625,27 @@
           "The controls the panel draws (the open-all bar, the group and section buttons, the section tabs, the profile picker, the edge controls) carry the panel's size when it has one and none when it has not (decision C22), as sf-view and sf-view-table do since view 1.6.0, so page density moves them: under compact density a panel with no size draws them at 32, size 1 keeps 40. `size` still chooses the panel's own type steps (1/2 or 1). Made in ui-pro ahead of simai/ui-view (2026-11-10) and released here in view 1.6.1. Nothing to change for a host.",
           "Over SIMAI Framework ui-2bd5a3ab478a (ui-source d25a01f9989d, core.runtime 1.51.0), which the set now needs (core.runtime 1.51.0 or newer): the pair that carries the roles --sf-surface-underlay and --sf-surface-place-solid. Nothing to change for a host on that pair."
         ]
+      },
+      {
+        "from": "1.13.3",
+        "to": "1.15.0",
+        "changes": [
+          "A record, a relation, a user and a paged lookup field are edited in sf-input-lookup (field-renderers 1.9.0, owner decision C139 (1)): focus asks the host for the first page (the quiet page asked as the group opens is reused), typing searches through loadFieldOptions, «Show more» follows the cursor, and the chosen value is written as {value, label}. The rule relates cl-input-lookup (lazy). A row's caption, avatar ({src} or {initials}, or avatarText) and icon reach the lookup as the host sends them in options_page.items; property-view-port 1.18.0 names only value and label, so a host that wants them needs the port to say so. A short list given whole stays sf-dropdown. The renderer set is built into this bundle, so the change comes with a package built over a ui-source that has field-renderers 1.9.0, and the page needs the pair with sf-input-lookup 1.10.0; a package built over an older ui-source keeps the searchable sf-dropdown. 1.14.0 is held by another branch (fix/view-properties-section-tabs). Made in ui-pro first (fix/pro-g4, 2026-11-14) and taken here; the view set releases the same change."
+        ]
+      },
+      {
+        "from": "1.15.0",
+        "to": "1.15.1",
+        "changes": [
+          "The panel's «⋯» and view menu is on the panel's step (owner remark 2026-11-15): the menu lives on <body> or in the open dialog, had no size and fell back to the menu's own 1/2 beside a panel of size 1. On every opening it now takes the panel's size (1, or 1/2) and the density of the panel's area (core followDensity). Nothing to change for a host."
+        ]
+      },
+      {
+        "from": "1.15.1",
+        "to": "1.15.2",
+        "changes": [
+          "Over the SIMAI Framework pair ui-141822273efe: (1) in the arranging mode and in an open panel the bar of actions stands on the drawer's floor again. sf-drawer 1.10.5 keeps no stable scrollbar gutter (C105 H6, the scroll-area rule of C106), so its block padding is the gutter alone; the panel took back the gutter and a scrollbar's 14 px and its foot stood 14 px below the floor. It takes back the gutter now. (2) The skeleton's tab strip stands over the hairline by its width, as sf-tabs' underline strip does since the pair's tabs spacing (C105): the skeleton was a pixel taller than the tabs, and the first group moved by a pixel when the record came. Nothing to change for a host."
+        ]
       }
     ]
   },
@@ -1633,7 +1655,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-properties/index.js",
-        "sha256": "6d5d01b4bc168dcde94091531e0d50d9df47f3e0efe1b62bb9954a09d90a1c52"
+        "sha256": "4a7fae3cb0490523deb53889b16b10530eeadfabc92f9981844ee269dad709ee"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.js",
@@ -1641,7 +1663,7 @@
       },
       {
         "path": "src/smart/view-properties/js/templates/default.css",
-        "sha256": "9fbc0fddf5bd614901e2e1837042eff2ba4348999301aba44e46c2a07da0fb65"
+        "sha256": "ed1ad9673d0fa310a847c2b03062f8ca2da2a4e140af6cf161b9d9fc477aba4a"
       },
       {
         "path": "src/smart/view-properties/js/conditions.js",
@@ -1677,7 +1699,7 @@
       },
       {
         "path": "src/smart/view-properties/rule.js",
-        "sha256": "d6b0ba37902b2b84b46be67ec3a4d8261110b08e0f4e5c4685ef2fd4766dbedf"
+        "sha256": "42a5bbe62b2298a139850ec114639c64ced897c556b57ba2ccd28d5600ad196c"
       },
       {
         "path": "src/core/contracts/ports/simai.property-view-port/1.4.0/port.json",
@@ -1685,7 +1707,7 @@
       },
       {
         "path": "src/smart/view-properties/docs.md",
-        "sha256": "1561c72c492262d7b9722c6fc62017e6ee676f372a54c8791c3e83862b1de10d"
+        "sha256": "e2a29465f32db3b5e62cd95f9bcfe65ebe6838aa73bcad1af2dccf3cc974fbe6"
       }
     ],
     "generated_runtime": []

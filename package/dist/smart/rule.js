@@ -217,6 +217,10 @@ SF.RuleLoader.registerPackage("view", {
         },
         {
           "lazy": true,
+          "name": "cl-input-lookup"
+        },
+        {
+          "lazy": true,
           "name": "cl-input-date"
         },
         {

@@ -7,12 +7,14 @@
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   BADGE_MAIN_TONAL: () => (/* binding */ BADGE_MAIN_TONAL),
 /* harmony export */   BADGE_SCHEMES: () => (/* binding */ BADGE_SCHEMES),
 /* harmony export */   BADGE_SCHEME_ALIASES: () => (/* binding */ BADGE_SCHEME_ALIASES),
 /* harmony export */   BADGE_SIZES: () => (/* binding */ BADGE_SIZES),
 /* harmony export */   BADGE_TYPES: () => (/* binding */ BADGE_TYPES),
 /* harmony export */   BADGE_VARIANTS: () => (/* binding */ BADGE_VARIANTS),
 /* harmony export */   canonicalBadgeScheme: () => (/* binding */ canonicalBadgeScheme),
+/* harmony export */   isRetiredMain: () => (/* binding */ isRetiredMain),
 /* harmony export */   normalizeBadgeContract: () => (/* binding */ normalizeBadgeContract)
 /* harmony export */ });
 const BADGE_TYPES = Object.freeze(['main', 'tonal', 'outline']);
@@ -25,8 +27,11 @@ const BADGE_SCHEMES = Object.freeze(['neutral', 'primary', 'secondary', 'tertiar
 const BADGE_SCHEME_ALIASES = Object.freeze({
   danger: 'error'
 });
-const BADGE_SIZES = Object.freeze(['1/3', '1/2', '1']);
-const DEFAULT_BADGE_TYPE = 'main';
+const BADGE_SIZES = Object.freeze(['1/3', '1/2', '1']); // The default look is tonal (owner decision C140 (1), badges study BG-1): a
+// badge without an appearance is the calm grey mark. It was main, the dark
+// grey fill nobody chose.
+
+const DEFAULT_BADGE_TYPE = 'tonal';
 const DEFAULT_BADGE_SCHEME = 'neutral';
 const DEFAULT_BADGE_SIZE = '1/3';
 
@@ -41,12 +46,31 @@ function canonicalBadgeScheme(value) {
   const name = String(value ?? '').trim().toLowerCase();
   const canonical = BADGE_SCHEME_ALIASES[name] ?? name;
   return BADGE_SCHEMES.includes(canonical) ? canonical : '';
-}
-const BADGE_VARIANTS = Object.freeze(BADGE_SCHEMES.flatMap(scheme => BADGE_TYPES.filter(type => !(scheme === 'on-surface' && type === 'tonal')).flatMap(type => BADGE_SIZES.map(size => Object.freeze({
+} // The looks that are drawn: tonal and outline in every colour, main only with
+// the error status (C140 (4)).
+
+const BADGE_VARIANTS = Object.freeze(BADGE_SCHEMES.flatMap(scheme => BADGE_TYPES.filter(type => type !== 'main' || scheme === 'error').flatMap(type => BADGE_SIZES.map(size => Object.freeze({
   type,
   scheme,
   size
-})))));
+}))))); // The filled look is the attention count's alone (owner decision C140 (4)):
+// main with the error status. main with any other colour draws tonal; the
+// spelling keeps working until this date and each use is noted in
+// SF.deprecations (journal value-badge-appearance-main-to-tonal).
+
+const BADGE_MAIN_TONAL = Object.freeze({
+  since: '2026-11-14',
+  remove_after: '2027-01-01'
+}); // True when an appearance asked for is the filled one on a colour that draws
+// it tonal: the caller notes the old spelling.
+
+function isRetiredMain({
+  type,
+  scheme
+} = {}) {
+  const requested = String(type ?? '').trim().toLowerCase();
+  return requested === 'main' && (canonicalBadgeScheme(scheme ?? DEFAULT_BADGE_SCHEME) || DEFAULT_BADGE_SCHEME) !== 'error';
+}
 function normalizeBadgeContract({
   type,
   scheme,
@@ -54,10 +78,12 @@ function normalizeBadgeContract({
 } = {}) {
   let normalizedType = normalizeEnum(type, BADGE_TYPES, DEFAULT_BADGE_TYPE);
   const normalizedScheme = canonicalBadgeScheme(scheme ?? DEFAULT_BADGE_SCHEME) || DEFAULT_BADGE_SCHEME;
-  const normalizedSize = normalizeEnum(size, BADGE_SIZES, DEFAULT_BADGE_SIZE);
+  const normalizedSize = normalizeEnum(size, BADGE_SIZES, DEFAULT_BADGE_SIZE); // main is the attention count's: with any other colour it is tonal. The
+  // tonal on-surface badge is the grey tonal one (the stylesheet draws
+  // sf-badge--on-surface tonal as neutral); it was drawn main, filled.
 
-  if (normalizedType === 'tonal' && normalizedScheme === 'on-surface') {
-    normalizedType = 'main';
+  if (normalizedType === 'main' && normalizedScheme !== 'error') {
+    normalizedType = 'tonal';
   }
 
   return {
@@ -65,6 +91,117 @@ function normalizeBadgeContract({
     scheme: normalizedScheme,
     size: normalizedSize
   };
+}
+
+/***/ },
+
+/***/ "1412c5875b4d"
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   RELATIVE: () => (/* binding */ RELATIVE),
+/* harmony export */   densityOf: () => (/* binding */ densityOf),
+/* harmony export */   drawing: () => (/* binding */ drawing),
+/* harmony export */   followDensity: () => (/* binding */ followDensity),
+/* harmony export */   markRelativeSizes: () => (/* binding */ markRelativeSizes),
+/* harmony export */   noteAuthored: () => (/* binding */ noteAuthored),
+/* harmony export */   sizedBefore: () => (/* binding */ sizedBefore)
+/* harmony export */ });
+// Density (owner decision C22, 2026-11-09). data-sf-density="compact" on the
+// root or on a container moves every component one ladder step down; the CSS
+// does it (core/scss/_sf_css__density.scss): each step variable holds the step
+// below. An explicit size is a step on the region's ladder (owner decision
+// C79, 2026-11-12, changing C22): it comes down with the region, and only
+// data-sf-density="normal" takes the normal ladder back.
+//
+// A size a component's template gives an element it draws (sf-input's clear
+// button, a pager's buttons, a submenu) is relative to the component's own
+// size; those are still marked data-sf-size-relative once the component has
+// drawn. Since C79 the density CSS treats both alike; the mark stays a
+// published runtime mark (host-runtime-marks) for hosts that read it.
+//
+// What a component holds of the page's own (captured slot content, children
+// left in place) keeps its size explicit. The store is on the shared global:
+// every bundle carries its own copy of this module.
+const store = () => {
+  const SF = globalThis.SF = globalThis.SF || {};
+  const internal = SF.__internal || (SF.__internal = {});
+  return internal.density ||= {
+    authored: new WeakSet(),
+    depth: 0
+  };
+};
+
+const RELATIVE = 'data-sf-size-relative'; // Page content a component captured to place in its own drawing. Content a
+// template hands to a child while it draws is the template's, not the page's.
+
+function noteAuthored(nodes) {
+  const state = store();
+  if (state.depth > 0) return;
+
+  for (const node of nodes) if (node && typeof node === 'object') state.authored.add(node);
+}
+function drawing(callback) {
+  const state = store();
+  state.depth += 1;
+
+  try {
+    return callback();
+  } finally {
+    state.depth -= 1;
+  }
+} // The sized elements present before a host first draws are the page's.
+// A printed first-paint picture is the drawing's, not the page's.
+
+function sizedBefore(host) {
+  return new Set(Array.from(host.querySelectorAll?.('[size]') ?? []).filter(element => {
+    const picture = element.closest('[data-sf-static]');
+    return !picture || !host.contains(picture);
+  }));
+} // After a host drew: every sized element its drawing holds that is not the
+// page's is relative to the host.
+
+function markRelativeSizes(host, before = null) {
+  const {
+    authored
+  } = store();
+
+  for (const element of host.querySelectorAll?.('[size]') ?? []) {
+    if (element.hasAttribute(RELATIVE) || before?.has(element)) continue;
+    let node = element;
+    let page = false;
+
+    while (node && node !== host) {
+      if (authored.has(node)) {
+        page = true;
+        break;
+      }
+
+      node = node.parentNode;
+    }
+
+    if (!page) element.setAttribute(RELATIVE, '');
+  }
+} // A popup a component builds itself and places outside its own box (a menu on
+// <body>, in an open dialog): sized from the component, so relative, and in
+// the component's density, not the density of where it was placed.
+
+function followDensity(element, from) {
+  if (!element?.setAttribute) return element;
+  if (element.hasAttribute('size')) element.setAttribute(RELATIVE, '');
+  const density = densityOf(from);
+  if (density) element.setAttribute('data-sf-density', density);else element.removeAttribute('data-sf-density');
+  return element;
+} // The density an element stands in: the nearest region's (an explicit size
+// follows its region since C79); null outside any.
+
+function densityOf(from) {
+  for (let node = from; node?.nodeType === 1; node = node.parentElement) {
+    if (node.hasAttribute('data-sf-density')) return node.getAttribute('data-sf-density');
+  }
+
+  return null;
 }
 
 /***/ },
@@ -907,12 +1044,15 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _datetime_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__("9ce1a42b2a85");
 /* harmony import */ var _mask_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__("dd6973f77245");
 /* harmony import */ var _html_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__("01ae054f01b4");
-/* harmony import */ var _decimal_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__("ab3947ea3647");
-var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([lit__WEBPACK_IMPORTED_MODULE_0__, lit_directives_unsafe_html_js__WEBPACK_IMPORTED_MODULE_1__, _core_js_page_language__WEBPACK_IMPORTED_MODULE_3__, _core_js_format_date_js__WEBPACK_IMPORTED_MODULE_4__, _decimal_js__WEBPACK_IMPORTED_MODULE_9__]);
-([lit__WEBPACK_IMPORTED_MODULE_0__, lit_directives_unsafe_html_js__WEBPACK_IMPORTED_MODULE_1__, _core_js_page_language__WEBPACK_IMPORTED_MODULE_3__, _core_js_format_date_js__WEBPACK_IMPORTED_MODULE_4__, _decimal_js__WEBPACK_IMPORTED_MODULE_9__] = __webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
+/* harmony import */ var _core_js_deprecations_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__("d3818183b14c");
+/* harmony import */ var _decimal_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__("ab3947ea3647");
+var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([lit__WEBPACK_IMPORTED_MODULE_0__, lit_directives_unsafe_html_js__WEBPACK_IMPORTED_MODULE_1__, _core_js_page_language__WEBPACK_IMPORTED_MODULE_3__, _core_js_format_date_js__WEBPACK_IMPORTED_MODULE_4__, _core_js_deprecations_js__WEBPACK_IMPORTED_MODULE_9__, _decimal_js__WEBPACK_IMPORTED_MODULE_10__]);
+([lit__WEBPACK_IMPORTED_MODULE_0__, lit_directives_unsafe_html_js__WEBPACK_IMPORTED_MODULE_1__, _core_js_page_language__WEBPACK_IMPORTED_MODULE_3__, _core_js_format_date_js__WEBPACK_IMPORTED_MODULE_4__, _core_js_deprecations_js__WEBPACK_IMPORTED_MODULE_9__, _decimal_js__WEBPACK_IMPORTED_MODULE_10__] = __webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
 /* harmony import */ var lit__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(lit__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var lit_directives_unsafe_html_js__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(lit_directives_unsafe_html_js__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var _core_js_page_language__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__);
+/* harmony import */ var _core_js_deprecations_js__WEBPACK_IMPORTED_MODULE_9___default = /*#__PURE__*/__webpack_require__.n(_core_js_deprecations_js__WEBPACK_IMPORTED_MODULE_9__);
+
 
 
 
@@ -1321,16 +1461,17 @@ function renderFilterField(field = {}, host) {
 // with size-1/2 components a default row went from 57 to 61 on desktop and 45 to
 // 51 on mobile.
 
-const CELL_LINE = '1/2'; // A choice badge in a cell is tonal, not the filled default. sf-badges defaults
-// appearance to `main`, so the cells shipped filled and the consumer's owner
-// asked for the calmer one -- and a table row is the place for it: a column of
+const CELL_LINE = '1/2'; // A choice badge in a cell is tonal (sf-badge's default since 1.6.0, C140; it
+// was main, so the cells shipped filled and the consumer's owner asked for the
+// calmer one) -- and a table row is the place for it: a column of
 // filled badges reads as a column of buttons. A field may still ask for another
 // of the three, which is the same arrangement as the boolean's words: the set
 // carries a sensible default, not a decision nobody can change.
 //
 // It composes with colour rather than replacing it. A scheme name reaches the
-// scheme's tonal badge; a hex colour already writes --sf-badge--background-color
-// as a 24% mix and its own text colour, so the tint survives the appearance
+// scheme's tonal badge; a hue or a hex colour writes the public
+// --sf-badge-background-color as the nearest palette hue's fill step (BG-7,
+// C140 (2)) and its own text colour, so the tint survives the appearance
 // untouched. Both are measured on the built bytes.
 
 const CELL_BADGE_APPEARANCE = 'tonal'; // A file cell is a reference link with an icon chosen from the mime type: the
@@ -1620,14 +1761,14 @@ function renderHostFormattedCell(field, value, host) {
 function renderMoneyCell(field, value, host) {
   const formatted = renderHostFormattedCell(field, value, host);
   if (formatted !== null) return formatted;
-  const text = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_9__.formatMoney)(scalarValue(value), field, (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(host ?? null));
+  const text = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.formatMoney)(scalarValue(value), field, (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(host ?? null));
   return text || null;
 }
 
 function renderPercentCell(field, value, host) {
   const formatted = renderHostFormattedCell(field, value, host);
   if (formatted !== null) return formatted;
-  const text = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_9__.formatPercent)(scalarValue(value), (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(host ?? null));
+  const text = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.formatPercent)(scalarValue(value), (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(host ?? null));
   return text || null;
 }
 
@@ -1695,12 +1836,15 @@ function referenceLink(value) {
 
 function renderUserCell(field, value) {
   if (!value || typeof value !== 'object' || !value.label) return null;
-  return [{
+  return [// The person's name is the avatar's heading: its accessible name and
+  // the source of its initials (sf-avatar 1.6.0; avatar study AV-2).
+  {
     component: {
       type: 'avatar',
       props: {
         line: CELL_LINE,
-        text: value.avatarText || ''
+        text: value.avatarText || '',
+        heading: String(value.label)
       }
     }
   }, value.href ? referenceLink(value) : String(value.label)];
@@ -1766,9 +1910,9 @@ function renderCellField(field = {}, value, host) {
 
 let EDIT_SIZE = '1';
 const EDIT_RENDERERS = {
-  record: renderRecordPicker,
-  relation: renderRecordPicker,
-  user: renderRecordPicker,
+  record: renderRecordLookup,
+  relation: renderRecordLookup,
+  user: renderRecordLookup,
   lookup: renderLookupEdit,
   string: renderTextEdit,
   text: renderTextAreaEdit,
@@ -1822,14 +1966,10 @@ function renderPhoneEdit(field, value, host) {
 // Clearing a set password is not offered: an empty field means «keep».
 //
 // The typed text lives in the input and nowhere else: no `value` attribute on
-// sf-input, no data-*, no text node, no log. «Показать пароль» is an icon button
-// that switches the input's type and says what it will do next by its name and
-// icon: «Показать пароль» (visibility) while hidden, «Скрыть пароль»
-// (visibility_off) while shown. A toggle whose name changes is not a pressed
-// toggle (rule C12, point 3): it carries no aria-pressed and no pressed look,
-// or a reader would hear «Скрыть пароль, нажата». It changes the DOM directly,
-// so a host's re-render (its attributes are static in the template) leaves the
-// person's choice as it is.
+// sf-input, no data-*, no text node, no log. The eye that shows the password is
+// sf-input's own (C123 (4): a glyph inside the field, the crossed eye after a
+// press); the set drew a second one beside the field until the text inputs
+// study (TI-7), so a record card showed two.
 
 
 function isPasswordField(field) {
@@ -1843,16 +1983,6 @@ function passwordIsSet(value) {
 
 function passwordState(host, value) {
   return setText(host, passwordIsSet(value) ? 'passwordSet' : 'passwordUnset');
-}
-
-function togglePasswordShown(event, host) {
-  const button = event.currentTarget;
-  const input = button?.closest?.('.sf-field-password')?.querySelector?.('sf-input');
-  if (!input) return;
-  const shown = input.getAttribute('input-type') !== 'text';
-  input.setAttribute('input-type', shown ? 'text' : 'password');
-  button.setAttribute('aria-label', setText(host, shown ? 'hidePassword' : 'showPassword'));
-  button.setAttribute('icon', shown ? 'visibility_off' : 'visibility');
 }
 
 function renderPasswordEdit(field, value, host) {
@@ -1882,14 +2012,6 @@ function renderPasswordEdit(field, value, host) {
                     @input=${write}
                     @change=${write}
             ></sf-input>
-            <sf-button-icon
-                    size=${EDIT_SIZE}
-                    appearance="ghost"
-                    scheme="on-surface"
-                    icon="visibility"
-                    aria-label=${setText(host, 'showPassword')}
-                    @click=${event => togglePasswordShown(event, host)}
-            ></sf-button-icon>
         </span>
     `;
 }
@@ -1930,7 +2052,9 @@ function renderIncludeView(field, value) {
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
         <pre class="sf-field-include" data-language=${field.language ? String(field.language) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}><code>${String(text)}</code></pre>
     `;
-}
+} // The include editor is code (C141 (8)): sf-input-textarea's text="code" --
+// the code font, spelling off, no wrapping -- at a fixed eight rows.
+
 
 function renderIncludeEdit(field, value, host) {
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
@@ -1941,7 +2065,7 @@ function renderIncludeEdit(field, value, host) {
                 name=${fieldName(field)}
                 value=${scalarValue(value) ?? ''}
                 rows="8"
-                spellcheck="false"
+                text="code"
                 ?required=${Boolean(field.required)}
                 aria-label=${field.label || field.key || ''}
                 ?disabled=${field.readonly === true}
@@ -2198,9 +2322,9 @@ function renderNumberEdit(field, value, host) {
   const write = (event, left) => {
     const input = event.currentTarget ?? event.target;
     const text = String(input?.value ?? '');
-    const read = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_9__.readDecimal)(text);
+    const read = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.readDecimal)(text);
     let message = null;
-    if (!read.ok) message = setText(host, 'notNumber');else if (read.value !== null && Number.isInteger(field.precision) && (0,_decimal_js__WEBPACK_IMPORTED_MODULE_9__.fractionDigits)(read.value) > field.precision) {
+    if (!read.ok) message = setText(host, 'notNumber');else if (read.value !== null && Number.isInteger(field.precision) && (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.fractionDigits)(read.value) > field.precision) {
       message = (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageWord)(SET_TEXT, 'precisionMax', host ?? null, {
         component: SET_NAME,
         count: field.precision
@@ -2682,11 +2806,11 @@ const SET_TEXT = {
     retry: 'Try again',
     loadMore: 'Load more',
     removeFile: 'Remove',
+    fileRemoved: 'File removed',
+    undo: 'Undo',
     passwordSet: 'Set',
     passwordUnset: 'Not set',
     passwordKeep: 'Set; type a new one to replace it',
-    showPassword: 'Show password',
-    hidePassword: 'Hide password',
     maskIncomplete: 'Complete the field',
     notNumber: 'Enter a number',
     precisionMax: 'At most {n} digits after the point',
@@ -2716,12 +2840,12 @@ const SET_TEXT = {
     recordsError: 'Не удалось загрузить записи',
     retry: 'Повторить',
     loadMore: 'Загрузить ещё',
-    removeFile: 'Удалить',
+    removeFile: 'Убрать',
+    fileRemoved: 'Файл убран',
+    undo: 'Вернуть',
     passwordSet: 'Задан',
     passwordUnset: 'Не задан',
     passwordKeep: 'Задан; введите новый, чтобы заменить',
-    showPassword: 'Показать пароль',
-    hidePassword: 'Скрыть пароль',
     maskIncomplete: 'Заполните поле полностью',
     notNumber: 'Введите число',
     precisionMax: 'Не больше {n} знаков после запятой',
@@ -2743,7 +2867,177 @@ const SET_NAME = 'sf-field-renderers';
 
 function setText(host, key) {
   return host?.getFieldText?.(key) ?? (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageText)(SET_TEXT, key, host ?? null, SET_NAME);
-}
+} // One job, one component (owner decision C139 (1), 2026-11-14): a record, a
+// relation, a user and a paged lookup are chosen with sf-input-lookup -- the
+// search the host answers, its rows with a picture and a caption, its states
+// and its chips -- where they were a searchable sf-dropdown beside a status
+// line of the set's own. sf-dropdown stays for a short list given whole (an
+// inline lookup). The dropdown path is kept until 2027-01-01 for a host that
+// asks renderEditField(…, {picker: 'dropdown'}); it is noted as deprecated.
+
+
+const DROPDOWN_PICKER_UNTIL = '2027-01-01';
+let EDIT_PICKER = '';
+
+function dropdownPicker() {
+  if (EDIT_PICKER !== 'dropdown') return false;
+  (0,_core_js_deprecations_js__WEBPACK_IMPORTED_MODULE_9__.noteDeprecated)({
+    component: 'sf-field-renderers',
+    kind: 'value',
+    attribute: 'picker',
+    from: 'dropdown',
+    to: null,
+    since: '2026-11-14',
+    remove_after: DROPDOWN_PICKER_UNTIL
+  });
+  return true;
+} // An item the lookup shows, from what the host's page holds: a user's
+// avatarText is the avatar's initials, an item's own avatar ({src} or
+// {initials}), icon, caption and match ranges travel as they are.
+
+
+function lookupItem(item) {
+  if (!item || typeof item !== 'object') return null;
+  const avatar = item.avatar && typeof item.avatar === 'object' ? item.avatar : item.avatarText ? {
+    initials: String(item.avatarText)
+  } : undefined;
+  return {
+    value: item.value,
+    label: String(item.label ?? item.text ?? item.value ?? ''),
+    ...(item.caption ? {
+      caption: String(item.caption)
+    } : {}),
+    ...(avatar ? {
+      avatar
+    } : {}),
+    ...(item.icon ? {
+      icon: String(item.icon)
+    } : {}),
+    ...(item.match ? {
+      match: item.match
+    } : {})
+  };
+} // The lookup's provider over the host's page interface (getFieldOptionsPage,
+// loadFieldOptions, getFieldOptionSearch, setFieldOptionSearch): a query is
+// one host search, a cursor its next page. The page the host already holds
+// for the same query answers at once (a record view asks the first page as
+// its group opens). A host that loads without answering a promise answers on
+// its next drawing: the page is read again until it is no longer loading.
+
+
+function hostProvider(field, host) {
+  return async (query, {
+    cursor = null,
+    signal
+  } = {}) => {
+    const text = String(query ?? '');
+    const held = host.getFieldOptionsPage(field) || null;
+    const sameSearch = (host.getFieldOptionSearch?.(field) ?? '') === text;
+    let page = held;
+    let from = 0;
+    let before = [];
+
+    if (cursor === null && sameSearch && held?.status === 'ready') {
+      page = held;
+    } else {
+      before = cursor === null || !Array.isArray(held?.items) ? [] : held.items;
+      host.setFieldOptionSearch?.(field, text);
+      await host.loadFieldOptions(field, {
+        cursor,
+        search: text
+      });
+      page = host.getFieldOptionsPage(field) || null;
+
+      for (let wait = 0; page?.status === 'loading' && wait < 100 && !signal?.aborted; wait += 1) {
+        await new Promise(done => setTimeout(done, 50));
+        page = host.getFieldOptionsPage(field) || null;
+      }
+    }
+
+    if (signal?.aborted) return {
+      items: []
+    }; // A host may join the next page to the ones it holds, or replace them
+    // with it: only what is new is answered.
+
+    const now = Array.isArray(page?.items) ? page.items : [];
+    if (before.length && now.length > before.length && now[0]?.value === before[0]?.value) from = before.length;
+    if (page?.status === 'unsupported') return {
+      status: 'unavailable'
+    };
+    if (!page || page.status === 'error' || page.status === 'loading') throw new Error(setText(host, 'recordsError'));
+    const items = (Array.isArray(page.items) ? page.items : []).slice(from).map(lookupItem).filter(Boolean);
+    return {
+      items,
+      nextCursor: page.nextCursor ?? null
+    };
+  };
+} // The page a host pages answers a hundred at most: the lookup cuts an answer
+// to max-results, and a host page is the host's own size.
+
+
+const HOST_PAGE_MOST = 100;
+
+function renderHostLookup(field, value, host, {
+  multiple,
+  placeholder
+}) {
+  // What the lookup says it chose, in the shape the set writes: {value,
+  // label}, or a list of them when multiple.
+  const resolved = item => ({
+    value: item.value,
+    label: String(item.label ?? item.value)
+  });
+
+  const write = event => {
+    if (event.target !== event.currentTarget) return;
+    const next = event.detail?.value ?? event.target?.value;
+
+    if (multiple) {
+      host.setFieldValue(field, (Array.isArray(next) ? next : []).map(resolved));
+      return;
+    }
+
+    host.setFieldValue(field, next && typeof next === 'object' ? resolved(next) : null);
+  };
+
+  return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+        <div class="sf-field-picker flex flex-col gap-1/3" data-field-picker=${field.key || lit__WEBPACK_IMPORTED_MODULE_0__.nothing}>
+            <sf-input-lookup
+                    size=${EDIT_SIZE}
+                    ?multiple=${multiple}
+                    suggest
+                    min-length="1"
+                    max-results=${String(HOST_PAGE_MOST)}
+                    name=${fieldName(field)}
+                    ?required=${Boolean(field.required)}
+                    ?disabled=${EDIT_DISABLED}
+                    placeholder=${field.placeholder || placeholder}
+                    aria-label=${field.label || field.key || ''}
+                    .value=${value ?? (multiple ? [] : null)}
+                    .provider=${hostProvider(field, host)}
+                    @change=${write}
+            ></sf-input-lookup>
+        </div>
+    `;
+} // The record picker: a record, a relation or a user, one value, searched and
+// paged by the host (C139 (1)).
+
+
+function renderRecordLookup(field, value, host) {
+  if (dropdownPicker()) return renderRecordPicker(field, value, host);
+  if (!host.loadFieldOptions || !host.getFieldOptionsPage) return null;
+  const page = host.getFieldOptionsPage(field) || null; // A host that refused this field's candidates has none to give: the field
+  // falls back to its value, read-only, as the dropdown path did.
+
+  if (page?.status === 'unsupported') return null;
+  const chosen = value && typeof value === 'object' ? value : null;
+  return renderHostLookup(field, chosen, host, {
+    multiple: false,
+    placeholder: setText(host, 'pickRecord')
+  });
+} // DEPRECATED until 2027-01-01 (C139 (1)): the record picker as a searchable
+// sf-dropdown, for a host that asks {picker: 'dropdown'}.
+
 
 function renderRecordPicker(field, value, host) {
   if (!host.loadFieldOptions || !host.getFieldOptionsPage) return null;
@@ -2871,7 +3165,17 @@ function renderLookupEdit(field, value, host) {
   const inline = Array.isArray(field.options) && field.options.length > 0; // A list the host pages needs a host that pages; without one the field falls
   // back to its value, read-only, as a record does.
 
-  if (!inline && (!host.loadFieldOptions || !host.getFieldOptionsPage)) return null;
+  if (!inline && (!host.loadFieldOptions || !host.getFieldOptionsPage)) return null; // A paged list is the lookup's (C139 (1)); a short list given whole stays
+  // the dropdown's, and so does the deprecated dropdown path.
+
+  if (!inline && !dropdownPicker()) {
+    if (host.getFieldOptionsPage(field)?.status === 'unsupported') return null;
+    return renderHostLookup(field, value, host, {
+      multiple,
+      placeholder: setText(host, 'pickFromList')
+    });
+  }
+
   const page = inline ? null : host.getFieldOptionsPage(field) || null;
   if (page?.status === 'unsupported') return null;
   const search = inline ? '' : host.getFieldOptionSearch?.(field) ?? '';
@@ -3043,7 +3347,7 @@ function renderImageEdit(field, value, host) {
                 .value=${stored}
                 aria-label=${field.label || field.key || ''}
                 ?required=${Boolean(field.required)}
-                ?disabled=${field.readonly === true}
+                ?readonly=${field.readonly === true}
                 @change=${event => {
     const next = event.detail?.value ?? null;
     host.setFieldValue(field, asList ? next ? [next] : [] : next);
@@ -3068,14 +3372,29 @@ function renderFileEdit(field, value, host) {
   const multiple = field.multiple === true || Array.isArray(value);
   const canUpload = Boolean(host.startFieldUpload && host.getFieldUploads);
   const uploads = canUpload ? host.getFieldUploads(field) : null;
-  const items = Array.isArray(uploads) ? uploads : [];
+  const items = Array.isArray(uploads) ? uploads : []; // «×» takes a file out of the field at once, and the notice gives it back
+  // with «Вернуть» (decisions C25, C149 (8)): the field's value before the
+  // removal is set again.
 
   const drop = index => {
+    const before = value;
     const next = files.filter((_, position) => position !== index);
     host.setFieldValue(field, multiple ? next : next[0] ?? null);
-  }; // download-action and remove-action both read true when the attribute is
-  // absent, so a file with no href has to say false rather than drop it.
+    const removed = files[index];
+    globalThis.SF?.notify?.({
+      status: 'neutral',
+      title: setText(host, 'fileRemoved'),
+      text: String(removed?.label ?? removed?.name ?? ''),
+      source: 'sf-file-preview',
+      action: {
+        label: setText(host, 'undo'),
+        onSelect: () => host.setFieldValue(field, before)
+      }
+    });
+  };
 
+  const readonly = field.readonly === true; // download-action and remove-action both read true when the attribute is
+  // absent, so a file with no href has to say false rather than drop it.
 
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
         <div class="sf-field-file flex flex-col">
@@ -3087,7 +3406,7 @@ function renderFileEdit(field, value, host) {
                         mime-type=${String(file.mime ?? file.mimeType ?? '')}
                         href=${file.href ? String(file.href) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                         download-action=${file.href ? 'true' : 'false'}
-                        remove-action="true"
+                        remove-action=${readonly ? 'false' : 'true'}
                         remove-label=${`${setText(host, 'removeFile')} ${file.label ?? file.name ?? ''}`.trim()}
                         @sf-file-preview-detach=${() => drop(index)}
                 ></sf-file-preview>
@@ -3148,14 +3467,19 @@ function renderEditField(field = {}, value, host, options = {}) {
   if (!renderer || !host?.setFieldValue) return null;
   const outer = EDIT_SIZE;
   const outerDisabled = EDIT_DISABLED;
+  const outerPicker = EDIT_PICKER;
   EDIT_SIZE = sizeOption(options);
-  EDIT_DISABLED = disabled;
+  EDIT_DISABLED = disabled; // `options.picker: 'dropdown'`: the record, relation, user and paged lookup
+  // fields drawn as before C139, a searchable sf-dropdown (until 2027-01-01).
+
+  EDIT_PICKER = options?.picker === 'dropdown' ? 'dropdown' : '';
 
   try {
     return renderer(field, value, host);
   } finally {
     EDIT_SIZE = outer;
     EDIT_DISABLED = outerDisabled;
+    EDIT_PICKER = outerPicker;
   }
 } // The view template: a field shown and not edited, which is the fourth of the
 // four the assignment names and the last one the set was missing.
@@ -3357,7 +3681,7 @@ function renderUserView(field, value) {
   if (!value || typeof value !== 'object' || !value.label) return lit__WEBPACK_IMPORTED_MODULE_0__.nothing;
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
         <span class="sf-field-view flex items-cross-center gap-1/3">
-            <sf-avatar line=${VIEW_LINE} text=${value.avatarText || ''}></sf-avatar>
+            <sf-avatar line=${VIEW_LINE} text=${value.avatarText || ''} heading=${String(value.label)}></sf-avatar>
             ${value.href ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<sf-reference-link appearance="plain" icon="" line=${VIEW_LINE}
                         label=${String(value.label)} href=${String(value.href)}></sf-reference-link>` : (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span>${String(value.label)}</span>`}
         </span>
@@ -4058,20 +4382,103 @@ function setLoaderDragState(value) {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   OPTION_BADGE_HUES: () => (/* binding */ OPTION_BADGE_HUES),
+/* harmony export */   OPTION_BADGE_PALETTE: () => (/* binding */ OPTION_BADGE_PALETTE),
+/* harmony export */   nearestPaletteHue: () => (/* binding */ nearestPaletteHue),
 /* harmony export */   optionBadgeProps: () => (/* binding */ optionBadgeProps)
 /* harmony export */ });
 /* harmony import */ var _component_badges_js_contract_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("a2a9d3c2841e");
 
-const HEX_COLOR = /^#(?:[0-9a-f]{3}|[0-9a-f]{4}|[0-9a-f]{6}|[0-9a-f]{8})$/i;
+const HEX_COLOR = /^#(?:[0-9a-f]{3}|[0-9a-f]{4}|[0-9a-f]{6}|[0-9a-f]{8})$/i; // The hues of the static palette (owner decision C17), each with the OKLCH hue
+// angle of its tone 50 (src/core/scss/_sf_static_palette.scss, rounded to the
+// degree; tests/option-badge-palette.contract.test.mjs holds the two equal).
+// Brown and gray are not reached from a hex: brown sits between orange and
+// amber and differs from them by chroma alone, which a light or a dark hex
+// does not keep; a colour with less chroma than GREY_CHROMA is gray. Both are
+// reached by name.
+
+const OPTION_BADGE_HUES = Object.freeze({
+  red: 28,
+  orange: 47,
+  amber: 60,
+  yellow: 89,
+  lime: 119,
+  green: 144,
+  teal: 173,
+  cyan: 203,
+  sky: 232,
+  blue: 259,
+  indigo: 279,
+  violet: 299,
+  purple: 320,
+  pink: 347
+});
+const OPTION_BADGE_PALETTE = Object.freeze([...Object.keys(OPTION_BADGE_HUES), "brown", "gray"]);
+const GREY_CHROMA = 0.03;
+
+const linear = channel => {
+  const c = channel / 255;
+  return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+}; // {chroma, hue} in OKLCH of a #rgb[a] / #rrggbb[aa]; the alpha is not read.
+
+
+function oklchOf(hex) {
+  let digits = hex.slice(1);
+  if (digits.length < 6) digits = [...digits].map(digit => digit + digit).join("");
+  const [r, g, b] = [0, 2, 4].map(at => linear(parseInt(digits.slice(at, at + 2), 16)));
+  const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b);
+  const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b);
+  const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
+  const a = 1.9779984951 * l - 2.428592205 * m + 0.4505937099 * s;
+  const bb = 0.0259040371 * l + 0.7827717662 * m - 0.808675766 * s;
+  return {
+    chroma: Math.hypot(a, bb),
+    hue: (Math.atan2(bb, a) * 180 / Math.PI + 360) % 360
+  };
+}
+/** The static palette hue nearest a hex colour: gray when it has no hue to speak of. */
+
+
+function nearestPaletteHue(hex) {
+  const {
+    chroma,
+    hue
+  } = oklchOf(hex);
+  if (chroma < GREY_CHROMA) return "gray";
+  let best = "gray";
+  let distance = Infinity;
+
+  for (const [name, angle] of Object.entries(OPTION_BADGE_HUES)) {
+    const apart = Math.abs((hue - angle + 540) % 360 - 180);
+
+    if (apart < distance) {
+      best = name;
+      distance = apart;
+    }
+  }
+
+  return best;
+} // The fill of a hue: tone 50 at the fill step 24 (C43: no new tones or steps;
+// the alpha scale's fill family), over the place in both themes, as the 24 %
+// mix of the data's hex was. The text stays on the surface colour, so the
+// label reads the same in both themes. Written to the badge's public
+// variables, --sf-badge-background-color and --sf-badge-color (owner decision
+// C140 (2), BG-7): a colour from data reaches the badge only through them and
+// only as a palette step, never the author's hex.
+
+const paletteStyle = hue => `--sf-badge-background-color: var(--sf-${hue}-50--alfa-24); --sf-badge-color: var(--sf-on-surface)`;
 /**
  * Badge look for a filter option with optionRenderer 'badge'. option.color is
- * a Framework badge scheme (success, error, info...) or a hex colour; a hex
- * colour tints the tonal background and keeps the text on the surface colour,
- * so the label stays readable in both themes. Anything else is neutral.
+ * a Framework badge scheme (success, error, info...), a hue of the static
+ * palette (red, teal, gray...; C17) or a hex colour. A hue tints the badge with
+ * its own palette step; a hex is drawn in the palette hue nearest it, never as
+ * the raw colour (C18, C43; badges study BG-7), so the label stays readable in
+ * both themes. Anything else is neutral.
  */
 // The data view port names the badge look `scheme` on a column's options; a
 // filter option has always said `color`. Both are read: reading only `color`
 // left every port column's scheme unread and its badges neutral.
+
 
 function optionBadgeProps(option = {}) {
   const raw = option?.scheme ?? option?.color;
@@ -4082,14 +4489,15 @@ function optionBadgeProps(option = {}) {
     scheme,
     rootStyle: ""
   };
-
-  if (HEX_COLOR.test(color)) {
-    return {
-      scheme: "neutral",
-      rootStyle: `--sf-badge--background-color: color-mix(in srgb, ${color} 24%, transparent); --sf-badge--color: var(--sf-on-surface)`
-    };
-  }
-
+  const name = color.toLowerCase();
+  if (OPTION_BADGE_PALETTE.includes(name)) return {
+    scheme: "neutral",
+    rootStyle: paletteStyle(name)
+  };
+  if (HEX_COLOR.test(color)) return {
+    scheme: "neutral",
+    rootStyle: paletteStyle(nearestPaletteHue(color))
+  };
   return {
     scheme: "neutral",
     rootStyle: ""
@@ -4123,7 +4531,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _core_js_position_js__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__("116963e5e31b");
 /* harmony import */ var _core_js_open_surface_mark_js__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__("bf0cea966575");
 /* harmony import */ var _core_js_layer_stack_js__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__("18003344cff0");
-/* harmony import */ var _core_js_preferences_js__WEBPACK_IMPORTED_MODULE_20__ = __webpack_require__("51250bf01ab0");
+/* harmony import */ var _core_js_density_js__WEBPACK_IMPORTED_MODULE_20__ = __webpack_require__("1412c5875b4d");
+/* harmony import */ var _core_js_preferences_js__WEBPACK_IMPORTED_MODULE_21__ = __webpack_require__("51250bf01ab0");
 var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_core_js_smart_base__WEBPACK_IMPORTED_MODULE_0__, _core_js_element_manifest__WEBPACK_IMPORTED_MODULE_1__, _js_templates_default__WEBPACK_IMPORTED_MODULE_7__, _field_renderers_index_js__WEBPACK_IMPORTED_MODULE_9__, _js_format_value_js__WEBPACK_IMPORTED_MODULE_11__, lit__WEBPACK_IMPORTED_MODULE_12__, lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_13__, _core_js_page_language__WEBPACK_IMPORTED_MODULE_14__, _core_js_position_js__WEBPACK_IMPORTED_MODULE_17__, _core_js_open_surface_mark_js__WEBPACK_IMPORTED_MODULE_18__, _core_js_layer_stack_js__WEBPACK_IMPORTED_MODULE_19__]);
 ([_core_js_smart_base__WEBPACK_IMPORTED_MODULE_0__, _core_js_element_manifest__WEBPACK_IMPORTED_MODULE_1__, _js_templates_default__WEBPACK_IMPORTED_MODULE_7__, _field_renderers_index_js__WEBPACK_IMPORTED_MODULE_9__, _js_format_value_js__WEBPACK_IMPORTED_MODULE_11__, lit__WEBPACK_IMPORTED_MODULE_12__, lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_13__, _core_js_page_language__WEBPACK_IMPORTED_MODULE_14__, _core_js_position_js__WEBPACK_IMPORTED_MODULE_17__, _core_js_open_surface_mark_js__WEBPACK_IMPORTED_MODULE_18__, _core_js_layer_stack_js__WEBPACK_IMPORTED_MODULE_19__] = __webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
 /* harmony import */ var _core_js_smart_base__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_core_js_smart_base__WEBPACK_IMPORTED_MODULE_0__);
@@ -4134,6 +4543,7 @@ var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_cor
 /* harmony import */ var _core_js_position_js__WEBPACK_IMPORTED_MODULE_17___default = /*#__PURE__*/__webpack_require__.n(_core_js_position_js__WEBPACK_IMPORTED_MODULE_17__);
 /* harmony import */ var _core_js_open_surface_mark_js__WEBPACK_IMPORTED_MODULE_18___default = /*#__PURE__*/__webpack_require__.n(_core_js_open_surface_mark_js__WEBPACK_IMPORTED_MODULE_18__);
 /* harmony import */ var _core_js_layer_stack_js__WEBPACK_IMPORTED_MODULE_19___default = /*#__PURE__*/__webpack_require__.n(_core_js_layer_stack_js__WEBPACK_IMPORTED_MODULE_19__);
+
 
 
 
@@ -4166,7 +4576,7 @@ var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_cor
 // SF.Preferences, the Framework's one store of view preferences (core
 // publishes it; this bundle's copy is the fallback).
 
-const preferences = () => globalThis.SF?.Preferences || _core_js_preferences_js__WEBPACK_IMPORTED_MODULE_20__["default"];
+const preferences = () => globalThis.SF?.Preferences || _core_js_preferences_js__WEBPACK_IMPORTED_MODULE_21__["default"];
 
 const tablePreferenceKey = key => `sf-table/${String(key).replace(/[^\w.:-]+/gu, "-")}`; // What a cell may draw as markup rather than as an element of its own.
 
@@ -4187,6 +4597,32 @@ const TABLE_VIEW_DEFAULTS = Object.freeze({
   stickyHead: true
 }); // The nearest box that scrolls vertically above an element, across shadow
 // roots; null when it is the page.
+// Where a right click was, as a menu anchor (C164 (1); ui-control research
+// 2026-11-14-context-menu, CM-1): a fixed box of no size at the pointer.
+// sf-menu-context reads such an anchor as a point (1.18.0): the menu's corner
+// is the point, and the focus goes back to the control under it. The table
+// removes it when the menu closes.
+
+function menuPointAt({
+  x,
+  y
+}) {
+  const point = document.createElement("span");
+  point.dataset.sfTableMenuPoint = "";
+  point.style.cssText = `position: fixed; left: ${x}px; top: ${y}px; inline-size: 0; block-size: 0`;
+  document.body.append(point);
+  return point;
+} // A list row's own menu button: «≡» of a plain list, «⋯» of a list with
+// quick actions.
+
+
+const LIST_ROW_MENU_BUTTON = "[data-sf-row-menu], .sf-table-list-menu button"; // The context-menu key and Shift+F10 (C164 (1), C184 (5)).
+
+const isMenuKey = event => event?.key === "ContextMenu" || event?.key === "F10" && event?.shiftKey === true; // A target that keeps the browser's own menu: a link (open in a new tab) and
+// a field a person types in.
+
+
+const keepsBrowserMenu = target => Boolean(target?.closest?.("a[href], input, textarea, select, [contenteditable]"));
 
 function verticalScroller(element) {
   for (let node = element; node; node = node.parentElement ?? node.getRootNode?.()?.host ?? null) {
@@ -4211,7 +4647,10 @@ const SYSTEM_COLUMN_KEYS = new Set(["select", "settings", "actions"]); // The li
 // status value and a fact's status mean there.
 
 const LIST_ROLES = new Set(["status", "title", "supporting", "fact", "hidden"]);
-const MAX_QUICK_ACTIONS = 3;
+const MAX_QUICK_ACTIONS = 3; // The column types whose values are numbers (C146 (3)): end-aligned, digits of
+// one width, never wrapped.
+
+const NUMBER_TYPES = new Set(["integer", "number", "money", "percent"]);
 const STATUS_DOTS = Object.freeze({
   ok: "success",
   warning: "warning",
@@ -4287,16 +4726,17 @@ function cellValueBox(item) {
 // follow once through the dated aliases (aliases.json). The table's own props
 // below keep their parsers and defaults; what they do not name is the
 // manifest's.
-// A column's content width, a pixel to spare and rounded up to the 4px grid.
-// The page's text face is font-display: optional, so one page sets a value in
-// Inter and the next -- or the server's printed first paint, measured on
-// another page -- in its metric fallback, a pixel or two apart: a column
-// measured to the pixel in one wrapped the same value in the other, and the
-// row grew by a line when the code took over (standard 1.3.8 gate 24).
+// A column's content width, as the laid-out table gives it. It is no longer
+// rounded up to the 4px grid with a pixel to spare: the printed first paint
+// carries no measured width (standard 1.3.9 §5.4) and lays the same columns
+// out by their content in the page's own face (default.css, the unmeasured
+// content-sized table), so a rounded width moved every printed cell a few
+// pixels when the code measured (gate 24, typed-cells: CLS 0.035 at 1280).
+// A face that comes later measures again (the fonts' loadingdone).
 
 
 function contentStep(width) {
-  return Math.ceil((Math.ceil(width) + 1) / 4) * 4;
+  return Math.ceil(width * 64) / 64;
 }
 
 const TableElement = (0,_core_js_element_manifest__WEBPACK_IMPORTED_MODULE_1__.elementFromManifest)(_component_json__WEBPACK_IMPORTED_MODULE_3__, {
@@ -4366,8 +4806,13 @@ class SfTable extends TableElement {
       // `table` and `list` hold one of them whatever the width (owner,
       // 2026-10-12: one mobile view, the compact list). A table is a table
       // unless asked: sf-view asks for auto on a page's list.
+      // Auto by default since 1.19.0 (owner decisions C31, C146; TB-11 of
+      // the table study): a table alone on a phone stayed a table, wider
+      // than the screen, with the box and the menu covering the title.
+      // `table` keeps a table at every width; then a narrow box scrolls
+      // it sideways with the first column standing still (C146 (9)).
       layout: {
-        default: 'table',
+        default: 'auto',
         values: ['auto', 'table', 'list']
       },
       listBelow: {
@@ -4409,6 +4854,14 @@ class SfTable extends TableElement {
       toolbar: {
         type: Boolean,
         default: true
+      },
+      // Alternate rows (zebra), the report author's choice for a wide
+      // table that is only read (owner decision C146 (4)); a person's view
+      // no longer offers it. Lines between the rows, the hovered and the
+      // selected row's fill are the table's own.
+      stripes: {
+        type: Boolean,
+        default: false
       },
       settings: {
         type: Boolean,
@@ -4697,6 +5150,7 @@ class SfTable extends TableElement {
       // delete in a host catalogue only to restore the red row is
       // no longer the price of leaving it to the kit (Larena
       // storage QA, 2026-10-22). The icon in the actions column
+      // (gone with variant В, C146 (5); kept for list rows)
       // says the same with `status: 'error'` (decided 2026-10-23,
       // control/VISUAL-DECISIONS.md «Разрушительное действие
       // строкой»): one act must not look like two on the two
@@ -5219,9 +5673,16 @@ class SfTable extends TableElement {
 
   renderBulkActions() {
     if (!this.state.bulkActions?.length) return lit__WEBPACK_IMPORTED_MODULE_12__.nothing;
-    const selected = this.getSelectedRecordIds();
+    const selected = this.getSelectedRecordIds(); // C116: a bulk action is a regular button (outline on-surface); one
+    // that deletes opens a confirmation, so it is the outlined danger and
+    // stands last (C164 (5)). None is the filled main button.
+
+    const destructive = action => /^(delete|remove|destroy|trash)\b/iu.test(String(action.id));
+
+    const ordered = [...this.state.bulkActions].sort((a, b) => Number(destructive(a)) - Number(destructive(b)));
     return (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`<div class="flex flex-wrap gap-1/3">
-            ${this.state.bulkActions.map(action => (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`<sf-button
+            ${ordered.map(action => (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`<sf-button
+                appearance="outline" scheme="on-surface" status=${destructive(action) ? "error" : lit__WEBPACK_IMPORTED_MODULE_12__.nothing}
                 text=${action.name} ?disabled=${selected.length === 0}
                 @click=${() => {
       const ids = this.getSelectedRecordIds();
@@ -5360,7 +5821,7 @@ class SfTable extends TableElement {
 
     return (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
             <sf-menu-context
-                    size=${this.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_12__.nothing}
+                    size=${this.menuSize}
                     :key=${x + y}
                     aria-label=${this.getContextMenuLabel({ ...data,
       menu: 'toolbar-actions'
@@ -5419,7 +5880,7 @@ class SfTable extends TableElement {
     const items = [option(this.text('sortNone'), null, null), ...sortable.flatMap(column => [option(`${column.label ?? column.key}, ${this.text('sortAscending')}`, column.key, 'asc'), option(`${column.label ?? column.key}, ${this.text('sortDescending')}`, column.key, 'desc')])];
     return (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
             <sf-menu-context
-                    size=${this.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_12__.nothing}
+                    size=${this.menuSize}
                     :key=${x + y}
                     aria-label=${this.getContextMenuLabel({ ...data,
       menu: 'list-sort'
@@ -5456,7 +5917,7 @@ class SfTable extends TableElement {
 
     return (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
             <sf-menu-context
-                    size=${this.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_12__.nothing}
+                    size=${this.menuSize}
                     :key=${x + y}
                     aria-label=${this.getContextMenuLabel({ ...data,
       menu: 'create'
@@ -6245,9 +6706,18 @@ class SfTable extends TableElement {
   }
 
   handleRowKeydown(event, row) {
-    // In the list the row's title link is its tab stop: the arrows, Home
+    // A list row's menu from the keyboard (C164 (1)): the context-menu
+    // key and Shift+F10 on the row or a control in it, not in a field.
+    // The table's rows have theirs in handleGridKeydown.
+    if (this.isList && isMenuKey(event) && !keepsBrowserMenu(event?.target) && event?.currentTarget?.matches?.("li.sf-table-list-item[data-row-id]")) {
+      if (this.openListRowMenu(event.currentTarget)) event.preventDefault?.();
+      return this;
+    } // In the list the row's title link is its tab stop: the arrows, Home
     // and End move from it as from the row.
-    const fromTitle = event?.target !== event?.currentTarget && event?.target?.matches?.(".sf-table-title-link") && ["ArrowDown", "ArrowUp", "Home", "End"].includes(event?.key);
+    // In the table the grid walks from a control (C146 (8)).
+
+
+    const fromTitle = this.isList && event?.target !== event?.currentTarget && event?.target?.matches?.(".sf-table-title-link") && ["ArrowDown", "ArrowUp", "Home", "End"].includes(event?.key);
     if (event?.target !== event?.currentTarget && !fromTitle) return this; // A treegrid row: the right arrow opens a closed node, the left arrow
     // closes an open one.
 
@@ -6416,13 +6886,31 @@ class SfTable extends TableElement {
   }
 
   onConnected() {
-    super.onConnected(); // The content widths are read once the rows are drawn, and a font or
+    super.onConnected(); // A right click on a list row (C164 (1)(2)); a table's rows are
+    // heard by the grid (bindGridKeys).
+
+    if (!this._listContextMenu) {
+      this._listContextMenu = event => {
+        if (event.defaultPrevented || event.shiftKey || !this.isList) return;
+        const target = event.target instanceof Element ? event.target : null;
+        if (!target || keepsBrowserMenu(target)) return;
+        const item = target.closest("li.sf-table-list-item[data-row-id]");
+        if (!item || !this.contains(item)) return;
+        if (this.openListRowMenu(item, {
+          x: event.clientX,
+          y: event.clientY
+        })) event.preventDefault();
+      };
+
+      this.addEventListener("contextmenu", this._listContextMenu);
+    } // The content widths are read once the rows are drawn, and a font or
     // a component's stylesheet that arrives after that makes the same
     // content wider: columns measured before it stayed narrow and their
     // values wrapped onto two lines until something re-rendered the table
     // (owner, 2026-10-14: «after I changed the sort it was right»). The
     // Loader brings a part's stylesheet when the page first uses it, and
     // fonts load late, so both send the widths to be read again.
+
 
     if (!this._lateLayoutAbort) {
       this._lateLayoutAbort = new AbortController();
@@ -7410,6 +7898,19 @@ class SfTable extends TableElement {
       status: FACT_LEVELS[status] ? status : "",
       tip: String(props?.tip ?? props?.title ?? option?.tip ?? "")
     };
+  } // The id of the table's shared name tooltip (C146 (7)).
+
+
+  tipId(key) {
+    return `${this.getInstanceId()}--tip--${String(key).replace(/[^\w-]+/gu, "-")}`;
+  } // Whether a column holds numbers (C146 (3)): its type, or the host's
+  // own word for it (align: end).
+
+
+  isNumberColumn(column) {
+    if (!column?.key || column.system) return false;
+    if (column.align === "end" || column.numeric === true) return true;
+    return NUMBER_TYPES.has(column.propertyType ?? column.property_type ?? column.type);
   }
 
   get actionsColumnWidth() {
@@ -7502,7 +8003,7 @@ class SfTable extends TableElement {
 
     this.remeasureWhenDrawn(table);
     const previous = this._contentWidths ?? new Map();
-    const changed = measured.size !== previous.size || [...measured].some(([key, width]) => Math.abs((previous.get(key) ?? 0) - width) > 2);
+    const changed = measured.size !== previous.size || [...measured].some(([key, width]) => Math.abs((previous.get(key) ?? 0) - width) > 0.01);
     if (changed) this._contentWidths = measured;
     return changed || surplusChanged || contentChanged;
   } // In pixels, capped here rather than with min() in the column's width: a
@@ -7693,8 +8194,8 @@ class SfTable extends TableElement {
         if (style) col.setAttribute('style', style);else col.removeAttribute('style');
       }
     });
-    table.classList.toggle('sf-table-content-sized', this.hasContentWidths);
-    table.classList.toggle('w-max', !this.hasContentWidths);
+    table.classList.toggle('sf-table-content-sized', this.contentSized);
+    table.classList.toggle('w-max', !this.contentSized);
     if (this.hasContentWidths && this._contentInlineSize) table.style.setProperty('--sf-table--content-inline-size', `${this._contentInlineSize}px`);else table.style.removeProperty('--sf-table--content-inline-size');
   }
 
@@ -7725,6 +8226,16 @@ class SfTable extends TableElement {
 
   get hasContentWidths() {
     return Boolean(this._contentWidths?.size);
+  } // Content-sized from the first render with rows, before the widths are
+  // measured: the table is laid out by its content (default.css, the
+  // unmeasured content-sized table), as its printed first paint is, until
+  // the measured widths come. Drawn as wide as its content with a fixed
+  // layout instead, the first render shared the room between every column
+  // for a frame and the printed cells moved twice (gate 24, typed-cells).
+
+
+  get contentSized() {
+    return this.hasContentWidths || (this.getTableData?.()?.rows?.length ?? 0) > 0;
   } // Reads that write nothing in between: the cap and the cramped answer are
   // read once for the whole pass instead of once per column.
 
@@ -7779,14 +8290,19 @@ class SfTable extends TableElement {
 
     if (props.selectable) {
       columns.push(this.getSelectColumn());
-    }
+    } // No «Действия» column (owner decision C146 (5), variant В): every
+    // action of a row is in its «≡» menu, which the right button, the
+    // menu key and Shift+F10 open too; opening the record is the main
+    // field's link. The hover-only column of buttons is gone, so the
+    // «≡» column carries the row actions wherever that column stood:
+    // settings="false" (a view whose chrome draws no settings) takes the
+    // gear from its head and keeps the row menus.
 
-    if (props.settings && this.settingsColumnHasUse(props)) {
+
+    const rowMenus = Boolean(props.actions && props.rowActions && this.state.actionActive && (this.ACTIONS_SETTINGS_ROW ?? []).length);
+
+    if (props.settings && this.settingsColumnHasUse(props) || rowMenus) {
       columns.push(this.TABLE_SETTINGS_COLUMN);
-    }
-
-    if (props.actions && props.rowActions && this.state.actionActive) {
-      columns.push(this.TABLE_ACTIONS_COLUMN);
     }
 
     return columns;
@@ -7903,7 +8419,7 @@ class SfTable extends TableElement {
     const template = this.getSelectedFilterTemplate();
     return (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
             <sf-menu-context
-                    size=${this.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_12__.nothing}
+                    size=${this.menuSize}
                     :key=${x + y + this._renderToken}
                     aria-label=${this.getContextMenuLabel({ ...data,
       menu: 'filter-favorites'
@@ -8037,7 +8553,7 @@ class SfTable extends TableElement {
 
     return (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
             <sf-menu-context
-                    size=${this.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_12__.nothing}
+                    size=${this.menuSize}
                     :key=${x + y}
                     aria-label=${this.getContextMenuLabel({ ...data,
       menu: 'row-settings'
@@ -9197,7 +9713,7 @@ class SfTable extends TableElement {
                                     data-context-submenu-anchor="${col.key}"
                                     scheme="on-surface"
                                     aria-label=${`${this.text("templateActionsLabel")}: ${col.label}`}
-                                    icon="more_vert"
+                                    icon="more_horiz"
                                     @click=${event => {
         this.openContextSubmenu(event, {
           type: 'filter-template-actions',
@@ -9214,7 +9730,7 @@ class SfTable extends TableElement {
     let contextItems = `${this.text('templatesTabText')}|${this.text('fieldsTabText')}`;
     return (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
             <sf-menu-context
-                    size=${this.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_12__.nothing}
+                    size=${this.menuSize}
                     :key=${x + y + this._renderToken}
                     aria-label=${this.getContextMenuLabel({ ...data,
       menu: 'filter-settings'
@@ -9344,7 +9860,7 @@ class SfTable extends TableElement {
     };
     return (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
             <sf-menu-context
-                    size=${this.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_12__.nothing}
+                    size=${this.menuSize}
                     :key=${x + y + this._renderToken}
                     aria-label=${this.getContextMenuLabel({ ...data,
       menu: 'tag-settings'
@@ -9463,7 +9979,7 @@ class SfTable extends TableElement {
 
     return (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
             <sf-menu-context
-                    size=${this.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_12__.nothing}
+                    size=${this.menuSize}
                     :key=${x + y + this._renderToken}
                     aria-label=${this.getContextMenuLabel({ ...data,
       menu: 'table-settings'
@@ -9577,7 +10093,6 @@ class SfTable extends TableElement {
     })}></sf-radio>
                         <span>${this.text(label[value])}</span></label>`)}
                 </div>
-                ${check("stripes", "viewStripes")}
                 ${check("lines", "viewLines")}
                 ${check("singleLine", "viewSingleLine")}
                 ${this.getAttribute("vertical-scroll") === "page" ? check("stickyHead", "viewStickyHead") : lit__WEBPACK_IMPORTED_MODULE_12__.nothing}
@@ -9637,7 +10152,7 @@ class SfTable extends TableElement {
     const isDefaultTemplate = (temp || template).default === true;
     return (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
             <sf-menu-context
-                    size=${this.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_12__.nothing}
+                    size=${this.menuSize}
                     :key=${`${template.key || ''}-${x}-${y}`}
                     aria-label=${this.getContextMenuLabel({ ...data,
       type: 'filter-template-actions'
@@ -10146,8 +10661,10 @@ class SfTable extends TableElement {
 
     const flag = (name, on) => on ? this.setAttribute(name, "") : this.removeAttribute(name);
 
-    if (view.density === "normal") this.removeAttribute("data-sf-view-density");else this.setAttribute("data-sf-view-density", view.density);
-    flag("data-sf-view-stripes", view.stripes === true);
+    if (view.density === "normal") this.removeAttribute("data-sf-view-density");else this.setAttribute("data-sf-view-density", view.density); // Zebra is the author's (C146 (4)): a person's stored choice is no
+    // longer read.
+
+    flag("data-sf-view-stripes", this.hasAttribute("stripes") && this.getAttribute("stripes") !== "false");
     flag("data-sf-view-lines", view.lines === true);
     flag("data-sf-view-single-line", view.singleLine === true);
     const page = this.getAttribute("vertical-scroll") === "page" && !this.isList;
@@ -11251,7 +11768,14 @@ class SfTable extends TableElement {
 
 
   renderCellElement(type, props = {}) {
-    const tag = (0,_core_js_smart_base__WEBPACK_IMPORTED_MODULE_0__.canonicalTag)(`sf-${String(type ?? "").replace(/^sf-/u, "")}`);
+    const tag = (0,_core_js_smart_base__WEBPACK_IMPORTED_MODULE_0__.canonicalTag)(`sf-${String(type ?? "").replace(/^sf-/u, "")}`); // A status or a value in a cell is a tonal badge (owner decision C140
+    // (2), (4); TB-6 of the table study): the host's main, or no
+    // appearance on a pair whose default is still main, draws tonal; an
+    // outline stays an outline.
+
+    if (tag === "sf-badge" && props.appearance !== "outline") props = { ...props,
+      appearance: "tonal"
+    };
     const shown = LIGHT_CELL_TAGS.has(tag) && props.interactive !== true && props.closable !== true && props.type !== "checkbox" && !Object.keys(props).some(key => key.startsWith("@") || /^on[A-Z]/u.test(key));
     const Element = shown ? customElements.get(tag) : null;
     if (!Element) return this.renderSmartElement(type, props);
@@ -11301,6 +11825,15 @@ class SfTable extends TableElement {
   get controlSize() {
     const size = this.getAttribute("size");
     return size === "1/2" || size === "1" ? size : null;
+  } // Every menu the table opens is on the table's step (owner remark
+  // 2026-11-15): its resolved size -- the attribute, else the default "1" --
+  // as its rows, checkboxes and buttons already are. A menu with no size
+  // fell back to the menu's own default 1/2: a table of size 1 (rows 48,
+  // text 16) opened 32 px rows with 14 px text.
+
+
+  get menuSize() {
+    return this.size === "1/2" ? "1/2" : "1";
   } // A control a column or an action names at size 1 is "this table's
   // size": the host's size when it has one, otherwise no size at all.
 
@@ -11410,7 +11943,12 @@ class SfTable extends TableElement {
     const setting = this.getColumnSetting(column.key) || {};
     const chosen = pending?.pinned ?? setting.pinned ?? column.pinned;
     if (typeof chosen === "boolean") return chosen;
-    return column.role === "title";
+    if (column.role === "title") return true; // Without a title, the first data column stands still when the table
+    // scrolls sideways (owner decision C146 (9)): a plain table on a phone
+    // keeps the name of each row in view.
+
+    const data = (this.getTableData().columns || []).filter(one => one?.key && !SYSTEM_COLUMN_KEYS.has(one.key) && !one.system);
+    return !data.some(one => one.role === "title") && data[0]?.key === column.key;
   }
 
   getPinnedColumnKeys(columns = this.getColumns()) {
@@ -11506,13 +12044,26 @@ class SfTable extends TableElement {
 
 
   getRowSelectLabel(row) {
+    const text = this.getRowNameText(row);
+    return text ? `${this.text("selectRowLabel")}: ${text}` : this.text("selectRowLabel");
+  } // The row's «≡» says whose actions it holds (owner decision C146 (5),
+  // variant В): «Действия: <name>», as the SIMAI Framework table recipe
+  // names it (utility.table 1.5.0).
+
+
+  getRowMenuLabel(row) {
+    const text = this.getRowNameText(row);
+    return text ? `${this.text("actionsColumnLabel")}: ${text}` : this.text("menuLabel");
+  } // The text a row is named by: its first data column's value, else its id.
+
+
+  getRowNameText(row) {
     const batch = this._labelColumnBatch;
     const column = batch && "column" in batch ? batch.column : this.getColumnItems().find(item => item?.key && !item.system && item.key !== "select" && item.key !== "settings");
     if (batch) batch.column = column;
     const raw = column ? row?.[column.key] : undefined;
     const value = raw !== null && typeof raw === "object" ? raw.text ?? raw.label ?? raw.value ?? "" : raw;
-    const text = String(value ?? "").trim() || String(row?.id ?? "").trim();
-    return text ? `${this.text("selectRowLabel")}: ${text}` : this.text("selectRowLabel");
+    return String(value ?? "").trim() || String(row?.id ?? "").trim();
   }
 
   createRowComponentCell(component, props = {}) {
@@ -11533,14 +12084,33 @@ class SfTable extends TableElement {
   // of the host's row_actions is a real submenu rather than a second menu
   // swapped in over the first. What a choice does is unchanged -- an intent
   // for the row, or the action's own handler where it has one.
+  //
+  // at: a point anchor (menuPointAt) for a right click -- the menu opens at
+  // the pointer, while a handler of the host still gets the row's button
+  // as its anchor; the point leaves the page when the menu closes.
 
 
-  async openRowMenu(event, row = {}, only = null) {
+  async openRowMenu(event, row = {}, only = null, {
+    ids = null,
+    at = null
+  } = {}) {
     const anchor = event?.currentTarget?.querySelector?.("button") ?? event?.target?.closest?.("button") ?? event?.currentTarget;
-    if (!(anchor instanceof Element)) return null;
-    const selection = Array.isArray(row.actions) && row.actions.every(item => typeof item === "string") ? row.actions : null; // The list's «more» menu holds the actions its row does not show.
 
-    const items = Array.isArray(only) ? only : this.getActionRowItems(row);
+    if (!(anchor instanceof Element)) {
+      at?.remove();
+      return null;
+    }
+
+    const selection = Array.isArray(row.actions) && row.actions.every(item => typeof item === "string") ? row.actions : null; // The list's «more» menu holds the actions its row does not show.
+    // Several selected rows (C164): the actions every one of them offers.
+
+    const many = Array.isArray(ids) && ids.length > 1;
+    let items = Array.isArray(only) ? only : this.getActionRowItems(row);
+
+    if (many) {
+      const rows = this.getTableData().rows.filter(one => ids.some(id => String(id) === String(one.id)));
+      items = items.filter(action => rows.every(one => this.getActionRowItems(one).some(other => other.id === action.id)));
+    }
 
     const iconOf = action => action?.icon ?? action?.component?.props?.icon ?? undefined;
 
@@ -11559,11 +12129,29 @@ class SfTable extends TableElement {
       text: action.name,
       icon: iconOf(action),
       danger: action.danger === true
+    }); // A destructive entry closes the menu (C164 (5)): whatever order a host
+    // catalogue gives, «Удалить» is the last entry, the rest keep theirs.
+
+    entries.sort((a, b) => Number(a.danger === true) - Number(b.danger === true)); // …after a divider, when anything stands above it (C164).
+
+    const firstDanger = entries.findIndex(entry => entry.danger === true);
+    if (firstDanger > 0) entries.splice(firstDanger, 0, {
+      type: "separator"
+    });
+    if (many) entries.unshift({
+      type: "heading",
+      text: `${this.text("selectedRowsHeading")} ${ids.length}`
     }); // The standard menu is a lazy relation of the table: fetched after the
     // page is ready, and asked for here if a press comes first.
 
     await globalThis.SF?.Loader?.ensure?.(["sf-menu-context"]);
-    const menu = this.rowMenu();
+    const menu = this.rowMenu(); // On every opening, as the table stands now: the row menu lives on
+    // <body> or in the open dialog, outside the table, so it has neither
+    // the table's size nor the density of the table's area unless it is
+    // given them (owner remark 2026-11-15).
+
+    menu.setAttribute("size", this.menuSize);
+    (0,_core_js_density_js__WEBPACK_IMPORTED_MODULE_20__.followDensity)(menu, this);
     menu.setAttribute("aria-label", this.getContextMenuLabel({
       row,
       menu: "row-settings"
@@ -11572,9 +12160,17 @@ class SfTable extends TableElement {
     this._rowMenuContext = {
       row,
       items,
-      anchor
+      anchor,
+      ids: many ? ids.map(String) : null
     };
-    return menu.toggleFor(anchor);
+    if (!at) return menu.toggleFor(anchor); // Bound once the menu is open: opening it again closes the previous
+    // opening first, and that close must not take the new point.
+
+    const opened = await menu.toggleFor(at);
+    if (menu.isOpen) menu.addEventListener("sf-menu-context-closed", () => at.remove(), {
+      once: true
+    });else at.remove();
+    return opened;
   }
 
   rowMenu() {
@@ -11589,8 +12185,15 @@ class SfTable extends TableElement {
       const {
         row,
         items,
-        anchor
-      } = context;
+        anchor,
+        ids
+      } = context; // A menu over several selected rows acts on all of them.
+
+      if (ids && id) {
+        this.requestActionIntent(id, ids);
+        return;
+      }
+
       const action = items.find(item => item.id === id);
       const member = action ? null : items.flatMap(item => item.members ?? []).find(item => item.id === id);
 
@@ -11756,7 +12359,7 @@ class SfTable extends TableElement {
           appearance: "link",
           scheme: "on-surface",
           icon: "menu",
-          ariaLabel: this.text("menuLabel"),
+          ariaLabel: this.getRowMenuLabel(row),
           value: "menu",
           "@click": e => this.openRowMenu(e, row)
         }
@@ -12091,13 +12694,17 @@ class SfTable extends TableElement {
       const key = {
         search: "resetSearchText",
         filters: "resetFiltersText"
-      }[context.reset] ?? "resetBothText";
+      }[context.reset] ?? "resetBothText"; // A list empty only because of its filters says so by its glyph
+      // (owner decision C120 (3)): filter_alt_off; a search, or a search
+      // and filters together, keep the brick's own search_off.
+
       return {
         kind,
         size,
         headingLevel,
         title: "",
         text: "",
+        icon: context.reset === "filters" ? "filter_alt_off" : "",
         actions: [{
           id: "reset-query",
           text: this.text(key),
@@ -12361,6 +12968,7 @@ class SfTable extends TableElement {
     this._observeResponsiveBox();
 
     this.bindRowActionsEvents(this.refs.table?.value);
+    this.syncGrid();
     if (this._windowed) this.bindWindowScroll(); // A row the keyboard asked for outside the drawn range is drawn now:
     // it is focused and scrolled into view, and the scroll that brings
     // moves the range around it -- not the place the page was at before.
@@ -12386,6 +12994,7 @@ class SfTable extends TableElement {
       this.fitCellValues();
       this.measurePinnedColumns();
       this.syncWindow();
+      this.markClippedTitles();
       return;
     } // A render that only moved a row's buttons changed no width.
 
@@ -12440,6 +13049,347 @@ class SfTable extends TableElement {
     this.bindColumnResizeEvent();
     this.bindColumnDragEvent();
     this.syncWindow();
+    this.markClippedTitles();
+  } // A name cut by its two lines (C146 (7)) says so on its cell, and the
+  // Framework tooltip over it shows the whole name; a name that fits has
+  // no tooltip.
+
+
+  markClippedTitles() {
+    const table = this.refs.table?.value;
+    if (!table) return;
+    const tip = this.tipId("title");
+
+    for (const clamp of table.querySelectorAll('tbody td[data-sf-cell="title"] .sf-table-cell-text')) {
+      const clipped = clamp.scrollHeight > clamp.clientHeight + 1 || clamp.scrollWidth > clamp.clientWidth + 1;
+      if (clipped !== clamp.hasAttribute("data-sf-clipped")) clamp.toggleAttribute("data-sf-clipped", clipped); // A cut name is a trigger of the table's name tooltip; a whole
+      // one is none (the Framework's tooltip unlinks it).
+
+      if (clipped && clamp.getAttribute("data-tooltip") !== tip) clamp.setAttribute("data-tooltip", tip);else if (!clipped && clamp.hasAttribute("data-tooltip")) clamp.removeAttribute("data-tooltip");
+    }
+
+    if (this._titleTipTable === table) return;
+    this._titleTipTable = table; // The name tooltip says the name the pointer or the focus is on,
+    // written before the tooltip's delay ends.
+
+    const write = event => {
+      const clamp = event.target instanceof Element ? event.target.closest('td[data-sf-cell="title"] .sf-table-cell-text[data-sf-clipped]') : null;
+      const text = clamp ? document.getElementById(tip)?.querySelector(".sf-tooltip-text") : null;
+      if (text && text.textContent !== clamp.textContent.trim()) text.textContent = clamp.textContent.trim();
+    };
+
+    table.addEventListener("pointerover", write);
+    table.addEventListener("focusin", write);
+  } // ─── the table as a grid (owner decision C146 (8)) ──────────────────────
+  // A table whose rows hold controls -- the box, the row menu, the name's
+  // link, the row's buttons -- is a grid: one Tab stop, the arrows between its rows
+  // and between the controls of a row (WAI-ARIA APG grid). Up and down keep
+  // the place in the row; left and right walk the row's controls, the row
+  // itself first; Home and End go to the row's first and last, with Ctrl to
+  // the first and last row; Enter opens, Space marks the row; Shift+F10 and
+  // the menu key open the row's «≡» (C146 (5)). The head is
+  // the grid's first row: its sort
+  // buttons, the edges that set a width, the box for all and the gear. A
+  // plain table, with nothing to press in its rows, stays a table.
+
+
+  gridControls(row) {
+    const own = row.parentElement?.tagName === "TBODY" ? [row] : []; // A column edge is no stop of the grid (C146 (8), RS-10): the person
+    // sets a width with the pointer.
+
+    const controls = [...row.querySelectorAll("a[href], button:not([disabled]), input:not([disabled]):not([type=hidden]), select:not([disabled]), textarea:not([disabled])")].filter(element => !element.closest(".sf-tooltip, [hidden]") && !element.matches("[data-sf-column-resizer]"));
+    return [...own, ...controls];
+  }
+
+  gridRows(table = this.refs.table?.value) {
+    if (!table) return [];
+    return [...table.querySelectorAll(":scope > thead > tr, :scope > tbody > tr[data-row-id]")];
+  }
+
+  get isGrid() {
+    const table = this.refs.table?.value;
+    if (!table || this.isList) return false;
+    return Boolean(table.querySelector(":scope > tbody > tr[data-row-id] :is(a[href], button, input)"));
+  }
+
+  syncGrid() {
+    const table = this.refs.table?.value;
+    if (!(table instanceof HTMLTableElement)) return;
+    this.bindGridKeys(table);
+    const grid = this.isGrid;
+
+    if (!this.isTree()) {
+      if (grid) table.setAttribute("role", "grid");else if (table.getAttribute("role") === "grid") table.removeAttribute("role");
+    }
+
+    if (!grid) return;
+    const rows = this.gridRows(table);
+    const stops = rows.flatMap(row => this.gridControls(row)); // The one stop: the control the person was on, else the row the
+    // person is on, else the first row.
+
+    let stop = this._gridStop?.isConnected && stops.includes(this._gridStop) ? this._gridStop : null;
+    stop ??= table.querySelector(":scope > tbody > tr[data-current]") ?? table.querySelector(":scope > tbody > tr[data-row-id]");
+
+    for (const element of stops) {
+      const index = element === stop ? "0" : "-1";
+      if (element.getAttribute("tabindex") !== index) element.setAttribute("tabindex", index);
+    }
+
+    this._gridStop = stop;
+  }
+
+  bindGridKeys(table) {
+    if (this._gridTable === table) return;
+    this._gridAbort?.abort();
+    this._gridAbort = new AbortController();
+    this._gridTable = table;
+    const {
+      signal
+    } = this._gridAbort; // Wherever the focus lands -- a click, a Tab into a control the grid
+    // has not seen yet -- that is the one stop.
+
+    table.addEventListener("focusin", event => {
+      if (!this.isGrid) return;
+      const target = event.target;
+      if (!(target instanceof Element) || target === this._gridStop) return;
+      if (!this.gridRows(table).some(row => row.contains(target))) return;
+      this._gridStop = target;
+      this.syncGrid();
+    }, {
+      signal
+    });
+    table.addEventListener("keydown", event => this.handleGridKeydown(event, table), {
+      signal
+    }); // The right button on a row opens the row's «≡» menu (C146 (5),
+    // variant В; C164 (2): the same list), at the pointer (C164 (1)).
+    // Shift keeps the browser's own menu, and so do a link (open in a
+    // new tab) and a field.
+
+    table.addEventListener("contextmenu", event => {
+      if (event.shiftKey) return;
+      const target = event.target instanceof Element ? event.target : null;
+      if (!target || keepsBrowserMenu(target)) return;
+      const row = target.closest("tbody > tr[data-row-id]");
+      if (!row || !table.contains(row)) return;
+      if (this.openRowMenuOf(row, target, {
+        x: event.clientX,
+        y: event.clientY
+      })) event.preventDefault();
+    }, {
+      signal
+    }); // A row's buttons come after the draw: the «Действия» buttons of the
+    // row a person is on, and a Smart button's own <button>, which its
+    // element draws once defined. Each new control leaves the Tab order
+    // in the next frame, or it would be a second stop.
+
+    let queued = 0;
+    const observer = new MutationObserver(records => {
+      if (queued || !records.some(record => [...record.addedNodes].some(node => node.nodeType === 1))) return;
+      queued = requestAnimationFrame(() => {
+        queued = 0;
+        if (this._gridTable === table) this.syncGrid();
+      });
+    });
+    observer.observe(table, {
+      childList: true,
+      subtree: true
+    });
+    signal.addEventListener("abort", () => {
+      observer.disconnect();
+      if (queued) cancelAnimationFrame(queued);
+    });
+  }
+
+  rowOfElement(element) {
+    const key = element?.closest?.("[data-row-id]")?.dataset.rowId;
+    if (key == null) return null;
+    const rows = this.getTableData().rows || [];
+    return rows.find((row, index) => String(this.getRowKey(row, index)) === key) ?? null;
+  } // The rows a context menu over `row` acts on (C164): a selected row
+  // speaks for the whole selection; a row outside it becomes the selection
+  // first. ids is null for the row alone.
+  //
+  // The table's own context wiring (the contextmenu listener and the menu
+  // key in handleGridKeydown, both through openRowMenuOf) stands in for the
+  // SIMAI Framework engine, sf-menu-context 1.21.0 `for="<table id>"` with
+  // its cancellable `open` event (ui-source fix/context-menu-c164). Once a
+  // pair carries it, the switch is: bind the row menu with `for`, drop the
+  // two triggers, and in the `open` handler take `targets` as the ids and
+  // fill the entries with openRowMenu's list -- this function and the entry
+  // building stay.
+
+
+  rowMenuTargets(row) {
+    if (!this.getPropsContext().selectable) return {
+      ids: null,
+      reselected: false
+    };
+    const selected = this.getSelectedRecordIds().map(String);
+    if (selected.includes(String(row.id))) return {
+      ids: selected,
+      reselected: false
+    };
+    if (selected.length) this.clearSelection();
+    this.applyRowSelection(row.id, true);
+    return {
+      ids: null,
+      reselected: true
+    };
+  } // Opens a row's «≡» menu as its button would, under the button; a table
+  // without the button (settings="false") opens it under the cell. pointer
+  // ({x, y}, a right click) opens it at the pointer instead.
+
+
+  openRowMenuOf(rowElement, from, pointer = null) {
+    const row = this.rowOfElement(rowElement);
+    if (!row || !this.getActionRowItems(row).length) return false;
+    const cellKey = from?.closest?.("td")?.dataset.key;
+    return this.openRowContextMenu(rowElement, row, "tbody > tr[data-row-id]", drawn => ({
+      anchor: drawn.querySelector("[data-sf-row-menu]") ?? (cellKey ? drawn.querySelector(`td[data-key="${CSS.escape(cellKey)}"]`) : null) ?? drawn
+    }), pointer);
+  } // A list row's menu (C164 (2)): the list its own button opens -- the
+  // «≡» of a plain list every action, the «⋯» of a list with quick actions
+  // what its row does not show (all of them while the narrow list folds
+  // the quick ones away) -- at the pointer for a right click, else at that
+  // button. A row without the button keeps the browser's menu. Over several
+  // selected rows it is the table's menu (C164 (3)): every action they all
+  // offer, under «Выбрано N» -- a quick button acts on its row alone.
+  // Answers whether it opened.
+
+
+  openListRowMenu(item, pointer = null) {
+    const row = this.rowOfElement(item);
+    const button = item.querySelector(LIST_ROW_MENU_BUTTON);
+    if (!row || !button) return false;
+    let only = null;
+    const actions = button.closest(".sf-table-resource-actions");
+
+    if (actions) {
+      const {
+        quick,
+        rest
+      } = this.listRowActions(row);
+      const box = actions.querySelector(".sf-table-resource-quick");
+      const folded = Boolean(box) && getComputedStyle(box).display === "none";
+      only = folded ? [...quick, ...rest] : rest;
+      if (!only.length) return false;
+    } else if (!this.getActionRowItems(row).length) return false;
+
+    return this.openRowContextMenu(item, row, "li.sf-table-list-item[data-row-id]", (drawn, ids) => ({
+      anchor: drawn.querySelector(LIST_ROW_MENU_BUTTON) ?? button,
+      only: ids?.length > 1 ? null : only
+    }), pointer);
+  } // The one path of a row's context menu, table row and list row alike
+  // (C164 (3)): the selection rule (rowMenuTargets), then the menu on the
+  // row as drawn after it -- a row outside the selection becomes the
+  // selection and is drawn again first. place(drawn, ids) gives the anchor
+  // and the entries (only) on that drawn row. Answers true: it opens.
+
+
+  openRowContextMenu(rowElement, row, rowSelector, place, pointer = null) {
+    const key = rowElement.dataset.rowId; // The menu key sends a keydown and then a contextmenu: the second
+    // must not close what the first opened, or is opening.
+
+    if (this._rowMenuPending === key) return true;
+    if (this._rowMenu?.isOpen && String(this._rowMenuContext?.row?.id) === String(row.id)) return true;
+    const {
+      ids,
+      reselected
+    } = this.rowMenuTargets(row);
+
+    const open = () => {
+      if (this._rowMenuPending === key) this._rowMenuPending = null; // The selection redraws the row: anchor on the row drawn now.
+
+      const drawn = [...this.querySelectorAll(rowSelector)].find(element => element.dataset.rowId === key) ?? rowElement;
+      const {
+        anchor,
+        only = null
+      } = place(drawn, ids);
+      this.openRowMenu({
+        currentTarget: anchor,
+        target: anchor
+      }, this.rowOfElement(drawn) ?? row, only, {
+        ids,
+        at: pointer ? menuPointAt(pointer) : null
+      });
+    };
+
+    if (reselected) {
+      this._rowMenuPending = key;
+      requestAnimationFrame(open);
+    } else open();
+
+    return true;
+  }
+
+  handleGridKeydown(event, table) {
+    if (event.defaultPrevented || !this.isGrid) return;
+    const target = event.target instanceof Element ? event.target : null;
+    if (!target) return; // A field keeps its own keys.
+
+    if (target.closest("textarea, select, [contenteditable]") || target.matches("input") && !/^(checkbox|radio)$/u.test(target.type)) return; // An edge that sets a width keeps its arrows, Home and End.
+
+    if (target.matches("[data-sf-column-resizer]") && /^(ArrowLeft|ArrowRight|Home|End|Enter)$/u.test(event.key)) return;
+    const rows = this.gridRows(table);
+    const rowIndex = rows.findIndex(row => row === target || row.contains(target));
+    if (rowIndex < 0) return;
+    const row = rows[rowIndex];
+
+    if (isMenuKey(event) && row.parentElement?.tagName === "TBODY") {
+      if (this.openRowMenuOf(row, target)) event.preventDefault();
+      return;
+    }
+
+    const controls = this.gridControls(row);
+    const at = controls.indexOf(target); // The row's own keys (handleRowKeydown) move between rows from the
+    // row itself, drawn or not; these move from a control, and across.
+
+    const inBody = row.parentElement?.tagName === "TBODY";
+
+    const place = (index, list, from) => {
+      // A body row starts with the row itself; the head row does not.
+      const fromBody = from.parentElement?.tagName === "TBODY";
+      const toBody = list[0]?.tagName === "TR";
+      const shift = (toBody ? 1 : 0) - (fromBody ? 1 : 0);
+      return Math.max(0, Math.min(list.length - 1, index + shift));
+    };
+
+    let next = null;
+
+    if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
+      const forward = event.key === "ArrowRight" !== this.isRightToLeft();
+      next = controls[at + (forward ? 1 : -1)] ?? null; // A tree row opens and closes with the arrows from the row itself.
+
+      if (target === row && row.hasAttribute("aria-expanded")) return;
+    } else if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+      // From a row the row's own keys moved already, when there was a
+      // row to move to; from the first one, up is the head.
+      const other = rows[rowIndex + (event.key === "ArrowDown" ? 1 : -1)];
+
+      if (other) {
+        const list = this.gridControls(other);
+        next = list[place(at, list, row)] ?? null;
+      }
+    } else if (event.key === "Home" || event.key === "End") {
+      if (event.ctrlKey) {
+        const body = rows.filter(one => one.parentElement?.tagName === "TBODY");
+        next = (event.key === "Home" ? body[0] : body[body.length - 1]) ?? null;
+      } else if (target !== row || !inBody) {
+        next = event.key === "Home" ? controls[0] : controls[controls.length - 1];
+      } else {
+        return;
+      }
+    } else {
+      return;
+    }
+
+    if (!next || next === target) return;
+    event.preventDefault();
+    this._gridStop = next;
+    this.syncGrid();
+    next.focus({
+      preventScroll: false
+    });
   }
 
   template() {
@@ -13024,7 +13974,7 @@ function renderToolbar(context) {
                                     size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                                     appearance="outline"
                                     scheme="primary"
-                                    icon="more_vert"
+                                    icon="more_horiz"
                                     aria-label="Действия с представлением"
                                     aria-haspopup="menu"
                                     @click=${e => {
@@ -13051,7 +14001,7 @@ function renderEmptyState(context, dataState) {
   if (component?.hasSlotContent?.('empty')) return component.getSlotContent('empty');
   const brick = component.emptyBrick(dataState);
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<sf-empty-state kind=${brick.kind} size=${brick.size} heading-level=${brick.headingLevel}
-                                heading=${brick.title || lit__WEBPACK_IMPORTED_MODULE_0__.nothing} text=${brick.text || lit__WEBPACK_IMPORTED_MODULE_0__.nothing} live=${brick.live || lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                                icon=${brick.icon || lit__WEBPACK_IMPORTED_MODULE_0__.nothing} heading=${brick.title || lit__WEBPACK_IMPORTED_MODULE_0__.nothing} text=${brick.text || lit__WEBPACK_IMPORTED_MODULE_0__.nothing} live=${brick.live || lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                                 .actions=${brick.actions}></sf-empty-state>`;
 }
 
@@ -13074,9 +14024,10 @@ function renderHeadLabel(context, column) {
   } // The gear opens the column settings; without them (settings-menu="false",
   // a host that saves no personal settings) the column keeps its row menus and
   // its heading is only a name.
+  // settings="false" with row actions keeps the column for the «≡» alone.
 
 
-  if (column.key === 'settings' && context.settingsMenu === false) {
+  if (column.key === 'settings' && (context.settingsMenu === false || context.settings === false)) {
     return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-table-visually-hidden">${context.component.text('settingsColumnLabel')}</span>`;
   }
 
@@ -13087,8 +14038,10 @@ function renderHeadLabel(context, column) {
   }
 
   const sort = context.component.state.sort || {};
-  const direction = sort.key === column.key ? sort.direction : null;
-  const icon = direction === 'asc' ? 'arrow_upward' : direction === 'desc' ? 'arrow_downward' : 'unfold_more';
+  const direction = sort.key === column.key ? sort.direction : null; // The mark stands only at the sorted column (owner decision C146 (6));
+  // the others show, on hover and focus, the arrow a press would give.
+
+  const icon = direction === 'desc' ? 'arrow_downward' : 'arrow_upward';
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
         <button type="button" class="sf-table-sort-button flex items-cross-center gap-1/4 min-w-0"
                 data-direction=${direction || lit__WEBPACK_IMPORTED_MODULE_0__.nothing}>
@@ -13120,12 +14073,13 @@ function renderHead(context) {
                                     class="relative"
                                     data-key="${column.key}"
                                     data-label="${column.label || column.key || ''}"
+                                    data-sf-cell=${cellKind(context.component, column, columns)}
                                     data-sf-pinned=${context.component.isPinnedColumn(column) ? '' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                                     style=${context.component.getStickyCellStyle(columns, k) || lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                                     aria-sort=${ariaSort(context, column)}
                                     @click=${column.sortable === true ? event => context.component.handleHeaderSortClick(event, column) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                             >
-                                ${column.system || k === columns.length - 1 ? renderHeadLabel(context, column) : (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<div
+                                ${column.system || k === columns.length - 1 ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`${renderHeadLabel(context, column)}${k === columns.length - 1 ? renderTipSurfaces(context) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}` : (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<div
                                         class="sidebar-resizer flex items-cross-center h-full select-none"
                                 >
                                     ${renderHeadLabel(context, column)}
@@ -13133,9 +14087,13 @@ function renderHead(context) {
                                          two headers. There is no handle to find
                                          first: this is the line's own hit strip,
                                          invisible, astride the separator, and
-                                         still a button, so the keyboard keeps
-                                         the name and the arrows it had. -->
+                                         still a button with its name and its
+                                         arrows. It is no Tab stop of its own
+                                         (owner decision C146 (8), the resizer
+                                         study RS-10): the table is one stop,
+                                         and a width is set by the pointer. -->
                                     <button type="button"
+                                            tabindex="-1"
                                             role="separator"
                                             aria-orientation="vertical"
                                             class="sf-table-column-resizer"
@@ -13150,6 +14108,14 @@ function renderHead(context) {
         </tr>
         </thead>
     `;
+} // The tooltip of a cut name (owner decision C146 (7)): one surface for the
+// table, in the head of the last column, which every cut name names by id
+// (data-tooltip). A surface in each row cost about ten nodes a row and broke
+// the thirty nodes a row of a long list (standard 1.3.8 gate 17).
+
+
+function renderTipSurfaces(context) {
+  return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-tooltip sf-tooltip--dark sf-tooltip--size-1/3 sf-tooltip--arrow-bottom-inline-start" hidden id=${context.component.tipId('title')}><span class="sf-tooltip-content"><span class="sf-tooltip-text"></span></span></span>`;
 }
 
 function toColumnSize(value) {
@@ -13206,7 +14172,13 @@ const skeletonBar = (row, column) => (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<
 
 
 function columnStyle(component, column) {
-  const width = toColumnSize(column.colWidth ?? column.width ?? column.size) || (column.key === 'actions' ? component?.actionsColumnWidth || 'var(--sf-table--actions-column-width, var(--sf-f0))' : '') || component?.contentWidth?.(column) || (component?.columnsAreCramped && component?.columnTakesFloor?.(column) ? 'var(--sf-table--column-min-inline-size)' : '');
+  const width = toColumnSize(column.colWidth ?? column.width ?? column.size) || (column.key === 'actions' ? component?.actionsColumnWidth || 'var(--sf-table--actions-column-width, var(--sf-f0))' : '') || component?.contentWidth?.(column) // A content-sized table takes no floor: each data column gets its
+  // content width and the one that takes the spare room its content
+  // width at least (the table's least width), as the unmeasured
+  // first paint lays them out. Floored before the widths were
+  // measured, or the spare room's column after, the columns stood at
+  // 160 on a phone for a frame and every printed cell moved.
+  || (component?.columnsAreCramped && !component?.contentSized && component?.columnTakesFloor?.(column) ? 'var(--sf-table--column-min-inline-size)' : '');
   const minWidth = toColumnSize(column.min_width ?? column.minWidth);
   const maxWidth = toColumnSize(column.maxWidth);
   return [width ? `width: ${width}` : "", minWidth ? `min-width: ${minWidth}` : "", maxWidth ? `max-width: ${maxWidth}` : ""].filter(Boolean).join("; ");
@@ -13236,10 +14208,15 @@ function renderColgroup(context) {
     // took whatever room was left -- a thousand pixels on a wide
     // page -- and the data columns were measured as cramped beside
     // it and held at their floor.
-    const style = columnStyle(context.component, column);
+    const style = columnStyle(context.component, column); // The column that takes the spare room is marked, so a first
+    // paint the code has not measured yet gives it the spare room
+    // too (default.css, the unmeasured content-sized table).
+
+    const spare = column.key && column.key === context.component?.spareRoomColumnKey?.();
     return (0,lit_directives_keyed_js__WEBPACK_IMPORTED_MODULE_2__.keyed)(`col:${column.key}`, (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
                     <col
                             data-key=${column.key || lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                            data-sf-spare-room=${spare ? '' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                             style=${style || lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                     />
                 `);
@@ -13337,7 +14314,19 @@ function renderLinkCell(value) {
 // This is the migration form (§16) until template.html is compiled.
 
 
-const ROW_HOLE = Symbol("row-hole");
+const ROW_HOLE = Symbol("row-hole"); // What a column's cells are to the look (owner decision C146): `number`,
+// end-aligned with digits of one width and never wrapped (3); `title`, the
+// record's name, up to two lines and then an ellipsis with the whole name
+// in a tooltip (7). Other cells keep one line.
+
+function cellKind(component, column, columns) {
+  if (!column?.key) return lit__WEBPACK_IMPORTED_MODULE_0__.nothing;
+  if (component?.isNumberColumn?.(column)) return 'number';
+  if (!column.system && column.role === 'title') return 'title';
+  if (!column.system && !columns?.some(one => one?.role === 'title') && columns?.find(one => one?.key && !SYSTEM_COLUMNS.has(one.key) && !one.system) === column) return 'title';
+  return lit__WEBPACK_IMPORTED_MODULE_0__.nothing;
+}
+
 const ROW_STRINGS = new Map(); // The actions cell (view 1.6.1, simai/ui-pro#2): its buttons stand only in
 // the row a person is on, and an idle row's cell is the bare <td>. It was a
 // child part with an empty box in it (a marker and a <div>, 31 nodes a row
@@ -13376,12 +14365,16 @@ function rowStrings(kinds) {
   const pieces = ['<tr data-selected=', ROW_HOLE, ' draggable=', ROW_HOLE, ' aria-level=', ROW_HOLE, ' aria-expanded=', ROW_HOLE, ' aria-setsize=', ROW_HOLE, ' aria-posinset=', ROW_HOLE, ' aria-busy=', ROW_HOLE, ' aria-rowindex=', ROW_HOLE, ' data-row-id=', ROW_HOLE, ' data-current=', ROW_HOLE, ' aria-current=', ROW_HOLE, ' tabindex="-1" @mousedown=', ROW_HOLE, ' @click=', ROW_HOLE, ' @dblclick=', ROW_HOLE, ' @keydown=', ROW_HOLE, '>'];
 
   for (const kind of kinds) {
-    pieces.push('<td data-key=', ROW_HOLE, ' data-item=', ROW_HOLE, ' data-sf-pinned=', ROW_HOLE, ' style=', ROW_HOLE); // The actions cell's buttons are bound on the cell (actionsCell).
+    pieces.push('<td data-key=', ROW_HOLE, ' data-item=', ROW_HOLE, ' data-sf-cell=', ROW_HOLE, ' data-sf-pinned=', ROW_HOLE, ' style=', ROW_HOLE); // The actions cell's buttons are bound on the cell (actionsCell).
 
     pieces.push(...(kind === 'actions' ? [' ', ROW_HOLE, '>'] : ['>']));
 
     if (kind === 'box') {
-      pieces.push('<label class=', ROW_HOLE, '><span class="sf-checkbox-box transition flex"><input type="checkbox" data-sf-row-box value=', ROW_HOLE, ' .checked=', ROW_HOLE, ' aria-label=', ROW_HOLE, ' @change=', ROW_HOLE, '></span></label>');
+      pieces.push('<label class=', ROW_HOLE, '><span class="sf-checkbox-box transition flex"><input type="checkbox" data-sf-row-box value=', ROW_HOLE, ' .checked=', ROW_HOLE, ' aria-label=', ROW_HOLE, ' @change=', ROW_HOLE, // The tick: checkbox class markup draws the glyph of the
+      // .sf-icon inside the box (sf-checkbox's own template does the
+      // same with sf-icon); without it a checked row showed a filled
+      // box and no tick (DEV recipes p1, 2026-11-15).
+      '><i class="sf-icon sf-icon--weight-regular pointer-event-none" aria-hidden="true" .textContent=', ROW_HOLE, '></i></span></label>');
     } else if (kind === 'menu') {
       pieces.push('<button type="button" class=', ROW_HOLE, ' aria-label=', ROW_HOLE, ' value="menu" data-sf-row-menu @click=', ROW_HOLE, '><i class="sf-icon sf-icon--weight-regular pointer-event-none" aria-hidden="true">menu</i></button>');
     } else if (kind === 'text') {
@@ -13746,20 +14739,32 @@ function renderTableTemplate(context) {
     busy = false
   } = {}) {
     const component = context.component;
-    const treeColumn = component.treeColumnKey?.(columns);
-    const titleColumn = columns.find(column => column?.role === 'title' && !column.system)?.key ?? null;
+    const treeColumn = component.treeColumnKey?.(columns); // The main field is the link that opens the record (owner decision
+    // C146 (5), variant В): the column the host marked as the title, else
+    // the first data column when it shows a plain value (a column with a
+    // renderer or a component of its own keeps it).
+
+    const firstData = columns.find(column => column?.key && !SYSTEM_COLUMNS.has(column.key) && !column.system);
+    const titleColumn = columns.find(column => column?.role === 'title' && !column.system)?.key ?? (firstData && !firstData.renderer && !firstData.component && !component.isNumberColumn?.(firstData) ? firstData.key : null);
     const slice = component.windowSlice?.(rows) ?? null;
     const shown = slice ? rows.slice(slice.first, slice.last + 1) : rows;
     const offset = slice ? slice.first : 0;
     const span = String(Math.max(columns.length, 1));
     const draggable = component.hasAttribute('drag-rows') || component.getAttribute('row-reorder') === 'true';
     const sticky = columns.map((column, index) => component.getStickyCellStyle(columns, index) || lit__WEBPACK_IMPORTED_MODULE_0__.nothing);
+    const cellKinds = columns.map(column => cellKind(component, column, columns));
     const pinned = columns.map(column => component.isPinnedColumn(column) ? '' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing); // The stripes are nth-child: a spacer of no height keeps the parity of
     // the drawn rows the parity they have in the whole list.
 
     const spacer = (height, key) => (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<tr class="sf-table-window-spacer" aria-hidden="true" data-sf-window-spacer=${key}><td colspan=${span} style=${`block-size: ${Math.max(0, Math.round(height))}px`}></td></tr>`;
 
-    const fullCell = (row, column) => column.key === treeColumn ? renderTreeCell(context, row, column.key === titleColumn ? renderTitleLink(context, row, renderCellValue(row, column)) : renderCellValue(row, column)) : column.key === titleColumn ? renderTitleLink(context, row, renderCellValue(row, column)) : renderCellValue(row, column);
+    const fullCell = (row, column, kind) => {
+      const value = column.key === titleColumn ? renderTitleLink(context, row, renderCellValue(row, column)) : renderCellValue(row, column); // The name's two lines (C146 (7)) are its cell's text, by the
+      // cell's data-sf-cell="title": no element around it.
+
+      if (column.key === treeColumn) return renderTreeCell(context, row, value);
+      return value;
+    };
 
     const renderRow = (row, at) => {
       const index = at + offset;
@@ -13768,12 +14773,18 @@ function renderTableTemplate(context) {
       const kinds = [];
       const values = [row.select?.component?.props?.checked === true ? '' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing, draggable && !row.__tree?.more ? 'true' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing, row.__tree ? String(row.__tree.level + 1) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing, row.__tree?.hasChildren ? String(row.__tree.expanded === true) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing, row.__tree ? String(row.__tree.setsize) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing, row.__tree ? String(row.__tree.posinset) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing, row.__tree?.loading ? 'true' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing, slice ? String(index + 2) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing, component.getRowKey(row, index), cursor ? '' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing, current ? 'true' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing, component.rowPointerDown, event => component.handleRowClick(event, row, index), event => component.handleRowOpen(event, row), event => component.handleRowKeydown(event, row)];
       columns.forEach((column, cellIndex) => {
-        const mark = component.rowMarkupCell?.(row, column) ?? null;
-        values.push(column.key, `${row.id}_${column.key}`, pinned[cellIndex], sticky[cellIndex]);
+        // The main field of a row that opens is its link, not markup.
+        const opens = column.key === titleColumn && component.canOpenRow?.(row) && row?.id != null;
+        const mark = opens ? null : component.rowMarkupCell?.(row, column) ?? null;
+        values.push(column.key, `${row.id}_${column.key}`, cellKinds[cellIndex], pinned[cellIndex], sticky[cellIndex]);
 
-        if (mark?.kind === 'box') {
+        if (cellKinds[cellIndex] === 'title' && mark?.kind === 'text') {
+          // The name as text: two lines by its cell (C146 (7)).
+          kinds.push('text');
+          values.push('sf-table-cell-text', lit__WEBPACK_IMPORTED_MODULE_0__.nothing, mark.text);
+        } else if (mark?.kind === 'box') {
           kinds.push('box');
-          values.push(`sf-checkbox sf-checkbox--size-${mark.size} flex content-main-between cursor-pointer`, mark.value, mark.checked, mark.label, mark.change);
+          values.push(`sf-checkbox sf-checkbox--size-${mark.size} flex content-main-between cursor-pointer`, mark.value, mark.checked, mark.label, mark.change, mark.checked ? 'check' : '');
         } else if (mark?.kind === 'menu') {
           kinds.push('menu');
           values.push(`sf-icon-button sf-icon-button--size-${mark.size} sf-icon-button--icon sf-icon-button--link flex items-cross-center sf-icon-button--on-surface`, mark.label, mark.click);
@@ -13787,7 +14798,7 @@ function renderTableTemplate(context) {
           values.push(actionsCell(fullCell(row, column), component));
         } else {
           kinds.push('node');
-          values.push(fullCell(row, column));
+          values.push(fullCell(row, column, cellKinds[cellIndex]));
         }
       });
       return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)(rowStrings(kinds), ...values);
@@ -14056,13 +15067,17 @@ function renderTableTemplate(context) {
                          ${(0,lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_4__.ref)(context.component.refs.resizeGuide)}></div>
                     ${resolvedDataState(context) === 'loading' && (context.component.getTableData()?.rows?.length ?? 0) > 0 ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
                             <div class="sf-table-busy" role="status">
-                                <sf-spinner size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing} label="" aria-label=${context.loadingText}></sf-spinner>
+                                <!-- The words are the spinner's label, kept for a screen reader
+                                     and hidden from the eye (label-hidden, owner decision C138,
+                                     SP-06): the spinner keeps one name mechanism and the status
+                                     region says them once. -->
+                                <sf-spinner size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing} label=${context.loadingText} label-hidden></sf-spinner>
                             </div>
                         ` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                     ${context.list ? renderList() : (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
                     <table
                             ${(0,lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_4__.ref)(context.component.refs.table)}
-                            class="table border-separate border-spacing-0 min-w-full ${context.component?.hasContentWidths ? 'sf-table-content-sized' : 'w-max'} table-fixed transition"
+                            class="table border-separate border-spacing-0 min-w-full ${context.component?.contentSized ? 'sf-table-content-sized' : 'w-max'} table-fixed transition"
                             role=${context.component.isTree?.() ? 'treegrid' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                             aria-label=${context.ariaLabel || lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                             aria-rowcount=${context.component.windowRowCount?.() ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
@@ -14159,6 +15174,13 @@ function normalizeTableLinkCell(value) {
 __webpack_require__.r(__webpack_exports__);
 // extracted by mini-css-extract-plugin
 
+
+/***/ },
+
+/***/ "d3818183b14c"
+(module) {
+
+module.exports = (globalThis.SF && globalThis.SF.runtimeModule ? globalThis.SF.runtimeModule("deprecations", 1) : new Promise((resolve, reject) => globalThis.addEventListener("sf-runtime-ready", () => globalThis.SF.runtimeModule("deprecations", 1).then(resolve, reject), { once: true })));
 
 /***/ },
 
@@ -15204,21 +16226,21 @@ module.exports = /*#__PURE__*/JSON.parse('{"$comment":"Dated aliases of sf-view-
 /***/ "c1f17ed5a348"
 (module) {
 
-module.exports = /*#__PURE__*/JSON.parse('{"id":"smart.view-table","tag":"sf-view-table","version":"1.18.1","kind":"leaf","settings":{"selectable":{"type":"boolean","default":true},"settings":{"type":"boolean","default":true},"actions":{"type":"boolean","default":true},"row-actions":{"type":"boolean","default":true},"creatable":{"type":"boolean","default":true},"filter-templates":{"type":"boolean","default":true},"settings-menu":{"type":"boolean","default":true},"pagin":{"type":"boolean","default":false},"filter-text":{"type":"string","default-from":"runtime.filter-text"},"clear-text":{"type":"string","default-from":"runtime.clear-text"},"search-placeholder":{"type":"string","default-from":"runtime.search-placeholder"},"create-text":{"type":"string","default-from":"runtime.create-text"},"pagination-total":{"type":"number","default":10,"integer":true,"min":0},"pagination-page-size":{"type":"number","default":10,"integer":true,"min":1,"max":100},"page-sizes":{"type":"string","default":"10,20,30,40"},"context-menu-columns":{"type":"number","default":1,"integer":true,"min":1,"max":4},"remember-widths":{"type":"boolean","default":false},"table-settings-key":{"type":"string","default":""},"data-state":{"type":"enum","values":["auto","loading","ready","populated","empty","error"],"default":"auto","x-alias":{"populated":"ready"}},"loading-text":{"type":"string","default-from":"runtime.loading-text"},"empty-text":{"type":"string","default-from":"runtime.empty-text"},"empty-description":{"type":"string"},"error-text":{"type":"string","default-from":"runtime.error-text"},"retry-text":{"type":"string","default-from":"runtime.retry-text"},"toolbar":{"type":"boolean","default":true},"pin-column-label":{"type":"string","default-from":"runtime.pin-column-label"},"unpin-column-label":{"type":"string","default-from":"runtime.unpin-column-label"},"column-move-label":{"type":"string","default-from":"runtime.column-move-label"},"column-search-placeholder":{"type":"string","default-from":"runtime.column-search-placeholder"},"column-search-empty-text":{"type":"string","default-from":"runtime.column-search-empty-text"},"vertical-scroll":{"type":"enum","values":["self","page"],"default":"self"},"filter-apply-text":{"type":"string","default-from":"runtime.filter-apply-text"},"layout":{"type":"enum","values":["auto","table","list"],"default":"table"},"layout-switch":{"type":"boolean","default":false},"list-below":{"type":"number","default":600},"list-fields":{"type":"number","default":3},"quick-actions":{"type":"string","default":""},"row-open":{"type":"enum","values":["title","row"],"default":"title"},"size":{"type":"enum","values":["1/2","1"],"default":"1"},"preferences-key":{"type":"string","default":""},"row-actions-visible":{"type":"enum","values":["hover","always"],"default":"hover"},"drag-rows":{"type":"boolean","default":false},"row-reorder":{"type":"boolean","default":false},"inline-edit":{"type":"boolean","default":false},"active-filter-fields":{"type":"list","entries":{"key":"id"}},"bulk-actions":{"type":"list"},"columns":{"type":"list","of":{"key":"string","label":"string"}},"create-items":{"type":"list"},"filter-fields":{"type":"list"},"rows":{"type":"list","entries":{"key":"id","changes":"revision"},"of":{"id":"id","revision":{"type":"string","optional":true}}},"table-data":{"type":"object"},"table-settings":{"type":"object"},"templates":{"type":"list"},"toolbar-actions":{"type":"list"},"sort":{"type":"list","of":{"key":"string","direction":{"type":"enum","values":["asc","desc"]}},"controlled":true},"current":{"type":"string","default":""}},"values":{"selected":{"type":"id","optional":true},"selection":{"type":"list","default":[]}},"events":{"select":{"carries":{"ids":"list"}},"apply":{"carries":{"action":"string","scope":{"type":"enum","values":["entry","selection","filter"]},"ids":"list","revisions":{"type":"object","optional":true}}},"save":{"carries":{"kind":{"type":"enum","values":["columns"]},"reason":"string","column-settings":{"type":"object"},"table-settings-key":{"type":"string"}}},"column-settings-reset":{"carries":{"target":{"type":"enum","values":["personal"]},"table-settings-key":{"type":"string","nullable":true}},"own-verb":true},"create":{"carries":{"item":{"type":"string","nullable":true,"optional":true}}},"filter-change":{"carries":{"template-key":{"type":"string"},"template-label":{"type":"string"},"values":{"type":"object"},"tags":{"type":"object"}},"own-verb":true},"query":{"carries":{"reason":"string","context":"object","sequence":{"type":"number","integer":true}}},"refresh":{"carries":{}},"search-change":{"carries":{"search":"string"},"own-verb":true},"sort-change":{"carries":{"key":{"type":"string","schema":{"minLength":1}},"direction":{"type":"enum","values":["asc","desc",null],"nullable":true}},"own-verb":true},"template-delete":{"carries":{"key":{"type":"string","schema":{"minLength":1}}},"own-verb":true},"template-save":{"carries":{"templates":{"type":"list","of":{"key":"string","label":"string","selected":"boolean","data":"object","settings":"object"},"schema":{"items":{"type":"object","required":["key","label","settings"],"properties":{"key":{"type":"string"},"label":{"type":"string"},"selected":{"type":"boolean"},"data":{"type":"object"},"settings":{"type":"object","properties":{"filter_fields":{"type":"array","items":{"type":"string"}}}}}},"minItems":1}}},"own-verb":true},"template-select":{"carries":{"key":{"type":"string","schema":{"minLength":1}}},"own-verb":true},"toolbar-action":{"carries":{"action":"string","href":{"type":"string","nullable":true,"optional":true}},"cancelable":true,"own-verb":true},"reference-open":{"carries":{"field":"string","value":"object","href":"string"},"cancelable":true,"own-verb":true},"expand":{"carries":{"id":"id","expanded":{"type":"boolean","optional":true}}},"load-more":{"carries":{"direction":{"type":"enum","values":["after"]},"parent":{"type":"id","nullable":true},"cursor":{"type":"string","nullable":true}}},"rows-drag":{"carries":{"ids":{"type":"list","schema":{"items":{"type":"string"},"minItems":1}},"source":{"type":"string","nullable":true}},"own-verb":true},"move":{"carries":{"ids":"list","before":{"type":"id","nullable":true},"order":"list"}},"cell-set":{"carries":{"id":"object","key":"string","value":"object","revision":"object"},"own-verb":true},"view-change":{"carries":{"view":"object","everywhere":"boolean"},"own-verb":true},"window":{"carries":{"first":{"type":"number","integer":true},"last":{"type":"number","integer":true}},"own-verb":true},"layout-change":{"carries":{"layout":{"type":"enum","values":["list","table"]}},"own-verb":true}},"actions":{"add-rows":{"with":{"rows":"list"}},"apply-query-result":{"with":{"sequence":{"type":"number","integer":true,"schema":{"minimum":1}},"rows":"list"}},"clear-selection":{},"request-action-intent":{"with":{"action-id":{"type":"string","schema":{"minLength":1}},"record-ids":{"type":"list","schema":{"items":{"type":["string","integer"],"minLength":1},"minItems":1}}},"emits":"apply"},"request-create-intent":{"with":{"item-id":{"type":"string","optional":true,"nullable":true}},"emits":"create"},"request-retry":{"emits":"refresh"},"set-sort":{"with":{"key":{"type":"string","nullable":true},"direction":{"type":"enum","values":["asc","desc"],"nullable":true}}},"toggle-tree-row":{"with":{"row":"object"},"emits":"expand"},"request-tree-more":{"with":{"row":"object"},"emits":"load-more"},"focus-row":{"with":{"id":"id"}},"set-layout":{"with":{"layout":{"type":"enum","values":["list","table"]}},"emits":"layout-change"}},"port":{"id":"simai.dataview-port","version":"1.0.0","contract":"src/core/contracts/ports/simai.dataview-port/1.0.0/port.json"},"presentation":{"skeleton":{"late":["rows"]}},"host-states":{"data-sf-view-stripes":"boolean","data-sf-page-scroll":"boolean"},"css-variables":{"--sf-table-row-block-size-1/2":{"type":"length","state":"default"},"--sf-table-row-block-size-1":{"type":"length","state":"default"},"--sf-table-row-2-lines-block-size-1/2":{"type":"length","state":"default"},"--sf-table-row-2-lines-block-size-1":{"type":"length","state":"default"},"--sf-table-head-block-size-1/2":{"type":"length","state":"default"},"--sf-table-head-block-size-1":{"type":"length","state":"default"},"--sf-table-toolbar-block-size-1/2":{"type":"length","state":"default"},"--sf-table-toolbar-block-size-1":{"type":"length","state":"default"},"--sf-table-toolbar-gap":{"type":"length","state":"default"},"--sf-table-head--background-color":{"type":"color","state":"default"},"--sf-table-row--background-color":{"type":"color","state":"default"},"--sf-table--cell-spacing":{"type":"length","state":"default"},"--sf-table-cell--line-clamp":{"type":"number","state":"default"},"--sf-table-context-menu--z-index":{"type":"number","state":"open"},"--sf-table-context-menu--max-width":{"type":"length","state":"open"}}}');
+module.exports = /*#__PURE__*/JSON.parse('{"id":"smart.view-table","tag":"sf-view-table","version":"1.19.5","kind":"leaf","settings":{"selectable":{"type":"boolean","default":true},"settings":{"type":"boolean","default":true},"actions":{"type":"boolean","default":true},"row-actions":{"type":"boolean","default":true},"creatable":{"type":"boolean","default":true},"filter-templates":{"type":"boolean","default":true},"settings-menu":{"type":"boolean","default":true},"pagin":{"type":"boolean","default":false},"filter-text":{"type":"string","default-from":"runtime.filter-text"},"clear-text":{"type":"string","default-from":"runtime.clear-text"},"search-placeholder":{"type":"string","default-from":"runtime.search-placeholder"},"create-text":{"type":"string","default-from":"runtime.create-text"},"pagination-total":{"type":"number","default":10,"integer":true,"min":0},"pagination-page-size":{"type":"number","default":10,"integer":true,"min":1,"max":100},"page-sizes":{"type":"string","default":"10,20,30,40"},"context-menu-columns":{"type":"number","default":1,"integer":true,"min":1,"max":4},"remember-widths":{"type":"boolean","default":false},"table-settings-key":{"type":"string","default":""},"data-state":{"type":"enum","values":["auto","loading","ready","populated","empty","error"],"default":"auto","x-alias":{"populated":"ready"}},"loading-text":{"type":"string","default-from":"runtime.loading-text"},"empty-text":{"type":"string","default-from":"runtime.empty-text"},"empty-description":{"type":"string"},"error-text":{"type":"string","default-from":"runtime.error-text"},"retry-text":{"type":"string","default-from":"runtime.retry-text"},"toolbar":{"type":"boolean","default":true},"stripes":{"type":"boolean","default":false},"pin-column-label":{"type":"string","default-from":"runtime.pin-column-label"},"unpin-column-label":{"type":"string","default-from":"runtime.unpin-column-label"},"column-move-label":{"type":"string","default-from":"runtime.column-move-label"},"column-search-placeholder":{"type":"string","default-from":"runtime.column-search-placeholder"},"column-search-empty-text":{"type":"string","default-from":"runtime.column-search-empty-text"},"vertical-scroll":{"type":"enum","values":["self","page"],"default":"self"},"filter-apply-text":{"type":"string","default-from":"runtime.filter-apply-text"},"layout":{"type":"enum","values":["auto","table","list"],"default":"auto"},"layout-switch":{"type":"boolean","default":false},"list-below":{"type":"number","default":600},"list-fields":{"type":"number","default":3},"quick-actions":{"type":"string","default":""},"row-open":{"type":"enum","values":["title","row"],"default":"title"},"size":{"type":"enum","values":["1/2","1"],"default":"1"},"preferences-key":{"type":"string","default":""},"row-actions-visible":{"type":"enum","values":["hover","always"],"default":"hover"},"drag-rows":{"type":"boolean","default":false},"row-reorder":{"type":"boolean","default":false},"inline-edit":{"type":"boolean","default":false},"active-filter-fields":{"type":"list","entries":{"key":"id"}},"bulk-actions":{"type":"list"},"columns":{"type":"list","of":{"key":"string","label":"string"}},"create-items":{"type":"list"},"filter-fields":{"type":"list"},"rows":{"type":"list","entries":{"key":"id","changes":"revision"},"of":{"id":"id","revision":{"type":"string","optional":true}}},"table-data":{"type":"object"},"table-settings":{"type":"object"},"templates":{"type":"list"},"toolbar-actions":{"type":"list"},"sort":{"type":"list","of":{"key":"string","direction":{"type":"enum","values":["asc","desc"]}},"controlled":true},"current":{"type":"string","default":""}},"values":{"selected":{"type":"id","optional":true},"selection":{"type":"list","default":[]}},"events":{"select":{"carries":{"ids":"list"}},"apply":{"carries":{"action":"string","scope":{"type":"enum","values":["entry","selection","filter"]},"ids":"list","revisions":{"type":"object","optional":true}}},"save":{"carries":{"kind":{"type":"enum","values":["columns"]},"reason":"string","column-settings":{"type":"object"},"table-settings-key":{"type":"string"}}},"column-settings-reset":{"carries":{"target":{"type":"enum","values":["personal"]},"table-settings-key":{"type":"string","nullable":true}},"own-verb":true},"create":{"carries":{"item":{"type":"string","nullable":true,"optional":true}}},"filter-change":{"carries":{"template-key":{"type":"string"},"template-label":{"type":"string"},"values":{"type":"object"},"tags":{"type":"object"}},"own-verb":true},"query":{"carries":{"reason":"string","context":"object","sequence":{"type":"number","integer":true}}},"refresh":{"carries":{}},"search-change":{"carries":{"search":"string"},"own-verb":true},"sort-change":{"carries":{"key":{"type":"string","schema":{"minLength":1}},"direction":{"type":"enum","values":["asc","desc",null],"nullable":true}},"own-verb":true},"template-delete":{"carries":{"key":{"type":"string","schema":{"minLength":1}}},"own-verb":true},"template-save":{"carries":{"templates":{"type":"list","of":{"key":"string","label":"string","selected":"boolean","data":"object","settings":"object"},"schema":{"items":{"type":"object","required":["key","label","settings"],"properties":{"key":{"type":"string"},"label":{"type":"string"},"selected":{"type":"boolean"},"data":{"type":"object"},"settings":{"type":"object","properties":{"filter_fields":{"type":"array","items":{"type":"string"}}}}}},"minItems":1}}},"own-verb":true},"template-select":{"carries":{"key":{"type":"string","schema":{"minLength":1}}},"own-verb":true},"toolbar-action":{"carries":{"action":"string","href":{"type":"string","nullable":true,"optional":true}},"cancelable":true,"own-verb":true},"reference-open":{"carries":{"field":"string","value":"object","href":"string"},"cancelable":true,"own-verb":true},"expand":{"carries":{"id":"id","expanded":{"type":"boolean","optional":true}}},"load-more":{"carries":{"direction":{"type":"enum","values":["after"]},"parent":{"type":"id","nullable":true},"cursor":{"type":"string","nullable":true}}},"rows-drag":{"carries":{"ids":{"type":"list","schema":{"items":{"type":"string"},"minItems":1}},"source":{"type":"string","nullable":true}},"own-verb":true},"move":{"carries":{"ids":"list","before":{"type":"id","nullable":true},"order":"list"}},"cell-set":{"carries":{"id":"object","key":"string","value":"object","revision":"object"},"own-verb":true},"view-change":{"carries":{"view":"object","everywhere":"boolean"},"own-verb":true},"window":{"carries":{"first":{"type":"number","integer":true},"last":{"type":"number","integer":true}},"own-verb":true},"layout-change":{"carries":{"layout":{"type":"enum","values":["list","table"]}},"own-verb":true}},"actions":{"add-rows":{"with":{"rows":"list"}},"apply-query-result":{"with":{"sequence":{"type":"number","integer":true,"schema":{"minimum":1}},"rows":"list"}},"clear-selection":{},"request-action-intent":{"with":{"action-id":{"type":"string","schema":{"minLength":1}},"record-ids":{"type":"list","schema":{"items":{"type":["string","integer"],"minLength":1},"minItems":1}}},"emits":"apply"},"request-create-intent":{"with":{"item-id":{"type":"string","optional":true,"nullable":true}},"emits":"create"},"request-retry":{"emits":"refresh"},"set-sort":{"with":{"key":{"type":"string","nullable":true},"direction":{"type":"enum","values":["asc","desc"],"nullable":true}}},"toggle-tree-row":{"with":{"row":"object"},"emits":"expand"},"request-tree-more":{"with":{"row":"object"},"emits":"load-more"},"focus-row":{"with":{"id":"id"}},"set-layout":{"with":{"layout":{"type":"enum","values":["list","table"]}},"emits":"layout-change"}},"port":{"id":"simai.dataview-port","version":"1.0.0","contract":"src/core/contracts/ports/simai.dataview-port/1.0.0/port.json"},"presentation":{"skeleton":{"late":["rows"]}},"host-states":{"data-sf-view-stripes":"boolean","data-sf-page-scroll":"boolean"},"css-variables":{"--sf-table-row-block-size-1/2":{"type":"length","state":"default"},"--sf-table-row-block-size-1":{"type":"length","state":"default"},"--sf-table-row-2-lines-block-size-1/2":{"type":"length","state":"default"},"--sf-table-row-2-lines-block-size-1":{"type":"length","state":"default"},"--sf-table-head-block-size-1/2":{"type":"length","state":"default"},"--sf-table-head-block-size-1":{"type":"length","state":"default"},"--sf-table-toolbar-block-size-1/2":{"type":"length","state":"default"},"--sf-table-toolbar-block-size-1":{"type":"length","state":"default"},"--sf-table-toolbar-gap":{"type":"length","state":"default"},"--sf-table-head--background-color":{"type":"color","state":"default"},"--sf-table-row--background-color":{"type":"color","state":"default"},"--sf-table--cell-spacing":{"type":"length","state":"default"},"--sf-table-cell--line-clamp":{"type":"number","state":"default"},"--sf-table-context-menu--z-index":{"type":"number","state":"open"},"--sf-table-context-menu--max-width":{"type":"length","state":"open"}}}');
 
 /***/ },
 
 /***/ "678dc07d76bf"
 (module) {
 
-module.exports = /*#__PURE__*/JSON.parse('{"title":"Table","events":{"column-settings-reset":{"label":"Column settings reset"},"filter-change":{"label":"Filter changed"},"search-change":{"label":"Search changed"},"sort-change":{"label":"Order changed"},"template-delete":{"label":"Template deleted"},"template-save":{"label":"Template saved"},"template-select":{"label":"Template chosen"},"toolbar-action":{"label":"Toolbar action"},"reference-open":{"label":"Open the linked record"},"rows-drag":{"label":"Rows dragged"},"cell-set":{"label":"Cell value changed"},"view-change":{"label":"Table view changed"},"window":{"label":"Rows shown"}},"runtime":{"actions-column-label":"Actions","apply-text":"Apply","clear-text":"Clear","close-text":"Close","column-move-label":"Move the column","column-search-empty-text":"No field matches","column-search-placeholder":"Search the fields","context-create-options-label":"Ways to create","context-field-filter-label":"Filtering by","context-filter-settings-label":"Filter settings","context-row-actions-label":"Row actions","context-save-template-label":"Saving the filter as a template","context-table-settings-label":"Table settings","context-template-actions-label":"Template actions","context-view-actions-label":"View actions","create-options-label":"Ways to create","create-text":"Create","default-template-text":"Default","delete-action-text":"Delete","edit-action-text":"Edit","empty-text":"No data","error-text":"The data could not be loaded","field-word-text":"field","fields-tab-text":"Fields","filter-apply-text":"Apply","filter-settings-label":"Filter settings","filter-text":"Filter","layout-list":"List","layout-switch-label":"Layout","layout-table":"Table","list-filter-label":"Filter, {count} active","loading-text":"Loading","make-default-label":"Make it the default","menu-label":"Menu","more-actions-label":"More actions","operator-any":"Any date","operator-between":"Range","operator-contains":"Contains","operator-eq":"Exactly","operator-gt":"Greater than","operator-gte":"Greater or equal","operator-in":"In the list","operator-lt":"Less than","operator-lte":"Less or equal","operator-month":"This month","operator-starts-with":"Starts with","operator-today":"Today","operator-week":"This week","pin-column-label":"Pin the column","rename-text":"Rename","reset-both-text":"Reset the search and filters","reset-filters-text":"Reset the filters","reset-search-text":"Clear the search","reset-text":"Reset","restore-text":"Restore","retry-text":"Try again","row-actions-label":"Row actions","save-for-everyone-label":"Save for everyone","save-template-label":"Save the filter as a template","search-placeholder":"Search","select-all-label":"Select every row","select-row-label":"Select the row","settings-column-label":"Settings","settings-fields-tab":"Fields","settings-view-tab":"View","sort-ascending":"ascending","sort-descending":"descending","sort-label":"Sort","sort-none":"As the host orders it","status-error":"Error","status-ok":"Working","status-stopped":"Stopped","status-warning":"Needs attention","template-actions-label":"Template actions","template-move-label":"Move the template","template-name-placeholder":"Name","template-pin-label":"Keep the template at the top","templates-tab-text":"Templates","tree-collapse":"Collapse","tree-expand":"Expand","tree-more":"Show more","unpin-column-label":"Unpin the column","untitled-template-text":"All records","view-action-text":"View","view-density":"Rows","view-density-compact":"Compact","view-density-normal":"Normal","view-density-spacious":"Spacious","view-everywhere":"For all my tables","view-lines":"Lines between columns","view-reset":"Reset the view","view-single-line":"Text on one line","view-sticky-head":"Keep the filter and the head in view","view-stripes":"Alternate rows"}}');
+module.exports = /*#__PURE__*/JSON.parse('{"title":"Table","events":{"column-settings-reset":{"label":"Column settings reset"},"filter-change":{"label":"Filter changed"},"search-change":{"label":"Search changed"},"sort-change":{"label":"Order changed"},"template-delete":{"label":"Template deleted"},"template-save":{"label":"Template saved"},"template-select":{"label":"Template chosen"},"toolbar-action":{"label":"Toolbar action"},"reference-open":{"label":"Open the linked record"},"rows-drag":{"label":"Rows dragged"},"cell-set":{"label":"Cell value changed"},"view-change":{"label":"Table view changed"},"window":{"label":"Rows shown"}},"runtime":{"actions-column-label":"Actions","apply-text":"Apply","clear-text":"Clear","close-text":"Close","column-move-label":"Move the column","column-search-empty-text":"No field matches","column-search-placeholder":"Search the fields","context-create-options-label":"Ways to create","context-field-filter-label":"Filtering by","context-filter-settings-label":"Filter settings","context-row-actions-label":"Row actions","context-save-template-label":"Saving the filter as a template","context-table-settings-label":"Table settings","context-template-actions-label":"Template actions","context-view-actions-label":"View actions","create-options-label":"Ways to create","create-text":"Create","default-template-text":"Default","delete-action-text":"Delete","edit-action-text":"Edit","empty-text":"No data","error-text":"The data could not be loaded","field-word-text":"field","fields-tab-text":"Fields","filter-apply-text":"Apply","filter-settings-label":"Filter settings","filter-text":"Filter","layout-list":"List","layout-switch-label":"Layout","layout-table":"Table","list-filter-label":"Filter, {count} active","loading-text":"Loading","make-default-label":"Make it the default","menu-label":"Menu","more-actions-label":"More actions","operator-any":"Any date","operator-between":"Range","operator-contains":"Contains","operator-eq":"Exactly","operator-gt":"Greater than","operator-gte":"Greater or equal","operator-in":"In the list","operator-lt":"Less than","operator-lte":"Less or equal","operator-month":"This month","operator-starts-with":"Starts with","operator-today":"Today","operator-week":"This week","pin-column-label":"Pin the column","rename-text":"Rename","reset-both-text":"Reset the search and filters","reset-filters-text":"Reset the filters","reset-search-text":"Clear the search","reset-text":"Reset","restore-text":"Restore","retry-text":"Try again","row-actions-label":"Row actions","save-for-everyone-label":"Save for everyone","save-template-label":"Save the filter as a template","search-placeholder":"Search","select-all-label":"Select every row","select-row-label":"Select the row","settings-column-label":"Settings","settings-fields-tab":"Fields","settings-view-tab":"View","sort-ascending":"ascending","sort-descending":"descending","sort-label":"Sort","sort-none":"As the host orders it","status-error":"Error","status-ok":"Working","status-stopped":"Stopped","status-warning":"Needs attention","template-actions-label":"Template actions","template-move-label":"Move the template","template-name-placeholder":"Name","template-pin-label":"Keep the template at the top","templates-tab-text":"Templates","tree-collapse":"Collapse","tree-expand":"Expand","tree-more":"Show more","unpin-column-label":"Unpin the column","untitled-template-text":"All records","view-action-text":"View","view-density":"Rows","view-density-compact":"Compact","view-density-normal":"Normal","view-density-spacious":"Spacious","view-everywhere":"For all my tables","view-lines":"Lines between columns","view-reset":"Reset the view","view-single-line":"Text on one line","view-sticky-head":"Keep the filter and the head in view","view-stripes":"Alternate rows","selected-rows-heading":"Selected"}}');
 
 /***/ },
 
 /***/ "32294b89604f"
 (module) {
 
-module.exports = /*#__PURE__*/JSON.parse('{"title":"Таблица","events":{"column-settings-reset":{"label":"Настройки столбцов сброшены"},"filter-change":{"label":"Фильтр изменён"},"search-change":{"label":"Поиск изменён"},"sort-change":{"label":"Порядок изменён"},"template-delete":{"label":"Шаблон удалён"},"template-save":{"label":"Шаблон сохранён"},"template-select":{"label":"Шаблон выбран"},"toolbar-action":{"label":"Действие панели"},"reference-open":{"label":"Открыть связанную запись"},"rows-drag":{"label":"Строки перетащены"},"cell-set":{"label":"Значение в ячейке изменено"},"view-change":{"label":"Вид таблицы изменён"},"window":{"label":"Показаны строки"}},"runtime":{"actions-column-label":"Действия","apply-text":"Применить","clear-text":"Очистить","close-text":"Закрыть","column-move-label":"Переместить столбец","column-search-empty-text":"Поля не найдены","column-search-placeholder":"Поиск по полям","context-create-options-label":"Варианты создания","context-field-filter-label":"Настройка фильтра","context-filter-settings-label":"Настройки фильтра","context-row-actions-label":"Действия со строкой","context-save-template-label":"Сохранение шаблона фильтра","context-table-settings-label":"Настройки таблицы","context-template-actions-label":"Действия с шаблоном","context-view-actions-label":"Действия с представлением","create-options-label":"Варианты создания","create-text":"Создать","default-template-text":"По умолчанию","delete-action-text":"Удалить","edit-action-text":"Редактировать","empty-text":"Нет данных","error-text":"Не удалось загрузить данные","field-word-text":"поле","fields-tab-text":"Поля","filter-apply-text":"Применить","filter-settings-label":"Настройки фильтра","filter-text":"Фильтр","layout-list":"Список","layout-switch-label":"Вид","layout-table":"Таблица","list-filter-label":"Фильтр, активных условий: {count}","loading-text":"Загрузка данных","make-default-label":"Сделать по умолчанию","menu-label":"Меню","more-actions-label":"Ещё действия","operator-any":"Любая дата","operator-between":"Диапазон","operator-contains":"Содержит","operator-eq":"Точно","operator-gt":"Больше чем","operator-gte":"Больше или равно","operator-in":"В списке","operator-lt":"Меньше чем","operator-lte":"Меньше или равно","operator-month":"Месяц","operator-starts-with":"Начинается с","operator-today":"Сегодня","operator-week":"Неделя","pin-column-label":"Закрепить столбец","rename-text":"Переименовать","reset-both-text":"Сбросить поиск и фильтры","reset-filters-text":"Сбросить фильтры","reset-search-text":"Очистить поиск","reset-text":"Сбросить","restore-text":"Восстановить","retry-text":"Повторить","row-actions-label":"Действия со строкой","save-for-everyone-label":"Сохранить для всех","save-template-label":"Сохранение шаблона фильтра","search-placeholder":"Поиск","select-all-label":"Выбрать все строки","select-row-label":"Выбрать строку","settings-column-label":"Настройки","settings-fields-tab":"Поля","settings-view-tab":"Вид","sort-ascending":"по возрастанию","sort-descending":"по убыванию","sort-label":"Сортировка","sort-none":"Как задано источником","status-error":"Ошибка","status-ok":"Работает","status-stopped":"Остановлен","status-warning":"Есть замечания","template-actions-label":"Действия с шаблоном","template-move-label":"Переместить шаблон","template-name-placeholder":"Название","template-pin-label":"Закрепить шаблон сверху","templates-tab-text":"Шаблоны","tree-collapse":"Свернуть","tree-expand":"Развернуть","tree-more":"Показать ещё","unpin-column-label":"Открепить столбец","untitled-template-text":"Все записи","view-action-text":"Посмотреть","view-density":"Строки","view-density-compact":"Компактно","view-density-normal":"Обычно","view-density-spacious":"Просторно","view-everywhere":"Для всех моих таблиц","view-lines":"Линии между столбцами","view-reset":"Сбросить вид","view-single-line":"Текст в одну строку","view-sticky-head":"Закреплять фильтр и шапку","view-stripes":"Чередовать строки"}}');
+module.exports = /*#__PURE__*/JSON.parse('{"title":"Таблица","events":{"column-settings-reset":{"label":"Настройки столбцов сброшены"},"filter-change":{"label":"Фильтр изменён"},"search-change":{"label":"Поиск изменён"},"sort-change":{"label":"Порядок изменён"},"template-delete":{"label":"Шаблон удалён"},"template-save":{"label":"Шаблон сохранён"},"template-select":{"label":"Шаблон выбран"},"toolbar-action":{"label":"Действие панели"},"reference-open":{"label":"Открыть связанную запись"},"rows-drag":{"label":"Строки перетащены"},"cell-set":{"label":"Значение в ячейке изменено"},"view-change":{"label":"Вид таблицы изменён"},"window":{"label":"Показаны строки"}},"runtime":{"actions-column-label":"Действия","apply-text":"Применить","clear-text":"Очистить","close-text":"Закрыть","column-move-label":"Переместить столбец","column-search-empty-text":"Поля не найдены","column-search-placeholder":"Поиск по полям","context-create-options-label":"Варианты создания","context-field-filter-label":"Настройка фильтра","context-filter-settings-label":"Настройки фильтра","context-row-actions-label":"Действия со строкой","context-save-template-label":"Сохранение шаблона фильтра","context-table-settings-label":"Настройки таблицы","context-template-actions-label":"Действия с шаблоном","context-view-actions-label":"Действия с представлением","create-options-label":"Варианты создания","create-text":"Создать","default-template-text":"По умолчанию","delete-action-text":"Удалить","edit-action-text":"Редактировать","empty-text":"Нет данных","error-text":"Не удалось загрузить данные","field-word-text":"поле","fields-tab-text":"Поля","filter-apply-text":"Применить","filter-settings-label":"Настройки фильтра","filter-text":"Фильтр","layout-list":"Список","layout-switch-label":"Вид","layout-table":"Таблица","list-filter-label":"Фильтр, активных условий: {count}","loading-text":"Загрузка данных","make-default-label":"Сделать по умолчанию","menu-label":"Меню","more-actions-label":"Ещё действия","operator-any":"Любая дата","operator-between":"Диапазон","operator-contains":"Содержит","operator-eq":"Точно","operator-gt":"Больше чем","operator-gte":"Больше или равно","operator-in":"В списке","operator-lt":"Меньше чем","operator-lte":"Меньше или равно","operator-month":"Месяц","operator-starts-with":"Начинается с","operator-today":"Сегодня","operator-week":"Неделя","pin-column-label":"Закрепить столбец","rename-text":"Переименовать","reset-both-text":"Сбросить поиск и фильтры","reset-filters-text":"Сбросить фильтры","reset-search-text":"Очистить поиск","reset-text":"Сбросить","restore-text":"Восстановить","retry-text":"Повторить","row-actions-label":"Действия со строкой","save-for-everyone-label":"Сохранить для всех","save-template-label":"Сохранение шаблона фильтра","search-placeholder":"Поиск","select-all-label":"Выбрать все строки","select-row-label":"Выбрать строку","settings-column-label":"Настройки","settings-fields-tab":"Поля","settings-view-tab":"Вид","sort-ascending":"по возрастанию","sort-descending":"по убыванию","sort-label":"Сортировка","sort-none":"Как задано источником","status-error":"Ошибка","status-ok":"Работает","status-stopped":"Остановлен","status-warning":"Есть замечания","template-actions-label":"Действия с шаблоном","template-move-label":"Переместить шаблон","template-name-placeholder":"Название","template-pin-label":"Закрепить шаблон сверху","templates-tab-text":"Шаблоны","tree-collapse":"Свернуть","tree-expand":"Развернуть","tree-more":"Показать ещё","unpin-column-label":"Открепить столбец","untitled-template-text":"Все записи","view-action-text":"Посмотреть","view-density":"Строки","view-density-compact":"Компактно","view-density-normal":"Обычно","view-density-spacious":"Просторно","view-everywhere":"Для всех моих таблиц","view-lines":"Линии между столбцами","view-reset":"Сбросить вид","view-single-line":"Текст в одну строку","view-sticky-head":"Закреплять фильтр и шапку","view-stripes":"Чередовать строки","selected-rows-heading":"Выбрано"}}');
 
 /***/ }
 

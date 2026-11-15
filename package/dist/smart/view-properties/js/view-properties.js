@@ -7,12 +7,14 @@
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   BADGE_MAIN_TONAL: () => (/* binding */ BADGE_MAIN_TONAL),
 /* harmony export */   BADGE_SCHEMES: () => (/* binding */ BADGE_SCHEMES),
 /* harmony export */   BADGE_SCHEME_ALIASES: () => (/* binding */ BADGE_SCHEME_ALIASES),
 /* harmony export */   BADGE_SIZES: () => (/* binding */ BADGE_SIZES),
 /* harmony export */   BADGE_TYPES: () => (/* binding */ BADGE_TYPES),
 /* harmony export */   BADGE_VARIANTS: () => (/* binding */ BADGE_VARIANTS),
 /* harmony export */   canonicalBadgeScheme: () => (/* binding */ canonicalBadgeScheme),
+/* harmony export */   isRetiredMain: () => (/* binding */ isRetiredMain),
 /* harmony export */   normalizeBadgeContract: () => (/* binding */ normalizeBadgeContract)
 /* harmony export */ });
 const BADGE_TYPES = Object.freeze(['main', 'tonal', 'outline']);
@@ -25,8 +27,11 @@ const BADGE_SCHEMES = Object.freeze(['neutral', 'primary', 'secondary', 'tertiar
 const BADGE_SCHEME_ALIASES = Object.freeze({
   danger: 'error'
 });
-const BADGE_SIZES = Object.freeze(['1/3', '1/2', '1']);
-const DEFAULT_BADGE_TYPE = 'main';
+const BADGE_SIZES = Object.freeze(['1/3', '1/2', '1']); // The default look is tonal (owner decision C140 (1), badges study BG-1): a
+// badge without an appearance is the calm grey mark. It was main, the dark
+// grey fill nobody chose.
+
+const DEFAULT_BADGE_TYPE = 'tonal';
 const DEFAULT_BADGE_SCHEME = 'neutral';
 const DEFAULT_BADGE_SIZE = '1/3';
 
@@ -41,12 +46,31 @@ function canonicalBadgeScheme(value) {
   const name = String(value ?? '').trim().toLowerCase();
   const canonical = BADGE_SCHEME_ALIASES[name] ?? name;
   return BADGE_SCHEMES.includes(canonical) ? canonical : '';
-}
-const BADGE_VARIANTS = Object.freeze(BADGE_SCHEMES.flatMap(scheme => BADGE_TYPES.filter(type => !(scheme === 'on-surface' && type === 'tonal')).flatMap(type => BADGE_SIZES.map(size => Object.freeze({
+} // The looks that are drawn: tonal and outline in every colour, main only with
+// the error status (C140 (4)).
+
+const BADGE_VARIANTS = Object.freeze(BADGE_SCHEMES.flatMap(scheme => BADGE_TYPES.filter(type => type !== 'main' || scheme === 'error').flatMap(type => BADGE_SIZES.map(size => Object.freeze({
   type,
   scheme,
   size
-})))));
+}))))); // The filled look is the attention count's alone (owner decision C140 (4)):
+// main with the error status. main with any other colour draws tonal; the
+// spelling keeps working until this date and each use is noted in
+// SF.deprecations (journal value-badge-appearance-main-to-tonal).
+
+const BADGE_MAIN_TONAL = Object.freeze({
+  since: '2026-11-14',
+  remove_after: '2027-01-01'
+}); // True when an appearance asked for is the filled one on a colour that draws
+// it tonal: the caller notes the old spelling.
+
+function isRetiredMain({
+  type,
+  scheme
+} = {}) {
+  const requested = String(type ?? '').trim().toLowerCase();
+  return requested === 'main' && (canonicalBadgeScheme(scheme ?? DEFAULT_BADGE_SCHEME) || DEFAULT_BADGE_SCHEME) !== 'error';
+}
 function normalizeBadgeContract({
   type,
   scheme,
@@ -54,10 +78,12 @@ function normalizeBadgeContract({
 } = {}) {
   let normalizedType = normalizeEnum(type, BADGE_TYPES, DEFAULT_BADGE_TYPE);
   const normalizedScheme = canonicalBadgeScheme(scheme ?? DEFAULT_BADGE_SCHEME) || DEFAULT_BADGE_SCHEME;
-  const normalizedSize = normalizeEnum(size, BADGE_SIZES, DEFAULT_BADGE_SIZE);
+  const normalizedSize = normalizeEnum(size, BADGE_SIZES, DEFAULT_BADGE_SIZE); // main is the attention count's: with any other colour it is tonal. The
+  // tonal on-surface badge is the grey tonal one (the stylesheet draws
+  // sf-badge--on-surface tonal as neutral); it was drawn main, filled.
 
-  if (normalizedType === 'tonal' && normalizedScheme === 'on-surface') {
-    normalizedType = 'main';
+  if (normalizedType === 'main' && normalizedScheme !== 'error') {
+    normalizedType = 'tonal';
   }
 
   return {
@@ -65,6 +91,117 @@ function normalizeBadgeContract({
     scheme: normalizedScheme,
     size: normalizedSize
   };
+}
+
+/***/ },
+
+/***/ "1412c5875b4d"
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   RELATIVE: () => (/* binding */ RELATIVE),
+/* harmony export */   densityOf: () => (/* binding */ densityOf),
+/* harmony export */   drawing: () => (/* binding */ drawing),
+/* harmony export */   followDensity: () => (/* binding */ followDensity),
+/* harmony export */   markRelativeSizes: () => (/* binding */ markRelativeSizes),
+/* harmony export */   noteAuthored: () => (/* binding */ noteAuthored),
+/* harmony export */   sizedBefore: () => (/* binding */ sizedBefore)
+/* harmony export */ });
+// Density (owner decision C22, 2026-11-09). data-sf-density="compact" on the
+// root or on a container moves every component one ladder step down; the CSS
+// does it (core/scss/_sf_css__density.scss): each step variable holds the step
+// below. An explicit size is a step on the region's ladder (owner decision
+// C79, 2026-11-12, changing C22): it comes down with the region, and only
+// data-sf-density="normal" takes the normal ladder back.
+//
+// A size a component's template gives an element it draws (sf-input's clear
+// button, a pager's buttons, a submenu) is relative to the component's own
+// size; those are still marked data-sf-size-relative once the component has
+// drawn. Since C79 the density CSS treats both alike; the mark stays a
+// published runtime mark (host-runtime-marks) for hosts that read it.
+//
+// What a component holds of the page's own (captured slot content, children
+// left in place) keeps its size explicit. The store is on the shared global:
+// every bundle carries its own copy of this module.
+const store = () => {
+  const SF = globalThis.SF = globalThis.SF || {};
+  const internal = SF.__internal || (SF.__internal = {});
+  return internal.density ||= {
+    authored: new WeakSet(),
+    depth: 0
+  };
+};
+
+const RELATIVE = 'data-sf-size-relative'; // Page content a component captured to place in its own drawing. Content a
+// template hands to a child while it draws is the template's, not the page's.
+
+function noteAuthored(nodes) {
+  const state = store();
+  if (state.depth > 0) return;
+
+  for (const node of nodes) if (node && typeof node === 'object') state.authored.add(node);
+}
+function drawing(callback) {
+  const state = store();
+  state.depth += 1;
+
+  try {
+    return callback();
+  } finally {
+    state.depth -= 1;
+  }
+} // The sized elements present before a host first draws are the page's.
+// A printed first-paint picture is the drawing's, not the page's.
+
+function sizedBefore(host) {
+  return new Set(Array.from(host.querySelectorAll?.('[size]') ?? []).filter(element => {
+    const picture = element.closest('[data-sf-static]');
+    return !picture || !host.contains(picture);
+  }));
+} // After a host drew: every sized element its drawing holds that is not the
+// page's is relative to the host.
+
+function markRelativeSizes(host, before = null) {
+  const {
+    authored
+  } = store();
+
+  for (const element of host.querySelectorAll?.('[size]') ?? []) {
+    if (element.hasAttribute(RELATIVE) || before?.has(element)) continue;
+    let node = element;
+    let page = false;
+
+    while (node && node !== host) {
+      if (authored.has(node)) {
+        page = true;
+        break;
+      }
+
+      node = node.parentNode;
+    }
+
+    if (!page) element.setAttribute(RELATIVE, '');
+  }
+} // A popup a component builds itself and places outside its own box (a menu on
+// <body>, in an open dialog): sized from the component, so relative, and in
+// the component's density, not the density of where it was placed.
+
+function followDensity(element, from) {
+  if (!element?.setAttribute) return element;
+  if (element.hasAttribute('size')) element.setAttribute(RELATIVE, '');
+  const density = densityOf(from);
+  if (density) element.setAttribute('data-sf-density', density);else element.removeAttribute('data-sf-density');
+  return element;
+} // The density an element stands in: the nearest region's (an explicit size
+// follows its region since C79); null outside any.
+
+function densityOf(from) {
+  for (let node = from; node?.nodeType === 1; node = node.parentElement) {
+    if (node.hasAttribute('data-sf-density')) return node.getAttribute('data-sf-density');
+  }
+
+  return null;
 }
 
 /***/ },
@@ -253,7 +390,9 @@ __webpack_async_result__();
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   ICON_CHOICES: () => (/* binding */ ICON_CHOICES),
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */   ICON_CHOICE_WORDS: () => (/* binding */ ICON_CHOICE_WORDS),
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__),
+/* harmony export */   iconWords: () => (/* binding */ iconWords)
 /* harmony export */ });
 // The glyphs a person may mark a part of an interface with -- a section of a
 // record, a row of a menu, a tile of a dashboard. A hundred and twenty names
@@ -265,10 +404,512 @@ __webpack_require__.r(__webpack_exports__);
 // Raised from ui-pro sf-view-properties (js/icon-choices.js), which sf-admin-menu
 // imported across what become two component sets (duplication audit
 // 2026-11-03, A-1; owner decision 2026-11-03, component sets, point 13). A
-// component imports ICON_CHOICES; a page reads SF.icons.choices. The choice
+// component imports ICON_CHOICES; a page reads SF.icons.choices, and
+// SF.icons.choices.words[name] gives a glyph's Russian and English words
+// (C151 point 8). The choice
 // itself is drawn by sf-dropdown with options of kind icon (layout grid,
 // search), as sf-view-properties and sf-admin-menu do.
-const ICON_CHOICES = Object.freeze(["folder", "folder_open", "topic", "home", "dashboard", "apartment", "store", "storefront", "business_center", "work", "badge", "person", "group", "groups", "account_circle", "manage_accounts", "supervisor_account", "contacts", "school", "menu_book", "assignment", "task", "description", "article", "note_alt", "edit_note", "draft", "receipt", "receipt_long", "request_quote", "inventory_2", "category", "label", "sell", "local_offer", "shopping_cart", "shopping_bag", "payments", "savings", "credit_card", "account_balance", "calculate", "percent", "trending_up", "analytics", "insights", "monitoring", "bar_chart", "pie_chart", "table_chart", "schedule", "event", "today", "calendar_month", "date_range", "history", "alarm", "timer", "update", "hourglass_top", "mail", "outgoing_mail", "chat", "forum", "sms", "call", "phone_in_talk", "contact_support", "campaign", "notifications", "language", "public", "place", "map", "location_on", "travel_explore", "flight", "local_shipping", "route", "directions", "settings", "tune", "build", "construction", "handyman", "code", "terminal", "data_object", "api", "bug_report", "database", "storage", "cloud", "backup", "sync", "folder_zip", "upload_file", "download", "attach_file", "link", "lock", "lock_open", "shield", "verified_user", "key", "admin_panel_settings", "policy", "gavel", "fingerprint", "visibility", "palette", "format_paint", "image", "photo_library", "collections", "movie", "play_circle", "mic", "headphones", "brush"]); // Core publishes the list; a component bundle that carries its own copy reuses
+// The words a person searches the choice by (owner decision C151 point 8): a
+// Russian and an English word or two for each glyph, the name's own words
+// among the English ones. sf-dropdown matches its icon options against them
+// in either language, so «папка» finds folder and «folder» still does.
+const ICON_CHOICE_WORDS = Object.freeze({
+  folder: {
+    ru: ["папка", "каталог"],
+    en: ["folder", "directory"]
+  },
+  folder_open: {
+    ru: ["открытая", "папка"],
+    en: ["open", "folder"]
+  },
+  topic: {
+    ru: ["тема", "раздел"],
+    en: ["topic", "section"]
+  },
+  home: {
+    ru: ["главная", "дом"],
+    en: ["home", "main"]
+  },
+  dashboard: {
+    ru: ["панель", "сводка"],
+    en: ["dashboard", "overview"]
+  },
+  apartment: {
+    ru: ["здание", "организация"],
+    en: ["building", "organisation"]
+  },
+  store: {
+    ru: ["магазин"],
+    en: ["store", "shop"]
+  },
+  storefront: {
+    ru: ["витрина", "магазин"],
+    en: ["storefront", "shop"]
+  },
+  business_center: {
+    ru: ["портфель", "бизнес"],
+    en: ["business", "briefcase"]
+  },
+  work: {
+    ru: ["работа", "портфель"],
+    en: ["work", "briefcase"]
+  },
+  badge: {
+    ru: ["пропуск", "удостоверение"],
+    en: ["badge", "pass", "id"]
+  },
+  person: {
+    ru: ["человек", "пользователь"],
+    en: ["person", "user"]
+  },
+  group: {
+    ru: ["группа", "люди"],
+    en: ["group", "people"]
+  },
+  groups: {
+    ru: ["группы", "сообщество"],
+    en: ["groups", "community"]
+  },
+  account_circle: {
+    ru: ["профиль", "аккаунт"],
+    en: ["account", "profile"]
+  },
+  manage_accounts: {
+    ru: ["управление", "пользователями"],
+    en: ["manage", "accounts", "users"]
+  },
+  supervisor_account: {
+    ru: ["руководитель", "команда"],
+    en: ["supervisor", "team"]
+  },
+  contacts: {
+    ru: ["контакты"],
+    en: ["contacts"]
+  },
+  school: {
+    ru: ["обучение", "школа"],
+    en: ["school", "learning"]
+  },
+  menu_book: {
+    ru: ["книга", "справочник"],
+    en: ["book", "manual"]
+  },
+  assignment: {
+    ru: ["задание"],
+    en: ["assignment"]
+  },
+  task: {
+    ru: ["задача"],
+    en: ["task"]
+  },
+  description: {
+    ru: ["документ", "описание"],
+    en: ["document", "description"]
+  },
+  article: {
+    ru: ["статья"],
+    en: ["article"]
+  },
+  note_alt: {
+    ru: ["заметка"],
+    en: ["note"]
+  },
+  edit_note: {
+    ru: ["правка", "заметки"],
+    en: ["edit", "note"]
+  },
+  draft: {
+    ru: ["черновик"],
+    en: ["draft"]
+  },
+  receipt: {
+    ru: ["чек", "квитанция"],
+    en: ["receipt"]
+  },
+  receipt_long: {
+    ru: ["счёт", "чек"],
+    en: ["bill", "receipt"]
+  },
+  request_quote: {
+    ru: ["смета", "предложение"],
+    en: ["quote", "estimate"]
+  },
+  inventory_2: {
+    ru: ["архив", "склад"],
+    en: ["archive", "inventory"]
+  },
+  category: {
+    ru: ["категории"],
+    en: ["category"]
+  },
+  label: {
+    ru: ["метка", "ярлык"],
+    en: ["label", "tag"]
+  },
+  sell: {
+    ru: ["цена", "продажа"],
+    en: ["price", "sell"]
+  },
+  local_offer: {
+    ru: ["скидка", "предложение"],
+    en: ["offer", "discount"]
+  },
+  shopping_cart: {
+    ru: ["корзина"],
+    en: ["shopping", "cart"]
+  },
+  shopping_bag: {
+    ru: ["покупки", "сумка"],
+    en: ["shopping", "bag"]
+  },
+  payments: {
+    ru: ["оплата", "деньги"],
+    en: ["payments", "money"]
+  },
+  savings: {
+    ru: ["сбережения", "копилка"],
+    en: ["savings"]
+  },
+  credit_card: {
+    ru: ["карта", "оплата"],
+    en: ["credit", "card"]
+  },
+  account_balance: {
+    ru: ["банк"],
+    en: ["bank", "account"]
+  },
+  calculate: {
+    ru: ["калькулятор", "расчёт"],
+    en: ["calculator"]
+  },
+  percent: {
+    ru: ["процент"],
+    en: ["percent"]
+  },
+  trending_up: {
+    ru: ["рост", "тренд"],
+    en: ["trend", "growth"]
+  },
+  analytics: {
+    ru: ["аналитика"],
+    en: ["analytics"]
+  },
+  insights: {
+    ru: ["выводы", "инсайты"],
+    en: ["insights"]
+  },
+  monitoring: {
+    ru: ["мониторинг"],
+    en: ["monitoring"]
+  },
+  bar_chart: {
+    ru: ["диаграмма", "график"],
+    en: ["bar", "chart"]
+  },
+  pie_chart: {
+    ru: ["круговая", "диаграмма"],
+    en: ["pie", "chart"]
+  },
+  table_chart: {
+    ru: ["таблица"],
+    en: ["table"]
+  },
+  schedule: {
+    ru: ["время", "часы", "расписание"],
+    en: ["time", "clock", "schedule"]
+  },
+  event: {
+    ru: ["событие"],
+    en: ["event"]
+  },
+  today: {
+    ru: ["сегодня"],
+    en: ["today"]
+  },
+  calendar_month: {
+    ru: ["календарь"],
+    en: ["calendar"]
+  },
+  date_range: {
+    ru: ["период", "даты"],
+    en: ["date", "range"]
+  },
+  history: {
+    ru: ["история"],
+    en: ["history"]
+  },
+  alarm: {
+    ru: ["будильник", "напоминание"],
+    en: ["alarm"]
+  },
+  timer: {
+    ru: ["таймер"],
+    en: ["timer"]
+  },
+  update: {
+    ru: ["обновление"],
+    en: ["update"]
+  },
+  hourglass_top: {
+    ru: ["ожидание", "песочные", "часы"],
+    en: ["hourglass", "waiting"]
+  },
+  mail: {
+    ru: ["почта", "письмо"],
+    en: ["mail", "email", "letter"]
+  },
+  outgoing_mail: {
+    ru: ["исходящие", "отправка"],
+    en: ["outgoing", "mail"]
+  },
+  chat: {
+    ru: ["чат", "сообщение"],
+    en: ["chat", "message"]
+  },
+  forum: {
+    ru: ["обсуждение", "форум"],
+    en: ["forum", "discussion"]
+  },
+  sms: {
+    ru: ["смс", "сообщение"],
+    en: ["sms", "text"]
+  },
+  call: {
+    ru: ["звонок", "телефон"],
+    en: ["call", "phone"]
+  },
+  phone_in_talk: {
+    ru: ["разговор"],
+    en: ["phone", "call", "talk"]
+  },
+  contact_support: {
+    ru: ["поддержка"],
+    en: ["support", "help"]
+  },
+  campaign: {
+    ru: ["рассылка", "объявление"],
+    en: ["campaign", "announcement"]
+  },
+  notifications: {
+    ru: ["уведомления"],
+    en: ["notifications"]
+  },
+  language: {
+    ru: ["язык", "мир"],
+    en: ["language", "world"]
+  },
+  public: {
+    ru: ["сайт", "мир", "интернет"],
+    en: ["public", "web", "world"]
+  },
+  place: {
+    ru: ["место"],
+    en: ["place"]
+  },
+  map: {
+    ru: ["карта"],
+    en: ["map"]
+  },
+  location_on: {
+    ru: ["адрес", "место"],
+    en: ["location", "address"]
+  },
+  travel_explore: {
+    ru: ["поиск", "по", "миру"],
+    en: ["travel", "explore"]
+  },
+  flight: {
+    ru: ["перелёт", "самолёт"],
+    en: ["flight", "plane"]
+  },
+  local_shipping: {
+    ru: ["доставка"],
+    en: ["shipping", "delivery"]
+  },
+  route: {
+    ru: ["маршрут"],
+    en: ["route"]
+  },
+  directions: {
+    ru: ["направление"],
+    en: ["directions"]
+  },
+  settings: {
+    ru: ["настройки"],
+    en: ["settings"]
+  },
+  tune: {
+    ru: ["фильтр", "параметры"],
+    en: ["tune", "filter"]
+  },
+  build: {
+    ru: ["инструменты", "сборка"],
+    en: ["build", "tools"]
+  },
+  construction: {
+    ru: ["стройка"],
+    en: ["construction"]
+  },
+  handyman: {
+    ru: ["ремонт", "мастер"],
+    en: ["handyman", "repair"]
+  },
+  code: {
+    ru: ["код"],
+    en: ["code"]
+  },
+  terminal: {
+    ru: ["терминал", "консоль"],
+    en: ["terminal", "console"]
+  },
+  data_object: {
+    ru: ["объект", "данные"],
+    en: ["data", "object"]
+  },
+  api: {
+    ru: ["интерфейс", "api"],
+    en: ["api"]
+  },
+  bug_report: {
+    ru: ["ошибка", "баг"],
+    en: ["bug"]
+  },
+  database: {
+    ru: ["база", "данных"],
+    en: ["database"]
+  },
+  storage: {
+    ru: ["хранилище"],
+    en: ["storage"]
+  },
+  cloud: {
+    ru: ["облако"],
+    en: ["cloud"]
+  },
+  backup: {
+    ru: ["резервная", "копия"],
+    en: ["backup"]
+  },
+  sync: {
+    ru: ["синхронизация"],
+    en: ["sync"]
+  },
+  folder_zip: {
+    ru: ["архив", "zip"],
+    en: ["zip", "archive"]
+  },
+  upload_file: {
+    ru: ["загрузка", "файла"],
+    en: ["upload", "file"]
+  },
+  download: {
+    ru: ["скачать"],
+    en: ["download"]
+  },
+  attach_file: {
+    ru: ["вложение", "скрепка"],
+    en: ["attach", "file"]
+  },
+  link: {
+    ru: ["ссылка"],
+    en: ["link"]
+  },
+  lock: {
+    ru: ["замок", "доступ"],
+    en: ["lock"]
+  },
+  lock_open: {
+    ru: ["открытый", "доступ"],
+    en: ["unlock", "open"]
+  },
+  shield: {
+    ru: ["защита"],
+    en: ["shield", "protection"]
+  },
+  verified_user: {
+    ru: ["проверено", "безопасность"],
+    en: ["verified", "user"]
+  },
+  key: {
+    ru: ["ключ"],
+    en: ["key"]
+  },
+  admin_panel_settings: {
+    ru: ["администрирование"],
+    en: ["admin"]
+  },
+  policy: {
+    ru: ["правила", "политика"],
+    en: ["policy"]
+  },
+  gavel: {
+    ru: ["закон", "право"],
+    en: ["law", "gavel"]
+  },
+  fingerprint: {
+    ru: ["отпечаток"],
+    en: ["fingerprint"]
+  },
+  visibility: {
+    ru: ["видимость", "просмотр"],
+    en: ["visibility", "view"]
+  },
+  palette: {
+    ru: ["палитра", "цвет"],
+    en: ["palette", "colour", "color"]
+  },
+  format_paint: {
+    ru: ["оформление", "кисть"],
+    en: ["format", "paint"]
+  },
+  image: {
+    ru: ["картинка", "изображение"],
+    en: ["image", "picture"]
+  },
+  photo_library: {
+    ru: ["фото", "галерея"],
+    en: ["photos", "gallery"]
+  },
+  collections: {
+    ru: ["коллекции"],
+    en: ["collections"]
+  },
+  movie: {
+    ru: ["видео", "фильм"],
+    en: ["movie", "video"]
+  },
+  play_circle: {
+    ru: ["воспроизведение"],
+    en: ["play"]
+  },
+  mic: {
+    ru: ["микрофон"],
+    en: ["microphone"]
+  },
+  headphones: {
+    ru: ["наушники", "звук"],
+    en: ["headphones", "audio"]
+  },
+  brush: {
+    ru: ["кисть", "рисование"],
+    en: ["brush"]
+  }
+}); // The words of any glyph name: the choice's words, or the name read as words
+// (folder_open -> folder open) for a glyph outside the choice.
+
+function iconWords(name) {
+  const key = String(name || '').trim();
+  const words = Object.hasOwn(ICON_CHOICE_WORDS, key) ? ICON_CHOICE_WORDS[key] : null;
+  const own = key.split('_').filter(Boolean);
+  return {
+    ru: words ? [...words.ru] : [],
+    en: [...new Set([...(words ? words.en : []), ...own])]
+  };
+}
+const ICON_CHOICES = Object.freeze(Object.defineProperty(["folder", "folder_open", "topic", "home", "dashboard", "apartment", "store", "storefront", "business_center", "work", "badge", "person", "group", "groups", "account_circle", "manage_accounts", "supervisor_account", "contacts", "school", "menu_book", "assignment", "task", "description", "article", "note_alt", "edit_note", "draft", "receipt", "receipt_long", "request_quote", "inventory_2", "category", "label", "sell", "local_offer", "shopping_cart", "shopping_bag", "payments", "savings", "credit_card", "account_balance", "calculate", "percent", "trending_up", "analytics", "insights", "monitoring", "bar_chart", "pie_chart", "table_chart", "schedule", "event", "today", "calendar_month", "date_range", "history", "alarm", "timer", "update", "hourglass_top", "mail", "outgoing_mail", "chat", "forum", "sms", "call", "phone_in_talk", "contact_support", "campaign", "notifications", "language", "public", "place", "map", "location_on", "travel_explore", "flight", "local_shipping", "route", "directions", "settings", "tune", "build", "construction", "handyman", "code", "terminal", "data_object", "api", "bug_report", "database", "storage", "cloud", "backup", "sync", "folder_zip", "upload_file", "download", "attach_file", "link", "lock", "lock_open", "shield", "verified_user", "key", "admin_panel_settings", "policy", "gavel", "fingerprint", "visibility", "palette", "format_paint", "image", "photo_library", "collections", "movie", "play_circle", "mic", "headphones", "brush"], 'words', {
+  value: ICON_CHOICE_WORDS,
+  enumerable: false
+})); // Core publishes the list; a component bundle that carries its own copy reuses
 // the published one instead of replacing it.
 
 if (typeof globalThis !== 'undefined') {
@@ -676,12 +1317,15 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _datetime_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__("9ce1a42b2a85");
 /* harmony import */ var _mask_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__("dd6973f77245");
 /* harmony import */ var _html_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__("01ae054f01b4");
-/* harmony import */ var _decimal_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__("ab3947ea3647");
-var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([lit__WEBPACK_IMPORTED_MODULE_0__, lit_directives_unsafe_html_js__WEBPACK_IMPORTED_MODULE_1__, _core_js_page_language__WEBPACK_IMPORTED_MODULE_3__, _core_js_format_date_js__WEBPACK_IMPORTED_MODULE_4__, _decimal_js__WEBPACK_IMPORTED_MODULE_9__]);
-([lit__WEBPACK_IMPORTED_MODULE_0__, lit_directives_unsafe_html_js__WEBPACK_IMPORTED_MODULE_1__, _core_js_page_language__WEBPACK_IMPORTED_MODULE_3__, _core_js_format_date_js__WEBPACK_IMPORTED_MODULE_4__, _decimal_js__WEBPACK_IMPORTED_MODULE_9__] = __webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
+/* harmony import */ var _core_js_deprecations_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__("d3818183b14c");
+/* harmony import */ var _decimal_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__("ab3947ea3647");
+var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([lit__WEBPACK_IMPORTED_MODULE_0__, lit_directives_unsafe_html_js__WEBPACK_IMPORTED_MODULE_1__, _core_js_page_language__WEBPACK_IMPORTED_MODULE_3__, _core_js_format_date_js__WEBPACK_IMPORTED_MODULE_4__, _core_js_deprecations_js__WEBPACK_IMPORTED_MODULE_9__, _decimal_js__WEBPACK_IMPORTED_MODULE_10__]);
+([lit__WEBPACK_IMPORTED_MODULE_0__, lit_directives_unsafe_html_js__WEBPACK_IMPORTED_MODULE_1__, _core_js_page_language__WEBPACK_IMPORTED_MODULE_3__, _core_js_format_date_js__WEBPACK_IMPORTED_MODULE_4__, _core_js_deprecations_js__WEBPACK_IMPORTED_MODULE_9__, _decimal_js__WEBPACK_IMPORTED_MODULE_10__] = __webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
 /* harmony import */ var lit__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(lit__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var lit_directives_unsafe_html_js__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(lit_directives_unsafe_html_js__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var _core_js_page_language__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__);
+/* harmony import */ var _core_js_deprecations_js__WEBPACK_IMPORTED_MODULE_9___default = /*#__PURE__*/__webpack_require__.n(_core_js_deprecations_js__WEBPACK_IMPORTED_MODULE_9__);
+
 
 
 
@@ -1090,16 +1734,17 @@ function renderFilterField(field = {}, host) {
 // with size-1/2 components a default row went from 57 to 61 on desktop and 45 to
 // 51 on mobile.
 
-const CELL_LINE = '1/2'; // A choice badge in a cell is tonal, not the filled default. sf-badges defaults
-// appearance to `main`, so the cells shipped filled and the consumer's owner
-// asked for the calmer one -- and a table row is the place for it: a column of
+const CELL_LINE = '1/2'; // A choice badge in a cell is tonal (sf-badge's default since 1.6.0, C140; it
+// was main, so the cells shipped filled and the consumer's owner asked for the
+// calmer one) -- and a table row is the place for it: a column of
 // filled badges reads as a column of buttons. A field may still ask for another
 // of the three, which is the same arrangement as the boolean's words: the set
 // carries a sensible default, not a decision nobody can change.
 //
 // It composes with colour rather than replacing it. A scheme name reaches the
-// scheme's tonal badge; a hex colour already writes --sf-badge--background-color
-// as a 24% mix and its own text colour, so the tint survives the appearance
+// scheme's tonal badge; a hue or a hex colour writes the public
+// --sf-badge-background-color as the nearest palette hue's fill step (BG-7,
+// C140 (2)) and its own text colour, so the tint survives the appearance
 // untouched. Both are measured on the built bytes.
 
 const CELL_BADGE_APPEARANCE = 'tonal'; // A file cell is a reference link with an icon chosen from the mime type: the
@@ -1389,14 +2034,14 @@ function renderHostFormattedCell(field, value, host) {
 function renderMoneyCell(field, value, host) {
   const formatted = renderHostFormattedCell(field, value, host);
   if (formatted !== null) return formatted;
-  const text = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_9__.formatMoney)(scalarValue(value), field, (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(host ?? null));
+  const text = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.formatMoney)(scalarValue(value), field, (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(host ?? null));
   return text || null;
 }
 
 function renderPercentCell(field, value, host) {
   const formatted = renderHostFormattedCell(field, value, host);
   if (formatted !== null) return formatted;
-  const text = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_9__.formatPercent)(scalarValue(value), (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(host ?? null));
+  const text = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.formatPercent)(scalarValue(value), (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(host ?? null));
   return text || null;
 }
 
@@ -1464,12 +2109,15 @@ function referenceLink(value) {
 
 function renderUserCell(field, value) {
   if (!value || typeof value !== 'object' || !value.label) return null;
-  return [{
+  return [// The person's name is the avatar's heading: its accessible name and
+  // the source of its initials (sf-avatar 1.6.0; avatar study AV-2).
+  {
     component: {
       type: 'avatar',
       props: {
         line: CELL_LINE,
-        text: value.avatarText || ''
+        text: value.avatarText || '',
+        heading: String(value.label)
       }
     }
   }, value.href ? referenceLink(value) : String(value.label)];
@@ -1535,9 +2183,9 @@ function renderCellField(field = {}, value, host) {
 
 let EDIT_SIZE = '1';
 const EDIT_RENDERERS = {
-  record: renderRecordPicker,
-  relation: renderRecordPicker,
-  user: renderRecordPicker,
+  record: renderRecordLookup,
+  relation: renderRecordLookup,
+  user: renderRecordLookup,
   lookup: renderLookupEdit,
   string: renderTextEdit,
   text: renderTextAreaEdit,
@@ -1591,14 +2239,10 @@ function renderPhoneEdit(field, value, host) {
 // Clearing a set password is not offered: an empty field means «keep».
 //
 // The typed text lives in the input and nowhere else: no `value` attribute on
-// sf-input, no data-*, no text node, no log. «Показать пароль» is an icon button
-// that switches the input's type and says what it will do next by its name and
-// icon: «Показать пароль» (visibility) while hidden, «Скрыть пароль»
-// (visibility_off) while shown. A toggle whose name changes is not a pressed
-// toggle (rule C12, point 3): it carries no aria-pressed and no pressed look,
-// or a reader would hear «Скрыть пароль, нажата». It changes the DOM directly,
-// so a host's re-render (its attributes are static in the template) leaves the
-// person's choice as it is.
+// sf-input, no data-*, no text node, no log. The eye that shows the password is
+// sf-input's own (C123 (4): a glyph inside the field, the crossed eye after a
+// press); the set drew a second one beside the field until the text inputs
+// study (TI-7), so a record card showed two.
 
 
 function isPasswordField(field) {
@@ -1612,16 +2256,6 @@ function passwordIsSet(value) {
 
 function passwordState(host, value) {
   return setText(host, passwordIsSet(value) ? 'passwordSet' : 'passwordUnset');
-}
-
-function togglePasswordShown(event, host) {
-  const button = event.currentTarget;
-  const input = button?.closest?.('.sf-field-password')?.querySelector?.('sf-input');
-  if (!input) return;
-  const shown = input.getAttribute('input-type') !== 'text';
-  input.setAttribute('input-type', shown ? 'text' : 'password');
-  button.setAttribute('aria-label', setText(host, shown ? 'hidePassword' : 'showPassword'));
-  button.setAttribute('icon', shown ? 'visibility_off' : 'visibility');
 }
 
 function renderPasswordEdit(field, value, host) {
@@ -1651,14 +2285,6 @@ function renderPasswordEdit(field, value, host) {
                     @input=${write}
                     @change=${write}
             ></sf-input>
-            <sf-button-icon
-                    size=${EDIT_SIZE}
-                    appearance="ghost"
-                    scheme="on-surface"
-                    icon="visibility"
-                    aria-label=${setText(host, 'showPassword')}
-                    @click=${event => togglePasswordShown(event, host)}
-            ></sf-button-icon>
         </span>
     `;
 }
@@ -1699,7 +2325,9 @@ function renderIncludeView(field, value) {
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
         <pre class="sf-field-include" data-language=${field.language ? String(field.language) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}><code>${String(text)}</code></pre>
     `;
-}
+} // The include editor is code (C141 (8)): sf-input-textarea's text="code" --
+// the code font, spelling off, no wrapping -- at a fixed eight rows.
+
 
 function renderIncludeEdit(field, value, host) {
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
@@ -1710,7 +2338,7 @@ function renderIncludeEdit(field, value, host) {
                 name=${fieldName(field)}
                 value=${scalarValue(value) ?? ''}
                 rows="8"
-                spellcheck="false"
+                text="code"
                 ?required=${Boolean(field.required)}
                 aria-label=${field.label || field.key || ''}
                 ?disabled=${field.readonly === true}
@@ -1967,9 +2595,9 @@ function renderNumberEdit(field, value, host) {
   const write = (event, left) => {
     const input = event.currentTarget ?? event.target;
     const text = String(input?.value ?? '');
-    const read = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_9__.readDecimal)(text);
+    const read = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.readDecimal)(text);
     let message = null;
-    if (!read.ok) message = setText(host, 'notNumber');else if (read.value !== null && Number.isInteger(field.precision) && (0,_decimal_js__WEBPACK_IMPORTED_MODULE_9__.fractionDigits)(read.value) > field.precision) {
+    if (!read.ok) message = setText(host, 'notNumber');else if (read.value !== null && Number.isInteger(field.precision) && (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.fractionDigits)(read.value) > field.precision) {
       message = (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageWord)(SET_TEXT, 'precisionMax', host ?? null, {
         component: SET_NAME,
         count: field.precision
@@ -2451,11 +3079,11 @@ const SET_TEXT = {
     retry: 'Try again',
     loadMore: 'Load more',
     removeFile: 'Remove',
+    fileRemoved: 'File removed',
+    undo: 'Undo',
     passwordSet: 'Set',
     passwordUnset: 'Not set',
     passwordKeep: 'Set; type a new one to replace it',
-    showPassword: 'Show password',
-    hidePassword: 'Hide password',
     maskIncomplete: 'Complete the field',
     notNumber: 'Enter a number',
     precisionMax: 'At most {n} digits after the point',
@@ -2485,12 +3113,12 @@ const SET_TEXT = {
     recordsError: 'Не удалось загрузить записи',
     retry: 'Повторить',
     loadMore: 'Загрузить ещё',
-    removeFile: 'Удалить',
+    removeFile: 'Убрать',
+    fileRemoved: 'Файл убран',
+    undo: 'Вернуть',
     passwordSet: 'Задан',
     passwordUnset: 'Не задан',
     passwordKeep: 'Задан; введите новый, чтобы заменить',
-    showPassword: 'Показать пароль',
-    hidePassword: 'Скрыть пароль',
     maskIncomplete: 'Заполните поле полностью',
     notNumber: 'Введите число',
     precisionMax: 'Не больше {n} знаков после запятой',
@@ -2512,7 +3140,177 @@ const SET_NAME = 'sf-field-renderers';
 
 function setText(host, key) {
   return host?.getFieldText?.(key) ?? (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageText)(SET_TEXT, key, host ?? null, SET_NAME);
-}
+} // One job, one component (owner decision C139 (1), 2026-11-14): a record, a
+// relation, a user and a paged lookup are chosen with sf-input-lookup -- the
+// search the host answers, its rows with a picture and a caption, its states
+// and its chips -- where they were a searchable sf-dropdown beside a status
+// line of the set's own. sf-dropdown stays for a short list given whole (an
+// inline lookup). The dropdown path is kept until 2027-01-01 for a host that
+// asks renderEditField(…, {picker: 'dropdown'}); it is noted as deprecated.
+
+
+const DROPDOWN_PICKER_UNTIL = '2027-01-01';
+let EDIT_PICKER = '';
+
+function dropdownPicker() {
+  if (EDIT_PICKER !== 'dropdown') return false;
+  (0,_core_js_deprecations_js__WEBPACK_IMPORTED_MODULE_9__.noteDeprecated)({
+    component: 'sf-field-renderers',
+    kind: 'value',
+    attribute: 'picker',
+    from: 'dropdown',
+    to: null,
+    since: '2026-11-14',
+    remove_after: DROPDOWN_PICKER_UNTIL
+  });
+  return true;
+} // An item the lookup shows, from what the host's page holds: a user's
+// avatarText is the avatar's initials, an item's own avatar ({src} or
+// {initials}), icon, caption and match ranges travel as they are.
+
+
+function lookupItem(item) {
+  if (!item || typeof item !== 'object') return null;
+  const avatar = item.avatar && typeof item.avatar === 'object' ? item.avatar : item.avatarText ? {
+    initials: String(item.avatarText)
+  } : undefined;
+  return {
+    value: item.value,
+    label: String(item.label ?? item.text ?? item.value ?? ''),
+    ...(item.caption ? {
+      caption: String(item.caption)
+    } : {}),
+    ...(avatar ? {
+      avatar
+    } : {}),
+    ...(item.icon ? {
+      icon: String(item.icon)
+    } : {}),
+    ...(item.match ? {
+      match: item.match
+    } : {})
+  };
+} // The lookup's provider over the host's page interface (getFieldOptionsPage,
+// loadFieldOptions, getFieldOptionSearch, setFieldOptionSearch): a query is
+// one host search, a cursor its next page. The page the host already holds
+// for the same query answers at once (a record view asks the first page as
+// its group opens). A host that loads without answering a promise answers on
+// its next drawing: the page is read again until it is no longer loading.
+
+
+function hostProvider(field, host) {
+  return async (query, {
+    cursor = null,
+    signal
+  } = {}) => {
+    const text = String(query ?? '');
+    const held = host.getFieldOptionsPage(field) || null;
+    const sameSearch = (host.getFieldOptionSearch?.(field) ?? '') === text;
+    let page = held;
+    let from = 0;
+    let before = [];
+
+    if (cursor === null && sameSearch && held?.status === 'ready') {
+      page = held;
+    } else {
+      before = cursor === null || !Array.isArray(held?.items) ? [] : held.items;
+      host.setFieldOptionSearch?.(field, text);
+      await host.loadFieldOptions(field, {
+        cursor,
+        search: text
+      });
+      page = host.getFieldOptionsPage(field) || null;
+
+      for (let wait = 0; page?.status === 'loading' && wait < 100 && !signal?.aborted; wait += 1) {
+        await new Promise(done => setTimeout(done, 50));
+        page = host.getFieldOptionsPage(field) || null;
+      }
+    }
+
+    if (signal?.aborted) return {
+      items: []
+    }; // A host may join the next page to the ones it holds, or replace them
+    // with it: only what is new is answered.
+
+    const now = Array.isArray(page?.items) ? page.items : [];
+    if (before.length && now.length > before.length && now[0]?.value === before[0]?.value) from = before.length;
+    if (page?.status === 'unsupported') return {
+      status: 'unavailable'
+    };
+    if (!page || page.status === 'error' || page.status === 'loading') throw new Error(setText(host, 'recordsError'));
+    const items = (Array.isArray(page.items) ? page.items : []).slice(from).map(lookupItem).filter(Boolean);
+    return {
+      items,
+      nextCursor: page.nextCursor ?? null
+    };
+  };
+} // The page a host pages answers a hundred at most: the lookup cuts an answer
+// to max-results, and a host page is the host's own size.
+
+
+const HOST_PAGE_MOST = 100;
+
+function renderHostLookup(field, value, host, {
+  multiple,
+  placeholder
+}) {
+  // What the lookup says it chose, in the shape the set writes: {value,
+  // label}, or a list of them when multiple.
+  const resolved = item => ({
+    value: item.value,
+    label: String(item.label ?? item.value)
+  });
+
+  const write = event => {
+    if (event.target !== event.currentTarget) return;
+    const next = event.detail?.value ?? event.target?.value;
+
+    if (multiple) {
+      host.setFieldValue(field, (Array.isArray(next) ? next : []).map(resolved));
+      return;
+    }
+
+    host.setFieldValue(field, next && typeof next === 'object' ? resolved(next) : null);
+  };
+
+  return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+        <div class="sf-field-picker flex flex-col gap-1/3" data-field-picker=${field.key || lit__WEBPACK_IMPORTED_MODULE_0__.nothing}>
+            <sf-input-lookup
+                    size=${EDIT_SIZE}
+                    ?multiple=${multiple}
+                    suggest
+                    min-length="1"
+                    max-results=${String(HOST_PAGE_MOST)}
+                    name=${fieldName(field)}
+                    ?required=${Boolean(field.required)}
+                    ?disabled=${EDIT_DISABLED}
+                    placeholder=${field.placeholder || placeholder}
+                    aria-label=${field.label || field.key || ''}
+                    .value=${value ?? (multiple ? [] : null)}
+                    .provider=${hostProvider(field, host)}
+                    @change=${write}
+            ></sf-input-lookup>
+        </div>
+    `;
+} // The record picker: a record, a relation or a user, one value, searched and
+// paged by the host (C139 (1)).
+
+
+function renderRecordLookup(field, value, host) {
+  if (dropdownPicker()) return renderRecordPicker(field, value, host);
+  if (!host.loadFieldOptions || !host.getFieldOptionsPage) return null;
+  const page = host.getFieldOptionsPage(field) || null; // A host that refused this field's candidates has none to give: the field
+  // falls back to its value, read-only, as the dropdown path did.
+
+  if (page?.status === 'unsupported') return null;
+  const chosen = value && typeof value === 'object' ? value : null;
+  return renderHostLookup(field, chosen, host, {
+    multiple: false,
+    placeholder: setText(host, 'pickRecord')
+  });
+} // DEPRECATED until 2027-01-01 (C139 (1)): the record picker as a searchable
+// sf-dropdown, for a host that asks {picker: 'dropdown'}.
+
 
 function renderRecordPicker(field, value, host) {
   if (!host.loadFieldOptions || !host.getFieldOptionsPage) return null;
@@ -2640,7 +3438,17 @@ function renderLookupEdit(field, value, host) {
   const inline = Array.isArray(field.options) && field.options.length > 0; // A list the host pages needs a host that pages; without one the field falls
   // back to its value, read-only, as a record does.
 
-  if (!inline && (!host.loadFieldOptions || !host.getFieldOptionsPage)) return null;
+  if (!inline && (!host.loadFieldOptions || !host.getFieldOptionsPage)) return null; // A paged list is the lookup's (C139 (1)); a short list given whole stays
+  // the dropdown's, and so does the deprecated dropdown path.
+
+  if (!inline && !dropdownPicker()) {
+    if (host.getFieldOptionsPage(field)?.status === 'unsupported') return null;
+    return renderHostLookup(field, value, host, {
+      multiple,
+      placeholder: setText(host, 'pickFromList')
+    });
+  }
+
   const page = inline ? null : host.getFieldOptionsPage(field) || null;
   if (page?.status === 'unsupported') return null;
   const search = inline ? '' : host.getFieldOptionSearch?.(field) ?? '';
@@ -2812,7 +3620,7 @@ function renderImageEdit(field, value, host) {
                 .value=${stored}
                 aria-label=${field.label || field.key || ''}
                 ?required=${Boolean(field.required)}
-                ?disabled=${field.readonly === true}
+                ?readonly=${field.readonly === true}
                 @change=${event => {
     const next = event.detail?.value ?? null;
     host.setFieldValue(field, asList ? next ? [next] : [] : next);
@@ -2837,14 +3645,29 @@ function renderFileEdit(field, value, host) {
   const multiple = field.multiple === true || Array.isArray(value);
   const canUpload = Boolean(host.startFieldUpload && host.getFieldUploads);
   const uploads = canUpload ? host.getFieldUploads(field) : null;
-  const items = Array.isArray(uploads) ? uploads : [];
+  const items = Array.isArray(uploads) ? uploads : []; // «×» takes a file out of the field at once, and the notice gives it back
+  // with «Вернуть» (decisions C25, C149 (8)): the field's value before the
+  // removal is set again.
 
   const drop = index => {
+    const before = value;
     const next = files.filter((_, position) => position !== index);
     host.setFieldValue(field, multiple ? next : next[0] ?? null);
-  }; // download-action and remove-action both read true when the attribute is
-  // absent, so a file with no href has to say false rather than drop it.
+    const removed = files[index];
+    globalThis.SF?.notify?.({
+      status: 'neutral',
+      title: setText(host, 'fileRemoved'),
+      text: String(removed?.label ?? removed?.name ?? ''),
+      source: 'sf-file-preview',
+      action: {
+        label: setText(host, 'undo'),
+        onSelect: () => host.setFieldValue(field, before)
+      }
+    });
+  };
 
+  const readonly = field.readonly === true; // download-action and remove-action both read true when the attribute is
+  // absent, so a file with no href has to say false rather than drop it.
 
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
         <div class="sf-field-file flex flex-col">
@@ -2856,7 +3679,7 @@ function renderFileEdit(field, value, host) {
                         mime-type=${String(file.mime ?? file.mimeType ?? '')}
                         href=${file.href ? String(file.href) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                         download-action=${file.href ? 'true' : 'false'}
-                        remove-action="true"
+                        remove-action=${readonly ? 'false' : 'true'}
                         remove-label=${`${setText(host, 'removeFile')} ${file.label ?? file.name ?? ''}`.trim()}
                         @sf-file-preview-detach=${() => drop(index)}
                 ></sf-file-preview>
@@ -2917,14 +3740,19 @@ function renderEditField(field = {}, value, host, options = {}) {
   if (!renderer || !host?.setFieldValue) return null;
   const outer = EDIT_SIZE;
   const outerDisabled = EDIT_DISABLED;
+  const outerPicker = EDIT_PICKER;
   EDIT_SIZE = sizeOption(options);
-  EDIT_DISABLED = disabled;
+  EDIT_DISABLED = disabled; // `options.picker: 'dropdown'`: the record, relation, user and paged lookup
+  // fields drawn as before C139, a searchable sf-dropdown (until 2027-01-01).
+
+  EDIT_PICKER = options?.picker === 'dropdown' ? 'dropdown' : '';
 
   try {
     return renderer(field, value, host);
   } finally {
     EDIT_SIZE = outer;
     EDIT_DISABLED = outerDisabled;
+    EDIT_PICKER = outerPicker;
   }
 } // The view template: a field shown and not edited, which is the fourth of the
 // four the assignment names and the last one the set was missing.
@@ -3126,7 +3954,7 @@ function renderUserView(field, value) {
   if (!value || typeof value !== 'object' || !value.label) return lit__WEBPACK_IMPORTED_MODULE_0__.nothing;
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
         <span class="sf-field-view flex items-cross-center gap-1/3">
-            <sf-avatar line=${VIEW_LINE} text=${value.avatarText || ''}></sf-avatar>
+            <sf-avatar line=${VIEW_LINE} text=${value.avatarText || ''} heading=${String(value.label)}></sf-avatar>
             ${value.href ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<sf-reference-link appearance="plain" icon="" line=${VIEW_LINE}
                         label=${String(value.label)} href=${String(value.href)}></sf-reference-link>` : (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span>${String(value.label)}</span>`}
         </span>
@@ -3746,20 +4574,103 @@ function modesOf(type, maps) {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   OPTION_BADGE_HUES: () => (/* binding */ OPTION_BADGE_HUES),
+/* harmony export */   OPTION_BADGE_PALETTE: () => (/* binding */ OPTION_BADGE_PALETTE),
+/* harmony export */   nearestPaletteHue: () => (/* binding */ nearestPaletteHue),
 /* harmony export */   optionBadgeProps: () => (/* binding */ optionBadgeProps)
 /* harmony export */ });
 /* harmony import */ var _component_badges_js_contract_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("a2a9d3c2841e");
 
-const HEX_COLOR = /^#(?:[0-9a-f]{3}|[0-9a-f]{4}|[0-9a-f]{6}|[0-9a-f]{8})$/i;
+const HEX_COLOR = /^#(?:[0-9a-f]{3}|[0-9a-f]{4}|[0-9a-f]{6}|[0-9a-f]{8})$/i; // The hues of the static palette (owner decision C17), each with the OKLCH hue
+// angle of its tone 50 (src/core/scss/_sf_static_palette.scss, rounded to the
+// degree; tests/option-badge-palette.contract.test.mjs holds the two equal).
+// Brown and gray are not reached from a hex: brown sits between orange and
+// amber and differs from them by chroma alone, which a light or a dark hex
+// does not keep; a colour with less chroma than GREY_CHROMA is gray. Both are
+// reached by name.
+
+const OPTION_BADGE_HUES = Object.freeze({
+  red: 28,
+  orange: 47,
+  amber: 60,
+  yellow: 89,
+  lime: 119,
+  green: 144,
+  teal: 173,
+  cyan: 203,
+  sky: 232,
+  blue: 259,
+  indigo: 279,
+  violet: 299,
+  purple: 320,
+  pink: 347
+});
+const OPTION_BADGE_PALETTE = Object.freeze([...Object.keys(OPTION_BADGE_HUES), "brown", "gray"]);
+const GREY_CHROMA = 0.03;
+
+const linear = channel => {
+  const c = channel / 255;
+  return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+}; // {chroma, hue} in OKLCH of a #rgb[a] / #rrggbb[aa]; the alpha is not read.
+
+
+function oklchOf(hex) {
+  let digits = hex.slice(1);
+  if (digits.length < 6) digits = [...digits].map(digit => digit + digit).join("");
+  const [r, g, b] = [0, 2, 4].map(at => linear(parseInt(digits.slice(at, at + 2), 16)));
+  const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b);
+  const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b);
+  const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
+  const a = 1.9779984951 * l - 2.428592205 * m + 0.4505937099 * s;
+  const bb = 0.0259040371 * l + 0.7827717662 * m - 0.808675766 * s;
+  return {
+    chroma: Math.hypot(a, bb),
+    hue: (Math.atan2(bb, a) * 180 / Math.PI + 360) % 360
+  };
+}
+/** The static palette hue nearest a hex colour: gray when it has no hue to speak of. */
+
+
+function nearestPaletteHue(hex) {
+  const {
+    chroma,
+    hue
+  } = oklchOf(hex);
+  if (chroma < GREY_CHROMA) return "gray";
+  let best = "gray";
+  let distance = Infinity;
+
+  for (const [name, angle] of Object.entries(OPTION_BADGE_HUES)) {
+    const apart = Math.abs((hue - angle + 540) % 360 - 180);
+
+    if (apart < distance) {
+      best = name;
+      distance = apart;
+    }
+  }
+
+  return best;
+} // The fill of a hue: tone 50 at the fill step 24 (C43: no new tones or steps;
+// the alpha scale's fill family), over the place in both themes, as the 24 %
+// mix of the data's hex was. The text stays on the surface colour, so the
+// label reads the same in both themes. Written to the badge's public
+// variables, --sf-badge-background-color and --sf-badge-color (owner decision
+// C140 (2), BG-7): a colour from data reaches the badge only through them and
+// only as a palette step, never the author's hex.
+
+const paletteStyle = hue => `--sf-badge-background-color: var(--sf-${hue}-50--alfa-24); --sf-badge-color: var(--sf-on-surface)`;
 /**
  * Badge look for a filter option with optionRenderer 'badge'. option.color is
- * a Framework badge scheme (success, error, info...) or a hex colour; a hex
- * colour tints the tonal background and keeps the text on the surface colour,
- * so the label stays readable in both themes. Anything else is neutral.
+ * a Framework badge scheme (success, error, info...), a hue of the static
+ * palette (red, teal, gray...; C17) or a hex colour. A hue tints the badge with
+ * its own palette step; a hex is drawn in the palette hue nearest it, never as
+ * the raw colour (C18, C43; badges study BG-7), so the label stays readable in
+ * both themes. Anything else is neutral.
  */
 // The data view port names the badge look `scheme` on a column's options; a
 // filter option has always said `color`. Both are read: reading only `color`
 // left every port column's scheme unread and its badges neutral.
+
 
 function optionBadgeProps(option = {}) {
   const raw = option?.scheme ?? option?.color;
@@ -3770,14 +4681,15 @@ function optionBadgeProps(option = {}) {
     scheme,
     rootStyle: ""
   };
-
-  if (HEX_COLOR.test(color)) {
-    return {
-      scheme: "neutral",
-      rootStyle: `--sf-badge--background-color: color-mix(in srgb, ${color} 24%, transparent); --sf-badge--color: var(--sf-on-surface)`
-    };
-  }
-
+  const name = color.toLowerCase();
+  if (OPTION_BADGE_PALETTE.includes(name)) return {
+    scheme: "neutral",
+    rootStyle: paletteStyle(name)
+  };
+  if (HEX_COLOR.test(color)) return {
+    scheme: "neutral",
+    rootStyle: paletteStyle(nearestPaletteHue(color))
+  };
   return {
     scheme: "neutral",
     rootStyle: ""
@@ -3805,11 +4717,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _core_js_icon_choices_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__("1b42c5117087");
 /* harmony import */ var _core_js_page_language__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__("43090d1c8307");
 /* harmony import */ var _core_js_layer_stack__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__("18003344cff0");
-/* harmony import */ var _js_templates_default__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__("40b137e60526");
-/* harmony import */ var _js_conditions_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__("844bdc4d24eb");
-/* harmony import */ var _view_table_js_format_value_js__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__("2f31b00ad99a");
-var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_core_js_smart_base__WEBPACK_IMPORTED_MODULE_0__, _core_js_element_manifest__WEBPACK_IMPORTED_MODULE_1__, _core_js_page_language__WEBPACK_IMPORTED_MODULE_8__, _core_js_layer_stack__WEBPACK_IMPORTED_MODULE_9__, _js_templates_default__WEBPACK_IMPORTED_MODULE_10__, _view_table_js_format_value_js__WEBPACK_IMPORTED_MODULE_12__]);
-([_core_js_smart_base__WEBPACK_IMPORTED_MODULE_0__, _core_js_element_manifest__WEBPACK_IMPORTED_MODULE_1__, _core_js_page_language__WEBPACK_IMPORTED_MODULE_8__, _core_js_layer_stack__WEBPACK_IMPORTED_MODULE_9__, _js_templates_default__WEBPACK_IMPORTED_MODULE_10__, _view_table_js_format_value_js__WEBPACK_IMPORTED_MODULE_12__] = __webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
+/* harmony import */ var _core_js_density_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__("1412c5875b4d");
+/* harmony import */ var _js_templates_default__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__("40b137e60526");
+/* harmony import */ var _js_conditions_js__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__("844bdc4d24eb");
+/* harmony import */ var _view_table_js_format_value_js__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__("2f31b00ad99a");
+var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_core_js_smart_base__WEBPACK_IMPORTED_MODULE_0__, _core_js_element_manifest__WEBPACK_IMPORTED_MODULE_1__, _core_js_page_language__WEBPACK_IMPORTED_MODULE_8__, _core_js_layer_stack__WEBPACK_IMPORTED_MODULE_9__, _js_templates_default__WEBPACK_IMPORTED_MODULE_11__, _view_table_js_format_value_js__WEBPACK_IMPORTED_MODULE_13__]);
+([_core_js_smart_base__WEBPACK_IMPORTED_MODULE_0__, _core_js_element_manifest__WEBPACK_IMPORTED_MODULE_1__, _core_js_page_language__WEBPACK_IMPORTED_MODULE_8__, _core_js_layer_stack__WEBPACK_IMPORTED_MODULE_9__, _js_templates_default__WEBPACK_IMPORTED_MODULE_11__, _view_table_js_format_value_js__WEBPACK_IMPORTED_MODULE_13__] = __webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
 /* harmony import */ var _core_js_smart_base__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_core_js_smart_base__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _core_js_element_manifest__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_core_js_element_manifest__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var _core_js_page_language__WEBPACK_IMPORTED_MODULE_8___default = /*#__PURE__*/__webpack_require__.n(_core_js_page_language__WEBPACK_IMPORTED_MODULE_8__);
@@ -3838,6 +4751,7 @@ var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_cor
 
  // The glyphs are the Framework's choice list (core/js/icon-choices.js, core.runtime
 // 1.25.0; duplication audit 2026-11-03 A-1), shared with sf-admin-menu.
+
 
 
 
@@ -5128,8 +6042,13 @@ class SfPropertyView extends PropertyViewElement {
     if (menu.isOpen && this._standardMenuAnchor === anchor) {
       menu.close();
       return null;
-    }
+    } // The panel's step and the density of its area, on every opening (owner
+    // remark 2026-11-15): the menu stands on <body> or in the open dialog,
+    // outside the panel, and fell back to the menu's own 1/2.
 
+
+    menu.setAttribute("size", this.size);
+    (0,_core_js_density_js__WEBPACK_IMPORTED_MODULE_10__.followDensity)(menu, this);
     menu.setAttribute("aria-label", label ?? "");
     menu.entries = entries;
     this._standardMenuSelect = select;
@@ -5481,7 +6400,7 @@ class SfPropertyView extends PropertyViewElement {
     return (Array.isArray(entries) ? entries : []).filter(entry => entry && entry.hidden !== true).filter(entry => this.showRare || entry.rare !== true) // A field its condition hides is not drawn (port 1.14.0). Not while
     // the view is arranged -- the template lists every entry then -- and
     // not by the view: `hidden` is the arrangement's, `when` the values'.
-    .filter(entry => !values || !entry.when || (0,_js_conditions_js__WEBPACK_IMPORTED_MODULE_11__.fieldConditions)(entry, values).visible);
+    .filter(entry => !values || !entry.when || (0,_js_conditions_js__WEBPACK_IMPORTED_MODULE_12__.fieldConditions)(entry, values).visible);
   } // Every field's value as it stands on screen: what the record holds, or what
   // the person changed it to and has not saved. The conditions read these, so
   // a field appears the moment the value it waits for is chosen, before any
@@ -5511,7 +6430,7 @@ class SfPropertyView extends PropertyViewElement {
 
   conditionedField(field, values = this.fieldValues()) {
     if (!field?.when) return field;
-    const decided = (0,_js_conditions_js__WEBPACK_IMPORTED_MODULE_11__.fieldConditions)(field, values);
+    const decided = (0,_js_conditions_js__WEBPACK_IMPORTED_MODULE_12__.fieldConditions)(field, values);
     return { ...field,
       required: decided.required,
       readonly: field.readonly === true || !decided.enabled
@@ -5524,7 +6443,7 @@ class SfPropertyView extends PropertyViewElement {
     const hidden = new Set();
 
     const check = field => {
-      if (field?.when && !(0,_js_conditions_js__WEBPACK_IMPORTED_MODULE_11__.fieldConditions)(field, values).visible) hidden.add(String(field.key));
+      if (field?.when && !(0,_js_conditions_js__WEBPACK_IMPORTED_MODULE_12__.fieldConditions)(field, values).visible) hidden.add(String(field.key));
     };
 
     for (const section of this.sections ?? []) {
@@ -5562,7 +6481,7 @@ class SfPropertyView extends PropertyViewElement {
         const own = host?.formatFieldValue?.(field, value);
         if (typeof own === "string") return own;
         const type = field?.propertyType ?? field?.property_type ?? field?.type ?? field?.dataType;
-        return (0,_view_table_js_format_value_js__WEBPACK_IMPORTED_MODULE_12__.formatDateValue)(type, value, this) || undefined;
+        return (0,_view_table_js_format_value_js__WEBPACK_IMPORTED_MODULE_13__.formatDateValue)(type, value, this) || undefined;
       }
     });
     this._viewHost = {
@@ -5730,7 +6649,7 @@ class SfPropertyView extends PropertyViewElement {
   }
 
   template() {
-    return (0,_js_templates_default__WEBPACK_IMPORTED_MODULE_10__.renderPropertyViewTemplate)(this.templateContext());
+    return (0,_js_templates_default__WEBPACK_IMPORTED_MODULE_11__.renderPropertyViewTemplate)(this.templateContext());
   } // A printed skeleton (data-sf-first-paint="skeleton", skeleton.html) stays
   // until the record comes through the port (standard 1.3.8 §5.4): the first
   // render then draws the record over it in one frame. A panel draws in its
@@ -6479,7 +7398,7 @@ class SfPropertyView extends PropertyViewElement {
 
 
   fieldDisabled(field, values = this.fieldValues()) {
-    return Boolean(field?.when) && !(0,_js_conditions_js__WEBPACK_IMPORTED_MODULE_11__.fieldConditions)(field, values).enabled;
+    return Boolean(field?.when) && !(0,_js_conditions_js__WEBPACK_IMPORTED_MODULE_12__.fieldConditions)(field, values).enabled;
   } // An entry that is not a value yet stops a save, and says so where it is.
 
 
@@ -11418,6 +12337,13 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ },
 
+/***/ "d3818183b14c"
+(module) {
+
+module.exports = (globalThis.SF && globalThis.SF.runtimeModule ? globalThis.SF.runtimeModule("deprecations", 1) : new Promise((resolve, reject) => globalThis.addEventListener("sf-runtime-ready", () => globalThis.SF.runtimeModule("deprecations", 1).then(resolve, reject), { once: true })));
+
+/***/ },
+
 /***/ "5b7d7695b41b"
 (module) {
 
@@ -12411,7 +13337,7 @@ module.exports = /*#__PURE__*/JSON.parse('{"$comment":"Dated aliases of sf-view-
 /***/ "3ea81f4c3c20"
 (module) {
 
-module.exports = /*#__PURE__*/JSON.parse('{"id":"smart.view-properties","tag":"sf-view-properties","version":"1.13.3","kind":"leaf","implements":["record-view@1"],"settings":{"add-field-text":{"type":"string","default-from":"runtime.add-field-text"},"add-group-text":{"type":"string","default-from":"runtime.add-group-text"},"add-section-text":{"type":"string","default-from":"runtime.add-section-text"},"back-label":{"type":"string","default-from":"runtime.back-label"},"cancel-configuring-text":{"type":"string","default-from":"runtime.cancel-configuring-text"},"cancel-name-text":{"type":"string","default-from":"runtime.cancel-name-text"},"cancel-text":{"type":"string","default-from":"runtime.cancel-text"},"changed-text":{"type":"string","default-from":"runtime.changed-text"},"close-label":{"type":"string","default-from":"runtime.close-label"},"collection":{"type":"string","default":""},"collection-icon":{"type":"icon","default":""},"collection-label":{"type":"string","default":""},"configure-hint-narrow-text":{"type":"string","default-from":"runtime.configure-hint-narrow-text"},"configure-hint-text":{"type":"string","default-from":"runtime.configure-hint-text"},"configure-text":{"type":"string","default-from":"runtime.configure-text"},"conflict-text":{"type":"string","default-from":"runtime.conflict-text"},"copy-link-label":{"type":"string","default-from":"runtime.copy-link-label"},"delete-text":{"type":"string","default-from":"runtime.delete-text"},"done-configuring-text":{"type":"string","default-from":"runtime.done-configuring-text"},"edit-text":{"type":"string","default-from":"runtime.edit-text"},"empty-record-text":{"type":"string","default-from":"runtime.empty-record-text"},"empty-text":{"type":"string","default-from":"runtime.empty-text"},"errors-text":{"type":"string","default-from":"runtime.errors-text"},"favourite":{"type":"boolean","default":false},"favourite-label":{"type":"string","default-from":"runtime.favourite-label"},"field-label-text":{"type":"string","default-from":"runtime.field-label-text"},"field-settings-text":{"type":"string","default-from":"runtime.field-settings-text"},"hidden-text":{"type":"string","default-from":"runtime.hidden-text"},"hide-rare-text":{"type":"string","default-from":"runtime.hide-rare-text"},"hint-text":{"type":"string","default-from":"runtime.hint-text"},"in-this-group-text":{"type":"string","default-from":"runtime.in-this-group-text"},"inherited-text":{"type":"string","default-from":"runtime.inherited-text"},"link-copied-label":{"type":"string","default-from":"runtime.link-copied-label"},"menu-label":{"type":"string","default-from":"runtime.menu-label"},"move-down-text":{"type":"string","default-from":"runtime.move-down-text"},"move-up-text":{"type":"string","default-from":"runtime.move-up-text"},"new-group-title":{"type":"string","default-from":"runtime.new-group-title"},"new-section-title":{"type":"string","default-from":"runtime.new-section-title"},"no-match-text":{"type":"string","default-from":"runtime.no-match-text"},"open-full-label":{"type":"string","default-from":"runtime.open-full-label"},"panel":{"type":"boolean","default":false},"panel-label":{"type":"string","default":""},"panel-size":{"type":"enum","values":["1/2","1","2","full"],"default":"1"},"size":{"type":"enum","values":["1","1/2"],"default":"1"},"mode":{"type":"enum","values":["view","auto","edit","create"],"default":"auto"},"panel-width":{"type":"string","default":""},"personal-layer-text":{"type":"string","default-from":"runtime.personal-layer-text"},"rare-text":{"type":"string","default-from":"runtime.rare-text"},"record-id":{"type":"id","default":""},"remove-field-text":{"type":"string","default-from":"runtime.remove-field-text"},"remove-group-text":{"type":"string","default-from":"runtime.remove-group-text"},"remove-section-text":{"type":"string","default-from":"runtime.remove-section-text"},"rename-text":{"type":"string","default-from":"runtime.rename-text"},"reset-view-ask-text":{"type":"string","default-from":"runtime.reset-view-ask-text"},"reset-view-text":{"type":"string","default-from":"runtime.reset-view-text"},"save-name-text":{"type":"string","default-from":"runtime.save-name-text"},"save-text":{"type":"string","default-from":"runtime.save-text"},"section-icon-text":{"type":"string","default-from":"runtime.section-icon-text"},"section-icons":{"type":"string","default":""},"sections-as":{"type":"enum","values":["list","tabs"],"default":"list"},"sections-label":{"type":"string","default-from":"runtime.sections-label"},"shared-layer-text":{"type":"string","default-from":"runtime.shared-layer-text"},"show-rare":{"type":"boolean","default":false},"show-rare-text":{"type":"string","default-from":"runtime.show-rare-text"},"shown-text":{"type":"string","default-from":"runtime.shown-text"},"unplaced-hint-text":{"type":"string","default-from":"runtime.unplaced-hint-text"},"unplaced-title":{"type":"string","default-from":"runtime.unplaced-title"},"variant-text":{"type":"string","default-from":"runtime.variant-text"},"view-conflict-text":{"type":"string","default-from":"runtime.view-conflict-text"},"view-denied-text":{"type":"string","default-from":"runtime.view-denied-text"},"width-text":{"type":"string","default-from":"runtime.width-text"},"view-profile-label":{"type":"string","default-from":"runtime.view-profile-label"},"add-view-text":{"type":"string","default-from":"runtime.add-view-text"},"new-view-text":{"type":"string","default-from":"runtime.new-view-text"},"delete-view-text":{"type":"string","default-from":"runtime.delete-view-text"},"last-shared-view-text":{"type":"string","default-from":"runtime.last-shared-view-text"},"full":{"type":"boolean","default":false},"open":{"type":"boolean","default":true}},"values":{"revision":{"type":"string"},"section":{"type":"string"}},"events":{"close":{"carries":{"reason":{"type":"enum","values":["close","escape","outside","cancelled","deleted","api"]},"record_id":{"type":"id","nullable":true},"unsaved_fields":{"type":"list"}},"cancelable":true},"open-full":{"carries":{"id":"id","address":"string","record_id":{"type":"id","nullable":true}}},"saved":{"carries":{"id":"id","revision":{"type":"string","optional":true}}},"failed":{"carries":{"reason":"string","message":{"type":"string","optional":true}}},"open":{"carries":{"field":"string","value":"object","answer":"string"}},"delete":{"carries":{"collection":"string","revision":"string","answer":"string","record_id":{"type":"id","nullable":true}}},"created":{"carries":{"collection":{"type":"string","nullable":true},"record_id":{"type":"id","nullable":true}}},"cancel":{"carries":{"mode":{"type":"enum","values":["auto","edit","create"]},"scope":{"type":"enum","values":["group"],"optional":true},"section":{"type":"string","optional":true},"group":{"type":"string","optional":true}}},"state":{"carries":{"state":"string","message":"string"},"own-verb":true},"address-copy":{"carries":{},"own-verb":true},"favourite":{"carries":{"collection":{"type":"string","nullable":true},"favourite":"boolean","record_id":{"type":"id","nullable":true}},"own-verb":true}},"actions":{"refresh":{},"load":{"with":{"reason":{"type":"string","optional":true}}},"edit-group":{"with":{"section":"string","group":"string"}},"cancel-edit":{},"save-group":{"with":{"options":{"type":"object","optional":true}},"concurrency":"drop"},"select-section":{"with":{"key":"string"}},"close-panel":{"with":{"reason":{"type":"string","optional":true}}},"copy-address":{},"open-full-page":{},"confirm-save":{},"cancel-confirmation":{}},"port":{"id":"simai.property-view-port","version":"1.18.0","contract":"src/core/contracts/ports/simai.property-view-port/1.18.0/port.json"},"presentation":{"skeleton":{"file":"skeleton.html","late":[]}},"css-variables":{"--sf-property-view--sections-width":{"type":"length","state":"default"},"--sf-property-view--title-size":{"type":"length","state":"default"},"--sf-property-view--label-size":{"type":"length","state":"default"},"--sf-property-view--value-size":{"type":"length","state":"default"},"--sf-property-view--group-size":{"type":"length","state":"default"},"--sf-property-view--edge-room":{"type":"length","state":"open"}},"host-states":{"data-state":"string","aria-busy":"string"}}');
+module.exports = /*#__PURE__*/JSON.parse('{"id":"smart.view-properties","tag":"sf-view-properties","version":"1.15.2","kind":"leaf","implements":["record-view@1"],"settings":{"add-field-text":{"type":"string","default-from":"runtime.add-field-text"},"add-group-text":{"type":"string","default-from":"runtime.add-group-text"},"add-section-text":{"type":"string","default-from":"runtime.add-section-text"},"back-label":{"type":"string","default-from":"runtime.back-label"},"cancel-configuring-text":{"type":"string","default-from":"runtime.cancel-configuring-text"},"cancel-name-text":{"type":"string","default-from":"runtime.cancel-name-text"},"cancel-text":{"type":"string","default-from":"runtime.cancel-text"},"changed-text":{"type":"string","default-from":"runtime.changed-text"},"close-label":{"type":"string","default-from":"runtime.close-label"},"collection":{"type":"string","default":""},"collection-icon":{"type":"icon","default":""},"collection-label":{"type":"string","default":""},"configure-hint-narrow-text":{"type":"string","default-from":"runtime.configure-hint-narrow-text"},"configure-hint-text":{"type":"string","default-from":"runtime.configure-hint-text"},"configure-text":{"type":"string","default-from":"runtime.configure-text"},"conflict-text":{"type":"string","default-from":"runtime.conflict-text"},"copy-link-label":{"type":"string","default-from":"runtime.copy-link-label"},"delete-text":{"type":"string","default-from":"runtime.delete-text"},"done-configuring-text":{"type":"string","default-from":"runtime.done-configuring-text"},"edit-text":{"type":"string","default-from":"runtime.edit-text"},"empty-record-text":{"type":"string","default-from":"runtime.empty-record-text"},"empty-text":{"type":"string","default-from":"runtime.empty-text"},"errors-text":{"type":"string","default-from":"runtime.errors-text"},"favourite":{"type":"boolean","default":false},"favourite-label":{"type":"string","default-from":"runtime.favourite-label"},"field-label-text":{"type":"string","default-from":"runtime.field-label-text"},"field-settings-text":{"type":"string","default-from":"runtime.field-settings-text"},"hidden-text":{"type":"string","default-from":"runtime.hidden-text"},"hide-rare-text":{"type":"string","default-from":"runtime.hide-rare-text"},"hint-text":{"type":"string","default-from":"runtime.hint-text"},"in-this-group-text":{"type":"string","default-from":"runtime.in-this-group-text"},"inherited-text":{"type":"string","default-from":"runtime.inherited-text"},"link-copied-label":{"type":"string","default-from":"runtime.link-copied-label"},"menu-label":{"type":"string","default-from":"runtime.menu-label"},"move-down-text":{"type":"string","default-from":"runtime.move-down-text"},"move-up-text":{"type":"string","default-from":"runtime.move-up-text"},"new-group-title":{"type":"string","default-from":"runtime.new-group-title"},"new-section-title":{"type":"string","default-from":"runtime.new-section-title"},"no-match-text":{"type":"string","default-from":"runtime.no-match-text"},"open-full-label":{"type":"string","default-from":"runtime.open-full-label"},"panel":{"type":"boolean","default":false},"panel-label":{"type":"string","default":""},"panel-size":{"type":"enum","values":["1/2","1","2","full"],"default":"1"},"size":{"type":"enum","values":["1","1/2"],"default":"1"},"mode":{"type":"enum","values":["view","auto","edit","create"],"default":"auto"},"panel-width":{"type":"string","default":""},"personal-layer-text":{"type":"string","default-from":"runtime.personal-layer-text"},"rare-text":{"type":"string","default-from":"runtime.rare-text"},"record-id":{"type":"id","default":""},"remove-field-text":{"type":"string","default-from":"runtime.remove-field-text"},"remove-group-text":{"type":"string","default-from":"runtime.remove-group-text"},"remove-section-text":{"type":"string","default-from":"runtime.remove-section-text"},"rename-text":{"type":"string","default-from":"runtime.rename-text"},"reset-view-ask-text":{"type":"string","default-from":"runtime.reset-view-ask-text"},"reset-view-text":{"type":"string","default-from":"runtime.reset-view-text"},"save-name-text":{"type":"string","default-from":"runtime.save-name-text"},"save-text":{"type":"string","default-from":"runtime.save-text"},"section-icon-text":{"type":"string","default-from":"runtime.section-icon-text"},"section-icons":{"type":"string","default":""},"sections-as":{"type":"enum","values":["list","tabs"],"default":"list"},"sections-label":{"type":"string","default-from":"runtime.sections-label"},"shared-layer-text":{"type":"string","default-from":"runtime.shared-layer-text"},"show-rare":{"type":"boolean","default":false},"show-rare-text":{"type":"string","default-from":"runtime.show-rare-text"},"shown-text":{"type":"string","default-from":"runtime.shown-text"},"unplaced-hint-text":{"type":"string","default-from":"runtime.unplaced-hint-text"},"unplaced-title":{"type":"string","default-from":"runtime.unplaced-title"},"variant-text":{"type":"string","default-from":"runtime.variant-text"},"view-conflict-text":{"type":"string","default-from":"runtime.view-conflict-text"},"view-denied-text":{"type":"string","default-from":"runtime.view-denied-text"},"width-text":{"type":"string","default-from":"runtime.width-text"},"view-profile-label":{"type":"string","default-from":"runtime.view-profile-label"},"add-view-text":{"type":"string","default-from":"runtime.add-view-text"},"new-view-text":{"type":"string","default-from":"runtime.new-view-text"},"delete-view-text":{"type":"string","default-from":"runtime.delete-view-text"},"last-shared-view-text":{"type":"string","default-from":"runtime.last-shared-view-text"},"full":{"type":"boolean","default":false},"open":{"type":"boolean","default":true}},"values":{"revision":{"type":"string"},"section":{"type":"string"}},"events":{"close":{"carries":{"reason":{"type":"enum","values":["close","escape","outside","cancelled","deleted","api"]},"record_id":{"type":"id","nullable":true},"unsaved_fields":{"type":"list"}},"cancelable":true},"open-full":{"carries":{"id":"id","address":"string","record_id":{"type":"id","nullable":true}}},"saved":{"carries":{"id":"id","revision":{"type":"string","optional":true}}},"failed":{"carries":{"reason":"string","message":{"type":"string","optional":true}}},"open":{"carries":{"field":"string","value":"object","answer":"string"}},"delete":{"carries":{"collection":"string","revision":"string","answer":"string","record_id":{"type":"id","nullable":true}}},"created":{"carries":{"collection":{"type":"string","nullable":true},"record_id":{"type":"id","nullable":true}}},"cancel":{"carries":{"mode":{"type":"enum","values":["auto","edit","create"]},"scope":{"type":"enum","values":["group"],"optional":true},"section":{"type":"string","optional":true},"group":{"type":"string","optional":true}}},"state":{"carries":{"state":"string","message":"string"},"own-verb":true},"address-copy":{"carries":{},"own-verb":true},"favourite":{"carries":{"collection":{"type":"string","nullable":true},"favourite":"boolean","record_id":{"type":"id","nullable":true}},"own-verb":true}},"actions":{"refresh":{},"load":{"with":{"reason":{"type":"string","optional":true}}},"edit-group":{"with":{"section":"string","group":"string"}},"cancel-edit":{},"save-group":{"with":{"options":{"type":"object","optional":true}},"concurrency":"drop"},"select-section":{"with":{"key":"string"}},"close-panel":{"with":{"reason":{"type":"string","optional":true}}},"copy-address":{},"open-full-page":{},"confirm-save":{},"cancel-confirmation":{}},"port":{"id":"simai.property-view-port","version":"1.18.0","contract":"src/core/contracts/ports/simai.property-view-port/1.18.0/port.json"},"presentation":{"skeleton":{"file":"skeleton.html","late":[]}},"css-variables":{"--sf-property-view--sections-width":{"type":"length","state":"default"},"--sf-property-view--title-size":{"type":"length","state":"default"},"--sf-property-view--label-size":{"type":"length","state":"default"},"--sf-property-view--value-size":{"type":"length","state":"default"},"--sf-property-view--group-size":{"type":"length","state":"default"},"--sf-property-view--edge-room":{"type":"length","state":"open"}},"host-states":{"data-state":"string","aria-busy":"string"}}');
 
 /***/ },
 
