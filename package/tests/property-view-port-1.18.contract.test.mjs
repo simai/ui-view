@@ -25,11 +25,12 @@ test('port 1.18.0 declares every setting of the set-drawn types', () => {
 
 // C21 (owner, 2026-11-08): h3 rung 3, h4 2, h5 1, h6 1. The record's titles are
 // not content headings, so they read the text ladder, never a heading role:
-// the full title rung 3, the 1/2 title rung 2 (a step down), a group title rung 1.
+// the title rung 2, a window's step (C157 (7), C159 (5); it was rung 3 before
+// view-properties 1.16.0), the 1/2 title rung 2, a group title rung 1.
 test('the titles read the text ladder, not the heading roles', () => {
   const css = read('src/smart/view-properties/js/templates/default.css');
   const js = read('src/smart/view-properties/js/templates/default.js');
-  assert.match(css, /\.sf-property-view-title \{[^}]*font-size: var\(--sf-property-view--title-size, var\(--sf-text--size-3\)\);[^}]*line-height: var\(--sf-property-view--title-height, var\(--sf-title--height-3\)\);/u);
+  assert.match(css, /\.sf-property-view-title \{[^}]*font-size: var\(--sf-property-view--title-size, var\(--sf-text--size-2\)\);[^}]*line-height: var\(--sf-property-view--title-height, var\(--sf-title--height-2\)\);/u);
   assert.match(css, /\.sf-property-view-group-title \{[^}]*font-size: var\(--sf-property-view--group-size, var\(--sf-text--size-1\)\);[^}]*line-height: var\(--sf-property-view--group-height, var\(--sf-title--height-1\)\);/u);
   assert.match(js, /--sf-property-view--title-size: var\(--sf-text--size-2\); --sf-property-view--title-height: var\(--sf-title--height-2\);/u);
   assert.doesNotMatch(`${css}\n${js}`, /--sf-heading-[1-6]--(size|height)/u);

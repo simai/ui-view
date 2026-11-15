@@ -88,8 +88,10 @@ try {
 
   // The closed panel: nothing of it is drawn, and nothing of it takes a press.
   const closedPanel = () => page.evaluate(() => {
-    const edge = document.querySelector('.sf-property-view-edge');
-    const close = edge?.querySelector('[data-action="close"] button') ?? edge?.querySelector('[data-action="close"]');
+    // The close is sf-button-close in the panel's head since view-properties
+    // 1.16.0 (C14, C157 (6)); the edge strip holds copy-link and open-full only.
+    const edge = document.querySelector('.sf-property-view-head [data-action="close"]');
+    const close = edge?.querySelector('button') ?? edge;
     const box = close?.getBoundingClientRect();
     const hit = box && box.width ? document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2) : null;
     const panel = document.querySelector('.sf-property-view-panel')?.closest('.sf-drawer-panel');
@@ -97,12 +99,12 @@ try {
       edge: Boolean(edge), edgeVisibility: edge ? getComputedStyle(edge).visibility : null,
       closeHit: Boolean(hit && close && (hit === close || close.contains(hit))),
       hit: hit ? `${hit.localName}.${[...hit.classList].join('.')}` : null, box: box ? [box.x, box.y, box.width, box.height] : null,
-      count: document.querySelectorAll('.sf-property-view-edge').length, closeTag: close?.localName ?? null,
+      count: document.querySelectorAll('[data-action="close"]').length, closeTag: close?.localName ?? null,
       panelVisibility: panel ? getComputedStyle(panel).visibility : null,
     };
   });
   const closed = await closedPanel();
-  if (closed.edgeVisibility === 'visible' || closed.closeHit) note(`a closed panel draws its close button: ${JSON.stringify(closed)}`);
+  if (closed.closeHit) note(`a closed panel draws its close button: ${JSON.stringify(closed)}`);
   if (closed.panelVisibility === 'visible') note(`a closed panel is visible past the window's edge: ${JSON.stringify(closed)}`);
   await page.evaluate(() => document.getElementById('panel').setAttribute('open', 'true'));
   await page.waitForTimeout(700);
@@ -111,7 +113,7 @@ try {
   await page.evaluate(() => document.getElementById('panel').setAttribute('open', 'false'));
   await page.waitForTimeout(700);
   const closedAgain = await closedPanel();
-  if (closedAgain.edgeVisibility === 'visible' || closedAgain.closeHit || closedAgain.panelVisibility === 'visible') note(`a panel closed again still draws: ${JSON.stringify(closedAgain)}`);
+  if (closedAgain.closeHit || closedAgain.panelVisibility === 'visible') note(`a panel closed again still draws: ${JSON.stringify(closedAgain)}`);
 
   // Dates read in the page's language; the host's own text wins.
   const shown = await page.evaluate(() => Object.fromEntries(['birthday', 'meeting', 'workday'].map((key) => [key,

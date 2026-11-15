@@ -36,5 +36,7 @@ test('the rule and the drop target no longer name the tree', async () => {
   assert.doesNotMatch(element, /sf-tree-item/u);
   assert.match(element, /closest\?\.\("\[data-section-tab\]"\)/u);
   const manifest = JSON.parse(await read('src/smart/view-properties/smart.manifest.json'));
-  assert.equal(manifest.version, '1.14.0');
+  // The change shipped in 1.16.0 (1.14.0 on its own branch was never released).
+  const [major, minor] = manifest.version.split('.').map(Number);
+  assert.ok(major > 1 || (major === 1 && minor >= 16), `version ${manifest.version} carries the vertical tabs`);
 });

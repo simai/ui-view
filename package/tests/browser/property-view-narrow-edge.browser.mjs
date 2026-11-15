@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Usage: node this-file /absolute/path/to/output
-// The record panel's edge controls -- close, copy-link, open-full -- at narrow
+// The record panel's edge controls -- copy-link, open-full -- at narrow
 // widths. Beside a wide panel they stand outside its inline start; in a panel
 // that fills the screen they come inside along its top. The docs review (round 4,
 // 2026-10-20) found them half off the screen in a ~1000px frame and over the
@@ -138,8 +138,10 @@ try {
     measuredAt[width] = seen;
     await page.close();
 
-    if (seen.controls.length !== 3) {
-      note({width, case: 'the strip carries close, copy-link and open-full', got: seen.controls.length, expected: 3});
+    // The close is in the panel's head since view-properties 1.16.0 (C14,
+    // C157 (6)); the strip carries copy-link and open-full.
+    if (seen.controls.length !== 2) {
+      note({width, case: 'the strip carries copy-link and open-full', got: seen.controls.length, expected: 2});
     }
     const off = seen.controls.filter((control) => control.left < 0 || control.right > seen.viewport);
     if (off.length) {

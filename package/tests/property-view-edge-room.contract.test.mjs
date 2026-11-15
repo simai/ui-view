@@ -4,7 +4,7 @@ import {dirname, resolve} from 'node:path';
 import test from 'node:test';
 import {fileURLToPath} from 'node:url';
 
-// The record panel's close, copy-link and open-full controls stand on the
+// The record panel's copy-link and open-full controls stand on the
 // drawer's edge. Beside a wide panel the drawer places them a step beyond the
 // panel's width and does not look at the window, so the panel has to leave them
 // room; in a panel that fills the screen the drawer brings them inside along the
@@ -37,14 +37,17 @@ test('the edge strip is one control and the drawer step on each side', () => {
   // ladder's padding on both sides.
   assert.match(body(source, '    get edgeControlWidth() {'),
     /calc\(var\(--sf-text-height-\$\{step\}\) \+ 2 \* var\(--sf-ui-\$\{step\}--space-y-tightness-default\)\)/u);
+  // The close is in the panel's head since 1.16.0 (C14, C157 (6)): the strip
+  // carries copy-link and open-full only.
   assert.match(body(source, '    get edgeControlCount() {'),
-    /return 1 \+ \(this\.address \? 1 : 0\) \+ \(this\.canOpenFullPage \? 1 : 0\);/u);
+    /return \(this\.address \? 1 : 0\) \+ \(this\.canOpenFullPage \? 1 : 0\);/u);
 });
 
 test('in a panel that fills the screen the strip is a row and the head keeps its room', () => {
   assert.match(template, /function panelFills\(context\) \{\n\s+return !context\.wide \|\| context\.panelSize === 'full';\n\}/u);
   assert.match(template, /class="sf-property-view-edge flex \$\{panelFills\(context\) \? 'flex-row' : 'flex-col'\} gap-1\/2" slot="edge"/u);
-  assert.match(template, /\$\{panelFills\(context\) \? ' sf-property-view-panel--fills' : ''\}/u);
+  assert.match(template, /\$\{panelFills\(context\) && context\.edgeControlCount \? ' sf-property-view-panel--fills' : ''\}/u);
+  assert.match(template, /if \(!context\.edgeControlCount\) return nothing;/u, 'no strip without copy-link or open-full');
   assert.match(template, /--sf-property-view--edge-room: calc\(\$\{context\.edgeControlCount\} \* \$\{context\.edgeControlWidth\} \+ \$\{context\.edgeControlCount - 1\} \* var\(--sf-space-1\\\\\/2\)\);/u);
   assert.match(sheet, /\.sf-property-view-panel--fills \.sf-property-view-head \{\n\s+padding-inline-start: calc\(var\(--sf-space-1\) \+ var\(--sf-property-view--edge-room, 0px\) \+ var\(--sf-space-1\\\/2\)\);\n\s+\}/u);
 });
