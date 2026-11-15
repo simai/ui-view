@@ -7949,7 +7949,24 @@ class SfTable extends TableElement {
         this.drawingWith(() => this.afterDraw());
     }
 
+    // The selection boxes draw their tick only when a box is checked: an
+    // unchecked row's glyph is empty, so the page's first icon font never had
+    // «check», and the first box checked waited for a second font before its
+    // tick showed (0.6 s on a fast line; the Loader keeps an unknown glyph at
+    // font-size 0 until its font is in). A table with boxes asks for the tick
+    // and the head's «remove» with its first font, as sf-segmented and sf-input
+    // ask for the glyphs they will draw (SF.Loader.preloadIcons). Once per
+    // element; a Loader without it answers nothing.
+    preloadSelectionGlyphs() {
+        if (this._selectionGlyphsAsked || !this.getPropsContext().selectable) return;
+        const loader = globalThis.SF?.Loader;
+        if (typeof loader?.preloadIcons !== 'function') return;
+        this._selectionGlyphsAsked = true;
+        loader.preloadIcons(['check', 'remove']);
+    }
+
     afterDraw() {
+        this.preloadSelectionGlyphs();
         this._observeResponsiveBox();
         this.bindRowActionsEvents(this.refs.table?.value);
         this.syncGrid();

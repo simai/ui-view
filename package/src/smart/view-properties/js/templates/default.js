@@ -62,7 +62,7 @@ function renderConfigureBar(context) {
         ></sf-profile-picker>`;
 
     return html`
-        <div class="sf-property-view-actions sf-property-view-configure-bar flex items-cross-center gap-2 flex-wrap"
+        <div class="sf-property-view-actions sf-property-view-configure-bar flex items-cross-center gap-1/3 flex-wrap"
              data-configuring="true" role="group"
              aria-label=${context.configureText}>
             ${chooser}
@@ -355,10 +355,12 @@ function renderField(context, field, editing, sectionKey = '', groupKey = '') {
                     ? html`<i class="sf-icon sf-property-view-grip items-cross-center" data-sf-sortable-handle
                               aria-hidden="true">drag_indicator</i>`
                     : nothing}
-            <div class="sf-property-view-field-label flex items-cross-center gap-1/3 color-on-surface-variant">
+            <!-- Reading: the label is quieter than its value. Editing: a form
+                 field's label, in the text colour with its «*» (C153 (1), (2)). -->
+            <div class="sf-property-view-field-label flex items-cross-center gap-1/3 ${editing ? 'color-on-surface' : 'color-on-surface-variant'}">
                 ${String(field.label ?? key)}
                 ${field.required && editing
-                        ? html`<span class="sf-property-view-required color-error" aria-hidden="true">*</span>`
+                        ? html`<span class="sf-property-view-required" aria-hidden="true">*</span>`
                         : nothing}
                 ${field.hint
                         // The hint is the Framework's own affordance for a hint,
@@ -831,7 +833,7 @@ function sizeStyle(context) {
 // what was entered.
 function renderConfirmation(context) {
     return html`
-        <div class="sf-property-view-actions flex items-cross-center gap-2 flex-wrap" role="group"
+        <div class="sf-property-view-actions flex items-cross-center gap-1/3 flex-wrap" role="group"
              data-confirming="true">
             <span class="sf-property-view-confirm-text" role="alert">${context.confirmation.text}</span>
             <span class="grow"></span>
@@ -843,7 +845,8 @@ function renderConfirmation(context) {
                     @click=${() => context.component.confirmSave()}
             ></sf-button>
             <sf-button
-                    appearance="outline"
+                    appearance="ghost"
+                    scheme="on-surface"
                     size=${context.controlSize ?? nothing}
                     text=${context.keepEditingText}
                     data-action="keep-editing"
@@ -859,7 +862,7 @@ function renderOpenAllBar(context) {
     if (context.confirmation) return renderConfirmation(context);
     const creating = context.mode === 'create';
     return html`
-        <div class="sf-property-view-actions flex items-cross-center gap-2 flex-wrap" role="group">
+        <div class="sf-property-view-actions flex items-cross-center gap-1/3 flex-wrap" role="group">
             <sf-button
                     appearance="default"
                     size=${context.controlSize ?? nothing}
@@ -869,7 +872,8 @@ function renderOpenAllBar(context) {
                     @click=${() => context.component.saveAll()}
             ></sf-button>
             <sf-button
-                    appearance="outline"
+                    appearance="ghost"
+                    scheme="on-surface"
                     size=${context.controlSize ?? nothing}
                     text=${context.cancelText}
                     data-action="cancel"
@@ -904,7 +908,7 @@ function renderActions(context, {panel = false} = {}) {
     if (!context.editing && !removable && !hosted) return nothing;
 
     return html`
-        <div class="sf-property-view-actions flex items-cross-center gap-2 flex-wrap" role="group">
+        <div class="sf-property-view-actions flex items-cross-center gap-1/3 flex-wrap" role="group">
             ${context.editing
                     ? html`
                         <sf-button
@@ -916,7 +920,8 @@ function renderActions(context, {panel = false} = {}) {
                                 @click=${() => context.component.saveGroup()}
                         ></sf-button>
                         <sf-button
-                                appearance="outline"
+                                appearance="ghost"
+                                scheme="on-surface"
                                 size=${context.controlSize ?? nothing}
                                 text=${context.cancelText}
                                 data-action="cancel"
@@ -930,7 +935,7 @@ function renderActions(context, {panel = false} = {}) {
                     ? html`<span class="sf-property-view-conflict color-error" role="alert">${context.conflict}</span>`
                     : nothing}
             <span class="grow"></span>
-            ${hosted ? html`<div class="sf-property-view-host-footer flex flex-wrap items-cross-center gap-2">${context.hostSlot('footer')}</div>` : nothing}
+            ${hosted ? html`<div class="sf-property-view-host-footer flex flex-wrap items-cross-center gap-1/3">${context.hostSlot('footer')}</div>` : nothing}
             ${removable
                     ? html`
                         <sf-button-icon
@@ -1076,11 +1081,31 @@ function renderMenuControl(context) {
     `;
 }
 
+// The panel has one head (C157 (6), C180 (2)): «Назад» when a level is open,
+// the title on the window step (C157 (7) = C159 (5)), the star, the host's
+// actions, the «⋯» and the close, the SIMAI Framework's sf-button-close (C14),
+// last and inside the panel. The close stood outside on the scrim as a round
+// sf-button-icon of the panel's own, and a section opened on a phone added a
+// second head row «← Цены» under this one (R243 study, VP-6 and VP-7). The
+// section screen of a phone is a level of the same panel: its back arrow is in
+// this row and the title names the section, as a record opened from the panel
+// names that record.
 function renderPanelHead(context) {
+    const level = phoneLevel(context);
     return html`
         <header class="sf-property-view-head flex flex-col gap-1">
-            <div class="sf-property-view-title-row flex items-cross-center gap-1 min-w-0">
-                <h2 class="sf-property-view-title min-w-0 overflow-hidden">${context.panelLabel || context.recordLabel || context.recordId || ''}</h2>
+            <div class="sf-property-view-title-row flex items-cross-center gap-1/3 min-w-0">
+                ${level ? html`<sf-button-icon
+                        size=${context.controlSize ?? nothing}
+                        appearance="ghost"
+                        scheme="on-surface"
+                        icon="arrow_back"
+                        data-action="phone-back"
+                        aria-label=${context.backLabel}
+                        title=${context.backLabel}
+                        @click=${() => context.component.closePhoneSection()}
+                ></sf-button-icon>` : nothing}
+                <h2 class="sf-property-view-title min-w-0 overflow-hidden">${level ? context.phoneSectionLabel : (context.panelLabel || context.recordLabel || context.recordId || '')}</h2>
                 <!-- One glyph, filled when the record is a favourite and outlined
                      when it is not: a star that changes shape as well as fill
                      says two things where one will do (owner, 2026-10-08). The
@@ -1102,9 +1127,20 @@ function renderPanelHead(context) {
                 <span class="grow"></span>
                 ${context.hasHostSlot('actions') ? context.hostSlot('actions') : nothing}
                 ${renderMenuControl(context)}
+                <sf-button-close
+                        size=${context.controlSize ?? '1'}
+                        aria-label=${context.closeLabel}
+                        data-action="close"
+                        @click=${() => context.component.closePanel('close')}
+                ></sf-button-close>
             </div>
         </header>
     `;
+}
+
+// A section opened on a phone, inside a panel: a level of the panel (C157 (6)).
+function phoneLevel(context) {
+    return Boolean(context.panel && !context.wide && (context.sections?.length ?? 0) > 1 && context.phoneSection !== null);
 }
 
 // The edge controls stand on a raised surface, elevation 3 as a menu does: its
@@ -1128,20 +1164,11 @@ function panelFills(context) {
 }
 
 function renderPanelControls(context) {
+    // The close is in the head (C14, C157 (6)); the strip keeps copy-link and
+    // open-full, and is not drawn when the host gives neither.
+    if (!context.edgeControlCount) return nothing;
     return html`
-        <div class="sf-property-view-edge flex ${panelFills(context) ? 'flex-row' : 'flex-col'} gap-1/2" slot="edge"
-             aria-label=${context.closeLabel}>
-            <sf-button-icon
-                    appearance="tonal"
-                    scheme="on-surface"
-                    root-style=${EDGE_SURFACE}
-                    size=${context.controlSize ?? nothing}
-                    icon="close"
-                    data-action="close"
-                    aria-label=${context.closeLabel}
-                    title=${context.closeLabel}
-                    @click=${() => context.component.closePanel('close')}
-            ></sf-button-icon>
+        <div class="sf-property-view-edge flex ${panelFills(context) ? 'flex-row' : 'flex-col'} gap-1/2" slot="edge">
             ${context.address
                     ? html`
                         <sf-button-copy
@@ -1497,7 +1524,7 @@ function renderBody(context, railOutside = false, withActions = true) {
              style=${`--sf-property-view--sections-width: ${context.sectionsWidth};${context.panel ? '' : sizeStyle(context)}`}
              data-sections=${String(sections.length)}
              data-screen=${onPhoneSectionList(context, sections) ? 'sections' : 'groups'}>
-            ${!context.wide && sections.length > 1 && context.phoneSection !== null
+            ${!context.panel && !context.wide && sections.length > 1 && context.phoneSection !== null
                     ? renderPhoneSectionHead(context)
                     : nothing}
             ${sidebarDrawn(context) && !railOutside ? renderSectionList(context, sections) : nothing}
@@ -1525,7 +1552,7 @@ function renderBody(context, railOutside = false, withActions = true) {
                         </div>`}
         </div>
         ${withActions && context.hasHostSlot('footer')
-                ? html`<div class="sf-property-view-host-footer flex flex-wrap items-cross-center gap-2">${context.hostSlot('footer')}</div>`
+                ? html`<div class="sf-property-view-host-footer flex flex-wrap items-cross-center gap-1/3">${context.hostSlot('footer')}</div>`
                 : nothing}
         ${withActions ? renderActions(context) : nothing}
     `;
@@ -1593,8 +1620,8 @@ export function renderPropertyViewTemplate(context) {
                 label=${context.panelLabel || context.recordId || ''}
         >
             ${renderPanelControls(context)}
-            <div class="sf-property-view-panel relative flex flex-col gap-2${rail ? ' sf-property-view-panel--railed' : ''}${panelFills(context) ? ' sf-property-view-panel--fills' : ''}"
-                 style=${panelFills(context)
+            <div class="sf-property-view-panel relative flex flex-col gap-2${rail ? ' sf-property-view-panel--railed' : ''}${panelFills(context) && context.edgeControlCount ? ' sf-property-view-panel--fills' : ''}"
+                 style=${panelFills(context) && context.edgeControlCount
                          ? `--sf-property-view--edge-room: calc(${context.edgeControlCount} * ${context.edgeControlWidth} + ${context.edgeControlCount - 1} * var(--sf-space-1\\/2));`
                          : nothing}
                  data-record-id=${context.recordId || ''}

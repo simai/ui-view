@@ -169,7 +169,7 @@ class SfPropertyView extends PropertyViewElement {
             mode: {default: "auto"},
             emptyText: {attribute: "empty-text", default: "not filled in"},
             emptyRecordText: {attribute: "empty-record-text", default: "This record has nothing to show"},
-            editText: {attribute: "edit-text", default: "edit"},
+            editText: {attribute: "edit-text", default: "Edit"},
             saveText: {attribute: "save-text", default: "Save"},
             cancelText: {attribute: "cancel-text", default: "Cancel"},
             deleteText: {attribute: "delete-text", default: "Delete"},
@@ -646,10 +646,11 @@ class SfPropertyView extends PropertyViewElement {
         return `calc(${this.edgeControlWidth} + 2 * var(--sf-space-1\\/2))`;
     }
 
-    // How many controls the strip carries: close always, copy-link with an
-    // address, open-full when the host can open the record as a page.
+    // How many controls the strip carries: copy-link with an address,
+    // open-full when the host can open the record as a page. The close is in
+    // the panel's head since 1.16.0 (C14, C157 (6)).
     get edgeControlCount() {
-        return 1 + (this.address ? 1 : 0) + (this.canOpenFullPage ? 1 : 0);
+        return (this.address ? 1 : 0) + (this.canOpenFullPage ? 1 : 0);
     }
 
     get closeLabel() {

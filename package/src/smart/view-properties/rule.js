@@ -32,6 +32,8 @@ SF.RuleLoader['cl-view-properties'] = {
     { name: 'cl-profile-picker', lazy: true },
     // «Copy link» is sf-button-copy (owner, 2026-10-14).
     { name: 'cl-button-copy' },
+    // The panel's close is sf-button-close, last in the panel's head (C14, C157 (6)).
+    { name: 'cl-button-close' },
     // A record that could not load says why in sf-empty-state.
     { name: 'cl-empty-state' },
     { name: 'cl-progress-scale' },

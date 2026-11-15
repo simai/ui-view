@@ -835,9 +835,8 @@
     font: inherit;
   }
 
-  .sf-property-view-phone-section + .sf-property-view-phone-section {
-    border-block-start: var(--sf-px) solid var(--sf-outline-variant);
-  }
+  /* No lines between the rows (C148 (4)): a list row is told from the next
+     by its own height, as the SIMAI Framework's list draws it. */
 
   .sf-property-view-phone-head {
     min-block-size: var(--sf-ui-2--control-height);
@@ -885,13 +884,13 @@
 
   .sf-property-view-title {
     margin: 0;
-    /* Rung 3, the step the heading-4 role held before the content heading
-       ladder moved it to the body size (tokens.typography 1.2.0, docs review
-       R022) and that the heading ladder (C21) gives h3; a record's name is not
-       a content sub-heading, so it reads the text ladder, not a heading role. */
-    font-size: var(--sf-property-view--title-size, var(--sf-text--size-3));
-    line-height: var(--sf-property-view--title-height, var(--sf-title--height-3));
-    font-weight: 700;
+    /* The title of every window and panel is on the window step, heading-4
+       (20/24, 16 on a phone; C157 (7) = C159 (5)), the step sf-drawer and
+       sf-modal give their own titles; density does not move it (C44). It was
+       rung 3 of the text ladder (24/32), a step above every other window. */
+    font-size: var(--sf-property-view--title-size, var(--sf-heading-4--size));
+    line-height: var(--sf-property-view--title-height, var(--sf-heading-4--height));
+    font-weight: var(--sf-font-weight-bold);
     text-overflow: ellipsis;
     white-space: nowrap;
   }
