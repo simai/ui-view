@@ -129,15 +129,20 @@ test('actions column is a system column', () => {
     assert.match(source, /key: "actions",\s*label: this\.text\("actionsColumnLabel"\),\s*system: true,/);
 });
 
-test('badge option colours accept badge schemes and hex colours only', () => {
+test('badge option colours accept badge schemes, palette hues and hex colours only', () => {
     assert.deepEqual(optionBadgeProps({color: 'success'}), {scheme: 'success', rootStyle: ''});
     // danger is the former name of the badge scheme error (SIMAI Framework display group A).
     assert.deepEqual(optionBadgeProps({color: ' Danger '}), {scheme: 'error', rootStyle: ''});
     assert.deepEqual(optionBadgeProps({color: 'error'}), {scheme: 'error', rootStyle: ''});
+    // A hex from data is drawn in the static palette hue nearest it, tone 50 at
+    // the fill step 24, never as the raw colour; a palette hue by name the same
+    // (SIMAI Framework option-badge helper since ui-141822273efe: C140 (2), BG-7, C17).
     const hex = optionBadgeProps({color: '#16a34a'});
     assert.equal(hex.scheme, 'neutral');
-    assert.match(hex.rootStyle, /color-mix\(in srgb, #16a34a 24%, transparent\)/);
-    for (const color of ['red', '#12', 'url(x)', '#fff;background:red', 'var(--x)', null, 7]) {
+    assert.match(hex.rootStyle, /--sf-badge-background-color: var\(--sf-green-50--alfa-24\)/);
+    assert.doesNotMatch(hex.rootStyle, /#16a34a/);
+    assert.match(optionBadgeProps({color: 'red'}).rootStyle, /var\(--sf-red-50--alfa-24\)/);
+    for (const color of ['crimson', '#12', 'url(x)', '#fff;background:red', 'var(--x)', null, 7]) {
         assert.deepEqual(optionBadgeProps({color}), {scheme: 'neutral', rootStyle: ''});
     }
     assert.deepEqual(optionBadgeProps(), {scheme: 'neutral', rootStyle: ''});

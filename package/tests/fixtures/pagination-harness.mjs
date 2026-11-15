@@ -63,7 +63,12 @@ class FakeElement {
     }
   }
   sfEmit(name, detail) { this.events.push({name, detail}); }
-  sfWord(key) { return '{' + key + '}'; }
+  // A word with its values, so a test can read which numbers a line carries:
+  // {range from=1 to=10 total=450} (sf-pagination 1.5.0 range part, C97 point 2).
+  sfWord(key, options) {
+    const vars = Object.entries(options?.vars ?? {}).map(([name, value]) => ' ' + name + '=' + value).join('');
+    return '{' + key + vars + '}';
+  }
   // The settings the template reads from the element's props (smart-base).
   getPropsContext() { return {size: this.getAttribute('size') || '1', top: this.top, middle: this.middle, bottom: this.bottom}; }
   createTemplateContext(context) { return context; }
@@ -72,6 +77,10 @@ class FakeElement {
   addEventListener() {}
 }
 const elementFromManifest = () => FakeElement;
+// sf-pagination 1.5.0 (C97) notes its compatible footer in SF.deprecations and
+// reads the sm step of the ladder for its numbers: neither is what is checked here.
+const noteDeprecated = () => {};
+const breakpointMedia = () => null;
 const renderPaginationTemplate = () => null;
 `;
 
@@ -90,7 +99,7 @@ export async function loadPagination() {
       read('src/smart/pagination/lang/en.json'),
       read('src/smart/pagination/lang/ru.json'),
     ]);
-    const element = stripImports(index, 7, 'src/smart/pagination/index.js')
+    const element = stripImports(index, 9, 'src/smart/pagination/index.js')
       .replace(/^SfPagination\.define\("sf-pagination"\);$/mu, 'export default SfPagination;');
     if (!/export default SfPagination;/u.test(element)) {
       throw new Error('src/smart/pagination/index.js: SfPagination.define("sf-pagination") not found');
