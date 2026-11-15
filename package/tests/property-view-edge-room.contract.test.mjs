@@ -45,9 +45,11 @@ test('the edge strip is one control and the drawer step on each side', () => {
 
 test('in a panel that fills the screen the strip is a row and the head keeps its room', () => {
   assert.match(template, /function panelFills\(context\) \{\n\s+return !context\.wide \|\| context\.panelSize === 'full';\n\}/u);
-  assert.match(template, /class="sf-property-view-edge flex \$\{panelFills\(context\) \? 'flex-row' : 'flex-col'\} gap-1\/2" slot="edge"/u);
+  assert.match(template, /class="sf-property-view-edge \$\{shown \? `flex \$\{panelFills\(context\) \? 'flex-row' : 'flex-col'\} gap-1\/2` : ''\}" slot="edge" \?hidden=\$\{!shown\}>/u);
   assert.match(template, /\$\{panelFills\(context\) && context\.edgeControlCount \? ' sf-property-view-panel--fills' : ''\}/u);
-  assert.match(template, /if \(!context\.edgeControlCount\) return nothing;/u, 'no strip without copy-link or open-full');
+  // Drawn from the first render (sf-drawer takes it into its edge area then)
+  // and hidden without copy-link or open-full.
+  assert.match(template, /const shown = Boolean\(context\.edgeControlCount\);/u, 'no strip without copy-link or open-full');
   assert.match(template, /--sf-property-view--edge-room: calc\(\$\{context\.edgeControlCount\} \* \$\{context\.edgeControlWidth\} \+ \$\{context\.edgeControlCount - 1\} \* var\(--sf-space-1\\\\\/2\)\);/u);
   assert.match(sheet, /\.sf-property-view-panel--fills \.sf-property-view-head \{\n\s+padding-inline-start: calc\(var\(--sf-space-1\) \+ var\(--sf-property-view--edge-room, 0px\) \+ var\(--sf-space-1\\\/2\)\);\n\s+\}/u);
 });
