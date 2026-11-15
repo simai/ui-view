@@ -96,6 +96,7 @@
         "cl-avatar",
         "cl-badge",
         "cl-button",
+        "cl-button-close",
         "cl-button-copy",
         "cl-button-icon",
         "cl-checkbox",
@@ -125,8 +126,6 @@
         "cl-switch",
         "cl-tabs",
         "cl-tag",
-        "cl-tree",
-        "cl-tree-item",
         "cl-view",
         "cl-view-table"
       ],

@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-table",
-  "version": "1.19.5",
+  "version": "1.19.6",
   "title": "Table",
   "summary": "Complete server-backed collection view with search, filters, table preferences, row and bulk actions, and pagination.",
   "kind": "composite",
@@ -2787,6 +2787,13 @@
         "changes": [
           "The printed first paint and the drawn table lay the columns out by one rule (standard 1.3.8 gate 24): every data column at its content width on one line, the last data column nobody sized taking the spare room, the select, settings and actions columns at their declared widths. The unmeasured content-sized table had shared the spare room between every column and drew the select column as wide as its box's label wanted (50 against 42), and the measured widths were rounded up to the 4px grid with a pixel to spare, so every printed cell moved when the code measured (typed-cells: CLS 0.035 at 1280, 0.041 at 1440, 0.002 at 390). The measured width is now the content's own (the printed first paint carries no measured width, §5.4, and is laid out in the page's own face); the spare-room column is marked in the markup (data-sf-spare-room on its col); a table with rows is content-sized from its first render, where it was drawn for a frame as a fixed table as wide as its content; a content-sized table takes no column floor (the spare-room column stood at 160 on a phone, wider than its content). The column window's footer stands on the menu's own inset (SIMAI Framework C105 H4, C106): the table zeroed sf-menu-context's inline content padding, from which the head, the top and the footer take their margin, so the footer's buttons stood 11 from the panel's padding edge while the search and the rows stood at 15 (the plates' inset 3 plus the item inset 12, where the Framework's panel rows put their text); the window's blocks now start on one axis. Nothing to change for a host."
         ]
+      },
+      {
+        "from": "1.19.5",
+        "to": "1.19.6",
+        "changes": [
+          "A table with selection boxes asks the Loader for the tick («check») and the head's «remove» with its first icon font (SF.Loader.preloadIcons, as sf-segmented and sf-input ask for the glyphs they will draw). An unchecked row's glyph is empty, so the page's font never had the tick and the first box checked waited for a second font before its tick showed (0.6 s on a fast line, longer on a slow one; DEV recipes p1, owner remark). Nothing to change for a host."
+        ]
       }
     ]
   },
@@ -2796,7 +2803,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-table/index.js",
-        "sha256": "f193a7a87fb7cd5e4cfb8508c1cb75481b62aa325c620fb60fa429ef88d867b1"
+        "sha256": "a3bece4433e81427fbe446101693519f899acf06b9a5f51e62c31fc413c2ab12"
       },
       {
         "path": "src/smart/view-table/js/templates/default.js",

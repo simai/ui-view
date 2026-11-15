@@ -4924,7 +4924,7 @@ class SfPropertyView extends PropertyViewElement {
       },
       editText: {
         attribute: "edit-text",
-        default: "edit"
+        default: "Edit"
       },
       saveText: {
         attribute: "save-text",
@@ -5611,12 +5611,13 @@ class SfPropertyView extends PropertyViewElement {
 
   get edgeRoom() {
     return `calc(${this.edgeControlWidth} + 2 * var(--sf-space-1\\/2))`;
-  } // How many controls the strip carries: close always, copy-link with an
-  // address, open-full when the host can open the record as a page.
+  } // How many controls the strip carries: copy-link with an address,
+  // open-full when the host can open the record as a page. The close is in
+  // the panel's head since 1.16.0 (C14, C157 (6)).
 
 
   get edgeControlCount() {
-    return 1 + (this.address ? 1 : 0) + (this.canOpenFullPage ? 1 : 0);
+    return (this.address ? 1 : 0) + (this.canOpenFullPage ? 1 : 0);
   }
 
   get closeLabel() {
@@ -8242,10 +8243,11 @@ class SfPropertyView extends PropertyViewElement {
     const sectionAt = (x, y) => {
       const under = globalThis.document?.elementFromPoint?.(x, y); // While the view is arranged the sections are rows of their own, so a
       // field may be dropped on a tab the same way it is dropped on a group.
-      // sf-tree 2.0 draws its entries as rows of class markup, each named
-      // by data-value (the section key).
+      // This target is bound only while the view is arranged, and then the
+      // sections are those rows (data-section-tab, the section key); the
+      // reading list (sf-tabs) is never drawn at the same time.
 
-      const item = under?.closest?.("[data-section-tab], .sf-tree-item[data-value]"); // Another panel's list is not this panel's drop target. The drawer
+      const item = under?.closest?.("[data-section-tab]"); // Another panel's list is not this panel's drop target. The drawer
       // moves the content out of the element, so asking `closest` for an
       // sf-view-properties finds nothing at all -- which is why the first
       // version of this resolved on no section and a field dropped on the
@@ -8263,17 +8265,16 @@ class SfPropertyView extends PropertyViewElement {
         if (session?.group && !["field", "group"].includes(session.group)) return null;
         const item = sectionAt(x, y);
         if (!item) return null;
-        const key = item.getAttribute("data-section-tab") ?? item.getAttribute("data-value");
-        if (key === this.selectedSection) return null; // A tree row's own box holds its children too; the line the
-        // indicator marks is the row's container.
+        const key = item.getAttribute("data-section-tab");
+        if (key === this.selectedSection) return null; // The row's name, not its handle or icon: those are glyph
+        // ligatures, and their words would be read into the label.
 
-        const shown = item.matches("[data-section-tab]") ? item : item.querySelector(":scope > .sf-tree-item-container") || item;
         return {
           descriptor: {
             section: key
           },
-          rect: shown.getBoundingClientRect(),
-          label: item.querySelector(":scope > .sf-tree-item-container > .sf-tree-item-name")?.textContent?.trim() || item.textContent?.trim() || key
+          rect: item.getBoundingClientRect(),
+          label: item.querySelector(".sf-property-view-section-tab-label")?.textContent?.trim() || item.textContent?.trim() || key
         };
       },
       drop: (session, descriptor) => {
@@ -10657,7 +10658,7 @@ function renderConfigureBar(context) {
                 @sf-profile-picker-delete=${event => context.component.deleteViewProfile(event.detail.id)}
         ></sf-profile-picker>`;
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
-        <div class="sf-property-view-actions sf-property-view-configure-bar flex items-cross-center gap-2 flex-wrap"
+        <div class="sf-property-view-actions sf-property-view-configure-bar flex items-cross-center gap-1/3 flex-wrap"
              data-configuring="true" role="group"
              aria-label=${context.configureText}>
             ${chooser}
@@ -10944,9 +10945,11 @@ function renderField(context, field, editing, sectionKey = '', groupKey = '') {
              data-hidden=${context.configuring && field.hidden ? 'true' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}>
             ${context.configuring ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<i class="sf-icon sf-property-view-grip items-cross-center" data-sf-sortable-handle
                               aria-hidden="true">drag_indicator</i>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
-            <div class="sf-property-view-field-label flex items-cross-center gap-1/3 color-on-surface-variant">
+            <!-- Reading: the label is quieter than its value. Editing: a form
+                 field's label, in the text colour with its «*» (C153 (1), (2)). -->
+            <div class="sf-property-view-field-label flex items-cross-center gap-1/3 ${editing ? 'color-on-surface' : 'color-on-surface-variant'}">
                 ${String(field.label ?? key)}
-                ${field.required && editing ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-property-view-required color-error" aria-hidden="true">*</span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                ${field.required && editing ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-property-view-required" aria-hidden="true">*</span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                 ${field.hint // The hint is the Framework's own affordance for a hint,
   // sf-help-mark: a button that opens a short explanation on
   // a press, by touch, by pointer and by keyboard alike, and
@@ -11227,48 +11230,67 @@ function renderPhoneSectionHead(context) {
 function renderSectionList(context, sections) {
   // One section is drawn as its groups alone: a list of one is a control nobody
   // can use, and the consumer's request asks for the groups to stand alone.
-  if (sections.length < 2 && !context.configuring) return lit__WEBPACK_IMPORTED_MODULE_0__.nothing;
+  if (sections.length < 2 && !context.configuring) return lit__WEBPACK_IMPORTED_MODULE_0__.nothing; // Reading, the column holds one tablist, which is named itself; a landmark
+  // around it would name the same list twice and call a set of panels a
+  // navigation. Arranged, the column is this component's own rows.
+
+  if (!context.configuring) {
+    return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+            <div class="sf-property-view-sections self-cross-stretch flex flex-col min-w-0">
+                ${renderSectionVerticalTabs(context, sections)}
+            </div>
+        `;
+  }
+
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
         <nav class="sf-property-view-sections self-cross-stretch flex flex-col min-w-0" aria-label=${context.sectionsLabel}>
-            ${context.configuring ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
-                        ${renderSectionTabsArranged(context, sections)}
-                        <div class="sf-property-view-additions flex">${renderAddSection(context)}</div>` : renderSectionTree(context, sections)}
+            ${renderSectionTabsArranged(context, sections)}
+            <div class="sf-property-view-additions flex">${renderAddSection(context)}</div>
         </nav>
     `;
-} // Reading: the sections are a tree, which carries the keyboard walk and the
-// selection a list of destinations needs.
+} // Reading: the sections are vertical tabs (decision C96 point 5). They switch
+// which of the record's parts is shown, in place -- a tablist with one selected
+// tab, the same thing the row of tabs above the groups is. A tree said "one
+// level of a hierarchy" and drew a folder beside a section without an icon of
+// its own; a menu column (C30) is for places with their own addresses, and a
+// section is not one.
 //
-// The items are given as data rather than as children: sf-tree reads its child
-// items once and removes them, so a section renamed while the view is being
-// arranged kept its old name in this list.
+// The items are given as data (the property), not as the `|` string the row
+// uses: a section's icon travels as the entry's icon (sf-tabs reads a list as
+// `{id, label, icon}` entries, released since sf-tabs 1.1.16), and a label is
+// read as text, so neither `|` nor `::` in a name is taken as structure.
+// `selected` names the tab by the section key, so a section added or removed
+// before the selected one keeps the selection on the right tab.
 
 
-function renderSectionTree(context, sections) {
+function renderSectionVerticalTabs(context, sections) {
   const items = sections.map(section => ({
+    id: String(section.key),
     label: sectionName(context, section),
-    value: String(section.key),
-    selected: String(section.key) === context.selectedSection,
-    openIcon: section.icon ? String(section.icon) : '',
-    closedIcon: section.icon ? String(section.icon) : ''
-  })); // selection "one": sf-tree 2.0's name for a single choice; its manifest
-  // declares it since sf-tree 2.0.1 ("single" is a former value until
-  // 2026-12-01).
-
+    ...(section.icon ? {
+      icon: String(section.icon)
+    } : {})
+  }));
+  const selected = sections.some(section => String(section.key) === context.selectedSection) ? context.selectedSection : String(sections[0]?.key ?? '');
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
-        <sf-tree
-                selection="one"
+        <sf-tabs
+                class="sf-property-view-section-list"
+                type="vertical"
+                size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                selected=${selected}
+                aria-label=${context.sectionsLabel}
                 .items=${items}
-                @sf-tree-select=${event => {
-    // sf-tree 2.0 (standard 1.3.8 §8): select carries the entry's
-    // id, which is the section key given as its value.
-    const id = event.detail?.id;
-    if (id) context.component.selectSection(String(id));
+                @sf-tabs-change=${event => {
+    // sf-tabs (standard 1.3.8 §8): change carries the entry's id,
+    // which is the section key.
+    const id = event.detail?.selected ?? sections[Number(event.detail?.current)]?.key;
+    if (id !== undefined && id !== null && id !== '') context.component.selectSection(String(id));
   }}
-        ></sf-tree>
+        ></sf-tabs>
     `;
 } // Arranging: the same tabs, in an order a drag can change, and each one still a
-// place to drop a field or an area. A tree cannot be reordered by a pointer --
-// it takes its items once and owns their rows -- so while the view is arranged
+// place to drop a field or an area. Tabs cannot be reordered by a pointer --
+// sf-tabs owns its tab buttons -- so while the view is arranged
 // the tabs are rows of this component's own, which is also what lets a tab carry
 // a handle.
 
@@ -11293,16 +11315,15 @@ function renderSectionTabsArranged(context, sections) {
                 >
                     <i class="sf-icon sf-property-view-section-grip color-on-surface-variant" data-sf-sortable-handle
                        aria-hidden="true">drag_indicator</i>
-                    <i class="sf-icon" aria-hidden="true">${section.icon ? String(section.icon) : 'folder'}</i>
+                    ${section.icon ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<i class="sf-icon" aria-hidden="true">${String(section.icon)}</i>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                     <span class="sf-property-view-section-tab-label flex-auto min-w-0">${sectionName(context, section)}</span>
                 </button>
             `)}
         </sf-sortable>
     `;
-} // A rare section says so in its own name. A tree row takes a label string and
-// draws it as text -- markup put into sf-tree-item once printed lit's own
-// markers into the list -- so a trailing mark of its own is a gap in that
-// component rather than something to work around here.
+} // A rare section says so in its own name. A tab takes a label string and draws
+// it as text, so a trailing mark of its own is a gap in that component rather
+// than something to work around here.
 
 
 function sectionName(context, section) {
@@ -11368,7 +11389,7 @@ function sizeStyle(context) {
 
 function renderConfirmation(context) {
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
-        <div class="sf-property-view-actions flex items-cross-center gap-2 flex-wrap" role="group"
+        <div class="sf-property-view-actions flex items-cross-center gap-1/3 flex-wrap" role="group"
              data-confirming="true">
             <span class="sf-property-view-confirm-text" role="alert">${context.confirmation.text}</span>
             <span class="grow"></span>
@@ -11380,7 +11401,8 @@ function renderConfirmation(context) {
                     @click=${() => context.component.confirmSave()}
             ></sf-button>
             <sf-button
-                    appearance="outline"
+                    appearance="ghost"
+                    scheme="on-surface"
                     size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                     text=${context.keepEditingText}
                     data-action="keep-editing"
@@ -11396,7 +11418,7 @@ function renderOpenAllBar(context) {
   if (context.confirmation) return renderConfirmation(context);
   const creating = context.mode === 'create';
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
-        <div class="sf-property-view-actions flex items-cross-center gap-2 flex-wrap" role="group">
+        <div class="sf-property-view-actions flex items-cross-center gap-1/3 flex-wrap" role="group">
             <sf-button
                     appearance="default"
                     size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
@@ -11406,7 +11428,8 @@ function renderOpenAllBar(context) {
                     @click=${() => context.component.saveAll()}
             ></sf-button>
             <sf-button
-                    appearance="outline"
+                    appearance="ghost"
+                    scheme="on-surface"
                     size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                     text=${context.cancelText}
                     data-action="cancel"
@@ -11438,7 +11461,7 @@ function renderActions(context, {
   const hosted = panel && context.hasHostSlot('footer');
   if (!context.editing && !removable && !hosted) return lit__WEBPACK_IMPORTED_MODULE_0__.nothing;
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
-        <div class="sf-property-view-actions flex items-cross-center gap-2 flex-wrap" role="group">
+        <div class="sf-property-view-actions flex items-cross-center gap-1/3 flex-wrap" role="group">
             ${context.editing ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
                         <sf-button
                                 appearance="default"
@@ -11449,7 +11472,8 @@ function renderActions(context, {
                                 @click=${() => context.component.saveGroup()}
                         ></sf-button>
                         <sf-button
-                                appearance="outline"
+                                appearance="ghost"
+                                scheme="on-surface"
                                 size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                                 text=${context.cancelText}
                                 data-action="cancel"
@@ -11458,7 +11482,7 @@ function renderActions(context, {
             ${context.errors.size ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-property-view-errors color-error">${context.errorsText}: ${context.errors.size}</span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
             ${context.conflict ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-property-view-conflict color-error" role="alert">${context.conflict}</span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
             <span class="grow"></span>
-            ${hosted ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<div class="sf-property-view-host-footer flex flex-wrap items-cross-center gap-2">${context.hostSlot('footer')}</div>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+            ${hosted ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<div class="sf-property-view-host-footer flex flex-wrap items-cross-center gap-1/3">${context.hostSlot('footer')}</div>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
             ${removable ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
                         <sf-button-icon
                                 appearance="ghost"
@@ -11596,13 +11620,36 @@ function renderMenuControl(context) {
         ></sf-button-icon>
         ${host ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<div class="sf-property-view-host-menu" data-host-menu hidden>${host}</div>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
     `;
-}
+} // The panel has one head (C157 (6), C180 (2)): «Назад» when a level is open,
+// the title on the window step (C157 (7) = C159 (5)), the star, the host's
+// actions, the «⋯» and the close, the SIMAI Framework's sf-button-close (C14),
+// last and inside the panel. The close stood outside on the scrim as a round
+// sf-button-icon of the panel's own, and a section opened on a phone added a
+// second head row «← Цены» under this one (R243 study, VP-6 and VP-7). The
+// section screen of a phone is a level of the same panel: its back arrow is in
+// this row and the title names the section, as a record opened from the panel
+// names that record. The row's layout (a row, centred, 8 apart, the spacer
+// before the host's actions) is the component's own sheet, not utilities: the
+// Loader asks for a utility sheet only after the first render, so the close
+// stood beside the star for ~115 ms and then jumped to the end (D1, 1.16.3).
+
 
 function renderPanelHead(context) {
+  const level = phoneLevel(context);
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
         <header class="sf-property-view-head flex flex-col gap-1">
-            <div class="sf-property-view-title-row flex items-cross-center gap-1 min-w-0">
-                <h2 class="sf-property-view-title min-w-0 overflow-hidden">${context.panelLabel || context.recordLabel || context.recordId || ''}</h2>
+            <div class="sf-property-view-title-row">
+                ${level ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<sf-button-icon
+                        size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                        appearance="ghost"
+                        scheme="on-surface"
+                        icon="arrow_back"
+                        data-action="phone-back"
+                        aria-label=${context.backLabel}
+                        title=${context.backLabel}
+                        @click=${() => context.component.closePhoneSection()}
+                ></sf-button-icon>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                <h2 class="sf-property-view-title min-w-0 overflow-hidden">${level ? context.phoneSectionLabel : context.panelLabel || context.recordLabel || context.recordId || ''}</h2>
                 <!-- One glyph, filled when the record is a favourite and outlined
                      when it is not: a star that changes shape as well as fill
                      says two things where one will do (owner, 2026-10-08). The
@@ -11621,12 +11668,23 @@ function renderPanelHead(context) {
                         aria-label=${context.favouriteLabel}
                         @click=${() => context.component.toggleFavourite()}
                 ></sf-button-icon>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
-                <span class="grow"></span>
+                <span class="sf-property-view-head-spacer"></span>
                 ${context.hasHostSlot('actions') ? context.hostSlot('actions') : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                 ${renderMenuControl(context)}
+                <sf-button-close
+                        size=${context.controlSize ?? '1'}
+                        aria-label=${context.closeLabel}
+                        data-action="close"
+                        @click=${() => context.component.closePanel('close')}
+                ></sf-button-close>
             </div>
         </header>
     `;
+} // A section opened on a phone, inside a panel: a level of the panel (C157 (6)).
+
+
+function phoneLevel(context) {
+  return Boolean(context.panel && !context.wide && (context.sections?.length ?? 0) > 1 && context.phoneSection !== null);
 } // The edge controls stand on a raised surface, elevation 3 as a menu does: its
 // own fill and shadow, and the text role that goes with it. On --sf-surface-page
 // they were the page's darkest colour on a dimmed page in the dark theme and
@@ -11649,20 +11707,15 @@ function panelFills(context) {
 }
 
 function renderPanelControls(context) {
+  // The close is in the head (C14, C157 (6)); the strip keeps copy-link and
+  // open-full, and is hidden when the host gives neither. It is drawn from the
+  // first render all the same: sf-drawer takes a slot="edge" child into its
+  // edge area when it renders or when one is added to it directly, not when
+  // one appears later deeper in its content, so a strip drawn only once the
+  // record said it has an address stayed in the panel's body, over the record.
+  const shown = Boolean(context.edgeControlCount);
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
-        <div class="sf-property-view-edge flex ${panelFills(context) ? 'flex-row' : 'flex-col'} gap-1/2" slot="edge"
-             aria-label=${context.closeLabel}>
-            <sf-button-icon
-                    appearance="tonal"
-                    scheme="on-surface"
-                    root-style=${EDGE_SURFACE}
-                    size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
-                    icon="close"
-                    data-action="close"
-                    aria-label=${context.closeLabel}
-                    title=${context.closeLabel}
-                    @click=${() => context.component.closePanel('close')}
-            ></sf-button-icon>
+        <div class="sf-property-view-edge ${shown ? `flex ${panelFills(context) ? 'flex-row' : 'flex-col'} gap-1/2` : ''}" slot="edge" ?hidden=${!shown}>
             ${context.address ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
                         <sf-button-copy
                                 appearance="tonal"
@@ -11702,8 +11755,8 @@ function renderPanelControls(context) {
 function onPhoneSectionList(context, sections) {
   return !context.wide && sections.length > 1 && context.phoneSection === null;
 } // The section being arranged, named where its areas are. The section list is
-// drawn by sf-tree, whose rows take a label as a string and nothing else
-// (sf-tree 2.0 draws class markup, not sf-tree-item elements), so neither a pencil nor a field can stand in the list
+// drawn by sf-tabs, whose tabs take a label as a string and nothing else, so
+// neither a pencil nor a field can stand in the list
 // itself -- and a section shown as a tab has no list at all. The name of the
 // place you are arranging belongs above the things you are arranging anyway.
 
@@ -12005,7 +12058,7 @@ function renderBody(context, railOutside = false, withActions = true) {
              style=${`--sf-property-view--sections-width: ${context.sectionsWidth};${context.panel ? '' : sizeStyle(context)}`}
              data-sections=${String(sections.length)}
              data-screen=${onPhoneSectionList(context, sections) ? 'sections' : 'groups'}>
-            ${!context.wide && sections.length > 1 && context.phoneSection !== null ? renderPhoneSectionHead(context) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+            ${!context.panel && !context.wide && sections.length > 1 && context.phoneSection !== null ? renderPhoneSectionHead(context) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
             ${sidebarDrawn(context) && !railOutside ? renderSectionList(context, sections) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
             ${context.isEmptyRecord && !context.configuring ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<p class="sf-property-view-empty-record color-on-surface-variant"
                               role="status">${context.emptyRecordText}</p>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
@@ -12026,7 +12079,7 @@ function renderBody(context, railOutside = false, withActions = true) {
                             ${context.visible(current?.groups).map(group => renderGroup(context, current, group))}
                         </div>`}
         </div>
-        ${withActions && context.hasHostSlot('footer') ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<div class="sf-property-view-host-footer flex flex-wrap items-cross-center gap-2">${context.hostSlot('footer')}</div>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+        ${withActions && context.hasHostSlot('footer') ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<div class="sf-property-view-host-footer flex flex-wrap items-cross-center gap-1/3">${context.hostSlot('footer')}</div>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
         ${withActions ? renderActions(context) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
     `;
 } // A deeper window is narrower by a step, so the one below shows along the
@@ -12070,8 +12123,9 @@ function renderPropertyViewTemplate(context) {
   // scrollbar: a long list of sections scrolls without moving the record, and
   // a long record scrolls without moving the list.
 
-  const rail = sidebarDrawn(context); // `show-close` is off because the panel draws its own close, in the strip
-  // beside copy-link and open-full. With both, a panel carried two close
+  const rail = sidebarDrawn(context); // `show-close` is off because the panel draws its own close, sf-button-close
+  // last in its head (1.16.0; it stood in the strip beside copy-link and
+  // open-full before). With both, a panel carried two close
   // buttons a step apart, and on a phone neither was reachable: the strip is
   // placed a gutter's width beyond the panel's inline start, which on a
   // full-screen drawer is off the screen.
@@ -12091,8 +12145,8 @@ function renderPropertyViewTemplate(context) {
                 label=${context.panelLabel || context.recordId || ''}
         >
             ${renderPanelControls(context)}
-            <div class="sf-property-view-panel relative flex flex-col gap-2${rail ? ' sf-property-view-panel--railed' : ''}${panelFills(context) ? ' sf-property-view-panel--fills' : ''}"
-                 style=${panelFills(context) ? `--sf-property-view--edge-room: calc(${context.edgeControlCount} * ${context.edgeControlWidth} + ${context.edgeControlCount - 1} * var(--sf-space-1\\/2));` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+            <div class="sf-property-view-panel relative flex flex-col gap-2${rail ? ' sf-property-view-panel--railed' : ''}${panelFills(context) && context.edgeControlCount ? ' sf-property-view-panel--fills' : ''}"
+                 style=${panelFills(context) && context.edgeControlCount ? `--sf-property-view--edge-room: calc(${context.edgeControlCount} * ${context.edgeControlWidth} + ${context.edgeControlCount - 1} * var(--sf-space-1\\/2));` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                  data-record-id=${context.recordId || ''}
             >
                 ${renderPanelHead(context)}
@@ -13337,21 +13391,21 @@ module.exports = /*#__PURE__*/JSON.parse('{"$comment":"Dated aliases of sf-view-
 /***/ "3ea81f4c3c20"
 (module) {
 
-module.exports = /*#__PURE__*/JSON.parse('{"id":"smart.view-properties","tag":"sf-view-properties","version":"1.15.2","kind":"leaf","implements":["record-view@1"],"settings":{"add-field-text":{"type":"string","default-from":"runtime.add-field-text"},"add-group-text":{"type":"string","default-from":"runtime.add-group-text"},"add-section-text":{"type":"string","default-from":"runtime.add-section-text"},"back-label":{"type":"string","default-from":"runtime.back-label"},"cancel-configuring-text":{"type":"string","default-from":"runtime.cancel-configuring-text"},"cancel-name-text":{"type":"string","default-from":"runtime.cancel-name-text"},"cancel-text":{"type":"string","default-from":"runtime.cancel-text"},"changed-text":{"type":"string","default-from":"runtime.changed-text"},"close-label":{"type":"string","default-from":"runtime.close-label"},"collection":{"type":"string","default":""},"collection-icon":{"type":"icon","default":""},"collection-label":{"type":"string","default":""},"configure-hint-narrow-text":{"type":"string","default-from":"runtime.configure-hint-narrow-text"},"configure-hint-text":{"type":"string","default-from":"runtime.configure-hint-text"},"configure-text":{"type":"string","default-from":"runtime.configure-text"},"conflict-text":{"type":"string","default-from":"runtime.conflict-text"},"copy-link-label":{"type":"string","default-from":"runtime.copy-link-label"},"delete-text":{"type":"string","default-from":"runtime.delete-text"},"done-configuring-text":{"type":"string","default-from":"runtime.done-configuring-text"},"edit-text":{"type":"string","default-from":"runtime.edit-text"},"empty-record-text":{"type":"string","default-from":"runtime.empty-record-text"},"empty-text":{"type":"string","default-from":"runtime.empty-text"},"errors-text":{"type":"string","default-from":"runtime.errors-text"},"favourite":{"type":"boolean","default":false},"favourite-label":{"type":"string","default-from":"runtime.favourite-label"},"field-label-text":{"type":"string","default-from":"runtime.field-label-text"},"field-settings-text":{"type":"string","default-from":"runtime.field-settings-text"},"hidden-text":{"type":"string","default-from":"runtime.hidden-text"},"hide-rare-text":{"type":"string","default-from":"runtime.hide-rare-text"},"hint-text":{"type":"string","default-from":"runtime.hint-text"},"in-this-group-text":{"type":"string","default-from":"runtime.in-this-group-text"},"inherited-text":{"type":"string","default-from":"runtime.inherited-text"},"link-copied-label":{"type":"string","default-from":"runtime.link-copied-label"},"menu-label":{"type":"string","default-from":"runtime.menu-label"},"move-down-text":{"type":"string","default-from":"runtime.move-down-text"},"move-up-text":{"type":"string","default-from":"runtime.move-up-text"},"new-group-title":{"type":"string","default-from":"runtime.new-group-title"},"new-section-title":{"type":"string","default-from":"runtime.new-section-title"},"no-match-text":{"type":"string","default-from":"runtime.no-match-text"},"open-full-label":{"type":"string","default-from":"runtime.open-full-label"},"panel":{"type":"boolean","default":false},"panel-label":{"type":"string","default":""},"panel-size":{"type":"enum","values":["1/2","1","2","full"],"default":"1"},"size":{"type":"enum","values":["1","1/2"],"default":"1"},"mode":{"type":"enum","values":["view","auto","edit","create"],"default":"auto"},"panel-width":{"type":"string","default":""},"personal-layer-text":{"type":"string","default-from":"runtime.personal-layer-text"},"rare-text":{"type":"string","default-from":"runtime.rare-text"},"record-id":{"type":"id","default":""},"remove-field-text":{"type":"string","default-from":"runtime.remove-field-text"},"remove-group-text":{"type":"string","default-from":"runtime.remove-group-text"},"remove-section-text":{"type":"string","default-from":"runtime.remove-section-text"},"rename-text":{"type":"string","default-from":"runtime.rename-text"},"reset-view-ask-text":{"type":"string","default-from":"runtime.reset-view-ask-text"},"reset-view-text":{"type":"string","default-from":"runtime.reset-view-text"},"save-name-text":{"type":"string","default-from":"runtime.save-name-text"},"save-text":{"type":"string","default-from":"runtime.save-text"},"section-icon-text":{"type":"string","default-from":"runtime.section-icon-text"},"section-icons":{"type":"string","default":""},"sections-as":{"type":"enum","values":["list","tabs"],"default":"list"},"sections-label":{"type":"string","default-from":"runtime.sections-label"},"shared-layer-text":{"type":"string","default-from":"runtime.shared-layer-text"},"show-rare":{"type":"boolean","default":false},"show-rare-text":{"type":"string","default-from":"runtime.show-rare-text"},"shown-text":{"type":"string","default-from":"runtime.shown-text"},"unplaced-hint-text":{"type":"string","default-from":"runtime.unplaced-hint-text"},"unplaced-title":{"type":"string","default-from":"runtime.unplaced-title"},"variant-text":{"type":"string","default-from":"runtime.variant-text"},"view-conflict-text":{"type":"string","default-from":"runtime.view-conflict-text"},"view-denied-text":{"type":"string","default-from":"runtime.view-denied-text"},"width-text":{"type":"string","default-from":"runtime.width-text"},"view-profile-label":{"type":"string","default-from":"runtime.view-profile-label"},"add-view-text":{"type":"string","default-from":"runtime.add-view-text"},"new-view-text":{"type":"string","default-from":"runtime.new-view-text"},"delete-view-text":{"type":"string","default-from":"runtime.delete-view-text"},"last-shared-view-text":{"type":"string","default-from":"runtime.last-shared-view-text"},"full":{"type":"boolean","default":false},"open":{"type":"boolean","default":true}},"values":{"revision":{"type":"string"},"section":{"type":"string"}},"events":{"close":{"carries":{"reason":{"type":"enum","values":["close","escape","outside","cancelled","deleted","api"]},"record_id":{"type":"id","nullable":true},"unsaved_fields":{"type":"list"}},"cancelable":true},"open-full":{"carries":{"id":"id","address":"string","record_id":{"type":"id","nullable":true}}},"saved":{"carries":{"id":"id","revision":{"type":"string","optional":true}}},"failed":{"carries":{"reason":"string","message":{"type":"string","optional":true}}},"open":{"carries":{"field":"string","value":"object","answer":"string"}},"delete":{"carries":{"collection":"string","revision":"string","answer":"string","record_id":{"type":"id","nullable":true}}},"created":{"carries":{"collection":{"type":"string","nullable":true},"record_id":{"type":"id","nullable":true}}},"cancel":{"carries":{"mode":{"type":"enum","values":["auto","edit","create"]},"scope":{"type":"enum","values":["group"],"optional":true},"section":{"type":"string","optional":true},"group":{"type":"string","optional":true}}},"state":{"carries":{"state":"string","message":"string"},"own-verb":true},"address-copy":{"carries":{},"own-verb":true},"favourite":{"carries":{"collection":{"type":"string","nullable":true},"favourite":"boolean","record_id":{"type":"id","nullable":true}},"own-verb":true}},"actions":{"refresh":{},"load":{"with":{"reason":{"type":"string","optional":true}}},"edit-group":{"with":{"section":"string","group":"string"}},"cancel-edit":{},"save-group":{"with":{"options":{"type":"object","optional":true}},"concurrency":"drop"},"select-section":{"with":{"key":"string"}},"close-panel":{"with":{"reason":{"type":"string","optional":true}}},"copy-address":{},"open-full-page":{},"confirm-save":{},"cancel-confirmation":{}},"port":{"id":"simai.property-view-port","version":"1.18.0","contract":"src/core/contracts/ports/simai.property-view-port/1.18.0/port.json"},"presentation":{"skeleton":{"file":"skeleton.html","late":[]}},"css-variables":{"--sf-property-view--sections-width":{"type":"length","state":"default"},"--sf-property-view--title-size":{"type":"length","state":"default"},"--sf-property-view--label-size":{"type":"length","state":"default"},"--sf-property-view--value-size":{"type":"length","state":"default"},"--sf-property-view--group-size":{"type":"length","state":"default"},"--sf-property-view--edge-room":{"type":"length","state":"open"}},"host-states":{"data-state":"string","aria-busy":"string"}}');
+module.exports = /*#__PURE__*/JSON.parse('{"id":"smart.view-properties","tag":"sf-view-properties","version":"1.16.3","kind":"leaf","implements":["record-view@1"],"settings":{"add-field-text":{"type":"string","default-from":"runtime.add-field-text"},"add-group-text":{"type":"string","default-from":"runtime.add-group-text"},"add-section-text":{"type":"string","default-from":"runtime.add-section-text"},"back-label":{"type":"string","default-from":"runtime.back-label"},"cancel-configuring-text":{"type":"string","default-from":"runtime.cancel-configuring-text"},"cancel-name-text":{"type":"string","default-from":"runtime.cancel-name-text"},"cancel-text":{"type":"string","default-from":"runtime.cancel-text"},"changed-text":{"type":"string","default-from":"runtime.changed-text"},"close-label":{"type":"string","default-from":"runtime.close-label"},"collection":{"type":"string","default":""},"collection-icon":{"type":"icon","default":""},"collection-label":{"type":"string","default":""},"configure-hint-narrow-text":{"type":"string","default-from":"runtime.configure-hint-narrow-text"},"configure-hint-text":{"type":"string","default-from":"runtime.configure-hint-text"},"configure-text":{"type":"string","default-from":"runtime.configure-text"},"conflict-text":{"type":"string","default-from":"runtime.conflict-text"},"copy-link-label":{"type":"string","default-from":"runtime.copy-link-label"},"delete-text":{"type":"string","default-from":"runtime.delete-text"},"done-configuring-text":{"type":"string","default-from":"runtime.done-configuring-text"},"edit-text":{"type":"string","default-from":"runtime.edit-text"},"empty-record-text":{"type":"string","default-from":"runtime.empty-record-text"},"empty-text":{"type":"string","default-from":"runtime.empty-text"},"errors-text":{"type":"string","default-from":"runtime.errors-text"},"favourite":{"type":"boolean","default":false},"favourite-label":{"type":"string","default-from":"runtime.favourite-label"},"field-label-text":{"type":"string","default-from":"runtime.field-label-text"},"field-settings-text":{"type":"string","default-from":"runtime.field-settings-text"},"hidden-text":{"type":"string","default-from":"runtime.hidden-text"},"hide-rare-text":{"type":"string","default-from":"runtime.hide-rare-text"},"hint-text":{"type":"string","default-from":"runtime.hint-text"},"in-this-group-text":{"type":"string","default-from":"runtime.in-this-group-text"},"inherited-text":{"type":"string","default-from":"runtime.inherited-text"},"link-copied-label":{"type":"string","default-from":"runtime.link-copied-label"},"menu-label":{"type":"string","default-from":"runtime.menu-label"},"move-down-text":{"type":"string","default-from":"runtime.move-down-text"},"move-up-text":{"type":"string","default-from":"runtime.move-up-text"},"new-group-title":{"type":"string","default-from":"runtime.new-group-title"},"new-section-title":{"type":"string","default-from":"runtime.new-section-title"},"no-match-text":{"type":"string","default-from":"runtime.no-match-text"},"open-full-label":{"type":"string","default-from":"runtime.open-full-label"},"panel":{"type":"boolean","default":false},"panel-label":{"type":"string","default":""},"panel-size":{"type":"enum","values":["1/2","1","2","full"],"default":"1"},"size":{"type":"enum","values":["1","1/2"],"default":"1"},"mode":{"type":"enum","values":["view","auto","edit","create"],"default":"auto"},"panel-width":{"type":"string","default":""},"personal-layer-text":{"type":"string","default-from":"runtime.personal-layer-text"},"rare-text":{"type":"string","default-from":"runtime.rare-text"},"record-id":{"type":"id","default":""},"remove-field-text":{"type":"string","default-from":"runtime.remove-field-text"},"remove-group-text":{"type":"string","default-from":"runtime.remove-group-text"},"remove-section-text":{"type":"string","default-from":"runtime.remove-section-text"},"rename-text":{"type":"string","default-from":"runtime.rename-text"},"reset-view-ask-text":{"type":"string","default-from":"runtime.reset-view-ask-text"},"reset-view-text":{"type":"string","default-from":"runtime.reset-view-text"},"save-name-text":{"type":"string","default-from":"runtime.save-name-text"},"save-text":{"type":"string","default-from":"runtime.save-text"},"section-icon-text":{"type":"string","default-from":"runtime.section-icon-text"},"section-icons":{"type":"string","default":""},"sections-as":{"type":"enum","values":["list","tabs"],"default":"list"},"sections-label":{"type":"string","default-from":"runtime.sections-label"},"shared-layer-text":{"type":"string","default-from":"runtime.shared-layer-text"},"show-rare":{"type":"boolean","default":false},"show-rare-text":{"type":"string","default-from":"runtime.show-rare-text"},"shown-text":{"type":"string","default-from":"runtime.shown-text"},"unplaced-hint-text":{"type":"string","default-from":"runtime.unplaced-hint-text"},"unplaced-title":{"type":"string","default-from":"runtime.unplaced-title"},"variant-text":{"type":"string","default-from":"runtime.variant-text"},"view-conflict-text":{"type":"string","default-from":"runtime.view-conflict-text"},"view-denied-text":{"type":"string","default-from":"runtime.view-denied-text"},"width-text":{"type":"string","default-from":"runtime.width-text"},"view-profile-label":{"type":"string","default-from":"runtime.view-profile-label"},"add-view-text":{"type":"string","default-from":"runtime.add-view-text"},"new-view-text":{"type":"string","default-from":"runtime.new-view-text"},"delete-view-text":{"type":"string","default-from":"runtime.delete-view-text"},"last-shared-view-text":{"type":"string","default-from":"runtime.last-shared-view-text"},"full":{"type":"boolean","default":false},"open":{"type":"boolean","default":true}},"values":{"revision":{"type":"string"},"section":{"type":"string"}},"events":{"close":{"carries":{"reason":{"type":"enum","values":["close","escape","outside","cancelled","deleted","api"]},"record_id":{"type":"id","nullable":true},"unsaved_fields":{"type":"list"}},"cancelable":true},"open-full":{"carries":{"id":"id","address":"string","record_id":{"type":"id","nullable":true}}},"saved":{"carries":{"id":"id","revision":{"type":"string","optional":true}}},"failed":{"carries":{"reason":"string","message":{"type":"string","optional":true}}},"open":{"carries":{"field":"string","value":"object","answer":"string"}},"delete":{"carries":{"collection":"string","revision":"string","answer":"string","record_id":{"type":"id","nullable":true}}},"created":{"carries":{"collection":{"type":"string","nullable":true},"record_id":{"type":"id","nullable":true}}},"cancel":{"carries":{"mode":{"type":"enum","values":["auto","edit","create"]},"scope":{"type":"enum","values":["group"],"optional":true},"section":{"type":"string","optional":true},"group":{"type":"string","optional":true}}},"state":{"carries":{"state":"string","message":"string"},"own-verb":true},"address-copy":{"carries":{},"own-verb":true},"favourite":{"carries":{"collection":{"type":"string","nullable":true},"favourite":"boolean","record_id":{"type":"id","nullable":true}},"own-verb":true}},"actions":{"refresh":{},"load":{"with":{"reason":{"type":"string","optional":true}}},"edit-group":{"with":{"section":"string","group":"string"}},"cancel-edit":{},"save-group":{"with":{"options":{"type":"object","optional":true}},"concurrency":"drop"},"select-section":{"with":{"key":"string"}},"close-panel":{"with":{"reason":{"type":"string","optional":true}}},"copy-address":{},"open-full-page":{},"confirm-save":{},"cancel-confirmation":{}},"port":{"id":"simai.property-view-port","version":"1.18.0","contract":"src/core/contracts/ports/simai.property-view-port/1.18.0/port.json"},"presentation":{"skeleton":{"file":"skeleton.html","late":[]}},"css-variables":{"--sf-property-view--sections-width":{"type":"length","state":"default"},"--sf-property-view--title-size":{"type":"length","state":"default"},"--sf-property-view--label-size":{"type":"length","state":"default"},"--sf-property-view--value-size":{"type":"length","state":"default"},"--sf-property-view--group-size":{"type":"length","state":"default"},"--sf-property-view--edge-room":{"type":"length","state":"open"}},"host-states":{"data-state":"string","aria-busy":"string"}}');
 
 /***/ },
 
 /***/ "99fb492b7fba"
 (module) {
 
-module.exports = /*#__PURE__*/JSON.parse('{"title":"Property view","events":{"state":{"label":"Record state"},"address-copy":{"label":"Address copied"},"favourite":{"label":"Favourite"}},"runtime":{"add-field-text":"Add a field","add-group-text":"Add an area","add-section-text":"Add a section","add-view-text":"Add a view","back-label":"Back","cancel-configuring-text":"Cancel","cancel-name-text":"Leave the name","cancel-text":"Cancel","changed-text":"Fields changed","close-label":"Close","configure-hint-narrow-text":"Drag fields between groups. Applied at once.","configure-hint-text":"Drag fields between groups and onto a section on the left. Applied at once.","configure-text":"Arrange the view","confirm-save-text":"Confirm and save","conflict-text":"The record changed; read it again","copy-link-label":"Copy link","create-text":"Create","delete-text":"Delete","delete-view-text":"Remove the view","done-configuring-text":"Done","edit-text":"edit","empty-record-text":"This record has nothing to show","empty-text":"not filled in","errors-text":"Errors","favourite-label":"Favourite","field-label-text":"Name","field-settings-text":"Field settings","hidden-text":"Hide","hide-rare-text":"Hide rare fields","hint-text":"Hint","in-this-group-text":"In this area","inherited-text":"by default","keep-editing-text":"Keep editing","last-shared-view-text":"The only view everyone has","link-copied-label":"Link copied","menu-label":"More","move-down-text":"Move down","move-up-text":"Move up","new-group-title":"New area","new-section-title":"New section","new-view-text":"New view","no-match-text":"Nothing matches","open-full-label":"Open as a page","personal-layer-text":"Personal","rare-text":"rare","read-only-text":"You can only view this record","remove-field-text":"Remove from this area","remove-group-text":"Remove this area","remove-section-text":"Remove this section","rename-text":"Rename","reset-view-ask-text":"Reset the whole view?","reset-view-text":"Reset","save-failed-text":"The save failed","save-name-text":"Save the name","save-text":"Save","section-icon-text":"Section glyph","sections-label":"Sections","shared-layer-text":"Everyone\'s","show-rare-text":"Show rare fields","shown-text":"Shown","state-load-failed":"The record could not be read","state-loading":"Reading the record","state-port-not-connected":"The record port is not connected","state-unavailable":"The record is unavailable","unplaced-hint-text":"Fields this view does not show. Drag one into a group to place it, or drag a field here to take it out.","unplaced-title":"Not placed","variant-text":"Template","view-conflict-text":"The view changed and was read again","view-denied-text":"You may not change this layer","view-profile-label":"View","view-reset-failed-text":"The view could not be reset","view-save-failed-text":"The view could not be saved","width-text":"Full width"}}');
+module.exports = /*#__PURE__*/JSON.parse('{"title":"Property view","events":{"state":{"label":"Record state"},"address-copy":{"label":"Address copied"},"favourite":{"label":"Favourite"}},"runtime":{"add-field-text":"Add a field","add-group-text":"Add an area","add-section-text":"Add a section","add-view-text":"Add a view","back-label":"Back","cancel-configuring-text":"Cancel","cancel-name-text":"Leave the name","cancel-text":"Cancel","changed-text":"Fields changed","close-label":"Close","configure-hint-narrow-text":"Drag fields between groups. Applied at once.","configure-hint-text":"Drag fields between groups and onto a section on the left. Applied at once.","configure-text":"Arrange the view","confirm-save-text":"Confirm and save","conflict-text":"The record changed; read it again","copy-link-label":"Copy link","create-text":"Create","delete-text":"Delete","delete-view-text":"Remove the view","done-configuring-text":"Done","edit-text":"Edit","empty-record-text":"This record has nothing to show","empty-text":"not filled in","errors-text":"Errors","favourite-label":"Favourite","field-label-text":"Name","field-settings-text":"Field settings","hidden-text":"Hide","hide-rare-text":"Hide rare fields","hint-text":"Hint","in-this-group-text":"In this area","inherited-text":"by default","keep-editing-text":"Keep editing","last-shared-view-text":"The only view everyone has","link-copied-label":"Link copied","menu-label":"More","move-down-text":"Move down","move-up-text":"Move up","new-group-title":"New area","new-section-title":"New section","new-view-text":"New view","no-match-text":"Nothing matches","open-full-label":"Open as a page","personal-layer-text":"Personal","rare-text":"rare","read-only-text":"You can only view this record","remove-field-text":"Remove from this area","remove-group-text":"Remove this area","remove-section-text":"Remove this section","rename-text":"Rename","reset-view-ask-text":"Reset the whole view?","reset-view-text":"Reset","save-failed-text":"The save failed","save-name-text":"Save the name","save-text":"Save","section-icon-text":"Section glyph","sections-label":"Sections","shared-layer-text":"Everyone\'s","show-rare-text":"Show rare fields","shown-text":"Shown","state-load-failed":"The record could not be read","state-loading":"Reading the record","state-port-not-connected":"The record port is not connected","state-unavailable":"The record is unavailable","unplaced-hint-text":"Fields this view does not show. Drag one into a group to place it, or drag a field here to take it out.","unplaced-title":"Not placed","variant-text":"Template","view-conflict-text":"The view changed and was read again","view-denied-text":"You may not change this layer","view-profile-label":"View","view-reset-failed-text":"The view could not be reset","view-save-failed-text":"The view could not be saved","width-text":"Full width"}}');
 
 /***/ },
 
 /***/ "d614908e644f"
 (module) {
 
-module.exports = /*#__PURE__*/JSON.parse('{"title":"Запись","events":{"state":{"label":"Состояние записи"},"address-copy":{"label":"Адрес скопирован"},"favourite":{"label":"Избранное"}},"runtime":{"add-field-text":"Добавить поле","add-group-text":"Добавить область","add-section-text":"Добавить раздел","add-view-text":"Добавить вид","back-label":"Назад","cancel-configuring-text":"Отменить","cancel-name-text":"Оставить название","cancel-text":"Отменить","changed-text":"Изменено полей","close-label":"Закрыть","configure-hint-narrow-text":"Перетаскивайте поля между группами. Применяется сразу.","configure-hint-text":"Перетаскивайте поля между группами и на разделы слева. Применяется сразу.","configure-text":"Настроить вид","confirm-save-text":"Подтвердить и сохранить","conflict-text":"Запись изменилась, обновите её","copy-link-label":"Копировать ссылку","create-text":"Создать","delete-text":"Удалить","delete-view-text":"Удалить вид","done-configuring-text":"Готово","edit-text":"изменить","empty-record-text":"В этой записи нечего показать","empty-text":"не заполнено","errors-text":"Ошибок","favourite-label":"В избранное","field-label-text":"Название","field-settings-text":"Настройки поля","hidden-text":"Скрыть","hide-rare-text":"Скрыть редкие поля","hint-text":"Подсказка","in-this-group-text":"В этой области","inherited-text":"по умолчанию","keep-editing-text":"Вернуться к правке","last-shared-view-text":"Единственный общий вид","link-copied-label":"Ссылка скопирована","menu-label":"Ещё","move-down-text":"Ниже","move-up-text":"Выше","new-group-title":"Новая область","new-section-title":"Новый раздел","new-view-text":"Новый вид","no-match-text":"Ничего не найдено","open-full-label":"Открыть на всю страницу","personal-layer-text":"Персональный","rare-text":"редкое","read-only-text":"Эту запись можно только смотреть","remove-field-text":"Убрать из области","remove-group-text":"Удалить область","remove-section-text":"Удалить раздел","rename-text":"Переименовать","reset-view-ask-text":"Сбросить весь вид?","reset-view-text":"Сбросить","save-failed-text":"Не удалось сохранить","save-name-text":"Сохранить название","save-text":"Сохранить","section-icon-text":"Значок раздела","sections-label":"Разделы","shared-layer-text":"Для всех","show-rare-text":"Показать редкие поля","shown-text":"Показывать","state-load-failed":"Не удалось загрузить запись","state-loading":"Загрузка записи","state-port-not-connected":"Порт записи не подключён","state-unavailable":"Запись недоступна","unplaced-hint-text":"Поля, которых нет в этом виде. Перетащите поле в группу, чтобы разместить, или сюда, чтобы убрать.","unplaced-title":"Не размещённые","variant-text":"Вид","view-conflict-text":"Вид изменился, он перезагружен","view-denied-text":"Нет права менять этот слой","view-profile-label":"Вид","view-reset-failed-text":"Не удалось сбросить вид","view-save-failed-text":"Не удалось сохранить вид","width-text":"На всю ширину"}}');
+module.exports = /*#__PURE__*/JSON.parse('{"title":"Запись","events":{"state":{"label":"Состояние записи"},"address-copy":{"label":"Адрес скопирован"},"favourite":{"label":"Избранное"}},"runtime":{"add-field-text":"Добавить поле","add-group-text":"Добавить область","add-section-text":"Добавить раздел","add-view-text":"Добавить вид","back-label":"Назад","cancel-configuring-text":"Отменить","cancel-name-text":"Оставить название","cancel-text":"Отмена","changed-text":"Изменено полей","close-label":"Закрыть","configure-hint-narrow-text":"Перетаскивайте поля между группами. Применяется сразу.","configure-hint-text":"Перетаскивайте поля между группами и на разделы слева. Применяется сразу.","configure-text":"Настроить вид","confirm-save-text":"Подтвердить и сохранить","conflict-text":"Запись изменилась, обновите её","copy-link-label":"Копировать ссылку","create-text":"Создать","delete-text":"Удалить","delete-view-text":"Удалить вид","done-configuring-text":"Готово","edit-text":"Изменить","empty-record-text":"В этой записи нечего показать","empty-text":"не заполнено","errors-text":"Ошибок","favourite-label":"В избранное","field-label-text":"Название","field-settings-text":"Настройки поля","hidden-text":"Скрыть","hide-rare-text":"Скрыть редкие поля","hint-text":"Подсказка","in-this-group-text":"В этой области","inherited-text":"по умолчанию","keep-editing-text":"Вернуться к правке","last-shared-view-text":"Единственный общий вид","link-copied-label":"Ссылка скопирована","menu-label":"Ещё","move-down-text":"Ниже","move-up-text":"Выше","new-group-title":"Новая область","new-section-title":"Новый раздел","new-view-text":"Новый вид","no-match-text":"Ничего не найдено","open-full-label":"Открыть на всю страницу","personal-layer-text":"Персональный","rare-text":"редкое","read-only-text":"Эту запись можно только смотреть","remove-field-text":"Убрать из области","remove-group-text":"Удалить область","remove-section-text":"Удалить раздел","rename-text":"Переименовать","reset-view-ask-text":"Сбросить весь вид?","reset-view-text":"Сбросить","save-failed-text":"Не удалось сохранить","save-name-text":"Сохранить название","save-text":"Сохранить","section-icon-text":"Значок раздела","sections-label":"Разделы","shared-layer-text":"Для всех","show-rare-text":"Показать редкие поля","shown-text":"Показывать","state-load-failed":"Не удалось загрузить запись","state-loading":"Загрузка записи","state-port-not-connected":"Порт записи не подключён","state-unavailable":"Запись недоступна","unplaced-hint-text":"Поля, которых нет в этом виде. Перетащите поле в группу, чтобы разместить, или сюда, чтобы убрать.","unplaced-title":"Не размещённые","variant-text":"Вид","view-conflict-text":"Вид изменился, он перезагружен","view-denied-text":"Нет права менять этот слой","view-profile-label":"Вид","view-reset-failed-text":"Не удалось сбросить вид","view-save-failed-text":"Не удалось сохранить вид","width-text":"На всю ширину"}}');
 
 /***/ }
 

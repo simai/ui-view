@@ -155,12 +155,6 @@ SF.RuleLoader.registerPackage("view", {
           "name": "cl-drawer"
         },
         {
-          "name": "cl-tree"
-        },
-        {
-          "name": "cl-tree-item"
-        },
-        {
           "name": "cl-avatar"
         },
         {
@@ -181,6 +175,9 @@ SF.RuleLoader.registerPackage("view", {
         },
         {
           "name": "cl-button-copy"
+        },
+        {
+          "name": "cl-button-close"
         },
         {
           "name": "cl-empty-state"
