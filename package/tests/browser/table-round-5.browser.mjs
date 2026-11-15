@@ -328,10 +328,14 @@ try {
   } else {
     const off = (value, want) => value === null || Math.abs(value - want) > 0.5;
     const inBody = axis.bodyInset + axis.published;
-    const inFooter = axis.published - axis.border;
-    if (off(axis.searchField, inBody) || off(axis.rowStart, inBody) || off(axis.buttons, inFooter)) {
+    // The footer's buttons too: the window's blocks start on one axis, where
+    // the Framework's panel rows put their text (the plates' inset plus the
+    // item inset, 15 from the padding edge). The table zeroed the menu's
+    // inline padding, from which the footer takes its margin, and its
+    // buttons stood at 11 (ui-pro release fix, 2026-11-15).
+    if (off(axis.searchField, inBody) || off(axis.rowStart, inBody) || off(axis.buttons, inBody)) {
       note({case: 'blocks on the menu axis', got: axis,
-        expected: `the search field and the rows at the body's inset plus the item inset (${inBody}), as the Framework's panel rows; the buttons at the published inset from the outer edge (${inFooter} from the padding edge)`});
+        expected: `the search field, the rows and the footer's buttons at the body's inset plus the item inset (${inBody}), as the Framework's panel rows`});
     }
     // The pin sits at the end edge, so the search field and the pin have to
     // finish on one axis. The panel's body keeps the scrollbar's room

@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-table",
-  "version": "1.19.4",
+  "version": "1.19.5",
   "title": "Table",
   "summary": "Complete server-backed collection view with search, filters, table preferences, row and bulk actions, and pagination.",
   "kind": "composite",
@@ -2780,6 +2780,13 @@
         "changes": [
           "Over the SIMAI Framework pair ui-141822273efe a size 1/2 table is 32 again (28 compact, 28 on a phone): the row holds the step and its cells follow it. The Framework's class table puts the step-1 control height on every cell since utility.table 1.4.0 (C146 (1)), which held every size 1/2 row and the head at 40 (36 on a phone) and the published --sf-table-row-block-size-1/2 and --sf-table-head-block-size-1/2 no longer were the rows drawn. Size 1 is unchanged. The toolbar holds its own gaps (12 between its groups, 8 inside them, the steps its gap-1/2 and gap-1/3 classes name): the class sheet is a utility the Loader fetches when it sees the class, and a table drawn before its sheets moved its search field by 12 px (16 in the list toolbar) when it came. Nothing to change for a host."
         ]
+      },
+      {
+        "from": "1.19.4",
+        "to": "1.19.5",
+        "changes": [
+          "The printed first paint and the drawn table lay the columns out by one rule (standard 1.3.8 gate 24): every data column at its content width on one line, the last data column nobody sized taking the spare room, the select, settings and actions columns at their declared widths. The unmeasured content-sized table had shared the spare room between every column and drew the select column as wide as its box's label wanted (50 against 42), and the measured widths were rounded up to the 4px grid with a pixel to spare, so every printed cell moved when the code measured (typed-cells: CLS 0.035 at 1280, 0.041 at 1440, 0.002 at 390). The measured width is now the content's own (the printed first paint carries no measured width, §5.4, and is laid out in the page's own face); the spare-room column is marked in the markup (data-sf-spare-room on its col); a table with rows is content-sized from its first render, where it was drawn for a frame as a fixed table as wide as its content; a content-sized table takes no column floor (the spare-room column stood at 160 on a phone, wider than its content). The column window's footer stands on the menu's own inset (SIMAI Framework C105 H4, C106): the table zeroed sf-menu-context's inline content padding, from which the head, the top and the footer take their margin, so the footer's buttons stood 11 from the panel's padding edge while the search and the rows stood at 15 (the plates' inset 3 plus the item inset 12, where the Framework's panel rows put their text); the window's blocks now start on one axis. Nothing to change for a host."
+        ]
       }
     ]
   },
@@ -2789,15 +2796,15 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-table/index.js",
-        "sha256": "508026711f46eb0b3d51949f3ba6740ffce9d801b4dea2ac369bf6cd3aa464ae"
+        "sha256": "f193a7a87fb7cd5e4cfb8508c1cb75481b62aa325c620fb60fa429ef88d867b1"
       },
       {
         "path": "src/smart/view-table/js/templates/default.js",
-        "sha256": "de776e509561235463852c53a9b6f53def9ab94a972867157543ec0612e96dc3"
+        "sha256": "9b5f1cb22a69c6c7336f50a7df1370008736188c9172d061691e22c664a865c7"
       },
       {
         "path": "src/smart/view-table/js/templates/default.css",
-        "sha256": "bdbec64b07d8f214d6ed022e20042e6c763dba0c27a0375cd4fadb14e805dc52"
+        "sha256": "89fcf270055a65d0ac74904b76e4c0575878b12b11bff726c4e813da5d4fba22"
       },
       {
         "path": "src/smart/helpers/option-badge.js",

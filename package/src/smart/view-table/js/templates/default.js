@@ -516,7 +516,14 @@ export function columnStyle(component, column) {
     const width = toColumnSize(column.colWidth ?? column.width ?? column.size)
             || (column.key === 'actions' ? (component?.actionsColumnWidth || 'var(--sf-table--actions-column-width, var(--sf-f0))') : '')
             || component?.contentWidth?.(column)
+            // A content-sized table takes no floor: each data column gets its
+            // content width and the one that takes the spare room its content
+            // width at least (the table's least width), as the unmeasured
+            // first paint lays them out. Floored before the widths were
+            // measured, or the spare room's column after, the columns stood at
+            // 160 on a phone for a frame and every printed cell moved.
             || (component?.columnsAreCramped
+                    && !component?.contentSized
                     && component?.columnTakesFloor?.(column)
                 ? 'var(--sf-table--column-min-inline-size)'
                 : '');
@@ -555,9 +562,14 @@ function renderColgroup(context) {
                 // it and held at their floor.
                 const style = columnStyle(context.component, column);
 
+                // The column that takes the spare room is marked, so a first
+                // paint the code has not measured yet gives it the spare room
+                // too (default.css, the unmeasured content-sized table).
+                const spare = column.key && column.key === context.component?.spareRoomColumnKey?.();
                 return keyed(`col:${column.key}`, html`
                     <col
                             data-key=${column.key || nothing}
+                            data-sf-spare-room=${spare ? '' : nothing}
                             style=${style || nothing}
                     />
                 `);
@@ -1428,7 +1440,7 @@ export function renderTableTemplate(context) {
                     ${context.list ? renderList() : html`
                     <table
                             ${ref(context.component.refs.table)}
-                            class="table border-separate border-spacing-0 min-w-full ${context.component?.hasContentWidths ? 'sf-table-content-sized' : 'w-max'} table-fixed transition"
+                            class="table border-separate border-spacing-0 min-w-full ${context.component?.contentSized ? 'sf-table-content-sized' : 'w-max'} table-fixed transition"
                             role=${context.component.isTree?.() ? 'treegrid' : nothing}
                             aria-label=${context.ariaLabel || nothing}
                             aria-rowcount=${context.component.windowRowCount?.() ?? nothing}

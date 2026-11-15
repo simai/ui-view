@@ -402,6 +402,24 @@
     inline-size: max-content;
     min-inline-size: 100%;
   }
+  /* ... and by the measured table's rule (applyColumnWidths): every data
+     column at its content width on one line, the column marked to take the
+     spare room taking all of it, and the select, settings and actions
+     columns at their declared widths. Laid out by content alone, the spare
+     room was shared by every column and the select box's column was as wide
+     as its label wanted, so every printed cell moved when the code measured
+     (gate 24, typed-cells: CLS 0.035 at 1280, 0.002 on a phone). A data
+     column's 1px width is its least width in an auto layout: its one-line
+     content decides. */
+  :is(sf-view-table, sf-table) table.sf-table-content-sized:not([style*="--sf-table--content-inline-size"]) > colgroup > col[data-key]:not([data-sf-spare-room]) {
+    inline-size: 1px;
+  }
+  :is(sf-view-table, sf-table) table.sf-table-content-sized:not([style*="--sf-table--content-inline-size"]) :is(th, td)[data-key] {
+    white-space: nowrap;
+  }
+  :is(sf-view-table, sf-table) table.sf-table-content-sized:not([style*="--sf-table--content-inline-size"]) :is(th, td):is([data-key="select"], [data-key="settings"], [data-key="actions"]) :is(.sf-checkbox, .sf-icon-button, .sf-button) {
+    contain: inline-size;
+  }
 
   :is(sf-view-table, sf-table) table.sf-table-measuring {
     table-layout: auto !important;
@@ -1229,15 +1247,20 @@
     /*--sf-context-menu-content--padding-inline-end: var(--sf-space-2);*/
     /*--sf-context-menu-content--padding-inline-start: var(--sf-space-2);*/
     /*--sf-context-menu-content--padding-top: var(--sf-space-2);*/
-    /* These are lengths, not numbers. The menu's own axis is published as
-       `calc(space-x + 1px - var(--sf-context-menu-content--padding-inline-start))`,
-       and a unitless 0 makes that calc invalid, so the whole declaration is
-       dropped: the axis read as nothing on this panel, the menu's own items lost
-       their inset here, and this window's blocks had no axis to follow. A zero
-       with a unit costs nothing and keeps the arithmetic valid. */
+    /* These are lengths, not numbers: a unitless 0 makes the menu's own
+       arithmetic invalid and drops the declaration.
+
+       The inline insets stay the menu's own (SIMAI Framework C105 H4, C106):
+       a panel gives its inline padding to its body, which stands the inset
+       --sf-space-1/4 less the border from the panel's edge, and the head, the
+       top and the footer take the same inset as a margin
+       (--sf-context-menu-content--edge-inline-*, the padding less the
+       border). Zeroed here, that edge read 0 - 1px: the footer stood 1px
+       outside the panel's padding edge and its buttons 11px from it, while the
+       search and the rows in the body stood at the inset plus the item inset,
+       15 (16 from the outer edge, where the Framework's own panel rows put
+       their text). The window's blocks follow the menu's axis whole. */
     --sf-context-menu-content--padding-bottom: 0px;
-    --sf-context-menu-content--padding-inline-end: 0px;
-    --sf-context-menu-content--padding-inline-start: 0px;
     --sf-context-menu-content--padding-top: 0px;
   }
   .sf-table-context-menu .sf-settings-context-menu-item .sf-icon-button {

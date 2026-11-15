@@ -165,14 +165,15 @@ function cellValueBox(item) {
 // follow once through the dated aliases (aliases.json). The table's own props
 // below keep their parsers and defaults; what they do not name is the
 // manifest's.
-// A column's content width, a pixel to spare and rounded up to the 4px grid.
-// The page's text face is font-display: optional, so one page sets a value in
-// Inter and the next -- or the server's printed first paint, measured on
-// another page -- in its metric fallback, a pixel or two apart: a column
-// measured to the pixel in one wrapped the same value in the other, and the
-// row grew by a line when the code took over (standard 1.3.8 gate 24).
+// A column's content width, as the laid-out table gives it. It is no longer
+// rounded up to the 4px grid with a pixel to spare: the printed first paint
+// carries no measured width (standard 1.3.9 §5.4) and lays the same columns
+// out by their content in the page's own face (default.css, the unmeasured
+// content-sized table), so a rounded width moved every printed cell a few
+// pixels when the code measured (gate 24, typed-cells: CLS 0.035 at 1280).
+// A face that comes later measures again (the fonts' loadingdone).
 function contentStep(width) {
-    return Math.ceil((Math.ceil(width) + 1) / 4) * 4;
+    return Math.ceil(width * 64) / 64;
 }
 
 const TableElement = elementFromManifest(manifest, {
@@ -3038,7 +3039,7 @@ class SfTable extends TableElement {
         this.remeasureWhenDrawn(table);
         const previous = this._contentWidths ?? new Map();
         const changed = measured.size !== previous.size
-            || [...measured].some(([key, width]) => Math.abs((previous.get(key) ?? 0) - width) > 2);
+            || [...measured].some(([key, width]) => Math.abs((previous.get(key) ?? 0) - width) > 0.01);
         if (changed) this._contentWidths = measured;
         return changed || surplusChanged || contentChanged;
     }
@@ -3201,8 +3202,8 @@ class SfTable extends TableElement {
                 else col.removeAttribute('style');
             }
         });
-        table.classList.toggle('sf-table-content-sized', this.hasContentWidths);
-        table.classList.toggle('w-max', !this.hasContentWidths);
+        table.classList.toggle('sf-table-content-sized', this.contentSized);
+        table.classList.toggle('w-max', !this.contentSized);
         if (this.hasContentWidths && this._contentInlineSize) table.style.setProperty('--sf-table--content-inline-size', `${this._contentInlineSize}px`);
         else table.style.removeProperty('--sf-table--content-inline-size');
     }
@@ -3232,6 +3233,16 @@ class SfTable extends TableElement {
 
     get hasContentWidths() {
         return Boolean(this._contentWidths?.size);
+    }
+
+    // Content-sized from the first render with rows, before the widths are
+    // measured: the table is laid out by its content (default.css, the
+    // unmeasured content-sized table), as its printed first paint is, until
+    // the measured widths come. Drawn as wide as its content with a fixed
+    // layout instead, the first render shared the room between every column
+    // for a frame and the printed cells moved twice (gate 24, typed-cells).
+    get contentSized() {
+        return this.hasContentWidths || (this.getTableData?.()?.rows?.length ?? 0) > 0;
     }
 
     // Reads that write nothing in between: the cap and the cramped answer are

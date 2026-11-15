@@ -48,7 +48,7 @@ const table = (id, attrs) => `<sf-view-table id="${id}" ${attrs} layout="table" 
 const page = (density) => `<!doctype html><html lang="ru"${density === 'compact' ? ' data-sf-density="compact"' : ''}><head><meta charset="utf-8"></head><body style="margin:0;padding:16px">
   ${table('half', 'size="1/2"')}${table('one', 'size="1"')}${table('none', '')}
   ${table('half-plain', 'size="1/2" selectable="false" settings="false"')}${table('one-plain', 'size="1" selectable="false" settings="false"')}
-  <div id="normal" data-sf-density="normal">${table('region-one', 'size="1"')}${table('region-none', '')}</div></body></html>`;
+  <div id="normal" data-sf-density="normal">${table('region-half', 'size="1/2"')}${table('region-one', 'size="1"')}${table('region-none', '')}</div></body></html>`;
 
 const failures = [];
 const browser = await chromium.launch();
@@ -94,13 +94,15 @@ try {
     }
     // On the ladder: each head is the control height of its step where it
     // stands (C146 (1)), with controls or names only.
-    for (const id of ['half', 'one', 'half-plain', 'one-plain']) {
+    // A normal region keeps the normal ladder on a compact page, for a
+    // written size as for none (C79).
+    for (const id of ['half', 'one', 'half-plain', 'one-plain', 'region-half', 'region-one']) {
       if (!near(drawn[id].head, drawn[id].rung)) failures.push(`${where}: the ${id} head is ${drawn[id].head}, its control height ${drawn[id].rung}`);
     }
-    // The -1/2 names are the size="1/2" table; the -1 names the table without a size; a normal region reads size 1.
+    // The -1/2 names are the size="1/2" table; the -1 names the table without a size; a normal region reads its own tables.
     const checks = [['row12', drawn.half.row], ['head12', drawn.half.head], ['row1', drawn.none.row], ['head1', drawn.none.head]];
     for (const [key, value] of checks) if (!near(read.page[key], value)) failures.push(`${where}: --${key} reads ${read.page[key]} on the page, the table draws ${value}`);
-    for (const [key, value] of [['row1', drawn['region-one'].row], ['head1', drawn['region-one'].head], ['row12', read.ladder.half]]) {
+    for (const [key, value] of [['row1', drawn['region-one'].row], ['head1', drawn['region-one'].head], ['row12', drawn['region-half'].row], ['head12', drawn['region-half'].head]]) {
       if (!near(read.region[key], value)) failures.push(`${where}: --${key} reads ${read.region[key]} in a normal region, the table draws ${value}`);
     }
     if (drawn.half.controls < 1) failures.push(`${where}: the 1/2 head draws no controls (${JSON.stringify(drawn.half)})`);
