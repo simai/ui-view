@@ -90,7 +90,9 @@ const headLabels = async (lang) => {
     const wanted = ['close', 'link', 'open_in_full', 'star', 'more_horiz'];
     const found = {};
     for (const button of document.querySelectorAll('button')) {
-      const icon = button.querySelector('.sf-icon')?.textContent?.trim();
+      // sf-button-close (the panel's close since view-properties 1.16.0) is
+      // known by its action: its glyph is the component's own.
+      const icon = button.closest('[data-action]')?.dataset.action === 'close' ? 'close' : button.querySelector('.sf-icon')?.textContent?.trim();
       if (icon && wanted.includes(icon) && !(icon in found)) {
         found[icon] = button.getAttribute('aria-label') ?? '';
       }

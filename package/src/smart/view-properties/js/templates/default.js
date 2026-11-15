@@ -1165,10 +1165,14 @@ function panelFills(context) {
 
 function renderPanelControls(context) {
     // The close is in the head (C14, C157 (6)); the strip keeps copy-link and
-    // open-full, and is not drawn when the host gives neither.
-    if (!context.edgeControlCount) return nothing;
+    // open-full, and is hidden when the host gives neither. It is drawn from the
+    // first render all the same: sf-drawer takes a slot="edge" child into its
+    // edge area when it renders or when one is added to it directly, not when
+    // one appears later deeper in its content, so a strip drawn only once the
+    // record said it has an address stayed in the panel's body, over the record.
+    const shown = Boolean(context.edgeControlCount);
     return html`
-        <div class="sf-property-view-edge flex ${panelFills(context) ? 'flex-row' : 'flex-col'} gap-1/2" slot="edge">
+        <div class="sf-property-view-edge ${shown ? `flex ${panelFills(context) ? 'flex-row' : 'flex-col'} gap-1/2` : ''}" slot="edge" ?hidden=${!shown}>
             ${context.address
                     ? html`
                         <sf-button-copy
@@ -1600,8 +1604,9 @@ export function renderPropertyViewTemplate(context) {
     // a long record scrolls without moving the list.
     const rail = sidebarDrawn(context);
 
-    // `show-close` is off because the panel draws its own close, in the strip
-    // beside copy-link and open-full. With both, a panel carried two close
+    // `show-close` is off because the panel draws its own close, sf-button-close
+    // last in its head (1.16.0; it stood in the strip beside copy-link and
+    // open-full before). With both, a panel carried two close
     // buttons a step apart, and on a phone neither was reachable: the strip is
     // placed a gutter's width beyond the panel's inline start, which on a
     // full-screen drawer is off the screen.

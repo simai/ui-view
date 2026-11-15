@@ -145,7 +145,10 @@ const scenario = async () => {
   await wait(300);
   lower.changeField({key: 'name'}, 'Набрано и не сохранено');
   await wait(200);
-  const lowerClose = rootOf('lower')?.querySelector('[data-action="close"]');
+  // The close is sf-button-close since view-properties 1.16.0: its host is
+  // display:contents and takes no focus, the button inside it does.
+  const lowerCloseHost = rootOf('lower')?.querySelector('[data-action="close"]');
+  const lowerClose = lowerCloseHost?.querySelector('button') ?? lowerCloseHost;
   lowerClose?.focus();
   const upper = await open('upper', {later: true});
   const box = panelOf('lower')?.getBoundingClientRect();

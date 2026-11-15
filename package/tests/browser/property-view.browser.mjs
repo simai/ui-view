@@ -1830,7 +1830,10 @@ try {
       note({case: 'the portalled panel carries its own styles', got: inPanel.painted,
         expected: 'a painted surface from rules that are not scoped to the element'});
     }
-    if (inPanel.controls?.join(',') !== 'close,copy-link,open-full') {
+    // The close is in the panel's head and copy-link and open-full in the strip
+    // beside it since view-properties 1.16.0 (C14, C157 (6)); the order in the
+    // document is the drawer's (edge area, then panel), so the set is compared.
+    if ([...(inPanel.controls ?? [])].sort().join(',') !== 'close,copy-link,open-full') {
       note({case: 'a panel with an address carries all three controls', got: inPanel.controls,
         expected: 'close, copy-link, open-full'});
     }
@@ -1926,9 +1929,10 @@ try {
     const save = measured.buttons?.save ?? {};
     const cancel = measured.buttons?.cancel ?? {};
     const unpainted = (colour) => !colour || colour === 'rgba(0, 0, 0, 0)' || colour === 'transparent';
-    if (save.appearance !== 'default' || cancel.appearance !== 'outline') {
+    // «Отмена» is quiet since view-properties 1.16.0 (C116 (2), C159 (4)).
+    if (save.appearance !== 'default' || cancel.appearance !== 'ghost') {
       note({case: 'the buttons name appearances the component has', got: {save, cancel},
-        expected: {save: 'default', cancel: 'outline'}});
+        expected: {save: 'default', cancel: 'ghost'}});
     }
     if (unpainted(save.background) || save.background === cancel.background) {
       note({case: 'save is painted as the main action and the cancel is not',

@@ -33,7 +33,7 @@ const modules = [
   'core/core/js/core.js', 'core/core/js/smart-base.js', 'smart/smart/icon/js/icon.js', 'smart/smart/badge/js/badge.js',
   'smart/smart/avatar/js/avatar.js', 'smart/smart/reference-link/js/reference-link.js',
   'smart/smart/input/js/input.js', 'smart/smart/button-icon/js/button-icon.js', 'smart/smart/button/js/button.js',
-  'smart/smart/button-copy/js/button-copy.js',
+  'smart/smart/button-copy/js/button-copy.js', 'smart/smart/button-close/js/button-close.js',
   'smart/smart/dropdown/js/dropdown.js', 'smart/smart/list-item/js/list-item.js',
   'smart/smart/checkbox/js/checkbox.js', 'smart/smart/spinner/js/spinner.js',
   'smart/smart/drawer/js/drawer.js', 'smart/smart/tag/js/tag.js',
