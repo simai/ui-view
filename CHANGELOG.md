@@ -19,8 +19,9 @@ in brackets. The site page «Изменения» says the same in Russian.
   the SIMAI Framework's `sf-button-close` last in it (it was a round button
   of the panel's own on the scrim); on a phone a section opened from the
   list is a level of the panel with «Назад» and the section's name in that
-  head (it was a second head row); the title on rung 2 of the text ladder
-  (20/24, 16 on a phone; it was 24/32); action rows 8 apart, 4 compact (were
+  head (it was a second head row); the title on the window step, the heading-4 role
+  as in sf-drawer and sf-modal (20/24 at any density, 16 on a phone; it was
+  24/32); action rows 8 apart, 4 compact (were
   20 and 16); «Отмена» and «Вернуться к правке» quiet; «Изменить» with a
   capital; while a group is edited the labels and their «*» in the text
   colour; no lines between the phone's section rows; the section column is
