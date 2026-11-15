@@ -7965,8 +7965,22 @@ class SfTable extends TableElement {
         loader.preloadIcons(['check', 'remove']);
     }
 
+    // A box checked since the last drawing names its tick now; the Loader's
+    // page observer marks such a glyph a few frames later (115 ms measured),
+    // so the drawing hands the new ticks over at once, as the Smart base hands
+    // over the glyphs of an ignored region (SF.Loader.adoptStaticIcons). Only
+    // the checked boxes' glyphs not yet marked: nothing per row otherwise.
+    adoptSelectionGlyphs() {
+        const loader = globalThis.SF?.Loader;
+        if (typeof loader?.adoptStaticIcons !== 'function') return;
+        for (const glyph of this.querySelectorAll('input[data-sf-row-box]:checked + .sf-icon:not(.sf-icon-loaded)')) {
+            loader.adoptStaticIcons(glyph);
+        }
+    }
+
     afterDraw() {
         this.preloadSelectionGlyphs();
+        this.adoptSelectionGlyphs();
         this._observeResponsiveBox();
         this.bindRowActionsEvents(this.refs.table?.value);
         this.syncGrid();
