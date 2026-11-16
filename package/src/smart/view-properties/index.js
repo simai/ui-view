@@ -1286,6 +1286,20 @@ class SfPropertyView extends PropertyViewElement {
             this.requestComponentUpdate("viewport");
         };
         this.wideMedia?.addEventListener?.("change", this._onWideChange);
+        // The drawer says when its edge controls stand in its head's row
+        // (data-sf-drawer-edge-in-head, sf-drawer 1.16.0): a phone, size full,
+        // or no room beside the panel. There they are page buttons beside the
+        // close, size 1/3 without the raised plate (C205 (2)), in a row; the
+        // drawer decides it by measuring, so the view listens rather than
+        // guessing from its own width.
+        this._edgeInHead = false;
+        this._edgeObserver = typeof MutationObserver === "function" ? new MutationObserver(() => {
+            const inHead = Boolean(this.querySelector(".sf-drawer[data-sf-drawer-edge-in-head]"));
+            if (inHead === this._edgeInHead) return;
+            this._edgeInHead = inHead;
+            this.requestComponentUpdate("edge-in-head");
+        }) : null;
+        this._edgeObserver?.observe(this, {subtree: true, attributes: true, attributeFilter: ["data-sf-drawer-edge-in-head"]});
         // A view placed before it is told its record (an assembly binds
         // record-id after it places the part) asks the host nothing yet: the
         // record-id it is given reads it (attributeChangedCallback).
@@ -1338,6 +1352,8 @@ class SfPropertyView extends PropertyViewElement {
         this._onDocumentSortableIntent = null;
         if (this._onWideChange) this.wideMedia?.removeEventListener?.("change", this._onWideChange);
         this._onWideChange = null;
+        this._edgeObserver?.disconnect();
+        this._edgeObserver = null;
         this.wideMedia = null;
         super.onDisconnected?.();
     }
@@ -1610,6 +1626,7 @@ class SfPropertyView extends PropertyViewElement {
             wide: this.wide,
             edgeControlWidth: this.edgeControlWidth,
             edgeControlCount: this.edgeControlCount,
+            edgeInHead: Boolean(this._edgeInHead),
             phoneSection: this.phoneSection,
             phoneSectionLabel: this.phoneSectionLabel,
             backLabel: this.backLabel,

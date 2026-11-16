@@ -45,11 +45,30 @@ test('the edge strip is one control and the drawer step on each side', () => {
 
 test('in a panel that fills the screen the strip is a row and the head keeps its room', () => {
   assert.match(template, /function panelFills\(context\) \{\n\s+return !context\.wide \|\| context\.panelSize === 'full';\n\}/u);
-  assert.match(template, /class="sf-property-view-edge \$\{shown \? `flex \$\{panelFills\(context\) \? 'flex-row' : 'flex-col'\} gap-1\/2` : ''\}" slot="edge" \?hidden=\$\{!shown\}>/u);
+  assert.match(template, /const row = inHead \|\| panelFills\(context\);/u);
+  assert.match(template, /class="sf-property-view-edge \$\{shown \? `flex \$\{row \? 'flex-row' : 'flex-col'\} \$\{inHead \? 'gap-1\/3' : 'gap-1\/2'\}` : ''\}" slot="edge" \?hidden=\$\{!shown\}>/u);
   assert.match(template, /\$\{panelFills\(context\) && context\.edgeControlCount \? ' sf-property-view-panel--fills' : ''\}/u);
   // Drawn from the first render (sf-drawer takes it into its edge area then)
   // and hidden without copy-link or open-full.
   assert.match(template, /const shown = Boolean\(context\.edgeControlCount\);/u, 'no strip without copy-link or open-full');
   assert.match(template, /--sf-property-view--edge-room: calc\(\$\{context\.edgeControlCount\} \* \$\{context\.edgeControlWidth\} \+ \$\{context\.edgeControlCount - 1\} \* var\(--sf-space-1\\\\\/2\)\);/u);
   assert.match(sheet, /\.sf-property-view-panel--fills \.sf-property-view-head \{\n\s+padding-inline-start: calc\(var\(--sf-space-1\) \+ var\(--sf-property-view--edge-room, 0px\) \+ var\(--sf-space-1\\\/2\)\);\n\s+\}/u);
+});
+
+// C205 (2), sf-view-properties 1.16.5: in the drawer's head
+// (data-sf-drawer-edge-in-head) the copy-link and open-full controls are the
+// page's buttons beside the close: size 1/3, no raised plate, a row 8 apart;
+// a filled panel's head starts on its axis and stops short of the drawer's
+// room (ui-pro f29d4bf, taken back).
+test('in the drawer head the edge controls are size 1/3 without the plate, and the head clears them', () => {
+  assert.match(source, /new MutationObserver\(\(\) => \{\n\s+const inHead = Boolean\(this\.querySelector\("\.sf-drawer\[data-sf-drawer-edge-in-head\]"\)\);/u);
+  assert.match(source, /attributeFilter: \["data-sf-drawer-edge-in-head"\]/u);
+  assert.match(source, /this\._edgeObserver\?\.disconnect\(\);/u);
+  assert.match(source, /edgeInHead: Boolean\(this\._edgeInHead\),/u);
+  assert.match(template, /const size = inHead \? '1\/3' : \(context\.controlSize \?\? nothing\);/u);
+  assert.match(template, /const plate = inHead \? nothing : EDGE_SURFACE;/u);
+  assert.equal((template.match(/root-style=\$\{plate\}/gu) ?? []).length, 2, 'both controls read the plate');
+  assert.equal((template.match(/root-style=\$\{EDGE_SURFACE\}/gu) ?? []).length, 0);
+  assert.match(template, /\$\{keyed\(inHead, html`/u, 'a Smart button draws its look once: new controls when the place changes');
+  assert.match(sheet, /\.sf-drawer\[data-sf-drawer-edge-in-head\] \.sf-property-view-panel--fills \.sf-property-view-head \{\n\s+padding-inline-start: var\(--sf-property-view--panel-axis\);\n\s+padding-inline-end: calc\(var\(--sf-property-view--panel-axis\) \+ var\(--sf-drawer-edge-room, 0px\) \+ var\(--sf-space-1\\\/3\)\);/u);
 });

@@ -1,4 +1,5 @@
 import {html, nothing} from 'lit';
+import {keyed} from 'lit/directives/keyed.js';
 import "./default.css";
 import {renderViewField, renderEditField} from '../../../field-renderers/index.js';
 import {renderFieldValue} from '../field-value.js';
@@ -1174,14 +1175,24 @@ function renderPanelControls(context) {
     // one appears later deeper in its content, so a strip drawn only once the
     // record said it has an address stayed in the panel's body, over the record.
     const shown = Boolean(context.edgeControlCount);
+    // In the drawer's head (data-sf-drawer-edge-in-head) the controls are the
+    // page's buttons beside the close (C205 (2)): size 1/3, as the head's other
+    // buttons, on the panel without the raised plate, in a row 8 apart as the
+    // drawer lays its edge out. Beside the panel they keep the panel's size on
+    // their plate, in a column. A Smart button draws its look once, so the
+    // controls are drawn anew when the place changes (keyed).
+    const inHead = Boolean(context.edgeInHead);
+    const row = inHead || panelFills(context);
+    const size = inHead ? '1/3' : (context.controlSize ?? nothing);
+    const plate = inHead ? nothing : EDGE_SURFACE;
     return html`
-        <div class="sf-property-view-edge ${shown ? `flex ${panelFills(context) ? 'flex-row' : 'flex-col'} gap-1/2` : ''}" slot="edge" ?hidden=${!shown}>
-            ${context.address
+        <div class="sf-property-view-edge ${shown ? `flex ${row ? 'flex-row' : 'flex-col'} ${inHead ? 'gap-1/3' : 'gap-1/2'}` : ''}" slot="edge" ?hidden=${!shown}>
+            ${keyed(inHead, html`${context.address
                     ? html`
                         <sf-button-copy
                                 appearance="tonal"
-                                root-style=${EDGE_SURFACE}
-                                size=${context.controlSize ?? nothing}
+                                root-style=${plate}
+                                size=${size}
                                 icon="link"
                                 value=${context.addressUrl}
                                 label=${context.copyLinkLabel}
@@ -1198,15 +1209,15 @@ function renderPanelControls(context) {
                         <sf-button-icon
                                 appearance="tonal"
                                 scheme="on-surface"
-                                root-style=${EDGE_SURFACE}
-                                size=${context.controlSize ?? nothing}
+                                root-style=${plate}
+                                size=${size}
                                 icon="open_in_full"
                                 aria-label=${context.openFullLabel}
                                 title=${context.openFullLabel}
                                 data-action="open-full"
                                 @click=${() => context.component.openFullPage()}
                         ></sf-button-icon>`
-                    : nothing}
+                    : nothing}`)}
         </div>
     `;
 }
