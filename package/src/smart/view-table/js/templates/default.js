@@ -41,7 +41,7 @@ function renderListToolbar(context) {
     return html`
         <div class="sf-table-toolbar sf-table-toolbar--list flex flex-col gap-1/3 flex-none"
              data-sf-filter-tags="${active.length ? '1' : '0'}">
-            <div class="flex items-cross-center gap-1/3 min-w-0">
+            <div class="sf-table-list-search flex items-cross-center gap-1 min-w-0">
                 <sf-input
                         size=${context.controlSize ?? nothing}
                         root-class="sf-search-input flex-1 min-w-0"
@@ -55,6 +55,10 @@ function renderListToolbar(context) {
                         @keyup=${(e) => context.component.handleSearchKeyUp(e)}
                         hint-icon="search"
                 ></sf-input>
+                <!-- C144: filter and sort are one group of neighbours (H5,
+                     --sf-space-1/3); the field before them and «Создать»
+                     after them stand a group apart (H6, --sf-space-1). -->
+                <div class="sf-table-list-view-buttons flex items-cross-center gap-1/3">
                 ${context.component.offersFilter(active.length) ? html`<span class="sf-table-list-filter">
                     <sf-button-icon
                             size=${context.controlSize ?? nothing}
@@ -78,6 +82,7 @@ function renderListToolbar(context) {
                             aria-haspopup="menu"
                             @click=${(e) => context.component.openContextMenu(e, {type: 'bottom', menu: 'list-sort'})}
                     ></sf-button-icon>` : nothing}
+                </div>
                 ${context.actions && context.creatable ? html`
                     <sf-button-icon
                             size=${context.controlSize ?? nothing}

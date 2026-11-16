@@ -45,8 +45,21 @@
 
   :is(sf-view-table, sf-table) :is(.sf-table-toolbar-start, .sf-table-toolbar-end),
   :is(sf-view-table, sf-table) .sf-table-toolbar--list,
-  :is(sf-view-table, sf-table) .sf-table-toolbar--list > div {
+  :is(sf-view-table, sf-table) .sf-table-toolbar--list > div,
+  :is(sf-view-table, sf-table) .sf-table-list-view-buttons {
     gap: var(--sf-space-1\/3);
+  }
+
+  /* The list toolbar's row (C144): the field, the view buttons (filter and
+     sort, neighbours at 1/3) and «Создать» are three groups, --sf-space-1
+     apart -- 12 on a phone, not the 8 of neighbours. A row without view
+     buttons draws no empty group. */
+  :is(sf-view-table, sf-table) .sf-table-toolbar--list > .sf-table-list-search {
+    gap: var(--sf-space-1);
+  }
+
+  :is(sf-view-table, sf-table) .sf-table-list-view-buttons:not(:has(*)) {
+    display: none;
   }
 
   /* The search row keeps a usable width or goes to the line above. Without a
