@@ -1696,7 +1696,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-properties/index.js",
-        "sha256": "86c238b8bfb8972565c37014fd3a5433f47134f2b344a3e6aa709f386d0ee726"
+        "sha256": "9618f090b5b621364e509465dab4674d792ae0e1e10d00623590bf6791b6a31a"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.js",
