@@ -31,7 +31,10 @@ test('port 1.18.0 declares every setting of the set-drawn types', () => {
 test('the group titles read the text ladder, the panel title the window step', () => {
   const css = read('src/smart/view-properties/js/templates/default.css');
   const js = read('src/smart/view-properties/js/templates/default.js');
-  assert.match(css, /\.sf-property-view-title \{[^}]*font-size: var\(--sf-property-view--title-size, var\(--sf-heading-4--size\)\);[^}]*line-height: var\(--sf-property-view--title-height, var\(--sf-heading-4--height\)\);/u);
+  // In a drawer the head stands inside the drawer's body, where sf-drawer
+  // 1.16.0 shifts the heading roles: the title reads the step the drawer's
+  // panel publishes above the shift (sf-drawer 1.16.4; VP-5, 1.16.4) first.
+  assert.match(css, /\.sf-property-view-title \{[^}]*font-size: var\(--sf-property-view--title-size, var\(--sf-drawer--title-size, var\(--sf-heading-4--size\)\)\);[^}]*line-height: var\(--sf-property-view--title-height, var\(--sf-drawer--title-height, var\(--sf-heading-4--height\)\)\);/u);
   assert.match(css, /\.sf-property-view-group-title \{[^}]*font-size: var\(--sf-property-view--group-size, var\(--sf-text--size-1\)\);[^}]*line-height: var\(--sf-property-view--group-height, var\(--sf-title--height-1\)\);/u);
   assert.match(js, /--sf-property-view--title-size: var\(--sf-text--size-2\); --sf-property-view--title-height: var\(--sf-title--height-2\);/u);
   assert.doesNotMatch(`${css.replaceAll(/var\(--sf-heading-4--(size|height)\)/gu, '')}\n${js}`, /--sf-heading-[1-6]--(size|height)/u, 'only the panel title reads a heading role');
