@@ -40,7 +40,7 @@ test("CLI discovers and describes the whole data view", () => {
   assert.equal(packet.decision.reuse_mode, "whole");
   assert.equal(packet.public_abi.custom_element, "sf-view-table");
   assert.equal(packet.conformance.compatibility.contract_schema.version, 2);
-  assert.equal(packet.identity.version, '1.20.2');
+  assert.equal(packet.identity.version, '1.20.3');
   assert.ok(packet.public_abi.methods.requestActionIntent);
   assert.ok(packet.public_abi.events['sf-table-action-intent']);
   for (const event of ['sf-table-create-intent', 'sf-view-table-template-select', 'sf-view-table-sort-change']) {
@@ -67,7 +67,7 @@ test("CLI discovers and describes the whole data view", () => {
   // drawer's head, the filled head clears them; 1.16.4 VP-5/VP-8). 1.16.1,
   // 1.16.2 and ui-pro's 1.16.4 are ui-pro's own patched copies, never this set's.
   const record = JSON.parse(run("describe", "smart.view-properties", "--format", "ai"));
-  assert.equal(record.identity.version, '1.16.6');
+  assert.equal(record.identity.version, '1.16.7');
   assert.deepEqual(composite.host_port.supported_versions, ["1.0.0", "1.1.0", "1.2.0", "1.3.0", "1.4.0", "1.5.0", "1.6.0", "1.7.0", "1.8.0", "1.9.0", "1.10.0", "1.11.0", "1.12.0", "1.13.0", "1.14.0", "1.15.0"]);
 });
 

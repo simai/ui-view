@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-properties",
-  "version": "1.16.6",
+  "version": "1.16.7",
   "title": "Property view",
   "summary": "One object's fields shown as sections, groups and fields, each drawn by the per-type field renderer set, behind a separate host port. A group is edited and saved as one revision by the button, and a reference field is picked from the host's own candidates a page at a time. The pair to the data view: that one is a set of records, this one is a single object.",
   "kind": "composite",
@@ -1680,6 +1680,13 @@
         "changes": [
           "#172: the utility classes its templates write are its relations, asked for with the component; fetched after the first paint they moved the drawn parts (the bulk band 0 -> 8 gap, 8 px down)"
         ]
+      },
+      {
+        "from": "1.16.6",
+        "to": "1.16.7",
+        "changes": [
+          "PRO-ADM-16: a record to read opens with the focus on its title (out of the Tab order), not on the favourite star whose tooltip stood over the title; a record with a field keeps the field the drawer focuses"
+        ]
       }
     ]
   },
@@ -1689,7 +1696,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-properties/index.js",
-        "sha256": "5b9ef72ae743070f8886eb108b9a350005d5455585b3ca57a723fd0e8928f127"
+        "sha256": "86c238b8bfb8972565c37014fd3a5433f47134f2b344a3e6aa709f386d0ee726"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.js",

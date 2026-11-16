@@ -1216,6 +1216,23 @@ class SfPropertyView extends PropertyViewElement {
             this.closePanel(DRAWER_CLOSE_REASONS[event.detail?.reason] ?? "api");
         };
         this.addEventListener("sf-drawer-close", this._onDrawerClose);
+        // The first focus of the panel (Pro joint pass PRO-ADM-16): the drawer
+        // gives it to the first field of its content, else its first control
+        // -- for a record shown to read, the favourite star in the head, whose
+        // tooltip then stood over the title. A record to read starts on its
+        // title (the heading takes the focus without becoming a Tab stop); a
+        // record with a field keeps the field the drawer chose (C159 (9)).
+        this._onDrawerOpened = (event) => {
+            if (event.target !== this._ownDrawer()) return;
+            const active = document.activeElement;
+            if (active?.closest?.("input, textarea, select, [contenteditable], sf-input, sf-select, sf-textarea")) return;
+            const root = event.target.getDrawerRoot?.() ?? event.target;
+            const title = root.querySelector?.(".sf-property-view-panel .sf-property-view-title");
+            if (!title || (active && !root.contains(active) && active !== document.body)) return;
+            title.tabIndex = -1;
+            title.focus({preventScroll: true});
+        };
+        this.addEventListener("sf-drawer-opened", this._onDrawerOpened);
         // The drop is sf-sortable's to report and the component's to apply or
         // refuse -- that is the seam the mechanism already publishes, so no drag
         // is implemented here. The lists name themselves `field:<group>` and
@@ -1335,6 +1352,8 @@ class SfPropertyView extends PropertyViewElement {
         this._portRequested = false;
         if (this._onDrawerClose) this.removeEventListener("sf-drawer-close", this._onDrawerClose);
         this._onDrawerClose = null;
+        if (this._onDrawerOpened) this.removeEventListener("sf-drawer-opened", this._onDrawerOpened);
+        this._onDrawerOpened = null;
         // The settings surface listens on the document, so a panel that goes away
         // while it is open takes that listener with it.
         this.configuring = false;

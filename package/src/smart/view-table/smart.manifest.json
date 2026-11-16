@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-table",
-  "version": "1.20.2",
+  "version": "1.20.3",
   "title": "Table",
   "summary": "Complete server-backed collection view with search, filters, table preferences, row and bulk actions, and pagination.",
   "kind": "composite",
@@ -2822,6 +2822,13 @@
         "changes": [
           "#172: the utility classes its templates write are its relations, asked for with the component; fetched after the first paint they moved the drawn parts (the bulk band 0 -> 8 gap, 8 px down)"
         ]
+      },
+      {
+        "from": "1.20.2",
+        "to": "1.20.3",
+        "changes": [
+          "PRO-ADM-9: a resource row's more button names its record (Ещё действия: <name>), as the row menu button does (Действия: <name>)"
+        ]
       }
     ]
   },
@@ -2835,7 +2842,7 @@
       },
       {
         "path": "src/smart/view-table/js/templates/default.js",
-        "sha256": "7ed1e3ea662aadd122eaad3e0dd461086c1f60a8b0df2b1832f8ba377d906f46"
+        "sha256": "a705d19afce93533c10ed0b9434cb67314f3ab9d58181651a1e2549d5d3ac389"
       },
       {
         "path": "src/smart/view-table/js/templates/default.css",

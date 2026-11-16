@@ -27,6 +27,11 @@ in brackets. The site page «Изменения» says the same in Russian.
   as relations, so the Loader asks for them with the component (a SIMAI
   Framework component gets them from the Loader's own list): the bulk band no
   longer gains its gap and moves 8 px down after the first paint (#172).
+- `sf-view-table` 1.20.3: a resource row's «⋯» names its record («Ещё
+  действия: <name>»), as «≡» does (PRO-ADM-9).
+- `sf-view-properties` 1.16.7: a record opened to read starts with the focus
+  on its title, not on the favourite star whose tooltip covered the title
+  (PRO-ADM-16); a record with a field keeps that field.
 - The browser test of saved views' first paint watches six pages at a time
   and fails a refresh that never settles (3 loads: 22 min to 4 min).
 

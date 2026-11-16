@@ -1037,7 +1037,7 @@ export function renderTableTemplate(context) {
                 : html`<sf-button size=${size} appearance="ghost" scheme="on-surface-variant" data-quick-action=${action.id}
                         text=${action.name ?? action.id} @click=${press(action)}></sf-button>`))}</span>` : nothing}
             <button type="button" class=${`${button} sf-icon-button--size-${size} sf-table-resource-more`}
-                    aria-label=${component.text('moreActionsLabel')} aria-haspopup="menu" data-sf-row-menu
+                    aria-label=${component.getRowNameText(row) ? `${component.text('moreActionsLabel')}: ${component.getRowNameText(row)}` : component.text('moreActionsLabel')} aria-haspopup="menu" data-sf-row-menu
                     @click=${(event) => {
                         event.stopPropagation();
                         // Every action of the row, the quick ones too (C259 (3),
