@@ -45,6 +45,7 @@ const out = resolve(process.argv[2]);
 const sheetsFile = new URL('../../src/smart/view/static/sheets.json', import.meta.url);
 const FIRST_PAINT_SHEETS = JSON.parse(readFileSync(sheetsFile, 'utf8')).sheets;
 const LOADS = Number(process.env.SAVED_VIEWS_LOADS || 3);
+const PARALLEL = Number(process.env.SAVED_VIEWS_PARALLEL || 6);
 const SCRIPT_DELAY = 400;
 const LATE_SHEETS = SCRIPT_DELAY + 500;
 const TOLERANCE = 0.5;
@@ -187,7 +188,16 @@ const rows = [];
 const failures = [];
 const browser = await chromium.launch();
 try {
+  // Every page is its own context with its own held answer, so pages are
+  // watched a few at a time: one page waits seconds on its delayed scripts
+  // and sheets with the processor idle, and 144 of them one after another
+  // took 20-25 minutes, which read as a hang (queue #193). PARALLEL pages at
+  // once; the measures are per page (frames of its own toolbar), not times.
+  const jobs = [];
   for (let load = 1; load <= LOADS; load += 1) for (const order of ['skeleton-first', 'data-first']) for (const mode of ['head', 'withheld', 'late']) for (const scheme of ['light', 'dark']) for (const width of [1440, 390]) for (const views of [true, false]) {
+    jobs.push({load, order, mode, scheme, width, views});
+  }
+  const watchOne = async ({load, order, mode, scheme, width, views}) => {
     const where = `load ${load} ${order} ${mode} ${scheme} ${width} ${views ? 'saved-views' : 'plain'}`;
     const path = `/p/${load}/${order}/${mode}/${scheme}/${width}/${views ? 'views' : 'plain'}`;
     pages.set(path, {mode, order, html: html({scheme, dataFirst: order === 'data-first', sheets: mode === 'withheld' ? ['core/css/core.css'] : FIRST_PAINT_SHEETS,
@@ -210,12 +220,17 @@ try {
       await tab.waitForFunction(() => window.__fp?.released && !document.querySelector('#stage sf-view').hasAttribute('data-sf-awaiting')
         && window.__fp.frames.some((frame) => frame.phase === 'drawn' && frame.sheetsIn), null, {timeout: 60000});
       await tab.waitForTimeout(700);
-      await tab.evaluate(() => document.querySelector('#stage sf-view').refresh?.('again'));
+      // A refresh that never settled held this page, and the run, for ever:
+      // the evaluate has no timeout of its own.
+      await Promise.race([
+        tab.evaluate(() => document.querySelector('#stage sf-view').refresh?.('again')),
+        new Promise((_, refuse) => setTimeout(() => refuse(new Error('the refresh did not settle in 15 s')), 15000)),
+      ]);
       await tab.waitForTimeout(700);
     } catch (error) {
       failures.push(`${where}: ${error.message.split('\n')[0]}`);
       await context.close();
-      continue;
+      return;
     }
     const fp = await tab.evaluate(() => window.__fp);
     await context.close();
@@ -255,7 +270,11 @@ try {
       if (!last?.slot) failures.push(`${where}: the table drew no saved-views control`);
     } else if (frames.some((frame) => frame.slot)) failures.push(`${where}: a saved-views place is ${views ? 'held in the compact list' : 'held without saved views declared'}`);
     if (errors.length) failures.push(`${where}: console ${errors.slice(0, 3).join(' | ')}`);
-  }
+  };
+  let next = 0;
+  await Promise.all(Array.from({length: Math.max(1, PARALLEL)}, async () => {
+    while (next < jobs.length) await watchOne(jobs[next++]);
+  }));
 } finally {
   await browser.close();
   server.close();
