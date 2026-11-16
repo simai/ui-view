@@ -18,10 +18,28 @@ test('PRO-ADM-9: the resource row «more» button names its record, as the ≡ d
 
 test('PRO-ADM-16: a record to read opens on its title; a record with a field keeps the field', async () => {
   const source = await read('src/smart/view-properties/index.js');
-  const opened = source.slice(source.indexOf('this._onDrawerOpened = (event) => {'), source.indexOf('this.addEventListener("sf-drawer-opened", this._onDrawerOpened);'));
-  assert.ok(opened.length > 0);
-  assert.match(opened, /if \(event\.target !== this\._ownDrawer\(\)\) return;/);
-  assert.match(opened, /closest\?\.\("input, textarea, select, \[contenteditable\], sf-input, sf-select, sf-textarea"\)\) return;/);
-  assert.match(opened, /title\.tabIndex = -1;\n\s*title\.focus\(\{preventScroll: true\}\);/);
-  assert.match(source, /this\.removeEventListener\("sf-drawer-opened", this\._onDrawerOpened\);/);
+  const slice = (from, to) => {
+    const start = source.indexOf(from);
+    assert.ok(start >= 0, from);
+    return source.slice(start, source.indexOf(to, start + from.length));
+  };
+  // The panel is drawn open, so sf-drawer-opened is never sent for it (the
+  // first fix listened for it and the probe still found the star focused):
+  // the watch starts on the render that opens the panel.
+  assert.doesNotMatch(source, /addEventListener\("sf-drawer-opened"/);
+  const watch = slice('this._offAfterRender = this.onAfterRender?.(() => {', '\n        });');
+  assert.match(watch, /if \(open && !this\._panelWasOpen\) this\._startTitleFocus\(\);/);
+  assert.match(watch, /if \(!open\) this\._endTitleFocus\(\);/);
+  assert.match(source, /const TITLE_FOCUS_WAIT_MS = 2000;/);
+  const start = slice('    _startTitleFocus() {', '\n    }\n');
+  assert.match(start, /document\.addEventListener\("focusin", this\._onPanelFocusIn, true\);/);
+  assert.match(start, /document\.addEventListener\("pointerdown", this\._onPanelAct, true\);/);
+  assert.match(start, /document\.addEventListener\("keydown", this\._onPanelAct, true\);/);
+  const first = slice('    _focusTitleFirst() {', '\n    }\n');
+  // Only the drawer's own pick gives way: the panel waiting, or its first stop.
+  assert.match(first, /closest\?\.\("input, textarea, select, \[contenteditable\], sf-input, sf-select, sf-textarea"\)\) return this\._endTitleFocus\(\);/);
+  assert.match(first, /if \(active !== panel && active !== drawer\?\.firstFocusIn\?\.\(panel\)\) return this\._endTitleFocus\(\);/);
+  assert.match(first, /title\.tabIndex = -1;\n\s*title\.focus\(\{preventScroll: true\}\);/);
+  const off = slice('    onDisconnected() {', '\n    }\n');
+  assert.match(off, /this\._endTitleFocus\(\);\n\s*this\._offAfterRender\?\.\(\);/);
 });

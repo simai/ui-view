@@ -44,6 +44,9 @@ const SUPPORTED_PORT_VERSIONS = ["1.0.0", "1.1.0", "1.2.0", "1.3.0", "1.4.0", "1
 // open at once, one save. create: an empty object of the collection, every
 // field open, one create.
 const MODES = ["view", "auto", "edit", "create"];
+// How long an opened panel waits for its title before leaving the first focus
+// where the drawer put it: the drawer's own wait for a late field (two seconds).
+const TITLE_FOCUS_WAIT_MS = 2000;
 
 // The most candidates a picker asks for at once, from a host on port 1.14.0 or
 // later (an earlier port's field.options payload is closed and would refuse
@@ -1221,18 +1224,23 @@ class SfPropertyView extends PropertyViewElement {
         // -- for a record shown to read, the favourite star in the head, whose
         // tooltip then stood over the title. A record to read starts on its
         // title (the heading takes the focus without becoming a Tab stop); a
-        // record with a field keeps the field the drawer chose (C159 (9)).
-        this._onDrawerOpened = (event) => {
-            if (event.target !== this._ownDrawer()) return;
-            const active = document.activeElement;
-            if (active?.closest?.("input, textarea, select, [contenteditable], sf-input, sf-select, sf-textarea")) return;
-            const root = event.target.getDrawerRoot?.() ?? event.target;
-            const title = root.querySelector?.(".sf-property-view-panel .sf-property-view-title");
-            if (!title || (active && !root.contains(active) && active !== document.body)) return;
-            title.tabIndex = -1;
-            title.focus({preventScroll: true});
+        // record with a field keeps the field the drawer chose (C159 (9)). The
+        // panel is drawn open and its record comes later, so sf-drawer-opened
+        // is not sent and the drawer's pick lands frames after the open: the
+        // panel watches the focus from its open until the title is drawn, the
+        // person acts or two seconds pass.
+        this._onPanelFocusIn = () => this._focusTitleFirst();
+        this._onPanelAct = (event) => {
+            const root = this._ownDrawerRoot();
+            if (root && event.composedPath?.().includes(root)) this._endTitleFocus();
         };
-        this.addEventListener("sf-drawer-opened", this._onDrawerOpened);
+        this._offAfterRender = this.onAfterRender?.(() => {
+            const open = this.panelOpen;
+            if (open && !this._panelWasOpen) this._startTitleFocus();
+            if (!open) this._endTitleFocus();
+            this._panelWasOpen = open;
+            if (this._titleFocusUntil) requestAnimationFrame(() => this._focusTitleFirst());
+        });
         // The drop is sf-sortable's to report and the component's to apply or
         // refuse -- that is the seam the mechanism already publishes, so no drag
         // is implemented here. The lists name themselves `field:<group>` and
@@ -1352,8 +1360,10 @@ class SfPropertyView extends PropertyViewElement {
         this._portRequested = false;
         if (this._onDrawerClose) this.removeEventListener("sf-drawer-close", this._onDrawerClose);
         this._onDrawerClose = null;
-        if (this._onDrawerOpened) this.removeEventListener("sf-drawer-opened", this._onDrawerOpened);
-        this._onDrawerOpened = null;
+        this._endTitleFocus();
+        this._offAfterRender?.();
+        this._offAfterRender = null;
+        this._panelWasOpen = false;
         // The settings surface listens on the document, so a panel that goes away
         // while it is open takes that listener with it.
         this.configuring = false;
@@ -1990,6 +2000,47 @@ class SfPropertyView extends PropertyViewElement {
 
     // The drawer that carries this panel: a child of the element (the drawer
     // portals its content, not itself).
+    _ownDrawerRoot() {
+        const drawer = this._ownDrawer();
+        return drawer?.getDrawerRoot?.() ?? drawer;
+    }
+
+    _startTitleFocus() {
+        if (this._titleFocusUntil) return;
+        this._titleFocusUntil = performance.now() + TITLE_FOCUS_WAIT_MS;
+        document.addEventListener("focusin", this._onPanelFocusIn, true);
+        document.addEventListener("pointerdown", this._onPanelAct, true);
+        document.addEventListener("keydown", this._onPanelAct, true);
+    }
+
+    _endTitleFocus() {
+        this._titleFocusUntil = 0;
+        if (this._onPanelFocusIn) document.removeEventListener("focusin", this._onPanelFocusIn, true);
+        if (this._onPanelAct) {
+            document.removeEventListener("pointerdown", this._onPanelAct, true);
+            document.removeEventListener("keydown", this._onPanelAct, true);
+        }
+    }
+
+    // Gives the title the focus the drawer handed out on its own: the panel
+    // itself (waiting for content) or its first control. A field it chose, a
+    // focus the person moved, or a focus still outside the panel stays.
+    _focusTitleFirst() {
+        if (!this._titleFocusUntil) return;
+        if (performance.now() > this._titleFocusUntil) return this._endTitleFocus();
+        const drawer = this._ownDrawer();
+        const root = this._ownDrawerRoot();
+        const panel = root?.querySelector?.("[data-sf-drawer-panel]");
+        const title = panel?.querySelector?.(".sf-property-view-panel .sf-property-view-title");
+        const active = document.activeElement;
+        if (!panel || !title || !active || !panel.contains(active)) return;
+        if (active.closest?.("input, textarea, select, [contenteditable], sf-input, sf-select, sf-textarea")) return this._endTitleFocus();
+        if (active !== panel && active !== drawer?.firstFocusIn?.(panel)) return this._endTitleFocus();
+        this._endTitleFocus();
+        title.tabIndex = -1;
+        title.focus({preventScroll: true});
+    }
+
     _ownDrawer() {
         return [...this.children].find((child) => child.localName === "sf-drawer") ?? null;
     }
