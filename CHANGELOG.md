@@ -3,6 +3,28 @@
 The set `view`, by its npm version `@simai-studio/view`; component versions
 in brackets. The site page «Изменения» says the same in Russian.
 
+## Unreleased (fix/view-set-j1, for 1.8.2)
+
+- Over the SIMAI Framework pair `ui-078a4b4c6f6e` (npm 5.20261116.1505).
+- `sf-view-properties` 1.16.4 (VP-5, VP-8) and 1.16.5: the page buttons in
+  the drawer head beside the close are size 1/3, 8 apart (C205 (2)); the
+  filled head of a phone panel clears them (taken back from ui-pro f29d4bf).
+- `sf-view-table` 1.19.9 and `sf-view-flow` 1.1.3 follow the Framework files
+  of the new pair they build in.
+- `sf-view-table` 1.20.0, the table with actions on a phone (C259): below
+  44rem a table whose host offers row actions keeps the box, «≡» and the
+  columns marked `key_cell: true`, at the container's width with no sideways
+  scroll; `key_line` names the column drawn as the key cell's second line.
+  Every action of a row is in one menu, `sf-menu-context` bound with `for`
+  to the rows of the table and the list: «≡», a list row's «⋯», the right
+  button, the menu key, Shift+F10 and a long press open the same list
+  (C164). Row menus follow the host's row actions, not `row-actions`.
+- `sf-view-table` 1.20.1: the list toolbar's field, view buttons (filter
+  and sort) and «Создать» stand `--sf-space-1` apart, 12 on a phone (C144;
+  were 8).
+- The browser test of saved views' first paint watches six pages at a time
+  and fails a refresh that never settles (3 loads: 22 min to 4 min).
+
 ## 1.8.1 — 2026-11-15
 
 - Over the same SIMAI Framework pair `ui-141822273efe`.
