@@ -503,7 +503,7 @@
       },
       {
         "path": "src/smart/view-flow/rule.js",
-        "sha256": "9c58d553b405979b0960697651a0937e3f309324dccbbe99d1462f572a7de6e5"
+        "sha256": "7dcd2bb147ab45091906a27e898fb4a41788fbb028a8c104854d40c3494b1580"
       },
       {
         "path": "src/smart/view-flow/docs.md",

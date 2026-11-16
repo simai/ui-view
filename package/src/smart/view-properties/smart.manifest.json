@@ -1733,7 +1733,7 @@
       },
       {
         "path": "src/smart/view-properties/rule.js",
-        "sha256": "04ccb96d8811a57d8cf2a516dc98b68b4db4256008f2b7051830e7a74d0f20e2"
+        "sha256": "d65093af451bf046d258f80d04de464311b5d7214741d58529e2350604d399f9"
       },
       {
         "path": "src/core/contracts/ports/simai.property-view-port/1.4.0/port.json",
