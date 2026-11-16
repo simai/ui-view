@@ -1230,6 +1230,56 @@
     inset-inline-start: 0;
     inline-size: calc(100cqi - 2 * var(--sf-space-1));
   }
+
+  /* A table with row actions whose host marks key cells, on a phone (owner
+     decision C259, variant Б; isKeyedNarrow, below 44rem): the row keeps the
+     box, «≡» and the key cells, and the table is as wide as its place -- no
+     sideways scroll. The box and «≡» columns are as wide as their control;
+     a key cell keeps its words on one line, and the name (the cell with a
+     second line, else the title) takes what the others leave and ends in an
+     ellipsis. The same numbers as SIMAI Framework utility.table 1.7.0. */
+  :is(sf-view-table, sf-table) table.sf-table-keyed {
+    inline-size: 100%;
+    table-layout: auto;
+  }
+
+  :is(sf-view-table, sf-table) table.sf-table-keyed :is(th, td) {
+    white-space: nowrap;
+    word-break: normal;
+    overflow-wrap: normal;
+  }
+
+  :is(sf-view-table, sf-table) table.sf-table-keyed :is(th, td):is([data-key="select"], [data-key="settings"]) {
+    inline-size: var(--sf-0);
+  }
+
+  :is(sf-view-table, sf-table) table.sf-table-keyed td:has(> .sf-table-key-name),
+  :is(sf-view-table, sf-table) table.sf-table-keyed :is(th, td)[data-sf-cell="title"] {
+    inline-size: 100%;
+    max-inline-size: var(--sf-0);
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* The name and its second line: one line each, the line quiet, on the
+     two-line rung (--sf-ui-2--control-height, 44), as the Framework's. */
+  :is(sf-view-table, sf-table) table.sf-table-keyed td:has(> .sf-table-key-name) {
+    block-size: var(--sf-ui-2--control-height);
+  }
+
+  :is(sf-view-table, sf-table) .sf-table-key-name,
+  :is(sf-view-table, sf-table) .sf-table-key-line {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  :is(sf-view-table, sf-table) .sf-table-key-line {
+    color: var(--sf-on-surface-variant);
+    font-size: var(--sf-text-size-1\/2);
+    line-height: var(--sf-text-height-1\/2);
+  }
 }
 
 @layer sf.states {

@@ -539,7 +539,9 @@ export function columnStyle(component, column) {
 function renderColgroup(context) {
     const columns = context.component?.getColumns?.() || [];
 
-    if (!columns.length) {
+    // A keyed table on a phone (C259) lays its few cells out by their
+    // content: the name takes what the others leave (default.css).
+    if (!columns.length || context.keyedNarrow) {
         return nothing;
     }
 
@@ -863,7 +865,7 @@ export function renderTableTemplate(context) {
             .map(({column}) => column);
         const filled = (value) => !(value === null || value === undefined || value === '' || (Array.isArray(value) && !value.length));
         return html`
-            <ul class="sf-table-list" role="list" aria-label=${context.ariaLabel || nothing}
+            <ul class="sf-table-list" role="list" id=${`${context.rowAreaId}-list`} aria-label=${context.ariaLabel || nothing}
                 aria-busy=${dataState === 'loading' ? 'true' : nothing}>
                 ${rows.map((row, rowIndex) => row.__tree?.more
                     ? keyed(`item:${row.id}`, html`
@@ -927,7 +929,7 @@ export function renderTableTemplate(context) {
                 : text;
         };
         return html`
-            <ul class="sf-table-list sf-table-list--resource" role="list" aria-label=${context.ariaLabel || nothing}
+            <ul class="sf-table-list sf-table-list--resource" role="list" id=${`${context.rowAreaId}-list`} aria-label=${context.ariaLabel || nothing}
                 aria-busy=${dataState === 'loading' ? 'true' : nothing}
                 style=${`--sf-table-resource--actions: ${Math.max(1, (context.quickActionIds?.length ?? 0) + (menu ? 1 : 0))}`}>
                 ${rows.map((row, rowIndex) => {
@@ -1003,9 +1005,8 @@ export function renderTableTemplate(context) {
     }
 
     // A list row's actions (C31): up to three quick ones as icon buttons,
-    // always shown, then «more» (more_horiz) with the rest -- and, on a
-    // narrow list, the quick ones too: the sheet folds them away, and the
-    // menu asks it what is shown.
+    // always shown (folded away on a narrow list), then «more» (more_horiz),
+    // whose menu holds every action of the row (C259 (3)).
     function renderListActions(row, menu) {
         const component = context.component;
         // The rest is the row menu's, and a table without its menu column
@@ -1034,10 +1035,9 @@ export function renderTableTemplate(context) {
                     aria-label=${component.text('moreActionsLabel')} aria-haspopup="menu" data-sf-row-menu
                     @click=${(event) => {
                         event.stopPropagation();
-                        const item = event.currentTarget.closest('.sf-table-resource-actions');
-                        const box = item?.querySelector('.sf-table-resource-quick');
-                        const folded = Boolean(box) && getComputedStyle(box).display === 'none';
-                        component.openRowMenu(event, row, folded ? [...quick, ...rest] : rest);
+                        // Every action of the row, the quick ones too (C259 (3),
+                        // C164 (2)): the list the right button opens.
+                        component.openRowMenu(event, row);
                     }}><i class="sf-icon" aria-hidden="true">more_horiz</i></button>
         </span>`;
     }
@@ -1093,11 +1093,20 @@ export function renderTableTemplate(context) {
         const sticky = columns.map((column, index) => component.getStickyCellStyle(columns, index) || nothing);
         const cellKinds = columns.map((column) => cellKind(component, column, columns));
         const pinned = columns.map((column) => (component.isPinnedColumn(column) ? '' : nothing));
+        const lined = columns.map((column) => Boolean(component.keyLineOf?.(column)));
         // The stripes are nth-child: a spacer of no height keeps the parity of
         // the drawn rows the parity they have in the whole list.
         const spacer = (height, key) => html`<tr class="sf-table-window-spacer" aria-hidden="true" data-sf-window-spacer=${key}><td colspan=${span} style=${`block-size: ${Math.max(0, Math.round(height))}px`}></td></tr>`;
         const fullCell = (row, column, kind) => {
             const value = column.key === titleColumn ? renderTitleLink(context, row, renderCellValue(row, column)) : renderCellValue(row, column);
+            // A key cell's second line on a phone (C259): the value of the
+            // column the host names in key_line, quiet, one line.
+            const line = component.keyLineOf?.(column);
+            if (line) {
+                const raw = row?.[line];
+                const text = String((raw !== null && typeof raw === 'object' ? (raw.text ?? raw.label ?? raw.value) : raw) ?? '');
+                return html`<span class="sf-table-key-name">${value}</span>${text ? html`<span class="sf-table-key-line">${text}</span>` : nothing}`;
+            }
             // The name's two lines (C146 (7)) are its cell's text, by the
             // cell's data-sf-cell="title": no element around it.
             if (column.key === treeColumn) return renderTreeCell(context, row, value);
@@ -1128,7 +1137,7 @@ export function renderTableTemplate(context) {
             columns.forEach((column, cellIndex) => {
                 // The main field of a row that opens is its link, not markup.
                 const opens = column.key === titleColumn && component.canOpenRow?.(row) && row?.id != null;
-                const mark = opens ? null : (component.rowMarkupCell?.(row, column) ?? null);
+                const mark = opens || lined[cellIndex] ? null : (component.rowMarkupCell?.(row, column) ?? null);
                 values.push(column.key, `${row.id}_${column.key}`, cellKinds[cellIndex], pinned[cellIndex], sticky[cellIndex]);
                 if (cellKinds[cellIndex] === 'title' && mark?.kind === 'text') {
                     // The name as text: two lines by its cell (C146 (7)).
@@ -1440,7 +1449,8 @@ export function renderTableTemplate(context) {
                     ${context.list ? renderList() : html`
                     <table
                             ${ref(context.component.refs.table)}
-                            class="table border-separate border-spacing-0 min-w-full ${context.component?.contentSized ? 'sf-table-content-sized' : 'w-max'} table-fixed transition"
+                            id=${context.rowAreaId}
+                            class="table border-separate border-spacing-0 min-w-full ${context.keyedNarrow ? 'sf-table-keyed' : `${context.component?.contentSized ? 'sf-table-content-sized' : 'w-max'} table-fixed`} transition"
                             role=${context.component.isTree?.() ? 'treegrid' : nothing}
                             aria-label=${context.ariaLabel || nothing}
                             aria-rowcount=${context.component.windowRowCount?.() ?? nothing}

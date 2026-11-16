@@ -28,28 +28,40 @@ test('sf-view-table: no ⋮ (more_vert) is left; the view and template actions d
   assert.match(template, /icon="more_horiz"\n\s*aria-label="Действия с представлением"/);
 });
 
-test('sf-view-table: a right click opens the row menu at the pointer, the keys at the button', async () => {
+test('sf-view-table: the right button, the keys and a long press open the row menu through sf-menu-context for= (C164, #168)', async () => {
   const source = await read('src/smart/view-table/index.js');
-  assert.match(source, /function menuPointAt\(\{x, y\}\) \{[\s\S]*position: fixed; left: \$\{x\}px; top: \$\{y\}px; inline-size: 0; block-size: 0/);
-  const grid = source.slice(source.indexOf('    bindGridKeys(table) {'), source.indexOf('    rowOfElement(element) {'));
-  assert.match(grid, /this\.openRowMenuOf\(row, target, \{x: event\.clientX, y: event\.clientY\}\)/);
-  const keys = source.slice(source.indexOf('    handleGridKeydown(event, table) {'), source.indexOf('    handleGridKeydown(event, table) {') + 1500);
-  assert.match(keys, /if \(isMenuKey\(event\) && row\.parentElement\?\.tagName === "TBODY"\) \{\n\s*if \(this\.openRowMenuOf\(row, target\)\)/);
-  const open = source.slice(source.indexOf('    async openRowMenu('), source.indexOf('    rowMenu() {'));
-  // The point leaves when the menu closes, bound only once this opening is open.
-  assert.match(open, /const opened = await menu\.toggleFor\(at\);\n\s*if \(menu\.isOpen\) menu\.addEventListener\("sf-menu-context-closed", \(\) => at\.remove\(\), \{once: true\}\);\n\s*else at\.remove\(\);/);
+  // The table's own point anchor, contextmenu listeners and menu-key branches
+  // are gone: the engine of the pair (sf-menu-context 1.21.0, `for`) hears
+  // them on the rows of the table and the list, and asks `open`.
+  // A table inside a shadow root (sf-view's own) is out of `for`'s reach and
+  // answers the right button and the keys itself (bindShadowRowMenu) alone.
+  const shadow = source.slice(source.indexOf('    bindShadowRowMenu() {'), source.indexOf('    // The entries of the row the menu opens for'));
+  assert.match(shadow, /if \(!inShadow\(\) \|\| event\.defaultPrevented\) return;/);
+  const outside = source.replace(shadow, '');
+  for (const gone of [/function menuPointAt\(/, /openRowMenuOf\(/, /openListRowMenu\(/, /openRowContextMenu\(/, /_listContextMenu/, /isMenuKey/, /keepsBrowserMenu/, /addEventListener\("contextmenu"/]) {
+    assert.doesNotMatch(outside, gone, String(gone));
+  }
+  const menu = source.slice(source.indexOf('    rowMenu() {'), source.indexOf('    // Which of the table\'s actions this row offers'));
+  assert.match(menu, /menu\.setAttribute\("for", `\$\{this\.rowAreaId\} \$\{this\.rowAreaId\}-list`\);/);
+  assert.match(menu, /menu\.addEventListener\("sf-menu-context-open", \(event\) => \{/);
+  assert.match(menu, /if \(!row \|\| !this\.getActionRowItems\(row\)\.length\) \{\n\s*event\.preventDefault\(\);/);
+  assert.match(menu, /const \{ids\} = this\.rowMenuTargets\(row\);/);
   // A host's own handler still gets the row's button as its anchor.
-  assert.match(open, /this\._rowMenuContext = \{row, items, anchor, ids:/);
+  assert.match(source, /this\._rowMenuContext = \{row, items, anchor, ids:/);
+  // The «≡» and the list's «⋯» open the same menu at the button.
+  const open = source.slice(source.indexOf('    async openRowMenu('), source.indexOf('    get hasRowMenus() {'));
+  assert.match(open, /return menu\.toggleFor\(anchor, target \? \{target\} : \{\}\);/);
+  // The menu is in the page once the rows have one (afterDraw).
+  assert.match(source, /this\.syncGrid\(\);\n\s*this\.bindRowMenu\(\);/);
+  const template = await read('src/smart/view-table/js/templates/default.js');
+  assert.match(template, /<table\n\s*\$\{ref\(context\.component\.refs\.table\)\}\n\s*id=\$\{context\.rowAreaId\}/);
+  assert.equal((template.match(/role="list" id=\$\{`\$\{context\.rowAreaId\}-list`\}/g) ?? []).length, 2);
 });
 
-test('sf-view-table: a list row opens its menu on a right click, the context-menu key and Shift+F10', async () => {
+test('sf-view-table: a list row\'s «⋯» holds every action of the row, the quick ones too (C259 (3))', async () => {
+  const template = await read('src/smart/view-table/js/templates/default.js');
+  assert.match(template, /component\.openRowMenu\(event, row\);\n\s*\}\}><i class="sf-icon" aria-hidden="true">more_horiz<\/i><\/button>/);
+  assert.doesNotMatch(template, /folded \? \[\.\.\.quick, \.\.\.rest\] : rest/);
   const source = await read('src/smart/view-table/index.js');
-  const keydown = source.slice(source.indexOf('    handleRowKeydown(event, row) {'), source.indexOf('    handleRowKeydown(event, row) {') + 900);
-  assert.match(keydown, /this\.isList && isMenuKey\(event\) && !keepsBrowserMenu\(event\?\.target\)/);
-  assert.match(source, /this\.addEventListener\("contextmenu", this\._listContextMenu\);/);
-  const list = source.slice(source.indexOf('    openListRowMenu(item, pointer = null) {'), source.indexOf('    handleGridKeydown(event, table) {'));
   assert.match(source, /const LIST_ROW_MENU_BUTTON = "\[data-sf-row-menu\], \.sf-table-list-menu button";/);
-  assert.match(list, /item\.querySelector\(LIST_ROW_MENU_BUTTON\)/);
-  assert.match(list, /only = folded \? \[\.\.\.quick, \.\.\.rest\] : rest;/);
-  assert.match(source, /const keepsBrowserMenu = \(target\) => Boolean\(target\?\.closest\?\.\("a\[href\], input, textarea, select, \[contenteditable\]"\)\);/);
 });

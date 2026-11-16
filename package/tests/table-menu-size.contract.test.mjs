@@ -13,8 +13,11 @@ test('sf-view-table: the row menu takes the resolved size and the density on eve
   const source = await read('src/smart/view-table/index.js');
   assert.match(source, /import \{followDensity\} from "\.\.\/\.\.\/core\/js\/density\.js";/);
   assert.match(source, /get menuSize\(\) \{\n\s*return this\.size === "1\/2" \? "1\/2" : "1";\n\s*\}/);
-  const open = source.slice(source.indexOf('    async openRowMenu('), source.indexOf('    rowMenu() {'));
-  assert.match(open, /const menu = this\.rowMenu\(\);[\s\S]*menu\.setAttribute\("size", this\.menuSize\);\n\s*followDensity\(menu, this\);[\s\S]*return menu\.toggleFor\(anchor\);/);
+  // Every opening asks `open`, and fillRowMenu answers it (C164, #168).
+  const fill = source.slice(source.indexOf('    fillRowMenu(menu, row, ids, anchor) {'), source.indexOf('    rowMenu() {'));
+  assert.match(fill, /menu\.setAttribute\("size", this\.menuSize\);\n\s*followDensity\(menu, this\);/);
+  const open = source.slice(source.indexOf('    async openRowMenu('), source.indexOf('    get hasRowMenus() {'));
+  assert.match(open, /const menu = this\.rowMenu\(\);[\s\S]*return menu\.toggleFor\(anchor, target \? \{target\} : \{\}\);/);
   // Not at creation alone: rowMenu() writes neither.
   const create = source.slice(source.indexOf('    rowMenu() {'), source.indexOf('    rowMenu() {') + 1500);
   assert.doesNotMatch(create, /setAttribute\("size"/);
