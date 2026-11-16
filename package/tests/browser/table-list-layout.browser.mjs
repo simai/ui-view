@@ -65,8 +65,12 @@ try {
     const labels = items.map((item) => [...item.querySelectorAll('.sf-table-list-label')].map((label) => label.textContent.trim()));
     const toolbar = table.querySelector('.sf-table-toolbar--list');
     const row = toolbar?.firstElementChild;
-    const tops = row ? [...row.children].map((child) => Math.round((child.firstElementChild ?? child).getBoundingClientRect().top)) : [];
-    const heights = row ? [...row.children].map((child) => Math.round((child.firstElementChild ?? child).getBoundingClientRect().height)) : [];
+    // The view buttons (filter and sort) are one group of their own (C144,
+    // sf-view-table 1.20.1): the group is measured, its first child may be a
+    // display: contents host.
+    const drawn = (child) => (child.matches('.sf-table-list-view-buttons') ? child : (child.firstElementChild ?? child));
+    const tops = row ? [...row.children].map((child) => Math.round(drawn(child).getBoundingClientRect().top)) : [];
+    const heights = row ? [...row.children].map((child) => Math.round(drawn(child).getBoundingClientRect().height)) : [];
     const box = toolbar?.getBoundingClientRect();
     const field = row?.querySelector('label.sf-search-input')?.getBoundingClientRect();
     return {
