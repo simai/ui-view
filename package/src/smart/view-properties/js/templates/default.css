@@ -864,16 +864,16 @@
     /* On a phone the two answers of an edit share the foot's row in equal
        halves, the main one first, 8 apart (C159 (4) = C157 (3); VP-8, 1.16.4):
        at their text width they stood 115 and 93 at the start of a 390 bar.
-       sf-button's host is display: contents, so the halves are given to its
-       button. Each half is the row less one gap, halved, so the pair fills the
+       sf-button's host is display: contents and hands its data-action to its
+       button, so the halves are given to the button. Each half is the row less one gap, halved, so the pair fills the
        row and whatever else the bar holds (errors, the host's footer, the
        delete) wraps under it; a spacer left last holds nothing and is not drawn,
        so it adds no empty line. */
-    .sf-property-view-actions:has(> sf-button[data-action='cancel']) > sf-button:is([data-action='save'], [data-action='create'], [data-action='cancel']) > button {
+    .sf-property-view-actions:has(> sf-button > button[data-action='cancel']) > sf-button > button:is([data-action='save'], [data-action='create'], [data-action='cancel']) {
       flex: 1 1 calc((100% - var(--sf-space-1\/3)) / 2);
       min-inline-size: 0;
     }
-    .sf-property-view-actions:has(> sf-button[data-action='cancel']) > .grow:last-child {
+    .sf-property-view-actions:has(> sf-button > button[data-action='cancel']) > .grow:last-child {
       display: none;
     }
   }

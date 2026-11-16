@@ -102,7 +102,7 @@ try {
       const panel = document.querySelector('.sf-drawer-panel');
       const h1 = document.querySelector('.sf-property-view-panel .sf-drawer-body [data-field="about"] h1');
       const bar = document.querySelector('.sf-property-view-panel .sf-property-view-actions');
-      const button = (action) => bar?.querySelector(`:scope > sf-button[data-action="${action}"] > button`);
+      const button = (action) => bar?.querySelector(`:scope > sf-button > button[data-action="${action}"]`);
       const save = box(button('save'));
       const cancel = box(button('cancel'));
       const barStyle = bar ? getComputedStyle(bar) : null;

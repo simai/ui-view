@@ -16,8 +16,8 @@ test('VP-5: the panel title reads the drawer title step before the h4 role', () 
 
 test('VP-8: on a phone Save (Create) and Cancel share the foot row in halves, 8 apart', () => {
   const phone = css.slice(css.lastIndexOf('@media (max-width: 47.99rem)'));
-  assert.match(phone, /\.sf-property-view-actions:has\(> sf-button\[data-action='cancel'\]\) > sf-button:is\(\[data-action='save'\], \[data-action='create'\], \[data-action='cancel'\]\) > button \{\s*flex: 1 1 calc\(\(100% - var\(--sf-space-1\\\/3\)\) \/ 2\);\s*min-inline-size: 0;/u);
-  assert.match(phone, /\.sf-property-view-actions:has\(> sf-button\[data-action='cancel'\]\) > \.grow:last-child \{\s*display: none;/u);
+  assert.match(phone, /\.sf-property-view-actions:has\(> sf-button > button\[data-action='cancel'\]\) > sf-button > button:is\(\[data-action='save'\], \[data-action='create'\], \[data-action='cancel'\]\) \{\s*flex: 1 1 calc\(\(100% - var\(--sf-space-1\\\/3\)\) \/ 2\);\s*min-inline-size: 0;/u);
+  assert.match(phone, /\.sf-property-view-actions:has\(> sf-button > button\[data-action='cancel'\]\) > \.grow:last-child \{\s*display: none;/u);
   // Not outside the phone query: the desktop foot keeps the buttons' width.
   const desktop = css.slice(0, css.lastIndexOf('@media (max-width: 47.99rem)'));
   assert.doesNotMatch(desktop, /flex: 1 1 calc\(\(100% - var\(--sf-space-1\\\/3\)\) \/ 2\)/u);
