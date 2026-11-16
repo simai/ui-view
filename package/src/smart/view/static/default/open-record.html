@@ -24,7 +24,7 @@
 <sf-input root-class="sf-search-input m-inline-start-auto" appearance="bordered" name="sf_table_search" hint-icon="search" value placeholder="Поиск" style="display: contents;">
 
 
-<label class="sf-input  sf-input--size-1 sf-input--bordered  sf-search-input m-inline-start-auto flex flex-col" data-mask="false" data-mask-pattern data-mask-lazy data-mask-placeholder-char data-mask-options data-sf-input-bound="1" for="sf-view-open-record-1" data-sf-static>
+<label class="sf-input  sf-input--size-1 sf-input--bordered   sf-search-input m-inline-start-auto flex flex-col" data-mask="false" data-mask-pattern data-mask-lazy data-mask-placeholder-char data-mask-options data-sf-input-bound="1" for="sf-view-open-record-1" data-sf-static>
 
 <span class="sf-input-field items-cross-center transition flex">
 
@@ -45,6 +45,7 @@
 
 </span>
 
+
 </label>
 </sf-input>
 
@@ -60,7 +61,7 @@
 <div class="sf-table-resize-guide" aria-hidden="true" hidden></div>
 
 
-<table class="table border-separate border-spacing-0 min-w-full w-max table-fixed transition" aria-label="Решения" style="--sf-table-pin-select: 0px;">
+<table id="sf-view-open-record-2" class="table border-separate border-spacing-0 min-w-full w-max table-fixed transition" aria-label="Решения" style="--sf-table-pin-select: 0px;">
 
 <colgroup>
 
@@ -74,16 +75,16 @@
 
 <th class="relative" data-key="select" data-label="select" data-sf-pinned style="position: sticky; inset-inline-start: var(--sf-table-pin-select, 0px); z-index: 2;" data-sf-pin-edge>
 <sf-checkbox position="end" root-class="content-main-between" aria-label="Выбрать все строки" style="display: contents;">
-<label class="sf-checkbox sf-checkbox--size-1 flex content-main-between cursor-pointer sf-checkable sf-checkable--size-1" for="sf-view-open-record-2" data-sf-static>
+<label class="sf-checkbox sf-checkbox--size-1 flex content-main-between cursor-pointer sf-checkable sf-checkable--size-1" for="sf-view-open-record-3" data-sf-static>
 
 
 
 <span class="sf-checkbox-box flex">
-<input type="checkbox" value="on" aria-label="Выбрать все строки" id="sf-view-open-record-2">
+<input type="checkbox" value="on" aria-label="Выбрать все строки" id="sf-view-open-record-3">
 <sf-icon aria-hidden="true" icon style="display: contents;"><i class="sf-icon" aria-hidden="true" data-sf-static></i></sf-icon>
 </span>
 </label>
-</sf-checkbox><span class="sf-tooltip sf-tooltip--dark sf-tooltip--size-1/3 sf-tooltip--arrow-bottom-inline-start" hidden id="sf-view-open-record-3"></span>
+</sf-checkbox><span class="sf-tooltip sf-tooltip--dark sf-tooltip--size-1/3 sf-tooltip--arrow-bottom-inline-start" hidden id="sf-view-open-record-4"></span>
 </th>
 </tr>
 </thead>
@@ -186,7 +187,7 @@
 
 <li class="sf-pagination-item">
 <sf-button-icon appearance="ghost" scheme="on-surface" class="sf-pagination-direction sf-pagination-direction--first" size="1" icon="first_page" title="В начало" aria-label="В начало" disabled style="display: contents;" data-sf-size-relative>
-<button type="button" class="sf-icon-button sf-icon-button--size-1 sf-icon-button--icon sf-icon-button--link flex items-cross-center sf-icon-button--on-surface" disabled aria-label="В начало" title="В начало" data-sf-static>
+<button type="button" class="sf-icon-button sf-icon-button--size-1 sf-icon-button--icon sf-icon-button--link flex items-cross-center sf-icon-button--on-surface" disabled aria-label="В начало" title data-sf-static>
 
 <sf-icon root-class="pointer-event-none" weight="400" aria-hidden="true" filled="false" icon="first_page" style="display: contents;"><i class="sf-icon sf-icon--weight-regular pointer-event-none" data-sf-icon-mirror aria-hidden="true" data-sf-static>first_page</i></sf-icon>
 </button>
@@ -196,7 +197,7 @@
 
 <li class="sf-pagination-item">
 <sf-button-icon appearance="ghost" scheme="on-surface" class="sf-pagination-direction sf-pagination-direction--prev" size="1" icon="keyboard_arrow_left" title="Предыдущая страница" aria-label="Предыдущая страница" disabled style="display: contents;" data-sf-size-relative>
-<button type="button" class="sf-icon-button sf-icon-button--size-1 sf-icon-button--icon sf-icon-button--link flex items-cross-center sf-icon-button--on-surface" disabled aria-label="Предыдущая страница" title="Предыдущая страница" data-sf-static>
+<button type="button" class="sf-icon-button sf-icon-button--size-1 sf-icon-button--icon sf-icon-button--link flex items-cross-center sf-icon-button--on-surface" disabled aria-label="Предыдущая страница" title data-sf-static>
 
 <sf-icon root-class="pointer-event-none" weight="400" aria-hidden="true" filled="false" icon="keyboard_arrow_left" style="display: contents;"><i class="sf-icon sf-icon--weight-regular pointer-event-none" data-sf-icon-mirror aria-hidden="true" data-sf-static>keyboard_arrow_left</i></sf-icon>
 </button>
@@ -207,7 +208,7 @@
 
 <label class="sf-pagination-page-field flex items-cross-center" style="--sf-pagination-page-input--digits: 1">
 <sf-input appearance="bordered" root-class="sf-pagination-page-input" inputmode="numeric" size="1" value="1" aria-label="Страница:" style="display: contents;" data-sf-size-relative>
-<label class="sf-input  sf-input--size-1 sf-input--bordered  sf-pagination-page-input flex flex-col" data-mask="false" data-mask-pattern data-mask-lazy data-mask-placeholder-char data-mask-options data-sf-input-bound="1" for="sf-view-open-record-1" data-sf-static>
+<label class="sf-input  sf-input--size-1 sf-input--bordered   sf-pagination-page-input flex flex-col" data-mask="false" data-mask-pattern data-mask-lazy data-mask-placeholder-char data-mask-options data-sf-input-bound="1" for="sf-view-open-record-1" data-sf-static>
 
 <span class="sf-input-field items-cross-center transition flex">
 
@@ -226,6 +227,7 @@
 
 </span>
 
+
 </label>
 </sf-input>
 </label>
@@ -235,7 +237,7 @@
 
 <li class="sf-pagination-item">
 <sf-button-icon appearance="ghost" scheme="on-surface" class="sf-pagination-direction sf-pagination-direction--next" size="1" icon="keyboard_arrow_right" title="Следующая страница" aria-label="Следующая страница" disabled style="display: contents;" data-sf-size-relative>
-<button type="button" class="sf-icon-button sf-icon-button--size-1 sf-icon-button--icon sf-icon-button--link flex items-cross-center sf-icon-button--on-surface" disabled aria-label="Следующая страница" title="Следующая страница" data-sf-static>
+<button type="button" class="sf-icon-button sf-icon-button--size-1 sf-icon-button--icon sf-icon-button--link flex items-cross-center sf-icon-button--on-surface" disabled aria-label="Следующая страница" title data-sf-static>
 
 <sf-icon root-class="pointer-event-none" weight="400" aria-hidden="true" filled="false" icon="keyboard_arrow_right" style="display: contents;"><i class="sf-icon sf-icon--weight-regular pointer-event-none" data-sf-icon-mirror aria-hidden="true" data-sf-static>keyboard_arrow_right</i></sf-icon>
 </button>
@@ -245,7 +247,7 @@
 
 <li class="sf-pagination-item">
 <sf-button-icon appearance="ghost" scheme="on-surface" class="sf-pagination-direction sf-pagination-direction--last" size="1" icon="last_page" title="Последняя" aria-label="Последняя" disabled style="display: contents;" data-sf-size-relative>
-<button type="button" class="sf-icon-button sf-icon-button--size-1 sf-icon-button--icon sf-icon-button--link flex items-cross-center sf-icon-button--on-surface" disabled aria-label="Последняя" title="Последняя" data-sf-static>
+<button type="button" class="sf-icon-button sf-icon-button--size-1 sf-icon-button--icon sf-icon-button--link flex items-cross-center sf-icon-button--on-surface" disabled aria-label="Последняя" title data-sf-static>
 
 <sf-icon root-class="pointer-event-none" weight="400" aria-hidden="true" filled="false" icon="last_page" style="display: contents;"><i class="sf-icon sf-icon--weight-regular pointer-event-none" data-sf-icon-mirror aria-hidden="true" data-sf-static>last_page</i></sf-icon>
 </button>
