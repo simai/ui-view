@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-table",
-  "version": "1.19.6",
+  "version": "1.19.9",
   "title": "Table",
   "summary": "Complete server-backed collection view with search, filters, table preferences, row and bulk actions, and pagination.",
   "kind": "composite",
@@ -2794,6 +2794,13 @@
         "changes": [
           "A table with selection boxes asks the Loader for the tick («check») and the head's «remove» with its first icon font (SF.Loader.preloadIcons, as sf-segmented and sf-input ask for the glyphs they will draw). An unchecked row's glyph is empty, so the page's font never had the tick and the first box checked waited for a second font before its tick showed (0.6 s on a fast line, longer on a slow one; DEV recipes p1, owner remark). Nothing to change for a host."
         ]
+      },
+      {
+        "from": "1.19.6",
+        "to": "1.19.9",
+        "changes": [
+          "Over SIMAI Framework ui-078a4b4c6f6e (ui-source 10145e63b9dc) the Framework file it builds in, src/smart/pagination/index.js (sf-pagination 1.7: «Show more» within reach, C167; a deleting action listed last, C116), moved; the provenance and the version follow. Nothing of its own; nothing to change for a host. 1.19.7 and 1.19.8 are ui-pro's own patched copies, never this set's."
+        ]
       }
     ]
   },
@@ -2827,7 +2834,7 @@
       },
       {
         "path": "src/smart/pagination/index.js",
-        "sha256": "8a1f057c7871e96cdc70418185a672d4778e3a63a103672c0ae269217de12d8d"
+        "sha256": "db0416ab0766b055e2a9cae922c824e5efcd0150c0497544c3dd356ece73c0e1"
       }
     ],
     "generated_runtime": []
