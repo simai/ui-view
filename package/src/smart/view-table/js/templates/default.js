@@ -58,7 +58,7 @@ function renderListToolbar(context) {
                 <!-- C144: filter and sort are one group of neighbours (H5,
                      --sf-space-1/3); the field before them and «Создать»
                      after them stand a group apart (H6, --sf-space-1). -->
-                <div class="sf-table-list-view-buttons flex items-cross-center gap-1/3">
+                ${context.component.offersFilter(active.length) || context.component.getColumns().some((column) => column?.sortable && !column.system) ? html`<div class="sf-table-list-view-buttons flex items-cross-center gap-1/3">
                 ${context.component.offersFilter(active.length) ? html`<span class="sf-table-list-filter">
                     <sf-button-icon
                             size=${context.controlSize ?? nothing}
@@ -82,7 +82,7 @@ function renderListToolbar(context) {
                             aria-haspopup="menu"
                             @click=${(e) => context.component.openContextMenu(e, {type: 'bottom', menu: 'list-sort'})}
                     ></sf-button-icon>` : nothing}
-                </div>
+                </div>` : nothing}
                 ${context.actions && context.creatable ? html`
                     <sf-button-icon
                             size=${context.controlSize ?? nothing}

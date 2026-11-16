@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view",
-  "version": "1.12.3",
+  "version": "1.12.4",
   "title": "Data view",
   "summary": "Host-driven data view that composes toolbar, content and pagination around a separate data port.",
   "kind": "composite",
@@ -1670,6 +1670,13 @@
           "The first paint's control blocks (the toolbar's saved-views place, the layout switch, the create split arrow and the actions button) are the controls' boxes again over the SIMAI Framework pair ui-141822273efe. That pair's skeleton draws a text bar at the capitals' height (owner decision C136 (1), 0.727 of the text size), and the view's control blocks are skeleton text: they were held at 30 of 40 (24 of 32 compact, 20 of 28 at 1/2 compact) while the controls that came were whole, so the toolbar looked different from its first frame. A control block now sets its own bar, height and margin. Text bars take the pair's capital height. Nothing to change for a host.",
           "The first paint's page row is the one SIMAI Framework sf-pagination 1.5 draws (owner decision C97, the compatible footer): the range, the arrows to the first and the previous page, the page field with its «из N», the arrows to the next and the last, and the page-size button. It held the 1.4 row (a label and one control for the pages, a label and a field for the size), which fit one line on a phone where the drawn row puts the pages on a line of their own: the view grew 48 px when its answer came (1211 to 1259 at 390). Nothing to change for a host."
         ]
+      },
+      {
+        "from": "1.12.3",
+        "to": "1.12.4",
+        "changes": [
+          "C144: the skeleton's compact list toolbar holds the field, filter and Создать --sf-space-1 apart, as sf-view-table 1.20.1 draws them (the field no longer moves 8 when the list comes)"
+        ]
       }
     ]
   },
@@ -1699,7 +1706,7 @@
       },
       {
         "path": "src/smart/view/js/first-paint.css",
-        "sha256": "7bc17ee46303702e371e405d8172d278312f12c7cc0183e51c3ca6876b731e56"
+        "sha256": "0ba9d9ce5c62c5c313bce2f78b0493e59e4b9af9770bee0e1722e9ef8fc1e7a1"
       }
     ],
     "generated_runtime": []

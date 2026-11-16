@@ -100,11 +100,14 @@ try {
       fold[width] = shown;
       const narrow = width * 1 < 600;
       const quick = narrow ? [] : ['visit', 'restart'];
-      const menu = narrow ? ['Открыть сайт', 'Перезапустить', 'Открыть карточку', 'Сделать копию', 'Удалить сайт'] : ['Открыть карточку', 'Сделать копию', 'Удалить сайт'];
+      // Every action of the row is in its one menu, the quick ones too (owner
+      // decision C259 (3), sf-view-table 1.20.0): the menu no longer changes
+      // with what the row shows.
+      const menu = ['Открыть сайт', 'Перезапустить', 'Открыть карточку', 'Сделать копию', 'Удалить сайт'];
       if (JSON.stringify(shown.quick) !== JSON.stringify(quick)) note(theme, {said: 'the quick actions are not shown when wide, folded when narrow', width, got: shown.quick});
       if (shown.more !== 'more_horiz' || shown.menuLegacy) note(theme, {said: '«more» is not more_horiz in place of ≡', width, got: shown});
       if (!menu.every((text) => shown.menu.some((item) => item.includes(text))) || shown.menu.length !== menu.length) {
-        note(theme, {said: '«more» does not hold the rest (and the folded quick ones when narrow)', width, got: shown.menu, want: menu});
+        note(theme, {said: '«more» does not hold every action of the row (C259 (3))', width, got: shown.menu, want: menu});
       }
       if (shown.moreHeight !== 32 || (!narrow && shown.quickHeight !== 32)) note(theme, {said: 'the row\'s buttons are not the size 1/2 icon button (32)', width, got: shown});
     }

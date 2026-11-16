@@ -21,7 +21,7 @@ in brackets. The site page «Изменения» says the same in Russian.
   (C164). Row menus follow the host's row actions, not `row-actions`.
 - `sf-view-table` 1.20.1: the list toolbar's field, view buttons (filter
   and sort) and «Создать» stand `--sf-space-1` apart, 12 on a phone (C144;
-  were 8).
+  were 8); `sf-view` 1.12.4 prints its first-paint list toolbar the same way.
 - The browser test of saved views' first paint watches six pages at a time
   and fails a refresh that never settles (3 loads: 22 min to 4 min).
 

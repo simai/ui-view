@@ -173,13 +173,15 @@
 
   /* The compact list's toolbar (.sf-table-toolbar--list): one line, the field
      first and taking what is left, the filter and create as squares of the
-     step's control after it, 1/3 apart, and no saved-views control. The
+     step's control after it, each a group of its own --sf-space-1 apart
+     (C144: sf-view-table 1.20.1; the sort button that joins the filter at
+     1/3 comes with the answer), and no saved-views control. The
      list draws it below list-below, and on a list at any width unless the
      layout switch keeps the table's toolbar there (view161 acceptance O1:
      the skeleton kept the filter first and the field moved 116 / 92 px). */
   .sf-data-view-skeleton[data-layout="list"]:not([data-layout-switch]) .sf-data-view-skeleton-toolbar {
     flex-wrap: nowrap;
-    gap: var(--sf-space-1\/3);
+    gap: var(--sf-space-1);
   }
   .sf-data-view-skeleton[data-layout="list"]:not([data-layout-switch]) .sf-data-view-skeleton-toolbar > [data-part] {
     display: contents;
@@ -296,7 +298,7 @@
     /* Below list-below the list's compact toolbar, as above. */
     .sf-data-view-skeleton:is([data-layout="auto"], [data-layout="list"]) .sf-data-view-skeleton-toolbar {
       flex-wrap: nowrap;
-      gap: var(--sf-space-1\/3);
+      gap: var(--sf-space-1);
     }
     .sf-data-view-skeleton:is([data-layout="auto"], [data-layout="list"]) .sf-data-view-skeleton-toolbar > [data-part] {
       display: contents;

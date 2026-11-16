@@ -2,7 +2,7 @@
   "$comment": "sf-data-view from its component.json (standard simai.smart-component 1.3.8, vocabulary 1.1.5), migrated from ui-control control/smart-architecture/migration/out/data-view; every x-todo decided in x-decisions.",
   "id": "smart.view",
   "tag": "sf-view",
-  "version": "1.12.3",
+  "version": "1.12.4",
   "kind": "leaf",
   "family": "table",
   "settings": {
@@ -1522,7 +1522,7 @@
           "to": "1.12.1",
           "changes": [
             "The first paint's rows are the table's C146 rows (sf-view-table 1.19.0): the step's control, 40 at size 1 and 32 at 1/2 and compact, the head as tall; they were the rung above (48 and 40). Nothing to change for a host.",
-          "The bulk band's Apply is a regular button (outline on-surface, C116), the outlined danger over an action that deletes (delete, remove, destroy, trash), and such an action is listed last (C164 (5)); it was the filled main button. Nothing to change for a host."
+            "The bulk band's Apply is a regular button (outline on-surface, C116), the outlined danger over an action that deletes (delete, remove, destroy, trash), and such an action is listed last (C164 (5)); it was the filled main button. Nothing to change for a host."
           ]
         },
         {
@@ -1538,6 +1538,13 @@
           "changes": [
             "The first paint's control blocks (the toolbar's saved-views place, the layout switch, the create split arrow and the actions button) are the controls' boxes again over the SIMAI Framework pair ui-141822273efe. That pair's skeleton draws a text bar at the capitals' height (owner decision C136 (1), 0.727 of the text size), and the view's control blocks are skeleton text: they were held at 30 of 40 (24 of 32 compact, 20 of 28 at 1/2 compact) while the controls that came were whole, so the toolbar looked different from its first frame. A control block now sets its own bar, height and margin. Text bars take the pair's capital height. Nothing to change for a host.",
             "The first paint's page row is the one SIMAI Framework sf-pagination 1.5 draws (owner decision C97, the compatible footer): the range, the arrows to the first and the previous page, the page field with its «из N», the arrows to the next and the last, and the page-size button. It held the 1.4 row (a label and one control for the pages, a label and a field for the size), which fit one line on a phone where the drawn row puts the pages on a line of their own: the view grew 48 px when its answer came (1211 to 1259 at 390). Nothing to change for a host."
+          ]
+        },
+        {
+          "from": "1.12.3",
+          "to": "1.12.4",
+          "changes": [
+            "C144: the skeleton's compact list toolbar holds the field, filter and Создать --sf-space-1 apart, as sf-view-table 1.20.1 draws them (the field no longer moves 8 when the list comes)"
           ]
         }
       ]
