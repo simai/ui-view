@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-properties",
-  "version": "1.16.5",
+  "version": "1.16.6",
   "title": "Property view",
   "summary": "One object's fields shown as sections, groups and fields, each drawn by the per-type field renderer set, behind a separate host port. A group is edited and saved as one revision by the button, and a reference field is picked from the host's own candidates a page at a time. The pair to the data view: that one is a set of records, this one is a single object.",
   "kind": "composite",
@@ -1673,6 +1673,13 @@
         "changes": [
           "In its panel (C205 (2); ui-pro f29d4bf taken back, so ui-view is the one home of the component): (1) when sf-drawer brings the edge controls into its head's row (data-sf-drawer-edge-in-head: a phone, size full, or no room beside the panel), copy-link and open-full are the page's buttons beside the close: size 1/3 (they were the panel's size, 36-40 next to a 24-28 close), without the raised popup plate, in a row 8 apart; the wrapper no longer keeps a column there. The view follows the drawer's attribute (it measures), and draws the controls anew when their place changes. Beside a wide panel they are unchanged. (2) A filled panel whose edge stands in the drawer's head starts its head on the panel's axis and stops --sf-space-1/3 short of the drawer's --sf-drawer-edge-room: still padded for a strip at its start, the record's name ran under the controls at 390. 1.16.4 here is VP-5/VP-8; ui-pro's own 1.16.1, 1.16.2 and 1.16.4 are its patched copies, superseded by this version. Markup, settings, events and the host port unchanged."
         ]
+      },
+      {
+        "from": "1.16.5",
+        "to": "1.16.6",
+        "changes": [
+          "#172: the utility classes its templates write are its relations, asked for with the component; fetched after the first paint they moved the drawn parts (the bulk band 0 -> 8 gap, 8 px down)"
+        ]
       }
     ]
   },
@@ -1726,7 +1733,7 @@
       },
       {
         "path": "src/smart/view-properties/rule.js",
-        "sha256": "3b9e6ff478e98d4b478b37911a36c9ef3317404d2f9084dae4945301af67d393"
+        "sha256": "04ccb96d8811a57d8cf2a516dc98b68b4db4256008f2b7051830e7a74d0f20e2"
       },
       {
         "path": "src/core/contracts/ports/simai.property-view-port/1.4.0/port.json",

@@ -24,6 +24,6 @@ test('VP-8: on a phone Save (Create) and Cancel share the foot row in halves, 8 
 });
 
 test('1.16.4 and its migration step (the set moved on to 1.16.5)', () => {
-  assert.ok(['1.16.4', '1.16.5'].includes(manifest.version), manifest.version);
+  assert.ok(['1.16.4', '1.16.5', '1.16.6'].includes(manifest.version), manifest.version);
   assert.match(JSON.stringify(manifest), /"from":"1\.16\.3","to":"1\.16\.4"/u);
 });

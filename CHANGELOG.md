@@ -22,6 +22,11 @@ in brackets. The site page «Изменения» says the same in Russian.
 - `sf-view-table` 1.20.1: the list toolbar's field, view buttons (filter
   and sort) and «Создать» stand `--sf-space-1` apart, 12 on a phone (C144;
   were 8); `sf-view` 1.12.4 prints its first-paint list toolbar the same way.
+- `sf-view` 1.12.5, `sf-view-table` 1.20.2, `sf-view-flow` 1.1.4 and
+  `sf-view-properties` 1.16.6 name the utility classes their templates write
+  as relations, so the Loader asks for them with the component (a SIMAI
+  Framework component gets them from the Loader's own list): the bulk band no
+  longer gains its gap and moves 8 px down after the first paint (#172).
 - The browser test of saved views' first paint watches six pages at a time
   and fails a refresh that never settles (3 loads: 22 min to 4 min).
 

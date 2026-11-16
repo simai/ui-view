@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view",
-  "version": "1.12.4",
+  "version": "1.12.5",
   "title": "Data view",
   "summary": "Host-driven data view that composes toolbar, content and pagination around a separate data port.",
   "kind": "composite",
@@ -1676,6 +1676,13 @@
         "to": "1.12.4",
         "changes": [
           "C144: the skeleton's compact list toolbar holds the field, filter and Создать --sf-space-1 apart, as sf-view-table 1.20.1 draws them (the field no longer moves 8 when the list comes)"
+        ]
+      },
+      {
+        "from": "1.12.4",
+        "to": "1.12.5",
+        "changes": [
+          "#172: the utility classes its templates write are its relations, asked for with the component; fetched after the first paint they moved the drawn parts (the bulk band 0 -> 8 gap, 8 px down)"
         ]
       }
     ]

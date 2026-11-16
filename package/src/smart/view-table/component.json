@@ -2,7 +2,7 @@
   "$comment": "sf-table from its component.json (standard simai.smart-component 1.3.8, vocabulary 1.1.5), migrated from ui-control control/smart-architecture/migration/out/table (convert-1.3.8.mjs over ui-pro 9cbe061); every x-todo decided in x-decisions.",
   "id": "smart.view-table",
   "tag": "sf-view-table",
-  "version": "1.20.1",
+  "version": "1.20.2",
   "kind": "leaf",
   "family": "table",
   "settings": {
@@ -970,6 +970,96 @@
       "$comment": [
         "The layout switch in the toolbar (C31)."
       ]
+    },
+    {
+      "name": "align-items/default",
+      "$comment": [
+        "The utility classes its templates write, asked for with the component (SIMAI Framework loader: a Framework component gets them from template-utilities.generated.json, a package component names them here); fetched after the first paint, they moved the drawn parts -- the bulk band's gap came 0 -> 8 and the band 8 px down some 150 ms in (View 1.8.1 acceptance, queue #172). The list is scripts/generate-template-utilities.mjs run over the overlay."
+      ]
+    },
+    {
+      "name": "border-collapse/default"
+    },
+    {
+      "name": "border-spacing/default"
+    },
+    {
+      "name": "cursor/default"
+    },
+    {
+      "name": "display/default"
+    },
+    {
+      "name": "element-position/default"
+    },
+    {
+      "name": "flex-direction/default"
+    },
+    {
+      "name": "flex-wrap/default"
+    },
+    {
+      "name": "flex/default"
+    },
+    {
+      "name": "gap/default"
+    },
+    {
+      "name": "height/default"
+    },
+    {
+      "name": "justify-content/default"
+    },
+    {
+      "name": "margin/default"
+    },
+    {
+      "name": "max-width/default"
+    },
+    {
+      "name": "min-height/default"
+    },
+    {
+      "name": "min-width/default"
+    },
+    {
+      "name": "overflow/default"
+    },
+    {
+      "name": "padding/default"
+    },
+    {
+      "name": "pointer-events/default"
+    },
+    {
+      "name": "position/default"
+    },
+    {
+      "name": "table-layout/default"
+    },
+    {
+      "name": "table/default"
+    },
+    {
+      "name": "text-max-width/default"
+    },
+    {
+      "name": "text-overflow/default"
+    },
+    {
+      "name": "transition-property/default"
+    },
+    {
+      "name": "user-select/default"
+    },
+    {
+      "name": "visibility/default"
+    },
+    {
+      "name": "width/default"
+    },
+    {
+      "name": "z-index/default"
     }
   ],
   "templates": {
@@ -2458,6 +2548,13 @@
           "to": "1.20.1",
           "changes": [
             "C144: the list toolbar's field, view buttons (filter and sort, 1/3 apart) and Создать are three groups --sf-space-1 apart (12 on a phone, was 8)"
+          ]
+        },
+        {
+          "from": "1.20.1",
+          "to": "1.20.2",
+          "changes": [
+            "#172: the utility classes its templates write are its relations, asked for with the component; fetched after the first paint they moved the drawn parts (the bulk band 0 -> 8 gap, 8 px down)"
           ]
         }
       ]
