@@ -13,6 +13,10 @@ belongs to its own thread; nothing here was written in simai/docara.
    without the passport, manifest digest recomputed, and reads the files from
    the build's output directory. Wanted: accept `set.json` (and project it
    beside `smart/` so the Loader's debug read of `<base>/../set.json` finds it).
+   **Done in Docara 3.14.1** (2026-11-17, view round 1): it reads the set's
+   receipt with the passport as it is (it refused the adapted one with
+   `FRAMEWORK_PACKAGE_RECEIPT_REQUIRED_FILE_UNLISTED set.json`); the
+   workaround is gone from the materializer.
 2. **Declare a set as a set.** The built page declares
    `SF_BOOT_CONFIG.packages.view = {base}`, the plain-package form, so the
    Loader does not treat it as a set (no passport read, no required-set

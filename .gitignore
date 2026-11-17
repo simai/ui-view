@@ -13,6 +13,7 @@ work/
 # The Docara site: installed Docara, its build and its working files
 site/vendor/
 site/build_*/
+site/build_*.docara-lock
 site/.docara/
 site/source/
 site/.framework/

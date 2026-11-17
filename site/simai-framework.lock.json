@@ -3,44 +3,44 @@
     "runtime": {
         "schema": "larena.ui.frontend_runtime_lock.v3",
         "runtime": "simai-framework",
-        "pair_id": "ui-1e5ec795a1ce",
-        "bundle_id": "ui-1e5ec795a1ce-registry-994a4ed3-verified-commit-candidate-v1",
+        "pair_id": "ui-24d64b7f6eb7",
+        "bundle_id": "ui-24d64b7f6eb7-registry-6d53d094-verified-commit-candidate-v1",
         "publication_profile": "verified-commit-candidate-v1",
         "tag": null,
         "ui": {
             "tag": null,
-            "commit": "1e5ec795a1ce640b58a2a3903d11b5e726f4fb82",
+            "commit": "24d64b7f6eb7a782d648dbb5b44f7eb763ec815b",
             "tree": "distr",
             "mount": "ui",
-            "sha256": "79a03ee026fc9eddcefcf0ad33f3ff8f778ba5e8aa80d3096ab7ab11cb89af71",
-            "files": 11878
+            "sha256": "c56250511c8ca6aa7d0c2cfe78d4e6303fe2daf1cc5a0975e7bffd36b85b3ef3",
+            "files": 13460
         },
         "ui_smart": {
             "tag": null,
-            "commit": "1e5ec795a1ce640b58a2a3903d11b5e726f4fb82",
+            "commit": "24d64b7f6eb7a782d648dbb5b44f7eb763ec815b",
             "tree": "distr/smart",
             "mount": "ui",
-            "sha256": "7971eeff90aab50702f92948366e1f5555bcfea0429f588b0c354857d19c4978",
-            "files": 3026
+            "sha256": "fa88bce3a9c23dad22deca4f05b8351ae2d53e8a33bbdc8b069b3e6ed5cd74a1",
+            "files": 3975
         },
         "framework_registry": {
             "schema_id": "simai.framework.contract-registry",
-            "compatibility_id": "ui-1e5ec795a1ce",
+            "compatibility_id": "ui-24d64b7f6eb7",
             "profile": "plain-assets-v1",
             "relative_path": "contracts/generated/framework-contract-registry.json",
-            "file_sha256": "994a4ed31e6cd6529e44033b853bfdcb4ca9366cc0026257e09e64acf04627ce",
+            "file_sha256": "6d53d09434eb47e4e50dd6718891a21150a41c881f1ec13bb0c2d6e89b478152",
             "source": {
-                "commit": "fe1461ca2fe5179c28ea11d18eacfb99b6c0cc67",
+                "commit": "74c5279c9ae54d07068ab8abac59ee87c416080d",
                 "tree": "contracts/generated",
-                "tree_oid": "a71af2e565b22c2a5df2d4774580965f08eca5bf",
+                "tree_oid": "ef96315805db513c18af4f7ff7695d6330f3a2fc",
                 "mount": "contract",
-                "sha256": "d48c00535502a0baae42e678b9deb93ee693a7991b070396f595a807645bed79",
+                "sha256": "811fb902eea3df413b84d55605b8cc777ac4bcadedee8c279a1593e6d880a014",
                 "files": 2
             },
             "documentation_source": {
                 "schema": "docara.documentation_source.v1",
                 "relative_path": "contracts/generated/documentation-source.json",
-                "file_sha256": "08b81ce4cf33c61ada9e3fd93258324759d889bc767e5b0c256ddaa9b6d48c61"
+                "file_sha256": "841891e4ead4c83d909857bcc89cbe646b85e6eeb2fbb44b9e39723bdde3cf21"
             }
         },
         "boot": {
@@ -79,8 +79,10 @@
                 "css": "smart/smart/accordion/css/accordion.css",
                 "attributes": [
                     "appearance",
+                    "expand-all",
                     "heading-level",
                     "items",
+                    "link",
                     "marker",
                     "root-class",
                     "root-style",
@@ -90,7 +92,8 @@
                     "template"
                 ],
                 "requires": [
-                    "sf-badge"
+                    "sf-badge",
+                    "sf-button"
                 ]
             },
             "sf-alert": {
@@ -98,13 +101,14 @@
                 "javascript": "smart/smart/alert/js/alert.js",
                 "css": null,
                 "requires": [
-                    "sf-button-icon",
-                    "sf-icon",
-                    "sf-icon-button"
+                    "sf-button-close",
+                    "sf-close",
+                    "sf-icon"
                 ],
                 "attributes": [
                     "action",
                     "action-text",
+                    "actions-layout",
                     "appearance",
                     "aria-label",
                     "closable",
@@ -137,11 +141,11 @@
                     "template"
                 ],
                 "requires": [
-                    "sf-badge",
                     "sf-button",
                     "sf-button-icon",
                     "sf-icon",
-                    "sf-icon-button"
+                    "sf-icon-button",
+                    "sf-time"
                 ]
             },
             "sf-avatar": {
@@ -157,7 +161,11 @@
                     "card-variant",
                     "description",
                     "disabled",
+                    "expressive",
                     "heading",
+                    "href",
+                    "hue",
+                    "icon",
                     "image-alt",
                     "image-url",
                     "line",
@@ -173,12 +181,15 @@
                     "text",
                     "title",
                     "tone"
+                ],
+                "requires": [
+                    "sf-icon"
                 ]
             },
             "sf-avatar-group": {
                 "source": "smart/avatar-group",
                 "javascript": "smart/smart/avatar-group/js/avatar-group.js",
-                "css": "smart/smart/avatar-group/css/avatar-group.css",
+                "css": null,
                 "attributes": [
                     "active",
                     "avatar-size",
@@ -200,17 +211,25 @@
                     "round-size",
                     "source",
                     "template"
+                ],
+                "requires": [
+                    "sf-icon",
+                    "sf-popover"
                 ]
             },
             "sf-avatars": {
-                "source": "smart/avatars",
-                "javascript": "smart/smart/avatars/js/avatars.js",
-                "css": "smart/smart/avatars/css/avatars.css",
-                "attributes": []
+                "source": "smart/avatar-group",
+                "javascript": "smart/smart/avatar-group/js/avatar-group.js",
+                "css": null,
+                "attributes": [],
+                "requires": [
+                    "sf-icon",
+                    "sf-popover"
+                ]
             },
             "sf-badge": {
-                "source": "smart/badges",
-                "javascript": "smart/smart/badges/js/badges.js",
+                "source": "smart/badge",
+                "javascript": "smart/smart/badge/js/badge.js",
                 "css": null,
                 "core_css": "ui/distr/component/badges/css/badges.css",
                 "attributes": [
@@ -221,6 +240,7 @@
                     "icon",
                     "icon-end",
                     "icon-left",
+                    "icon-only",
                     "icon-position",
                     "icon-right",
                     "icon-start",
@@ -232,6 +252,7 @@
                     "status",
                     "template",
                     "text",
+                    "tight",
                     "type"
                 ]
             },
@@ -242,6 +263,7 @@
                 "attributes": [
                     "aria-label",
                     "container-class",
+                    "current",
                     "current-class",
                     "expand-label",
                     "expand-on-ellipsis",
@@ -255,15 +277,18 @@
                     "root-style",
                     "separator-class",
                     "separator-icon",
+                    "siblings",
                     "template"
                 ],
                 "requires": [
-                    "sf-icon"
+                    "sf-context-menu",
+                    "sf-icon",
+                    "sf-menu-context"
                 ]
             },
             "sf-button": {
-                "source": "smart/buttons",
-                "javascript": "smart/smart/buttons/js/buttons.js",
+                "source": "smart/button",
+                "javascript": "smart/smart/button/js/button.js",
                 "css": null,
                 "loader": {
                     "plugin": "cl-buttons",
@@ -279,8 +304,12 @@
                 "attributes": [
                     "appearance",
                     "aria-label",
+                    "cycle",
                     "disabled",
                     "expanded",
+                    "form",
+                    "full-width",
+                    "height",
                     "href",
                     "icon",
                     "icon-end",
@@ -289,9 +318,12 @@
                     "icon-right",
                     "icon-start",
                     "loading",
+                    "menu",
+                    "name",
                     "native-type",
                     "pressed",
                     "radius",
+                    "rel",
                     "root-class",
                     "root-style",
                     "scheme",
@@ -300,24 +332,40 @@
                     "shortcut-listen",
                     "size",
                     "spacing",
+                    "split",
                     "status",
+                    "target",
                     "template",
                     "text",
                     "text-position",
+                    "text-pressed",
+                    "theme-cycle",
                     "tightness",
-                    "type"
+                    "type",
+                    "value"
                 ],
                 "requires": [
-                    "sf-icon"
+                    "sf-button-icon",
+                    "sf-context-menu",
+                    "sf-icon",
+                    "sf-icon-button",
+                    "sf-menu-context"
                 ]
             },
             "sf-button-close": {
                 "source": "smart/button-close",
                 "javascript": "smart/smart/button-close/js/button-close.js",
-                "css": null,
+                "css": "smart/smart/button-close/css/button-close.css",
                 "attributes": [
+                    "appearance",
+                    "aria-label",
+                    "backdrop",
+                    "disabled",
+                    "height",
+                    "radius",
                     "root-class",
                     "root-style",
+                    "scheme",
                     "size",
                     "template"
                 ]
@@ -350,31 +398,13 @@
                 ]
             },
             "sf-button-group": {
-                "source": "smart/button-group",
-                "javascript": "smart/smart/button-group/js/button-group.js",
+                "source": "smart/segmented",
+                "javascript": "smart/smart/segmented/js/segmented.js",
                 "css": null,
-                "attributes": [
-                    "appearance",
-                    "aria-label",
-                    "disabled",
-                    "full-width",
-                    "items",
-                    "name",
-                    "orientation",
-                    "plate",
-                    "radius",
-                    "root-class",
-                    "root-style",
-                    "scheme",
-                    "size",
-                    "spacing",
-                    "template",
-                    "theme-switch",
-                    "tightness",
-                    "value"
-                ],
+                "attributes": [],
                 "requires": [
                     "sf-button",
+                    "sf-dropdown",
                     "sf-icon"
                 ]
             },
@@ -390,14 +420,20 @@
                     "badge-dot",
                     "badge-label",
                     "button-attributes",
+                    "cycle",
                     "disabled",
+                    "download",
                     "filled",
+                    "height",
+                    "href",
                     "icon",
                     "kind",
+                    "label-pressed",
                     "loading",
                     "native-type",
                     "pressed",
                     "radius",
+                    "rel",
                     "root-class",
                     "root-style",
                     "scheme",
@@ -405,14 +441,38 @@
                     "size",
                     "spacing",
                     "status",
+                    "target",
                     "template",
+                    "theme-cycle",
                     "tightness",
+                    "tooltip",
                     "type",
+                    "value",
                     "variant"
                 ],
                 "requires": [
                     "sf-button-close",
                     "sf-close",
+                    "sf-icon"
+                ]
+            },
+            "sf-change": {
+                "source": "smart/change",
+                "javascript": "smart/smart/change/js/change.js",
+                "css": "smart/smart/change/css/change.css",
+                "attributes": [
+                    "after",
+                    "before",
+                    "changes",
+                    "label",
+                    "layout",
+                    "reveal",
+                    "root-class",
+                    "root-style",
+                    "show-label",
+                    "template"
+                ],
+                "requires": [
                     "sf-icon"
                 ]
             },
@@ -423,7 +483,9 @@
                 "attributes": [],
                 "requires": [
                     "sf-button",
-                    "sf-icon"
+                    "sf-change",
+                    "sf-icon",
+                    "sf-time"
                 ]
             },
             "sf-checkbox": {
@@ -433,6 +495,7 @@
                 "attributes": [
                     "aria-label",
                     "checked",
+                    "controls",
                     "description",
                     "disabled",
                     "error",
@@ -449,39 +512,52 @@
                     "value"
                 ],
                 "requires": [
+                    "sf-help-mark",
                     "sf-icon"
                 ]
             },
             "sf-close": {
-                "source": "smart/close",
-                "javascript": "smart/smart/close/js/close.js",
-                "css": null,
+                "source": "smart/button-close",
+                "javascript": "smart/smart/button-close/js/button-close.js",
+                "css": "smart/smart/button-close/css/button-close.css",
                 "attributes": []
             },
             "sf-code-input": {
-                "source": "smart/code-input",
-                "javascript": "smart/smart/code-input/js/code-input.js",
-                "css": "smart/smart/code-input/css/code-input.css",
-                "attributes": []
-            },
-            "sf-color": {
-                "source": "smart/color",
-                "javascript": "smart/smart/color/js/color.js",
-                "css": "smart/smart/color/css/color.css",
+                "source": "smart/input-code",
+                "javascript": "smart/smart/input-code/js/input-code.js",
+                "css": "smart/smart/input-code/css/input-code.css",
                 "attributes": [],
                 "requires": [
+                    "sf-help-mark"
+                ]
+            },
+            "sf-color": {
+                "source": "smart/input-color",
+                "javascript": "smart/smart/input-color/js/input-color.js",
+                "css": "smart/smart/input-color/css/input-color.css",
+                "attributes": [],
+                "requires": [
+                    "sf-button",
+                    "sf-button-copy",
+                    "sf-button-group",
                     "sf-button-icon",
-                    "sf-icon-button"
+                    "sf-copy-button",
+                    "sf-help-mark",
+                    "sf-icon",
+                    "sf-icon-button",
+                    "sf-segmented"
                 ]
             },
             "sf-composition-overlay": {
-                "source": "smart/composition-overlay",
-                "javascript": "smart/smart/composition-overlay/js/composition-overlay.js",
-                "css": "smart/smart/composition-overlay/css/composition-overlay.css",
+                "source": "smart/editor-overlay",
+                "javascript": "smart/smart/editor-overlay/js/editor-overlay.js",
+                "css": "smart/smart/editor-overlay/css/editor-overlay.css",
                 "attributes": [],
                 "requires": [
                     "sf-button-icon",
+                    "sf-context-menu",
                     "sf-icon-button",
+                    "sf-menu-context",
                     "sf-sortable",
                     "sf-tooltip"
                 ]
@@ -494,19 +570,24 @@
                     "accept-text",
                     "appearance",
                     "confirm-id",
+                    "consequence",
                     "decline-text",
                     "destructive",
                     "disabled",
                     "expires-at",
                     "question",
+                    "require",
                     "root-class",
                     "root-style",
+                    "size",
                     "state",
+                    "status",
                     "template"
                 ],
                 "requires": [
                     "sf-button",
-                    "sf-icon"
+                    "sf-icon",
+                    "sf-input"
                 ]
             },
             "sf-confirm-change": {
@@ -525,11 +606,14 @@
                     "root-class",
                     "root-style",
                     "state",
+                    "status",
                     "template"
                 ],
                 "requires": [
                     "sf-button",
-                    "sf-icon"
+                    "sf-change",
+                    "sf-icon",
+                    "sf-time"
                 ]
             },
             "sf-contents": {
@@ -538,11 +622,15 @@
                 "css": "smart/smart/contents/css/contents.css",
                 "attributes": [
                     "collapse",
+                    "expand",
                     "hash",
+                    "heading-level",
                     "items",
                     "label",
                     "layout",
                     "levels",
+                    "line",
+                    "overflow",
                     "root-class",
                     "root-style",
                     "size",
@@ -551,26 +639,31 @@
                     "template"
                 ],
                 "requires": [
+                    "sf-badge",
                     "sf-button",
-                    "sf-icon"
+                    "sf-context-menu",
+                    "sf-icon",
+                    "sf-menu-context"
                 ]
             },
             "sf-context-menu": {
-                "source": "smart/context-menu",
-                "javascript": "smart/smart/context-menu/js/context-menu.js",
+                "source": "smart/menu-context",
+                "javascript": "smart/smart/menu-context/js/menu-context.js",
                 "css": null,
                 "attributes": [],
                 "requires": [
                     "sf-button",
                     "sf-button-icon",
+                    "sf-icon",
                     "sf-icon-button",
+                    "sf-progress-bar",
                     "sf-tabs"
                 ]
             },
             "sf-copy-button": {
-                "source": "smart/copy-button",
-                "javascript": "smart/smart/copy-button/js/copy-button.js",
-                "css": "smart/smart/copy-button/css/copy-button.css",
+                "source": "smart/button-copy",
+                "javascript": "smart/smart/button-copy/js/button-copy.js",
+                "css": "smart/smart/button-copy/css/button-copy.css",
                 "attributes": [],
                 "requires": [
                     "sf-button",
@@ -580,31 +673,56 @@
                 ]
             },
             "sf-country-code": {
-                "source": "smart/country-code",
-                "javascript": "smart/smart/country-code/js/country-code.js",
+                "source": "smart/input-country",
+                "javascript": "smart/smart/input-country/js/input-country.js",
                 "css": null,
-                "attributes": []
+                "attributes": [],
+                "requires": [
+                    "sf-help-mark"
+                ]
             },
             "sf-datepicker": {
-                "source": "smart/datepicker",
-                "javascript": "smart/smart/datepicker/js/datepicker.js",
+                "source": "smart/input-date",
+                "javascript": "smart/smart/input-date/js/input-date.js",
+                "css": null,
+                "attributes": [],
+                "requires": [
+                    "sf-button",
+                    "sf-button-icon",
+                    "sf-drawer",
+                    "sf-icon",
+                    "sf-icon-button",
+                    "sf-input"
+                ]
+            },
+            "sf-display-settings": {
+                "source": "smart/display-settings",
+                "javascript": "smart/smart/display-settings/js/display-settings.js",
+                "css": "smart/smart/display-settings/css/display-settings.css",
+                "attributes": [
+                    "label",
+                    "layout",
+                    "open",
+                    "root-class",
+                    "root-style",
+                    "show-font",
+                    "show-links",
+                    "template"
+                ],
+                "requires": [
+                    "sf-button"
+                ]
+            },
+            "sf-download-file": {
+                "source": "smart/file-download",
+                "javascript": "smart/smart/file-download/js/file-download.js",
                 "css": null,
                 "attributes": [],
                 "requires": [
                     "sf-button",
                     "sf-button-icon",
                     "sf-icon",
-                    "sf-icon-button",
-                    "sf-input"
-                ]
-            },
-            "sf-download-file": {
-                "source": "smart/download-file",
-                "javascript": "smart/smart/download-file/js/download-file.js",
-                "css": null,
-                "attributes": [],
-                "requires": [
-                    "sf-icon"
+                    "sf-icon-button"
                 ]
             },
             "sf-drawer": {
@@ -646,19 +764,28 @@
                     "unsaved",
                     "width",
                     "z-index"
+                ],
+                "requires": [
+                    "sf-button-close",
+                    "sf-button-icon",
+                    "sf-close",
+                    "sf-icon-button"
                 ]
             },
             "sf-dropdown": {
                 "source": "smart/dropdown",
                 "javascript": "smart/smart/dropdown/js/dropdown.js",
-                "css": null,
+                "css": "smart/smart/dropdown/css/dropdown.css",
                 "attributes": [
                     "appearance",
                     "aria-label",
                     "columns",
                     "disabled",
+                    "error-message",
+                    "help",
                     "inherited-text",
                     "inherited-value",
+                    "invalid",
                     "label",
                     "layout",
                     "mode",
@@ -680,6 +807,8 @@
                 ],
                 "requires": [
                     "sf-button-icon",
+                    "sf-help-mark",
+                    "sf-icon",
                     "sf-icon-button",
                     "sf-input",
                     "sf-list-item"
@@ -693,6 +822,12 @@
                     "root-class",
                     "root-style",
                     "template"
+                ],
+                "requires": [
+                    "sf-button",
+                    "sf-context-menu",
+                    "sf-input",
+                    "sf-menu-context"
                 ]
             },
             "sf-editor-overlay": {
@@ -715,7 +850,9 @@
                 ],
                 "requires": [
                     "sf-button-icon",
+                    "sf-context-menu",
                     "sf-icon-button",
+                    "sf-menu-context",
                     "sf-sortable",
                     "sf-tooltip"
                 ]
@@ -726,6 +863,7 @@
                 "css": "smart/smart/empty-state/css/empty-state.css",
                 "attributes": [
                     "actions",
+                    "expressive",
                     "heading",
                     "heading-level",
                     "icon",
@@ -737,11 +875,14 @@
                     "size",
                     "template",
                     "text",
-                    "title"
+                    "title",
+                    "value"
                 ],
                 "requires": [
                     "sf-button",
-                    "sf-icon"
+                    "sf-icon",
+                    "sf-progress-ring",
+                    "sf-spinner"
                 ]
             },
             "sf-file-download": {
@@ -750,20 +891,29 @@
                 "css": null,
                 "attributes": [
                     "aria-label",
+                    "cancelable",
                     "disabled",
                     "download",
+                    "error-text",
                     "file-name",
                     "file-size",
+                    "file-type",
+                    "full-width",
                     "href",
                     "icon",
                     "root-class",
                     "root-style",
                     "size",
+                    "state",
                     "target",
-                    "template"
+                    "template",
+                    "value"
                 ],
                 "requires": [
-                    "sf-icon"
+                    "sf-button",
+                    "sf-button-icon",
+                    "sf-icon",
+                    "sf-icon-button"
                 ]
             },
             "sf-file-preview": {
@@ -772,12 +922,16 @@
                 "css": null,
                 "attributes": [
                     "actions",
+                    "appearance",
                     "aria-label",
                     "compact",
                     "disabled",
                     "download",
                     "download-action",
                     "download-label",
+                    "duration",
+                    "error-text",
+                    "file-date",
                     "file-name",
                     "file-size",
                     "href",
@@ -791,10 +945,19 @@
                     "root-class",
                     "root-style",
                     "size",
+                    "state",
+                    "stored",
                     "surface",
                     "target",
                     "template",
-                    "type"
+                    "type",
+                    "value"
+                ],
+                "requires": [
+                    "sf-button",
+                    "sf-confirm",
+                    "sf-gallery",
+                    "sf-progress-bar"
                 ]
             },
             "sf-file-upload": {
@@ -806,25 +969,58 @@
                     "aria-label",
                     "disabled",
                     "formats",
+                    "help",
                     "icon",
                     "items",
+                    "label",
                     "link-text",
+                    "max-files",
+                    "max-size",
+                    "max-total-size",
+                    "min-size",
                     "multiple",
+                    "name",
+                    "required",
                     "root-class",
                     "root-style",
                     "size",
                     "supporting-text",
                     "template",
-                    "text"
+                    "text",
+                    "uploader",
+                    "value"
                 ],
                 "requires": [
-                    "sf-progress-bar"
+                    "sf-file-preview",
+                    "sf-help-mark"
+                ]
+            },
+            "sf-form": {
+                "source": "smart/form",
+                "javascript": "smart/smart/form/js/form.js",
+                "css": "smart/smart/form/css/form.css",
+                "attributes": [
+                    "apply",
+                    "fields",
+                    "footer",
+                    "groups",
+                    "label",
+                    "labels",
+                    "mode",
+                    "root-class",
+                    "root-style",
+                    "template",
+                    "value"
+                ],
+                "requires": [
+                    "sf-button",
+                    "sf-help-mark"
                 ]
             },
             "sf-gallery": {
                 "source": "smart/gallery",
                 "javascript": "smart/smart/gallery/js/gallery.js",
-                "css": null,
+                "css": "smart/smart/gallery/css/gallery.css",
                 "attributes": [
                     "arrows",
                     "backdrop-blur",
@@ -833,6 +1029,7 @@
                     "body-class",
                     "button-size",
                     "button-type",
+                    "caption",
                     "close-class",
                     "close-on-esc",
                     "close-on-overlay",
@@ -848,6 +1045,7 @@
                     "height",
                     "inline",
                     "inline-class",
+                    "layout",
                     "lightbox",
                     "lightbox-class",
                     "loop",
@@ -858,8 +1056,11 @@
                     "panel-class",
                     "position",
                     "preserve-scroll-gap",
+                    "ratio",
                     "root-class",
                     "root-style",
+                    "selected",
+                    "selection",
                     "show-close",
                     "show-header",
                     "slide-class",
@@ -872,12 +1073,15 @@
                     "thumb-class",
                     "thumbs",
                     "thumbs-class",
+                    "tile-size",
                     "title",
                     "width"
                 ],
                 "requires": [
-                    "sf-modal",
-                    "sf-slider"
+                    "sf-button-close",
+                    "sf-button-icon",
+                    "sf-close",
+                    "sf-icon-button"
                 ]
             },
             "sf-header-page": {
@@ -886,18 +1090,23 @@
                 "css": "smart/smart/header-page/css/header-page.css",
                 "attributes": [
                     "count",
+                    "expressive",
                     "heading",
                     "level",
+                    "overflow",
                     "root-class",
                     "root-style",
                     "star",
+                    "sticky",
                     "template"
                 ],
                 "requires": [
                     "sf-badge",
                     "sf-button-icon",
+                    "sf-context-menu",
                     "sf-icon",
-                    "sf-icon-button"
+                    "sf-icon-button",
+                    "sf-menu-context"
                 ]
             },
             "sf-header-site": {
@@ -909,6 +1118,7 @@
                     "collapse",
                     "label",
                     "menu-label",
+                    "menu-placement",
                     "navigation-align",
                     "root-class",
                     "root-style",
@@ -917,7 +1127,9 @@
                     "template"
                 ],
                 "requires": [
+                    "sf-button-close",
                     "sf-button-icon",
+                    "sf-close",
                     "sf-icon",
                     "sf-icon-button"
                 ]
@@ -944,8 +1156,8 @@
                 ]
             },
             "sf-icon": {
-                "source": "smart/icons",
-                "javascript": "smart/smart/icons/js/icons.js",
+                "source": "smart/icon",
+                "javascript": "smart/smart/icon/js/icon.js",
                 "css": null,
                 "loader": {
                     "plugin": "cl-icons",
@@ -968,6 +1180,7 @@
                     "icon",
                     "label",
                     "loaded",
+                    "mirror",
                     "optical-size",
                     "root-class",
                     "root-style",
@@ -978,9 +1191,9 @@
                 ]
             },
             "sf-icon-button": {
-                "source": "smart/icon-buttons",
-                "javascript": "smart/smart/icon-buttons/js/icon-buttons.js",
-                "css": "smart/smart/icon-buttons/css/icon-buttons.css",
+                "source": "smart/button-icon",
+                "javascript": "smart/smart/button-icon/js/button-icon.js",
+                "css": "smart/smart/button-icon/css/button-icon.css",
                 "attributes": [],
                 "requires": [
                     "sf-button-close",
@@ -989,13 +1202,22 @@
                 ]
             },
             "sf-image-field": {
-                "source": "smart/image-field",
-                "javascript": "smart/smart/image-field/js/image-field.js",
-                "css": "smart/smart/image-field/css/image-field.css",
+                "source": "smart/input-image",
+                "javascript": "smart/smart/input-image/js/input-image.js",
+                "css": "smart/smart/input-image/css/input-image.css",
                 "attributes": [],
                 "requires": [
                     "sf-button",
-                    "sf-icon"
+                    "sf-button-icon",
+                    "sf-context-menu",
+                    "sf-help-mark",
+                    "sf-icon",
+                    "sf-icon-button",
+                    "sf-input",
+                    "sf-menu-context",
+                    "sf-modal",
+                    "sf-progress-ring",
+                    "sf-switch"
                 ]
             },
             "sf-include": {
@@ -1017,23 +1239,32 @@
                 ]
             },
             "sf-inline-editor": {
-                "source": "smart/inline-editor",
-                "javascript": "smart/smart/inline-editor/js/inline-editor.js",
-                "css": "smart/smart/inline-editor/css/inline-editor.css",
-                "attributes": []
+                "source": "smart/editor-inline",
+                "javascript": "smart/smart/editor-inline/js/editor-inline.js",
+                "css": "smart/smart/editor-inline/css/editor-inline.css",
+                "attributes": [],
+                "requires": [
+                    "sf-button",
+                    "sf-context-menu",
+                    "sf-input",
+                    "sf-menu-context"
+                ]
             },
             "sf-input": {
-                "source": "smart/inputs",
-                "javascript": "smart/smart/inputs/js/inputs.js",
-                "css": "smart/smart/inputs/css/inputs.css",
+                "source": "smart/input",
+                "javascript": "smart/smart/input/js/input.js",
+                "css": "smart/smart/input/css/input.css",
                 "attributes": [
                     "appearance",
                     "aria-label",
                     "autocomplete",
+                    "clearable",
+                    "counter",
                     "default-value",
                     "disabled",
                     "error",
                     "error-message",
+                    "help",
                     "hint",
                     "hint-icon",
                     "icon-start",
@@ -1049,25 +1280,62 @@
                     "mask-options",
                     "mask-pattern",
                     "mask-placeholder-char",
+                    "max",
                     "maxlength",
+                    "min",
                     "minlength",
                     "name",
                     "pattern",
                     "placeholder",
+                    "radius",
                     "readonly",
                     "required",
                     "reset-label",
                     "right-text",
                     "root-class",
                     "root-style",
+                    "shortcut",
                     "size",
+                    "step",
                     "template",
                     "text-end",
+                    "text-start",
                     "type",
                     "value"
                 ],
                 "requires": [
+                    "sf-help-mark",
                     "sf-icon"
+                ]
+            },
+            "sf-input-choice": {
+                "source": "smart/input-choice",
+                "javascript": "smart/smart/input-choice/js/input-choice.js",
+                "css": "smart/smart/input-choice/css/input-choice.css",
+                "attributes": [
+                    "appearance",
+                    "aria-label",
+                    "columns",
+                    "disabled",
+                    "error-message",
+                    "flow",
+                    "help",
+                    "hint",
+                    "invalid",
+                    "items",
+                    "label",
+                    "layout",
+                    "multiple",
+                    "name",
+                    "required",
+                    "root-class",
+                    "root-style",
+                    "template",
+                    "value"
+                ],
+                "requires": [
+                    "sf-badge",
+                    "sf-help-mark"
                 ]
             },
             "sf-input-code": {
@@ -1077,10 +1345,13 @@
                 "attributes": [
                     "appearance",
                     "aria-label",
+                    "charset",
                     "default-value",
                     "disabled",
                     "error",
                     "error-message",
+                    "groups",
+                    "help",
                     "hint",
                     "invalid",
                     "label",
@@ -1094,7 +1365,11 @@
                     "root-style",
                     "size",
                     "template",
+                    "uppercase",
                     "value"
+                ],
+                "requires": [
+                    "sf-help-mark"
                 ]
             },
             "sf-input-color": {
@@ -1102,27 +1377,43 @@
                 "javascript": "smart/smart/input-color/js/input-color.js",
                 "css": "smart/smart/input-color/css/input-color.css",
                 "attributes": [
+                    "alpha",
                     "appearance",
                     "choose-label",
                     "clear-label",
                     "clearable",
+                    "custom",
                     "disabled",
+                    "error-message",
+                    "help",
+                    "hint",
                     "inherited-text",
                     "inherited-value",
+                    "invalid",
                     "label",
                     "name",
+                    "palette",
+                    "readonly",
                     "reset-label",
                     "root-class",
                     "root-style",
                     "size",
                     "swatches",
+                    "target",
                     "template",
                     "value",
                     "variant"
                 ],
                 "requires": [
+                    "sf-button",
+                    "sf-button-copy",
+                    "sf-button-group",
                     "sf-button-icon",
-                    "sf-icon-button"
+                    "sf-copy-button",
+                    "sf-help-mark",
+                    "sf-icon",
+                    "sf-icon-button",
+                    "sf-segmented"
                 ]
             },
             "sf-input-country": {
@@ -1133,8 +1424,15 @@
                     "aria-label",
                     "dial-code",
                     "disabled",
+                    "eager-flags",
+                    "error-message",
+                    "fixed-country",
+                    "fixed-mask",
                     "flag-base",
+                    "help",
+                    "hide-code",
                     "hint",
+                    "invalid",
                     "iso2",
                     "label",
                     "lazy-flags",
@@ -1147,6 +1445,7 @@
                     "name",
                     "open",
                     "placeholder",
+                    "preferred",
                     "required",
                     "root-class",
                     "root-style",
@@ -1157,6 +1456,9 @@
                     "use-country-masks",
                     "use-mask",
                     "value"
+                ],
+                "requires": [
+                    "sf-help-mark"
                 ]
             },
             "sf-input-date": {
@@ -1172,8 +1474,10 @@
                     "end-value",
                     "error-message",
                     "format",
+                    "help",
                     "hint",
                     "hint-icon",
+                    "holidays",
                     "icon-start",
                     "input",
                     "input-name",
@@ -1212,11 +1516,13 @@
                     "template",
                     "value",
                     "week-start",
+                    "weekend",
                     "year"
                 ],
                 "requires": [
                     "sf-button",
                     "sf-button-icon",
+                    "sf-drawer",
                     "sf-icon",
                     "sf-icon-button",
                     "sf-input"
@@ -1228,27 +1534,49 @@
                 "css": "smart/smart/input-image/css/input-image.css",
                 "attributes": [
                     "accept",
+                    "alt",
                     "aria-label",
+                    "aspect",
                     "disabled",
+                    "edit",
                     "empty-text",
                     "error",
                     "error-message",
+                    "fit",
+                    "help",
                     "hint",
                     "invalid",
                     "label",
+                    "layout",
+                    "library-label",
+                    "max-size",
                     "meta",
+                    "min-height",
+                    "min-width",
                     "name",
                     "readonly",
                     "required",
                     "root-class",
                     "root-style",
+                    "shape",
                     "size",
+                    "sources",
                     "template",
+                    "uploader",
                     "value"
                 ],
                 "requires": [
                     "sf-button",
-                    "sf-icon"
+                    "sf-button-icon",
+                    "sf-context-menu",
+                    "sf-help-mark",
+                    "sf-icon",
+                    "sf-icon-button",
+                    "sf-input",
+                    "sf-menu-context",
+                    "sf-modal",
+                    "sf-progress-ring",
+                    "sf-switch"
                 ]
             },
             "sf-input-lookup": {
@@ -1258,10 +1586,13 @@
                 "attributes": [
                     "appearance",
                     "aria-label",
+                    "chips",
+                    "create",
                     "debounce",
                     "disabled",
                     "error-message",
                     "exclude",
+                    "help",
                     "hint",
                     "invalid",
                     "label",
@@ -1279,11 +1610,16 @@
                     "root-class",
                     "root-style",
                     "size",
+                    "suggest",
                     "template",
                     "value"
                 ],
                 "requires": [
                     "sf-button",
+                    "sf-button-icon",
+                    "sf-help-mark",
+                    "sf-icon",
+                    "sf-icon-button",
                     "sf-spinner",
                     "sf-tag"
                 ]
@@ -1295,10 +1631,12 @@
                 "attributes": [
                     "aria-label",
                     "decrement-label",
+                    "digits",
                     "disabled",
                     "error",
                     "error-message",
                     "grouping",
+                    "help",
                     "hint",
                     "increment-label",
                     "inherited-text",
@@ -1313,14 +1651,21 @@
                     "placeholder",
                     "precision",
                     "readonly",
+                    "removable",
+                    "remove-label",
                     "required",
                     "reset-label",
                     "root-class",
                     "root-style",
                     "size",
                     "step",
+                    "steppers",
                     "template",
+                    "unit",
                     "value"
+                ],
+                "requires": [
+                    "sf-help-mark"
                 ]
             },
             "sf-input-rich": {
@@ -1330,13 +1675,17 @@
                 "attributes": [
                     "appearance",
                     "aria-label",
+                    "counter",
                     "disabled",
                     "error-message",
+                    "help",
                     "hint",
                     "invalid",
                     "label",
                     "max-rows",
+                    "maxlength",
                     "name",
+                    "overflow",
                     "placeholder",
                     "readonly",
                     "required",
@@ -1349,7 +1698,10 @@
                 ],
                 "requires": [
                     "sf-button",
+                    "sf-context-menu",
+                    "sf-help-mark",
                     "sf-input",
+                    "sf-menu-context",
                     "sf-popover"
                 ]
             },
@@ -1359,11 +1711,15 @@
                 "css": "smart/smart/input-textarea/css/input-textarea.css",
                 "attributes": [
                     "appearance",
+                    "aria-label",
+                    "aria-labelledby",
                     "auto-grow",
                     "autocomplete",
+                    "counter",
                     "disabled",
                     "error",
                     "error-message",
+                    "help",
                     "hint",
                     "inherited-text",
                     "inherited-value",
@@ -1382,6 +1738,7 @@
                     "readonly",
                     "required",
                     "reset-label",
+                    "resize",
                     "root-class",
                     "root-style",
                     "rows",
@@ -1389,9 +1746,48 @@
                     "spell-check",
                     "spellcheck",
                     "template",
+                    "text",
                     "type",
                     "value",
                     "wrap"
+                ],
+                "requires": [
+                    "sf-help-mark"
+                ]
+            },
+            "sf-language": {
+                "source": "smart/language",
+                "javascript": "smart/smart/language/js/language.js",
+                "css": null,
+                "attributes": [
+                    "apply",
+                    "disabled",
+                    "home",
+                    "href",
+                    "inline-max",
+                    "items",
+                    "label",
+                    "labels",
+                    "languages",
+                    "missing",
+                    "mode",
+                    "name",
+                    "remember",
+                    "root-class",
+                    "root-style",
+                    "search-from",
+                    "size",
+                    "template",
+                    "value"
+                ],
+                "requires": [
+                    "sf-button",
+                    "sf-button-group",
+                    "sf-context-menu",
+                    "sf-dropdown",
+                    "sf-icon",
+                    "sf-menu-context",
+                    "sf-segmented"
                 ]
             },
             "sf-list": {
@@ -1400,6 +1796,7 @@
                 "css": "smart/smart/list/css/list.css",
                 "attributes": [
                     "actions",
+                    "divided",
                     "empty-text",
                     "group-by",
                     "groups",
@@ -1407,13 +1804,18 @@
                     "heading-level",
                     "items",
                     "label",
+                    "leading",
+                    "lines",
                     "loading",
+                    "no-wrap",
                     "renamable",
                     "root-class",
                     "root-style",
                     "selected",
                     "size",
-                    "template"
+                    "sticky-headings",
+                    "template",
+                    "time-format"
                 ],
                 "requires": [
                     "sf-avatar",
@@ -1423,7 +1825,68 @@
                     "sf-empty-state",
                     "sf-icon",
                     "sf-list-item",
+                    "sf-menu-context",
+                    "sf-time"
+                ]
+            },
+            "sf-list-attention": {
+                "source": "smart/list-attention",
+                "javascript": "smart/smart/list-attention/js/list-attention.js",
+                "css": "smart/smart/list-attention/css/list-attention.css",
+                "attributes": [
+                    "checked-at",
+                    "dismissible",
+                    "empty",
+                    "empty-text",
+                    "frame",
+                    "group",
+                    "heading-level",
+                    "items",
+                    "label",
+                    "limit",
+                    "more-href",
+                    "passed",
+                    "root-class",
+                    "root-style",
+                    "size",
+                    "template",
+                    "triage"
+                ],
+                "requires": [
+                    "sf-badge",
+                    "sf-button",
+                    "sf-button-icon",
+                    "sf-context-menu",
+                    "sf-icon",
+                    "sf-icon-button",
                     "sf-menu-context"
+                ]
+            },
+            "sf-list-description": {
+                "source": "smart/list-description",
+                "javascript": "smart/smart/list-description/js/list-description.js",
+                "css": "smart/smart/list-description/css/list-description.css",
+                "attributes": [
+                    "columns",
+                    "dividers",
+                    "empty-text",
+                    "heading-level",
+                    "items",
+                    "label",
+                    "layout",
+                    "overflow",
+                    "root-class",
+                    "root-style",
+                    "size",
+                    "template"
+                ],
+                "requires": [
+                    "sf-badge",
+                    "sf-button",
+                    "sf-button-copy",
+                    "sf-copy-button",
+                    "sf-help-mark",
+                    "sf-icon"
                 ]
             },
             "sf-list-feed": {
@@ -1443,7 +1906,9 @@
                 "requires": [
                     "sf-button",
                     "sf-button-icon",
-                    "sf-icon-button"
+                    "sf-empty-state",
+                    "sf-icon-button",
+                    "sf-time"
                 ]
             },
             "sf-list-item": {
@@ -1457,9 +1922,11 @@
                     "checked",
                     "color-class",
                     "disabled",
+                    "divided",
                     "icon",
                     "interactive",
                     "kind",
+                    "lines",
                     "pinned",
                     "root-class",
                     "root-style",
@@ -1471,15 +1938,52 @@
                     "text",
                     "type",
                     "value"
+                ],
+                "requires": [
+                    "sf-icon"
+                ]
+            },
+            "sf-list-timeline": {
+                "source": "smart/list-timeline",
+                "javascript": "smart/smart/list-timeline/js/list-timeline.js",
+                "css": "smart/smart/list-timeline/css/list-timeline.css",
+                "attributes": [
+                    "collapse",
+                    "density",
+                    "empty-text",
+                    "group",
+                    "has-more",
+                    "heading-level",
+                    "items",
+                    "label",
+                    "loading",
+                    "now",
+                    "root-class",
+                    "root-style",
+                    "size",
+                    "sticky-headings",
+                    "template",
+                    "time-format"
+                ],
+                "requires": [
+                    "sf-avatar",
+                    "sf-button",
+                    "sf-change",
+                    "sf-icon",
+                    "sf-time"
                 ]
             },
             "sf-lookup": {
-                "source": "smart/lookup",
-                "javascript": "smart/smart/lookup/js/lookup.js",
-                "css": "smart/smart/lookup/css/lookup.css",
+                "source": "smart/input-lookup",
+                "javascript": "smart/smart/input-lookup/js/input-lookup.js",
+                "css": "smart/smart/input-lookup/css/input-lookup.css",
                 "attributes": [],
                 "requires": [
                     "sf-button",
+                    "sf-button-icon",
+                    "sf-help-mark",
+                    "sf-icon",
+                    "sf-icon-button",
                     "sf-spinner",
                     "sf-tag"
                 ]
@@ -1491,16 +1995,27 @@
                 "attributes": [
                     "appearance",
                     "aria-label",
+                    "bordered",
                     "collapse",
                     "current",
                     "current-from-location",
+                    "indicator",
                     "items",
                     "label",
+                    "more-label",
+                    "open-on",
                     "orientation",
+                    "overflow",
                     "root-class",
                     "root-style",
+                    "search",
+                    "search-placeholder",
+                    "sticky",
                     "template",
                     "toggle-label"
+                ],
+                "requires": [
+                    "sf-input"
                 ]
             },
             "sf-menu-context": {
@@ -1513,6 +2028,7 @@
                     "closable",
                     "content-class",
                     "entries",
+                    "for",
                     "items",
                     "popup",
                     "position",
@@ -1531,7 +2047,9 @@
                 "requires": [
                     "sf-button",
                     "sf-button-icon",
+                    "sf-icon",
                     "sf-icon-button",
+                    "sf-progress-bar",
                     "sf-tabs"
                 ]
             },
@@ -1576,6 +2094,7 @@
                     "height",
                     "hide",
                     "hide-modifier",
+                    "initial-focus",
                     "minimizable",
                     "minimized",
                     "modal-id",
@@ -1593,6 +2112,7 @@
                     "show-close",
                     "show-footer",
                     "show-header",
+                    "size",
                     "src",
                     "surface-class",
                     "surface-padding",
@@ -1602,18 +2122,24 @@
                     "unclose",
                     "unsaved",
                     "width"
+                ],
+                "requires": [
+                    "sf-button-close",
+                    "sf-close"
                 ]
             },
             "sf-page-header": {
-                "source": "smart/page-header",
-                "javascript": "smart/smart/page-header/js/page-header.js",
-                "css": null,
+                "source": "smart/header-page",
+                "javascript": "smart/smart/header-page/js/header-page.js",
+                "css": "smart/smart/header-page/css/header-page.css",
                 "attributes": [],
                 "requires": [
                     "sf-badge",
                     "sf-button-icon",
+                    "sf-context-menu",
                     "sf-icon",
-                    "sf-icon-button"
+                    "sf-icon-button",
+                    "sf-menu-context"
                 ]
             },
             "sf-pager": {
@@ -1625,9 +2151,11 @@
                     "complete",
                     "current",
                     "done-label",
+                    "has-next",
                     "items",
                     "keys",
                     "label",
+                    "list-href",
                     "next-href",
                     "next-label",
                     "next-title",
@@ -1637,7 +2165,8 @@
                     "root-class",
                     "root-style",
                     "size",
-                    "template"
+                    "template",
+                    "total"
                 ],
                 "requires": [
                     "sf-button",
@@ -1659,6 +2188,7 @@
                     "actions",
                     "actions-label",
                     "actions-region-label",
+                    "appearance",
                     "aria-label",
                     "bottom",
                     "bottom-class",
@@ -1670,12 +2200,16 @@
                     "current",
                     "first-label",
                     "has-next",
+                    "href",
                     "last-label",
+                    "load",
                     "main-class",
                     "middle",
                     "next-label",
                     "page-field-label",
+                    "page-in-title",
                     "page-label",
+                    "page-param",
                     "page-size",
                     "page-size-label",
                     "page-sizes",
@@ -1691,6 +2225,7 @@
                     "show-more-busy",
                     "show-more-text",
                     "show-page-size",
+                    "shown-label",
                     "size",
                     "template",
                     "top",
@@ -1703,10 +2238,14 @@
                     "sf-button",
                     "sf-button-icon",
                     "sf-checkbox",
+                    "sf-context-menu",
                     "sf-dropdown",
+                    "sf-icon",
                     "sf-icon-button",
                     "sf-input",
                     "sf-list-item",
+                    "sf-menu-context",
+                    "sf-progress-bar",
                     "sf-spinner"
                 ]
             },
@@ -1715,8 +2254,10 @@
                 "javascript": "smart/smart/popover/js/popover.js",
                 "css": "smart/smart/popover/css/popover.css",
                 "attributes": [
+                    "arrow",
                     "dismissible",
                     "label",
+                    "offset",
                     "open",
                     "placement",
                     "root-class",
@@ -1746,7 +2287,14 @@
                 ],
                 "requires": [
                     "sf-button",
-                    "sf-icon"
+                    "sf-button-group",
+                    "sf-button-icon",
+                    "sf-context-menu",
+                    "sf-drawer",
+                    "sf-icon",
+                    "sf-icon-button",
+                    "sf-menu-context",
+                    "sf-segmented"
                 ]
             },
             "sf-progress-bar": {
@@ -1755,7 +2303,12 @@
                 "css": null,
                 "attributes": [
                     "aria-label",
+                    "error-at",
+                    "indeterminate",
+                    "inline",
                     "label",
+                    "meter",
+                    "paused",
                     "root-class",
                     "root-style",
                     "size",
@@ -1764,7 +2317,8 @@
                     "text-position",
                     "tone",
                     "value",
-                    "value-text"
+                    "value-text",
+                    "warning-at"
                 ]
             },
             "sf-progress-ring": {
@@ -1773,6 +2327,7 @@
                 "css": null,
                 "attributes": [
                     "aria-label",
+                    "error-at",
                     "indeterminate",
                     "label",
                     "meter",
@@ -1783,7 +2338,55 @@
                     "status",
                     "template",
                     "value",
-                    "value-text"
+                    "value-text",
+                    "warning-at"
+                ]
+            },
+            "sf-progress-run": {
+                "source": "smart/progress-run",
+                "javascript": "smart/smart/progress-run/js/progress-run.js",
+                "css": "smart/smart/progress-run/css/progress-run.css",
+                "attributes": [
+                    "cancelable",
+                    "caption",
+                    "counters",
+                    "errors",
+                    "errors-total",
+                    "file-name",
+                    "finished-at",
+                    "heading-level",
+                    "hideable",
+                    "label",
+                    "look",
+                    "minimizable",
+                    "output",
+                    "output-label",
+                    "output-open",
+                    "pausable",
+                    "remaining",
+                    "result-text",
+                    "retryable",
+                    "root-class",
+                    "root-style",
+                    "run-state",
+                    "size",
+                    "started-at",
+                    "steps",
+                    "template",
+                    "total",
+                    "unit",
+                    "value"
+                ],
+                "requires": [
+                    "sf-badge",
+                    "sf-button",
+                    "sf-button-copy",
+                    "sf-button-icon",
+                    "sf-copy-button",
+                    "sf-icon",
+                    "sf-icon-button",
+                    "sf-progress-bar",
+                    "sf-progress-ring"
                 ]
             },
             "sf-progress-scale": {
@@ -1792,29 +2395,36 @@
                 "css": null,
                 "attributes": [
                     "aria-label",
+                    "error-at",
                     "label",
                     "line",
+                    "meter",
                     "root-class",
                     "root-style",
                     "show-text",
                     "size",
                     "status",
+                    "steps",
                     "template",
                     "tone",
                     "value",
-                    "value-text"
+                    "value-text",
+                    "warning-at"
                 ]
             },
             "sf-quantity": {
-                "source": "smart/quantity",
-                "javascript": "smart/smart/quantity/js/quantity.js",
-                "css": "smart/smart/quantity/css/quantity.css",
-                "attributes": []
+                "source": "smart/input-quantity",
+                "javascript": "smart/smart/input-quantity/js/input-quantity.js",
+                "css": "smart/smart/input-quantity/css/input-quantity.css",
+                "attributes": [],
+                "requires": [
+                    "sf-help-mark"
+                ]
             },
             "sf-radio": {
                 "source": "smart/radio",
                 "javascript": "smart/smart/radio/js/radio.js",
-                "css": null,
+                "css": "smart/smart/radio/css/radio.css",
                 "attributes": [
                     "checked",
                     "description",
@@ -1829,11 +2439,14 @@
                     "size",
                     "template",
                     "value"
+                ],
+                "requires": [
+                    "sf-help-mark"
                 ]
             },
             "sf-range-slider": {
-                "source": "smart/range-slider",
-                "javascript": "smart/smart/range-slider/js/range-slider.js",
+                "source": "smart/slider-range",
+                "javascript": "smart/smart/slider-range/js/slider-range.js",
                 "css": null,
                 "attributes": []
             },
@@ -1844,6 +2457,7 @@
                 "attributes": [
                     "appearance",
                     "aria-label",
+                    "copy",
                     "disabled",
                     "href",
                     "icon",
@@ -1852,6 +2466,7 @@
                     "root-class",
                     "root-style",
                     "size",
+                    "state",
                     "target",
                     "template",
                     "text"
@@ -1866,6 +2481,7 @@
                 "css": "smart/smart/resizer/css/resizer.css",
                 "attributes": [
                     "aria-label",
+                    "collapsible",
                     "disabled",
                     "edge",
                     "label",
@@ -1882,13 +2498,16 @@
                 ]
             },
             "sf-rich-text": {
-                "source": "smart/rich-text",
-                "javascript": "smart/smart/rich-text/js/rich-text.js",
-                "css": "smart/smart/rich-text/css/rich-text.css",
+                "source": "smart/input-rich",
+                "javascript": "smart/smart/input-rich/js/input-rich.js",
+                "css": "smart/smart/input-rich/css/input-rich.css",
                 "attributes": [],
                 "requires": [
                     "sf-button",
+                    "sf-context-menu",
+                    "sf-help-mark",
                     "sf-input",
+                    "sf-menu-context",
                     "sf-popover"
                 ]
             },
@@ -1915,17 +2534,88 @@
                     "template"
                 ],
                 "requires": [
+                    "sf-avatar",
+                    "sf-badge",
                     "sf-button-icon",
-                    "sf-icon-button"
+                    "sf-empty-state",
+                    "sf-icon",
+                    "sf-icon-button",
+                    "sf-spinner",
+                    "sf-tag",
+                    "sf-tag-group",
+                    "sf-time"
+                ]
+            },
+            "sf-segmented": {
+                "source": "smart/segmented",
+                "javascript": "smart/smart/segmented/js/segmented.js",
+                "css": null,
+                "attributes": [
+                    "appearance",
+                    "aria-label",
+                    "backdrop",
+                    "disabled",
+                    "full-width",
+                    "height",
+                    "items",
+                    "name",
+                    "orientation",
+                    "plate",
+                    "radius",
+                    "root-class",
+                    "root-style",
+                    "scheme",
+                    "size",
+                    "spacing",
+                    "template",
+                    "theme-switch",
+                    "tightness",
+                    "value"
+                ],
+                "requires": [
+                    "sf-button",
+                    "sf-dropdown",
+                    "sf-icon"
+                ]
+            },
+            "sf-settings": {
+                "source": "smart/settings",
+                "javascript": "smart/smart/settings/js/settings.js",
+                "css": "smart/smart/settings/css/settings.css",
+                "attributes": [
+                    "apply",
+                    "for",
+                    "items",
+                    "label",
+                    "look",
+                    "remember",
+                    "root-class",
+                    "root-style",
+                    "search",
+                    "size",
+                    "template"
+                ],
+                "requires": [
+                    "sf-button",
+                    "sf-button-icon",
+                    "sf-color",
+                    "sf-context-menu",
+                    "sf-icon-button",
+                    "sf-input-color",
+                    "sf-menu-context",
+                    "sf-switch",
+                    "sf-tabs"
                 ]
             },
             "sf-site-header": {
-                "source": "smart/site-header",
-                "javascript": "smart/smart/site-header/js/site-header.js",
-                "css": "smart/smart/site-header/css/site-header.css",
+                "source": "smart/header-site",
+                "javascript": "smart/smart/header-site/js/header-site.js",
+                "css": "smart/smart/header-site/css/header-site.css",
                 "attributes": [],
                 "requires": [
+                    "sf-button-close",
                     "sf-button-icon",
+                    "sf-close",
                     "sf-icon",
                     "sf-icon-button"
                 ]
@@ -1954,6 +2644,7 @@
                 "javascript": "smart/smart/slider/js/slider.js",
                 "css": null,
                 "attributes": [
+                    "aria-label",
                     "arrows",
                     "button-size",
                     "button-type",
@@ -1961,6 +2652,7 @@
                     "dots-size",
                     "dots-type",
                     "loop",
+                    "ratio",
                     "root-class",
                     "root-style",
                     "slide-class",
@@ -1985,26 +2677,38 @@
                     "connect",
                     "decimals",
                     "disabled",
+                    "field",
+                    "grouping",
                     "keyboard",
                     "label",
                     "label-position",
+                    "locale",
                     "lower-label",
                     "margin",
+                    "marks",
                     "max",
                     "min",
                     "multiple",
+                    "name",
+                    "page-step",
+                    "precision",
                     "prefix",
                     "prefix-text",
+                    "readonly",
                     "root-class",
                     "root-style",
+                    "scale",
+                    "size",
                     "start",
                     "step",
                     "suffix",
                     "template",
                     "text-position",
+                    "ticks",
                     "tooltip-position",
                     "upper-label",
-                    "value"
+                    "value",
+                    "value-display"
                 ]
             },
             "sf-sortable": {
@@ -2035,12 +2739,14 @@
                 "css": null,
                 "attributes": [
                     "announce",
+                    "delay",
                     "direction",
                     "dots",
                     "filled",
                     "infinite",
                     "kind",
                     "label",
+                    "label-hidden",
                     "root-class",
                     "root-style",
                     "size",
@@ -2053,23 +2759,35 @@
                 "javascript": "smart/smart/steps/js/steps.js",
                 "css": null,
                 "attributes": [
+                    "ahead-label",
                     "aria-label",
                     "completed-label",
+                    "count-label",
                     "current",
+                    "current-label",
                     "error-label",
                     "error-step",
                     "items",
+                    "layout",
+                    "marker",
+                    "navigation",
                     "root-class",
                     "root-style",
+                    "running-label",
                     "separator-icon",
                     "size",
+                    "skipped-label",
                     "template"
+                ],
+                "requires": [
+                    "sf-progress-bar",
+                    "sf-spinner"
                 ]
             },
             "sf-switch": {
                 "source": "smart/switch",
                 "javascript": "smart/smart/switch/js/switch.js",
-                "css": null,
+                "css": "smart/smart/switch/css/switch.css",
                 "attributes": [
                     "aria-label",
                     "checked",
@@ -2083,20 +2801,27 @@
                     "reset-label",
                     "root-class",
                     "root-style",
+                    "short",
                     "size",
                     "template",
                     "value"
+                ],
+                "requires": [
+                    "sf-help-mark"
                 ]
             },
             "sf-tabs": {
                 "source": "smart/tabs",
                 "javascript": "smart/smart/tabs/js/tabs.js",
-                "css": "smart/smart/tabs/css/tabs.css",
+                "css": null,
                 "attributes": [
                     "active-index",
                     "aria-label",
                     "configurable",
+                    "fit",
+                    "hash",
                     "items",
+                    "lazy",
                     "overflow",
                     "panel-class",
                     "root-class",
@@ -2105,6 +2830,7 @@
                     "selected",
                     "settings",
                     "size",
+                    "sticky",
                     "template",
                     "top-class",
                     "top-position",
@@ -2116,15 +2842,16 @@
                     "sf-button-icon",
                     "sf-checkbox",
                     "sf-context-menu",
+                    "sf-icon",
                     "sf-icon-button",
                     "sf-menu-context",
                     "sf-sortable"
                 ]
             },
             "sf-tag": {
-                "source": "smart/tags",
-                "javascript": "smart/smart/tags/js/tags.js",
-                "css": "smart/smart/tags/css/tags.css",
+                "source": "smart/tag",
+                "javascript": "smart/smart/tag/js/tag.js",
+                "css": "smart/smart/tag/css/tag.css",
                 "attributes": [
                     "active",
                     "appearance",
@@ -2134,12 +2861,16 @@
                     "avatar-text",
                     "closable",
                     "close-label",
+                    "color",
                     "color-class",
                     "count",
                     "disabled",
+                    "height",
+                    "href",
                     "icon",
                     "inline",
                     "interactive",
+                    "key",
                     "kind",
                     "line",
                     "root-class",
@@ -2152,15 +2883,36 @@
                     "type"
                 ],
                 "requires": [
-                    "sf-button-icon",
-                    "sf-icon-button"
+                    "sf-button-close",
+                    "sf-close",
+                    "sf-icon"
+                ]
+            },
+            "sf-tag-group": {
+                "source": "smart/tag-group",
+                "javascript": "smart/smart/tag-group/js/tag-group.js",
+                "css": "smart/smart/tag-group/css/tag-group.css",
+                "attributes": [
+                    "aria-label",
+                    "layout",
+                    "root-class",
+                    "root-style",
+                    "selection",
+                    "template"
+                ],
+                "requires": [
+                    "sf-popover",
+                    "sf-tag"
                 ]
             },
             "sf-textarea": {
-                "source": "smart/textarea",
-                "javascript": "smart/smart/textarea/js/textarea.js",
-                "css": null,
-                "attributes": []
+                "source": "smart/input-textarea",
+                "javascript": "smart/smart/input-textarea/js/input-textarea.js",
+                "css": "smart/smart/input-textarea/css/input-textarea.css",
+                "attributes": [],
+                "requires": [
+                    "sf-help-mark"
+                ]
             },
             "sf-theme-generator": {
                 "source": "smart/theme-generator",
@@ -2190,13 +2942,66 @@
                     "sf-input-color"
                 ]
             },
+            "sf-tile-metric": {
+                "source": "smart/tile-metric",
+                "javascript": "smart/smart/tile-metric/js/tile-metric.js",
+                "css": "smart/smart/tile-metric/css/tile-metric.css",
+                "attributes": [
+                    "better",
+                    "delta",
+                    "delta-format",
+                    "error-at",
+                    "format",
+                    "hint",
+                    "href",
+                    "label",
+                    "limit-text",
+                    "loading",
+                    "max",
+                    "openable",
+                    "period-text",
+                    "previous",
+                    "root-class",
+                    "root-style",
+                    "size",
+                    "status",
+                    "template",
+                    "unit",
+                    "value",
+                    "value-text",
+                    "warning-at"
+                ],
+                "requires": [
+                    "sf-badge",
+                    "sf-icon",
+                    "sf-progress-bar"
+                ]
+            },
+            "sf-time": {
+                "source": "smart/time",
+                "javascript": "smart/smart/time/js/time.js",
+                "css": "smart/smart/time/css/time.css",
+                "attributes": [
+                    "datetime",
+                    "format",
+                    "now",
+                    "root-class",
+                    "root-style",
+                    "template",
+                    "threshold",
+                    "time-zone",
+                    "tooltip"
+                ]
+            },
             "sf-toast": {
                 "source": "smart/toast",
                 "javascript": "smart/smart/toast/js/toast.js",
                 "css": null,
                 "attributes": [
                     "action",
+                    "action-href",
                     "action-text",
+                    "actions-layout",
                     "closable",
                     "close-label",
                     "duration",
@@ -2205,6 +3010,8 @@
                     "role",
                     "root-class",
                     "root-style",
+                    "secondary-action",
+                    "secondary-action-text",
                     "status",
                     "supporting-text",
                     "template",
@@ -2226,6 +3033,7 @@
                     "arrow",
                     "root-class",
                     "root-style",
+                    "shortcut",
                     "size",
                     "supporting-text",
                     "template",
@@ -2241,12 +3049,17 @@
                     "accept-files",
                     "accept-records",
                     "aria-label",
+                    "file-types",
+                    "icons",
                     "items",
+                    "reorder",
                     "root-class",
                     "root-style",
                     "selected",
                     "selected-ids",
                     "selection",
+                    "size",
+                    "static",
                     "template"
                 ],
                 "requires": [
@@ -2265,6 +3078,7 @@
                     "closed-icon",
                     "container-class",
                     "disabled",
+                    "has-children",
                     "href",
                     "icon",
                     "item-class",
@@ -2288,24 +3102,83 @@
                 "requires": [
                     "sf-icon"
                 ]
+            },
+            "sf-wizard": {
+                "source": "smart/wizard",
+                "javascript": "smart/smart/wizard/js/wizard.js",
+                "css": "smart/smart/wizard/css/wizard.css",
+                "attributes": [
+                    "action-name",
+                    "current",
+                    "done-href",
+                    "focus-title",
+                    "for",
+                    "heading",
+                    "label",
+                    "later",
+                    "later-href",
+                    "level",
+                    "navigation",
+                    "open",
+                    "place",
+                    "progress",
+                    "remember",
+                    "root-class",
+                    "root-style",
+                    "running-text",
+                    "size",
+                    "template",
+                    "value"
+                ],
+                "requires": [
+                    "sf-alert",
+                    "sf-button",
+                    "sf-drawer",
+                    "sf-icon",
+                    "sf-modal",
+                    "sf-progress-bar",
+                    "sf-spinner",
+                    "sf-steps",
+                    "sf-wizard-step"
+                ]
+            },
+            "sf-wizard-step": {
+                "source": "smart/wizard-step",
+                "javascript": "smart/smart/wizard-step/js/wizard-step.js",
+                "css": null,
+                "attributes": [
+                    "action-text",
+                    "description",
+                    "heading",
+                    "href",
+                    "label",
+                    "message",
+                    "name",
+                    "optional",
+                    "root-class",
+                    "root-style",
+                    "state",
+                    "template",
+                    "type"
+                ]
             }
         }
     },
     "runtime_projection": {
         "schema": "docara.framework_runtime_projection.v1",
-        "mount": "_docara/vendor/simai-framework/runtime/1e5ec795a1ce640b58a2a3903d11b5e726f4fb82/distr",
+        "mount": "_docara/vendor/simai-framework/runtime/24d64b7f6eb7a782d648dbb5b44f7eb763ec815b/distr",
         "source": {
             "provider": "simai/ui",
-            "revision": "1e5ec795a1ce640b58a2a3903d11b5e726f4fb82",
-            "tree_sha256": "79a03ee026fc9eddcefcf0ad33f3ff8f778ba5e8aa80d3096ab7ab11cb89af71"
+            "revision": "24d64b7f6eb7a782d648dbb5b44f7eb763ec815b",
+            "tree_sha256": "c56250511c8ca6aa7d0c2cfe78d4e6303fe2daf1cc5a0975e7bffd36b85b3ef3"
         },
         "icon_font": "component/icons/fonts/MaterialSymbols-Outlined.woff2",
-        "packet_sha256": "62250fc6c702109b45a23df0d3cffd4c6fd07b0bd4cb51a5b22bfab5c1aa2496",
-        "files": 1376,
+        "packet_sha256": "3dd1167191c4ae696ab1c88595480d681ebfda73c9a1e1365d8637be2ac25166",
+        "files": 2254,
         "manifest": {
-            "path": "portable/vendor/simai-framework/runtime/1e5ec795a1ce640b58a2a3903d11b5e726f4fb82/runtime-manifest.json",
-            "public": "_docara/vendor/simai-framework/runtime/1e5ec795a1ce640b58a2a3903d11b5e726f4fb82/runtime-manifest.json",
-            "sha256": "2d8cb3e2923bc00f00d19c8659414b651c7a973e925a584a9a8a9b0c825953dd"
+            "path": "portable/vendor/simai-framework/runtime/24d64b7f6eb7a782d648dbb5b44f7eb763ec815b/runtime-manifest.json",
+            "public": "_docara/vendor/simai-framework/runtime/24d64b7f6eb7a782d648dbb5b44f7eb763ec815b/runtime-manifest.json",
+            "sha256": "f01a1d59cad270a00c570ef2075f6f08a2bff54bfcebfa66f967ca396bf6bf3a"
         }
     },
     "icon_projection": {
@@ -2343,7 +3216,7 @@
         "ui.button": {
             "provider": "larena/ui",
             "provider_revision": "4b055d09926fec4c32f2ae43b2e7e0a6f64d7663",
-            "sha256": "ad90d5ceb6b8075297894b29f3ad3d4303b6fab0ad8df98ea381208b9eec2598",
+            "sha256": "fd0a6ee7e11ce37f46eac2b2df56c38e3ef29f3c110ccb6195e07897dc89846c",
             "consumer_policy": {
                 "managed": [],
                 "blocked": [],
@@ -2356,7 +3229,7 @@
         "ui.alert": {
             "provider": "larena/ui",
             "provider_revision": "4b055d09926fec4c32f2ae43b2e7e0a6f64d7663",
-            "sha256": "8778f5378484fac5191b9030b4d61bdb62a7dd14e10c1540b2e0994405781073",
+            "sha256": "660dcea2ac471492033f1c6c061f88a3c7876a9ed73dbb7538874d5834661563",
             "consumer_policy": {
                 "managed": {
                     "id": "deterministic_id"
@@ -2394,38 +3267,110 @@
         "mount": "_docara/framework-runtime",
         "source": {
             "provider": "simai/ui",
-            "revision": "1e5ec795a1ce640b58a2a3903d11b5e726f4fb82"
+            "revision": "24d64b7f6eb7a782d648dbb5b44f7eb763ec815b"
         },
         "files": {
             "smart/alert/js/alert.js": {
-                "sha256": "798c7c9e09ab6655a1385eadcd22695c1666e526410aa3dd93a7471dfeb11254"
+                "sha256": "8a38630d9dc87625e06b7867f3f2279b9d7167789e9c9135a4b35e9f2e2cc031"
+            },
+            "smart/alert/js/alert.min.js": {
+                "sha256": "27cf40361f8e6ab0ec7984d5ad1565d470aaf60323bb38715dff25b1bde3c3ed"
+            },
+            "smart/button-close/css/button-close.css": {
+                "sha256": "3bf84ff663eb381ed5da16bd496d628b9b709c0315d6c589059b424990a2296e"
+            },
+            "smart/button-close/css/button-close.min.css": {
+                "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
             },
             "smart/button-close/js/button-close.js": {
-                "sha256": "60655c690168463233d10cbf556fca8f1e4b6d6125a48d724d313a4af7ebf8bd"
+                "sha256": "9c31cb7b74aee27cf6153d1af22fa2d3cdf38bc370ae41b17bc1aa986a15cfa4"
+            },
+            "smart/button-close/js/button-close.min.js": {
+                "sha256": "1452946e27447a0e27c407f267b7b5f20dcab76ff94425fc087952df95ea48fb"
             },
             "smart/button-icon/css/button-icon.css": {
-                "sha256": "07f0395401f507a3ec6d1e762e775a4b9c7a878fae4de9e760ca28c5d25de03f"
+                "sha256": "61f995beaf85ba3239edee0497dc5eb13220bfa5a1e78868f1eb4e3bc672dad4"
+            },
+            "smart/button-icon/css/button-icon.min.css": {
+                "sha256": "ef765b2742866ecc70779a3459b1ef7a8d32848d74b4e29acd936e3801b2b176"
             },
             "smart/button-icon/js/button-icon.js": {
-                "sha256": "67d26f383e9b6e6e8e40b202261668c5648c1a133bf88bc8406b5c1bad90ee59"
+                "sha256": "19bce2db12960383a1b237b6096ac1d789f506334ec757a51c8ad3390569d2f9"
             },
-            "smart/buttons/js/buttons.js": {
-                "sha256": "5095cfe2a3d11020806f418f177f33534b9208cedb9e796c7f651c07de9b1b31"
+            "smart/button-icon/js/button-icon.min.js": {
+                "sha256": "a81effdf391225c8dcc593e40081d28bf27db514b5ef4edbd64103097a5a8328"
             },
-            "smart/close/js/close.js": {
-                "sha256": "bfe09119586de78cb9e16eb347c4d3f26a046ab00e5715a63aea5339e3c2f962"
+            "smart/button/js/button.js": {
+                "sha256": "98130186ef476018a192dc30c6bac5d491d6da97e26c23a40b70132d0f7b8356"
             },
-            "smart/icon-buttons/css/icon-buttons.css": {
-                "sha256": "07f0395401f507a3ec6d1e762e775a4b9c7a878fae4de9e760ca28c5d25de03f"
+            "smart/button/js/button.min.js": {
+                "sha256": "07843bb3ec71110d377548490767b5d256cf04dd03f9516d7bfc1f5fffaac955"
             },
-            "smart/icon-buttons/js/icon-buttons.js": {
-                "sha256": "b54572acf563baa1d40217ac4d2058d66e9a6df053c492e155a01dab97526baf"
+            "smart/checkbox/css/checkbox.css": {
+                "sha256": "598e8cdd41f10e061eeef66f6617bd46fb57c1ac8a581780569cea67b66e9b95"
             },
-            "smart/icons/js/icons.js": {
-                "sha256": "17f9e531c61e7443d2bee58bf18230ce37006872858c9cc7a2e06ab792fec5ba"
+            "smart/checkbox/css/checkbox.min.css": {
+                "sha256": "f1e2a216c03a5dfdc3469d9a96c759cbf76d5e01768e3f9b1117a363e56342d7"
+            },
+            "smart/checkbox/js/checkbox.js": {
+                "sha256": "75c46e864992c2556713774640d2b77581d9e3cdf75b13cd780b948998352d27"
+            },
+            "smart/checkbox/js/checkbox.min.js": {
+                "sha256": "5d1eb2cbb15306a08d47d1d8a50c992f4f7789293a686ae843ffacfa7e0fa204"
+            },
+            "smart/help-mark/css/help-mark.css": {
+                "sha256": "ea916a720a96e95c9ca0ba103658ba37948f864388278711fe31b6466972708e"
+            },
+            "smart/help-mark/css/help-mark.min.css": {
+                "sha256": "98a62639850b5be9a88e7201e7d3e3c057fe84a47ac65ba935a058f5cd341311"
+            },
+            "smart/help-mark/js/help-mark.js": {
+                "sha256": "294fdf0aa5e3bc07f321a4273d3aa66aaf7d1aac1de22de4aef31fe255b6bacd"
+            },
+            "smart/help-mark/js/help-mark.min.js": {
+                "sha256": "ca9bf5b584b45834abfa40299183adda326b259926c9e7e7adf23bb833e917e3"
+            },
+            "smart/icon/js/icon.js": {
+                "sha256": "ea705005697e282cf94f7e9701eb6f111faf396b136f8e20bedd5bc6ec848cc5"
+            },
+            "smart/icon/js/icon.min.js": {
+                "sha256": "2cc5894736469e631cfa821e62aa31d5be8f15d264ef75a692b3d8c5c3e84e5a"
+            },
+            "smart/menu-context/js/menu-context.js": {
+                "sha256": "42e2fdb2d095935929ed155575af8c454529460ca852e60f453f706f8360aad9"
+            },
+            "smart/menu-context/js/menu-context.min.js": {
+                "sha256": "b6cd8627279c6a99c9eec2937177f0be7e0d19aa3e3c0d91b09be1450bdf6d7d"
             },
             "smart/modal/js/modal.js": {
-                "sha256": "12eb421b5ca364e5d5ab5319f904f24e9ddfd939f697694445f80de4f93b4f52"
+                "sha256": "b5cf740804f065335a14e13ec4fc8a1dc2295c80ba8e38891f97593d3feefdff"
+            },
+            "smart/modal/js/modal.min.js": {
+                "sha256": "9d7c9783844b3e0ee44f3e0a4f726a0d3c6eff56a0efbcaa41cba03c37cbf7d0"
+            },
+            "smart/progress-bar/js/progress-bar.js": {
+                "sha256": "e2d85a7050693b596555749d35e49088b783b2066527cbd5ed05ac7575cef405"
+            },
+            "smart/progress-bar/js/progress-bar.min.js": {
+                "sha256": "c61a70d9b896688d5672c54e0d977c902d47f017bd26f2343abb5a6684ad2096"
+            },
+            "smart/sortable/css/sortable.css": {
+                "sha256": "5a2400265cf5dbd8c597598a360fa96555cf50c135ed34ef11a112b4718f9125"
+            },
+            "smart/sortable/css/sortable.min.css": {
+                "sha256": "3b69dd31a5b1b17ce6a8aee5f6e1d228337b85fe0d220d1c37084b4e913cf0da"
+            },
+            "smart/sortable/js/sortable.js": {
+                "sha256": "d748c3b4da8ebaeb5f4ef3433d95d382c4e94deaedbb08927cd11c1dff0cb627"
+            },
+            "smart/sortable/js/sortable.min.js": {
+                "sha256": "7135cd4d8ba9480cdefe6d6d7212a07890d67a4f1296695a81d2e46491564d9d"
+            },
+            "smart/tabs/js/tabs.js": {
+                "sha256": "882242a591b232733fc56d088009f3b054dcd0c15e1e4fbee9471e582270453d"
+            },
+            "smart/tabs/js/tabs.min.js": {
+                "sha256": "6a7e76c7963e5c44cda82f540f143656468c207209e704753fd34625867ef6cd"
             }
         }
     },
@@ -2438,410 +3383,962 @@
         "mount": "_docara/framework-runtime",
         "source": {
             "provider": "simai/ui",
-            "revision": "1e5ec795a1ce640b58a2a3903d11b5e726f4fb82"
+            "revision": "24d64b7f6eb7a782d648dbb5b44f7eb763ec815b"
         },
         "files": {
             "smart/accordion/css/accordion.css": {
-                "sha256": "7ac4ad4f24f83a85eb1b54e7486f1879033642f2653d58f66932abc2482747be"
+                "sha256": "48d0595d9c203b1e3f63e37289e89cd60cd8399ac9c1e000dd351ff8974f4c3e"
+            },
+            "smart/accordion/css/accordion.min.css": {
+                "sha256": "43c1b2f4b3bc3cbd5fba1e34562431e5be9470639d7c38448eb52f6ed0fe5cad"
             },
             "smart/accordion/js/accordion.js": {
-                "sha256": "3c8868c9fc3a601d1595628183bf5bdfce240dd12baea81af8ccaeea5a238c74"
+                "sha256": "1abf2d594b63510539f153cedd90e11a9796168add6b34a92316265fcf3dee06"
+            },
+            "smart/accordion/js/accordion.min.js": {
+                "sha256": "16c80809c61cdc93dc46f9c78ecae589b2636aa41a82b4d6592e62c34678f245"
             },
             "smart/alert-bar/css/alert-bar.css": {
-                "sha256": "44463a8a4170e86e884f6dfe9c3883b8dee139f286b41be0c8d56a077d40e0b6"
+                "sha256": "dd1b6ae03da7c1230e705dcba08b997fac2353bc424c502ba04ee91e388a1b07"
+            },
+            "smart/alert-bar/css/alert-bar.min.css": {
+                "sha256": "e5bb9b34158ff961ac43a97dbb7bc6e211127aa94696fb9da724d686e841bd51"
             },
             "smart/alert-bar/js/alert-bar.js": {
-                "sha256": "cb736474ec62a5fb3129eb8f83d100b68774fb3d1b133e8a4b51d6be528141c3"
+                "sha256": "d2856d24f8181d0051d039fe57a6af6aa0c25e18d7989891ed6efc8fbb48105a"
             },
-            "smart/avatar-group/css/avatar-group.css": {
-                "sha256": "a21ba9bae9a22c4b74a44b8520b0f80801afb87c05af17c9de299cf45e0525f0"
+            "smart/alert-bar/js/alert-bar.min.js": {
+                "sha256": "6eedeab8da3397fc45d78c05a8c2219316317354c19e86511d570b5bb4f96714"
             },
             "smart/avatar-group/js/avatar-group.js": {
-                "sha256": "3ba3f3a0df176bee74b36546bf741b827d55ee86d46e463cbf172f17d7f5fd4f"
+                "sha256": "52c60100624078165da297f1b8de9a851d868d1d9f652462d086795b927a5b61"
+            },
+            "smart/avatar-group/js/avatar-group.min.js": {
+                "sha256": "add0973b553b0e83a8f1e4c28913f5c9e13381db391a157f3959b69a6075abdf"
             },
             "smart/avatar/js/avatar.js": {
-                "sha256": "ad639aa0b5305c7c45f90a49ac9e8d938289695672b10bb4d54c396187eb756e"
+                "sha256": "f5e473e7c2da13d900dc424073640428510d9a2f853f145eb7e8b012583548f8"
+            },
+            "smart/avatar/js/avatar.min.js": {
+                "sha256": "3f9e8d416825919b1bda8bf97f017da237ddfbe762288b741a9cca275a93509f"
             },
             "smart/avatars/js/avatars.js": {
                 "sha256": "2d8bf0710e7b9ced64ae511415d559b0fc1e57741a5e1e5c39d639065f14160c"
             },
+            "smart/avatars/js/avatars.min.js": {
+                "sha256": "ce615816fdc6aff7ebfdc23f4cecf2097cdc3548617ecc121f6ea43a4e11af69"
+            },
             "smart/badge/js/badge.js": {
-                "sha256": "4ae3b0e6c7d09a4bfaebb762d3ce2f453419f866e7448a9cd203d3dabcbb7827"
+                "sha256": "0fc1e06f626ce9961b25de58b735ee88fdbc74c474546e16c5cf0e366443b8e4"
+            },
+            "smart/badge/js/badge.min.js": {
+                "sha256": "315de81b30276c82ab0dbe4b264059bd8899e20ad2cadff812afe5d7ecc13d3b"
             },
             "smart/badges/js/badges.js": {
                 "sha256": "436cafd3c8282c834802252008d8ef404e6abbaed5bc5dfcbd0d074f49298176"
             },
+            "smart/badges/js/badges.min.js": {
+                "sha256": "9a50384bbb2922b5c91f763b9b7561c729d6583f92f0703d16153e2f6a02dc66"
+            },
             "smart/breadcrumbs/js/breadcrumbs.js": {
-                "sha256": "76afa6be9769c3a9fb8e415dde33982eaff9dca905d652aaf026a3788499b169"
+                "sha256": "c811ca73721f9a053e046ce360becfcd64142c3f4295679f2bfaa8f768a49154"
+            },
+            "smart/breadcrumbs/js/breadcrumbs.min.js": {
+                "sha256": "948bbf066ad6b06cfb15c1d4f94eadd2707c3f5545fe9f87f9587fec2941c0b7"
             },
             "smart/button-copy/css/button-copy.css": {
-                "sha256": "aa0906496bf4f5beba7df322c9dbb19136d8e2346e1d0ab6c4a8391aba8e3507"
+                "sha256": "703bbefb9971a4512fb768f173f26d95dcdb47ecaa95f54120e787ecb3478684"
+            },
+            "smart/button-copy/css/button-copy.min.css": {
+                "sha256": "479bce9905073a2ad4623eab0ca2849abd8175d6cfb63945fa411c0e6b61ae67"
             },
             "smart/button-copy/js/button-copy.js": {
-                "sha256": "87a732049f9686bcf810edf47b5a8a9134390ec548d338c50d9e1fe56e24cfd5"
+                "sha256": "fe071064dd0c9c3b6ee9ea2f6163aee7b1f210813fde7389dbe041ac0ced8d44"
+            },
+            "smart/button-copy/js/button-copy.min.js": {
+                "sha256": "4db62fa15786138581d3a07a11b88e1443d49b64ffba23307f4caeabd37dd4d5"
             },
             "smart/button-group/js/button-group.js": {
-                "sha256": "b53288f7f9fe826d1b6e32c87a5d5349dcf2ef1b978bda56de9fc068d21d97b9"
+                "sha256": "38bafe73f3f8f48255eec46807c4eedbafd4797e372253fd96593d9af17d4004"
             },
-            "smart/button/js/button.js": {
-                "sha256": "d40653d1292868654daa24e913137ef90b1e79456a542b7c4f34a10209ffcb15"
+            "smart/button-group/js/button-group.min.js": {
+                "sha256": "48401e60745c3c6cd2f41364f9d3d15b3b411e88a92a1add77b508e094e81f4d"
             },
-            "smart/checkbox/css/checkbox.css": {
-                "sha256": "b9d7df800adc26160e473eed849890ee3e1edf41f973275a02ada453e5a2d819"
+            "smart/buttons/js/buttons.js": {
+                "sha256": "5095cfe2a3d11020806f418f177f33534b9208cedb9e796c7f651c07de9b1b31"
             },
-            "smart/checkbox/js/checkbox.js": {
-                "sha256": "593ec6fb20a9b8210ef867ccd1356fc6c2779757eeb527182e11c0f69d6a97a2"
+            "smart/buttons/js/buttons.min.js": {
+                "sha256": "aac9629dfebdb770e0f2434d030838376b2e6e94e2375d6073cade7b98163dc0"
+            },
+            "smart/change/css/change.css": {
+                "sha256": "78a79a0b85ca3f18e938964f70a405dec515996f5bfae042309e6f3bf43dae8c"
+            },
+            "smart/change/css/change.min.css": {
+                "sha256": "43f22a34bc06a352129a118adafcbde36cae88a5ee3a392ebfd85c81949708d0"
+            },
+            "smart/change/js/change.js": {
+                "sha256": "bad4f8604af4c2cb97f30c66a4f1a1bc580df41d79fe8532c542e5fd86f4ed2c"
+            },
+            "smart/change/js/change.min.js": {
+                "sha256": "744430127f4e1a3db3306379455a31fbfe01580a410c84f9e302b31d06bcc76c"
+            },
+            "smart/close/js/close.js": {
+                "sha256": "bfe09119586de78cb9e16eb347c4d3f26a046ab00e5715a63aea5339e3c2f962"
+            },
+            "smart/close/js/close.min.js": {
+                "sha256": "9c84fa32f90b781a0b3b4d18067e122f9f951963053d96f265f6fc78a6ffb932"
             },
             "smart/code-input/js/code-input.js": {
                 "sha256": "b6f31ef6cd6f5f1901155d5d11767a171a695dffae8991583fa150c91d3a4b6e"
             },
+            "smart/code-input/js/code-input.min.js": {
+                "sha256": "c1cc0621ddd331e9678bcbf519affcfe6a2d95da739130a15b87cf66798f63e1"
+            },
             "smart/color/css/color.css": {
-                "sha256": "82c8092d2f9902e20aa4307446139d2b259a8656a975f140eb834cb810ad7f95"
+                "sha256": "d0ae1d4834b78cfce6931d323cca8a3c2afb64ae543ec0975281ab4e20e1460e"
+            },
+            "smart/color/css/color.min.css": {
+                "sha256": "83a6e4289f9d277977152f2a8e4d0463a0489222ff56e594665cfb53cf2eb248"
             },
             "smart/color/js/color.js": {
                 "sha256": "68282122116eebee6cd34469ebf64a349b81cd0dec14af881866b6516180be98"
             },
+            "smart/color/js/color.min.js": {
+                "sha256": "522199428820edb373d7ea06e94a2e44649f8a49362fa7783df49bbddf09da78"
+            },
             "smart/composition-overlay/js/composition-overlay.js": {
                 "sha256": "0e908f25ceb4ed4e7b955fc4735eda5681134c6a380d927fdc64f622de5d6f32"
             },
+            "smart/composition-overlay/js/composition-overlay.min.js": {
+                "sha256": "6d0bcc02e0ae0fc4c4beb8e6b898ef676ab3ef598ce58582fac489b0f2430745"
+            },
             "smart/confirm-change/css/confirm-change.css": {
-                "sha256": "de9e2c5260db29beb71f2ec8c58ae31a4b692c3c8eec0d6a5b26a11bedfff354"
+                "sha256": "4f27f5c6e30633f27bebe9af54b3f8ee5d390baeab76f661d4da97b526b8f635"
+            },
+            "smart/confirm-change/css/confirm-change.min.css": {
+                "sha256": "723552db20201bc5ef7b0bb306936acc145102fe6ff3d9f970e60993e9af5c22"
             },
             "smart/confirm-change/js/confirm-change.js": {
-                "sha256": "8817845827e3a0d96e22924d8d8b7a71a860cbde41ce654fad3a8f5c8fc637ed"
+                "sha256": "216e1a99eaa5f494e24f57166e08b51d81ed751e9fddc46d27ef081e359fb7d4"
+            },
+            "smart/confirm-change/js/confirm-change.min.js": {
+                "sha256": "16a8155797d0db53bf01906df3d65de0413be589bf71d1af8654c41e84d81608"
             },
             "smart/confirm/css/confirm.css": {
-                "sha256": "5e352e330389597b863464ee8756bf5a68de095acd1742883a0be70ce75f9868"
+                "sha256": "473b4c5b165136fa6567309b68d74c73bff363aa657030a11c7353486835ebc3"
+            },
+            "smart/confirm/css/confirm.min.css": {
+                "sha256": "653ae71dcfefbb44bec2dddca9ebff35aacfff4c510037adcad59ca37b93fb2f"
             },
             "smart/confirm/js/confirm.js": {
-                "sha256": "25b370bd268dcf278a345699e94d0d6e0e3c9df76188e329b5a01fbb643b8ad5"
+                "sha256": "672d3704b63d35377b37b61e665762ece7addb7c7e65e029f4a36e1a38a10ec7"
+            },
+            "smart/confirm/js/confirm.min.js": {
+                "sha256": "875c2d176e0c94e609170d995b5799d846183db77f0ac8b084486121b27f7e42"
             },
             "smart/contents/css/contents.css": {
-                "sha256": "fbafce4c8e3dfd8f9acae10fe9794765e679584146c9503a97d9417646810a73"
+                "sha256": "da3fa48e361daf87789c96d3705772bdc14ccbe068588b07cd48f8f9d51b539d"
+            },
+            "smart/contents/css/contents.min.css": {
+                "sha256": "f36f8ccb1d954da15802da54115e35b38d5acf1b3fd215a0707f67c612bc05ab"
             },
             "smart/contents/js/contents.js": {
-                "sha256": "a32f743d480519d3d87dd638221e488bf9d31d32efc3ed431d8489e8b356e12a"
+                "sha256": "9d8804866f29db7775c5da77e78e16a228db9eb74bc40166d34a01d335ab593c"
+            },
+            "smart/contents/js/contents.min.js": {
+                "sha256": "786d013b8a2edd6c93ed0ddac6a1f412b366c8b6eb03b5f2f22d2dcd61ca2152"
             },
             "smart/context-menu/js/context-menu.js": {
                 "sha256": "a1c5bcb9f2de9a7d20864733969ac06beddff93be02350cec75708920e1322c4"
             },
+            "smart/context-menu/js/context-menu.min.js": {
+                "sha256": "9d8f671976a23d836139a4f7fbbcb5cc4816d751815cc7c55d917536bc61e409"
+            },
             "smart/copy-button/js/copy-button.js": {
                 "sha256": "c299892cf2c6e6540127c93a4fe72a6f429fae3c850120fed84f24d8151d075e"
+            },
+            "smart/copy-button/js/copy-button.min.js": {
+                "sha256": "00949ecfe13a00eca5ff4b6b05642ff0435a95b4002ede5f022214f96f6713a6"
             },
             "smart/country-code/js/country-code.js": {
                 "sha256": "4abc55e310b1c991a1c32cd521fa3a68727eb0c44b7450c040b7da1c9016108e"
             },
+            "smart/country-code/js/country-code.min.js": {
+                "sha256": "866715748a1158a88a6ce3403bfbf4c964c3240438da87718908265ad7cbf15e"
+            },
             "smart/datepicker/js/datepicker.js": {
                 "sha256": "dadea217e3ca46d0b4728dafa66f2ec1f97d383ab5b0a0f9b7565a63bc4c1079"
+            },
+            "smart/datepicker/js/datepicker.min.js": {
+                "sha256": "a3dad50fcf81abc99e71e0691ea2b88dbcf82b7ed011a19ad6705491feb86959"
+            },
+            "smart/display-settings/css/display-settings.css": {
+                "sha256": "0238329dc318f946b432fb096a8a3d0d1c967b125c8fef775545b9c76967b4ee"
+            },
+            "smart/display-settings/css/display-settings.min.css": {
+                "sha256": "cf75fbbb6e7c80ed80b56efe3bf20d5b075dec1bbf3939d8e141111af6b2c05e"
+            },
+            "smart/display-settings/js/display-settings.js": {
+                "sha256": "eef40fffe7f7513e7b5632032c49cd15f7fce7675c372acd98f3bba4428381b7"
+            },
+            "smart/display-settings/js/display-settings.min.js": {
+                "sha256": "65ad354fe5138651ee3d67c09dcd97b19ab438587edae1241d955ae8dd2674a6"
             },
             "smart/download-file/js/download-file.js": {
                 "sha256": "3fc537ee6427030265266b813e5031d3a8d96d79c17e3828c0a11a3d419161f9"
             },
+            "smart/download-file/js/download-file.min.js": {
+                "sha256": "7df5bb6bc50768af4d6d03ca4b505add2d3227a187d38bc884c54484f44822e5"
+            },
             "smart/drawer/css/drawer.css": {
-                "sha256": "e2de111ebed4aff40be804e8e4eb49d64f50a239fd8b7c513ff4b248cda96031"
+                "sha256": "a4490ef18a516cbd9d6672e7a3f38a0aa77ed23953f91b0901a924da8c4b82fc"
+            },
+            "smart/drawer/css/drawer.min.css": {
+                "sha256": "94b0c591608dd2e015e56f7d489c9896cfbe2dcb07287af1ed1fc7099ce6284b"
             },
             "smart/drawer/js/drawer.js": {
-                "sha256": "0a8f723d7e67b35b063906798024e11c4c339ba3fc43e05e952ee5264f37681d"
+                "sha256": "ac26e2851cb62f2a20897b9713d47cb0212a29eb58a7b1f38d8defc51353d5aa"
+            },
+            "smart/drawer/js/drawer.min.js": {
+                "sha256": "ae3f32d0a2596617ee860e1c55f476a4b43d9cf2d036ddaab791ef2d650a5a35"
             },
             "smart/dropdown/css/dropdown.css": {
-                "sha256": "5b640158ee43a1e95d0dd5d186c349a4bbb611fa573da77abe4b8eff7751742b"
+                "sha256": "a1f57282c4902d5307a85a94526fbc99f48af374fb13742c1c09381df9f41445"
+            },
+            "smart/dropdown/css/dropdown.min.css": {
+                "sha256": "030240f4e57bfae56181c95a222b3dff0024fcc92863c7b98c14f4be7eee9e7d"
             },
             "smart/dropdown/js/dropdown.js": {
-                "sha256": "69f8ba3fe496d3e450a4f30fab8df27512c20b20e9b3a32b01ca442638941adf"
+                "sha256": "8a30c8cd2dc1a3e8da556ffefd5c1a2005c4a08565706ef95f12926b94e557da"
+            },
+            "smart/dropdown/js/dropdown.min.js": {
+                "sha256": "0f1e5f51e874e6af89f5c5c427fb26008cb7b5d7b16d26c699500bc3baa0f7b1"
             },
             "smart/editor-inline/css/editor-inline.css": {
-                "sha256": "6801060b4136ea1ca2385e8408f779f11e4fecd034cba18ae27e5c2c74843a54"
+                "sha256": "47fbbd0b52e16d2f04a84bcb207321efcce6d0d2d16497a917dcb5162090df51"
+            },
+            "smart/editor-inline/css/editor-inline.min.css": {
+                "sha256": "fa19fbfdeb5b114b5810c8fd50e32c6f0eacff4dd4944fc162e5333683351f46"
             },
             "smart/editor-inline/js/editor-inline.js": {
-                "sha256": "9c8f86ca70030aeab1efd8802e78c3ea8c21df494f6794cfe518cda7adbac8db"
+                "sha256": "4d88ce9cd52c5653bdc3616247d6ecb11be288e24262dde2bd9631abd67794e8"
+            },
+            "smart/editor-inline/js/editor-inline.min.js": {
+                "sha256": "6ed7db10c1774fc067833e3cd6a5b22a6adea980edce75b4b8410cec069fcd51"
             },
             "smart/editor-overlay/css/editor-overlay.css": {
-                "sha256": "60637f2f19c3c99e24cec3fdcad3d92b7fbf845e5021b8b8469f901df876ba26"
+                "sha256": "08a4ddb5d049fef7f87c44c798b1c541f09e717e8356d3711e7fa245340d939d"
+            },
+            "smart/editor-overlay/css/editor-overlay.min.css": {
+                "sha256": "7f679796d8d68456445596c29f5048c0e3fc7c5c46e85f8e1a5d62ef799ed50e"
             },
             "smart/editor-overlay/js/editor-overlay.js": {
-                "sha256": "0b80206b9e4910e90e7d181b21d88a762a6fbfafc132476042459c5c9bd1332e"
+                "sha256": "04207759bd9d8766e8473f9b3e8d0a1bab577302f1ed9b6474799879507c4ec5"
+            },
+            "smart/editor-overlay/js/editor-overlay.min.js": {
+                "sha256": "9f505780ed4423a9342b3afac379404b1826b272c744350e70b715e8cffcfe57"
             },
             "smart/empty-state/css/empty-state.css": {
-                "sha256": "7f37b23e1c91b4cc650aefccf2d5e89343265727fc3f2222620ff2002f6d85c1"
+                "sha256": "febe37a888d504bae5542391abf4d4d30d02aa2a1521be92736fdea84061b51d"
+            },
+            "smart/empty-state/css/empty-state.min.css": {
+                "sha256": "45a3602dabbb003d3ec66da130f7112e852a7bf8f6e2f3e01e1473051a86b2b8"
             },
             "smart/empty-state/js/empty-state.js": {
-                "sha256": "eb27e5bc6000fe5684b213680347c3bd1e276723f46336a449f3103e3e55fec2"
+                "sha256": "7d4af9d761183964f4843f87dc4ad16ae955024bc8f7aefcafe32110bc01af43"
+            },
+            "smart/empty-state/js/empty-state.min.js": {
+                "sha256": "653fb9f12fb95e983a5390a253cd269c5b004704da6321dae17f0b21d3394609"
+            },
+            "smart/empty-state/js/empty-state.min.js.LICENSE.txt": {
+                "sha256": "38643bdcb276438da6f9e49002b2d8046818c258f7d4cddbae005554262cf44c"
             },
             "smart/field-renderers/js/field-renderers.js": {
-                "sha256": "ce54555a990776f5f9a5e6fc4cf9310880292cb5e8a851908bc12591a6cb19e0"
+                "sha256": "d4214a9a4965abc285b4837abb7a05dafc4aa6dd77a57331b692e4de43113766"
+            },
+            "smart/field-renderers/js/field-renderers.min.js": {
+                "sha256": "79200fd08ca25bd5905dac6d16a615585116773b229e31ea4ef9eb25897f0314"
             },
             "smart/file-download/js/file-download.js": {
-                "sha256": "08b5bee0ca56a30de3e06368e6ecd19a7305f1f6370f7195dddc1fca5436a0b1"
+                "sha256": "fb9002b287ae9f992fdf679381f2d713e0c6d3cfaac8400e363f2d9c025bf7bf"
+            },
+            "smart/file-download/js/file-download.min.js": {
+                "sha256": "3fa8c9322afe1d727c57dc656b34c6ca859acff3b7dc146992411e8b131cf14c"
             },
             "smart/file-preview/js/file-preview.js": {
-                "sha256": "81da2809eff126abc06e487c47b50e35af5029c329c51d79029e850c917256ed"
+                "sha256": "31a8c7555e706b1168026b9a4933ed3f22471225a92796967c32d03f49eef231"
+            },
+            "smart/file-preview/js/file-preview.min.js": {
+                "sha256": "d4bfa1217002f8232b62b13718dd2cca4d7196546500815076b155835cfa6655"
             },
             "smart/file-upload/js/file-upload.js": {
-                "sha256": "693ac8057419b7ffba6d32002487c8fde3eb208a32241af7228e7895d6e55d3d"
+                "sha256": "44b3e36943282bd7fd9b1c4a8d043c5fd60cb211a632d28bae70156e97e367b7"
+            },
+            "smart/file-upload/js/file-upload.min.js": {
+                "sha256": "cb41b29cca63b5554b184fd6723716d8148475a8e13cbadfd65dd196d023f1ff"
+            },
+            "smart/form/css/form.css": {
+                "sha256": "d1cef461cd97a14fc3d96d67bdee4c829c941f22dfff0b5bba0c4c901ca52452"
+            },
+            "smart/form/css/form.min.css": {
+                "sha256": "4905ff38e914a1ca1c590457eb957c6ee566230a122c36d3411941b8cf3b0ea3"
+            },
+            "smart/form/js/form.js": {
+                "sha256": "b23b2306f4a3369d249ec0f3a3c45501c733abc7a80f34f07e891a4e9af037a8"
+            },
+            "smart/form/js/form.min.js": {
+                "sha256": "1022aa21486f83650757205e42cd83f1caccc191c2e9f9b9c03ef3ed9203f87e"
             },
             "smart/gallery/css/gallery.css": {
-                "sha256": "e0a04a1d82c53423e4a57ac4dc6854ecb274dfddebe3d4d96cb751646e036c59"
+                "sha256": "ec983061a9699af360cd70fcd7e19451cfa839cb056fc5ce058e5b7969ebd87e"
+            },
+            "smart/gallery/css/gallery.min.css": {
+                "sha256": "651f1aa27250887dbb1102fce4f78904e082d3970235937e5391c496d8b93f01"
             },
             "smart/gallery/js/gallery.js": {
-                "sha256": "24449f2e4449547b69e4fbf94a6b23d0e46d61c4ed6137e9c69701e7de473232"
+                "sha256": "0a31c4cb3ffc9d25d55d3ffdc1609b867b835ecc453fe59b2e497bce6cd5c356"
+            },
+            "smart/gallery/js/gallery.min.js": {
+                "sha256": "99b2779f0e733b792d09181d71bf2824528bf9b4eb88ec1bde9186f1ba8d240f"
             },
             "smart/header-page/css/header-page.css": {
-                "sha256": "ede6e871ee0f3c3193ca474a5d0bd5c2482f9a97ae19cdad9812a8ec6728fe77"
+                "sha256": "e51f0e946188dcc13d300e0b7aff730a7e23df8bdc67fd0bcd24eaab87158916"
+            },
+            "smart/header-page/css/header-page.min.css": {
+                "sha256": "e0ce089ecab3cef629435c36ff0c5b3d9c7324a007d2d1b335efb4a236717d5b"
             },
             "smart/header-page/js/header-page.js": {
-                "sha256": "2e8b29cf07e01383097136f96974886696fccda5c6e882f93623fcd8daf52412"
+                "sha256": "dd5f92035a1fbd143d46a0baf184aac8a06d2cfc51b9504e7efe16c4786dc5d6"
+            },
+            "smart/header-page/js/header-page.min.js": {
+                "sha256": "40c788154b3be1be513f6f5f65720bb4782758a95f082833a0435376393874b2"
             },
             "smart/header-site/css/header-site.css": {
-                "sha256": "60e781d4b3480a91455cd55ed6a81b283312856bdba318118b22323af094012e"
+                "sha256": "1eb131e22b025c6f99fd123f06a2ce77409fa77d8f840c355413856a159515d6"
+            },
+            "smart/header-site/css/header-site.min.css": {
+                "sha256": "3aa5f5f196ed656dcc90cd1a68ceafb78985cce761fa9a4a6b542cf01b9eff11"
             },
             "smart/header-site/js/header-site.js": {
-                "sha256": "02cdd512a4ed48852f95587f571a93e26610cb6a07afffe9e1ea365018d8a344"
+                "sha256": "f26568d132806caedb72eb5ddcfe5dc24bbcb00ecb8635d7b4f8d57408c1ace4"
             },
-            "smart/help-mark/css/help-mark.css": {
-                "sha256": "85bb0d0fb0821f4314d27327280e0b39c68b0fee32bd49defa43a785ecafa980"
-            },
-            "smart/help-mark/js/help-mark.js": {
-                "sha256": "f12781913e98695ffebfcd7d94bbee072c02252c3546fd76fc412ad787382eb3"
+            "smart/header-site/js/header-site.min.js": {
+                "sha256": "67bf3a99cdcaadccdc6b3116dc99f3afa28fe58d6c74df18db564e9eab8fdb40"
             },
             "smart/icon-button/css/icon-button.css": {
-                "sha256": "07f0395401f507a3ec6d1e762e775a4b9c7a878fae4de9e760ca28c5d25de03f"
+                "sha256": "61f995beaf85ba3239edee0497dc5eb13220bfa5a1e78868f1eb4e3bc672dad4"
+            },
+            "smart/icon-button/css/icon-button.min.css": {
+                "sha256": "ef765b2742866ecc70779a3459b1ef7a8d32848d74b4e29acd936e3801b2b176"
             },
             "smart/icon-button/js/icon-button.js": {
                 "sha256": "4cf2e5bf10d2b2713face01ace208b8d972a52b83401a2a1ee6b0ae410c6cadb"
             },
-            "smart/icon/js/icon.js": {
-                "sha256": "7bc8029fafe1c716bc6b8843fdbfc16758f15498dc071addd0db264531f62a91"
+            "smart/icon-button/js/icon-button.min.js": {
+                "sha256": "90d2f65903787d3ca36e67fc85c8580cb0c2ff2481fa7e2ba7ebfd59b4165621"
+            },
+            "smart/icon-buttons/css/icon-buttons.css": {
+                "sha256": "61f995beaf85ba3239edee0497dc5eb13220bfa5a1e78868f1eb4e3bc672dad4"
+            },
+            "smart/icon-buttons/css/icon-buttons.min.css": {
+                "sha256": "ef765b2742866ecc70779a3459b1ef7a8d32848d74b4e29acd936e3801b2b176"
+            },
+            "smart/icon-buttons/js/icon-buttons.js": {
+                "sha256": "b54572acf563baa1d40217ac4d2058d66e9a6df053c492e155a01dab97526baf"
+            },
+            "smart/icon-buttons/js/icon-buttons.min.js": {
+                "sha256": "28613d9a88fbd824ceefa24a8054fd6bf67982daca10c8ddc13e506d66c59bf0"
+            },
+            "smart/icons/js/icons.js": {
+                "sha256": "17f9e531c61e7443d2bee58bf18230ce37006872858c9cc7a2e06ab792fec5ba"
+            },
+            "smart/icons/js/icons.min.js": {
+                "sha256": "816fc4cbc35c07f3844e8a8e3b6c1cbaef194585f539252454b6c73b2a314b0d"
             },
             "smart/image-field/js/image-field.js": {
                 "sha256": "35dc3e0e67bf82082f7afc862bf43ca719af19807bcc910fc9c4b32b8a3b0ccf"
             },
+            "smart/image-field/js/image-field.min.js": {
+                "sha256": "91effa42a0ceaffe39c3851e59a9f1677f8cd47044c54e00d86340712efee743"
+            },
             "smart/include/css/include.css": {
-                "sha256": "2e9df69546e9989759ff5324bcad34ccabe2221c042704831b98ba6995ae87b3"
+                "sha256": "7775acfd0869ae49c213ff3c2d1e0b16b9f6027f1e30edc1720ab4d0500b6e7d"
+            },
+            "smart/include/css/include.min.css": {
+                "sha256": "53b9250458701abddcb7eb26b36bdbe3254d4a558e3d18aace40a4a92877d8e9"
             },
             "smart/include/js/include.js": {
-                "sha256": "c3c268b26ad3fec122ab311a6f9030a673df033e439d4e0bc95ee74e691b9a5c"
+                "sha256": "816a1fb9b15b7375b9f565559d8c49e258826a7a70acf23afb5b96711fc415b1"
+            },
+            "smart/include/js/include.min.js": {
+                "sha256": "c506ed717d6e86b1604485229e4a762465a7711144d59c6eb70af9e03a999822"
             },
             "smart/inline-editor/js/inline-editor.js": {
                 "sha256": "6ebda985957a25505a433247b1c10d4abcd8db4f5fad763e1228deb490a2b5e5"
             },
+            "smart/inline-editor/js/inline-editor.min.js": {
+                "sha256": "21c58f39027ef3fad33ef13a69d3b88527df59e35a90cb5e48fb15de52c0040a"
+            },
+            "smart/input-choice/css/input-choice.css": {
+                "sha256": "6ce7709f7892f74430ba6af0d1c02a5accd4e2cdf992f954d7247058f652567f"
+            },
+            "smart/input-choice/css/input-choice.min.css": {
+                "sha256": "be4509872f9fd02d22b041e879472987460af0abd08d2e9a50768dbb27b5ab48"
+            },
+            "smart/input-choice/js/input-choice.js": {
+                "sha256": "1b28da2e896e08919dd0308e7335e950e7fc6a8fbda7d31f8ac7f2bf9c2eb9e7"
+            },
+            "smart/input-choice/js/input-choice.min.js": {
+                "sha256": "0938677d1f98c1bddaea6f9039656376f6ebedf4edac3f97863f739944f945dd"
+            },
             "smart/input-code/css/input-code.css": {
-                "sha256": "4fb0f18046599e8f8f5cd5ed33e73b12379010ba88e31a0b3adf2b634bca32eb"
+                "sha256": "1fb57e4cf4cf21be60981197b3b22bf2de17187e3d4544bb627bbd84de35e06d"
+            },
+            "smart/input-code/css/input-code.min.css": {
+                "sha256": "76535d0b9657feae507d7c3e60a9e00b5955c2283e50fd65886bdfa027212995"
             },
             "smart/input-code/js/input-code.js": {
-                "sha256": "a88476863f313decad4fa089e3d16a3f9d08d46c7531fe11956939a31955c86f"
+                "sha256": "571d74f22f7718d0f2d81561b8d5708caa8180139fcbfa8489c85cc7ab8a1f18"
+            },
+            "smart/input-code/js/input-code.min.js": {
+                "sha256": "c24b56b88d3a2adba1bd7e140e9a3c394df0b940b4d0e9c9657c376b4434df89"
+            },
+            "smart/input-code/js/input-code.min.js.LICENSE.txt": {
+                "sha256": "23fa46fd40e2bb2ca5ffd8035558063e2a05f8a859bbea966a953ba1d61f99f5"
             },
             "smart/input-color/css/input-color.css": {
-                "sha256": "620d8be59c4ccc1a8cb06fa540b26187d85406fbac369f11587cc85594c4329e"
+                "sha256": "114bb8a48091227a4c1412c7e5b5041f629b1daa355e0863324de1d98e4383c9"
+            },
+            "smart/input-color/css/input-color.min.css": {
+                "sha256": "a6f98bbacf60a59c5a4a2e28473a0d4cfc00291965b35c50d0c96be68ee46126"
             },
             "smart/input-color/js/input-color.js": {
-                "sha256": "a5367f7b3a2fd46fe7663e83a7942a21e9d1ef942beb47da31d2a8e05ced6997"
+                "sha256": "0e6759e9ada2d770f46d59bdb2e6cb73f562f1b0722a124bd593fbe52b4f3d44"
+            },
+            "smart/input-color/js/input-color.min.js": {
+                "sha256": "855347f7606dcf2470b270582b19c3777f8c545860227dee2a7acb2ca9fcee39"
             },
             "smart/input-country/js/input-country.js": {
-                "sha256": "92cdcefb8dad3934112b02f6dd6134157d7080c5c878ed55d1353acf63a29b2c"
+                "sha256": "7b1fb874fcbedcf441030a1e2f6a21cf2e0a2857d4cda94186c0c7028c6a08c8"
+            },
+            "smart/input-country/js/input-country.min.js": {
+                "sha256": "9fa69972d8011f39627d2b05221d27afe2ab98289f94ab39b5b5db2357fa60ec"
             },
             "smart/input-date/js/input-date.js": {
-                "sha256": "b895c2bf3b7fe61a9c8d33c296650e602a1173933ed36f964f5e4a23cb042cda"
+                "sha256": "43acd463a825dddc290cdafe48f29392da2a54a7fbf60cea21f134764f78ae29"
+            },
+            "smart/input-date/js/input-date.min.js": {
+                "sha256": "771e44f42c1bb8672f7d41db04c6bbf6f37ab6e919ff14ac4fd8a70701b39514"
             },
             "smart/input-image/css/input-image.css": {
-                "sha256": "b4c8b68fe931ac08efa749324a2034f3ae73587214d02e874ff49635307f9abb"
+                "sha256": "c288a46d45d2ab00dd391489f9e2e7497875ab8d44b2d38467c7ad21eb763ccc"
+            },
+            "smart/input-image/css/input-image.min.css": {
+                "sha256": "913086cebfa27855413d8ba096094cca3161ae030d9ba96352b0e6c08d806fc5"
             },
             "smart/input-image/js/input-image.js": {
-                "sha256": "208432b45cbae40d2fd8e1fee90da944c5cf5883a227c661c614c12eddfa1ab5"
+                "sha256": "99308d328bc557e429e4176627eecb85af56d042dd601d0b20c546ab04e3c323"
+            },
+            "smart/input-image/js/input-image.min.js": {
+                "sha256": "04148574910d533bfacdd3aa40298bcf40b01c56e71a9e16ef53bd476c628980"
             },
             "smart/input-lookup/css/input-lookup.css": {
-                "sha256": "87c18958d88c7b08b11c75726ecf67c4f0ab27371086b64312431bd17a8f01bd"
+                "sha256": "df6fd65e0880a876fdedc4d4c918d3d9cd8e96f5393a26ad2fa8de4b1d64d17d"
+            },
+            "smart/input-lookup/css/input-lookup.min.css": {
+                "sha256": "850b047ce7517061499465a6a63ed18acfac9c7c354262e385f520d5cae1314d"
             },
             "smart/input-lookup/js/input-lookup.js": {
-                "sha256": "e165f21e757168bf509a0fdeb075c520bfe434666adc9de29aaa500f09cb82a1"
+                "sha256": "f3f638a1258847e2676c399099e87224956ee51a8c930d0d83a9e8647915086a"
+            },
+            "smart/input-lookup/js/input-lookup.min.js": {
+                "sha256": "70950dc2785c9270e0b54a7668558f2c3fcc8b102fbd8e27ccff0969ee6fcacd"
+            },
+            "smart/input-lookup/js/input-lookup.min.js.LICENSE.txt": {
+                "sha256": "23fa46fd40e2bb2ca5ffd8035558063e2a05f8a859bbea966a953ba1d61f99f5"
             },
             "smart/input-quantity/css/input-quantity.css": {
-                "sha256": "5b640158ee43a1e95d0dd5d186c349a4bbb611fa573da77abe4b8eff7751742b"
+                "sha256": "a1f57282c4902d5307a85a94526fbc99f48af374fb13742c1c09381df9f41445"
+            },
+            "smart/input-quantity/css/input-quantity.min.css": {
+                "sha256": "030240f4e57bfae56181c95a222b3dff0024fcc92863c7b98c14f4be7eee9e7d"
             },
             "smart/input-quantity/js/input-quantity.js": {
-                "sha256": "1ed6f014c28536594ab0d73af993c7c1ed7839fa90e86efa5a9bebcd3c7f03b4"
+                "sha256": "64b68286d17e969e58b0509760a6185e8bd9fcf6f473824efc1006f8d66bae75"
+            },
+            "smart/input-quantity/js/input-quantity.min.js": {
+                "sha256": "5ce5f275c37399b2baec0e2c1fe13525e809660cc6d1d1db602e319414a38106"
             },
             "smart/input-rich/css/input-rich.css": {
-                "sha256": "b9de73cbb66a2bb0f741f797702b930cbc71e239d5c21025da586c494fe4628d"
+                "sha256": "7ac985b6b39bd81fb61c0f95969d9c562ed62eae62e05a0c5241c6cde5355886"
+            },
+            "smart/input-rich/css/input-rich.min.css": {
+                "sha256": "2500e4ec72557bfe513b0578be7ef1d3f5339e34ed74a9b47a116124ac0d6b81"
             },
             "smart/input-rich/js/input-rich.js": {
-                "sha256": "960c4666cab97bf1c222e6cfd8d20fe40476a3e95e6b88480038492ba478cbc9"
+                "sha256": "ca25c0603729210dcad5bbce7ccdee70294adb05a4f367ca888ff31ea857f98f"
+            },
+            "smart/input-rich/js/input-rich.min.js": {
+                "sha256": "4360b56e937ab8ea0e610f54d4a98fd0e6db01d400a52e6376073f50c9d57d03"
             },
             "smart/input-textarea/css/input-textarea.css": {
-                "sha256": "5b640158ee43a1e95d0dd5d186c349a4bbb611fa573da77abe4b8eff7751742b"
+                "sha256": "a1f57282c4902d5307a85a94526fbc99f48af374fb13742c1c09381df9f41445"
+            },
+            "smart/input-textarea/css/input-textarea.min.css": {
+                "sha256": "030240f4e57bfae56181c95a222b3dff0024fcc92863c7b98c14f4be7eee9e7d"
             },
             "smart/input-textarea/js/input-textarea.js": {
-                "sha256": "da657332c1118352631d74910e8aace727bf2d4c03911852ad094fcc84e79c40"
+                "sha256": "901e4de2a0ad8b408408af5866cce6d7c79e583777f1ae9b3ee2b777ed17402e"
+            },
+            "smart/input-textarea/js/input-textarea.min.js": {
+                "sha256": "57b7141b8973b969947c30b7c8cd46c2c0935a1a2c38527e1d8b4f504c52d81a"
             },
             "smart/input/css/input.css": {
-                "sha256": "eb469f7a6f35a1e46a29119e31276a1dcda1545ebe86e346edd40a67574b1004"
+                "sha256": "5b63a0e6d4555ec74c849707b545a7585d033fc9e7c5636fe4aebe073b32719b"
+            },
+            "smart/input/css/input.min.css": {
+                "sha256": "46a99adafa34c5cdf14227a66e0b8e6456f21e9cc6a594a1e22dc483fc04e62e"
             },
             "smart/input/js/input.js": {
-                "sha256": "32447af5d91f9b5c3ffff3e407389246931785327d71753de7946c9e9b495b74"
+                "sha256": "640e23c05aeccbd35767e98abf887daa8d8a2745b9589f828623f22d3bcb1d46"
+            },
+            "smart/input/js/input.min.js": {
+                "sha256": "547006eb5a62e2ae222b7c547702ad3035ef6edce7529bd7c2665a16c31dce10"
             },
             "smart/inputs/css/inputs.css": {
-                "sha256": "eb469f7a6f35a1e46a29119e31276a1dcda1545ebe86e346edd40a67574b1004"
+                "sha256": "5b63a0e6d4555ec74c849707b545a7585d033fc9e7c5636fe4aebe073b32719b"
+            },
+            "smart/inputs/css/inputs.min.css": {
+                "sha256": "46a99adafa34c5cdf14227a66e0b8e6456f21e9cc6a594a1e22dc483fc04e62e"
             },
             "smart/inputs/js/inputs.js": {
                 "sha256": "6d41fb41f0347ae3364cf16c9c95e715d135b7d81b98c3845f99d218837181a4"
             },
+            "smart/inputs/js/inputs.min.js": {
+                "sha256": "84449aa262eaacb66992f6300901f269750f10239806aa1b7021abb0360bd650"
+            },
+            "smart/language/js/language.js": {
+                "sha256": "512560f015da8b4326e0b8c0b1b9668fec30e4393654c3795c2bb2e2f55fef9d"
+            },
+            "smart/language/js/language.min.js": {
+                "sha256": "179befe1077e7cc96b85c928f9177bbf6ffa8fcc9796e5307253fa6443cf8e36"
+            },
+            "smart/list-attention/css/list-attention.css": {
+                "sha256": "d4c9843b09d5fe79c95b358708bfbc9241bdab7a534ee87d1c843d2199503301"
+            },
+            "smart/list-attention/css/list-attention.min.css": {
+                "sha256": "f740d43760affb1994a5143ab21cf6d51d9713993f89355a6cfbed55950d10bd"
+            },
+            "smart/list-attention/js/list-attention.js": {
+                "sha256": "0d5bfcbec072e38f5e32db0e0f8deed461d1914e85749c7d72cc1e921a3e7df2"
+            },
+            "smart/list-attention/js/list-attention.min.js": {
+                "sha256": "30e982a74b9d3ca12268f681ca8bc425b7a67f1cde356a01b3d9a355c2e702da"
+            },
+            "smart/list-description/css/list-description.css": {
+                "sha256": "be009d7209d16b556a314cd0dea5876989e5f376d79c66be982ffaec0657d28f"
+            },
+            "smart/list-description/css/list-description.min.css": {
+                "sha256": "1a479cf4a18a50539b69d115964d7f478bb51eb78c9f39a433abde1311ca472e"
+            },
+            "smart/list-description/js/list-description.js": {
+                "sha256": "6a75827f877c86ed2ffaba4f7f1d6d6f1711a81f99f8054ded0f27c5539f23dc"
+            },
+            "smart/list-description/js/list-description.min.js": {
+                "sha256": "c68190cdf1844447e770364d4cece6226bbcd0d648eee07ef969d37cb6e2e248"
+            },
             "smart/list-feed/css/list-feed.css": {
-                "sha256": "0c6b32122a99c1ce1471d59c7e2db71e88b50e2d05241cfe3785caaf86924ec3"
+                "sha256": "a0cc389df141cb08fe735a9be084c739e2567101b4e1505bc67aeaeba6dd01d3"
+            },
+            "smart/list-feed/css/list-feed.min.css": {
+                "sha256": "010c959c1e4f6ef8a0460234e7046485b8032878f9596bc07d26b1b8fe38884d"
             },
             "smart/list-feed/js/list-feed.js": {
-                "sha256": "9720206f7131341dc16cbaee45018593b2d95c33c3cbd19ff4a29203fec242df"
+                "sha256": "4cadd12786e13ac16c3870cc54739448960211a5894bc0b9295154e4da9b69f3"
+            },
+            "smart/list-feed/js/list-feed.min.js": {
+                "sha256": "52ad76a8ac35afcc6600154d61b4288f4bd525c660526f67dc219f612f9f076b"
             },
             "smart/list-item/js/list-item.js": {
-                "sha256": "11f0797151839a203b86c690559f7fb5b806901ecda31bdee73c732f33311f08"
+                "sha256": "dc1305c71bf30a631f1539d6be1793cf1e61e152ee98b89b2a067f714e54f0ea"
+            },
+            "smart/list-item/js/list-item.min.js": {
+                "sha256": "bdd346a68d29536f254080bf2a5541e7db7b6a5c85a41659d57b29e1bcf633e7"
+            },
+            "smart/list-timeline/css/list-timeline.css": {
+                "sha256": "b03de8334ab6bf0b9b55fe0b05f209a5c2474f1ac85eb4eb0dbc69e0f2f18cf0"
+            },
+            "smart/list-timeline/css/list-timeline.min.css": {
+                "sha256": "9bdfae75399a6ca56ff360e50eae2230a99bf53937e1ad4fd5c2134432f266c3"
+            },
+            "smart/list-timeline/js/list-timeline.js": {
+                "sha256": "f5a9f8f2b4e386480719f504b6acea06d3fffdd873e12a7b8f91f6c20cf36857"
+            },
+            "smart/list-timeline/js/list-timeline.min.js": {
+                "sha256": "7e7cba09c58a0f4f1d4ee5f2288bb513c662bdebd1d4a819a074239190f540f3"
             },
             "smart/list/css/list.css": {
-                "sha256": "bcc631de22726e18d7006cf19b83821205bbc8887843540ae762b4ff020b4989"
+                "sha256": "86b73692f1ab97733138b4a313abec9c592d123ac4eb571d72855a43bd71c9e5"
+            },
+            "smart/list/css/list.min.css": {
+                "sha256": "28e21ef87ff99052aaa45af0a944df1bc95689876773854b84a23f79e3114a90"
             },
             "smart/list/js/list.js": {
-                "sha256": "395f3f0b39d9d9bbe0763f4dc8642f2ec10179a50017a162708f2a5e09820158"
+                "sha256": "aed8ae2410736d36d96451a5b1a711e497ef1ac7fd6bac8cfdd7b05f23822e32"
+            },
+            "smart/list/js/list.min.js": {
+                "sha256": "0fa6d761da59f56a3b9f49966a8336e9b695fee6b1a95173ae24745c27f8bdf0"
             },
             "smart/lookup/js/lookup.js": {
                 "sha256": "7f5c8fe4dfd4f577040e4c337c56b9d5a2789565fe8dddcb54341d70f54bf5a3"
             },
-            "smart/menu-context/js/menu-context.js": {
-                "sha256": "2740db2090af7fbb45b26be33b8a6fc2ad8ccaf87a0e16d390f690745df699e8"
+            "smart/lookup/js/lookup.min.js": {
+                "sha256": "1fa1e8802d2ac665201d85fa495bcb6b03913040a7c75d8fc6aea5cde33d2408"
             },
             "smart/menu/css/menu.css": {
-                "sha256": "efc0430d2c2d46b0d7370667a7fb458830321c8ac21b967419f481759d0b40d2"
+                "sha256": "d7dd41672fdb2d166f7d9914b1fced40cf397232580aa351ebbafb8d6ae5224e"
+            },
+            "smart/menu/css/menu.min.css": {
+                "sha256": "a27e111766cc87e27f0cdd53f349327e97556243faa6890fc2036cd7adc8b25d"
             },
             "smart/menu/js/menu.js": {
-                "sha256": "0f2a176c49eaf1323ceabb6307ca551a43cbe15c26f32654adaebcef22bd2bcc"
+                "sha256": "f7ec33708d49c51226736ea0b16c0e08c313312621a7ec0b9eea89b50807b399"
+            },
+            "smart/menu/js/menu.min.js": {
+                "sha256": "457b809ac607d28cb78d20b56cd47ace5e9b66b0e5ab5e3a78e58bedcc78cce8"
             },
             "smart/page-header/js/page-header.js": {
                 "sha256": "70bcdb48e9488b4e1b14f09a32e16e2d4877419b3a6006b3cef51c8052fbbb8c"
             },
+            "smart/page-header/js/page-header.min.js": {
+                "sha256": "feda1ad6a7a1bce8c935b59647d4ce5692dcefeb6352d29397d678dbf6280ce0"
+            },
             "smart/pager/css/pager.css": {
-                "sha256": "1d96e28a9c24ec194203c02e8b46f9d018a6404b3666632a4116898ff3695517"
+                "sha256": "2cc644748b69ff864a4fd08e5fdfdd251d26411e48c92d540e1693f979ce7cd7"
+            },
+            "smart/pager/css/pager.min.css": {
+                "sha256": "ca324ec5d01cd8d055a841871f331a8a10c54b36748afab96d3cf329282ae346"
             },
             "smart/pager/js/pager.js": {
-                "sha256": "548fb7d1ae98b38c90c8d5911bc1f256d4ee5125f4c5fb72bdc86b28af9e6796"
+                "sha256": "8867519d56b3e9b3ebffa48fce898f4e7841b25f042f4de9932c090d8f1be5cc"
+            },
+            "smart/pager/js/pager.min.js": {
+                "sha256": "628c26f994ff6d5bfee1fa1e9c85e9fc1189de25db370717c94deac85a405a50"
             },
             "smart/pagination/js/pagination.js": {
-                "sha256": "3cff171e27a5af335c133cd333961355ffe5a4b77c58b86b7ee77bf34e8add03"
+                "sha256": "cdeec3ac01e2094808a457cff661a1ce72444dd064faf47f2f8d2061aa505445"
+            },
+            "smart/pagination/js/pagination.min.js": {
+                "sha256": "b3fc579f92f7f595019024d7e0e5ef49a228905484ad1a12729cdc3b41e7fe92"
             },
             "smart/popover/css/popover.css": {
-                "sha256": "edd12922d87628ef26be9f52bc2328579aa8ecc46674ba4e0cb0240f2dd5d7ca"
+                "sha256": "3ca4866721694fe06f2ed29ba509f20f25479bcec31c1efa37d40466469f80fa"
+            },
+            "smart/popover/css/popover.min.css": {
+                "sha256": "f9f202e468540c891c8357f515f01e0f81dfad2281312fd6547fdf73fdb3cdb4"
             },
             "smart/popover/js/popover.js": {
-                "sha256": "51c38c68b256129e8d4b340ecd9a991a26eecd4a166ff77209e80c5d2431468d"
+                "sha256": "d56cbf3f0a65e637e400413fab92cbef772a264b65dbda72567ddac620f22b14"
+            },
+            "smart/popover/js/popover.min.js": {
+                "sha256": "89b9c977e302ecdc3468eb42b808af1fd9175e92a3599d282b2a24dc5296279c"
             },
             "smart/profile-picker/css/profile-picker.css": {
-                "sha256": "e1e6cbf8ebffbf5ab2506641fbd33674c552fbd04389a383e06e4a315573c885"
+                "sha256": "b3818f8fe314d75c20216bb40e90e0d6a1ea4d681887b12aad993416b9d00fa0"
+            },
+            "smart/profile-picker/css/profile-picker.min.css": {
+                "sha256": "725fb6b7aee8057bf37ae7698d2456a65e8084b0e7a249b1e1f37d6071f8092d"
             },
             "smart/profile-picker/js/profile-picker.js": {
-                "sha256": "48d3d2f5d9c6538eb588cdc896f12c1f234f51098785bfb1f1d267f8e352659a"
+                "sha256": "da7f3541103e564e16c1ff9ec2278afcb641aa84c3b6d7f1b78ef4fdb79cccd8"
             },
-            "smart/progress-bar/js/progress-bar.js": {
-                "sha256": "68e0f2a28bd9506b8a27797115bc2216838831e7a0d04169ca80c8386cf85fd3"
+            "smart/profile-picker/js/profile-picker.min.js": {
+                "sha256": "06706e4b3ad199597b17ed603f2a4a0cf02dfba13ce92f41998ea91497e3e146"
             },
             "smart/progress-ring/js/progress-ring.js": {
-                "sha256": "d1e0c750694c5363c168b9c2bd12f94d5a08e0e8db0a24905f65ba1343a57be9"
+                "sha256": "a1512e24fb61f7a0110028d1ba7b18d43e6703d96505c1ab7bbdbd872a85b07d"
+            },
+            "smart/progress-ring/js/progress-ring.min.js": {
+                "sha256": "bcdf3d947577d99d95bba380b7ac1ae9880c60fe34c43fad5a2fef4b68cac46d"
+            },
+            "smart/progress-run/css/progress-run.css": {
+                "sha256": "cd6405d6ae599efb0fe5f6fe4aac5c0fea08a9fb3b855a913d16842e2beb5632"
+            },
+            "smart/progress-run/css/progress-run.min.css": {
+                "sha256": "73420bb55ab5c04a1f57ea8dcac85ae7101f0a1e610037094b7f997863bd4292"
+            },
+            "smart/progress-run/js/progress-run.js": {
+                "sha256": "8a0c9bd1b679f641785fe4bf384da466c1cc674c3b895915975bf9bb64bc1dae"
+            },
+            "smart/progress-run/js/progress-run.min.js": {
+                "sha256": "317c8430f931dabc5ae3416bdd9bc490225e586d41130b00ed595c5cd55f6955"
+            },
+            "smart/progress-run/js/progress-run.min.js.LICENSE.txt": {
+                "sha256": "38643bdcb276438da6f9e49002b2d8046818c258f7d4cddbae005554262cf44c"
             },
             "smart/progress-scale/js/progress-scale.js": {
-                "sha256": "958e028979a91db24e3465dbc8c988091b5b90e101a795eec9e9f877eec85783"
+                "sha256": "a99cff24297f6c27d88c74862d5c7127b6ea276b96c0f078d1e74225c4ac9da6"
+            },
+            "smart/progress-scale/js/progress-scale.min.js": {
+                "sha256": "9bf88385ba98b04bb4dedbed747cc192475aa542277eaab5b4d2bdf662f4b829"
             },
             "smart/quantity/js/quantity.js": {
                 "sha256": "51835a1a1550706426f0e2c2474e185995749af06881966d8233483a857dbb60"
             },
+            "smart/quantity/js/quantity.min.js": {
+                "sha256": "81f410feae85f773dae7de039a3e77ba2945d791eb137e3354a8e0ebdfe3d444"
+            },
+            "smart/radio/css/radio.css": {
+                "sha256": "60ccc9cc0edd2ad62ae68ba5fffb6c4d1c5f0399989a7424d95292fd5879df0e"
+            },
+            "smart/radio/css/radio.min.css": {
+                "sha256": "43290f17a5cfbea153b7b639ba33eb18ff8ebac99f66da33cdc8ee5513681f6a"
+            },
             "smart/radio/js/radio.js": {
-                "sha256": "7ce2b1984824239700b23f33cc8eef3ea5b73f1045575a15c1d48d83ee97a145"
+                "sha256": "39b587098788d454e4a9613fc8c3a5e7f85cded47041fda8435cddea5dabb071"
+            },
+            "smart/radio/js/radio.min.js": {
+                "sha256": "cd493e787c4eabb4a4a331e45306e55675edd09137e11e8e122c7bdf42f16888"
             },
             "smart/range-slider/js/range-slider.js": {
                 "sha256": "76a248568e19b22d56cadc852fb614ef6035c7056b687476ae4a882106764131"
             },
+            "smart/range-slider/js/range-slider.min.js": {
+                "sha256": "3788508edcf3837d5d02b9e62400e404ca1d0cac43a67ac69c84ffc38061def3"
+            },
             "smart/reference-link/js/reference-link.js": {
-                "sha256": "1b892553c37e4b2616c103be01277ddca6134bbaac9580d20c3197236c56663b"
+                "sha256": "76a7c4613342717302158c5d1ce927297f5ed9633a66312c6bc47dd9a4767d79"
+            },
+            "smart/reference-link/js/reference-link.min.js": {
+                "sha256": "d0be9dc28ba2a921150ecdff66fab9f76054ade5d27abe1effaf5c445fd76547"
             },
             "smart/resizer/css/resizer.css": {
-                "sha256": "d1b14b6fc926d5025ad8c27b0ca5d4c32c6f408d61f146dc777e1615ec82e730"
+                "sha256": "b6cd80c0023008169c836ef145705ac7b5ece94383b7b13a5e43b8930faad070"
+            },
+            "smart/resizer/css/resizer.min.css": {
+                "sha256": "cc8afa02cd6e95b4e3f5dc117e6da6b270b34d3fd31662d4629c917175dcdbc0"
             },
             "smart/resizer/js/resizer.js": {
-                "sha256": "806561642b2a38b6cb2a7aa7856da0ddbd3a09193698d3445f173f50627f7301"
+                "sha256": "39fb1016c3729890aaecf1effcd41ce1f6882246b93c0864bda1f61248fc0667"
+            },
+            "smart/resizer/js/resizer.min.js": {
+                "sha256": "2a7b65105f9b454b9400c3f0175f618d8245ad7604eb1f4309481d558252017b"
             },
             "smart/rich-text/js/rich-text.js": {
                 "sha256": "6e6c59eaf3ca58eb34f666496f16c25bb5edc5bcd983d82959e33ef9784a5553"
             },
+            "smart/rich-text/js/rich-text.min.js": {
+                "sha256": "89349d1bff080d62166c26a5319475b0228bf44ca57485420a951c2b5265c839"
+            },
             "smart/search/css/search.css": {
-                "sha256": "69e9eb262a95a031f0535b72bcc9c05c9b7c43b7b3f87b01de812b07383e21ab"
+                "sha256": "19365a707da6b04b19c1b65434146f4941830af37a6931535bff68150d1caedf"
+            },
+            "smart/search/css/search.min.css": {
+                "sha256": "e8ab61aab84c2257d42a14626ce2229b3c8e3ad29358b1d05b2f045d0c6c4fd9"
             },
             "smart/search/js/search.js": {
-                "sha256": "a99f6426cb08cd93aefff4cca0a08c240de91faa0494e61d380ee5993d6a364a"
+                "sha256": "f852795b6ebafb38ee2e2169ef675e77bc4be936291300b62246a1eb2b678136"
+            },
+            "smart/search/js/search.min.js": {
+                "sha256": "ce25b6b524204feed6e3fadf04afa7fcc5177acbf9e89ba6ce01bea35c1a36a7"
+            },
+            "smart/search/js/search.min.js.LICENSE.txt": {
+                "sha256": "23fa46fd40e2bb2ca5ffd8035558063e2a05f8a859bbea966a953ba1d61f99f5"
+            },
+            "smart/segmented/js/segmented.js": {
+                "sha256": "8b2d4042af4f400953a4b7ea7f3c9a0926bfdff93115e921ad18d427075fd8b2"
+            },
+            "smart/segmented/js/segmented.min.js": {
+                "sha256": "1ed5d8110069eb661a206d2fb30002bca33544d4f6763e3e895fef3adf8a61a4"
+            },
+            "smart/settings/css/settings.css": {
+                "sha256": "205689228885c6065ddba4e13bace3f233766fff1e381a5766092e9f79e707d1"
+            },
+            "smart/settings/css/settings.min.css": {
+                "sha256": "46ea86939118460154aa9ea19e50cf44824a47fe63bead27b8e3111ac9fcef17"
+            },
+            "smart/settings/js/settings.js": {
+                "sha256": "930b629c4377cf802ffa4b301af95ebd97f089b734d19cf9e45d0c5375c2da4c"
+            },
+            "smart/settings/js/settings.min.js": {
+                "sha256": "9a52e733cf5dd7f457b909af3ae468aaf9df0db631d1e4f2498d1c58e8031f5f"
             },
             "smart/site-header/js/site-header.js": {
                 "sha256": "162ce01b2597cbeab52d295e98ff0eccdcf5c1bb77ee90bdcae7f4e75238506a"
             },
+            "smart/site-header/js/site-header.min.js": {
+                "sha256": "24bb1efdf5f95d50d95c85fe5241906c36dee969c58cf819047dd8b173e73498"
+            },
             "smart/skeleton/js/skeleton.js": {
-                "sha256": "5d76c95f74d985a2057a8c6f22e482d29f826bc2e346ab3a341ad9dee3029ad6"
+                "sha256": "cc621d3d9d480f830504bae173dee8dfe4a0fc6ecb80f3cff8e8af4c1d1a2115"
+            },
+            "smart/skeleton/js/skeleton.min.js": {
+                "sha256": "dc12fd6d103cf2114453cb3792a6065beb3c3405b796b83636765aa648c1b0de"
             },
             "smart/slider-range/js/slider-range.js": {
-                "sha256": "d30421aa37fc278876c9055b6ac5b2a17ec2357fbec5fbee663a0b6c45d77f53"
+                "sha256": "be0127d65045c25a65ed4f4cb968576fe96458f823ce88467ac28ff7572e6f01"
+            },
+            "smart/slider-range/js/slider-range.min.js": {
+                "sha256": "490fafadd0fb84e7888a2b31e34b246b1f6b279b1586f114a36f24e403f9ca32"
             },
             "smart/slider/js/slider.js": {
-                "sha256": "078b210f824ac18293c2d0cdcfd9348c6cc068ada3839eddd997973d758958be"
+                "sha256": "8b78d839e9f3ee9dcf3bff416a0b4826e49aefd3c91139d506de5bd8d74427c0"
             },
-            "smart/sortable/css/sortable.css": {
-                "sha256": "dcb893bc2aa0152f96febf123ff33a89cca63142a73b5726529ca24539125765"
-            },
-            "smart/sortable/js/sortable.js": {
-                "sha256": "0f42fd1a58a40948fb8ba2adf1a4c844e026b4119a5cc6e3878c8a4323ae3d21"
+            "smart/slider/js/slider.min.js": {
+                "sha256": "5283045e5cc5ae08ee8f35edb25525108e47163927d97188e83bb69fa0e6dfe9"
             },
             "smart/spinner/js/spinner.js": {
-                "sha256": "04db0b01ba2231f684d0ec240f9dc6f3457963704b6adbbc6fd95815931ffc1e"
+                "sha256": "b7421a82a6056abcaec83fb45c0c83d8fa188626ada61de99dfb13466f3bf7b5"
+            },
+            "smart/spinner/js/spinner.min.js": {
+                "sha256": "50acb07212bcb2a42ad24ceeabf4998f075caeb6353a9440c2005f6df97e3603"
             },
             "smart/steps/js/steps.js": {
-                "sha256": "a3c7e8a3b0d8aa2a62e3b0cb92be7b8c069fa76d3ba631965c29a165da24759d"
+                "sha256": "50db6e22232b3a8164ca25fc0e35fc45f22bceb4085cf3071e6f3439a11e7e8e"
+            },
+            "smart/steps/js/steps.min.js": {
+                "sha256": "d4dc53773967231ff472e45f8a8a3b0140ed4aa257ebc76d6a587b602cfc2c23"
             },
             "smart/switch/css/switch.css": {
-                "sha256": "5b640158ee43a1e95d0dd5d186c349a4bbb611fa573da77abe4b8eff7751742b"
+                "sha256": "888130431cf03a60eab0efbe224cfeb9a0e877dc15c7a62c59d09b766584546e"
+            },
+            "smart/switch/css/switch.min.css": {
+                "sha256": "71bd5fe8f025fe8f857d1ef87498affd4887c8dda887564fcecae9f696f3419c"
             },
             "smart/switch/js/switch.js": {
-                "sha256": "dae4188f065ca03c7029c9522fadf6a744a9b48969e24d024dd7a4b2df5beb67"
+                "sha256": "17f011e1d4487e35668af408a6f7eac1822d2c3fd5cfb84e7292069deb515b81"
             },
-            "smart/tabs/css/tabs.css": {
-                "sha256": "40301638f82b961516eb4dbd315ba6d91a4954e9b3a208600531c01c5def5949"
+            "smart/switch/js/switch.min.js": {
+                "sha256": "3b99c5d38b4b4d45d9091d0db55e77548413fbd323f309d261ad5d08cbac6b76"
             },
-            "smart/tabs/js/tabs.js": {
-                "sha256": "d462f82faed3ad6e7949baad26d86400b7f2a6363b9a389efa194647c6bda2ab"
+            "smart/tag-group/css/tag-group.css": {
+                "sha256": "eafd77c1dd08be59e20ab154b31eb697ce1b4230470d2b735c6591b7f756e29a"
+            },
+            "smart/tag-group/css/tag-group.min.css": {
+                "sha256": "68413f34fd5550428bc55fa277af58fa114eb2a10e299fb5a56c227f6b43ff40"
+            },
+            "smart/tag-group/js/tag-group.js": {
+                "sha256": "ed145814ec97e191d8e98d86d46a36991626f80bf0e5d69e720e3df402c3f9f6"
+            },
+            "smart/tag-group/js/tag-group.min.js": {
+                "sha256": "7a18bc6b5ba812ad6716c41bd2e4dc7067941f8dcffbaec23665e7d4988167a8"
             },
             "smart/tag/css/tag.css": {
-                "sha256": "1d3093ed89087052ca4f587fc6bef09c4708379e61e132693bce8af8fafa59c1"
+                "sha256": "3685240148b7ecb08de2fa810db4d4fff9d449a90062b881a46a3ad5e2b5d861"
+            },
+            "smart/tag/css/tag.min.css": {
+                "sha256": "4912866bf4abc5be9a0b46561637594055edbe83f4d3e32c44c506be49bc2a3a"
             },
             "smart/tag/js/tag.js": {
-                "sha256": "cc8e4c22dffd21e0b5a297f5eb527f680b2e01ef22753b08f70cfdc13d83ef01"
+                "sha256": "a52399d760102f4f678bd087dc447e2c09efdc259e53ec2483da2a9f2369a451"
+            },
+            "smart/tag/js/tag.min.js": {
+                "sha256": "4e99bb3991bf93ec89790644e1d1dbcd2e89b2098e3001de3051512221d49654"
             },
             "smart/tags/css/tags.css": {
-                "sha256": "1d3093ed89087052ca4f587fc6bef09c4708379e61e132693bce8af8fafa59c1"
+                "sha256": "3685240148b7ecb08de2fa810db4d4fff9d449a90062b881a46a3ad5e2b5d861"
+            },
+            "smart/tags/css/tags.min.css": {
+                "sha256": "4912866bf4abc5be9a0b46561637594055edbe83f4d3e32c44c506be49bc2a3a"
             },
             "smart/tags/js/tags.js": {
                 "sha256": "a31b34f0d50b56c090986fcf69a5f084fb411694119d0d83720785021600856b"
             },
+            "smart/tags/js/tags.min.js": {
+                "sha256": "0f081e382f6ca3e4baf2164f21a4fccfd119d29539dffba45e2c939da5498907"
+            },
             "smart/textarea/js/textarea.js": {
                 "sha256": "5abd8c72ded06baa4c8ffcf5e36c1b6e57b3185b80d0b7b6502975efde0553f5"
             },
+            "smart/textarea/js/textarea.min.js": {
+                "sha256": "e6039d78b88476db6cdc6b8faac2107506a1ea70a3928831e90d1cb9c3ef91f9"
+            },
             "smart/theme-generator/css/theme-generator.css": {
-                "sha256": "f82418defd486cd075d8bcae5d881bb77242ab31db147ebcb34f3f47abffd086"
+                "sha256": "4ff3561de84c650b1ac87c260c719e2aa08a79be0a40497ad816057b561d2d57"
+            },
+            "smart/theme-generator/css/theme-generator.min.css": {
+                "sha256": "7e75a75a360bae80e758edbaae661921740334b63b87c84295a5ed1a90916998"
             },
             "smart/theme-generator/js/theme-generator.js": {
-                "sha256": "f1d1cf45744ec29615e246f79bdbff4224acc5c2d67ab8a59519cf7d98079b8f"
+                "sha256": "da670a39c21d65ffebf021a63793a6b10b61f93a7415b1007c4281f1d58735c4"
+            },
+            "smart/theme-generator/js/theme-generator.min.js": {
+                "sha256": "b307312f8e4a019b1db8d013512f7ac36d3a5e542783ca1e1d16070fba59f1ec"
+            },
+            "smart/theme-generator/js/theme-generator.min.js.LICENSE.txt": {
+                "sha256": "db7cd265b12214824dfc3c2076fa05aeb146a9d2a038ed44a3e7aa264864badf"
+            },
+            "smart/tile-metric/css/tile-metric.css": {
+                "sha256": "7691b04107ec99cf39a9409c3d2c9fc6a47a07093197498f90c4662a11d16189"
+            },
+            "smart/tile-metric/css/tile-metric.min.css": {
+                "sha256": "a1ff0eedba2b7e3580b3deef4eefd2d339e068e1148c0ed43579cb0cfcc5570e"
+            },
+            "smart/tile-metric/js/tile-metric.js": {
+                "sha256": "db5c8ab4102d78d983249429aa9c34bd151701ff35d6f53f04159a4f9b73f0b8"
+            },
+            "smart/tile-metric/js/tile-metric.min.js": {
+                "sha256": "55d3d5c5668618561d9cda7d930624f5b376f07cfd654f29b8cf4917f6b1ff4e"
+            },
+            "smart/time/css/time.css": {
+                "sha256": "ab442b42b54b27a1c1be88496683c303333befe6bbd928ec4df3abe982064418"
+            },
+            "smart/time/css/time.min.css": {
+                "sha256": "d2d72ff46077149eff422ae7b24d6e4affc8b20291e537e3b5b94ed4fe06715e"
+            },
+            "smart/time/js/time.js": {
+                "sha256": "5c4b5b625defad603cd4475b3186ff7b3d8f25813c58bb153de34e5eb144c1cd"
+            },
+            "smart/time/js/time.min.js": {
+                "sha256": "f400f497418a9ec10168f03f95d7407d89694a463684c0ca5fdf133be55f9467"
             },
             "smart/toast/js/toast.js": {
-                "sha256": "a7356f5e89310f08826f980da890fc08690104da182ce595f5837e7acfce3d8d"
+                "sha256": "d1db7d528c537c99b1040420c85341b45f2f5a56819bf63e2bc17f2cadd52a36"
+            },
+            "smart/toast/js/toast.min.js": {
+                "sha256": "6533add8f7ce373b74f50d4fc618b29513d54406bd60c3d4de58da8bbdffee21"
             },
             "smart/tooltip/js/tooltip.js": {
-                "sha256": "8d174bc6cc9ac04c79a4ba5d9999d22a16d68ee1cfb1cd348580b468488d52ad"
+                "sha256": "39d5e536676055180d799f95b594cf87e97c0f20d2930e3f6a543dfb8a72ddf8"
+            },
+            "smart/tooltip/js/tooltip.min.js": {
+                "sha256": "18fe68a084956216dc68065630293652cb1a24785675548bfdc653f1306b07fe"
             },
             "smart/tree-item/js/tree-item.js": {
-                "sha256": "3f8a593df52e690893f14ebcd30809e15a057618dc577598af995dd9a90de42e"
+                "sha256": "626499cd3e014cb891b0f73de2d2de89fb15a8b0c03cd521cd5885a3694d2699"
+            },
+            "smart/tree-item/js/tree-item.min.js": {
+                "sha256": "baac61268267c796b5e4b998c8eb1aeed8b6ec02c8fcb6c4dc854dd7c62e232a"
             },
             "smart/tree/css/tree.css": {
-                "sha256": "e1561acbe94c78da1a22c8dc502707cb40e3e122c605ca3644700a53830da119"
+                "sha256": "8666e97095e022e5f50b166c17f39e359ba61e31fe322271a0b68535fc6f8115"
+            },
+            "smart/tree/css/tree.min.css": {
+                "sha256": "146a52494ae03948179eb932b83720ce2bd52bc80f87e1882cd1eaa99c4ffae7"
             },
             "smart/tree/js/tree.js": {
-                "sha256": "5223d77cfb84a5df86145e374b808a6c6feff9ac0b2f9d54a0e15f774e8c093d"
+                "sha256": "443eee71595b405b4a1dcecab825948fe07a3b60f5ffa6aac491f67d1263dcef"
+            },
+            "smart/tree/js/tree.min.js": {
+                "sha256": "9589ba82f7417621ea9b21917dcdca44cae83e8d1ca120675a3ec297f7ec83f3"
+            },
+            "smart/wizard-step/js/wizard-step.js": {
+                "sha256": "4ec17a6928e43aa02ad36b7afd746f409a04f30a8fe61c185297653271ecd361"
+            },
+            "smart/wizard-step/js/wizard-step.min.js": {
+                "sha256": "595806b7466e187dbd84ce600717cef0fdadc4a7a9f7d3424e18da898a0b998d"
+            },
+            "smart/wizard/css/wizard.css": {
+                "sha256": "6bde42d588b212532486baaa3c2036dea19e3babb7ff4582011b73ee2749094a"
+            },
+            "smart/wizard/css/wizard.min.css": {
+                "sha256": "9a9642b8a57f38304271185f74f25a64aea3357fcf41479fbd54957a1a9e0183"
+            },
+            "smart/wizard/js/wizard.js": {
+                "sha256": "4c17aac2f26cd4bd128d1d538217ba8b13e62822f55494d66ddcee9088172c5c"
+            },
+            "smart/wizard/js/wizard.min.js": {
+                "sha256": "d6e14f4f92ba978ce6738b403188dcafb27b4ee28437c29a414fffe511ae21ac"
             }
         }
     },
@@ -2850,55 +4347,82 @@
             "schema": "docara.framework_package_projection",
             "schema_version": 2,
             "package": "view",
-            "requires": "ui-1e5ec795a1ce",
-            "mount": "_docara/framework-packages/view/f529c2354b0d0c622d0a8fa3feed19b17fefe30a",
+            "requires": "ui-24d64b7f6eb7",
+            "mount": "_docara/framework-packages/view/b88360f58106804affb58c4a884adebea4cd000e",
             "receipt": {
                 "schema": "simai.framework.product-package-receipt",
                 "schema_version": 1,
                 "package_source": {
                     "repository": "simai/ui-view",
-                    "revision": "f529c2354b0d0c622d0a8fa3feed19b17fefe30a",
+                    "revision": "b88360f58106804affb58c4a884adebea4cd000e",
                     "path": "package",
-                    "tree": "a2fd1b4a68c3fd8ddaf0ca65060ff9594a522a2d"
+                    "tree": "4b223e65fc67955b04186f2ef3e225c217410166"
                 },
                 "framework_source": {
                     "repository": "simai/ui-source",
-                    "revision": "54c89e61ef9b89ed683fe530d43bdbf215fbafdd"
+                    "revision": "40541c0c4fba6c24659907eb987c74f17a4fc46a"
                 },
                 "builder": {
                     "repository": "simai/ui-builder",
-                    "revision": "9c9c1b1510393b24adb98ea2ca523b26474cf0cf"
+                    "revision": "16e9a81c1f2838f7cfeebbbd19654016743c9672"
                 },
-                "manifest_sha256": "9b739a0f828fedf6b9945c335a53883d31978dac7bb1039c58ce4fd0a0a2d789",
-                "archive_sha256": "b8e433f916e3e1d8cd20b5fb4a3d8411a3d0c980d545b72c964b38d91fdbccb9"
+                "manifest_sha256": "c78b168fa7dc91ecddaad3d125ad86e2ee51795b2bb4baa1b9836568e7c02a6a",
+                "archive_sha256": "738d559320f46226e154a96ef3ed7a2415d8401882216d784d5d2f88f243358e"
             },
             "files": {
+                "set.json": {
+                    "sha256": "e1a3c982ba0c0712daf3d7fc222f88eff6acc011becabb683dcffdcdd827bcb4"
+                },
                 "smart/rule.js": {
-                    "sha256": "46459d2f188118fcefa63ac047bf2d9af3248fcb2bc81b82e82b6b3205650f7c"
+                    "sha256": "8a986e55dfbcfd70ff0283716fe5fd65f28820f51ebdf7949c7ec69a391c95aa"
                 },
                 "smart/view-flow/css/view-flow.css": {
-                    "sha256": "5b21959d0b18208a837ece0cdf7787a635a443f41b09803ec4646f3d33cc3949"
+                    "sha256": "ceaf722cc8d50ac46d62a7f0ff91152c4b88e540d8e6b3c73892fb4e72503090"
+                },
+                "smart/view-flow/css/view-flow.min.css": {
+                    "sha256": "73c83cb306183cd1d126e94df09436fc0a049faf25aa7ef6c8d96bd4524284be"
                 },
                 "smart/view-flow/js/view-flow.js": {
-                    "sha256": "670d0fe90524bedd7d95be9799745dcf3401ae40b64fc950e824d147d4f42acc"
+                    "sha256": "678d41c8c91fabd8ee89787392d724368151ef172b77086b96be2eefeb2dc461"
+                },
+                "smart/view-flow/js/view-flow.min.js": {
+                    "sha256": "d50bc03fbbfa0931000252b29106cab748f357ad16cf86d1336ddf669923d87f"
                 },
                 "smart/view-properties/css/view-properties.css": {
-                    "sha256": "2c78eb262ab35b0df45a9c2495447ebffbde210f6f3ec673605f08b3f42984a6"
+                    "sha256": "33d561c142d1a4481779146ff9805a761ec86b67a0dba15e866f134a1267f238"
+                },
+                "smart/view-properties/css/view-properties.min.css": {
+                    "sha256": "416cf0efdbe7db95194b8cb24093a60202ad7fe428b9a6bf95b09bba91df1e0e"
                 },
                 "smart/view-properties/js/view-properties.js": {
-                    "sha256": "9f43cdb328bc379b99873a853b38f94f80ae6ee4c0645b3d97c118fc5ae18678"
+                    "sha256": "eadc97d76df0b3e06b908bfab3cc86ab1716fb74155c96844a7441a4cf7488f2"
+                },
+                "smart/view-properties/js/view-properties.min.js": {
+                    "sha256": "7f356e3eb0f70f8026906f16217787c60c1f99a6b35754e4ca8ce4f6e3d2809c"
                 },
                 "smart/view-table/css/view-table.css": {
-                    "sha256": "76c3d99ad868c3a228d64b7ad7527f7cfb47e70e5eb3fc4ecd9585833cf76a27"
+                    "sha256": "e5bba2907673efd85f44169191d7aa4104f2cac91993415baf7febeb7723ec1c"
+                },
+                "smart/view-table/css/view-table.min.css": {
+                    "sha256": "d79e671a0db5462e6b6161db877fa2655dc4862c2119c8bd1b0391e2feb06830"
                 },
                 "smart/view-table/js/view-table.js": {
-                    "sha256": "e936c6c9a95774cf46baa4acc5045ecce67e1c9257523aea67e85ef10506cd97"
+                    "sha256": "b484098c11013f21ea903eb0b079f686b33e9bd3ccb4e1db8cb7581a5d15c24a"
+                },
+                "smart/view-table/js/view-table.min.js": {
+                    "sha256": "842b0e278d8d340050a0f80bdfd92aa962086367428cc58156afd8b64c5a55a3"
                 },
                 "smart/view/css/view.css": {
-                    "sha256": "fda39ad0de79d01a195c640039f9a129fd486bc40eb8388aab8fe9ea67413c01"
+                    "sha256": "599b7a5a6d68678a5157db66891e46bc27c1491637fe4af4417e794611047675"
+                },
+                "smart/view/css/view.min.css": {
+                    "sha256": "bced0698d50c8fe277cd2dd4acc72be1ce4f390d8cc7bfb5e8a44ec6e399acfb"
                 },
                 "smart/view/js/view.js": {
-                    "sha256": "57f625d07cf4d3b8175048bcd7c4545cc3b672f33af7a5f49e92b9cf601abf38"
+                    "sha256": "70f69a87c2b081d0e35578b094e26f030494981146758fb949db5ea4111c891d"
+                },
+                "smart/view/js/view.min.js": {
+                    "sha256": "2813a4d7a386270e477aa10716ee2770216b6884c2d7170ac9dc748609a9f1c6"
                 }
             }
         }
