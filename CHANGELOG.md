@@ -34,6 +34,29 @@ in brackets. The site page «Изменения» says the same in Russian.
   (PRO-ADM-16); a record with a field keeps that field.
 - The browser test of saved views' first paint watches six pages at a time
   and fails a refresh that never settles (3 loads: 22 min to 4 min).
+- `sf-view` 1.13.0, the list's footer of its own (owner decision C97 (5)):
+  one row «41–60 из 240 · По 20 ▾ · ‹ [3] из 12 ›». The view draws the range
+  (with «посчитать» where the host counts on request) and the page size, a
+  quiet button «По 20 ▾» with a menu; the page row is `sf-pagination`
+  `appearance="field"`, navigation only, its end buttons dimmed, not gone,
+  so the row keeps its width while a person pages. A page row given without
+  an appearance is given `field`: the view no longer relies on
+  `sf-pagination`'s compatible footer, which retires on 2027-01-01. The
+  state stays the page row's (`page-sizes`, its words, `sf-pagination-change`,
+  `sf-pagination-count`); on a phone the field takes a line of its own and
+  ends it. «Показать ещё» above the row, which a page row without
+  `top="false"` drew, is not part of the footer (C97 (1)). The first paint
+  draws the same row.
+- `sf-view-table` 1.21.0, a column's width from the keyboard (C158 (5)): the
+  table stays one Tab stop, the arrows walk the heads, and Enter (Shift+F10,
+  the menu key, the right button) on a head with an edge opens «Изменить
+  ширину · По содержимому · По умолчанию». «Изменить ширину» takes the focus
+  to the edge, whose arrows are SIMAI Framework's `SF.Resizer.attach`
+  (`sf-resizer` 1.3.0); Enter or Escape go back to the head. «По содержимому»
+  and a double click on the edge fit the column to its content; «По
+  умолчанию» drops the person's width. The edge says its share («16 %») and
+  its name from the language files (it was Russian in the template). Space on
+  a sort button still sorts; Enter there opens the menu.
 
 ## 1.8.1 — 2026-11-15
 
