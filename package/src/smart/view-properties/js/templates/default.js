@@ -1,4 +1,5 @@
 import {html, nothing} from 'lit';
+import {guard} from 'lit/directives/guard.js';
 import "./default.css";
 import {renderViewField, renderEditField} from '../../../field-renderers/index.js';
 import {renderFieldValue} from '../field-value.js';
@@ -690,8 +691,8 @@ function renderGroup(context, section, group) {
                 <sf-form class="sf-property-view-form"
                          label=${String(group.label ?? groupKey)}
                          labels=${context.sectionsLayout === 'column' ? 'start' : 'top'}
-                         .fields=${form.fields}
-                         .value=${form.value}
+                         .fields=${guard([form], () => form.fields)}
+                         .value=${guard([form], () => form.value)}
                          @sf-form-submit=${(event) => context.component.submitForm(event)}
                          @sf-form-cancel=${() => context.component.cancelEdit()}
                          @sf-form-input=${(event) => {
