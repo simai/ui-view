@@ -427,11 +427,12 @@ $packageReceipts = [];
 foreach ($receipts as $name => $receiptPath) {
     /* A component set's receipt lists its passport, set.json, beside smart/
        (standard simai.component-set: the builder copies it into the build).
-       Docara 3.14.1 reads such a receipt as it is (it names the passport under
-       `set`); the files come from the build's output directory (--from), each
-       checked against the builder's hashes. Docara 3.11.1 refused it, and this
-       script handed it a copy without the passport until the repin. */
-    $receipt = json_decode((string) file_get_contents($receiptPath), true, 512, JSON_THROW_ON_ERROR);
+       Docara 3.14.1 reads set receipts as they are (its
+       FrameworkPackageReceipt checks the passport the receipt names), so the
+       receipt goes unchanged; the files are read from the build's output
+       directory (--from) when one is given, which holds smart/ and set.json.
+       Docara 3.11.1 refused such a receipt and the site handed it one without
+       the passport (docs/DOCARA-REQUESTS.md); that adapter is gone. */
     $arguments = [$packageRoot . '/scripts/sync-framework-package-runtime.php', '--receipt', $receiptPath];
     if (is_string($fromPath)) {
         if (! is_dir($fromPath . '/smart')) {
