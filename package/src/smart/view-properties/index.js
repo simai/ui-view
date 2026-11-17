@@ -1333,6 +1333,11 @@ class SfPropertyView extends PropertyViewElement {
             if (!open) this._endTitleFocus();
             this._panelWasOpen = open;
             if (this._titleFocusUntil) requestAnimationFrame(() => this._focusTitleFirst());
+        });
+        // Every render, not once (onAfterRender runs a callback once unless
+        // told otherwise): the errors to focus after a refused Save, the tags
+        // to ask the Loader for, the back line of a related record.
+        this._offEveryRender = this.onAfterRender?.(() => {
             if (this._focusErrorsAfterRender) {
                 this._focusErrorsAfterRender = false;
                 requestAnimationFrame(() => this._focusErrors());
@@ -1345,7 +1350,7 @@ class SfPropertyView extends PropertyViewElement {
                 this._nestedUnderLabel = nested;
                 this.requestComponentUpdate("nested");
             }
-        });
+        }, {once: false});
         // The drop is sf-sortable's to report and the component's to apply or
         // refuse -- that is the seam the mechanism already publishes, so no drag
         // is implemented here. The lists name themselves `field:<group>` and
@@ -1454,6 +1459,8 @@ class SfPropertyView extends PropertyViewElement {
         this._endTitleFocus();
         this._offAfterRender?.();
         this._offAfterRender = null;
+        this._offEveryRender?.();
+        this._offEveryRender = null;
         this._panelWasOpen = false;
         // The settings surface listens on the document, so a panel that goes away
         // while it is open takes that listener with it.
