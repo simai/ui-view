@@ -386,9 +386,9 @@ class SfDataView extends DataViewElement {
             <div part="toolbar" hidden><slot name="toolbar"></slot></div>
             <div part="status" role="status" aria-live="polite" hidden></div>
             <div part="drop" hidden></div>
-            <slot name="content"><sf-view-table></sf-view-table></slot>
+            <slot name="content"></slot>
             <slot name="show-all"></slot>
-            <div part="footer"><slot name="footer"></slot><slot name="pagination"><sf-pagination appearance="field" top="false" bottom="false"></sf-pagination></slot></div>
+            <div part="footer"><slot name="footer"></slot><slot name="pagination"></slot></div>
             <slot name="bulk"></slot>
             <slot name="notice"></slot>
             <slot name="dialog"></slot>
@@ -439,6 +439,37 @@ class SfDataView extends DataViewElement {
     }
 
     get selection() { return this.table?.selection ?? []; }
+
+    // The list and its page row when the author slots none: drawn in the light
+    // DOM, assigned to the layout's slots, so the Framework's styles reach them
+    // (VF-3). They were the slots' fallback content inside the shadow root, where
+    // no stylesheet of the page arrives: the table's toolbar, rows and boxes and
+    // the page row drew unstyled -- the search text 6 px from its icon, raw
+    // checkboxes. An element the author slots later takes the place of the view's.
+    _lightDefaults() {
+        const defaults = [
+            ["content", "sf-view-table", {}],
+            ["pagination", "sf-pagination", {appearance: "field", top: "false", bottom: "false"}],
+        ];
+        for (const [slot, tag, attributes] of defaults) {
+            const own = [...this.children].filter((child) => child.getAttribute("slot") === slot);
+            const mine = own.filter((child) => child.hasAttribute("data-sf-view-default"));
+            if (own.length > mine.length) {
+                mine.forEach((child) => child.remove());
+                continue;
+            }
+            if (mine.length) continue;
+            const element = document.createElement(tag);
+            element.setAttribute("slot", slot);
+            element.setAttribute("data-sf-view-default", "");
+            for (const [name, value] of Object.entries(attributes)) element.setAttribute(name, value);
+            this.append(element);
+        }
+        if (!this._defaultsWatch) {
+            this._defaultsWatch = new MutationObserver(() => this._lightDefaults());
+            this._defaultsWatch.observe(this, {childList: true});
+        }
+    }
 
     get table() {
         const slot = this.shadowRoot.querySelector('slot[name="content"]');
@@ -825,6 +856,7 @@ class SfDataView extends DataViewElement {
     }
 
     connectedCallback() {
+        this._lightDefaults();
         this._readPrintedPageSize();
         super.connectedCallback();
         if (this.getAttribute("data-sf-instance")) this._ownParts();
@@ -2431,7 +2463,7 @@ class SfDataView extends DataViewElement {
         // The author's name for the view, when it has one: the generic «Представление
         // данных» replaced it (docs trial 4).
         if (layout) layout.setAttribute("aria-label", this.getAttribute("aria-label") || pageText(DATA_VIEW_TEXT, "layoutLabel", this));
-        const fallbackTable = this.shadowRoot.querySelector(`slot[name="content"] > ${tagSelector("sf-view-table")}`);
+        const fallbackTable = this.querySelector(`:scope > ${tagSelector("sf-view-table")}[data-sf-view-default]`);
         if (fallbackTable && !fallbackTable.getAttribute("aria-label")) {
             fallbackTable.setAttribute("aria-label", pageText(DATA_VIEW_TEXT, "recordsLabel", this));
         }
