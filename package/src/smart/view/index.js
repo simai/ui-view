@@ -622,6 +622,8 @@ class SfDataView extends DataViewElement {
         const start = existing ?? document.createElement("div");
         start.setAttribute("slot", "footer");
         start.setAttribute("data-sf-view-made", "");
+        // A printed start is adopted: its parts are drawn anew below.
+        start.removeAttribute?.("data-sf-static");
         start.classList.add("sf-view-footer-start");
         // The parts are kept by reference: a Smart button moves the data-*
         // attributes of its host onto the <button> it draws, so a query by
