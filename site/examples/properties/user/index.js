@@ -419,6 +419,18 @@ const markError = (node) => {
     const attributes = customElements.get(name)?.observedAttributes ?? [];
     return attributes.includes('invalid') || attributes.includes('error-message');
   };
+  // The controls may not be defined yet when the field is drawn: decide once
+  // they are (or after a short wait), so the message lands on the control.
+  const names = [...new Set([...node.querySelectorAll('*')].map((element) => element.localName).filter((name) => name.startsWith('sf-')))];
+  const pending = names.filter((name) => !customElements.get(name));
+  if (pending.length && !node.dataset.errorWaited) {
+    node.dataset.errorWaited = 'true';
+    Promise.race([Promise.all(pending.map((name) => customElements.whenDefined(name))), new Promise((done) => setTimeout(done, 3000))])
+      .then(() => markError(node));
+    return;
+  }
+  delete node.dataset.errorWaited;
+  node.querySelector(':scope > .property-error')?.remove();
   const control = [...node.querySelectorAll('*')].find(takes);
   if (control) {
     control.setAttribute('invalid', '');
@@ -433,7 +445,7 @@ const markError = (node) => {
 
 const drawEdit = (root) => {
   const out = el(root, 'edit-out');
-  const write = () => { out.textContent = state.editOut || 'Измените поле — здесь будет то, что получит сервер.'; };
+  const write = () => { out.textContent = state.editOut || `Сервер получит: ${shown({[D.field.key]: state.value ?? null})} — измените поле, строка обновится.`; };
   const main = el(root, 'edit');
   const states = {empty: el(root, 'state-empty'), error: el(root, 'state-error'), readonly: el(root, 'state-readonly')};
   if (!frameworkDraws('edit')) {
