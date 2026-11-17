@@ -108,7 +108,7 @@ function renderListToolbar(context) {
                         const filterValue = filterValues?.[k] || {};
                         const count = Array.isArray(filterValue.values) ? filterValue.values.length : tag.count || '';
                         return html`
-                            <sf-tag kind="default" size=${context.controlSize ?? nothing} text='${tag.label}' interactive closable :key=${k}
+                            <sf-tag kind="default" size=${context.controlSize ?? nothing} text='${context.component.filterChipText(k, tag)}' interactive closable :key=${k}
                                     active count='${count}'
                                     @sf-tag-close="${() => context.component.removeFilterTag(k)}"
                                     @click=${(e) => context.component.openContextMenu(e, {type: 'bottom', menu: 'tag-settings', fieldKey: k, anchorSelector: '.sf-tag'})}
@@ -190,7 +190,7 @@ function renderToolbar(context) {
                             <sf-tag
                                     kind="default"
                                     size=${context.controlSize ?? nothing}
-                                    text='${tag.label}'
+                                    text='${context.component.filterChipText(k, tag)}'
                                     interactive
                                     closable
                                     :key=${k}
@@ -1582,6 +1582,7 @@ export function renderTableTemplate(context) {
                         ? html`<div class="sf-table-rail" aria-hidden="true" hidden ${ref(context.component.refs.rail)}>
                             <div class="sf-table-rail-track"></div></div>`
                         : nothing}
+                ${context.component.renderBulkActions('after')}
 
                 ${context.pagin
                         ? html`

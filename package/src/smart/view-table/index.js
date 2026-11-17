@@ -19,6 +19,7 @@ import {holdOpenSurfaceMark} from "../../core/js/open-surface-mark.js";
 import {layerZIndex} from "../../core/js/layer-stack.js";
 import {followDensity} from "../../core/js/density.js";
 import {menuOpen} from "../../core/js/menu-open.js";
+import {noteDeprecated} from "../../core/js/deprecations.js";
 import {roving} from "../../core/js/roving.js";
 import BundledPreferences from "../../core/js/preferences.js";
 
@@ -116,6 +117,10 @@ function parseSortText(text) {
 }
 
 // The schemes a fact's badge takes from its option (C140 (2)).
+const CONTAINER_SETTINGS = ["toolbar", "pagin", "filter-templates", "filter-text", "clear-text", "search-placeholder",
+    "create-text", "creatable", "pagination-total", "pagination-page-size", "page-sizes", "filter-apply-text", "layout-switch"];
+const CONTAINER_SETTING_HOME = {"pagin": "sf-pagination", "pagination-total": "sf-pagination total",
+    "pagination-page-size": "sf-pagination page-size", "page-sizes": "sf-pagination page-sizes"};
 const SHORT_EDIT_TYPES = new Set(["choice", "enum", "select", "user", "date", "datetime", "number", "integer", "money"]);
 const BADGE_SCHEMES = new Set(["neutral", "primary", "secondary", "success", "info", "warning", "error"]);
 const FACT_LEVELS = Object.freeze({warning: 1, error: 2});
@@ -953,6 +958,10 @@ class SfTable extends TableElement {
     }
 
     setBulkActions(actions = []) {
+        if (!this.closest?.("sf-view")) {
+            noteDeprecated({component: "sf-view-table", tag: "sf-view-table", kind: "method", from: "setBulkActions",
+                to: "sf-bulk-actions actions", since: "2026-11-18", remove_after: "2027-01-01", package: "view"});
+        }
         if (!Array.isArray(actions) || Array.from(actions).some((action) =>
             !action || typeof action !== 'object'
             || typeof action.id !== 'string' || !action.id.trim()
@@ -963,8 +972,21 @@ class SfTable extends TableElement {
         return this.set({bulkActions: actions.map(({id, name}) => ({id, name}))});
     }
 
-    renderBulkActions() {
+    // C295 / C296: group actions are sf-bulk-actions' job. Where the page's
+    // pair carries that element, a table standing alone places one bar after
+    // its rows (count, clear and «all N» come with it: BA-2, BA-5); where it
+    // does not, the table's own buttons stay above the rows as before. Inside
+    // sf-view the view draws the bar. setBulkActions / bulkActions are the
+    // former names of the bar's actions until 2027-01-01.
+    hasBulkBar() {
+        return typeof customElements !== "undefined" && Boolean(customElements.get("sf-bulk-actions"));
+    }
+
+    renderBulkActions(place = "before") {
         if (!this.state.bulkActions?.length) return nothing;
+        const bar = this.hasBulkBar();
+        if (place === "after") return bar ? this.renderBulkBar() : nothing;
+        if (bar) return nothing;
         const selected = this.getSelectedRecordIds();
         // C116: a bulk action is a regular button (outline on-surface); one
         // that deletes opens a confirmation, so it is the outlined danger and
@@ -980,6 +1002,28 @@ class SfTable extends TableElement {
                     if (ids.length) this.requestActionIntent(action.id, ids, {scope: "selection"});
                 }}></sf-button>`)}
         </div>`;
+    }
+
+    renderBulkBar() {
+        const selected = this.getSelectedRecordIds();
+        const rows = this.getTableData().rows || [];
+        const count = Number(this.getProp?.("total") ?? this.getAttribute("total") ?? 0);
+        const total = Number.isSafeInteger(count) && count > 0 ? String(count) : nothing;
+        const actions = this.state.bulkActions.map(({id, name}) => ({id, text: name}));
+        return html`<sf-bulk-actions place="inline" data-sf-table-bulk
+            size=${this.getPropsContext().size === "1/2" ? "1/2" : "1"}
+            count=${selected.length} page-count=${rows.length} total=${total}
+            ?all-selected=${this._bulkAll === true}
+            .actions=${actions}
+            @sf-bulk-actions-action=${(event) => {
+                const {id, scope} = event.detail || {};
+                const ids = this.getSelectedRecordIds();
+                if (!id || (!ids.length && scope !== "all")) return;
+                this.requestActionIntent(String(id), ids.length ? ids : rows.map((row) => row.id), {scope: scope === "all" ? "all" : "selection"});
+            }}
+            @sf-bulk-actions-select-all=${() => { this._bulkAll = true; this.requestComponentUpdate("bulk"); }}
+            @sf-bulk-actions-select-page=${() => { this._bulkAll = false; this.requestComponentUpdate("bulk"); }}
+            @sf-bulk-actions-clear=${() => { this._bulkAll = false; this.clearSelection(); }}></sf-bulk-actions>`;
     }
 
     // Items for the create split button menu. Choosing one (or the main
@@ -2646,13 +2690,25 @@ class SfTable extends TableElement {
     getFilterPayload(filter = this.state?.filter || {}) {
         const selectedTemplate = this.getSelectedFilterTemplate(filter);
 
-        return {
+        const payload = {
             ...(selectedTemplate?.data || {}),
             templateKey: selectedTemplate?.key || "",
             templateLabel: selectedTemplate?.label || "",
             values: this.getCurrentFilterValues(filter),
             tags: this.getCurrentFilterTags(filter),
         };
+        const api = this.dateFilterApi();
+        if (api && typeof api.buildFilterRequest === "function") {
+            try {
+                const context = typeof this.getFilterContext === "function" ? this.getFilterContext() : undefined;
+                const request = api.buildFilterRequest(payload.values, {node: this, context});
+                if (request && typeof request === "object") {
+                    if (request.values) payload.values = request.values;
+                    if (request.context) payload.context = request.context;
+                }
+            } catch { /* the values as written */ }
+        }
+        return payload;
     }
 
     selectFilterTemplate(key) {
@@ -4009,7 +4065,34 @@ class SfTable extends TableElement {
         return false;
     }
 
+    // C293 (DF-1, DF-4, DF-6): the date filter's own reading -- a period,
+    // empty and not empty are whole entries; the chip says the condition; the
+    // request carries the zone and week start -- comes with the pair that has
+    // SF.fieldRenderers.dateFilter. Without it the table reads as before.
+    dateFilterApi() {
+        const api = globalThis.SF?.fieldRenderers?.dateFilter;
+        return api && typeof api.isEmptyFilterEntry === "function" ? api : null;
+    }
+
+    filterChipText(key, tag = {}) {
+        const api = this.dateFilterApi();
+        const label = tag?.label ?? key;
+        if (!api || typeof api.dateFilterChipText !== "function") return label;
+        const field = (this.getFilterFields?.() || []).find((item) => item?.key === key);
+        const type = field?.propertyType ?? field?.type ?? field?.dataType ?? tag?.control;
+        if (!["date", "datetime", "period"].includes(type)) return label;
+        const entry = this.getCurrentFilterValues?.()?.[key];
+        if (!entry || this.isEmptyFilterEntry(entry)) return label;
+        try {
+            return api.dateFilterChipText({...field, label}, entry, this) || label;
+        } catch {
+            return label;
+        }
+    }
+
     isEmptyFilterEntry(entry) {
+        const api = this.dateFilterApi();
+        if (api) return api.isEmptyFilterEntry(entry);
         if (!entry || typeof entry !== "object") {
             return this.isEmptyFilterValue(entry);
         }
@@ -8114,7 +8197,24 @@ class SfTable extends TableElement {
         }
     }
 
+    // C296 / C295 (VT-13): the table draws columns and rows. Its toolbar,
+    // search, filter, saved templates, create button, layout switch, own
+    // paging and own group buttons are the container's (sf-view,
+    // sf-pagination, sf-bulk-actions). They keep working, as they were,
+    // until 2027-01-01; a table standing alone that is given one is noted in
+    // SF.deprecations once. Inside sf-view the view writes them: no note.
+    noteContainerSettings() {
+        if (this._containerNoted || this.closest?.("sf-view")) return;
+        this._containerNoted = true;
+        for (const name of CONTAINER_SETTINGS) {
+            if (!this.hasAttribute(name)) continue;
+            noteDeprecated({component: "sf-view-table", tag: "sf-view-table", kind: "attribute", attribute: name,
+                from: name, to: CONTAINER_SETTING_HOME[name] ?? "sf-view", since: "2026-11-18", remove_after: "2027-01-01", package: "view"});
+        }
+    }
+
     afterDraw() {
+        this.noteContainerSettings();
         this.preloadSelectionGlyphs();
         this.adoptSelectionGlyphs();
         this._observeResponsiveBox();
