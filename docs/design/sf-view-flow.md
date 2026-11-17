@@ -209,8 +209,8 @@ By the reuse rule nothing is copied:
   for a type with no editor, the empty value and the reference press. The
   record component imports the same function; nothing changes in it;
 - the **conditions** of `sf-view-properties` (`view-properties/js/conditions.js`);
-- the **date words** of `sf-view-table` (`view-table/js/format-value.js`) for
-  dates the host does not format, as the record component reads them;
+- dates the host does not format read as the Framework's field renderers
+  read them (the set's own `format-value.js` is gone since view round 1, VF-10);
 - the Framework's **field renderers**, `sf-button`, `sf-icon`.
 
 The block's own code is its answer logic (`js/answer.js`: the fields shown,
