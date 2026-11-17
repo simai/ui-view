@@ -52,7 +52,7 @@
             ]
           },
           "check": "window.__calls.includes('record.open')",
-          "script": "(document.getElementById('v').table.querySelector('tbody tr[data-row-id=\"2\"] a.sf-table-title-link').click(), true)"
+          "script": "(document.getElementById('v').table.querySelector('tbody tr[data-row-id=\"2\"] .sf-table-title-link').click(), true)"
         }
       ]
     },
@@ -83,7 +83,7 @@
             ]
           },
           "check": "!window.__calls.includes('record.open')",
-          "script": "(document.getElementById('v').table.querySelector('tbody tr[data-row-id=\"1\"] a.sf-table-title-link').click(), true)"
+          "script": "(document.getElementById('v').table.querySelector('tbody tr[data-row-id=\"1\"] .sf-table-title-link').click(), true)"
         }
       ]
     },

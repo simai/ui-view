@@ -227,8 +227,8 @@ try {
       const spinner = Boolean(document.querySelector('#t .sf-table-busy'));
       table.setDataState('auto');
       await new Promise((done) => setTimeout(done, 200));
-      const links = [...document.querySelectorAll('#t tbody td[data-key="name"] a.sf-table-title-link')].map((link) => link.textContent.trim());
-      document.querySelector('#t tbody td[data-key="name"] a.sf-table-title-link')?.click();
+      const links = [...document.querySelectorAll('#t tbody td[data-key="name"] .sf-table-title-link')].map((link) => link.textContent.trim());
+      document.querySelector('#t tbody td[data-key="name"] .sf-table-title-link')?.click();
       await new Promise((done) => setTimeout(done, 100));
       return {before, during, spinner, links, intents: window.intents};
     });
