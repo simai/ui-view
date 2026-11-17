@@ -21,27 +21,23 @@
 
 </div>
 <div class="sf-table-toolbar-end flex items-cross-center gap-1/3 flex-wrap flex-auto min-w-0">
-<sf-input root-class="sf-search-input m-inline-start-auto" appearance="bordered" name="sf_table_search" hint-icon="search" value placeholder="Поиск" style="display: contents;">
-
-
+<sf-input root-class="sf-search-input m-inline-start-auto" appearance="bordered" name="sf_table_search" input-type="search" icon-start="search" clearable value placeholder="Поиск" aria-label="Поиск" style="display: contents;">
 <label class="sf-input  sf-input--size-1 sf-input--bordered   sf-search-input m-inline-start-auto flex flex-col" data-mask="false" data-mask-pattern data-mask-lazy data-mask-placeholder-char data-mask-options data-sf-input-bound="1" for="sf-view-reference-1" data-sf-static>
 
 <span class="sf-input-field items-cross-center transition flex">
+<span class="sf-input-left flex"><sf-icon icon="search" style="display: contents;"><i class="sf-icon" aria-hidden="true" data-sf-static>search</i></sf-icon></span>
 
-
-<input id="sf-view-reference-1" type="text" placeholder="Поиск" value data-mask="false" data-mask-pattern data-mask-lazy data-mask-placeholder-char data-mask-options>
-
-
-
+<input id="sf-view-reference-1" type="search" placeholder="Поиск" value aria-label="Поиск" data-mask="false" data-mask-pattern data-mask-lazy data-mask-placeholder-char data-mask-options>
 
 
 
-<sf-button-icon appearance="ghost" scheme="on-surface" icon="search" aria-label="Поиск" style="display: contents;">
-<button type="button" class="sf-icon-button sf-icon-button--size-1 sf-icon-button--icon sf-icon-button--link flex items-cross-center sf-icon-button--on-surface" aria-label="Поиск" data-sf-static>
 
-<sf-icon root-class="pointer-event-none" weight="400" aria-hidden="true" filled="false" icon="search" style="display: contents;"><i class="sf-icon sf-icon--weight-regular pointer-event-none" aria-hidden="true" data-sf-static>search</i></sf-icon>
-</button>
-</sf-button-icon>
+
+<button type="button" class="sf-field-action sf-input-clear" data-action="clear" tabindex="-1" aria-label="Очистить" hidden></button>
+
+
+
+
 
 </span>
 
