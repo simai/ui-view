@@ -56,7 +56,7 @@ profile: reference
 
 ## Параметры
 
-Справочник собран из манифеста компонента в сборке-кандидате набора (`simai/ui-view@c9f9de09b399`) и обновляется вместе с выпуском. Каждому атрибуту соответствует свойство элемента с тем же именем в camelCase: `search-placeholder` — `searchPlaceholder`.
+Справочник собран из манифеста компонента в сборке-кандидате набора (`simai/ui-view@0d246669503c`) и обновляется вместе с выпуском. Каждому атрибуту соответствует свойство элемента с тем же именем в camelCase: `search-placeholder` — `searchPlaceholder`.
 
 | | |
 |:---|:---|
@@ -217,7 +217,7 @@ profile: reference
 
 ## Источник
 
-- `simai/ui-view@c9f9de09b399:package/src/smart/view-properties`
+- `simai/ui-view@0d246669503c:package/src/smart/view-properties`
 
 ## См. также
 

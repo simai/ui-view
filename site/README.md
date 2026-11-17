@@ -53,7 +53,7 @@ Each generator takes `--check` (fails on drift).
   literal anywhere else (except the change history).
 - `assets/illustrations/` — copies of the D22 pictures of ui-doc, with
   `manifest.json` naming the source commit and each file's hash; an example
-  that shows one holds a byte-same copy in its `pictures/` folder (an
+  that shows one holds a byte-same copy in its `assets/` folder (the one folder Docara publishes beside an example) (an
   example is published with its own folder only).
 - `scripts/landing-transform.mjs` — hides the code tabs of the home page's
   live example. It runs on the local review copy (`publish-local.sh`), not

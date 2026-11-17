@@ -109,13 +109,13 @@ const css = `.property-cards, .property-states { grid-template-columns: minmax(0
 
 // The D22 pictures an example's records name, copied beside it: an example
 // is published with its own folder only (its frame's base is that folder).
-const PICTURE = /"pictures\/([a-z0-9-]+\.svg)"/gu;
+const PICTURE = /"assets\/([a-z0-9-]+\.svg)"/gu;
 const fieldsOf = (type) => (type === 'all' ? Object.values(CATALOGUE).map((entry) => entry.fields[0]) : CATALOGUE[type].fields);
 const pictures = (folder, type) => {
   for (const [, file] of JSON.stringify(fieldsOf(type)).matchAll(PICTURE)) {
     const source = join(site, 'assets/illustrations', file);
     if (!existsSync(source)) throw new Error(`${type}: no picture assets/illustrations/${file}`);
-    put(`${folder}/pictures/${file}`, readFileSync(source, 'utf8'));
+    put(`${folder}/assets/${file}`, readFileSync(source, 'utf8'));
   }
 };
 

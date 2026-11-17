@@ -11,8 +11,8 @@
 // them (site lint, colour allow list «colour field data»).
 
 // Pictures are the D22 set's copies (assets/illustrations/); scripts/build-properties.mjs
-// puts the ones an example names beside it, in its pictures/ folder.
-const PICTURES = 'pictures/';
+// puts the ones an example names beside it, in its assets/ folder.
+const PICTURES = 'assets/';
 const PEOPLE = [
   {value: 'u-1', label: 'Анна Белова', avatarText: 'АБ'},
   {value: 'u-2', label: 'Илья Орлов', avatarText: 'ИО'},

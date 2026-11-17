@@ -15,6 +15,8 @@
 //   versions    no release literal (a pair id, a set release id, an npm or
 //               a set version in a URL) outside the generated release blocks,
 //               the generated reference and the change history (§11.10);
+//               no pro copy named, no panel width set by hand in an
+//               example (§11.19);
 //   promises    no promise of a later release in the content (§11.12;
 //               «docs: current state only», 2026-11-17);
 //   grid        no grid of more than three items in a row (§11.13);
@@ -110,6 +112,15 @@ for (const path of contentFiles) {
   const text = generatedOut(read(path));
   for (const match of text.matchAll(LITERALS)) fail('versions', `${path}:${lineOf(text, match.index)}`, `release literal «${match[0]}» outside the release blocks`);
 }
+// The docs name the set's release, never a pro copy; a panel in an example
+// stands at a width of the drawer's ladder (§11.19).
+for (const path of [...contentFiles, ...walk('examples').filter((one) => /\.(html|js)$/u.test(one))]) {
+  const text = read(path);
+  for (const match of text.matchAll(/\bpro-[0-9a-f]{12}\b|\bui-pro\b|@simai-studio\/pro\b/gu)) fail('versions', `${path}:${lineOf(text, match.index)}`, `«${match[0]}» names a pro copy, not the set's release`);
+  if (path.startsWith('examples/')) {
+    for (const match of text.matchAll(/panel-width="([^"]*)"|panelWidth\s*=\s*['"]([^'"]*)['"]/gu)) fail('versions', `${path}:${lineOf(text, match.index)}`, `panel width «${match[1] ?? match[2]}» set by hand: a panel stands at the drawer's ladder`);
+  }
+}
 
 // ---- promises --------------------------------------------------------------
 // «появится» alone also says what a press shows («внизу появятся действия»):
@@ -151,7 +162,7 @@ for (const path of contentFiles) {
   }
   for (const path of walk('examples').filter((one) => /\.(svg|png|jpe?g|webp|gif|avif)$/iu.test(one))) {
     const name = path.split('/').pop();
-    if (!/\/pictures\/[^/]+$/u.test(path) || !hashes.has(name)) fail('pictures', path, 'a picture not from the D22 set');
+    if (!/\/assets\/[^/]+$/u.test(path) || !hashes.has(name)) fail('pictures', path, 'a picture not from the D22 set');
     else if (sha(path) !== hashes.get(name)) fail('pictures', path, 'not a byte-same copy of the D22 file');
   }
   for (const path of [...contentFiles, ...walk('examples').filter((one) => /\.(html|js|css)$/u.test(one))]) {
