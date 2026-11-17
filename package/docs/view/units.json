@@ -5,6 +5,15 @@
   "entries": [
     {
       "unit": "smart.view",
+      "version": "1.15.0",
+      "recorded_on": "2026-11-18",
+      "change": "minor",
+      "consumer": "Nothing changes without head=\"list\". A page that writes head=\"list\" gets the list head above the list (title row and head row, C297, C299-C301): the table draws no toolbar and no gear of its own under it, and the head raises the study's draft intents (filter.*, settings.save, entity.fields.save) through the same port.",
+      "summary": "List head (head=\"list\"; owner decisions C297, C299, C300, C301; view round 2 LH-1..LH-10): a title row (name and count, views, display kind on sf-segmented, «Настроить вид», list menu by describe().permissions) and a head row (Фильтр + bookmark, filter fields as joined sf-button + sf-button-icon, Очистить, search up to 20rem, Создать split) drawn by the view from SIMAI Framework parts; windows are sf-popover on a desktop and an sf-drawer bottom sheet on a phone; the field window is the pair's filter template (SF.fieldRenderers.renderFilterField). The table draws no toolbar and no head gear under it. Draft intents of the list head study (section 7) through the same port. Without head=\"list\" nothing changes.",
+      "evidence": "https://github.com/simai/ui-control/tree/main/control/evidence/2026-11-18-view-r2-head"
+    },
+    {
+      "unit": "smart.view",
       "version": "1.14.0",
       "recorded_on": "2026-11-17",
       "change": "minor",

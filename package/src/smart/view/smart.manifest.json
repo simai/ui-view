@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view",
-  "version": "1.14.0",
+  "version": "1.15.0",
   "title": "Data view",
   "summary": "Host-driven data view that composes toolbar, content and pagination around a separate data port.",
   "kind": "composite",
@@ -30,13 +30,21 @@
   "composition": {
     "uses": [
       "component.icons",
+      "smart.badge",
       "smart.button",
       "smart.button-icon",
       "smart.checkbox",
+      "smart.drawer",
       "smart.dropdown",
+      "smart.icon",
+      "smart.input",
       "smart.menu-context",
       "smart.pagination",
+      "smart.popover",
+      "smart.radio",
+      "smart.segmented",
       "smart.spinner",
+      "smart.tabs",
       "smart.toast",
       "smart.view-table"
     ],
@@ -51,6 +59,8 @@
       "props": [
         "template",
         "chrome",
+        "head",
+        "heading",
         "row-cap",
         "expected-columns",
         "port-owner",
@@ -110,7 +120,9 @@
         "sf-host-port-request",
         "sf-view-list-open",
         "sf-table-cell-set",
-        "sf-table-rows-reorder"
+        "sf-table-rows-reorder",
+        "sf-view-display-change",
+        "sf-view-settings-open"
       ],
       "persistence": {
         "settings_key_prop": null,
@@ -197,6 +209,20 @@
         "type": "string",
         "default": "toolbar pagination select settings",
         "description": "Which chrome this list renders, as a space-separated list. `toolbar` and `pagination` are this element own parts; `select` and `settings` are the table two chrome columns, named here because they are furniture of the same kind -- a checkbox column exists to feed a bulk band and a gear column exists to reach column settings, and an embedded list has neither. Empty renders none of them, for a list inside something that already carries a heading. Named explicitly rather than inferred from the toolbar, so a consumer who wants a selection in an embedded list can ask for it alone. `status` is not in the list and cannot be switched off: a list that could not say a load failed would look empty when it is broken."
+      },
+      "head": {
+        "type": "string",
+        "default": "",
+        "description": "Which head the list has. Empty: the table's own toolbar, as before. list: the list head (owner decisions C297, C299, C300, C301): a title row (the list name and count, the views menu, the display kind as sf-segmented, «Настроить вид», the list menu «⋯» when describe().permissions allows) and a head row (Фильтр with its bookmark, the filter fields, Очистить, the search up to 20rem, Создать with a split menu); on a phone the display kind is an icon menu, the head row is Фильтр, the search and +, the filter fields one row that scrolls sideways, and every window a bottom sheet. Shown where chrome includes toolbar. The table then draws no toolbar and no gear in its head; the row menu stays.",
+        "enum": [
+          "",
+          "list"
+        ]
+      },
+      "heading": {
+        "type": "string",
+        "default": "",
+        "description": "The list's name in the list head's title row (head=\"list\"); empty: the view's aria-label."
       },
       "row-cap": {
         "type": "integer",
@@ -1368,6 +1394,54 @@
         "additionalProperties": true
       }
     },
+    "sf-view-display-change": {
+      "summary": "The person chose another display kind in the list head (head=\"list\"); cancelable. Not refused, the view writes data-display and asks the host again with query.view {id, type}; a kind other than table is the host's content until its layout comes (C298).",
+      "payload": {
+        "type": "object",
+        "required": [
+          "kind",
+          "previous"
+        ],
+        "properties": {
+          "kind": {
+            "enum": [
+              "table",
+              "board",
+              "cards",
+              "calendar",
+              "list",
+              "tree"
+            ],
+            "description": "The display kind chosen."
+          },
+          "previous": {
+            "type": "string",
+            "description": "The display kind before it."
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "sf-view-settings-open": {
+      "summary": "The person asked in the list head for a list setting the host keeps on its own pages: access rights or export from «⋯», or «Добавить поле» in the record field settings. The view opens nothing of its own.",
+      "payload": {
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "properties": {
+          "id": {
+            "enum": [
+              "rights",
+              "export",
+              "record-field-add"
+            ],
+            "description": "What was asked: the list's access rights, its export, or a new record field."
+          }
+        },
+        "additionalProperties": true
+      }
+    },
     "sf-table-tree-intent": {
       "summary": "A tree intent of simai.dataview-port 1.8.0 -- tree.expand, node.targets or node.move -- announced as the view raises it. The host answers through the port.",
       "payload": {
@@ -1735,6 +1809,13 @@
         "changes": [
           "View round 1 (D4, D5, VW-2): the shadow root draws no control of its own (the fallback search, view select and save/delete buttons are gone; the toolbar part shows only an author's slotted toolbar); the default sf-view-table and sf-pagination are light DOM, where the page's sheets reach them, so the table's search gap is the Framework's; the move dialog chooses through sf-input-choice in its list look."
         ]
+      },
+      {
+        "from": "1.14.0",
+        "to": "1.15.0",
+        "changes": [
+          "List head (head=\"list\"; owner decisions C297, C299, C300, C301; view round 2 LH-1..LH-10): a title row (name and count, views, display kind on sf-segmented, «Настроить вид», list menu by describe().permissions) and a head row (Фильтр + bookmark, filter fields as joined sf-button + sf-button-icon, Очистить, search up to 20rem, Создать split) drawn by the view from SIMAI Framework parts; windows are sf-popover on a desktop and an sf-drawer bottom sheet on a phone; the field window is the pair's filter template (SF.fieldRenderers.renderFilterField). The table draws no toolbar and no head gear under it. Draft intents of the list head study (section 7) through the same port. Without head=\"list\" nothing changes."
+        ]
       }
     ]
   },
@@ -1744,7 +1825,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view/index.js",
-        "sha256": "23a70c57b870b00677422ece66df15f288a69945088c95d01823174dae6a4e78"
+        "sha256": "f22d846ea1bbd03a912847a933a30c9523c9d2a8f449c81bdc52a818d45e8aa7"
       },
       {
         "path": "src/core/contracts/ports/simai.dataview-port/1.5.0/port.json",
