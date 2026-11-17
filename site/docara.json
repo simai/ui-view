@@ -13,6 +13,13 @@
       "content_root": "content/ru",
       "public_prefix": "ru",
       "fallbacks": []
+    },
+    "en": {
+      "label": "English",
+      "direction": "ltr",
+      "content_root": "content/en",
+      "public_prefix": "en",
+      "fallbacks": []
     }
   },
   "locale_routing": {
@@ -48,5 +55,14 @@
     "mobile_toc": "auto",
     "toc_depth": 3,
     "previous_next": true
+  },
+  "effects": {
+    "catalogue": "https://cdn.jsdelivr.net/gh/simai/ui-effects@926820bec4c844edc65a81bcbf1d7f52019b1fcf/"
+  },
+  "translation_tracking": {
+    "enabled": true,
+    "source_locale": "ru",
+    "mode": "report",
+    "lock_file": "translations.lock.json"
   }
 }

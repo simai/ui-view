@@ -64,4 +64,4 @@ profile: reference
 ## См. также
 
 - [Внешний вид](../appearance/)
-- [Пусто, загрузка и ошибка](../recipes/states/)
+- [Пусто, загрузка и ошибка](/ru/recipes/states/)

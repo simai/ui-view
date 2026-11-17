@@ -1,5 +1,23 @@
+/* Written by scripts/build-pages.mjs. Each view of the set on a card of the
+   theme's surface-1 with an outline, the components it shows named on top. */
 sf-tabs:not(:defined) > [slot] { display: none; }
+.showcase-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-2);
+  min-width: 0;
+  padding: var(--sf-space-3);
+  border: 1px solid var(--sf-outline-variant);
+  border-radius: var(--sf-radius--surface);
+  background: var(--sf-surface-1);
+}
+.showcase-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--sf-space-1); color: var(--sf-on-surface-variant); }
+.showcase-head a { color: var(--sf-on-surface); font-weight: 600; text-decoration: none; }
+.showcase-head a:hover { text-decoration: underline; }
 .feed-box { display: flex; flex-direction: column; block-size: 36rem; overflow: hidden; }
 .feed-box > sf-list-feed { flex: 1; min-block-size: 0; display: flex; flex-direction: column; }
 /* A block in a message reads at a message's measure, not the whole frame. */
 .sf-list-feed__entry .sf-view-flow { max-inline-size: 36rem; }
+@media (max-width: 48rem) {
+  .showcase-card { padding: var(--sf-space-2); }
+}

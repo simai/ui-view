@@ -11,39 +11,49 @@ Loader сам находит набор, загружает его правил�
 
 ## Одна строка
 
+<!-- release:cdn -->
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@simai-studio/ui@5.20261105.1447/distr/core/js/core.min.js" data-sf-sets="view"></script>
+<script src="https://cdn.jsdelivr.net/npm/@simai-studio/ui@5.20261117.1311/distr/core/js/core.min.js" data-sf-sets="view"></script>
 ```
+<!-- /release:cdn -->
 
 Атрибут `data-sf-sets` перечисляет наборы через пробел. Конкретную версию
-набора задают через `@`: `data-sf-sets="view@1.1.0"`. Без версии Loader
+набора задают через `@`: `data-sf-sets="view@<версия>"`. Без версии Loader
 выбирает по общему индексу совместимости самый новый выпуск набора, который
 подходит к подключённому Core.
 
 Набор опубликован в npm как `@simai-studio/view`; Loader берёт его с
-jsDelivr. Версия 1.1.0 (выпуск `view-4d7070623fe1`) собрана над выпуском
-SIMAI Framework `ui-62b1d9b6dc8d` и работает с `core.runtime` 1.25.0 или
-новее. Ссылка на выпуск закрепляет Core и набор вместе:
+jsDelivr.
 
+<!-- release:compat -->
+Эта сборка сайта — кандидат версии 1.9.0: собрана над выпуском SIMAI Framework `ui-24d64b7f6eb7` (npm `@simai-studio/ui@5.20261117.1311`) и работает с `core.runtime` 1.51.0 или новее. В npm последняя выпущенная версия — 1.8.1 (`view-69a213f6773f`).
+<!-- /release:compat -->
+
+Ссылка на выпуск закрепляет Core и набор вместе:
+
+<!-- release:cdn-pinned -->
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@simai-studio/ui@5.20261105.1447/distr/core/js/core.min.js" data-sf-sets="view@1.1.0"></script>
+<script src="https://cdn.jsdelivr.net/npm/@simai-studio/ui@5.20261117.1311/distr/core/js/core.min.js" data-sf-sets="view@1.9.0"></script>
 ```
+<!-- /release:cdn-pinned -->
 
 ## Из своей копии
 
 Если страница раздаёт сборку набора сама — со своего сервера или из своей
 сборки сайта, — она указывает адрес до запуска Core:
 
+<!-- release:boot -->
 ```html
 <script>
   window.SF_BOOT_CONFIG = {
     packages: {
-      view: {base: '/assets/ui-view/smart', version: '1.1.0'}
+      view: {base: '/assets/ui-view/smart', version: '1.9.0'}
     }
   };
 </script>
 <script src="/assets/ui/distr/core/js/core.min.js"></script>
 ```
+<!-- /release:boot -->
 
 `base` — папка `smart/` сборки набора: в ней лежат `rule.js` и папки
 компонентов. Этот сайт подключает набор именно так, из своей сборки.
@@ -65,9 +75,11 @@ SIMAI Framework `ui-62b1d9b6dc8d` и работает с `core.runtime` 1.25.0 �
 Набор опубликован в npm как `@simai-studio/view`. Пакет нужен, когда
 страница раздаёт файлы со своего сервера или собирает их своей сборкой:
 
+<!-- release:npm -->
 ```bash
-npm install @simai-studio/view@1.1.0 @simai-studio/ui@5.20261105.1447
+npm install @simai-studio/view@1.9.0 @simai-studio/ui@5.20261117.1311
 ```
+<!-- /release:npm -->
 
 Готовая сборка набора лежит в `node_modules/@simai-studio/view/dist/`:
 паспорт `set.json` и папка `smart/` с `rule.js` и папками компонентов.
@@ -80,14 +92,27 @@ npm install @simai-studio/view@1.1.0 @simai-studio/ui@5.20261105.1447
 ровно над одним выпуском SIMAI Framework и называет наименьший Core, с
 которым работает.
 
+<!-- release:versions -->
 | Набор | Выпуск | Собран над SIMAI Framework | Нужен Core |
 |:---|:---|:---|:---|
-| 1.1.0 | `view-4d7070623fe1` | `ui-62b1d9b6dc8d` (npm `@simai-studio/ui@5.20261105.1447`) | `core.runtime` 1.25.0 или новее |
-| 1.0.0 | `view-9c963d217188` | `ui-62b1d9b6dc8d` (npm `@simai-studio/ui@5.20261105.1447`) | `core.runtime` 1.25.0 или новее |
+| 1.9.0 | кандидат, эта сборка сайта | `ui-24d64b7f6eb7` | `core.runtime` 1.51.0 или новее |
+| 1.8.1 | `view-69a213f6773f` | `ui-141822273efe` | `core.runtime` 1.51.0 или новее |
+| 1.8.0 | `view-80e24b1bd7cc` | `ui-141822273efe` | `core.runtime` 1.51.0 или новее |
+| 1.7.1 | `view-9eff67bbf11f` | `ui-7fb26d395af2` | `core.runtime` 1.51.0 или новее |
+| 1.7.0 | `view-0e589597e2d9` | `ui-2bd5a3ab478a` | `core.runtime` 1.51.0 или новее |
+| 1.6.0 | `view-23ed2acf30d7` | `ui-a0370c0c99fb` | `core.runtime` 1.43.0 или новее |
+| 1.5.1 | `view-aea031ba718b` | `ui-b4a77681f0a7` | `core.runtime` 1.43.0 или новее |
+| 1.5.0 | `view-99763f547560` | `ui-cb287da78ab1` | `core.runtime` 1.43.0 или новее |
+| 1.4.0 | `view-99c8dd1585fd` | `ui-0c23f6a0af12` | `core.runtime` 1.25.0 или новее |
+| 1.3.0 | `view-cd0d82aeb756` | `ui-1e5ec795a1ce` | `core.runtime` 1.25.0 или новее |
+| 1.2.0 | `view-f529c2354b0d` | `ui-1e5ec795a1ce` | `core.runtime` 1.25.0 или новее |
+| 1.1.0 | `view-4d7070623fe1` | `ui-62b1d9b6dc8d` | `core.runtime` 1.25.0 или новее |
+| 1.0.0 | `view-9c963d217188` | `ui-62b1d9b6dc8d` | `core.runtime` 1.25.0 или новее |
+<!-- /release:versions -->
 
 Строка без версии (`data-sf-sets="view"`) берёт самый новый выпуск набора,
 который подходит к подключённому Core. Для рабочего сайта закрепите версию
-(`data-sf-sets="view@1.1.0"`): обновление станет вашим решением, а не
+(`data-sf-sets="view@<версия>"`): обновление станет вашим решением, а не
 случайностью. Как переходить на новую версию — в разделе
 [Обновление версий](../upgrading/).
 

@@ -20,6 +20,7 @@ profile: tutorial
    одной строкой. Атрибут `data-sf-sets="view"` говорит Loader, что
    странице нужен набор SIMAI View:
 
+   <!-- release:quick-start-page -->
    ```html
    <!doctype html>
    <html lang="ru">
@@ -27,13 +28,14 @@ profile: tutorial
      <meta charset="utf-8">
      <meta name="viewport" content="width=device-width, initial-scale=1">
      <title>Клиенты</title>
-     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@simai-studio/ui@5.20261105.1447/distr/core/css/core.min.css">
+     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@simai-studio/ui@5.20261117.1311/distr/core/css/core.min.css">
    </head>
    <body class="p-4">
-     <script src="https://cdn.jsdelivr.net/npm/@simai-studio/ui@5.20261105.1447/distr/core/js/core.min.js" data-sf-sets="view"></script>
+     <script src="https://cdn.jsdelivr.net/npm/@simai-studio/ui@5.20261117.1311/distr/core/js/core.min.js" data-sf-sets="view"></script>
    </body>
    </html>
    ```
+   <!-- /release:quick-start-page -->
 
 2. Поставьте таблицу в `<body>`, перед строкой со скриптом. Таблице нужно
    доступное имя — его читает экранный диктор:
@@ -115,5 +117,5 @@ profile: tutorial
 ## См. также
 
 - [Подключение](../connection/) — версии, npm и своя копия набора.
-- [Загрузка данных с сервера](../recipes/load-from-server/)
+- [Загрузка данных с сервера](/ru/recipes/load-from-server/)
 - [Умная таблица sf-view-table](/ru/components/views/view-table/)

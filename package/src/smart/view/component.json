@@ -3,6 +3,71 @@
   "id": "smart.view",
   "tag": "sf-view",
   "version": "1.13.5",
+  "x-history": [
+    {
+      "version": "1.13.5",
+      "kind": "patch",
+      "recorded_on": "2026-11-17",
+      "consumer": "Nothing to change for a host: the same look, asked for as ghost instead of its former name link.",
+      "evidence": "https://github.com/simai/ui-view/commit/da5de52ef022bfcd6da197ee6963675ded22ef08"
+    },
+    {
+      "version": "1.13.4",
+      "kind": "patch",
+      "recorded_on": "2026-11-17",
+      "consumer": "Nothing to change for a host: former names that ended 2026-12-01 now end 2027-01-01 and keep coming as before.",
+      "evidence": "https://github.com/simai/ui-view/commit/fa0ee5e8a1ee42a718079a2430cc9b36df8b93c6"
+    },
+    {
+      "version": "1.13.3",
+      "kind": "patch",
+      "recorded_on": "2026-11-17",
+      "consumer": "Nothing to change for a host: the bulk band orders its actions with the Framework's own rule instead of a copy.",
+      "evidence": "https://github.com/simai/ui-view/commit/6213b80d272b881ba31bad1bd8d7ba16d6ed5fce"
+    },
+    {
+      "version": "1.13.2",
+      "kind": "patch",
+      "recorded_on": "2026-11-17",
+      "consumer": "Nothing to change for a host: the same field look, asked for by its current name.",
+      "evidence": "https://github.com/simai/ui-view/commit/12a1f16bf2063fb522fe6c6074049a0fd08e1886"
+    },
+    {
+      "version": "1.13.1",
+      "kind": "patch",
+      "recorded_on": "2026-11-17",
+      "consumer": "Nothing to change for a host: the move and confirm window puts its main action first and «Отмена» last.",
+      "evidence": "https://github.com/simai/ui-view/commit/15af7a0972a5625f9df050e3c8ed55acf71fcff0"
+    },
+    {
+      "version": "1.13.0",
+      "kind": "minor",
+      "recorded_on": "2026-11-17",
+      "consumer": "Nothing to change for a host; a page that styled sf-pagination's compatible footer inside sf-view now styles the view's own footer row (slot footer).",
+      "evidence": "https://github.com/simai/ui-view/commit/4c1a3e3c70de704ecd5f95f99fdbc7d6a5ab944e"
+    },
+    {
+      "version": "1.12.5",
+      "kind": "patch",
+      "recorded_on": "2026-11-16",
+      "consumer": "Nothing to change for a host: the utility classes come with the component, so the first paint no longer shifts.",
+      "evidence": "https://github.com/simai/ui-view/commit/cc73a1fa9632a29db947dde22160a9016bfee4ed"
+    },
+    {
+      "version": "1.12.4",
+      "kind": "patch",
+      "recorded_on": "2026-11-16",
+      "consumer": "Nothing to change for a host: the compact list toolbar keeps its spacing when the list comes.",
+      "evidence": "https://github.com/simai/ui-view/commit/961bdae11e2749f69ac7fbb744b197b74e8c4a23"
+    }
+  ],
+  "x-framework-first": {
+    "$comment": "Copies of Framework parts kept knowingly, part id (docs/FRAMEWORK-FIRST.md) to the Framework order (FO) each waits for (set standard draft 1.1 §7.3). The repin that brings an order removes its copy.",
+    "waits": {
+      "V-06": "FO-6",
+      "V-11": "FO-1"
+    }
+  },
   "kind": "leaf",
   "family": "table",
   "settings": {

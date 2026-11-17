@@ -4348,15 +4348,15 @@
             "schema_version": 2,
             "package": "view",
             "requires": "ui-24d64b7f6eb7",
-            "mount": "_docara/framework-packages/view/b88360f58106804affb58c4a884adebea4cd000e",
+            "mount": "_docara/framework-packages/view/24fe7dbf12a503157a813b083f8322d5d37a010a",
             "receipt": {
                 "schema": "simai.framework.product-package-receipt",
                 "schema_version": 1,
                 "package_source": {
                     "repository": "simai/ui-view",
-                    "revision": "b88360f58106804affb58c4a884adebea4cd000e",
+                    "revision": "24fe7dbf12a503157a813b083f8322d5d37a010a",
                     "path": "package",
-                    "tree": "4b223e65fc67955b04186f2ef3e225c217410166"
+                    "tree": "34e1dbd7917e51b136a101ab9704c6434b89a819"
                 },
                 "framework_source": {
                     "repository": "simai/ui-source",
@@ -4366,8 +4366,8 @@
                     "repository": "simai/ui-builder",
                     "revision": "16e9a81c1f2838f7cfeebbbd19654016743c9672"
                 },
-                "manifest_sha256": "c78b168fa7dc91ecddaad3d125ad86e2ee51795b2bb4baa1b9836568e7c02a6a",
-                "archive_sha256": "738d559320f46226e154a96ef3ed7a2415d8401882216d784d5d2f88f243358e"
+                "manifest_sha256": "293c8200d4d0534950ad7a34945253d6f7afd0f37594ca8a95e0c34e2071b52e",
+                "archive_sha256": "bfc4fe0847c1f05ed961ea9d1a7f018467662cedb94c7ec08ff9ee0689d912e0"
             },
             "files": {
                 "set.json": {

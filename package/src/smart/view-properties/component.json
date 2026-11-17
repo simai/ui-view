@@ -3,6 +3,71 @@
   "id": "smart.view-properties",
   "tag": "sf-view-properties",
   "version": "1.16.11",
+  "x-history": [
+    {
+      "version": "1.16.11",
+      "kind": "patch",
+      "recorded_on": "2026-11-17",
+      "consumer": "Nothing to change for a host: the same look, asked for as ghost instead of its former name link.",
+      "evidence": "https://github.com/simai/ui-view/commit/da5de52ef022bfcd6da197ee6963675ded22ef08"
+    },
+    {
+      "version": "1.16.10",
+      "kind": "patch",
+      "recorded_on": "2026-11-17",
+      "consumer": "Nothing to change for a host: former names that ended 2026-12-01 now end 2027-01-01 and keep coming as before.",
+      "evidence": "https://github.com/simai/ui-view/commit/fa0ee5e8a1ee42a718079a2430cc9b36df8b93c6"
+    },
+    {
+      "version": "1.16.9",
+      "kind": "patch",
+      "recorded_on": "2026-11-17",
+      "consumer": "Nothing to change for a host: the same field look, asked for by its current name.",
+      "evidence": "https://github.com/simai/ui-view/commit/12a1f16bf2063fb522fe6c6074049a0fd08e1886"
+    },
+    {
+      "version": "1.16.8",
+      "kind": "patch",
+      "recorded_on": "2026-11-17",
+      "consumer": "Nothing to change for a host: the not-placed count is a grey tonal badge.",
+      "evidence": "https://github.com/simai/ui-view/commit/15af7a0972a5625f9df050e3c8ed55acf71fcff0"
+    },
+    {
+      "version": "1.16.7",
+      "kind": "patch",
+      "recorded_on": "2026-11-17",
+      "consumer": "Nothing to change for a host: a record to read opens with the focus on its title.",
+      "evidence": "https://github.com/simai/ui-view/commit/e1ef6090bb2e3c80e15211949b77d0cb032fb03d"
+    },
+    {
+      "version": "1.16.6",
+      "kind": "patch",
+      "recorded_on": "2026-11-16",
+      "consumer": "Nothing to change for a host: the utility classes come with the component, so the first paint no longer shifts.",
+      "evidence": "https://github.com/simai/ui-view/commit/cc73a1fa9632a29db947dde22160a9016bfee4ed"
+    },
+    {
+      "version": "1.16.5",
+      "kind": "patch",
+      "recorded_on": "2026-11-16",
+      "consumer": "Nothing to change for a host: copy-link and open-full beside the close are the page's small buttons.",
+      "evidence": "https://github.com/simai/ui-view/commit/27123f35b34b0ac9e88a3f05a7658e5143cfb89f"
+    },
+    {
+      "version": "1.16.4",
+      "kind": "patch",
+      "recorded_on": "2026-11-16",
+      "consumer": "Nothing to change for a host: the panel's title and foot follow the drawer's window steps.",
+      "evidence": "https://github.com/simai/ui-view/commit/85b747fe0b6d2682ff478130d431c2412d5d0b96"
+    }
+  ],
+  "x-framework-first": {
+    "$comment": "Copies of Framework parts kept knowingly, part id (docs/FRAMEWORK-FIRST.md) to the Framework order (FO) each waits for (set standard draft 1.1 §7.3). The repin that brings an order removes its copy.",
+    "waits": {
+      "P-14": "FO-3",
+      "P-17": "FO-7"
+    }
+  },
   "kind": "leaf",
   "family": "record",
   "implements": [

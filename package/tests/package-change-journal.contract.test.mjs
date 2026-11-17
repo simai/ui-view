@@ -122,3 +122,41 @@ test('the journal says which numbers are ui-pro\'s and not the set\'s', () => {
     for (const numbers of Object.values(PRO_COPY_NUMBERS)) for (const number of numbers) assert.ok(changes.includes(number), `CHANGELOG names ${number}`);
   }
 });
+
+// One journal (draft set standard §6.4, VS1.r3; view round 1 F3, F5): every
+// version since view 1.8.1 has one component.json `x-history` entry with its
+// kind (from the version step), a consumer note of more than ten characters,
+// and its evidence -- the commit that made it, or a ui-control evidence path.
+// docs/view/units.json is generated from it (scripts/write-units.mjs).
+// view 1.8.1 shipped sf-view-flow 1.1.2 too (preview, so not in RELEASED's line).
+const HISTORY_SINCE = {...RELEASED['view 1.8.1'], 'view-flow': '1.1.2'};
+const EVIDENCE = /^(https:\/\/github\.com\/simai\/ui-view\/commit\/[0-9a-f]{40}|https:\/\/github\.com\/simai\/ui-control\/(blob|tree)\/[^\s]+\/control\/evidence\/\S+|control\/evidence\/\S+|docs\/evidence\/\S+)$/u;
+const stepKind = (from, to) => {
+  const [a, b] = [semver(from), semver(to)];
+  return a[0] !== b[0] ? 'major' : a[1] !== b[1] ? 'minor' : 'patch';
+};
+
+test('every version since the last release has one history entry with kind, consumer and evidence', () => {
+  for (const folder of packageFolders) {
+    const component = read(`src/smart/${folder}/component.json`);
+    const since = HISTORY_SINCE[folder] ?? '0.0.0';
+    const migrations = (component['x-registry']?.compatibility?.migrations ?? []).filter((one) => above(one.to, since));
+    const history = component['x-history'] ?? [];
+    assert.deepEqual(history.map((entry) => entry.version).sort(), migrations.map((one) => one.to).sort(), `${folder}: one history entry per version since ${since}`);
+    if (migrations.length) assert.equal(history[0].version, component.version, `${folder}: the newest entry is the component's version`);
+    for (const entry of history) {
+      const migration = migrations.find((one) => one.to === entry.version);
+      assert.equal(entry.kind, stepKind(migration.from, migration.to), `${folder} ${entry.version}: kind follows ${migration.from} -> ${migration.to}`);
+      assert.ok(typeof entry.consumer === 'string' && entry.consumer.length > 10, `${folder} ${entry.version}: a consumer note`);
+      assert.match(entry.recorded_on ?? '', DATE, `${folder} ${entry.version}: recorded_on`);
+      assert.match(entry.evidence ?? '', EVIDENCE, `${folder} ${entry.version}: evidence is a commit or an evidence path`);
+    }
+  }
+});
+
+test('docs/view/units.json is generated from the history and current', async (t) => {
+  const setRoot = process.env.SET_ROOT;
+  if (!setRoot) { t.skip('SET_ROOT is not set (run through scripts/test.mjs)'); return; }
+  const {units, UNITS_PATH} = await import(resolve(setRoot, 'scripts/write-units.mjs'));
+  assert.equal(readFileSync(resolve(setRoot, UNITS_PATH), 'utf8'), `${JSON.stringify(units(setRoot), null, 2)}\n`, 'run node package/scripts/write-units.mjs');
+});

@@ -14,14 +14,19 @@
         "href": "/ru/guide/"
       },
       {
-        "id": "fields",
-        "label": "Поля",
-        "href": "/ru/fields/"
-      },
-      {
         "id": "components",
         "label": "Компоненты",
         "href": "/ru/components/"
+      },
+      {
+        "id": "recipes",
+        "label": "Рецепты",
+        "href": "/ru/recipes/"
+      },
+      {
+        "id": "properties",
+        "label": "Свойства",
+        "href": "/ru/properties/"
       }
     ]
   }

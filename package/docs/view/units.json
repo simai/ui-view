@@ -1,0 +1,259 @@
+{
+  "schema": "simai.view.unit-journal",
+  "schema_version": 1,
+  "summary": "One entry per version of each component of the set view, written by scripts/write-units.mjs from component.json x-history (kind, consumer note, evidence) and the version's migration entry (changes). Former public names are dated in each component's aliases.json.",
+  "entries": [
+    {
+      "unit": "smart.view",
+      "version": "1.13.5",
+      "recorded_on": "2026-11-17",
+      "change": "patch",
+      "consumer": "Nothing to change for a host: the same look, asked for as ghost instead of its former name link.",
+      "summary": "Over SIMAI Framework ui-24d64b7f6eb7: its icon buttons and buttons ask for the look ghost where they asked for link, ghost's former name (component.icon-buttons 1.14.0, sf-button-icon 1.13.3, sf-button 1.16.3, RG-IB-1..3, C213); the printed row menu wrote sf-icon-button--link, which the pair answers with a console warning. The same look; nothing to change for a host.",
+      "evidence": "https://github.com/simai/ui-view/commit/da5de52ef022bfcd6da197ee6963675ded22ef08"
+    },
+    {
+      "unit": "smart.view",
+      "version": "1.13.4",
+      "recorded_on": "2026-11-17",
+      "change": "patch",
+      "consumer": "Nothing to change for a host: former names that ended 2026-12-01 now end 2027-01-01 and keep coming as before.",
+      "summary": "Former names (aliases.json, every alias that ended 2026-12-01) now end 2027-01-01 (draft set standard §13.4, view round 1 G1): no alias may end before the main consumer moves to the set, Larena on data-sf-sets=\"admin view\" on 2026-12-15, with at least two weeks' margin. The old names keep coming as before; nothing to change for a host.",
+      "evidence": "https://github.com/simai/ui-view/commit/fa0ee5e8a1ee42a718079a2430cc9b36df8b93c6"
+    },
+    {
+      "unit": "smart.view",
+      "version": "1.13.3",
+      "recorded_on": "2026-11-17",
+      "change": "patch",
+      "consumer": "Nothing to change for a host: the bulk band orders its actions with the Framework's own rule instead of a copy.",
+      "summary": "Framework first (draft set standard §7.4, view round 1 A3): the bulk band orders its actions and marks a deleting one with SIMAI Framework sf-pagination's own isDestructiveAction and orderActions (smart/pagination/js/actions.js, in the pair since ui-078a4b4c6f6e) instead of its copy _bulkDestructive, kept until the pair carried it. The same rule and order; nothing to change for a host.",
+      "evidence": "https://github.com/simai/ui-view/commit/6213b80d272b881ba31bad1bd8d7ba16d6ed5fce"
+    },
+    {
+      "unit": "smart.view",
+      "version": "1.13.2",
+      "recorded_on": "2026-11-17",
+      "change": "patch",
+      "consumer": "Nothing to change for a host: the same field look, asked for by its current name.",
+      "summary": "Over SIMAI Framework ui-24d64b7f6eb7 (ui-source 40541c0c4fba): the bulk band's action list asks sf-dropdown for appearance=\"bordered\", the field look's current name (sf-dropdown 1.18.1, FM-9); \"outlined\" is its dated former name until 2027-01-01. The same look; nothing to change for a host.",
+      "evidence": "https://github.com/simai/ui-view/commit/12a1f16bf2063fb522fe6c6074049a0fd08e1886"
+    },
+    {
+      "unit": "smart.view",
+      "version": "1.13.1",
+      "recorded_on": "2026-11-17",
+      "change": "patch",
+      "consumer": "Nothing to change for a host: the move and confirm window puts its main action first and «Отмена» last.",
+      "summary": "The move and confirm window's footer per C159 (4) and C144: the main action first at the start, the quiet «Отмена» (ghost, on-surface) last, --sf-space-1/3 apart (8, compact 4); it was an outline «Отмена» first and the main button last at the end, 20 apart (modal study MD-2).",
+      "evidence": "https://github.com/simai/ui-view/commit/15af7a0972a5625f9df050e3c8ed55acf71fcff0"
+    },
+    {
+      "unit": "smart.view",
+      "version": "1.13.0",
+      "recorded_on": "2026-11-17",
+      "change": "minor",
+      "consumer": "Nothing to change for a host; a page that styled sf-pagination's compatible footer inside sf-view now styles the view's own footer row (slot footer).",
+      "summary": "C97 (5): the footer is the view's own, one row «41–60 из 240 · По 20 ▾ · ‹ [3] из 12 ›» -- the range (with the offer to count) and the page size as a quiet button «По 20 ▾» with a menu drawn by the view (slot footer, light DOM), the page row sf-pagination appearance=field, navigation only; a page row given without appearance gets field. It no longer relies on sf-pagination's compatible footer (no appearance), which retires on 2027-01-01. The state stays the page row's (setState, page-sizes, its words); the first paint draws the same row. Nothing to change for a host.",
+      "evidence": "https://github.com/simai/ui-view/commit/4c1a3e3c70de704ecd5f95f99fdbc7d6a5ab944e"
+    },
+    {
+      "unit": "smart.view",
+      "version": "1.12.5",
+      "recorded_on": "2026-11-16",
+      "change": "patch",
+      "consumer": "Nothing to change for a host: the utility classes come with the component, so the first paint no longer shifts.",
+      "summary": "#172: the utility classes its templates write are its relations, asked for with the component; fetched after the first paint they moved the drawn parts (the bulk band 0 -> 8 gap, 8 px down)",
+      "evidence": "https://github.com/simai/ui-view/commit/cc73a1fa9632a29db947dde22160a9016bfee4ed"
+    },
+    {
+      "unit": "smart.view",
+      "version": "1.12.4",
+      "recorded_on": "2026-11-16",
+      "change": "patch",
+      "consumer": "Nothing to change for a host: the compact list toolbar keeps its spacing when the list comes.",
+      "summary": "C144: the skeleton's compact list toolbar holds the field, filter and Создать --sf-space-1 apart, as sf-view-table 1.20.1 draws them (the field no longer moves 8 when the list comes)",
+      "evidence": "https://github.com/simai/ui-view/commit/961bdae11e2749f69ac7fbb744b197b74e8c4a23"
+    },
+    {
+      "unit": "smart.view-table",
+      "version": "1.21.4",
+      "recorded_on": "2026-11-17",
+      "change": "patch",
+      "consumer": "Nothing to change for a host: the same look, asked for as ghost instead of its former name link.",
+      "summary": "Over SIMAI Framework ui-24d64b7f6eb7: its icon buttons and buttons ask for the look ghost where they asked for link, ghost's former name (component.icon-buttons 1.14.0, sf-button-icon 1.13.3, sf-button 1.16.3, RG-IB-1..3, C213); the printed row menu wrote sf-icon-button--link, which the pair answers with a console warning. The same look; nothing to change for a host.",
+      "evidence": "https://github.com/simai/ui-view/commit/da5de52ef022bfcd6da197ee6963675ded22ef08"
+    },
+    {
+      "unit": "smart.view-table",
+      "version": "1.21.3",
+      "recorded_on": "2026-11-17",
+      "change": "patch",
+      "consumer": "Nothing to change for a host: former names that ended 2026-12-01 now end 2027-01-01 and keep coming as before.",
+      "summary": "Former names (aliases.json, every alias that ended 2026-12-01) now end 2027-01-01 (draft set standard §13.4, view round 1 G1): no alias may end before the main consumer moves to the set, Larena on data-sf-sets=\"admin view\" on 2026-12-15, with at least two weeks' margin. The old names keep coming as before; nothing to change for a host.",
+      "evidence": "https://github.com/simai/ui-view/commit/fa0ee5e8a1ee42a718079a2430cc9b36df8b93c6"
+    },
+    {
+      "unit": "smart.view-table",
+      "version": "1.21.2",
+      "recorded_on": "2026-11-17",
+      "change": "patch",
+      "consumer": "Nothing to change for a host: only the SIMAI Framework file it builds in moved with the repin.",
+      "summary": "Over SIMAI Framework ui-24d64b7f6eb7 (ui-source 40541c0c4fba, core.runtime 1.59.0) the Framework file it builds in, src/smart/pagination/index.js, moved; the provenance and the version follow. Nothing of its own; nothing to change for a host.",
+      "evidence": "https://github.com/simai/ui-view/commit/12a1f16bf2063fb522fe6c6074049a0fd08e1886"
+    },
+    {
+      "unit": "smart.view-table",
+      "version": "1.21.1",
+      "recorded_on": "2026-11-17",
+      "change": "patch",
+      "consumer": "Nothing to change for a host: filter chips, search fields and the row menu use the Framework's current names and spacing.",
+      "summary": "SIMAI Pro follow-ups: filter chips stand --sf-space-1/4 apart (C105 H5; were 8) and are written with their current names (kind=default, active, sf-tag-close; were type, root-class=active and the dated close); the search fields carry the glass at the start, the field's own clear and a name (icon-start, clearable, aria-label; C123, C153 (6), TI-10); a group action's button and a host action with menu row-settings open the one standard row menu (C164 (2), CM-8) -- the hand-drawn second row menu is gone.",
+      "evidence": "https://github.com/simai/ui-view/commit/15af7a0972a5625f9df050e3c8ed55acf71fcff0"
+    },
+    {
+      "unit": "smart.view-table",
+      "version": "1.21.0",
+      "recorded_on": "2026-11-17",
+      "change": "minor",
+      "consumer": "Nothing to change for a host; people can set a column's width from the keyboard, and the width they choose is kept as before.",
+      "summary": "C158 (5): a column's width from the keyboard -- the table stays one Tab stop, the arrows walk the heads (a head with an edge and no sort button is a stop itself), Enter, Shift+F10, the menu key or the right button on a head with an edge opens «Изменить ширину · По содержимому · По умолчанию»; «Изменить ширину» takes the focus to the edge, whose arrows set the width through SIMAI Framework SF.Resizer.attach (sf-resizer 1.3.0), Enter or Escape go back to the head; «По содержимому» fits the column to its head and values on one line, kept as the person's width; «По умолчанию» drops it, as a double click on the edge still does. The edge's name and value («27 %») are words of the language files. Space on a sort button still sorts.",
+      "evidence": "https://github.com/simai/ui-view/commit/4c1a3e3c70de704ecd5f95f99fdbc7d6a5ab944e"
+    },
+    {
+      "unit": "smart.view-table",
+      "version": "1.20.3",
+      "recorded_on": "2026-11-17",
+      "change": "patch",
+      "consumer": "Nothing to change for a host: a resource row's more button names its record.",
+      "summary": "PRO-ADM-9: a resource row's more button names its record (Ещё действия: <name>), as the row menu button does (Действия: <name>)",
+      "evidence": "https://github.com/simai/ui-view/commit/e1ef6090bb2e3c80e15211949b77d0cb032fb03d"
+    },
+    {
+      "unit": "smart.view-table",
+      "version": "1.20.2",
+      "recorded_on": "2026-11-16",
+      "change": "patch",
+      "consumer": "Nothing to change for a host: the utility classes come with the component, so the first paint no longer shifts.",
+      "summary": "#172: the utility classes its templates write are its relations, asked for with the component; fetched after the first paint they moved the drawn parts (the bulk band 0 -> 8 gap, 8 px down)",
+      "evidence": "https://github.com/simai/ui-view/commit/cc73a1fa9632a29db947dde22160a9016bfee4ed"
+    },
+    {
+      "unit": "smart.view-table",
+      "version": "1.20.1",
+      "recorded_on": "2026-11-16",
+      "change": "patch",
+      "consumer": "Nothing to change for a host: the list toolbar's three groups stand --sf-space-1 apart.",
+      "summary": "C144: the list toolbar's field, view buttons (filter and sort, 1/3 apart) and Создать are three groups --sf-space-1 apart (12 on a phone, was 8)",
+      "evidence": "https://github.com/simai/ui-view/commit/2f3c8571f96002ef0092886077f24ebd6981d502"
+    },
+    {
+      "unit": "smart.view-table",
+      "version": "1.20.0",
+      "recorded_on": "2026-11-16",
+      "change": "minor",
+      "consumer": "A host may name key columns (columns[].key_cell, key_line) to choose what a phone row keeps; row menus follow the host's row actions, so a page that set the menu through row-actions passes them as row actions.",
+      "summary": "C259: below 44rem a table with row actions keeps the select box, the row menu and its key columns (columns[].key_cell) alone without sideways scroll, the key cell carries a second line (columns[].key_line); one row menu (sf-menu-context for=) over table and list rows, every action of the row in it; row menus follow the host's row actions, not row-actions",
+      "evidence": "https://github.com/simai/ui-view/commit/6fbaf50f70987175cbbaba7c2d5d298852a94c7f"
+    },
+    {
+      "unit": "smart.view-table",
+      "version": "1.19.9",
+      "recorded_on": "2026-11-16",
+      "change": "patch",
+      "consumer": "Nothing to change for a host: only the SIMAI Framework file it builds in moved with the repin.",
+      "summary": "Over SIMAI Framework ui-078a4b4c6f6e (ui-source 10145e63b9dc) the Framework file it builds in, src/smart/pagination/index.js (sf-pagination 1.7: «Show more» within reach, C167; a deleting action listed last, C116), moved; the provenance and the version follow. Nothing of its own; nothing to change for a host. 1.19.7 and 1.19.8 are ui-pro's own patched copies, never this set's.",
+      "evidence": "https://github.com/simai/ui-view/commit/e214dd608fdcf39cea527676fc522afd718922d4"
+    },
+    {
+      "unit": "smart.view-properties",
+      "version": "1.16.11",
+      "recorded_on": "2026-11-17",
+      "change": "patch",
+      "consumer": "Nothing to change for a host: the same look, asked for as ghost instead of its former name link.",
+      "summary": "Over SIMAI Framework ui-24d64b7f6eb7: its icon buttons and buttons ask for the look ghost where they asked for link, ghost's former name (component.icon-buttons 1.14.0, sf-button-icon 1.13.3, sf-button 1.16.3, RG-IB-1..3, C213); the printed row menu wrote sf-icon-button--link, which the pair answers with a console warning. The same look; nothing to change for a host.",
+      "evidence": "https://github.com/simai/ui-view/commit/da5de52ef022bfcd6da197ee6963675ded22ef08"
+    },
+    {
+      "unit": "smart.view-properties",
+      "version": "1.16.10",
+      "recorded_on": "2026-11-17",
+      "change": "patch",
+      "consumer": "Nothing to change for a host: former names that ended 2026-12-01 now end 2027-01-01 and keep coming as before.",
+      "summary": "Former names (aliases.json, every alias that ended 2026-12-01) now end 2027-01-01 (draft set standard §13.4, view round 1 G1): no alias may end before the main consumer moves to the set, Larena on data-sf-sets=\"admin view\" on 2026-12-15, with at least two weeks' margin. The old names keep coming as before; nothing to change for a host.",
+      "evidence": "https://github.com/simai/ui-view/commit/fa0ee5e8a1ee42a718079a2430cc9b36df8b93c6"
+    },
+    {
+      "unit": "smart.view-properties",
+      "version": "1.16.9",
+      "recorded_on": "2026-11-17",
+      "change": "patch",
+      "consumer": "Nothing to change for a host: the same field look, asked for by its current name.",
+      "summary": "Over SIMAI Framework ui-24d64b7f6eb7 (ui-source 40541c0c4fba): the money field's currency choice and the settings' variant choice ask sf-dropdown for appearance=\"bordered\", the field look's current name (sf-dropdown 1.18.1, FM-9); \"outlined\" is its dated former name until 2027-01-01. The same look; nothing to change for a host.",
+      "evidence": "https://github.com/simai/ui-view/commit/12a1f16bf2063fb522fe6c6074049a0fd08e1886"
+    },
+    {
+      "unit": "smart.view-properties",
+      "version": "1.16.8",
+      "recorded_on": "2026-11-17",
+      "change": "patch",
+      "consumer": "Nothing to change for a host: the not-placed count is a grey tonal badge.",
+      "summary": "The not-placed bin's count is a grey tonal sf-badge (C140 (3); accordion AC-3, tags TG-5), not an sf-tag in the retired appearance surface.",
+      "evidence": "https://github.com/simai/ui-view/commit/15af7a0972a5625f9df050e3c8ed55acf71fcff0"
+    },
+    {
+      "unit": "smart.view-properties",
+      "version": "1.16.7",
+      "recorded_on": "2026-11-17",
+      "change": "patch",
+      "consumer": "Nothing to change for a host: a record to read opens with the focus on its title.",
+      "summary": "PRO-ADM-16: a record to read opens with the focus on its title (out of the Tab order), not on the favourite star whose tooltip stood over the title; a record with a field keeps the field the drawer focuses",
+      "evidence": "https://github.com/simai/ui-view/commit/e1ef6090bb2e3c80e15211949b77d0cb032fb03d"
+    },
+    {
+      "unit": "smart.view-properties",
+      "version": "1.16.6",
+      "recorded_on": "2026-11-16",
+      "change": "patch",
+      "consumer": "Nothing to change for a host: the utility classes come with the component, so the first paint no longer shifts.",
+      "summary": "#172: the utility classes its templates write are its relations, asked for with the component; fetched after the first paint they moved the drawn parts (the bulk band 0 -> 8 gap, 8 px down)",
+      "evidence": "https://github.com/simai/ui-view/commit/cc73a1fa9632a29db947dde22160a9016bfee4ed"
+    },
+    {
+      "unit": "smart.view-properties",
+      "version": "1.16.5",
+      "recorded_on": "2026-11-16",
+      "change": "patch",
+      "consumer": "Nothing to change for a host: copy-link and open-full beside the close are the page's small buttons.",
+      "summary": "In its panel (C205 (2); ui-pro f29d4bf taken back, so ui-view is the one home of the component): (1) when sf-drawer brings the edge controls into its head's row (data-sf-drawer-edge-in-head: a phone, size full, or no room beside the panel), copy-link and open-full are the page's buttons beside the close: size 1/3 (they were the panel's size, 36-40 next to a 24-28 close), without the raised popup plate, in a row 8 apart; the wrapper no longer keeps a column there. The view follows the drawer's attribute (it measures), and draws the controls anew when their place changes. Beside a wide panel they are unchanged. (2) A filled panel whose edge stands in the drawer's head starts its head on the panel's axis and stops --sf-space-1/3 short of the drawer's --sf-drawer-edge-room: still padded for a strip at its start, the record's name ran under the controls at 390. 1.16.4 here is VP-5/VP-8; ui-pro's own 1.16.1, 1.16.2 and 1.16.4 are its patched copies, superseded by this version. Markup, settings, events and the host port unchanged.",
+      "evidence": "https://github.com/simai/ui-view/commit/27123f35b34b0ac9e88a3f05a7658e5143cfb89f"
+    },
+    {
+      "unit": "smart.view-properties",
+      "version": "1.16.4",
+      "recorded_on": "2026-11-16",
+      "change": "patch",
+      "consumer": "Nothing to change for a host: the panel's title and foot follow the drawer's window steps.",
+      "summary": "In its panel (VP-5, VP-8 of the 2026-11-16 re-check; C157 (3), C157 (7) = C159 (4), (5)): (1) the title reads the window title step the drawer's panel publishes, --sf-drawer--title-size / --sf-drawer--title-height (sf-drawer 1.16.4), before the h4 role: the head stands inside the drawer's body, where sf-drawer 1.16.0 moves the heading roles down for the content, and the title drew 16/18 (a phone 14/16) instead of 20/24 (16). --sf-property-view--title-* still come first; with no drawer, or a drawer before 1.16.4, the h4 role as before. (2) On a phone (below 48rem) Save (or Create) and Cancel in the foot share the row in equal halves, 8 apart, the main one first; what else the bar holds wraps under them. The desktop foot is unchanged. Markup, settings, events and the host port unchanged.",
+      "evidence": "https://github.com/simai/ui-view/commit/85b747fe0b6d2682ff478130d431c2412d5d0b96"
+    },
+    {
+      "unit": "smart.view-flow",
+      "version": "1.1.4",
+      "recorded_on": "2026-11-16",
+      "change": "patch",
+      "consumer": "Nothing to change for a host: the utility classes come with the component, so the first paint no longer shifts.",
+      "summary": "#172: the utility classes its templates write are its relations, asked for with the component; fetched after the first paint they moved the drawn parts (the bulk band 0 -> 8 gap, 8 px down)",
+      "evidence": "https://github.com/simai/ui-view/commit/cc73a1fa9632a29db947dde22160a9016bfee4ed"
+    },
+    {
+      "unit": "smart.view-flow",
+      "version": "1.1.3",
+      "recorded_on": "2026-11-16",
+      "change": "patch",
+      "consumer": "Nothing to change for a host: only the SIMAI Framework file it builds in moved with the repin.",
+      "summary": "Over SIMAI Framework ui-078a4b4c6f6e (ui-source 10145e63b9dc) the Framework file it builds in, src/smart/helpers/confirm-surface.js, moved; the provenance and the version follow. Nothing of its own; nothing to change for a host.",
+      "evidence": "https://github.com/simai/ui-view/commit/e214dd608fdcf39cea527676fc522afd718922d4"
+    }
+  ]
+}
