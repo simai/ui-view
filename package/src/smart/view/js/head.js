@@ -245,15 +245,15 @@ export class ListHead {
             ? `<div class="sf-view-head-title" data-title>
                  <h2 class="sf-view-head-name"><span data-name></span><sf-badge data-count size="1/2" appearance="tonal" scheme="primary" hidden></sf-badge></h2>
                  <div class="sf-view-head-title-end">
-                   <sf-button-icon data-kind-menu size="${size}" ${outline} icon="table_rows" aria-haspopup="menu"></sf-button-icon>
-                   <sf-button-icon data-open="view" size="${size}" ${outline} icon="tune"></sf-button-icon>
-                   <sf-button-icon data-list-menu size="${size}" appearance="ghost" scheme="on-surface" icon="more_vert" aria-haspopup="menu" hidden></sf-button-icon>
+                   <sf-button-icon class="sf-view-head-kind-menu" data-kind-menu size="${size}" ${outline} icon="table_rows" aria-haspopup="menu"></sf-button-icon>
+                   <sf-button-icon class="sf-view-head-tune" data-open="view" size="${size}" ${outline} icon="tune"></sf-button-icon>
+                   <sf-button-icon class="sf-view-head-more" data-list-menu size="${size}" appearance="ghost" scheme="on-surface" icon="more_vert" aria-haspopup="menu" hidden></sf-button-icon>
                  </div>
                </div>
                <div class="sf-view-head-row">
-                 <sf-button-icon data-open="filter" size="${size}" icon="filter_list"></sf-button-icon>
+                 <sf-button-icon class="sf-view-head-filter-icon" data-open="filter" size="${size}" icon="filter_list"></sf-button-icon>
                  <div class="sf-view-head-search"><sf-input data-search appearance="filled" size="${size}" icon-start="search" input-type="search" clearable></sf-input></div>
-                 <sf-button-icon data-create size="${size}" icon="add" aria-haspopup="menu" hidden></sf-button-icon>
+                 <sf-button-icon class="sf-view-head-create" data-create size="${size}" icon="add" aria-haspopup="menu" hidden></sf-button-icon>
                </div>
                <div class="sf-view-head-fields" data-fields hidden></div>
                <sf-drawer data-sheet placement="bottom"><div slot="content" data-body></div></sf-drawer>
@@ -261,23 +261,23 @@ export class ListHead {
             : `<div class="sf-view-head-title" data-title>
                  <h2 class="sf-view-head-name"><span data-name></span><sf-badge data-count size="1/2" appearance="tonal" scheme="primary" hidden></sf-badge></h2>
                  <div class="sf-view-head-title-end">
-                   <sf-button data-views size="${size}" ${outline} icon-start="bookmarks" icon-end="expand_more" aria-haspopup="menu" hidden></sf-button>
+                   <sf-button class="sf-view-head-views" data-views size="${size}" ${outline} icon-start="bookmarks" icon-end="expand_more" aria-haspopup="menu" hidden></sf-button>
                    <sf-segmented data-kinds size="${size}" hidden></sf-segmented>
-                   ${pop("view", "bottom-end", `<sf-button slot="trigger" data-customize size="${size}" ${outline} icon-start="tune"></sf-button>`)}
-                   <sf-button-icon data-list-menu size="${size}" appearance="ghost" scheme="on-surface" icon="more_vert" aria-haspopup="menu" hidden></sf-button-icon>
+                   ${pop("view", "bottom-end", `<sf-button slot="trigger" class="sf-view-head-customize" size="${size}" ${outline} icon-start="tune"></sf-button>`)}
+                   <sf-button-icon class="sf-view-head-more" data-list-menu size="${size}" appearance="ghost" scheme="on-surface" icon="more_vert" aria-haspopup="menu" hidden></sf-button-icon>
                  </div>
                </div>
                <div class="sf-view-head-row">
                  <div class="sf-view-head-start">
                    <div class="sf-view-head-join" data-filter-group>
-                     ${pop("filter", "bottom-start", `<sf-button slot="trigger" data-filter size="${size}" segment="start" icon-start="filter_list"></sf-button>`)}
-                     ${pop("save", "bottom-start", `<sf-button-icon slot="trigger" data-save size="${size}" segment="end" icon="bookmark_add"></sf-button-icon>`)}
+                     ${pop("filter", "bottom-start", `<sf-button slot="trigger" class="sf-view-head-filter" size="${size}" segment="start" icon-start="filter_list"></sf-button>`)}
+                     ${pop("save", "bottom-start", `<sf-button-icon slot="trigger" class="sf-view-head-save" size="${size}" segment="end" icon="bookmark_add"></sf-button-icon>`)}
                    </div>
                    <div class="sf-view-head-fields" data-fields></div>
                  </div>
                  <div class="sf-view-head-end">
                    <div class="sf-view-head-search"><sf-input data-search appearance="filled" size="${size}" icon-start="search" input-type="search" clearable></sf-input></div>
-                   <sf-button data-create size="${size}" icon-start="add" hidden></sf-button>
+                   <sf-button class="sf-view-head-create" size="${size}" icon-start="add" hidden></sf-button>
                  </div>
                </div>
                <sf-drawer data-record placement="inline-end" size="2"><div slot="content" data-body></div></sf-drawer>`;
@@ -312,7 +312,7 @@ export class ListHead {
             set(count, "text", this.view._shownTotal ? this.view._shownTotal(total) : String(total));
             set(count, "aria-label", this.text("headCount").replace("{count}", String(total)));
         }
-        const views = one("[data-views]");
+        const views = one(".sf-view-head-views");
         const current = this.currentView;
         set(views, "hidden", this.savedViews.length || this.view.hostOffers("saved-views") ? null : "");
         set(views, "text", current?.label ?? current?.name ?? this.text("headViews"));
@@ -325,13 +325,13 @@ export class ListHead {
             set(kinds, "value", this.kind);
             set(kinds, "aria-label", this.text("headDisplay"));
         }
-        const kindMenu = one("[data-kind-menu]");
+        const kindMenu = one(".sf-view-head-kind-menu");
         set(kindMenu, "icon", KINDS[this.kind]);
         set(kindMenu, "aria-label", this.text("headDisplayMenu"));
-        const customize = one("[data-customize]");
+        const customize = one(".sf-view-head-customize");
         set(customize, "text", this.text("headCustomize"));
-        set(one('[data-open="view"]'), "aria-label", this.text("headCustomize"));
-        const listMenu = one("[data-list-menu]");
+        set(one(".sf-view-head-tune"), "aria-label", this.text("headCustomize"));
+        const listMenu = one(".sf-view-head-more");
         set(listMenu, "hidden", this.listMenu.length ? null : "");
         set(listMenu, "aria-label", this.text("headListMenu"));
 
@@ -343,24 +343,24 @@ export class ListHead {
         const filterTitle = filterName ? `${filterText}${dot ? ` ${this.text("headFilterChanged")}` : ""}` : null;
         // «Filter» is outline; with conditions set it is toned (C301 (3)).
         const look = this.anyCondition ? {appearance: "tonal", scheme: "primary"} : {appearance: "outline", scheme: "on-surface"};
-        for (const node of [one("[data-filter]"), one("[data-save]"), phone ? one('[data-open="filter"]') : null]) {
+        for (const node of [one(".sf-view-head-filter"), one(".sf-view-head-save"), one(".sf-view-head-filter-icon")]) {
             set(node, "appearance", look.appearance);
             set(node, "scheme", look.scheme);
         }
-        const filterButton = one("[data-filter]");
+        const filterButton = one(".sf-view-head-filter");
         this._truncate(filterButton, "min(22rem, 40vw)");
         set(filterButton, "text", `${filterText}${dot}`);
         set(filterButton, "title", filterTitle);
-        set(one('[data-open="filter"]'), "aria-label", filterName ? filterText : this.text("headFilter"));
-        set(one("[data-save]"), "aria-label", this.text("headSaveFilter"));
-        for (const node of root.querySelectorAll("[data-filter], [data-save], [data-open='filter']")) set(node, "disabled", refused ? "" : null);
+        set(one(".sf-view-head-filter-icon"), "aria-label", filterName ? filterText : this.text("headFilter"));
+        set(one(".sf-view-head-save"), "aria-label", this.text("headSaveFilter"));
+        for (const node of root.querySelectorAll(".sf-view-head-filter, .sf-view-head-save, .sf-view-head-filter-icon")) set(node, "disabled", refused ? "" : null);
         const search = one("[data-search]");
         set(search, "placeholder", this.text("headSearch"));
         set(search, "aria-label", this.view.getAttribute("aria-label") ? `${this.text("headSearch")}: ${this.view.getAttribute("aria-label")}` : this.text("headSearch"));
         set(search, "disabled", refused ? "" : null);
         const typed = String(this.query.search ?? "");
         if (search && !search.contains(document.activeElement) && (search.value ?? "") !== typed) search.value = typed;
-        const create = one("[data-create]");
+        const create = one(".sf-view-head-create");
         set(create, "hidden", this.creatable ? null : "");
         set(create, phone ? "aria-label" : "text", this.text("headCreate"));
         if (!phone) {
@@ -397,7 +397,7 @@ export class ListHead {
         const parts = [];
         if (phone && filterName) {
             const dot = this.changed ? " •" : "";
-            parts.push(`<sf-button data-open="filter" size="${size}" appearance="ghost" scheme="primary" icon-start="bookmark" data-truncate="14rem" text="${esc(filterName + dot)}" title="${esc(this.text("headFilterNamed").replace("{name}", filterName))}"></sf-button>`);
+            parts.push(`<sf-button class="sf-view-head-filter-name" data-open="filter" size="${size}" appearance="ghost" scheme="primary" icon-start="bookmark" text="${esc(filterName + dot)}" title="${esc(this.text("headFilterNamed").replace("{name}", filterName))}"></sf-button>`);
         }
         for (const name of this.chosen) {
             const field = this.field(name);
@@ -413,7 +413,7 @@ export class ListHead {
         if (this.anyCondition) parts.push(`<sf-button data-clear size="${size}" appearance="outline" scheme="on-surface" text="${esc(this.text("headClear"))}"></sf-button>`);
         if (phone && this.chosen.length) parts.push(`<sf-button-icon data-open="save" size="${size}" icon="bookmark_add" appearance="outline" scheme="on-surface" aria-label="${esc(this.text("headSaveFilter"))}"></sf-button-icon>`);
         box.innerHTML = parts.join("");
-        for (const node of box.querySelectorAll("[data-truncate]")) this._truncate(node, node.getAttribute("data-truncate"));
+        for (const node of box.querySelectorAll(".sf-view-head-filter-name")) this._truncate(node, "14rem");
         box.hidden = phone ? parts.length === 0 : false;
         for (const body of box.querySelectorAll("[data-body]")) this._bindBody(body);
         for (const popover of box.querySelectorAll("sf-popover")) {
@@ -882,12 +882,12 @@ export class ListHead {
     }
 
     _onCreatePress(event) {
-        if (this.mode === "phone" || !event.target?.closest?.("[data-create]")) return;
+        if (this.mode === "phone" || !event.target?.closest?.(".sf-view-head-create")) return;
         this._create(this.createItems[0]?.id ?? null);
     }
 
     _onCreateSelect(event) {
-        if (!event.target?.closest?.("[data-create]")) return;
+        if (!event.target?.closest?.(".sf-view-head-create")) return;
         const id = event.detail?.id;
         if (id !== null && id !== undefined) this._create(String(id));
     }
