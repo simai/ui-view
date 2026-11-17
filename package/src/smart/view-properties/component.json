@@ -253,7 +253,7 @@
     "panel-width": {
       "type": "string",
       "default": "",
-      "summary": "Former name until 2027-01-01 (C289 (2), C157 (2)): the panel never takes a width of its own. A length here is mapped to the nearest step of the drawer ladder (20rem \u2192 1/2, 24rem \u2192 1, 30rem \u2192 2; wider lands on 2) when panel-size is not set, with a console notice. Use panel-size."
+      "summary": "Former name until 2027-01-01 (C289 (2), C157 (2)): the panel never takes a width of its own. A length here is mapped to the nearest step of the drawer ladder (20rem → 1/2, 24rem → 1, 30rem → 2; wider lands on 2) when panel-size is not set, with a console notice. Use panel-size."
     },
     "personal-layer-text": {
       "type": "string",
@@ -327,7 +327,7 @@
         "tabs"
       ],
       "default": "list",
-      "summary": "Where the sections of an inline view are read: as a list beside the groups, which suits a settings screen with many of them, or as a row of tabs above them, which suits a record with a few. A panel lays them out by its width since 1.17.0 (C289 (5)): tabs with \u00ab\u0415\u0449\u0451 (n)\u00bb in a panel, the column in a panel of size full, a list of rows on a phone; there this setting is not read."
+      "summary": "Where the sections of an inline view are read: as a list beside the groups, which suits a settings screen with many of them, or as a row of tabs above them, which suits a record with a few. A panel lays them out by its width since 1.17.0 (C289 (5)): tabs with «Ещё (n)» in a panel, the column in a panel of size full, a list of rows on a phone; there this setting is not read."
     },
     "sections-label": {
       "type": "string",
@@ -897,6 +897,26 @@
       ]
     },
     {
+      "name": "cl-list-description",
+      "$comment": [
+        "A record to read is a description list: the label beside the value,",
+        "each group a heading of the list (C289 (4))."
+      ]
+    },
+    {
+      "name": "cl-list",
+      "$comment": [
+        "The phone's list of sections is sf-list rows (C289 (5))."
+      ]
+    },
+    {
+      "name": "cl-confirm",
+      "$comment": [
+        "A host's confirmation of a save is asked in place with sf-confirm",
+        "(C289 (7), C182)."
+      ]
+    },
+    {
       "name": "align-items/default",
       "$comment": [
         "The utility classes its templates write, asked for with the component (SIMAI Framework loader: a Framework component gets them from template-utilities.generated.json, a package component names them here); fetched after the first paint, they moved the drawn parts -- the bulk band's gap came 0 -> 8 and the band 8 px down some 150 ms in (View 1.8.1 acceptance, queue #172). The list is scripts/generate-template-utilities.mjs run over the overlay."
@@ -1178,6 +1198,16 @@
         "mode": "same-detail",
         "section": "§8",
         "note": "the event name carries the tag"
+      },
+      {
+        "from": "panel-width",
+        "to": null,
+        "kind": "attribute",
+        "since": "2026-11-17",
+        "remove_after": "2027-01-01",
+        "mode": "host-attribute",
+        "section": "C289 (2), C157 (2)",
+        "note": "read by the view itself: a length is mapped to the nearest drawer step (1/2, 1, 2) when panel-size is not set, with a console notice; no shim; use panel-size"
       }
     ]
   },

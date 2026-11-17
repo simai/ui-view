@@ -172,14 +172,14 @@
     },
     {
       "from": "panel-width",
-      "to": "panel-size",
+      "to": null,
       "kind": "attribute",
       "component": "sf-view-properties",
       "since": "2026-11-17",
       "remove_after": "2027-01-01",
       "mode": "host-attribute",
       "section": "C289 (2), C157 (2)",
-      "note": "read by the view itself: a length is mapped to the nearest drawer step (1/2, 1, 2) when panel-size is not set, with a console notice; no shim"
+      "note": "read by the view itself: a length is mapped to the nearest drawer step (1/2, 1, 2) when panel-size is not set, with a console notice; no shim; use panel-size"
     }
   ]
 }

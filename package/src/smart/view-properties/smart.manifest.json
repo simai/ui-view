@@ -41,6 +41,7 @@
       "smart.button-copy",
       "smart.button-icon",
       "smart.checkbox",
+      "smart.confirm",
       "smart.drawer",
       "smart.dropdown",
       "smart.empty-state",
@@ -54,6 +55,8 @@
       "smart.input-date",
       "smart.input-lookup",
       "smart.input-textarea",
+      "smart.list",
+      "smart.list-description",
       "smart.list-item",
       "smart.popover",
       "smart.profile-picker",
@@ -447,7 +450,7 @@
       "panel-width": {
         "type": "string",
         "default": "",
-        "description": "Former name until 2027-01-01 (C289 (2), C157 (2)): the panel never takes a width of its own. A length here is mapped to the nearest step of the drawer ladder (20rem \u2192 1/2, 24rem \u2192 1, 30rem \u2192 2; wider lands on 2) when panel-size is not set, with a console notice. Use panel-size."
+        "description": "Former name until 2027-01-01 (C289 (2), C157 (2)): the panel never takes a width of its own. A length here is mapped to the nearest step of the drawer ladder (20rem → 1/2, 24rem → 1, 30rem → 2; wider lands on 2) when panel-size is not set, with a console notice. Use panel-size."
       },
       "personal-layer-text": {
         "type": "string",
@@ -506,7 +509,7 @@
       "sections-as": {
         "type": "string",
         "default": "list",
-        "description": "Where the sections of an inline view are read: as a list beside the groups, which suits a settings screen with many of them, or as a row of tabs above them, which suits a record with a few. A panel lays them out by its width since 1.17.0 (C289 (5)): tabs with \u00ab\u0415\u0449\u0451 (n)\u00bb in a panel, the column in a panel of size full, a list of rows on a phone; there this setting is not read.",
+        "description": "Where the sections of an inline view are read: as a list beside the groups, which suits a settings screen with many of them, or as a row of tabs above them, which suits a record with a few. A panel lays them out by its width since 1.17.0 (C289 (5)): tabs with «Ещё (n)» in a panel, the column in a panel of size full, a list of rows on a phone; there this setting is not read.",
         "enum": [
           "list",
           "tabs"
@@ -1767,7 +1770,7 @@
       },
       {
         "path": "src/smart/view-properties/rule.js",
-        "sha256": "913a11de8a6a2ccae70cfc5a9aef2df04f11a0a78f88d9e4478cb137708d24d0"
+        "sha256": "27479b6eb209fff8bdec300d2fef56490e93b37e3cd9eb8af51f0dd6b564196a"
       },
       {
         "path": "src/core/contracts/ports/simai.property-view-port/1.4.0/port.json",
