@@ -65,7 +65,8 @@
 }
 .sf-view-head-fields > * { flex: none; }
 .sf-view-head-fields:empty { display: none; }
-.sf-view-head-end { flex: 0 1 auto; }
+/* The end keeps the search and «Create» on one line; the start gives way. */
+.sf-view-head-end { flex: 0 0 auto; flex-wrap: nowrap; max-inline-size: 100%; }
 /* The search: up to 20rem (C297), never wider than the row. */
 .sf-view-head-search { flex: 0 1 20rem; min-inline-size: 12rem; }
 .sf-view-head-search > sf-input { display: block; min-inline-size: 0; }
