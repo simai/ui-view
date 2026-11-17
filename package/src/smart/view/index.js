@@ -35,7 +35,7 @@ const LISTENED = Object.freeze([
     "sf-pagination-action-for-all-change", "sf-view-save",
 ]);
 // The table's and the page row's events by their names since standard 1.3.8
-// (vocabulary 1.1.5): the old names they still send until 2026-12-01 are not
+// (vocabulary 1.1.5): the old names they still send until 2027-01-01 are not
 // listened to, so each act is taken once.
 const EVENTS = Object.freeze({
     "sf-view-table-query": "query.change",

@@ -2,7 +2,7 @@
   "$comment": "sf-table from its component.json (standard simai.smart-component 1.3.8, vocabulary 1.1.5), migrated from ui-control control/smart-architecture/migration/out/table (convert-1.3.8.mjs over ui-pro 9cbe061); every x-todo decided in x-decisions.",
   "id": "smart.view-table",
   "tag": "sf-view-table",
-  "version": "1.21.2",
+  "version": "1.21.3",
   "kind": "leaf",
   "family": "table",
   "settings": {
@@ -341,7 +341,7 @@
       "carries": {
         "ids": "list"
       },
-      "summary": "The marked rows changed, vocabulary §5 select {ids}: once per change of the explicit selection, clearing included. The old name sf-port-output follows once with its old detail until 2026-12-01 (aliases.json)."
+      "summary": "The marked rows changed, vocabulary §5 select {ids}: once per change of the explicit selection, clearing included. The old name sf-port-output follows once with its old detail until 2027-01-01 (aliases.json)."
     },
     "apply": {
       "carries": {
@@ -360,7 +360,7 @@
           "optional": true
         }
       },
-      "summary": "A row's or the selection's action, vocabulary §5 apply: {action, scope: entry | selection, ids, revisions}. The host decides; emission is not success. The old name sf-table-action-intent follows once with its old detail until 2026-12-01 (aliases.json)."
+      "summary": "A row's or the selection's action, vocabulary §5 apply: {action, scope: entry | selection, ids, revisions}. The host decides; emission is not success. The old name sf-table-action-intent follows once with its old detail until 2027-01-01 (aliases.json)."
     },
     "save": {
       "carries": {
@@ -380,7 +380,7 @@
           "summary": "The table's settings key."
         }
       },
-      "summary": "The person's column settings, vocabulary §5 save {kind: columns, reason, columnSettings, tableSettingsKey}. The old name sf-table-column-settings-change follows once with its old detail until 2026-12-01 (aliases.json)."
+      "summary": "The person's column settings, vocabulary §5 save {kind: columns, reason, columnSettings, tableSettingsKey}. The old name sf-table-column-settings-change follows once with its old detail until 2027-01-01 (aliases.json)."
     },
     "column-settings-reset": {
       "carries": {
@@ -408,7 +408,7 @@
           "optional": true
         }
       },
-      "summary": "The create button or one of its kinds, vocabulary §5 create {item}. The old name sf-table-create-intent follows once with its old detail until 2026-12-01 (aliases.json)."
+      "summary": "The create button or one of its kinds, vocabulary §5 create {item}. The old name sf-table-create-intent follows once with its old detail until 2027-01-01 (aliases.json)."
     },
     "filter-change": {
       "carries": {
@@ -442,11 +442,11 @@
           "integer": true
         }
       },
-      "summary": "A context query of the composition input port, vocabulary §5.1 query {reason, context, sequence}. The old name sf-table-query-intent follows once with its old detail until 2026-12-01 (aliases.json)."
+      "summary": "A context query of the composition input port, vocabulary §5.1 query {reason, context, sequence}. The old name sf-table-query-intent follows once with its old detail until 2027-01-01 (aliases.json)."
     },
     "refresh": {
       "carries": {},
-      "summary": "The retry button of a failed list, vocabulary §5 refresh. The old name sf-table-retry follows once with its old detail until 2026-12-01 (aliases.json)."
+      "summary": "The retry button of a failed list, vocabulary §5 refresh. The old name sf-table-retry follows once with its old detail until 2027-01-01 (aliases.json)."
     },
     "search-change": {
       "carries": {
@@ -590,7 +590,7 @@
           "optional": true
         }
       },
-      "summary": "A tree row opened or closed, vocabulary §5 expand {id, expanded}. The old name sf-table-tree-toggle follows once with its old detail until 2026-12-01 (aliases.json)."
+      "summary": "A tree row opened or closed, vocabulary §5 expand {id, expanded}. The old name sf-table-tree-toggle follows once with its old detail until 2027-01-01 (aliases.json)."
     },
     "load-more": {
       "carries": {
@@ -609,7 +609,7 @@
           "nullable": true
         }
       },
-      "summary": "The next page of a tree level, vocabulary §5 load-more {direction: after, parent, cursor}. The old name sf-table-tree-more follows once with its old detail until 2026-12-01 (aliases.json)."
+      "summary": "The next page of a tree level, vocabulary §5 load-more {direction: after, parent, cursor}. The old name sf-table-tree-more follows once with its old detail until 2027-01-01 (aliases.json)."
     },
     "rows-drag": {
       "carries": {
@@ -641,7 +641,7 @@
         },
         "order": "list"
       },
-      "summary": "Rows put in another order, vocabulary §5 move {ids, before, order}. The old name sf-table-rows-reorder follows once with its old detail until 2026-12-01 (aliases.json)."
+      "summary": "Rows put in another order, vocabulary §5 move {ids, before, order}. The old name sf-table-rows-reorder follows once with its old detail until 2027-01-01 (aliases.json)."
     },
     "cell-set": {
       "carries": {
@@ -1177,7 +1177,7 @@
   "aliases": {
     "$comment": "Dated aliases of sf-view-table for the shim (core/js/aliases.js, standard §16 item 20, vocabulary §9). mode: same-detail (the shim sends the new and the old name), detail-adds (the old name gets the larger new detail), split (the old detail from the element's adapter, sfAliasAdapters), host-attribute (no shim).",
     "since": "2026-10-27",
-    "remove-after": "2026-12-01",
+    "remove-after": "2027-01-01",
     "rows": [
       {
         "from": "aria-label",
@@ -1631,10 +1631,10 @@
   ],
   "x-decisions": {
     "shape": "leaf, with reasons (§7, the smaller mechanism). Its toolbar, filter, column settings and row menus are controls of its own state with no rule between them, and §18.4 asks the opposite of parts for its cells: a cell that only shows a value is class markup, a Smart element only while edited. Its rows are entries (§18), not roles. Stand 24 placed a table of this interface as a leaf inside the record browser; nothing it measured needs the table to be an assembly.",
-    "version": "1.9.0 → 1.10.0, a minor while the old event names hold dated aliases (§4.10); the major when they expire on 2026-12-01.",
+    "version": "1.9.0 → 1.10.0, a minor while the old event names hold dated aliases (§4.10); the major when they expire on 2027-01-01.",
     "events": "named by vocabulary 1.1.5: select {ids} (was sf-port-output {port, value}), apply {action, scope, ids, revisions} (was sf-table-action-intent {action_id, record_ids}), save {kind: columns, …} (was sf-table-column-settings-change, sf-table:column-settings-change, onColumnSettingsChange), create (was -create-intent), query (was -query-intent), refresh (was -retry), expand (was -tree-toggle), load-more (was -tree-more), move (was -rows-reorder). Each old name follows once through aliases.json, split rows through sfAliasAdapters with their old detail, and is noted in SF.deprecations when a listener reads it. The alias table's sf-table-action-intent → sf-table-apply is taken (vocabulary §9); the converter's sf-port-output → sf-table-port-output is not: the selection is the vocabulary's select.",
     "own-verb-words": "search-change, sort-change, filter-change, template-save, template-select, template-delete, column-settings-reset, toolbar-action, reference-open, rows-drag, cell-set, view-change and window keep their DOM names and are verbs of the table alone; their words are lang events.<verb>.label.",
-    "camelCase-events": "simai/ui-pro#1: onSearchEnd, onTemplateSave, onFilterUpdate and onColumnSettingsChange are no longer sent by the table; they are dated aliases of search-change, template-save, filter-change and save (ui-admin src/main.ts and src/smart-component-catalog.ts listen to them until 2026-12-01). search-change carries {search} now (§8: detail is an object); onSearchEnd keeps the bare text through its adapter.",
+    "camelCase-events": "simai/ui-pro#1: onSearchEnd, onTemplateSave, onFilterUpdate and onColumnSettingsChange are no longer sent by the table; they are dated aliases of search-change, template-save, filter-change and save (ui-admin src/main.ts and src/smart-component-catalog.ts listen to them until 2027-01-01). search-change carries {search} now (§8: detail is an object); onSearchEnd keeps the bare text through its adapter.",
     "column-settings": "simai/ui-pro#1: getColumnSettings() merges the host's and the person's settings once per change of either and answers from the memo while drawing; the system columns and the column a box is named by are read once per list, not per row.",
     "window": "§18.4, simai/ui-pro#2: window: true. From 300 rows (quality profile 1.3.6-1 window_from_entries) the table draws the rows in view and 20 more on each side, between two spacer rows of the rest's height; aria-rowcount and aria-rowindex keep the whole count. The range follows any scroll box and the page, and is reported as the fact window {first, last}. The arrows, Home and End move between all rows, drawing an undrawn one first. One changed row (updateRowByKey) is drawn again in place and measures no width.",
     "cells": "§18.4: a cell that only shows a value is class markup: the row's box is the checkbox's class markup over a native input, the row menu the icon button's class markup over a native button, a value a span. A row's template is composed once per arrangement of its cells, so a drawn row holds no Lit marker per cell: 27 nodes a row where it held 108. Host components, typed values, links, trees and editable cells keep the full renderer.",
@@ -2583,6 +2583,13 @@
           "to": "1.21.2",
           "changes": [
             "Over SIMAI Framework ui-24d64b7f6eb7 (ui-source 40541c0c4fba, core.runtime 1.59.0) the Framework file it builds in, src/smart/pagination/index.js, moved; the provenance and the version follow. Nothing of its own; nothing to change for a host."
+          ]
+        },
+        {
+          "from": "1.21.2",
+          "to": "1.21.3",
+          "changes": [
+            "Former names (aliases.json, every alias that ended 2026-12-01) now end 2027-01-01 (draft set standard §13.4, view round 1 G1): no alias may end before the main consumer moves to the set, Larena on data-sf-sets=\"admin view\" on 2026-12-15, with at least two weeks' margin. The old names keep coming as before; nothing to change for a host."
           ]
         }
       ]

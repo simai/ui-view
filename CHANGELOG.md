@@ -15,6 +15,11 @@ in brackets. The site page «Изменения» says the same in Russian.
 - `sf-view` 1.13.3: the bulk band orders its actions and marks a deleting
   one with SIMAI Framework `sf-pagination`'s own `isDestructiveAction` and
   `orderActions`; the set's copy is gone (Framework first, A3).
+- `sf-view` 1.13.4, `sf-view-table` 1.21.3 and `sf-view-properties` 1.16.10:
+  every former name that ended on 2026-12-01 (23 in `aliases.json`: view-table
+  16, view 3, view-properties 4) now ends on 2027-01-01, after Larena moves to
+  `data-sf-sets="admin view"` on 2026-12-15 with two weeks' margin (§13.4,
+  G1). The old names keep coming; nothing to change for a host.
 - `sf-view-properties` 1.16.4 (VP-5, VP-8) and 1.16.5: the page buttons in
   the drawer head beside the close are size 1/3, 8 apart (C205 (2)); the
   filled head of a phone panel clears them (taken back from ui-pro f29d4bf).

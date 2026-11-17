@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view",
-  "version": "1.13.3",
+  "version": "1.13.4",
   "title": "Data view",
   "summary": "Host-driven data view that composes toolbar, content and pagination around a separate data port.",
   "kind": "composite",
@@ -902,7 +902,7 @@
       "canonical": true
     },
     "sf-view-tree": {
-      "summary": "The tree's port intents announced, {intent, payload}; the old sf-table-tree-intent follows once until 2026-12-01 (aliases.json).",
+      "summary": "The tree's port intents announced, {intent, payload}; the old sf-table-tree-intent follows once until 2027-01-01 (aliases.json).",
       "payload": {
         "type": "object",
         "required": [
@@ -1714,6 +1714,13 @@
         "changes": [
           "Framework first (draft set standard §7.4, view round 1 A3): the bulk band orders its actions and marks a deleting one with SIMAI Framework sf-pagination's own isDestructiveAction and orderActions (smart/pagination/js/actions.js, in the pair since ui-078a4b4c6f6e) instead of its copy _bulkDestructive, kept until the pair carried it. The same rule and order; nothing to change for a host."
         ]
+      },
+      {
+        "from": "1.13.3",
+        "to": "1.13.4",
+        "changes": [
+          "Former names (aliases.json, every alias that ended 2026-12-01) now end 2027-01-01 (draft set standard §13.4, view round 1 G1): no alias may end before the main consumer moves to the set, Larena on data-sf-sets=\"admin view\" on 2026-12-15, with at least two weeks' margin. The old names keep coming as before; nothing to change for a host."
+        ]
       }
     ]
   },
@@ -1723,7 +1730,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view/index.js",
-        "sha256": "36a84c97e8c7ad487a3672e007cb6105dca5a72a87f7f70ad90858abd8e1da98"
+        "sha256": "a61c98d4d94b4ff8f0a63da71897b2ce6b8ad8af02613aa59c8757f7d11965fa"
       },
       {
         "path": "src/core/contracts/ports/simai.dataview-port/1.5.0/port.json",
