@@ -5,6 +5,13 @@
   "version": "1.14.0",
   "x-history": [
     {
+      "version": "1.14.0",
+      "kind": "minor",
+      "recorded_on": "2026-11-17",
+      "consumer": "A page that slotted an empty <span slot=\"toolbar\"> to hide the fallback toolbar no longer needs it; a page that slots no toolbar now has none (the view draws no bare search of its own).",
+      "evidence": "https://github.com/simai/ui-view/commit/548b6e88425ee85c7d642f69b089165aa18de268"
+    },
+    {
       "version": "1.13.5",
       "kind": "patch",
       "recorded_on": "2026-11-17",

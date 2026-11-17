@@ -5,6 +5,15 @@
   "entries": [
     {
       "unit": "smart.view",
+      "version": "1.14.0",
+      "recorded_on": "2026-11-17",
+      "change": "minor",
+      "consumer": "A page that slotted an empty <span slot=\"toolbar\"> to hide the fallback toolbar no longer needs it; a page that slots no toolbar now has none (the view draws no bare search of its own).",
+      "summary": "View round 1 (D4, D5, VW-2): the shadow root draws no control of its own (the fallback search, view select and save/delete buttons are gone; the toolbar part shows only an author's slotted toolbar); the default sf-view-table and sf-pagination are light DOM, where the page's sheets reach them, so the table's search gap is the Framework's; the move dialog chooses through sf-input-choice in its list look.",
+      "evidence": "https://github.com/simai/ui-view/commit/548b6e88425ee85c7d642f69b089165aa18de268"
+    },
+    {
+      "unit": "smart.view",
       "version": "1.13.5",
       "recorded_on": "2026-11-17",
       "change": "patch",
@@ -74,6 +83,24 @@
       "consumer": "Nothing to change for a host: the compact list toolbar keeps its spacing when the list comes.",
       "summary": "C144: the skeleton's compact list toolbar holds the field, filter and Создать --sf-space-1 apart, as sf-view-table 1.20.1 draws them (the field no longer moves 8 when the list comes)",
       "evidence": "https://github.com/simai/ui-view/commit/961bdae11e2749f69ac7fbb744b197b74e8c4a23"
+    },
+    {
+      "unit": "smart.view-table",
+      "version": "1.23.0",
+      "recorded_on": "2026-11-17",
+      "change": "minor",
+      "consumer": "A page that recoloured the table's toolbar (Larena admin-shell.css:286-290) or fixed its menu tabs (:294-295) no longer needs it; create, view actions, sort and a saved view's «⋯» open the SIMAI Framework's shared menu at their button's start edge.",
+      "summary": "View round 1 (D1, D3, D5-D8, PD-9): the create, view-actions, list-sort and saved-view menus open the SIMAI Framework's shared menu (SF.menu.open); the panel footers put the main action first; the toolbar's button groups are roving.js groups; every toolbar word is in lang/; the filter count is sf-button-icon badge-count; the Create row is one scheme; dates are the field renderers' reading in a time element with its machine value (format-value.js is gone); the link cell is sf-reference-link; date operators of a chip read Позже, Не раньше, Раньше, Не позже.",
+      "evidence": "https://github.com/simai/ui-view/commit/548b6e88425ee85c7d642f69b089165aa18de268"
+    },
+    {
+      "unit": "smart.view-table",
+      "version": "1.22.0",
+      "recorded_on": "2026-11-17",
+      "change": "minor",
+      "consumer": "Nothing to change for a host: the gear's window is SIMAI Framework sf-settings look=\"panel\"; the columns and view settings apply at once, as before.",
+      "summary": "C106: the gear's window is SIMAI Framework sf-settings look=\"panel\" (sf-settings 1.6.3), not sf-menu-context tabs with rows drawn by the table. «Поля» is its fields list -- a column shown or not (the theme's light fill and a check at the end), its order (the handle at the start, a drag or Alt+arrows, the position said), pinned on top (the Framework pin button), the panel's search -- and «Вид» its density choice (the fill alone) and switches (lines, one line, the held head, «Для всех моих таблиц» after a line). Every change applies at once as before (save {kind: columns} with reason column-visibility, column-pin or column-order; view-change); «Сбросить» puts the fields back as the window opened with them or the view to its defaults, by the tab it stands on; the window reopens on the tab it was closed on. The panel takes the gear's density (C22): the hand-set 1/2 handles and pins are gone, a size is passed only when the host wrote one; on a phone it is the bottom sheet (C106 (8), C157 (5)). The host labels column-move-label, pin-column-label, unpin-column-label, column-search-placeholder and column-search-empty-text are no longer read by the gear: sf-settings speaks its own words in the page language. The filter window keeps its tabs (its templates need what sf-settings does not offer).",
+      "evidence": "https://github.com/simai/ui-view/commit/1c125c5c49024e09b88af5444c800ca779e624ed"
     },
     {
       "unit": "smart.view-table",
@@ -167,6 +194,24 @@
     },
     {
       "unit": "smart.view-properties",
+      "version": "1.17.2",
+      "recorded_on": "2026-11-17",
+      "change": "patch",
+      "consumer": "Nothing to change for a host: dates are the host's or the field renderers' reading and a percent is the SIMAI Framework's formatPercent.",
+      "summary": "View round 1 (VF-10, msg-e78f2e51): the host's formatFieldValue or the field renderers read a date, the set's own date parsing is gone; a percent is the SIMAI Framework's formatPercent, 12,5 % and 12.5 % in every language (C203 (3)). Merge of view round 1: the card group's 1.17.0 and the table group's change (numbered 1.17.1 on round/view-r1-table, not a set version) as one version above both.",
+      "evidence": "https://github.com/simai/ui-view/commit/7721e228ef4bfbc03a23f237dd7d42c2f99254f7"
+    },
+    {
+      "unit": "smart.view-properties",
+      "version": "1.17.0",
+      "recorded_on": "2026-11-17",
+      "change": "minor",
+      "consumer": "panel-width is a former name until 2027-01-01, mapped to the nearest drawer step with a console notice; sections-as is read by an inline view only; a page needs no defineFieldsOf before mounting the card.",
+      "summary": "C289 (1), (5), R250: the sections are laid out by width, not by a setting: a panel shows them as an underline sf-tabs line under the head (overflow more, «Ещё (n)»); a panel of size full and a wide inline view keep the section column at the start; on a phone they are an sf-list of rows, each opening its section with «←». sections-as applies to an inline view only. C289 (2), C157 (2): the panel is drawn at a step of the sf-drawer ladder (1/2, 1, 2) or full and never grows; panel-width is a dated former name until 2027-01-01, mapped to the nearest step with a console notice and an SF.deprecations entry. C289 (3), (6), R254: «Удалить» is the last row of the head's «⋯» menu, with «Копировать ссылку» and «Открыть на всю страницу»; a record to read has no foot, and nothing stands on the drawer's edge outside the panel. C289 (4), R252: a record to read is an sf-list-description: the label beside the value on one row, each group a heading of the list, «Изменить» in the group's heading. C289 (6): the head is one row of the drawer's control height; a record opened from another shows «← <record>» above its title as the drawer's back line (sf-drawer-back), which returns to the previous record. C289 (6): a panel the page gave no panel-label is headed by the record's name, record.label or record.title (the reference host and most pages send title); it showed the record id. The back line and the drawer's accessible name read the same name. C289 (7), C182: Save is never disabled; a Save over empty required fields or entries that are not values is refused with the message under each field and, for two or more, a summary with a link per field; a host's confirmation is asked in place with sf-confirm. C289 (8), (9), (10): the first paint keeps its boxes (no layout shift when the record comes); value buttons are 24px high at least on a phone (--sf-hit--min); the view asks the Loader for every tag it draws, so a page needs no defineFieldsOf or own defines.",
+      "evidence": "https://github.com/simai/ui-view/commit/a94788117cc622d02b39f9dac2ac213327ddaf11"
+    },
+    {
+      "unit": "smart.view-properties",
       "version": "1.16.11",
       "recorded_on": "2026-11-17",
       "change": "patch",
@@ -236,6 +281,15 @@
       "consumer": "Nothing to change for a host: the panel's title and foot follow the drawer's window steps.",
       "summary": "In its panel (VP-5, VP-8 of the 2026-11-16 re-check; C157 (3), C157 (7) = C159 (4), (5)): (1) the title reads the window title step the drawer's panel publishes, --sf-drawer--title-size / --sf-drawer--title-height (sf-drawer 1.16.4), before the h4 role: the head stands inside the drawer's body, where sf-drawer 1.16.0 moves the heading roles down for the content, and the title drew 16/18 (a phone 14/16) instead of 20/24 (16). --sf-property-view--title-* still come first; with no drawer, or a drawer before 1.16.4, the h4 role as before. (2) On a phone (below 48rem) Save (or Create) and Cancel in the foot share the row in equal halves, 8 apart, the main one first; what else the bar holds wraps under them. The desktop foot is unchanged. Markup, settings, events and the host port unchanged.",
       "evidence": "https://github.com/simai/ui-view/commit/85b747fe0b6d2682ff478130d431c2412d5d0b96"
+    },
+    {
+      "unit": "smart.view-flow",
+      "version": "1.1.5",
+      "recorded_on": "2026-11-17",
+      "change": "patch",
+      "consumer": "Nothing to change for a host: «Отправить» comes first and «Отмена» after it; dates are the field renderers'.",
+      "summary": "View round 1 (D10, VF-10): the footer puts Отправить first and Отмена after it, the status line after both (C159 (4)); dates are the field renderers' reading, the set's own date parsing is gone.",
+      "evidence": "https://github.com/simai/ui-view/commit/548b6e88425ee85c7d642f69b089165aa18de268"
     },
     {
       "unit": "smart.view-flow",

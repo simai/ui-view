@@ -12,7 +12,8 @@ only `x-` fields beside its own.
 
 Source: ui-control `control/research/2026-11-17-view-vs2-vs4/data/parts.tsv` (VS-2, 88 parts,
 read at ui-view `4317b84` over pair `ui-078a4b4c6f6e`); states as of view round 1 (pair
-`ui-24d64b7f6eb7`). Evidence is `package/src/smart/<folder>/…` at `4317b84` unless named.
+`ui-24d64b7f6eb7`; the round's merge repinned to `ui-1ed6b6c9a040`, over which this record
+is not re-read yet). Evidence is `package/src/smart/<folder>/…` at `4317b84` unless named.
 
 | Component | Parts | fw | copy | order | set |
 |---|---|---|---|---|---|

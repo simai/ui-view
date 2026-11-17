@@ -121,9 +121,12 @@ test('the band is the last strip of the card, and it is the card that places it'
   assert.match(css, /^\.sf-pagination-actions \{/mu, 'the band is not scoped to the page row any more');
   assert.doesNotMatch(css, /\.sf-pagination:has\(\.sf-pagination-actions\)/u, 'and the row itself does not stick');
   assert.match(css, /box-shadow: var\(--sf-shadow-raised\);/u, 'a shadow upwards, over the rows');
-  assert.match(
-    css,
-    /border-block-start: var\(--sf-px\) solid var\(--sf-pagination-actions--border-color\);/u,
+  // Since the pair ui-1ed6b6c9a040 (C273 layer order) the line is written in two
+  // places: its width and style with the band, its colour in the colour layer.
+  assert.ok(
+    /border-block-start: var\(--sf-px\) solid var\(--sf-pagination-actions--border-color\);/u.test(css)
+      || (/border-block-start-width: var\(--sf-px\);\s*border-block-start-style: solid;/u.test(css)
+        && /\.sf-pagination-actions \{[^}]*border-block-start-color: var\(--sf-pagination-actions--border-color\);/u.test(css)),
     'and a line where the band starts',
   );
   assert.match(css, /--sf-pagination-actions--background-color: var\(--sf-surface-raised\);/u, 'a role the theme declares: the band floats on the raised surface (C16, C20)');

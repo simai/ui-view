@@ -109,13 +109,18 @@ export async function loadPagination() {
       read('src/smart/pagination/lang/en.json'),
       read('src/smart/pagination/lang/ru.json'),
     ]);
-    const element = stripImports(index, 10, 'src/smart/pagination/index.js')
+    // Since the pair ui-1ed6b6c9a040 (owner decision C282) the module takes
+    // its words from ./lang/index.mjs (English built in, every other language
+    // from a language file) instead of importing en.json and ru.json: nine
+    // imports, and the harness hands it both files as that module would.
+    const languageModule = /from "\.\/lang\/index\.mjs";/u.test(index);
+    const element = stripImports(index, languageModule ? 9 : 10, 'src/smart/pagination/index.js')
       .replace(/^SfPagination\.define\("sf-pagination"\);$/mu, 'export default SfPagination;');
     if (!/export default SfPagination;/u.test(element)) {
       throw new Error('src/smart/pagination/index.js: SfPagination.define("sf-pagination") not found');
     }
     const {default: SfPagination} = await asModule(
-      `${BASE}\nconst manifest = ${manifest};\nconst aliases = {};\nconst enFile = ${en};\nconst ruFile = ${ru};\n${element}`,
+      `${BASE}\nconst manifest = ${manifest};\nconst aliases = {};\nconst enFile = ${en};\nconst ruFile = ${ru};\nconst languageFiles = {en: {runtime: enFile.runtime}, ru: {runtime: ruFile.runtime}};\n${element}`,
     );
     const {renderPaginationTemplate} = await asModule(
       `const html = (strings, ...values) => ({strings, values});\nconst nothing = undefined;\nconst keyed = (key, value) => value;\n${stripImports(actions, 0, 'src/smart/pagination/js/actions.js')}\n${stripImports(template, 3, 'src/smart/pagination/js/templates/default.js')}`,

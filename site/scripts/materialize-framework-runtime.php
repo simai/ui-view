@@ -17,8 +17,8 @@ declare(strict_types=1);
  * the project lock is read from the working tree.
  *
  * The free release is the one the set is built over (package/framework.lock.json
- * and package/set.json name its ui-source revision). Docara 3.14.1 bundles an
- * older pair, ui-b4a77681f0a7, not the one the set is built over; this script
+ * and package/set.json name its ui-source revision). Docara 3.17.0 bundles an
+ * older pair, not the one the set is built over; this script
  * replaces it with the pinned release.
  *
  *   php scripts/materialize-framework-runtime.php /absolute/ui \
@@ -30,11 +30,11 @@ declare(strict_types=1);
  * files' hashes in simai-framework.lock.json, never the files.
  */
 
-const UI_METADATA_REVISION = '74c5279c9ae54d07068ab8abac59ee87c416080d';
-const UI_RUNTIME_REVISION = '24d64b7f6eb7a782d648dbb5b44f7eb763ec815b';
-const SOURCE_REVISION = '40541c0c4fba6c24659907eb987c74f17a4fc46a';
-const BUILDER_REVISION = '16e9a81c1f2838f7cfeebbbd19654016743c9672';
-const RELEASE_LOCK = 'contracts/releases/ui-24d64b7f6eb7.lock.json';
+const UI_METADATA_REVISION = '3c6f92933d7f6566676501302d039a6606059937';
+const UI_RUNTIME_REVISION = '1ed6b6c9a040bf5157cdaa2911db70c5d6196af1';
+const SOURCE_REVISION = 'acc113415d98032041f3fdbf3e2ba622c48465a1';
+const BUILDER_REVISION = 'ba79e739d1f9e2568d27e030606e8f95ce91b380';
+const RELEASE_LOCK = 'contracts/releases/ui-1ed6b6c9a040.lock.json';
 // The release on npm, the form the guide's CDN snippets use
 // (https://cdn.jsdelivr.net/npm/<package>@<version>/distr/...). The version is
 // derived from the release commit, never chosen: 5.<yyyymmdd>.<hhmm> of its
@@ -42,7 +42,7 @@ const RELEASE_LOCK = 'contracts/releases/ui-24d64b7f6eb7.lock.json';
 // the commit. scripts/sync-framework-documentation-versions.php checks the
 // version against UI_RUNTIME_REVISION and moves the snippets with it.
 const NPM_PACKAGE = '@simai-studio/ui';
-const NPM_VERSION = '5.20261117.1311';
+const NPM_VERSION = '5.20261117.1612';
 // The set this repository holds: its receipt must name this repository's
 // package folder (checked against the checkout below).
 const PACKAGES = [

@@ -46,6 +46,6 @@ Sibling checkouts `../ui-source`, `../ui` and `../ui-builder` are the defaults.
 ## The open round
 
 View round 1 (ui-control `control/research/2026-11-17-view-round-1/assignment.md`):
-target view 1.9.0 over pair `ui-24d64b7f6eb7`; branch `round/view-r1` collects
+target view 1.9.0 over pair `ui-1ed6b6c9a040`; branch `round/view-r1` collects
 the helpers' branches (`round/view-r1-*`). The record card follows C289, the
 site C290.

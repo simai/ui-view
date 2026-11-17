@@ -5,6 +5,20 @@
   "version": "1.17.2",
   "x-history": [
     {
+      "version": "1.17.2",
+      "kind": "patch",
+      "recorded_on": "2026-11-17",
+      "consumer": "Nothing to change for a host: dates are the host's or the field renderers' reading and a percent is the SIMAI Framework's formatPercent.",
+      "evidence": "https://github.com/simai/ui-view/commit/7721e228ef4bfbc03a23f237dd7d42c2f99254f7"
+    },
+    {
+      "version": "1.17.0",
+      "kind": "minor",
+      "recorded_on": "2026-11-17",
+      "consumer": "panel-width is a former name until 2027-01-01, mapped to the nearest drawer step with a console notice; sections-as is read by an inline view only; a page needs no defineFieldsOf before mounting the card.",
+      "evidence": "https://github.com/simai/ui-view/commit/a94788117cc622d02b39f9dac2ac213327ddaf11"
+    },
+    {
       "version": "1.16.11",
       "kind": "patch",
       "recorded_on": "2026-11-17",

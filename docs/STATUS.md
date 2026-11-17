@@ -8,10 +8,10 @@ Framework-first record in [FRAMEWORK-FIRST](FRAMEWORK-FIRST.md).
 
 | What | Value |
 |---|---|
-| SIMAI Framework pair | `ui-24d64b7f6eb7` (npm `@simai-studio/ui` 5.20261117.1311, group build 9, released 2026-11-17) |
-| ui-source revision | `40541c0c4fba6c24659907eb987c74f17a4fc46a` (`package/framework.lock.json`, `package/set.json` `framework.source_revision`) |
-| core.runtime | the pair carries 1.59.0; the set needs `>=1.51.0` (`set.json` `framework.core_runtime`) |
-| Docara (site) | 3.14.1 exactly (`site/composer.json`), the version ui-doc runs |
+| SIMAI Framework pair | `ui-1ed6b6c9a040` (npm `@simai-studio/ui` 5.20261117.1612, pair next 13: group builds 10 and 11, released 2026-11-17; the round's helpers built over `ui-24d64b7f6eb7`) |
+| ui-source revision | `acc113415d98032041f3fdbf3e2ba622c48465a1` (`package/framework.lock.json`, `package/set.json` `framework.source_revision`) |
+| core.runtime | the pair carries 1.60.0; the set needs `>=1.51.0` (`set.json` `framework.core_runtime`) |
+| Docara (site) | 3.17.0 exactly (`site/composer.json`), one release after the 3.16.0 ui-doc runs (§11.17) |
 | Released set | view 1.8.1, `view-69a213f6773f`, built over `ui-141822273efe` |
 
 ## Pair ranges of released versions
@@ -24,7 +24,7 @@ Framework-first record in [FRAMEWORK-FIRST](FRAMEWORK-FIRST.md).
 
 | Part | State | Evidence |
 |---|---|---|
-| Pin on `ui-24d64b7f6eb7`, Docara 3.14.1 (A1, A2) | done | this page, «The pin»; `site/composer.lock` |
+| Pin on `ui-24d64b7f6eb7`, Docara 3.14.1 (A1, A2); repinned at the round's merge to `ui-1ed6b6c9a040`, Docara 3.17.0 | done | this page, «The pin»; `site/composer.lock` |
 | Framework-first re-run on the pair (A3) | done | [FRAMEWORK-FIRST](FRAMEWORK-FIRST.md); view 1.13.3 history |
 | Former names end after the main consumer moves (G1) | done | `package/tests/alias-dates.contract.test.mjs` |
 | Version line (B2) | done | `CHANGELOG.md` «Version line»; `package/tests/package-change-journal.contract.test.mjs` |
@@ -34,7 +34,7 @@ Framework-first record in [FRAMEWORK-FIRST](FRAMEWORK-FIRST.md).
 | Site per C290 and the set-site scheme (E1-E10) | done, local only (ui-view.test) | `site/scripts/site-lint.mjs` |
 | Site evidence 8.11/8.12 (E11) | measured; first paint and the hero effect red, waiting Docara orders | `docs/evidence/2026-11-17-view-r1-site/` |
 | Passport docs URL empty until the site answers (E12) | waits a Framework order (component-set schema) | [DECISIONS](DECISIONS.md) D3 |
-| Record card per C289 (C1-C10), table defects (D1-D10) | in the round, other branches | ui-control round view-r1 assignment |
+| Record card per C289 (C1-C10), table defects (D1-D10, D2 from `fix/view-c106-settings`) | merged into `round/view-r1` | ui-control `control/evidence/2026-11-17-view-r1-card/`, `…-view-r1-table/`, `…-view-r1-merge/` |
 
 ## Consumers
 
@@ -56,8 +56,8 @@ Every remote branch ahead of `main`, with the release that takes it.
 | Branch | Release that takes it |
 |---|---|
 | `round/view-r1` | view 1.9.0 (the round) |
-| `round/view-r1-*` | view 1.9.0: the round's helper branches, merged into `round/view-r1` |
-| `fix/view-c106-settings` | view 1.9.0: round item D2 (the gear's window on sf-settings), to merge into `round/view-r1` |
+| `round/view-r1-site`, `round/view-r1-card`, `round/view-r1-table` | view 1.9.0: merged into `round/view-r1` (the round's merge); to close after the release |
+| `fix/view-c106-settings` | view 1.9.0: round item D2, in `round/view-r1` through `round/view-r1-table` |
 | `fix/view-pro-followups` | view 1.9.0 (base of the round) |
 | `fix/view-footer-colmenu` | view 1.9.0 (in `round/view-r1`) |
 | `fix/view-set-j1` | view 1.9.0 (in `round/view-r1`) |

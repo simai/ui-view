@@ -18,8 +18,15 @@ up). Each component.json says the same under `x-decisions`
 
 ## Unreleased (round/view-r1, for 1.9.0)
 
-- Over the SIMAI Framework pair `ui-24d64b7f6eb7` (npm 5.20261117.1311,
-  ui-source `40541c0c4fba`, core.runtime 1.59.0); the site on Docara 3.14.1.
+- Over the SIMAI Framework pair `ui-1ed6b6c9a040` (npm 5.20261117.1612,
+  ui-source `acc113415d98`, core.runtime 1.60.0; the round's helpers built
+  over `ui-24d64b7f6eb7`, npm 5.20261117.1311); the site on Docara 3.17.0
+  (was 3.14.1). Former names keep ending on 2027-01-01.
+- `sf-view-table` 1.23.1 and `sf-view-flow` 1.1.6 follow the Framework files
+  of the pair `ui-1ed6b6c9a040` they build in (`src/smart/pagination/index.js`
+  takes its words from its language module, C282;
+  `src/smart/helpers/confirm-surface.js` draws the status sign at 1/3, C151
+  (1)); nothing of their own.
 - `sf-view-properties` 1.17.0, the record card by C289 (round 1 group 2):
   a panel lays its sections out by width (an underline tab line with
   «Ещё (n)»; the section column in a full panel; a list of rows with «←» on
