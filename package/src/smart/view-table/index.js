@@ -16,7 +16,7 @@ import {getParent, setParentSpace} from "../helpers/dom";
 import {setLoaderDragState} from "../helpers/loaderDragState";
 import BundledPosition from "../../core/js/position.js";
 import {holdOpenSurfaceMark} from "../../core/js/open-surface-mark.js";
-import {layerZIndex} from "../../core/js/layer-stack.js";
+import {closeLayer, layerZIndex, openLayer} from "../../core/js/layer-stack.js";
 import {followDensity} from "../../core/js/density.js";
 import {menuOpen} from "../../core/js/menu-open.js";
 import {noteDeprecated} from "../../core/js/deprecations.js";
@@ -4538,14 +4538,11 @@ class SfTable extends TableElement {
         // the cell, at least as wide, flipped or shifted to stay in view, in
         // the top layer. A press outside closes it without saving.
         this._cellPlace = positioning().anchor(cell, box, {side: "block-end", align: "start", matchWidth: "min"});
-        const outside = (event) => {
-            // A picker the field opens stands in its own layer: not outside.
-            const target = event.composedPath?.()[0] ?? event.target;
-            if (box.contains(target) || target?.closest?.(":popover-open, dialog[open]")) return;
-            this.closeCellPopover(box);
-        };
-        this._cellOutside = outside;
-        document.addEventListener("pointerdown", outside, true);
+        // One layer of the page's stack: Escape and a press outside close it
+        // without saving (a picker the field opens is a layer above it).
+        openLayer(box, {kind: "surface", root: () => box,
+            onEscape: () => { finish(false); return true; },
+            onOutsidePress: () => this.closeCellPopover(box)});
         requestAnimationFrame(() => box.querySelector("input, select, textarea, button, [tabindex]")?.focus?.());
         return {outcome: "opened"};
     }
@@ -4556,8 +4553,7 @@ class SfTable extends TableElement {
         this._cellPopover = null;
         this._cellPlace?.stop?.();
         this._cellPlace = null;
-        if (this._cellOutside) document.removeEventListener("pointerdown", this._cellOutside, true);
-        this._cellOutside = null;
+        closeLayer(box, {restoreFocus: false});
         render(nothing, box);
         box.remove();
     }
@@ -8243,8 +8239,8 @@ class SfTable extends TableElement {
         this.bindRowActionsEvents(this.refs.table?.value);
         this.bindToolbarKeyboard();
         this.syncGrid();
-        this.syncListStops();
         this.bindRowMenu();
+        this.syncListStops();
         this.toggleAttribute("data-sf-keyed-narrow", this.isKeyedNarrow);
         if (this._windowed) this.bindWindowScroll();
         if (this._pendingScrollRow) this.revealPendingRow();

@@ -86,6 +86,15 @@
     },
     {
       "unit": "smart.view-table",
+      "version": "1.24.0",
+      "recorded_on": "2026-11-18",
+      "change": "minor",
+      "consumer": "Nothing breaks: every former setting and name keeps working until 2027-01-01. A host that wants the new contract passes total (the count under the filter), sort=\"key:dir\", totals {page, all} for the columns marked total, listens to sf-view-table-open, and moves the toolbar, paging and group actions of a table standing alone to sf-view, sf-pagination and sf-bulk-actions (C295, C296). A page that styled the table through --sf-table-* moves to the eight --sf-view-table-* variables.",
+      "summary": "C296 (view round 2, VT-1..VT-18): the table draws columns and rows. The column head menu is sort, pin, hide and «Все колонки» (then the width entries); the columns window is the sf-settings panel at the gear without the table's full-screen portal (VT-12). Short fields (choice, a person with options, date, number, money) edit at the cell on a double press or F2 when inline-edit is on: a SIMAI Framework menu or a popover with the field of its type, emitting cell-set. A totals row at the foot from the host's totals (columns[].total). New: total (aria-rowcount, «all N»), sort=\"key:dir\", the open event {id, newTab}, scrollToRow, the empty and error slots, eight public --sf-view-table-* variables (the --sf-table-* names stay until 2027-01-01). aria-selected and aria-multiselectable (VT-4); a title without an address is a button, not href=\"#\" (VT-9); hover at the 8 % state (VT-7); a status badge is at most the row less 8 and takes its option's scheme (VT-8, VT-18); the width grip is a 24 zone (VT-10); air under the empty-state action (VT-11); numbers in the page language (VT-14); head cells never wrap letter by letter (VT-15); the phone list after C259 with one Tab stop (VT-2, VT-3). The toolbar, search, filter, templates, create, layout switch, pagin and setBulkActions are dated former settings until 2027-01-01 (VT-13, noted in SF.deprecations on a table standing alone); where the pair carries sf-bulk-actions a table standing alone places that bar after its rows, and where the pair carries SF.fieldRenderers.dateFilter the table reads date filters through it (C293 DF-1, DF-4, DF-6).",
+      "evidence": "control/evidence/2026-11-18-view-r2-table/README.md"
+    },
+    {
+      "unit": "smart.view-table",
       "version": "1.23.1",
       "recorded_on": "2026-11-17",
       "change": "patch",

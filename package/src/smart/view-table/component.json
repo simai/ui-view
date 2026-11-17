@@ -9,7 +9,7 @@
       "kind": "minor",
       "recorded_on": "2026-11-18",
       "consumer": "Nothing breaks: every former setting and name keeps working until 2027-01-01. A host that wants the new contract passes total (the count under the filter), sort=\"key:dir\", totals {page, all} for the columns marked total, listens to sf-view-table-open, and moves the toolbar, paging and group actions of a table standing alone to sf-view, sf-pagination and sf-bulk-actions (C295, C296). A page that styled the table through --sf-table-* moves to the eight --sf-view-table-* variables.",
-      "evidence": "https://github.com/simai/ui-view/tree/round/view-r2-table"
+      "evidence": "control/evidence/2026-11-18-view-r2-table/README.md"
     },
     {
       "version": "1.23.1",
