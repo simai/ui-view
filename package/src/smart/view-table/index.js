@@ -18,6 +18,8 @@ import BundledPosition from "../../core/js/position.js";
 import {holdOpenSurfaceMark} from "../../core/js/open-surface-mark.js";
 import {layerZIndex} from "../../core/js/layer-stack.js";
 import {followDensity} from "../../core/js/density.js";
+import {menuOpen} from "../../core/js/menu-open.js";
+import {roving} from "../../core/js/roving.js";
 import BundledPreferences from "../../core/js/preferences.js";
 
 // Sized for what they hold rather than for reading, so they take no floor.
@@ -978,113 +980,90 @@ class SfTable extends TableElement {
         return this;
     }
 
-    renderToolbarActionsContextMenu(data) {
-        const {x, y} = data;
-        // The standard menu's entries, not link buttons: a link button in a
-        // menu drew centred text on a light block that looked like no other
-        // menu in the admin (owner, 2026-10-13).
-        const actions = this.getToolbarActions();
-        const entries = actions.map((action) => ({
-            id: String(action.id),
-            text: action.label,
-            ...(action.icon ? {icon: action.icon} : {}),
-        }));
-        const select = (event) => {
-            const action = actions.find((item) => String(item.id) === event.detail?.id);
-            this.closeContextMenu();
-            if (action) this.requestToolbarAction(action.id);
-        };
-        return html`
-            <sf-menu-context
-                    size=${this.menuSize}
-                    :key=${x + y}
-                    aria-label=${this.getContextMenuLabel({...data, menu: 'toolbar-actions'})}
-                    style="
-            position: fixed;
-            left: ${x}px;
-            inset-block-start: calc(${y}px + calc(var(--sf-focus-outline-width) * 2));
-            z-index: var(--sf-table-context-menu--z-index, ${this.contextMenuZIndex()});
-          "
-                    data-context-main-menu
-                    .entries=${entries}
-                    @sf-menu-context-select=${select}
-            ></sf-menu-context>
-        `;
+    // The view's three action menus -- the create arrow's variants, the
+    // toolbar's «⋯» and the list's sort -- are the page's one menu of actions,
+    // SIMAI Framework SF.menu.open (C184 (4), VF-1, set standard 7.5): the
+    // Framework places it at its control, closes it on a press outside or
+    // Escape, toggles it from the same control and gives the focus back. They
+    // were sf-menu-context windows the table drew in its own portal with
+    // position: fixed. Each entry list answers {entries, choose(id)}.
+    actionMenu(menu) {
+        if (menu === 'toolbar-actions') {
+            // The standard menu's entries, not link buttons: a link button in a
+            // menu drew centred text on a light block that looked like no other
+            // menu in the admin (owner, 2026-10-13).
+            const actions = this.getToolbarActions();
+            return {
+                entries: actions.map((action) => ({
+                    id: String(action.id),
+                    text: action.label,
+                    ...(action.icon ? {icon: action.icon} : {}),
+                })),
+                choose: (id) => {
+                    const action = actions.find((item) => String(item.id) === id);
+                    if (action) this.requestToolbarAction(action.id);
+                },
+            };
+        }
+        if (menu === 'list-sort') {
+            // The list has no column heads to sort by, so its sort is a menu:
+            // the host's own order, then each sortable column one way and the
+            // other. Choosing one raises sf-table-sort-change exactly as a head
+            // does.
+            const current = this.state.sort || {};
+            const choices = new Map();
+            const option = (text, key, direction) => {
+                const id = `${key ?? ''}:${direction ?? ''}`;
+                choices.set(id, [key, direction]);
+                return {id, text, kind: 'radio', checked: current.key === key && current.direction === direction};
+            };
+            const sortable = this.getColumns().filter((column) => column?.sortable && !column.system
+                && !["select", "settings", "actions"].includes(column.key));
+            return {
+                entries: [
+                    option(this.text('sortNone'), null, null),
+                    ...sortable.flatMap((column) => [
+                        option(`${column.label ?? column.key}, ${this.text('sortAscending')}`, column.key, 'asc'),
+                        option(`${column.label ?? column.key}, ${this.text('sortDescending')}`, column.key, 'desc'),
+                    ]),
+                ],
+                choose: (id) => {
+                    const choice = choices.get(id);
+                    if (!choice) return;
+                    const [key, direction] = choice;
+                    this.setSort(key, direction);
+                    this.emitTableEvent('sort-change', Object.freeze({key, direction}));
+                },
+            };
+        }
+        if (menu === 'create') {
+            const createItems = this.state.createItems || [];
+            return {
+                entries: createItems.map((item) => ({id: String(item.id), text: item.name})),
+                choose: (id) => {
+                    const item = createItems.find((entry) => String(entry.id) === id);
+                    if (item) this.requestCreateIntent(item.id);
+                },
+            };
+        }
+        return null;
     }
 
-    // The list has no column heads to sort by, so its sort is a menu: the host's
-    // own order, then each sortable column one way and the other. Choosing one
-    // raises sf-table-sort-change exactly as a head does.
-    renderListSortContextMenu(data) {
-        const {x, y} = data;
-        const current = this.state.sort || {};
-        const choose = (key, direction) => {
-            this.closeContextMenu();
-            this.setSort(key, direction);
-            this.emitTableEvent('sort-change', Object.freeze({key, direction}));
-        };
-        const choices = new Map();
-        const option = (text, key, direction) => {
-            const id = `${key ?? ''}:${direction ?? ''}`;
-            choices.set(id, [key, direction]);
-            return {id, text, kind: 'radio', checked: current.key === key && current.direction === direction};
-        };
-        const select = (event) => {
-            const choice = choices.get(event.detail?.id);
-            if (choice) choose(...choice);
-        };
-        const sortable = this.getColumns().filter((column) => column?.sortable && !column.system
-            && !["select", "settings", "actions"].includes(column.key));
-        const items = [
-            option(this.text('sortNone'), null, null),
-            ...sortable.flatMap((column) => [
-                option(`${column.label ?? column.key}, ${this.text('sortAscending')}`, column.key, 'asc'),
-                option(`${column.label ?? column.key}, ${this.text('sortDescending')}`, column.key, 'desc'),
-            ]),
-        ];
-        return html`
-            <sf-menu-context
-                    size=${this.menuSize}
-                    :key=${x + y}
-                    aria-label=${this.getContextMenuLabel({...data, menu: 'list-sort'})}
-                    style="
-            position: fixed;
-            left: ${x}px;
-            inset-block-start: calc(${y}px + calc(var(--sf-focus-outline-width) * 2));
-            z-index: var(--sf-table-context-menu--z-index, ${this.contextMenuZIndex()});
-          "
-                    data-context-main-menu
-                    .entries=${items}
-                    @sf-menu-context-select=${select}
-            ></sf-menu-context>
-        `;
-    }
-
-    renderCreateContextMenu(data) {
-        const {x, y} = data;
-        const createItems = this.state.createItems;
-        const entries = createItems.map((item) => ({id: String(item.id), text: item.name}));
-        const select = (event) => {
-            const item = createItems.find((entry) => String(entry.id) === event.detail?.id);
-            this.closeContextMenu();
-            if (item) this.requestCreateIntent(item.id);
-        };
-        return html`
-            <sf-menu-context
-                    size=${this.menuSize}
-                    :key=${x + y}
-                    aria-label=${this.getContextMenuLabel({...data, menu: 'create'})}
-                    style="
-            position: fixed;
-            left: ${x}px;
-            inset-block-start: calc(${y}px + calc(var(--sf-focus-outline-width) * 2));
-            z-index: var(--sf-table-context-menu--z-index, ${this.contextMenuZIndex()});
-          "
-                    data-context-main-menu
-                    .entries=${entries}
-                    @sf-menu-context-select=${select}
-            ></sf-menu-context>
-        `;
+    // Opens one of the action menus at its control through SF.menu.open and
+    // acts on the row chosen. A second press on the same control closes it.
+    async openActionMenu(menu, anchor) {
+        const built = this.actionMenu(menu);
+        if (!built || !(anchor instanceof Element)) return null;
+        anchor.setAttribute('aria-expanded', 'true');
+        const choice = await menuOpen({
+            anchor,
+            entries: built.entries,
+            label: this.getContextMenuLabel({menu}),
+            size: this.menuSize,
+        });
+        if (anchor.isConnected) anchor.setAttribute('aria-expanded', 'false');
+        if (choice?.id !== undefined && choice?.id !== null) built.choose(String(choice.id));
+        return choice;
     }
 
     // Sorting reports intent only: the table marks the header and emits
@@ -5051,12 +5030,6 @@ class SfTable extends TableElement {
         const menu = data.menu || data.menuType || data.contextMenu;
 
         switch (menu) {
-            case 'create':
-                return this.renderCreateContextMenu(data);
-            case 'list-sort':
-                return this.renderListSortContextMenu(data);
-            case 'toolbar-actions':
-                return this.renderToolbarActionsContextMenu(data);
             case 'filter-favorites':
                 return this.renderFilterFavoritesContextMenu(data);
             case 'filter-settings':
@@ -5070,78 +5043,38 @@ class SfTable extends TableElement {
         }
     }
 
-    renderTemplateActionsContextSubmenu(data) {
-        const {
-            x,
-            y,
-            position,
-            transform,
-            template = {},
-        } = data;
-        let pos = `translateY(${transform !== undefined ? transform : 0}%)`;
+    // A saved view's actions -- rename, make it the default, delete or
+    // restore -- through SF.menu.open, at its «⋯» inside the filter window
+    // (VF-1): the menu was a second sf-menu-context the table placed with
+    // position: fixed and a tail. A delete or a restore is marked in the window
+    // and applied with «Применить», as before.
+    async openTemplateActionsMenu(anchor, template = {}) {
         const temp = this.getFilterTemplateByKey(template.key, this.tempSettings?.filter || null);
-        let isDeleted = (temp || template).deleted;
+        const isDeleted = (temp || template).deleted;
         const isDefaultTemplate = (temp || template).default === true;
-        return html`
-            <sf-menu-context
-                    size=${this.menuSize}
-                    :key=${`${template.key || ''}-${x}-${y}`}
-                    aria-label=${this.getContextMenuLabel({...data, type: 'filter-template-actions'})}
-                    style="
-          position: fixed;
-        left: calc(${x}px + var(--sf-context-menu-tail-corner-offset));
-            inset-block-start: ${y}px;
-          z-index: var(--sf-table-context-submenu--z-index, ${this.contextMenuZIndex()});
-          transform: ${pos}
-        "
-                    data-context-submenu
-                    root-class="sf-table-context-submenu flex flex-col"
-                    position="${position || "right"}"
-                    .entries=${[
-                        // The standard menu's rows (owner, 2026-10-14), not link
-                        // buttons; a delete is marked as one, a restore is not.
-                        {id: 'rename', text: this.text('renameText'), icon: 'edit'},
-                        {id: 'default', text: isDefaultTemplate ? this.text('defaultTemplateText') : this.text('makeDefaultLabel'),
-                            icon: isDefaultTemplate ? 'remove' : 'check'},
-                        {id: 'delete', text: isDeleted ? this.text('restoreText') : this.text('deleteActionText'),
-                            icon: isDeleted ? 'restore_from_trash' : 'delete', danger: !isDeleted, keepOpen: true},
-                    ]}
-                    @sf-menu-context-select=${(event) => {
-                        const id = event.detail?.id;
-                        if (id === 'rename') {
-                            this.set((prevState) => ({
-                                filter: {
-                                    ...(prevState.filter || {}),
-                                    rename: template.key,
-                                },
-                                contextMenu: {
-                                    ...(prevState.contextMenu || {}),
-                                    submenu: null,
-                                },
-                            }));
-                        } else if (id === 'default') {
-                            this.changeTempFilterTemplateSettings(template.key, {
-                                default: !template.default,
-                            });
-                            this.closeContextSubmenu();
-                        } else if (id === 'delete') {
-                            this.patchTempFilterTemplateSettings(template.key, {
-                                deleted: !isDeleted,
-                            });
-                        }
-                    }}
-            >
-            </sf-menu-context>
-        `;
-    }
-
-    renderContextSubmenu(data) {
-        switch (data?.type) {
-            case 'filter-template-actions':
-                return this.renderTemplateActionsContextSubmenu(data);
-            default:
-                return nothing;
+        const choice = await menuOpen({
+            anchor,
+            label: this.getContextMenuLabel({type: 'filter-template-actions', template}),
+            size: this.menuSize,
+            entries: [
+                // The standard menu's rows (owner, 2026-10-14), not link
+                // buttons; a delete is marked as one, a restore is not.
+                {id: 'rename', text: this.text('renameText'), icon: 'edit'},
+                {id: 'default', text: isDefaultTemplate ? this.text('defaultTemplateText') : this.text('makeDefaultLabel'),
+                    icon: isDefaultTemplate ? 'remove' : 'check'},
+                {id: 'delete', text: isDeleted ? this.text('restoreText') : this.text('deleteActionText'),
+                    icon: isDeleted ? 'restore_from_trash' : 'delete', danger: !isDeleted},
+            ],
+        });
+        const id = choice?.id;
+        if (id === 'rename') {
+            this.set((prevState) => ({filter: {...(prevState.filter || {}), rename: template.key}}));
+        } else if (id === 'default') {
+            this.changeTempFilterTemplateSettings(template.key, {default: !isDefaultTemplate});
+        } else if (id === 'delete') {
+            this.patchTempFilterTemplateSettings(template.key, {deleted: !isDeleted});
         }
+        return choice;
     }
 
     renderContextMenu(data) {
@@ -5168,10 +5101,8 @@ class SfTable extends TableElement {
                         class="sf-table-context-layer"
                         data-sf-sheet=${this.isList && ["filter-settings", "tag-settings"].includes(data.menu) ? "" : nothing}
                         ${ref(this.refs.contextMenu)}
-                        @click=${(event) => this.handleContextLayerClick(event)}
                 >
                     ${this.renderMainContextMenu(data)}
-                    ${data.submenu?.open ? this.renderContextSubmenu(data.submenu) : nothing}
                     ${this.isList && ["filter-settings", "tag-settings"].includes(data.menu) ? html`
                         <div class="sf-table-sheet-close">
                             <sf-button-icon size=${this.size} appearance="ghost" scheme="on-surface"
@@ -6298,19 +6229,13 @@ class SfTable extends TableElement {
     // the next column. The consumer measured a menu whose left edge matched the
     // button's left and whose right edge stood 34 to 124px beyond it.
     getContextMenuPlacement(menu) {
-        const isSubmenu = menu.hasAttribute('data-context-submenu');
-        const data = isSubmenu ? this.state.contextMenu?.submenu : this.state.contextMenu;
+        const data = this.state.contextMenu;
         const anchor = this.resolveContextAnchor(data);
         if (!anchor) return null;
-        const position = String(data.position || (isSubmenu || data.type === 'left' ? 'left' : ''));
+        const position = String(data.position || (data.type === 'left' ? 'left' : ''));
         const family = /^(left|right)(-top|-bottom)?$/.exec(position);
         if (!family) {
-            // A menu belonging to a control at the end of its row aligns to that
-            // control's end edge; otherwise it hangs past the button and over
-            // whatever is beside it. The create arrow and the view's actions are
-            // both such controls.
-            const toTheEnd = ['create', 'toolbar-actions'].includes(data.menu);
-            return {anchor, side: 'block-end', align: toTheEnd ? 'end' : 'start', tail: null};
+            return {anchor, side: 'block-end', align: 'start', tail: null};
         }
         const suffix = family[2] || '';
         return {
@@ -6430,6 +6355,16 @@ class SfTable extends TableElement {
                 group: Array.isArray(opts.action?.members) ? opts.action : null,
                 items: Array.isArray(opts.items) ? opts.items : null,
             });
+        }
+        // The action menus are SF.menu.open's: no window of the table's own.
+        if (["create", "list-sort", "toolbar-actions"].includes(opts.menu)) {
+            this.closeContextMenu(false);
+            const opener = event.currentTarget instanceof Element ? event.currentTarget
+                : event.target instanceof Element ? event.target : null;
+            if (!opener) return;
+            event.preventDefault?.();
+            event.stopPropagation?.();
+            return this.openActionMenu(opts.menu, this.resolveBoxedAnchor(event, opener));
         }
         this.closeContextMenu(false);
         this.contextTarget?.classList.remove("active");
@@ -6559,91 +6494,17 @@ class SfTable extends TableElement {
         return this;
     }
 
+    // A saved view's «⋯» opens the page's one menu of actions (VF-1).
     openContextSubmenu(event, opts = {}) {
         event.preventDefault();
         event.stopPropagation();
-
         const target = event.target instanceof Element ? event.target : null;
-        const anchorTarget =
-            event.currentTarget instanceof Element ? event.currentTarget : target;
-
-        if (!anchorTarget) {
-            return;
-        }
-
+        const anchorTarget = event.currentTarget instanceof Element ? event.currentTarget : target;
+        if (!anchorTarget) return null;
         // The opener is usually an sf-button-icon, whose host is display:contents
-        // and has no box at all: anchoring to it put the menu at the top left of
-        // the viewport, which the clamp then pushed to the window's edge -- the
-        // consumer saw it open far from its button, over the admin menu. The
-        // native control on the event path is the thing with a box.
+        // and has no box at all; the native control on the event path has one.
         const boxed = this.resolveBoxedAnchor(event, anchorTarget);
-        const rect = boxed.getBoundingClientRect();
-        const anchorKey =
-            opts.anchorKey ||
-            opts.template?.key ||
-            anchorTarget.dataset?.contextSubmenuAnchor ||
-            "";
-
-        if (
-            anchorKey &&
-            this.state.contextMenu?.submenu?.open &&
-            this.state.contextMenu.submenu.anchorKey === anchorKey
-        ) {
-            this.closeContextSubmenu();
-            return;
-        }
-
-        const data = {
-            open: true,
-            type: opts.type,
-            anchorKey,
-            x: rect.left + rect.width,
-            y: rect.y + rect.height / 2,
-            position: opts.position || 'left',
-            transform: -50,
-            ...opts,
-            anchor: boxed,
-            anchorRef: this.describeContextAnchor(boxed),
-        };
-
-        this.set((state) => ({
-            contextMenu: {
-                ...(state.contextMenu || {}),
-                submenu: data,
-            },
-        }));
-    }
-
-    handleContextLayerClick(event) {
-        const target = event.target;
-
-        if (!(target instanceof Element)) {
-            return;
-        }
-
-        if (target.closest("[data-context-submenu]")) {
-            return;
-        }
-
-        if (target.closest("[data-context-submenu-anchor]")) {
-            return;
-        }
-
-        if (
-            this.state.contextMenu?.submenu?.open &&
-            !target.closest("[data-context-main-menu]")
-        ) {
-            this.closeContextSubmenu();
-        }
-    }
-
-    closeContextSubmenu() {
-        this.set((state) => ({
-            contextMenu: {
-                ...(state.contextMenu || {}),
-                submenu: null,
-            },
-        }));
+        return this.openTemplateActionsMenu(boxed, opts.template || {});
     }
 
     // Every element the table draws goes through here -- its own controls,
@@ -7751,6 +7612,8 @@ class SfTable extends TableElement {
 
     disconnectedCallback() {
         this.unbindWindowScroll();
+        for (const controller of this._toolbarRoving?.values() ?? []) controller.destroy();
+        this._toolbarRoving?.clear();
         // The row menu lives beside the page, not inside the table: it goes
         // with the table that made it.
         this._rowMenu?.close?.({restoreFocus: false});
@@ -7964,6 +7827,30 @@ class SfTable extends TableElement {
         this.drawingWith(() => this.afterDraw());
     }
 
+    // The toolbar's keyboard is SIMAI Framework roving.js (C184 (1)-(3),
+    // VF-6): each group of the toolbar's buttons -- the filter with its chips
+    // and their buttons at the start, create and the view's actions at the
+    // end -- is one Tab stop, the arrows walk it in the row's direction, ↓ on
+    // a menu button opens its menu, and Tab comes back to the button left.
+    // The search field and the layout switch keep their own keys and stops.
+    bindToolbarKeyboard() {
+        const groups = [...this.querySelectorAll(":scope .sf-table-toolbar .sf-table-toolbar-start, :scope .sf-table-toolbar .sf-table-toolbar-end, :scope .sf-table-toolbar .sf-table-list-search")]
+            .filter((group) => group.closest("sf-view-table, sf-table") === this);
+        this._toolbarRoving ??= new Map();
+        for (const [group, controller] of this._toolbarRoving) {
+            if (!groups.includes(group) || !group.isConnected) {
+                controller.destroy();
+                this._toolbarRoving.delete(group);
+            }
+        }
+        const buttons = (group) => () => [...group.querySelectorAll("button")]
+            .filter((button) => !button.closest("sf-input, .sf-input, sf-segmented, .sf-segmented"));
+        for (const group of groups) {
+            if (this._toolbarRoving.has(group)) continue;
+            this._toolbarRoving.set(group, roving(group, {items: buttons(group), orientation: "horizontal"}));
+        }
+    }
+
     // The selection boxes draw their tick only when a box is checked: an
     // unchecked row's glyph is empty, so the page's first icon font never had
     // «check», and the first box checked waited for a second font before its
@@ -7998,6 +7885,7 @@ class SfTable extends TableElement {
         this.adoptSelectionGlyphs();
         this._observeResponsiveBox();
         this.bindRowActionsEvents(this.refs.table?.value);
+        this.bindToolbarKeyboard();
         this.syncGrid();
         this.bindRowMenu();
         this.toggleAttribute("data-sf-keyed-narrow", this.isKeyedNarrow);
