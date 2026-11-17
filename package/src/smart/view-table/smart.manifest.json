@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-table",
-  "version": "1.21.1",
+  "version": "1.22.0",
   "title": "Table",
   "summary": "Complete server-backed collection view with search, filters, table preferences, row and bulk actions, and pagination.",
   "kind": "composite",
@@ -54,6 +54,7 @@
       "smart.reference-link",
       "smart.resizer",
       "smart.segmented",
+      "smart.settings",
       "smart.slider-range",
       "smart.sortable",
       "smart.spinner",
@@ -2843,6 +2844,13 @@
         "changes": [
           "SIMAI Pro follow-ups: filter chips stand --sf-space-1/4 apart (C105 H5; were 8) and are written with their current names (kind=default, active, sf-tag-close; were type, root-class=active and the dated close); the search fields carry the glass at the start, the field's own clear and a name (icon-start, clearable, aria-label; C123, C153 (6), TI-10); a group action's button and a host action with menu row-settings open the one standard row menu (C164 (2), CM-8) -- the hand-drawn second row menu is gone."
         ]
+      },
+      {
+        "from": "1.21.1",
+        "to": "1.22.0",
+        "changes": [
+          "C106: the gear's window is SIMAI Framework sf-settings look=\"panel\" (sf-settings 1.6.3), not sf-menu-context tabs with rows drawn by the table. «Поля» is its fields list -- a column shown or not (the theme's light fill and a check at the end), its order (the handle at the start, a drag or Alt+arrows, the position said), pinned on top (the Framework pin button), the panel's search -- and «Вид» its density choice (the fill alone) and switches (lines, one line, the held head, «Для всех моих таблиц» after a line). Every change applies at once as before (save {kind: columns} with reason column-visibility, column-pin or column-order; view-change); «Сбросить» puts the fields back as the window opened with them or the view to its defaults, by the tab it stands on; the window reopens on the tab it was closed on. The panel takes the gear's density (C22): the hand-set 1/2 handles and pins are gone, a size is passed only when the host wrote one; on a phone it is the bottom sheet (C106 (8), C157 (5)). The host labels column-move-label, pin-column-label, unpin-column-label, column-search-placeholder and column-search-empty-text are no longer read by the gear: sf-settings speaks its own words in the page language. The filter window keeps its tabs (its templates need what sf-settings does not offer)."
+        ]
       }
     ]
   },
@@ -2852,7 +2860,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-table/index.js",
-        "sha256": "2158fb368ef99c50bb7155c5a0e39f9cdf7758a5db36d84b74c2ab1fe7500cb2"
+        "sha256": "d7acc826ffca9880f973e881b8d0673ce1d5cd6171f1e5921055c4d2477bb1dc"
       },
       {
         "path": "src/smart/view-table/js/templates/default.js",
@@ -2860,7 +2868,7 @@
       },
       {
         "path": "src/smart/view-table/js/templates/default.css",
-        "sha256": "277ba7692d34afb1bc74a76032e33dcd1b9e50ff3ce785e791ba39240c92630a"
+        "sha256": "ad8c06600f78de17b722c1ea337d9af6c171025b611ed72c83078504089144e6"
       },
       {
         "path": "src/smart/helpers/option-badge.js",
@@ -2868,11 +2876,11 @@
       },
       {
         "path": "src/smart/view-table/rule.js",
-        "sha256": "b3ed61276e9b06ce9755dcb53da1cd4caf7bbf1eb862d903f7fb52fb6c63dcc5"
+        "sha256": "321138086622411b2f57f5c08dce41326e551b0c5af831447dae0870bb85f463"
       },
       {
         "path": "src/smart/view-table/docs/smart-table-guide.md",
-        "sha256": "e3eda465c5c95449c65aaa35d90a5b2dbd3edd6a6a13a39b71afae0a91c88abf"
+        "sha256": "d62efe969328a8ddef5a819c539be4f3012bf55a1e1565e071089778455c14ff"
       },
       {
         "path": "src/smart/pagination/index.js",

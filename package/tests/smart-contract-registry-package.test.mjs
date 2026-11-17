@@ -40,7 +40,7 @@ test("CLI discovers and describes the whole data view", () => {
   assert.equal(packet.decision.reuse_mode, "whole");
   assert.equal(packet.public_abi.custom_element, "sf-view-table");
   assert.equal(packet.conformance.compatibility.contract_schema.version, 2);
-  assert.equal(packet.identity.version, '1.21.1');
+  assert.equal(packet.identity.version, '1.22.0');
   assert.ok(packet.public_abi.methods.requestActionIntent);
   assert.ok(packet.public_abi.events['sf-table-action-intent']);
   for (const event of ['sf-table-create-intent', 'sf-view-table-template-select', 'sf-view-table-sort-change']) {
@@ -81,7 +81,10 @@ test("table preferences remain operable through the canonical source", () => {
   assert.match(toolbar, /let value = row\[column\.key\]/);
   assert.match(toolbar, /action\?\.visible \?\? true/);
   assert.doesNotMatch(toolbar, /SF\.litHtml/);
-  assert.match(table, /<sf-checkbox[\s\S]*@change=\$\{event => onChange\?\.\(col, event\)\}/);
+  // The gear's columns are sf-settings' fields list (C106): shown, ordered
+  // and pinned, applied as the person changes them.
+  assert.match(table, /\{id: "columns", type: "fields", text: this\.text\("settingsFieldsTab"\), sortable: true, pinnable: true, options\}/u);
+  assert.match(table, /if \(id === "columns"\) this\.applyColumnsSetting\(value\);/u);
   // The table had its own copy; the base owns it now, and it keeps the element
   // a position in the template already has instead of making a new one.
   const base = readFileSync(new URL("../src/core/js/smart-base.js", import.meta.url), "utf8");

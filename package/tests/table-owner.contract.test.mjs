@@ -14,8 +14,11 @@ test('Smart Table names every owned action and contextual surface', async () => 
   // Nine since the compact list, whose sort is a menu (it has no column heads).
   // Eight again since CM-8: the row's second, hand-drawn menu is gone; a row
   // has the one standard menu bound to the rows (rowMenu, made in script).
-  assert.equal((table.match(/<sf-menu-context/g) || []).length, 8);
-  assert.equal((table.match(/<sf-menu-context[\s\S]*?aria-label=/g) || []).length, 8);
+  // Seven since C106: the gear's window is SIMAI Framework sf-settings in its
+  // panel look, named by the same label.
+  assert.equal((table.match(/<sf-menu-context/g) || []).length, 7);
+  assert.equal((table.match(/<sf-menu-context[\s\S]*?aria-label=/g) || []).length, 7);
+  assert.match(table, /<sf-settings\s+look="panel"[\s\S]*?label=\$\{this\.getContextMenuLabel\(\{\.\.\.data, menu: 'table-settings'\}\)\}/u);
   assert.match(table, /getContextMenuLabel\(data = \{\}\)/);
   assert.match(template, /aria-label="Сохранить шаблон фильтра"/);
   // The search field is named and clears itself (C123 (5), C153 (6), TI-10).
