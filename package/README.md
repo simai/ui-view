@@ -2,7 +2,7 @@
 
 This folder is the source of the component set `view` (standard
 `simai.component-set` 1.0.0 of SIMAI Framework), product «SIMAI View», Pro
-licence: its passport `set.json`, the three data views under `src/smart/`,
+licence: its passport `set.json`, the four components under `src/smart/`,
 their tests and the scripts that test, probe and stage them.
 
 | Folder | Element | Former tag (until 2027-01-01) | What it is |
@@ -10,6 +10,7 @@ their tests and the scripts that test, probe and stage them.
 | `src/smart/view` | `sf-view` | `sf-data-view` | the data view: a host's data port (`simai.dataview-port`) drawn as a table with search, filters, sorting, pages, saved views and a tree |
 | `src/smart/view-table` | `sf-view-table` | `sf-table` | the smart table: typed cells, columns, row actions, filters, pages; fed directly or by `sf-view` |
 | `src/smart/view-properties` | `sf-view-properties` | `sf-property-view` | the record card: a record's properties in groups and sections, read and edited |
+| `src/smart/view-flow` | `sf-view-flow` | — | the flow block, preview: a record's properties as a block in a flow (a chat, a feed), shown or answered |
 
 The components came from `simai/ui-pro` `components/src/smart/` at
 `c2a3b48d140f` (the `pro` bundle keeps shipping them until it is rebuilt from

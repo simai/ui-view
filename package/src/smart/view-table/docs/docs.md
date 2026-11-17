@@ -11,7 +11,7 @@
   `sf-table-save {kind: columns, …}`, `sf-view-table-create`, `sf-view-table-query`, `sf-view-table-refresh`, `sf-view-table-expand`,
   `sf-view-table-load-more`, `sf-view-table-move`. Старые имена (`sf-table-action-intent`, `sf-port-output`,
   `sf-table-column-settings-change`, `onSearchEnd`, `onTemplateSave`, `onFilterUpdate`, `onColumnSettingsChange` и
-  другие из `aliases.json`) приходят следом один раз до 2026-12-01 и отмечаются в `SF.deprecations`.
+  другие из `aliases.json`) приходят следом один раз до 2027-01-01 и отмечаются в `SF.deprecations`.
 - `sf-view-table-search-change` несёт `{search}`; `onSearchEnd` по-прежнему получает сам текст.
 - Длинный список (от 300 строк) рисует только видимые строки и запас вокруг них; какие строки нарисованы, сообщает
   `sf-table-window {first, last}`. Стрелки, Home и End переходят и к ненарисованной строке.

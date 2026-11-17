@@ -15,6 +15,7 @@ import {elementFromManifest} from "../../core/js/element-manifest";
 // its former tag beside its own (it is not a Smart base element).
 import {defineTagAliases, isTag, tagSelector} from "../../core/js/smart-base";
 import {installAliases} from "../../core/js/aliases.js";
+import {isDestructiveAction, orderActions} from "../pagination/js/actions.js";
 import {noteDeprecated} from "../../core/js/deprecations.js";
 import {answerActions, settingSetters} from "../view-table/js/manifest-actions.js";
 import manifest from "./component.json";
@@ -34,7 +35,7 @@ const LISTENED = Object.freeze([
     "sf-pagination-action-for-all-change", "sf-view-save",
 ]);
 // The table's and the page row's events by their names since standard 1.3.8
-// (vocabulary 1.1.5): the old names they still send until 2026-12-01 are not
+// (vocabulary 1.1.5): the old names they still send until 2027-01-01 are not
 // listened to, so each act is taken once.
 const EVENTS = Object.freeze({
     "sf-view-table-query": "query.change",
@@ -1838,7 +1839,7 @@ class SfDataView extends DataViewElement {
         chosen(parts.actions, "aria-label", pagination.actionsLabel);
         parts.actions.options = [
             {type: "text", size: this.controlSize ?? undefined, text: pagination.actionChooseLabel, value: "", selected: !action},
-            ...[...actions].sort((a, b) => Number(this._bulkDestructive(a)) - Number(this._bulkDestructive(b))).map((item) => ({
+            ...orderActions(actions).map((item) => ({
                 type: "text", size: this.controlSize ?? undefined, text: item.text, value: item.value,
                 selected: item.value === action, disabled: Boolean(item.disabled),
             })),
@@ -1850,7 +1851,7 @@ class SfDataView extends DataViewElement {
         // that action is listed last.
         // A Smart button draws its look once, as class markup over a native
         // button: a look that changes is a new button in the same place.
-        const danger = this._bulkDestructive(actions.find((item) => item.value === action));
+        const danger = isDestructiveAction(actions.find((item) => item.value === action));
         if ((parts.apply.dataset.sfBulkDanger === "true") !== danger) {
             const apply = document.createElement("sf-button");
             apply.dataset.sfBulk = "apply";
@@ -1874,15 +1875,6 @@ class SfDataView extends DataViewElement {
         chosen(parts.clear, "aria-label", pagination.clearSelectionLabel);
 
         return this;
-    }
-
-    // The rule SIMAI Framework sf-pagination 1.6.0 reads for its own band
-    // (isDestructiveAction, smart/pagination/js/actions.js): the action's
-    // danger flag ({danger: true}, or "delete:Delete::danger" once the
-    // pagination parses it) or a value that deletes. Kept here until the pair
-    // this set is pinned to carries that module.
-    _bulkDestructive(item) {
-        return Boolean(item) && (item.danger === true || /^(delete|remove|destroy|trash)\b/iu.test(String(item.value ?? item.id ?? "")));
     }
 
     // Apply is the band's only write, and it goes the same way it went from the

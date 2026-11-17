@@ -1,7 +1,7 @@
 {
   "name": "@simai-studio/view",
   "version": "1.8.1",
-  "description": "SIMAI View, the component set view of SIMAI Framework: the data view sf-view, the smart table sf-view-table and the record card sf-view-properties.",
+  "description": "SIMAI View, the component set view of SIMAI Framework: the data view sf-view, the smart table sf-view-table, the record card sf-view-properties and the flow block sf-view-flow (preview).",
   "license": "PolyForm-Small-Business-1.0.0 OR PolyForm-Noncommercial-1.0.0 OR LicenseRef-SIMAI-Commercial",
   "author": "Rim Zabarov",
   "homepage": "https://view.simai.io/",
