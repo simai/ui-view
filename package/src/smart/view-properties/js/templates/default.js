@@ -614,7 +614,7 @@ function renderGroup(context, section, group) {
         : html`${fields.map((field) => renderField(context, field, editing, String(section.key ?? ''), groupKey))}`;
 
     return html`
-        <section class="sf-property-view-group bg-surface-page flex flex-col gap-2 ${editing ? 'sf-property-view-group--editing' : ''}"
+        <section class="sf-property-view-group bg-surface-page flex flex-col gap-2 ${editing ? 'sf-property-view-group--editing' : ''} ${group.kind === 'related' && !editing && !configuring ? 'sf-property-view-group--related' : ''}"
                  data-group=${groupKey}
                  aria-busy=${reading ? 'true' : nothing}
                  data-sf-sortable-item=${configuring ? groupKey : nothing}
@@ -1550,7 +1550,8 @@ function renderBody(context, railOutside = false, withActions = true) {
         <div class="sf-property-view-status" role="status" aria-live="polite" ?hidden=${!context.message}>
             ${context.message}
         </div>
-        ${!context.panel && (context.hasHostSlot('actions') || context.hasHostSlot('menu') || context.panelMenuItems.length)
+        ${!context.panel && (context.hasHostSlot('actions') || context.hasHostSlot('menu') || context.panelMenuItems.length
+                || context.canDeleteRecord || (context.recordMenuItems?.length ?? 0) > 0)
                 ? html`
                     <div class="sf-property-view-host-actions flex flex-wrap items-cross-center justify-end gap-1">
                         ${context.hasHostSlot('actions') ? context.hostSlot('actions') : nothing}

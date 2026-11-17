@@ -109,9 +109,11 @@ try {
     const check = (what, pass, got) => { if (!pass) failures.push({check: at(what), got}); };
     const look = () => page.evaluate(() => {
       const view = document.getElementById('view');
-      const save = view.querySelector('[data-action="save"]');
+      // The panel stands in the drawer's layer, which may be outside the element.
+      const scope = [...document.querySelectorAll('.sf-drawer-panel')].find((panel) => panel.querySelector('.sf-property-view-panel')) ?? view;
+      const save = scope.querySelector('[data-action="save"]');
       const native = save?.matches('button') ? save : save?.querySelector('button');
-      const summary = view.querySelector('.sf-property-view-error-summary');
+      const summary = scope.querySelector('.sf-property-view-error-summary');
       const active = document.activeElement;
       return {
         saveDrawn: Boolean(save), saveDisabled: Boolean(native?.disabled || save?.hasAttribute('disabled')),
@@ -119,22 +121,22 @@ try {
         summary: summary ? {role: summary.getAttribute('role'), links: [...summary.querySelectorAll('a')].map((a) => a.getAttribute('href'))} : null,
         focusOnSummary: Boolean(summary && (active === summary || summary.contains(active))),
         focusField: active?.closest?.('[data-field]')?.getAttribute('data-field') ?? null,
-        messages: Object.fromEntries(['title', 'stage'].map((key) => [key, (view.querySelector(`[data-field="${key}"] .sf-property-view-field-error, [data-field="${key}"] [data-field-message="error"]`)?.textContent ?? '').trim()])),
-        confirm: (() => { const c = view.querySelector('.sf-property-view-actions sf-confirm'); return c ? {text: c.textContent.replace(/\s+/gu, ' ').trim(), buttons: [...c.querySelectorAll('button')].map((b) => b.textContent.trim())} : null; })(),
-        ownBar: Boolean(view.querySelector('.sf-property-view-confirmation, [data-action="confirm-save"]')),
+        messages: Object.fromEntries(['title', 'stage'].map((key) => [key, (scope.querySelector(`[data-field="${key}"] .sf-property-view-field-error, [data-field="${key}"] [data-field-message="error"]`)?.textContent ?? '').trim()])),
+        confirm: (() => { const c = scope.querySelector('.sf-property-view-actions sf-confirm'); return c ? {text: c.textContent.replace(/\s+/gu, ' ').trim(), buttons: [...c.querySelectorAll('button')].map((b) => b.textContent.trim())} : null; })(),
+        ownBar: Boolean(scope.querySelector('.sf-property-view-confirmation, [data-action="confirm-save"]')),
         editing: Boolean(view.editing),
-        title: view.querySelector('[data-field="title"] input')?.value ?? null,
+        title: scope.querySelector('[data-field="title"] input')?.value ?? null,
       };
     });
     const type = async (key, text) => {
-      const input = page.locator(`#view [data-field="${key}"] input`).first();
+      const input = page.locator(`.sf-drawer-panel [data-field="${key}"] input`).first();
       await input.fill(text);
       await input.press('Tab');
       await page.waitForTimeout(150);
     };
-    const save = async () => { await page.locator('#view [data-action="save"]').first().click(); await page.waitForTimeout(500); };
+    const save = async () => { await page.locator('.sf-drawer-panel [data-action="save"]').first().click(); await page.waitForTimeout(500); };
 
-    await page.locator('#view [data-action="edit"]').first().click();
+    await page.locator('.sf-drawer-panel [data-action="edit"]').first().click();
     await page.waitForTimeout(800);
     const start = await look();
     check('Save is drawn and enabled with nothing changed', start.saveDrawn && !start.saveDisabled, start);
@@ -149,7 +151,7 @@ try {
     check('the summary lists both, in field order, with links', refused.summary?.role === 'alert'
       && JSON.stringify(refused.summary.links) === '["#title","#stage"]', refused);
     check('the focus is on the summary', refused.focusOnSummary, refused);
-    await page.locator('#view .sf-property-view-error-summary a').nth(1).click();
+    await page.locator('.sf-drawer-panel .sf-property-view-error-summary a').nth(1).click();
     await page.waitForTimeout(300);
     const linked = await look();
     check('a link takes the focus to its field', linked.focusField === 'stage', linked);
@@ -163,12 +165,12 @@ try {
     const asked = await look();
     check('the host asks: sf-confirm in place with its words', asked.saves === 1 && asked.confirm
       && asked.confirm.text.includes('Сделка уйдёт на согласование') && asked.confirm.buttons.length === 2 && !asked.ownBar, asked);
-    await page.locator('#view .sf-property-view-actions sf-confirm button').nth(1).click();
+    await page.locator('.sf-drawer-panel .sf-property-view-actions sf-confirm button').nth(1).click();
     await page.waitForTimeout(400);
     const back = await look();
     check('going back raises nothing and keeps the entries', back.saves === 1 && !back.confirm && back.editing && back.title === 'Поставка столов', back);
     await save();
-    await page.locator('#view .sf-property-view-actions sf-confirm button').first().click();
+    await page.locator('.sf-drawer-panel .sf-property-view-actions sf-confirm button').first().click();
     await page.waitForTimeout(600);
     const done = await look();
     check('accepted: the save is raised again with the digest and editing ends', done.saves === 3 && done.lastConfirm === 'd1' && !done.editing, done);

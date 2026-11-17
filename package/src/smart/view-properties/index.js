@@ -593,7 +593,9 @@ class SfPropertyView extends PropertyViewElement {
     // panel) a wide page keeps `sections-as`.
     get sectionsLayout() {
         if (!this.wide) return "phone";
-        if (this.panel) return this.drawerStep === "full" ? "column" : "tabs";
+        // Arranging keeps the rail of sections beside the groups, each its own
+        // scroller, in a panel of any step: the sections are dragged there.
+        if (this.panel) return this.drawerStep === "full" || this.configuring ? "column" : "tabs";
         return this.sectionsAs === "tabs" ? "tabs" : "column";
     }
 

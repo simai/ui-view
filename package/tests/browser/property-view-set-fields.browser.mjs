@@ -10,7 +10,8 @@
 //   the currency has hold the save and say so once left; a currency choice
 //   when the field fixes none; the value written is {amount, currency} with a
 //   decimal string;
-// - percent: a % in the input; out of 0..100 holds the save;
+// - percent: a % in the input; out of 0..100 holds the save (Save stays
+//   enabled and refuses, C182 (7), sf-view-properties 1.17.0; the count says it);
 // - rows: a typed cell recalculates the computed cell and the total live;
 //   rows are added up to max_rows, moved and removed down to min_rows; the
 //   save carries decimal strings, the computed cells last, and no float;
@@ -219,7 +220,7 @@ try {
       // Money: too many minor digits.
       await retype(`${field('amount')} sf-input input`, '1500,555');
       const typing = await look();
-      check(at('money: more minor digits hold the save'), typing.saveDisabled === true && /1$/u.test(typing.count) && typing.amountMessage === '', typing);
+      check(at('money: more minor digits hold the save'), typing.saveDisabled === false && /1$/u.test(typing.count) && typing.amountMessage === '', typing);
       await leave();
       const left = await look();
       check(at('money: said once left'), left.amountMessage === 'Не больше 2 знаков после запятой', left);
@@ -230,7 +231,7 @@ try {
       await retype(`${field('share')} sf-input input`, '120');
       await leave();
       const share = await look();
-      check(at('percent: above 100 is said and holds the save'), share.shareMessage === 'От 0 до 100' && share.saveDisabled === true, share);
+      check(at('percent: above 100 is said and holds the save'), share.shareMessage === 'От 0 до 100' && share.saveDisabled === false, share);
       await retype(`${field('share')} sf-input input`, '7,25');
       await leave();
 
@@ -258,7 +259,7 @@ try {
       await retype(`${field('requisites')} [data-part="inn"] sf-input input`, '7707083894');
       await leave();
       const inn = await look();
-      check(at('requisites: a wrong ИНН is said and holds the save'), inn.innMessage === 'Не сходятся контрольные цифры ИНН' && inn.saveDisabled === true, inn);
+      check(at('requisites: a wrong ИНН is said and holds the save'), inn.innMessage === 'Не сходятся контрольные цифры ИНН' && inn.saveDisabled === false, inn);
       await retype(`${field('requisites')} [data-part="inn"] sf-input input`, '7707083893');
       await retype(`${field('requisites')} [data-part="bik"] sf-input input`, '044525225');
       await leave();

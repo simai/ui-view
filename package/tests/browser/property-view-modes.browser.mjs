@@ -120,6 +120,7 @@ try {
       valueButtons: root.querySelectorAll('.sf-property-view-field-open').length,
       footer: Boolean(root.querySelector('.sf-property-view-actions')),
       trash: Boolean(root.querySelector('[data-action="delete"]')),
+      menu: Boolean(root.querySelector('[data-action="menu"]')),
       inputs: root.querySelectorAll('sf-input').length,
       save: root.querySelector('[data-action="save"], [data-action="create"]')?.getAttribute('data-action') ?? null,
       configure: view.canConfigureView,
@@ -141,7 +142,9 @@ try {
   if (!opened.footer || !opened.save) note({case: 'an editor, a group open', got: opened, expected: 'a footer with save'});
 
   const lifecycle = await make({mode: null, actions: ['record.edit', 'record.delete'], version: '1.12.0', capabilities: []});
-  if (!lifecycle.trash || !lifecycle.footer) note({case: 'an editor who may delete', got: lifecycle, expected: 'the trash in a footer'});
+  // Since 1.17.0 (C289 (3)) a record to read has no foot for one delete:
+  // «Удалить» is a row of the «⋯» menu, which stands for it.
+  if (lifecycle.footer || !lifecycle.menu) note({case: 'an editor who may delete', got: lifecycle, expected: 'no footer; the «⋯» menu that holds «Удалить»'});
 
   const viewOnly = await make({mode: 'view', actions: ['record.edit', 'record.delete'], version: '1.12.0', capabilities: ['view-settings']});
   if (viewOnly.edit || viewOnly.valueButtons || viewOnly.footer || viewOnly.trash || viewOnly.configure) note({case: 'mode view', got: viewOnly, expected: 'nothing to change, whatever the rights'});

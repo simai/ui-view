@@ -1093,6 +1093,21 @@
     row-gap: 0;
   }
 
+  /* A group of related records read in the list is one more heading of it,
+     not a card among headings (C289 (4)): its embedded list starts on the
+     labels' axis. */
+  .sf-property-view-list .sf-property-view-group.sf-property-view-group--related {
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+  }
+
+  .sf-property-view-list .sf-property-view-group--related > .sf-property-view-group-header {
+    padding-block-end: 0;
+    border-block-end: 0;
+  }
+
   .sf-property-view-group--list > .sf-property-view-group-header {
     padding-block-end: 0;
     border-block-end: 0;

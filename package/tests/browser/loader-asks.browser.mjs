@@ -105,25 +105,31 @@ try {
     await page.goto(`${origin}/${where}`);
     await page.waitForFunction(() => window.__loaded === true, null, {timeout: 20000}).catch(() => {});
     await page.waitForTimeout(2500);
-    const undefinedTags = () => page.evaluate(() => [...new Set([...document.querySelectorAll('#view :not(:defined)')]
+    // A panel's drawer may stand outside the element (its layer), so the page
+    // is read whole: nothing else on it draws an sf- tag.
+    const undefinedTags = () => page.evaluate(() => [...new Set([...document.querySelectorAll(':not(:defined)')]
       .map((node) => node.localName).filter((tag) => tag.startsWith('sf-')))]);
-    const read = await page.evaluate(() => ({
+    const sections = await page.evaluate(() => document.querySelectorAll('sf-tabs, sf-list.sf-property-view-phone-sections').length);
+    // On a phone the sections are a list first: the first one is opened.
+    await page.evaluate(() => document.getElementById('view').openPhoneSection?.('main'));
+    await page.waitForTimeout(1200);
+    const read = await page.evaluate((sections) => ({
       defined: Boolean(customElements.get('sf-view-properties')),
-      rows: document.querySelectorAll('#view .sf-list-description-row').length,
-      sections: document.querySelectorAll('#view sf-tabs, #view sf-list.sf-property-view-phone-sections').length,
-    }));
+      rows: document.querySelectorAll('.sf-list-description-row').length,
+      sections,
+    }), sections);
     const readUndefined = await undefinedTags();
     // «Изменить» on the first group: every field control is drawn.
     await page.evaluate(() => document.getElementById('view').editGroup('main', 'deal'));
     await page.waitForTimeout(3000);
     const editUndefined = await undefinedTags();
-    const controls = await page.evaluate(() => [...new Set([...document.querySelectorAll('#view [data-field] *')]
+    const controls = await page.evaluate(() => [...new Set([...document.querySelectorAll('[data-field] *')]
       .map((node) => node.localName).filter((tag) => tag.startsWith('sf-')))].sort());
     const row = {where, width, read, readUndefined, editUndefined, controls, noise};
     rows.push(row);
     const at = `${where} ${width}`;
     if (!read.defined || read.rows < 10) failures.push({check: `${at}: the card is drawn from Core alone`, row});
-    if (where === 'panel' && !read.sections) failures.push({check: `${at}: the sections are drawn (tabs or the phone list)`, row});
+    if (!read.sections) failures.push({check: `${at}: the sections are drawn (tabs or the phone list)`, row});
     if (readUndefined.length) failures.push({check: `${at}: every tag of the record to read is defined`, row});
     if (editUndefined.length) failures.push({check: `${at}: every control of the group edited is defined`, row});
     if (controls.length < 4) failures.push({check: `${at}: the controls are drawn`, row});
