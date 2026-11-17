@@ -418,6 +418,18 @@ class SfDataView extends DataViewElement {
 
     get selected() { return this._current || undefined; }
 
+    // The record beside `id` in the order the view shows now (C305 (4)): the
+    // record card asks the page for its neighbour (sf-view-properties-step)
+    // and the page asks this, so the card never reads the list. Null at an end
+    // or for a record the view does not show.
+    recordBeside(id, direction = "next") {
+        const rows = this.cappedRecords ?? [];
+        const at = rows.findIndex((record) => String(record?.id) === String(id));
+        if (at < 0) return null;
+        const next = rows[at + (direction === "previous" ? -1 : 1)];
+        return next ? String(next.id) : null;
+    }
+
     // The actions offered for the marked rows, [{id, label}] (component.json
     // settings.bulk-actions). A page writes them on its page row's markup
     // (actions="publish:Опубликовать|…"); an assembly that places the bare view

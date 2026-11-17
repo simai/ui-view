@@ -343,9 +343,13 @@ function renderReadRow(context, field, sectionKey, groupKey) {
     const key = String(field.key ?? '');
     const error = context.controlErrors?.has(key) ? null : context.errors.get(key);
     const opens = !(field.readonly === true || !context.mayEdit || context.openAll);
+    const quick = opens && context.quickEdit && context.isQuickField(field);
+    const current = context.quick?.key === key;
     return html`
-        <div class="sf-list-description-row sf-property-view-field sf-property-view-row" data-field=${key}>
-            <dt class="sf-list-description-label sf-property-view-field-label">${String(field.label ?? key)}${field.hint
+        <div class="sf-list-description-row sf-property-view-field sf-property-view-row" data-field=${key}
+             data-current=${current ? 'true' : nothing}
+             data-saved=${context.savedKeys?.has(key) ? 'true' : nothing}>
+            <dt class="sf-list-description-label sf-property-view-field-label" id=${`sf-property-view-label-${context.recordId || 'record'}-${key}`}>${String(field.label ?? key)}${field.hint
                     ? html`<sf-help-mark class="sf-list-description-help sf-property-view-hint" size=${context.size === '1/2' ? '1/3' : '1/2'}
                                          label=${String(field.hint)} text=${String(field.hint)}></sf-help-mark>`
                     : nothing}${field.rare ? html` <span class="sf-property-view-rare color-on-surface-variant">${context.rareText}</span>` : nothing}${field.inherited
@@ -353,7 +357,9 @@ function renderReadRow(context, field, sectionKey, groupKey) {
                     : nothing}</dt>
             <dd class="sf-list-description-value">
                 <span class="sf-list-description-line">
-                    ${opens
+                    ${quick
+                            ? renderQuickValue(context, field, sectionKey, groupKey)
+                            : opens
                             ? html`<button
                                     type="button"
                                     class="sf-property-view-field-value sf-property-view-field-open min-w-0 text-start cursor-pointer"
@@ -363,15 +369,77 @@ function renderReadRow(context, field, sectionKey, groupKey) {
                                         const path = event.composedPath();
                                         const inner = path.slice(0, Math.max(0, path.indexOf(event.currentTarget)));
                                         if (inner.some((node) => node.matches?.(INNER_CONTROL))) return;
-                                        context.component.editGroup(sectionKey, groupKey);
+                                        // A long field's value opens its group with the
+                                        // focus on it (C305 (1), VP-21).
+                                        context.component.editGroup(sectionKey, groupKey, {focus: key});
                                     }}
                             >${renderFieldValue(context, field, false)}<i class="sf-icon sf-icon--size-1/2 sf-property-view-pen" aria-hidden="true">edit</i></button>`
                             : html`<span class="sf-property-view-field-value min-w-0">${renderFieldValue(context, field, false)}</span>`}
                 </span>
-                ${error ? html`<span class="sf-property-view-field-error color-error" role="alert">${error}</span>` : nothing}
+                ${error && !current ? html`<span class="sf-property-view-field-error color-error" role="alert">${error}</span>` : nothing}
             </dd>
         </div>
     `;
+}
+
+// A short field edited in a window at its value (C305 (1), as the table's
+// cell, C296): sf-popover with the value as its trigger, the field's own
+// control, Save first and a quiet Cancel. One value per save -- group.save of
+// the field's group with that value, the same revision and confirmation.
+function renderQuickValue(context, field, sectionKey, groupKey) {
+    const key = String(field.key ?? '');
+    const open = context.quick?.key === key;
+    const error = open ? (context.errors.get(key) ?? context.conflict ?? null) : null;
+    const label = String(field.label ?? key);
+    return html`<sf-popover class="sf-property-view-quick" placement="bottom-start" width="18rem"
+            label=${label}
+            data-quick-pop=${key}
+            ?unsaved=${open && context.changed.has(key)}
+            @sf-popover-open=${(event) => {
+                if (event.target !== event.currentTarget) return;
+                if (!context.component.startQuick(sectionKey, groupKey, key)) event.preventDefault?.();
+            }}
+            @sf-popover-close=${(event) => {
+                if (event.target !== event.currentTarget) return;
+                if (context.component.quick?.key === key) context.component.endQuick();
+            }}>
+        <button slot="trigger" type="button"
+                class="sf-property-view-field-value sf-property-view-field-open sf-property-view-quick-value min-w-0 text-start cursor-pointer"
+                data-quick=${key}
+                aria-haspopup="dialog"
+                aria-label=${`${label}: ${context.editText}`}
+        >${renderFieldValue(context, field, false)}<i class="sf-icon sf-icon--size-1/2 sf-property-view-pen" aria-hidden="true">edit</i></button>
+        <div slot="content" class="sf-property-view-quick-editor" data-quick-editor=${key}
+             @keydown=${(event) => {
+                 if (event.key === 'Enter' && !event.shiftKey && !event.isComposing && event.target?.localName !== 'textarea'
+                     && !event.defaultPrevented && !event.target?.closest?.('[role="listbox"], [role="menu"], .sf-datepicker')) {
+                     event.preventDefault();
+                     context.component.saveQuick();
+                 }
+             }}>
+            <span class="sf-property-view-quick-label">${label}</span>
+            ${open ? renderFieldValue(context, field, true) : nothing}
+            ${error ? html`<span class="sf-property-view-field-error color-error" role="alert">${error}</span>` : nothing}
+            ${open && context.confirmation ? html`<sf-confirm
+                    appearance="inline"
+                    size="1/2"
+                    question=${context.confirmation.text}
+                    confirm-id="save"
+                    accept-text=${context.confirmSaveText}
+                    decline-text=${context.keepEditingText}
+                    @sf-confirm-answer=${(event) => {
+                        event.preventDefault?.();
+                        if (event.detail?.accepted) context.component.confirmSave();
+                        else context.component.cancelConfirmation();
+                    }}
+            ></sf-confirm>` : html`<div class="sf-property-view-quick-actions">
+                <sf-button size="1/2" text=${context.saveText} data-action="quick-save"
+                           @click=${() => context.component.saveQuick()}></sf-button>
+                <sf-button size="1/2" appearance="ghost" scheme="on-surface" text=${context.cancelText} data-action="quick-cancel"
+                           @click=${() => context.component.cancelEdit()}></sf-button>
+            </div>`}
+        </div>
+    </sf-popover>`;
 }
 
 function renderField(context, field, editing, sectionKey = '', groupKey = '') {
@@ -608,6 +676,31 @@ function renderGroup(context, section, group) {
             </section>
         `;
     }
+    // Edited by sf-form (C182, C305 (1); VP-19, VP-27): the label above in a
+    // panel, beside on the full screen; «Сохранить» first, a quiet «Отмена»;
+    // every field the group's whole width. The form's value and fields are
+    // the edit's own (formEdit), so a render of the card never resets it.
+    const form = context.formEdit;
+    if (editing && !configuring && form && form.group === groupKey && form.section === String(section.key ?? '')) {
+        return html`
+            <section class="sf-property-view-group sf-property-view-group--editing sf-property-view-group--form" data-group=${groupKey}>
+                <header class="sf-property-view-group-header flex items-cross-center justify-between gap-2">
+                    <div class="sf-property-view-group-title" role="heading" aria-level="3">${String(group.label ?? groupKey)}</div>
+                </header>
+                <sf-form class="sf-property-view-form"
+                         label=${String(group.label ?? groupKey)}
+                         labels=${context.sectionsLayout === 'column' ? 'start' : 'top'}
+                         .fields=${form.fields}
+                         .value=${form.value}
+                         @sf-form-submit=${(event) => context.component.submitForm(event)}
+                         @sf-form-cancel=${() => context.component.cancelEdit()}
+                         @sf-form-input=${(event) => {
+                             const at = context.component.fieldAt(event.detail?.key);
+                             if (at) context.component.changeField(at.field, event.detail?.value);
+                         }}
+                ></sf-form>
+            </section>`;
+    }
     const rows = waiting > 0
         ? html`${Array.from({length: waiting}, (_, at) => html`<div class="sf-skeleton sf-skeleton--animation-pulse" aria-hidden="true">
             <div class="sf-skeleton-text sf-skeleton-text--size-1 ${SKELETON_WIDTHS[at % SKELETON_WIDTHS.length]}"></div></div>`)}`
@@ -750,9 +843,13 @@ function renderSectionList(context, sections) {
     // around it would name the same list twice and call a set of panels a
     // navigation. Arranged, the column is this component's own rows.
     if (!context.configuring) {
+        // C305 (3): the column is sf-menu (the C96 (5) menu column) until the
+        // pair's sf-tabs judges a lone tab column by its wrapper (VP-26,
+        // sf-tabs 1.4.4): this pair's vertical tabs fold any column under
+        // 48rem into the line with «Ещё (n)», full screen at 1440 too.
         return html`
             <div class="sf-property-view-sections self-cross-stretch flex flex-col min-w-0">
-                ${renderSectionVerticalTabs(context, sections)}
+                ${context.sectionColumnTabs ? renderSectionVerticalTabs(context, sections) : renderSectionMenu(context, sections)}
             </div>
         `;
     }
@@ -803,6 +900,30 @@ function renderSectionVerticalTabs(context, sections) {
                     if (id !== undefined && id !== null && id !== '') context.component.selectSection(String(id));
                 }}
         ></sf-tabs>
+    `;
+}
+
+function renderSectionMenu(context, sections) {
+    const selected = sections.some((section) => String(section.key) === context.selectedSection)
+        ? context.selectedSection
+        : String(sections[0]?.key ?? '');
+    const items = sections.map((section) => ({
+        id: String(section.key),
+        label: sectionName(context, section),
+        href: `#${String(section.key)}`,
+        current: String(section.key) === selected,
+        ...(section.icon ? {icon: String(section.icon)} : {}),
+    }));
+    return html`
+        <sf-menu class="sf-property-view-section-list sf-property-view-section-menu"
+                 label=${context.sectionsLabel}
+                 .items=${items}
+                 @sf-menu-navigate=${(event) => {
+                     event.preventDefault();
+                     const id = event.detail?.id ?? String(event.detail?.href ?? '').replace(/^#/u, '');
+                     if (id !== undefined && id !== null && id !== '') context.component.selectSection(String(id));
+                 }}
+        ></sf-menu>
     `;
 }
 
@@ -964,7 +1085,29 @@ function renderOpenAllBar(context) {
     `;
 }
 
+// Closing (or stepping to the next record) over unsaved entries asks first
+// (C159 (6)): sf-confirm in the foot, «Закрыть без сохранения» or back.
+function renderLeaveAsk(context) {
+    return html`
+        <div class="sf-property-view-actions sf-property-view-confirm" data-leaving="true">
+            <sf-confirm
+                    appearance="inline"
+                    size=${context.controlSize ?? nothing}
+                    question=${context.word('closeUnsavedText')}
+                    confirm-id="leave"
+                    accept-text=${context.leaveAsk.kind === 'step' ? context.word('leaveUnsavedText') : context.word('closeUnsavedAcceptText')}
+                    decline-text=${context.keepEditingText}
+                    @sf-confirm-answer=${(event) => {
+                        event.preventDefault?.();
+                        context.component.answerLeave(Boolean(event.detail?.accepted));
+                    }}
+            ></sf-confirm>
+        </div>
+    `;
+}
+
 function renderActions(context, {panel = false} = {}) {
+    if (context.leaveAsk) return renderLeaveAsk(context);
     // A surface placed to show the object has no footer of its own (owner,
     // 2026-10-14): a reader sees values, not controls that would refuse.
     if (context.mode === 'view') return nothing;
@@ -978,11 +1121,13 @@ function renderActions(context, {panel = false} = {}) {
     // the group's Save and Cancel. Deleting is a row of the head's «⋯» (C289
     // (3), C180 (2)): a foot stands for two actions or more, never for one delete.
     const hosted = panel && context.hasHostSlot('footer');
-    if (!context.editing && !hosted) return nothing;
+    // sf-form carries its own Save and Cancel.
+    const own = context.editing && !context.formEdit;
+    if (!own && !hosted && !(context.editing && context.conflict)) return nothing;
 
     return html`
         <div class="sf-property-view-actions flex items-cross-center gap-1/3 flex-wrap" role="group">
-            ${context.editing
+            ${own
                     ? html`
                         <sf-button
                                 appearance="default"
@@ -1000,7 +1145,7 @@ function renderActions(context, {panel = false} = {}) {
                                 @click=${() => context.component.cancelEdit()}
                         ></sf-button>`
                     : nothing}
-            ${context.errors.size
+            ${own && context.errors.size
                     ? html`<span class="sf-property-view-errors color-error">${context.errorsText}: ${context.errors.size}</span>`
                     : nothing}
             ${context.conflict
@@ -1156,6 +1301,10 @@ function renderMenuControl(context) {
 // stood beside the star for ~115 ms and then jumped to the end (D1, 1.16.3).
 function renderPanelHead(context) {
     const level = phoneLevel(context);
+    const record = context.panelLabel || context.recordLabel || context.recordId || '';
+    // The history is a level of the same panel (C305 (2)): the C289 head with
+    // the back line to the record over its title.
+    const history = context.historyOpen;
     // One row of the ladder's step 2 (48 at a desktop; C289 (6), R254), its
     // buttons the head's 1/3 as sf-drawer draws its own (C180 (2)). A related
     // record opened from this one is drawn inside the same panel (sf-drawer
@@ -1164,7 +1313,18 @@ function renderPanelHead(context) {
     // and the close still closes the whole chain.
     return html`
         <header class="sf-property-view-head flex flex-col">
-            ${context.nestedUnder ? html`<div class="sf-property-view-back">
+            ${history ? html`<div class="sf-property-view-back">
+                <sf-button
+                        appearance="ghost"
+                        scheme="on-surface"
+                        size="1/3"
+                        icon-start="arrow_back"
+                        text=${record}
+                        aria-label=${`${context.backLabel}: ${record}`}
+                        data-action="history-back"
+                        @click=${() => context.component.closeHistory()}
+                ></sf-button>
+            </div>` : context.nestedUnder ? html`<div class="sf-property-view-back">
                 <sf-button
                         appearance="ghost"
                         scheme="on-surface"
@@ -1187,8 +1347,8 @@ function renderPanelHead(context) {
                         title=${context.backLabel}
                         @click=${() => context.component.closePhoneSection()}
                 ></sf-button-icon>` : nothing}
-                <h2 class="sf-property-view-title min-w-0 overflow-hidden">${level ? context.phoneSectionLabel : (context.panelLabel || context.recordLabel || context.recordId || '')}</h2>
-                ${context.recordId && context.mode !== 'create' ? html`<sf-button-icon
+                <h2 class="sf-property-view-title min-w-0 overflow-hidden">${history ? context.word('historyText') : level ? context.phoneSectionLabel : record}</h2>
+                ${context.recordId && context.mode !== 'create' && !history ? html`<sf-button-icon
                         appearance="ghost"
                         scheme="on-surface"
                         size="1/3"
@@ -1501,6 +1661,37 @@ function renderErrorSummary(context) {
     </div>`;
 }
 
+// The record's history (C305 (2), RC-3): sf-list-timeline by day, newest
+// first, each change's before and after drawn by its field's template, the
+// author and the time; «Показать ещё» asks the host for the next page.
+function renderHistoryFeed(context) {
+    const feed = context.history;
+    const items = feed?.items ?? [];
+    const loading = !feed || feed.loading;
+    return html`
+        <sf-list-timeline class="sf-property-view-history"
+                group="day"
+                label=${context.word('historyText')}
+                .items=${items}
+                ?has-more=${Boolean(feed?.hasMore)}
+                ?loading=${loading}
+                empty-text=${feed?.failed ? context.word('historyFailedText') : context.word('historyEmptyText')}
+                @sf-list-timeline-load-more=${() => context.component.loadHistory({more: true})}
+        ></sf-list-timeline>
+    `;
+}
+
+// The full screen from 80rem: the history in a column of its own beside the
+// fields (C305 (3), VP-22), --sf-view-properties-side-width (24rem).
+function renderHistorySide(context) {
+    return html`
+        <aside class="sf-property-view-side min-w-0" aria-label=${context.word('historyText')}>
+            <div class="sf-property-view-side-title" role="heading" aria-level="3">${context.word('historyText')}</div>
+            ${renderHistoryFeed(context)}
+        </aside>
+    `;
+}
+
 // The record on its way: the arrangement's shape in the Framework's skeleton
 // -- a sentence in its place said nothing about it (owner, 2026-10-14). Each
 // group is the card a group read by itself draws until its fields come
@@ -1539,6 +1730,23 @@ function renderLoadFailure(context) {
 function renderBody(context, railOutside = false, withActions = true) {
     if (context.loading) return renderLoading(context);
     if (context.loadFailure) return renderLoadFailure(context);
+    // In place, the history level stands where the record was, its back line
+    // over it (a panel draws it under its head).
+    if (!context.panel && context.historyOpen) {
+        const record = context.panelLabel || context.recordLabel || context.recordId || '';
+        return html`
+            <div class="sf-property-view-back">
+                <sf-button appearance="ghost" scheme="on-surface" size="1/3" icon-start="arrow_back" text=${record}
+                           aria-label=${`${context.backLabel}: ${record}`} data-action="history-back"
+                           @click=${() => context.component.closeHistory()}></sf-button>
+            </div>
+            <div class="sf-property-view-history-head flex items-cross-center gap-1">
+                <div class="sf-property-view-side-title flex-auto" role="heading" aria-level="2">${context.word('historyText')}</div>
+                ${renderMenuControl(context)}
+            </div>
+            ${renderHistoryFeed(context)}
+        `;
+    }
     // Sections are listed the same way fields and groups are while the view is
     // being configured: a hidden section filtered out here would be a section
     // nobody could ever show again.
@@ -1593,6 +1801,7 @@ function renderBody(context, railOutside = false, withActions = true) {
                                 <div class="sf-list-description-list">${context.visible(current?.groups).map((group) => renderGroup(context, current, group))}</div>
                             </div>
                         </div>`}
+            ${!context.panel && context.historySide ? renderHistorySide(context) : nothing}
         </div>
         ${withActions && context.hasHostSlot('footer')
                 ? html`<div class="sf-property-view-host-footer flex flex-wrap items-cross-center gap-1/3">${context.hostSlot('footer')}</div>`
@@ -1655,6 +1864,8 @@ export function renderPropertyViewTemplate(context) {
                 placement="inline-end"
                 modal="true"
                 overlay="true"
+                ?docked=${context.docked}
+                dock-breakpoint=${context.docked ? context.dockBreakpoint : nothing}
                 size=${context.wide ? context.drawerStep : 'full'}
                 gutter="var(--sf-space-1)"
                 panel-style=${`--sf-drawer-background: var(--sf-surface-area); --sf-property-view--sections-width: ${context.sectionsWidth}; scrollbar-gutter: auto;${sizeStyle(context)}`}
@@ -1668,13 +1879,17 @@ export function renderPropertyViewTemplate(context) {
                  data-nested=${context.nestedUnder ? 'true' : nothing}
             >
                 ${renderPanelHead(context)}
-                <div class="sf-property-view-scroll flex-auto min-h-0 ${rail ? 'flex' : 'flex flex-col'}">
-                    ${rail
+                <div class="sf-property-view-scroll flex-auto min-h-0 ${rail && !context.historyOpen ? 'flex' : 'flex flex-col'}"
+                     data-history=${context.historyOpen ? 'level' : context.historySide ? 'side' : nothing}>
+                    ${context.historyOpen
+                            ? html`<div class="sf-property-view-frame flex-auto min-w-0 flex flex-col gap-2">${renderHistoryFeed(context)}</div>`
+                            : rail
                             ? html`
                                 ${renderSectionList(context, listed(context, context.sections))}
                                 <div class="sf-property-view-frame flex-auto min-w-0 flex flex-col gap-2">
                                     ${renderBody(context, true, false)}
-                                </div>`
+                                </div>
+                                ${context.historySide ? renderHistorySide(context) : nothing}`
                             : renderBody(context, false, false)}
                 </div>
                 ${renderActions(context, {panel: true})}

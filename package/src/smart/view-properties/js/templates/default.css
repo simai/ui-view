@@ -1203,4 +1203,136 @@
   .sf-property-view-scroll {
     min-block-size: 0;
   }
+
+  /* ─── C305 (RC-1..RC-6): the public variables, quick edit, sf-form edit,
+     the history, the full screen. The seven public variables are read here
+     with the former --sf-property-view--* names under them until 2027-01-01. */
+  .sf-property-view-list {
+    --sf-list-description-label-width: var(--sf-view-properties-label-width, 10rem);
+  }
+
+  .sf-property-view-group.sf-property-view-group--list > .sf-property-view-group-fields {
+    row-gap: var(--sf-view-properties-row-gap, var(--sf-space-1\/3));
+  }
+
+  .sf-property-view-list > .sf-list-description-list > .sf-property-view-group + .sf-property-view-group {
+    margin-block-start: var(--sf-view-properties-group-gap, var(--sf-space-1));
+  }
+
+  .sf-property-view-sections {
+    flex-basis: var(--sf-view-properties-sections-width, var(--sf-property-view--sections-width, 12rem));
+  }
+
+  /* The row being edited in its window, and the fields a save just wrote. */
+  .sf-property-view-row[data-current="true"] .sf-list-description-value,
+  .sf-property-view-row[data-saved="true"] .sf-list-description-value {
+    border-radius: var(--sf-radius--ui);
+    transition: background-color var(--sf-duration-normal) var(--sf-ease-move);
+  }
+
+  .sf-property-view-row[data-current="true"] .sf-list-description-value {
+    background-color: var(--sf-view-properties-current-background-color, var(--sf-surface-container));
+  }
+
+  .sf-property-view-row[data-saved="true"] .sf-list-description-value {
+    background-color: var(--sf-view-properties-saved-background-color, var(--sf-success-container));
+  }
+
+  /* A short field's value is the window's trigger: the value's whole line. */
+  .sf-property-view-row sf-popover.sf-property-view-quick {
+    display: flex;
+    flex: 1 1 auto;
+    min-inline-size: 0;
+  }
+
+  .sf-property-view-quick-value {
+    display: inline-flex;
+    align-items: center;
+    max-inline-size: 100%;
+  }
+
+  .sf-property-view-quick-editor {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sf-space-1\/2);
+    min-inline-size: 0;
+  }
+
+  .sf-property-view-quick-label {
+    color: var(--sf-on-surface-variant);
+    font-size: var(--sf-text-size-1\/2);
+    line-height: var(--sf-text-height-1\/2);
+  }
+
+  .sf-property-view-quick-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sf-space-1\/3);
+  }
+
+  /* An edited group's fields take its whole width (VP-27), in sf-form and in
+     the card's own form alike. */
+  .sf-property-view-group--form > sf-form {
+    display: block;
+    inline-size: 100%;
+    min-inline-size: 0;
+  }
+
+  .sf-property-view-group--editing .sf-property-view-field-value > :is(sf-input, sf-input-textarea, sf-dropdown, sf-input-date, sf-input-lookup, sf-input-choice) {
+    flex: 1 1 auto;
+    inline-size: 100%;
+    min-inline-size: 0;
+  }
+
+  /* The history: a level of the panel, or the full screen's side column. */
+  .sf-property-view-side {
+    flex: 0 0 var(--sf-view-properties-side-width, 24rem);
+    display: flex;
+    flex-direction: column;
+    gap: var(--sf-space-1\/2);
+    overflow: hidden auto;
+    min-block-size: 0;
+    padding-block: var(--sf-space-1);
+    padding-inline: var(--sf-space-1) var(--sf-drawer-gutter, var(--sf-space-1));
+    border-inline-start: var(--sf-px, 1px) solid var(--sf-outline-variant);
+    overscroll-behavior: contain;
+  }
+
+  .sf-property-view-side-title {
+    font-size: var(--sf-text-size-1);
+    line-height: var(--sf-text-height-1);
+    font-weight: var(--sf-weight--medium);
+  }
+
+  .sf-property-view-scroll[data-history="level"] > .sf-property-view-frame {
+    padding-block: var(--sf-space-1);
+  }
+
+  /* Not a panel: the side column stands beside the body in the layout. */
+  .sf-property-view-layout > .sf-property-view-side {
+    align-self: start;
+  }
+
+  /* The full screen (C305 (3), VP-22): the fields in two columns once the
+     fields' place has the room (44rem), each a label beside its value. */
+  .sf-property-view-panel[data-sections-layout="column"] .sf-property-view-frame,
+  :is(sf-view-properties, sf-property-view)[full] .sf-property-view-body {
+    container: sf-property-view-fields / inline-size;
+  }
+
+  @container sf-property-view-fields (min-width: 44rem) {
+    .sf-property-view-list .sf-property-view-group.sf-property-view-group--list > .sf-property-view-group-fields {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: var(--sf-space-2);
+    }
+
+    .sf-property-view-list .sf-property-view-group--list > .sf-property-view-group-fields > .sf-property-view-row {
+      grid-column: auto;
+      display: grid;
+      grid-template-columns: minmax(0, var(--sf-view-properties-label-width, 10rem)) minmax(0, 1fr);
+      column-gap: var(--sf-space-1);
+    }
+  }
 }

@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-properties",
-  "version": "1.17.2",
+  "version": "1.18.0",
   "title": "Property view",
   "summary": "One object's fields shown as sections, groups and fields, each drawn by the per-type field renderer set, behind a separate host port. A group is edited and saved as one revision by the button, and a reference field is picked from the host's own candidates a page at a time. The pair to the data view: that one is a set of records, this one is a single object.",
   "kind": "composite",
@@ -48,6 +48,7 @@
       "smart.empty-state",
       "smart.file-preview",
       "smart.file-upload",
+      "smart.form",
       "smart.help-mark",
       "smart.icon",
       "smart.input",
@@ -59,6 +60,8 @@
       "smart.list",
       "smart.list-description",
       "smart.list-item",
+      "smart.list-timeline",
+      "smart.menu",
       "smart.popover",
       "smart.profile-picker",
       "smart.progress-bar",
@@ -162,6 +165,9 @@
         "last-shared-view-text",
         "full",
         "open",
+        "edit",
+        "history",
+        "modal",
         "aria-label"
       ],
       "presentation": {
@@ -191,7 +197,9 @@
         "sf-view-properties-cancel",
         "sf-view-properties-state",
         "sf-view-properties-address-copy",
-        "sf-view-properties-favourite"
+        "sf-view-properties-favourite",
+        "sf-view-properties-step",
+        "sf-view-properties-history"
       ],
       "persistence": {
         "settings_key_prop": null,
@@ -591,6 +599,34 @@
         "default": true,
         "description": "A panel shows while open and not hidden; open=false or hidden closes its drawer and takes it off the stack, and the same brings it back (component.json settings.open, simai/ui-pro#4)."
       },
+      "edit": {
+        "type": "string",
+        "default": "group+quick",
+        "description": "How the record is edited (owner decision C305 (1)): group -- a group at a time with its Save; group+quick (the default where the record may be edited) -- and a short field (one choice, a date, a time, a yes/no, a person, a number; a field says so itself with quick) in a window at its value, as the table's cell (C296), saved as group.save with that one value, the same revision and confirmation; none -- read only. «Изменить всё» in «⋯» opens every group at once.",
+        "enum": [
+          "group",
+          "group+quick",
+          "none"
+        ]
+      },
+      "history": {
+        "type": "string",
+        "default": "auto",
+        "description": "The record's change history (C305 (2)): auto -- offered where the host answers record.history (capability record-history): «⋯ → История изменений» opens it as a level of the same panel, the full screen from 80rem keeps it in a column of its own; off -- never offered.",
+        "enum": [
+          "auto",
+          "off"
+        ]
+      },
+      "modal": {
+        "type": "string",
+        "default": "auto",
+        "description": "Where a panel stands (C305 (4)): auto -- from 64rem a column beside the list (sf-drawer docked; the page marks the list data-sf-drawer-dock-host), the list stays usable and another record opens in the same panel; narrower, and on a phone, over a scrim. true -- always over a scrim. A full-screen panel is always over the page.",
+        "enum": [
+          "auto",
+          "true"
+        ]
+      },
       "aria-label": {
         "type": "string",
         "default": ""
@@ -705,6 +741,10 @@
               },
               "group": {
                 "type": "string"
+              },
+              "options": {
+                "type": "object",
+                "description": "{focus}: the key of the field the focus goes to once the group is open (C305 (1))."
               }
             },
             "required": [
@@ -827,6 +867,67 @@
       "returns": {
         "type": "object",
         "description": "The element, for chaining."
+      }
+    },
+    "openHistory": {
+      "summary": "Open the record's history as a level of the panel (C305 (2)); refused unavailable when the host does not answer record.history.",
+      "arguments": [],
+      "returns": {
+        "type": "object",
+        "description": "The outcome: applied, or refused {reason: unavailable}."
+      }
+    },
+    "editField": {
+      "summary": "Edit one field: a short field opens its window at the value, any other its group with the focus on it (C305 (1)).",
+      "arguments": [
+        {
+          "name": "args",
+          "type": "object",
+          "required": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "key"
+            ]
+          }
+        }
+      ],
+      "returns": {
+        "type": "object",
+        "description": "The outcome: applied, or refused when the field is not there or may not be edited."
+      }
+    },
+    "step": {
+      "summary": "Ask for the next or the previous record of the view (sf-view-properties-step); over unsaved entries the card asks first.",
+      "arguments": [
+        {
+          "name": "args",
+          "type": "object",
+          "required": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "direction": {
+                "enum": [
+                  "next",
+                  "previous"
+                ]
+              }
+            },
+            "required": [
+              "direction"
+            ]
+          }
+        }
+      ],
+      "returns": {
+        "type": "object",
+        "description": "The outcome: applied, refused {reason: unsaved} while the question stands, or refused {reason: prevented}."
       }
     },
     "setHostPort": {
@@ -1243,6 +1344,39 @@
         "additionalProperties": true
       },
       "canonical": true
+    },
+    "sf-view-properties-step": {
+      "summary": "Alt+↓ / Alt+↑ (or step()) asks for the next or the previous record of the view the panel was opened from (C305 (4)). The card never reads the list: the page opens the neighbour (sf-view recordBeside) in the same panel by its record-id. Asked over unsaved entries, the card asks first (C159 (6)).",
+      "payload": {
+        "type": "object",
+        "required": [
+          "direction",
+          "record_id"
+        ],
+        "properties": {
+          "direction": {
+            "enum": [
+              "next",
+              "previous"
+            ]
+          },
+          "record_id": {}
+        },
+        "additionalProperties": true
+      }
+    },
+    "sf-view-properties-history": {
+      "summary": "The history level was opened (C305 (2)); the card reads it through the port (record.history), the event only tells the page.",
+      "payload": {
+        "type": "object",
+        "required": [
+          "record_id"
+        ],
+        "properties": {
+          "record_id": {}
+        },
+        "additionalProperties": true
+      }
     },
     "sf-property-view-delete-record": {
       "summary": "The person asked for the record to be deleted; the host decides whether to ask first and whether to delete at all.",
@@ -1750,15 +1884,15 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-properties/index.js",
-        "sha256": "1a823dbaa885a7ba0c2046f69f5dea910e9128092f94b5c8902712e8cec155fd"
+        "sha256": "daa3f8d6ab28e59d69405c0788869ed07d38b17107b16820ece01778592c8922"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.js",
-        "sha256": "8c196b78994ceb8c466837db6615ee968fe815f25c1609f963f60cce76e6b832"
+        "sha256": "ed90bb9ae6cd125f3a36d5c0ef134e9f1580d6010e7769f3729708b34619607f"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.css",
-        "sha256": "2d2c1446c678df699b644eb0362495c53ddbc03310c446d5b9a8e9982d1b8a2b"
+        "sha256": "74837e4c0ca16dfa99a53017c419bc5ed0aa4965bcb0068d94ce359ac8a76e4b"
       },
       {
         "path": "src/smart/view-properties/js/conditions.js",
@@ -1767,6 +1901,10 @@
       {
         "path": "src/smart/view-properties/js/field-value.js",
         "sha256": "aa04dbf2f3f8a979966af613c82e2bcffa13020371a5884f88728f50c1145b8e"
+      },
+      {
+        "path": "src/smart/view-properties/js/history.js",
+        "sha256": "9f53634185ad6a1095ca51bba7b1ff4ae60a7568671e30bf14ca8fa3eac42979"
       },
       {
         "path": "src/smart/view-properties/js/requisites.js",
@@ -1794,7 +1932,7 @@
       },
       {
         "path": "src/smart/view-properties/rule.js",
-        "sha256": "791cd7abb8467c2e55b6bb48a4bb1df4e271ab2d0dff7093a67d1198249450eb"
+        "sha256": "7ee0d5f20ac88d2d56663eba2fd9a0a3db183273009d54a494a9461f899eae1e"
       },
       {
         "path": "src/core/contracts/ports/simai.property-view-port/1.4.0/port.json",

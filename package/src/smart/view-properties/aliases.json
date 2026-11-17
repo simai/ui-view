@@ -180,6 +180,16 @@
       "mode": "host-attribute",
       "section": "C289 (2), C157 (2)",
       "note": "read by the view itself: a length is mapped to the nearest drawer step (1/2, 1, 2) when panel-size is not set, with a console notice; no shim; use panel-size"
+    },
+    {
+      "from": "--sf-property-view--sections-width",
+      "to": "--sf-view-properties-sections-width",
+      "kind": "css-variable",
+      "component": "sf-view-properties",
+      "since": "2026-11-18",
+      "remove_after": "2027-01-01",
+      "section": "C305 (6)",
+      "note": "read under the new name until the date"
     }
   ]
 }
