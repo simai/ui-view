@@ -8207,7 +8207,8 @@ class SfTable extends TableElement {
         if (this._containerNoted || this.closest?.("sf-view")) return;
         this._containerNoted = true;
         for (const name of CONTAINER_SETTINGS) {
-            if (!this.hasAttribute(name)) continue;
+            // toolbar="false" and the like already say what the table becomes.
+            if (!this.hasAttribute(name) || this.getAttribute(name) === "false") continue;
             noteDeprecated({component: "sf-view-table", tag: "sf-view-table", kind: "attribute", attribute: name,
                 from: name, to: CONTAINER_SETTING_HOME[name] ?? "sf-view", since: "2026-11-18", remove_after: "2027-01-01", package: "view"});
         }
