@@ -4890,7 +4890,6 @@ class SfTable extends TableElement {
                     size=${this.controlSize ?? nothing}
                     label=${this.getContextMenuLabel({...data, menu: 'table-settings'})}
                     .items=${this.tableSettingsItems()}
-                    @sf-settings-change=${(event) => event.stopPropagation()}
                     @sf-settings-changed=${(event) => this.onTableSettingChanged(event)}
                     @sf-settings-reset=${(event) => this.onTableSettingsReset(event)}
                     @sf-settings-open=${(event) => event.stopPropagation()}

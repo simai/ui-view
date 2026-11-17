@@ -2860,7 +2860,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-table/index.js",
-        "sha256": "d7acc826ffca9880f973e881b8d0673ce1d5cd6171f1e5921055c4d2477bb1dc"
+        "sha256": "f200bf065d7f93401975e696209d408f082b78c3cc6e6d2f17eb84c8dbb0abea"
       },
       {
         "path": "src/smart/view-table/js/templates/default.js",

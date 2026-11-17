@@ -256,7 +256,8 @@ try {
     await new Promise((done) => setTimeout(done, 350));
     const changed = {visible: visible(), pinned: pinned().length};
     const savedBefore = window.saved.length;
-    panel().querySelector('[data-sf-reset] button')?.click();
+    // The footer's data-* go down to the native button (sf-button).
+    panel().querySelector('button[data-sf-reset], [data-sf-reset] button')?.click();
     await new Promise((done) => setTimeout(done, 400));
     const rows = panel() ? {
       f7: panel().querySelector('.sf-settings-row-main[data-sf-option="f7"]')?.getAttribute('aria-checked'),
