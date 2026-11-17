@@ -19,6 +19,7 @@
 // - a panel inserted hidden (or open=false) is not open; it opens when hidden
 //   goes and closes when hidden comes back.
 import {resolve, join} from 'node:path';
+import {existsSync} from 'node:fs';
 import {chromium} from 'playwright';
 
 if (!process.argv[2]) throw new Error('Build output root is required');
@@ -75,6 +76,9 @@ const open = async (theme, body) => {
   page.on('console', (message) => { if (message.type() === 'error' || message.type() === 'warning') errors.push(`${message.type()}: ${message.text()}`); });
   await page.setContent(`<!doctype html><html class="theme-${theme}" lang="ru"><head><meta charset="utf-8"></head><body style="margin:0;padding:24px">${body}</body></html>`);
   for (const style of styles) await page.addStyleTag({path: style}).catch(() => {});
+  // Since the pair ui-1ed6b6c9a040 (owner decision C282) Russian is a language file: a page made
+  // with setContent cannot fetch its parts, so the file's script form goes in before core.
+  { const ruFile = modules.find((one) => one.endsWith('core/js/core.js'))?.replace(/js\/core\.js$/u, 'lang/ru.js'); if (ruFile && existsSync(ruFile)) await page.addScriptTag({path: ruFile}); }
   for (const module of modules) await page.addScriptTag({path: module, type: 'module'}).catch(() => {});
   await page.waitForFunction(() => Boolean(customElements.get('sf-view-properties')), null, {timeout: 10000});
   return {page, errors};

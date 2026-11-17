@@ -43,6 +43,9 @@ try {
     await tab.setContent(`<!doctype html><html class="theme-${scheme}" lang="ru" data-sf-density="${density}"><head><meta charset="utf-8"></head><body style="margin:0;padding:16px">
       <sf-view-table id="t" aria-label="Каталог" filter-templates="true" layout="table"></sf-view-table></body></html>`);
     for (const s of STYLES) { const f = join(out, s); if (existsSync(f)) await tab.addStyleTag({path: f}); }
+    // Since the pair ui-1ed6b6c9a040 (owner decision C282) Russian is a language file: a page made
+    // with setContent cannot fetch its parts, so the file's script form goes in before core.
+    { const ruFile = join(out, 'core/core/lang/ru.js'); if (existsSync(ruFile)) await tab.addScriptTag({path: ruFile}); }
     for (const m of MODULES) { const f = join(out, m); if (existsSync(f)) await tab.addScriptTag({path: f, type: 'module'}); }
     await tab.waitForFunction(() => customElements.get('sf-view-table'), null, {timeout: 20000});
     const measured = await tab.evaluate(async ({COLUMNS, ROWS}) => {

@@ -5,6 +5,7 @@
 // own component still wins. Measured on the built bytes, because the question is
 // what a person sees in the row.
 import {resolve, join} from 'node:path';
+import {existsSync} from 'node:fs';
 import {chromium} from 'playwright';
 
 if (!process.argv[2]) throw new Error('Build output root is required');
@@ -41,6 +42,9 @@ try {
     + '<div style="width:1100px"><sf-view-table id="t"></sf-view-table></div></body></html>',
   );
   for (const path of styles) await page.addStyleTag({path}).catch(() => {});
+  // Since the pair ui-1ed6b6c9a040 (owner decision C282) Russian is a language file: a page made
+  // with setContent cannot fetch its parts, so the file's script form goes in before core.
+  { const ruFile = modules.find((one) => one.endsWith('core/js/core.js'))?.replace(/js\/core\.js$/u, 'lang/ru.js'); if (ruFile && existsSync(ruFile)) await page.addScriptTag({path: ruFile}); }
   for (const path of modules) await page.addScriptTag({path, type: 'module'}).catch(() => {});
   await page.waitForTimeout(1300);
 

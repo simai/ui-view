@@ -81,6 +81,9 @@ const open = async () => {
   const page = await browser.newPage({viewport: {width: 1200, height: 800}});
   await page.setContent('<!doctype html><html class="theme-light" lang="ru"><body style="margin:0"><sf-view-properties id="v" collection="demo"></sf-view-properties></body></html>');
   for (const path of styles) await page.addStyleTag({path}).catch(() => {});
+  // Since the pair ui-1ed6b6c9a040 (owner decision C282) Russian is a language file: a page made
+  // with setContent cannot fetch its parts, so the file's script form goes in before core.
+  { const ruFile = modules.find((one) => one.endsWith('core/js/core.js'))?.replace(/js\/core\.js$/u, 'lang/ru.js'); if (ruFile && existsSync(ruFile)) await page.addScriptTag({path: ruFile}); }
   for (const path of modules) await page.addScriptTag({path, type: 'module'}).catch(() => {});
   await page.waitForFunction(() => customElements.get('sf-view-properties'), null, {timeout: 8000});
   await page.evaluate((record) => {

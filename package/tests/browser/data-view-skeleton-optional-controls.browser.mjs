@@ -52,6 +52,9 @@ try {
     // The page gives its tables what it knows before the components load.
     await tab.evaluate((pre) => { for (const [id, given] of Object.entries(pre)) if (given) Object.assign(document.querySelector(`#${id} sf-view-table`), given); }, pre);
     for (const s of STYLES) { const f = join(out, s); if (existsSync(f)) await tab.addStyleTag({path: f}); }
+    // Since the pair ui-1ed6b6c9a040 (owner decision C282) Russian is a language file: a page made
+    // with setContent cannot fetch its parts, so the file's script form goes in before core.
+    { const ruFile = join(out, 'core/core/lang/ru.js'); if (existsSync(ruFile)) await tab.addScriptTag({path: ruFile}); }
     for (const m of MODULES) { const f = join(out, m); if (existsSync(f)) await tab.addScriptTag({path: f, type: 'module'}); }
     await tab.waitForFunction(() => customElements.get('sf-view') && customElements.get('sf-view-table'), null, {timeout: 20000});
     await tab.waitForTimeout(700);
