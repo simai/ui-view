@@ -2372,7 +2372,7 @@ class SfDataView extends DataViewElement {
                 if (entry) {
                     return {
                         id, name: entry.label, danger: entry.danger === true, inline: false,
-                        component: {type: "button", props: {text: entry.label, appearance: "link", ...(entry.icon ? {icon: entry.icon} : {})}},
+                        component: {type: "button", props: {text: entry.label, appearance: "ghost", ...(entry.icon ? {icon: entry.icon} : {})}},
                     };
                 }
                 // An id the host's catalogue does not name gets a word, not its
@@ -2381,7 +2381,7 @@ class SfDataView extends DataViewElement {
                 if (found) return found;
                 console.warn(`[sf-view] row action «${id}» has no row_actions entry; name it in the host's catalogue.`);
                 const label = pageText(DATA_VIEW_TEXT, "unnamedAction", this);
-                return {id, name: label, inline: false, component: {type: "button", props: {text: label, appearance: "link", title: id}}};
+                return {id, name: label, inline: false, component: {type: "button", props: {text: label, appearance: "ghost", title: id}}};
             };
             const groups = new Map();
             const listed = [];
@@ -2394,7 +2394,7 @@ class SfDataView extends DataViewElement {
                 if (!groups.has(group)) {
                     const label = catalog.get(id).group_label ?? group;
                     const entry = {id: `group:${group}`, name: label, members: [], inline: false,
-                        component: {type: "button", props: {text: label, appearance: "link"}}};
+                        component: {type: "button", props: {text: label, appearance: "ghost"}}};
                     groups.set(group, entry);
                     listed.push(entry);
                 }
@@ -2489,7 +2489,7 @@ class SfDataView extends DataViewElement {
             if (!button) {
                 button = document.createElement("sf-button");
                 button.setAttribute("data-show-all", "");
-                button.setAttribute("appearance", "link");
+                button.setAttribute("appearance", "ghost");
                 if (this.controlSize) button.setAttribute("size", this.controlSize);
                 band.append(button);
             }

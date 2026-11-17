@@ -1138,6 +1138,15 @@ try {
     const sectionList = {
       vertical: root.querySelector('.sf-property-view-sections sf-tabs')?.getAttribute('type') ?? null,
       orientation: tablist?.getAttribute('aria-orientation') ?? null,
+      // sf-tabs 1.4.0 (C181 (2), pair ui-24d64b7f6eb7): vertical tabs fold to
+      // the line with «Ещё» below the md step (44rem) of their own place.
+      place: (() => {
+        const parent = root.querySelector('.sf-property-view-sections sf-tabs')?.parentElement;
+        if (!parent) return null;
+        const style = getComputedStyle(parent);
+        const width = parent.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+        return {width, md: 44 * parseFloat(getComputedStyle(document.documentElement).fontSize)};
+      })(),
       named: root.querySelector('.sf-property-view-sections sf-tabs')?.getAttribute('aria-label') ?? null,
       selected: tabs.filter((tab) => tab.getAttribute('aria-selected') === 'true').length,
       tree: Boolean(root.querySelector('.sf-property-view-sections sf-tree, .sf-property-view-sections .sf-tree')),
@@ -1387,12 +1396,15 @@ try {
     if (measured.before?.sectionItems !== 2) {
       note({case: 'two sections render a section list', got: measured.before?.sectionItems, expected: 2});
     }
-    // TR-13, decision C96 point 5: the list is vertical tabs, not a tree.
+    // TR-13, decision C96 point 5: the list is vertical tabs, not a tree; its
+    // orientation follows its place (sf-tabs 1.4.0, C181 (2)).
     const list = measured.sectionList ?? {};
-    if (list.vertical !== 'vertical' || list.orientation !== 'vertical' || !list.named
+    const folds = list.place ? list.place.width < list.place.md : null;
+    const orientation = folds === null ? null : folds ? 'horizontal' : 'vertical';
+    if (list.vertical !== 'vertical' || list.orientation !== orientation || !list.named
         || list.selected !== 1 || list.tree !== false || list.landmark !== 'div') {
       note({case: 'the section list is a named vertical tablist with one tab selected, no tree, no landmark around it',
-        got: list, expected: {vertical: 'vertical', orientation: 'vertical', named: 'the sections label',
+        got: list, expected: {vertical: 'vertical', orientation: `${orientation} (sf-tabs 1.4.0 folds below 44rem of its place)`, named: 'the sections label',
           selected: 1, tree: false, landmark: 'div'}});
     }
     if (JSON.stringify(list.glyphs) !== JSON.stringify(['', 'search'])) {

@@ -47,6 +47,11 @@ up). Each component.json says the same under `x-decisions`
   16, view 3, view-properties 4) now ends on 2027-01-01, after Larena moves to
   `data-sf-sets="admin view"` on 2026-12-15 with two weeks' margin (§13.4,
   G1). The old names keep coming; nothing to change for a host.
+- `sf-view` 1.13.5, `sf-view-table` 1.21.4 and `sf-view-properties` 1.16.11
+  ask their icon buttons and buttons for the look `ghost` where they asked
+  for `link`, its former name (component.icon-buttons 1.14.0, RG-IB-1..3,
+  C213): the printed row menu's `sf-icon-button--link` raised a console
+  warning over the pair. The same look.
 - `sf-view-properties` 1.16.4 (VP-5, VP-8) and 1.16.5: the page buttons in
   the drawer head beside the close are size 1/3, 8 apart (C205 (2)); the
   filled head of a phone panel clears them (taken back from ui-pro f29d4bf).

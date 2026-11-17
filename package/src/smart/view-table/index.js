@@ -425,7 +425,7 @@ class SfTable extends TableElement {
                         props: {
                             kind: 'icon',
                             size: '1',
-                            appearance: 'link',
+                            appearance: 'ghost',
                             scheme: 'on-surface',
                             icon: 'edit',
                             ariaLabel: this.text('editActionText'),
@@ -441,7 +441,7 @@ class SfTable extends TableElement {
                         props: {
                             kind: 'icon',
                             size: '1',
-                            appearance: 'link',
+                            appearance: 'ghost',
                             scheme: 'on-surface',
                             icon: 'visibility',
                             ariaLabel: this.text('viewActionText'),
@@ -474,7 +474,7 @@ class SfTable extends TableElement {
                         props: {
                             kind: 'icon',
                             size: '1',
-                            appearance: 'link',
+                            appearance: 'ghost',
                             scheme: 'on-surface',
                             status: 'error',
                             icon: 'delete',
@@ -502,7 +502,7 @@ class SfTable extends TableElement {
                 type: "button-icon",
                 props: {
                     size: "1",
-                    appearance: "link",
+                    appearance: "ghost",
                     scheme: "on-surface",
                     icon: "settings",
                     ariaLabel: this.text("settingsColumnLabel"),
@@ -7451,7 +7451,7 @@ class SfTable extends TableElement {
                 type: "button-icon",
                 props: {
                     size: "1",
-                    appearance: "link",
+                    appearance: "ghost",
                     scheme: "on-surface",
                     icon: "menu",
                     ariaLabel: this.getRowMenuLabel(row),

@@ -1951,6 +1951,13 @@
         },
         {
           "from": "1.16.10",
+          "to": "1.16.11",
+          "changes": [
+            "Over SIMAI Framework ui-24d64b7f6eb7: its icon buttons and buttons ask for the look ghost where they asked for link, ghost's former name (component.icon-buttons 1.14.0, sf-button-icon 1.13.3, sf-button 1.16.3, RG-IB-1..3, C213); the printed row menu wrote sf-icon-button--link, which the pair answers with a console warning. The same look; nothing to change for a host."
+          ]
+        },
+        {
+          "from": "1.16.11",
           "to": "1.17.0",
           "changes": [
             "C289 (1), (5), R250: the sections are laid out by width, not by a setting: a panel shows them as an underline sf-tabs line under the head (overflow more, «Ещё (n)»); a panel of size full and a wide inline view keep the section column at the start; on a phone they are an sf-list of rows, each opening its section with «←». sections-as applies to an inline view only.",

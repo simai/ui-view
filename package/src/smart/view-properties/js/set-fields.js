@@ -492,7 +492,7 @@ function renderItemsTable(field, rows, columns, ctx, {editing, host}) {
                         [next[index + 1], next[index]] = [next[index], next[index + 1]];
                         reshape(next);
                     }}></sf-button-icon>
-            <sf-button-icon size="1/2" appearance="link" scheme="secondary" icon="delete"
+            <sf-button-icon size="1/2" appearance="ghost" scheme="secondary" icon="delete"
                     data-action="row-remove" ?disabled=${drawn.length <= minRows || index >= rows.length}
                     title=${word(node, 'removeRow')} aria-label=${word(node, 'removeRow')}
                     @click=${() => reshape(rows.filter((_row, at) => at !== index))}></sf-button-icon>
