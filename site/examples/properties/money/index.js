@@ -34,7 +34,7 @@ const TYPE_DATA = {
  "templates": [
   {
    "id": "money_input",
-   "name": "Сумма и валюта",
+   "name": "Сумма с валютой",
    "changes": []
   }
  ],

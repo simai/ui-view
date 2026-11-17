@@ -36,7 +36,7 @@ const TYPE_DATA = {
  "templates": [
   {
    "id": "phone_input",
-   "name": "Поле с кодом страны",
+   "name": "Телефон с кодом страны",
    "changes": []
   }
  ],

@@ -25,7 +25,7 @@
 .property-table .property-pieces { flex-wrap: nowrap; overflow: hidden; }
 .property-cv { display: block; min-inline-size: 0; max-inline-size: 100%; overflow: hidden; }
 .property-table .property-cv { white-space: nowrap; text-overflow: ellipsis; }
-.property-mini .property-cv { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.property-mini .property-cv { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow-wrap: anywhere; }
 .property-mini .property-cv-button { white-space: normal; text-align: start; }
 .property-cv-button { font: inherit; color: inherit; background: transparent; border: 0; margin: 0; padding: 0; cursor: pointer; text-align: start; max-inline-size: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-decoration: underline dotted; text-underline-offset: .2em; border-radius: var(--sf-radius--ui); }
 .property-cv-button:hover { background: var(--sf-surface-2); }

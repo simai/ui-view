@@ -35,7 +35,7 @@ const TYPE_DATA = {
  "templates": [
   {
    "id": "reference_picker",
-   "name": "Поиск записи",
+   "name": "Выбор записи",
    "changes": []
   }
  ],

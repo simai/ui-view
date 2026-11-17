@@ -39,7 +39,7 @@ const TYPE_DATA = {
  "templates": [
   {
    "id": "requisites",
-   "name": "Поля реквизитов",
+   "name": "Блок реквизитов",
    "changes": []
   }
  ],

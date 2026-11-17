@@ -77,7 +77,7 @@ const TYPE_DATA = {
   },
   {
    "id": "badges",
-   "name": "Метки",
+   "name": "Значки",
    "changes": [
     "view",
     "compact"

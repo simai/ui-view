@@ -57,7 +57,7 @@ const TYPE_DATA = {
  "templates": [
   {
    "id": "source_picker",
-   "name": "Список справочника",
+   "name": "Выбор из справочника",
    "changes": []
   }
  ],

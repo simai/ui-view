@@ -46,7 +46,7 @@ const TYPE_DATA = {
   },
   {
    "id": "scale",
-   "name": "Шкала",
+   "name": "Шкала уровня",
    "changes": [
     "view",
     "compact"
@@ -56,7 +56,7 @@ const TYPE_DATA = {
   },
   {
    "id": "meter",
-   "name": "Заполненность",
+   "name": "Доля от предела",
    "changes": [
     "view",
     "compact"

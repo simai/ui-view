@@ -39,7 +39,7 @@ const TYPE_DATA = {
  "templates": [
   {
    "id": "upload",
-   "name": "Загрузка",
+   "name": "Загрузка файла",
    "changes": []
   },
   {
@@ -55,13 +55,23 @@ const TYPE_DATA = {
   },
   {
    "id": "image_card",
-   "name": "Изображение карточкой",
+   "name": "Карточка изображения",
    "changes": [
     "view",
     "compact"
    ],
    "variant": "image-card",
    "what": "изображение крупной карточкой"
+  },
+  {
+   "id": "image_list",
+   "name": "Список изображений",
+   "changes": [
+    "view",
+    "compact"
+   ],
+   "variant": "image-list",
+   "what": "картинки столбцом с именами; кратко — миниатюра и «+N»"
   }
  ],
  "server": [

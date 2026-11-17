@@ -28,7 +28,7 @@ const TYPE_DATA = {
  "templates": [
   {
    "id": "datepicker",
-   "name": "Календарь и время",
+   "name": "Поле даты и времени",
    "changes": []
   }
  ],

@@ -101,7 +101,7 @@ const TYPE_DATA = {
  "templates": [
   {
    "id": "rows",
-   "name": "Строки",
+   "name": "Таблица строк",
    "changes": []
   }
  ],

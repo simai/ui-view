@@ -28,7 +28,7 @@ const TYPE_DATA = {
  "templates": [
   {
    "id": "input",
-   "name": "Поле со знаком %",
+   "name": "Поле числа",
    "changes": []
   }
  ],

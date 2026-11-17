@@ -26,7 +26,7 @@ const TYPE_DATA = {
  "templates": [
   {
    "id": "editor",
-   "name": "Редактор текста",
+   "name": "Редактор",
    "changes": []
   }
  ],
