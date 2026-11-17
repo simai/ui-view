@@ -1,0 +1,5152 @@
+{
+ "base": "https://ui-view.test/",
+ "version": "1.9.0",
+ "pair": "ui-24d64b7f6eb7",
+ "pages": 42,
+ "loads": 504,
+ "passed": 0,
+ "cls_nonzero": 504,
+ "max_cls": 2.00979,
+ "console_or_request_errors": 2,
+ "sideways": 0,
+ "header": {
+  "loads": 12,
+  "centre_offset_max": 0,
+  "effect_under_text": 12,
+  "hero_height_1440": [
+   405
+  ],
+  "tools_390": [
+   3
+  ],
+  "surface": [
+   "bg-surface-container"
+  ],
+  "effect": [
+   "heat-mosaic"
+  ],
+  "footer_names_version_and_pair": true
+ },
+ "screenshots": 34,
+ "screenshot_errors": [],
+ "failing": [
+  {
+   "path": "ru/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 0.12571,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": [],
+   "header": {
+    "centreOffset": 0,
+    "effectUnderText": true,
+    "height": 332,
+    "tools": 3
+   }
+  },
+  {
+   "path": "ru/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 0.12571,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": [],
+   "header": {
+    "centreOffset": 0,
+    "effectUnderText": true,
+    "height": 332,
+    "tools": 3
+   }
+  },
+  {
+   "path": "ru/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 0.12571,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": [],
+   "header": {
+    "centreOffset": 0,
+    "effectUnderText": true,
+    "height": 332,
+    "tools": 3
+   }
+  },
+  {
+   "path": "ru/",
+   "width": 390,
+   "scheme": "light",
+   "load": 1,
+   "cls": 0.12571,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": [],
+   "header": {
+    "centreOffset": 0,
+    "effectUnderText": true,
+    "height": 332,
+    "tools": 3
+   }
+  },
+  {
+   "path": "ru/",
+   "width": 390,
+   "scheme": "light",
+   "load": 2,
+   "cls": 0.12571,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": [],
+   "header": {
+    "centreOffset": 0,
+    "effectUnderText": true,
+    "height": 332,
+    "tools": 3
+   }
+  },
+  {
+   "path": "ru/",
+   "width": 390,
+   "scheme": "light",
+   "load": 3,
+   "cls": 0.12932,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": [],
+   "header": {
+    "centreOffset": 0,
+    "effectUnderText": true,
+    "height": 332,
+    "tools": 3
+   }
+  },
+  {
+   "path": "ru/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 0.02401,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": [],
+   "header": {
+    "centreOffset": 0,
+    "effectUnderText": true,
+    "height": 405,
+    "tools": 2
+   }
+  },
+  {
+   "path": "ru/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 0.04227,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": [
+    "http 404: https://ui-view.test/_docara/vendor/simai-framework/runtime/24d64b7f6eb7a782d648dbb5b44f7eb763ec815b/distr/core/contracts/icon-names.v1.json",
+    "console: Failed to load resource: the server responded with a status of 404 ()"
+   ],
+   "header": {
+    "centreOffset": 0,
+    "effectUnderText": true,
+    "height": 405,
+    "tools": 2
+   }
+  },
+  {
+   "path": "ru/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 0.02401,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": [],
+   "header": {
+    "centreOffset": 0,
+    "effectUnderText": true,
+    "height": 405,
+    "tools": 2
+   }
+  },
+  {
+   "path": "ru/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 1,
+   "cls": 0.02438,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": [],
+   "header": {
+    "centreOffset": 0,
+    "effectUnderText": true,
+    "height": 405,
+    "tools": 2
+   }
+  },
+  {
+   "path": "ru/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 2,
+   "cls": 0.02401,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": [],
+   "header": {
+    "centreOffset": 0,
+    "effectUnderText": true,
+    "height": 405,
+    "tools": 2
+   }
+  },
+  {
+   "path": "ru/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 3,
+   "cls": 0.02401,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": [],
+   "header": {
+    "centreOffset": 0,
+    "effectUnderText": true,
+    "height": 405,
+    "tools": 2
+   }
+  },
+  {
+   "path": "ru/components/views/view-flow/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 0.02879,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/components/views/view-flow/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 0.02884,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/components/views/view-flow/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 0.02879,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/components/views/view-flow/",
+   "width": 390,
+   "scheme": "light",
+   "load": 1,
+   "cls": 0.0124,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/components/views/view-flow/",
+   "width": 390,
+   "scheme": "light",
+   "load": 2,
+   "cls": 0.02879,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/components/views/view-flow/",
+   "width": 390,
+   "scheme": "light",
+   "load": 3,
+   "cls": 0.02901,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/components/views/view-flow/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 0.03359,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/components/views/view-flow/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 0.03359,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/components/views/view-flow/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 0.03359,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/components/views/view-flow/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 1,
+   "cls": 0.03305,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/components/views/view-flow/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 2,
+   "cls": 0.03305,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/components/views/view-flow/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 3,
+   "cls": 0.03305,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/components/views/view-properties/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 0.04732,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/components/views/view-properties/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 0.04732,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/components/views/view-properties/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 0.04732,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/components/views/view-properties/",
+   "width": 390,
+   "scheme": "light",
+   "load": 1,
+   "cls": 0.04775,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/components/views/view-properties/",
+   "width": 390,
+   "scheme": "light",
+   "load": 2,
+   "cls": 0.04732,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/components/views/view-properties/",
+   "width": 390,
+   "scheme": "light",
+   "load": 3,
+   "cls": 0.04732,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/components/views/view-properties/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 0.03748,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/components/views/view-properties/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 0.03694,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/components/views/view-properties/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 0.03694,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/components/views/view-properties/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 1,
+   "cls": 0.03694,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/components/views/view-properties/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 2,
+   "cls": 0.03694,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/components/views/view-properties/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 3,
+   "cls": 0.03748,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/components/views/view-table/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 1.58762,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/components/views/view-table/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 1.59357,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/components/views/view-table/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 1.28868,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/components/views/view-table/",
+   "width": 390,
+   "scheme": "light",
+   "load": 1,
+   "cls": 1.2889,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/components/views/view-table/",
+   "width": 390,
+   "scheme": "light",
+   "load": 2,
+   "cls": 1.59827,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/components/views/view-table/",
+   "width": 390,
+   "scheme": "light",
+   "load": 3,
+   "cls": 1.60677,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/components/views/view-table/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 0.51449,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/components/views/view-table/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 0.5258,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/components/views/view-table/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 0.50802,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/components/views/view-table/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 1,
+   "cls": 0.4992,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/components/views/view-table/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 2,
+   "cls": 0.50675,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/components/views/view-table/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 3,
+   "cls": 0.51104,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/components/views/view/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 0.52315,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/components/views/view/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 0.32417,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/components/views/view/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 1.23757,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/components/views/view/",
+   "width": 390,
+   "scheme": "light",
+   "load": 1,
+   "cls": 0.67495,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/components/views/view/",
+   "width": 390,
+   "scheme": "light",
+   "load": 2,
+   "cls": 1.12171,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/components/views/view/",
+   "width": 390,
+   "scheme": "light",
+   "load": 3,
+   "cls": 0.34642,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/components/views/view/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 0.02769,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/components/views/view/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 0.02713,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/components/views/view/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 0.02966,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/components/views/view/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 1,
+   "cls": 0.02362,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/components/views/view/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 2,
+   "cls": 0.02418,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/components/views/view/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 3,
+   "cls": 0.02614,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/accessibility/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 0.11966,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/accessibility/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 0.03916,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/accessibility/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 0.11927,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/accessibility/",
+   "width": 390,
+   "scheme": "light",
+   "load": 1,
+   "cls": 0.04442,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/accessibility/",
+   "width": 390,
+   "scheme": "light",
+   "load": 2,
+   "cls": 0.02192,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/accessibility/",
+   "width": 390,
+   "scheme": "light",
+   "load": 3,
+   "cls": 0.02192,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/accessibility/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 0.04202,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/accessibility/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 0.04202,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/accessibility/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 0.02583,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/accessibility/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 1,
+   "cls": 0.00859,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/accessibility/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 2,
+   "cls": 0.00859,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/accessibility/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 3,
+   "cls": 0.05092,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/appearance/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 0.76766,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/appearance/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 0.76024,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/appearance/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 0.77426,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/appearance/",
+   "width": 390,
+   "scheme": "light",
+   "load": 1,
+   "cls": 0.97418,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/appearance/",
+   "width": 390,
+   "scheme": "light",
+   "load": 2,
+   "cls": 0.77426,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/appearance/",
+   "width": 390,
+   "scheme": "light",
+   "load": 3,
+   "cls": 0.77426,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/appearance/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 0.2621,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/appearance/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 0.26413,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/appearance/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 0.26361,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/appearance/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 1,
+   "cls": 0.26157,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/appearance/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 2,
+   "cls": 0.26413,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/appearance/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 3,
+   "cls": 0.2973,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/concepts/data/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 0.02012,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/concepts/data/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 0.02012,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/concepts/data/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 0.01228,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/concepts/data/",
+   "width": 390,
+   "scheme": "light",
+   "load": 1,
+   "cls": 0.34026,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/concepts/data/",
+   "width": 390,
+   "scheme": "light",
+   "load": 2,
+   "cls": 0.02012,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/concepts/data/",
+   "width": 390,
+   "scheme": "light",
+   "load": 3,
+   "cls": 0.01399,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/concepts/data/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 0.03788,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/concepts/data/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 0.0507,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/concepts/data/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 0.05058,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/concepts/data/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 1,
+   "cls": 0.0507,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/concepts/data/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 2,
+   "cls": 0.03815,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/concepts/data/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 3,
+   "cls": 0.04767,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/concepts/intents/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 0.30619,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/concepts/intents/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 0.29684,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/concepts/intents/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 0.29922,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/concepts/intents/",
+   "width": 390,
+   "scheme": "light",
+   "load": 1,
+   "cls": 0.36464,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/concepts/intents/",
+   "width": 390,
+   "scheme": "light",
+   "load": 2,
+   "cls": 0.36086,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/concepts/intents/",
+   "width": 390,
+   "scheme": "light",
+   "load": 3,
+   "cls": 0.35435,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/concepts/intents/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 0.01309,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/concepts/intents/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 0.01597,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/concepts/intents/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 0.01597,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/concepts/intents/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 1,
+   "cls": 0.04913,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/concepts/intents/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 2,
+   "cls": 0.01626,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/concepts/intents/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 3,
+   "cls": 0.01309,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/concepts/preferences/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 0.29713,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/concepts/preferences/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 0.78002,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/concepts/preferences/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 0.29908,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/concepts/preferences/",
+   "width": 390,
+   "scheme": "light",
+   "load": 1,
+   "cls": 0.30835,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/concepts/preferences/",
+   "width": 390,
+   "scheme": "light",
+   "load": 2,
+   "cls": 0.29908,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/concepts/preferences/",
+   "width": 390,
+   "scheme": "light",
+   "load": 3,
+   "cls": 0.78226,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/concepts/preferences/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 0.01356,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/concepts/preferences/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 0.01452,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/concepts/preferences/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 0.02887,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/concepts/preferences/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 1,
+   "cls": 0.02887,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/concepts/preferences/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 2,
+   "cls": 0.01302,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/concepts/preferences/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 3,
+   "cls": 0.11454,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/concepts/settings/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 0.02099,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/concepts/settings/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 0.21149,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/concepts/settings/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 0.05078,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/concepts/settings/",
+   "width": 390,
+   "scheme": "light",
+   "load": 1,
+   "cls": 0.21132,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/concepts/settings/",
+   "width": 390,
+   "scheme": "light",
+   "load": 2,
+   "cls": 0.02099,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/concepts/settings/",
+   "width": 390,
+   "scheme": "light",
+   "load": 3,
+   "cls": 0.21149,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/concepts/settings/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 0.00607,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/concepts/settings/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 0.00607,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/concepts/settings/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 0.01741,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/concepts/settings/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 1,
+   "cls": 0.01741,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/concepts/settings/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 2,
+   "cls": 0.00662,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/concepts/settings/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 3,
+   "cls": 0.04854,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/quick-start/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 0.01085,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/quick-start/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 0.23938,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/quick-start/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 0.14639,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/quick-start/",
+   "width": 390,
+   "scheme": "light",
+   "load": 1,
+   "cls": 0.01124,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/quick-start/",
+   "width": 390,
+   "scheme": "light",
+   "load": 2,
+   "cls": 0.01103,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/quick-start/",
+   "width": 390,
+   "scheme": "light",
+   "load": 3,
+   "cls": 0.01103,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/quick-start/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 0.00678,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/quick-start/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 0.00474,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/quick-start/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 0.00496,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/quick-start/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 1,
+   "cls": 0.03714,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/quick-start/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 2,
+   "cls": 0.03904,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/quick-start/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 3,
+   "cls": 0.03628,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/showcase/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 0.29748,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/showcase/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 0.29748,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/showcase/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 0.29748,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/showcase/",
+   "width": 390,
+   "scheme": "light",
+   "load": 1,
+   "cls": 0.29748,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/showcase/",
+   "width": 390,
+   "scheme": "light",
+   "load": 2,
+   "cls": 0.29748,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/showcase/",
+   "width": 390,
+   "scheme": "light",
+   "load": 3,
+   "cls": 0.29731,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/showcase/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 0.09538,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/showcase/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 0.09517,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/showcase/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 0.09517,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/showcase/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 1,
+   "cls": 0.09517,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/showcase/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 2,
+   "cls": 0.09517,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/guide/showcase/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 3,
+   "cls": 0.09517,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 1.28401,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 1.54687,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 1.54739,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/",
+   "width": 390,
+   "scheme": "light",
+   "load": 1,
+   "cls": 1.88158,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/",
+   "width": 390,
+   "scheme": "light",
+   "load": 2,
+   "cls": 1.54141,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/",
+   "width": 390,
+   "scheme": "light",
+   "load": 3,
+   "cls": 1.54308,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 0.592,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 1.0625,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 0.59124,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 1,
+   "cls": 0.59295,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 2,
+   "cls": 0.68335,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 3,
+   "cls": 0.59263,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/boolean/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 1.3766,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/boolean/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 1.23257,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/boolean/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 1.26473,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/boolean/",
+   "width": 390,
+   "scheme": "light",
+   "load": 1,
+   "cls": 1.43312,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/boolean/",
+   "width": 390,
+   "scheme": "light",
+   "load": 2,
+   "cls": 1.23236,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/boolean/",
+   "width": 390,
+   "scheme": "light",
+   "load": 3,
+   "cls": 1.29038,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/boolean/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 1.09032,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/boolean/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 1.16711,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/boolean/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 1.08979,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/boolean/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 1,
+   "cls": 1.46982,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/boolean/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 2,
+   "cls": 1.16711,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/boolean/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 3,
+   "cls": 1.09032,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/choice/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 1.25957,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/choice/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 1.4011,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/choice/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 1.25327,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/choice/",
+   "width": 390,
+   "scheme": "light",
+   "load": 1,
+   "cls": 1.25288,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/choice/",
+   "width": 390,
+   "scheme": "light",
+   "load": 2,
+   "cls": 1.25957,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/choice/",
+   "width": 390,
+   "scheme": "light",
+   "load": 3,
+   "cls": 1.28504,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/choice/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 1.21398,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/choice/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 1.24283,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/choice/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 1.30972,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/choice/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 1,
+   "cls": 1.12263,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/choice/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 2,
+   "cls": 1.23178,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/choice/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 3,
+   "cls": 1.23178,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/choices/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 1.25208,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/choices/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 1.36939,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/choices/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 1.36939,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/choices/",
+   "width": 390,
+   "scheme": "light",
+   "load": 1,
+   "cls": 1.43828,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/choices/",
+   "width": 390,
+   "scheme": "light",
+   "load": 2,
+   "cls": 1.38107,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/choices/",
+   "width": 390,
+   "scheme": "light",
+   "load": 3,
+   "cls": 1.47022,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/choices/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 1.30229,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/choices/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 1.25357,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/choices/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 1.29124,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/choices/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 1,
+   "cls": 1.24137,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/choices/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 2,
+   "cls": 1.22979,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/choices/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 3,
+   "cls": 1.29124,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/color/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 1.43554,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/color/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 1.35781,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/color/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 1.17244,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/color/",
+   "width": 390,
+   "scheme": "light",
+   "load": 1,
+   "cls": 1.35802,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/color/",
+   "width": 390,
+   "scheme": "light",
+   "load": 2,
+   "cls": 1.39018,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/color/",
+   "width": 390,
+   "scheme": "light",
+   "load": 3,
+   "cls": 1.35802,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/color/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 1.16855,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/color/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 1.15802,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/color/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 1.09789,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/color/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 1,
+   "cls": 1.09789,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/color/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 2,
+   "cls": 1.23178,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/color/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 3,
+   "cls": 1.16885,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/compound/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 1.21005,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/compound/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 1.21005,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/compound/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 1.37827,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/compound/",
+   "width": 390,
+   "scheme": "light",
+   "load": 1,
+   "cls": 1.23474,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/compound/",
+   "width": 390,
+   "scheme": "light",
+   "load": 2,
+   "cls": 1.23495,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/compound/",
+   "width": 390,
+   "scheme": "light",
+   "load": 3,
+   "cls": 1.20279,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/compound/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 1.08269,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/compound/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 1.15519,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/compound/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 1.25154,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/compound/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 1,
+   "cls": 1.15519,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/compound/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 2,
+   "cls": 1.15519,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/compound/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 3,
+   "cls": 1.09321,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/date/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 1.33165,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/date/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 1.36627,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/date/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 1.27275,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/date/",
+   "width": 390,
+   "scheme": "light",
+   "load": 1,
+   "cls": 1.2259,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/date/",
+   "width": 390,
+   "scheme": "light",
+   "load": 2,
+   "cls": 1.17917,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/date/",
+   "width": 390,
+   "scheme": "light",
+   "load": 3,
+   "cls": 1.27275,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/date/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 1.3332,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/date/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 1.06877,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/date/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 1.46859,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/date/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 1,
+   "cls": 1.14536,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/date/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 2,
+   "cls": 1.17741,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/date/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 3,
+   "cls": 1.13688,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/datetime/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 1.13787,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/datetime/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 1.25637,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/datetime/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 1.17003,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/datetime/",
+   "width": 390,
+   "scheme": "light",
+   "load": 1,
+   "cls": 1.17003,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/datetime/",
+   "width": 390,
+   "scheme": "light",
+   "load": 2,
+   "cls": 1.35793,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/datetime/",
+   "width": 390,
+   "scheme": "light",
+   "load": 3,
+   "cls": 1.13808,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/datetime/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 1.17793,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/datetime/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 1.17741,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/datetime/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 1.05772,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/datetime/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 1,
+   "cls": 1.17741,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/datetime/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 2,
+   "cls": 1.17741,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/datetime/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 3,
+   "cls": 1.25351,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/file/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 1.78258,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/file/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 1.78237,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/file/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 1.547,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/file/",
+   "width": 390,
+   "scheme": "light",
+   "load": 1,
+   "cls": 1.9875,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/file/",
+   "width": 390,
+   "scheme": "light",
+   "load": 2,
+   "cls": 1.33038,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/file/",
+   "width": 390,
+   "scheme": "light",
+   "load": 3,
+   "cls": 1.81801,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/file/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 1.74979,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/file/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 1.75031,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/file/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 2.00979,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/file/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 1,
+   "cls": 1.75969,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/file/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 2,
+   "cls": 1.49624,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/file/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 3,
+   "cls": 1.74926,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/html/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 1.18913,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/html/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 1.18854,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/html/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 1.18874,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/html/",
+   "width": 390,
+   "scheme": "light",
+   "load": 1,
+   "cls": 1.33978,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/html/",
+   "width": 390,
+   "scheme": "light",
+   "load": 2,
+   "cls": 1.41116,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/html/",
+   "width": 390,
+   "scheme": "light",
+   "load": 3,
+   "cls": 1.4175,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/html/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 1.25273,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/html/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 1.21133,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/html/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 1.2428,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/html/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 1,
+   "cls": 1.21133,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/html/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 2,
+   "cls": 1.21059,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/html/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 3,
+   "cls": 1.24056,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/include/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 1.22336,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/include/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 1.22357,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/include/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 1.30158,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/include/",
+   "width": 390,
+   "scheme": "light",
+   "load": 1,
+   "cls": 1.19142,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/include/",
+   "width": 390,
+   "scheme": "light",
+   "load": 2,
+   "cls": 1.45583,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/include/",
+   "width": 390,
+   "scheme": "light",
+   "load": 3,
+   "cls": 1.33373,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/include/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 1.22642,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/include/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 1.22642,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/include/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 1.22642,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/include/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 1,
+   "cls": 1.25063,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/include/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 2,
+   "cls": 1.23747,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/include/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 3,
+   "cls": 1.33767,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/integer/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 1.22312,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/integer/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 1.17702,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/integer/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 1.35712,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/integer/",
+   "width": 390,
+   "scheme": "light",
+   "load": 1,
+   "cls": 1.38928,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/integer/",
+   "width": 390,
+   "scheme": "light",
+   "load": 2,
+   "cls": 1.17648,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/integer/",
+   "width": 390,
+   "scheme": "light",
+   "load": 3,
+   "cls": 1.25528,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/integer/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 1.16497,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/integer/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 1.15445,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/integer/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 1.1152,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/integer/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 1,
+   "cls": 1.08608,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/integer/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 2,
+   "cls": 1.08608,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/integer/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 3,
+   "cls": 1.15393,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/items/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 1.93097,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/items/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 1.80737,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/items/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 1.8986,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/items/",
+   "width": 390,
+   "scheme": "light",
+   "load": 1,
+   "cls": 1.80758,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/items/",
+   "width": 390,
+   "scheme": "light",
+   "load": 2,
+   "cls": 1.8986,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/items/",
+   "width": 390,
+   "scheme": "light",
+   "load": 3,
+   "cls": 1.93076,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/items/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 1.34069,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/items/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 1.34069,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/items/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 1.34069,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/items/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 1,
+   "cls": 1.60546,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/items/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 2,
+   "cls": 1.28212,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/items/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 3,
+   "cls": 1.28159,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/lookup/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 1.27915,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/lookup/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 1.20183,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/lookup/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 1.45183,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/lookup/",
+   "width": 390,
+   "scheme": "light",
+   "load": 1,
+   "cls": 1.53543,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/lookup/",
+   "width": 390,
+   "scheme": "light",
+   "load": 2,
+   "cls": 1.37756,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/lookup/",
+   "width": 390,
+   "scheme": "light",
+   "load": 3,
+   "cls": 1.37041,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/lookup/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 1.23032,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/lookup/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 1.24137,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/lookup/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 1.13116,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/lookup/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 1,
+   "cls": 1.21559,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/lookup/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 2,
+   "cls": 1.191,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/lookup/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 3,
+   "cls": 1.19775,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/money/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 1.12327,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/money/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 1.35716,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/money/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 1.35716,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/money/",
+   "width": 390,
+   "scheme": "light",
+   "load": 1,
+   "cls": 1.22095,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/money/",
+   "width": 390,
+   "scheme": "light",
+   "load": 2,
+   "cls": 1.35737,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/money/",
+   "width": 390,
+   "scheme": "light",
+   "load": 3,
+   "cls": 1.33465,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/money/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 1.43328,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/money/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 1.15445,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/money/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 1.0866,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/money/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 1,
+   "cls": 1.09461,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/money/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 2,
+   "cls": 1.0866,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/money/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 3,
+   "cls": 1.16549,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/number/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 1.44672,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/number/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 1.53005,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/number/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 1.41194,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/number/",
+   "width": 390,
+   "scheme": "light",
+   "load": 1,
+   "cls": 1.52233,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/number/",
+   "width": 390,
+   "scheme": "light",
+   "load": 2,
+   "cls": 1.41435,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/number/",
+   "width": 390,
+   "scheme": "light",
+   "load": 3,
+   "cls": 1.41435,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/number/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 1.24137,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/number/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 1.20122,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/number/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 1.24084,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/number/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 1,
+   "cls": 1.24084,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/number/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 2,
+   "cls": 1.2546,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/number/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 3,
+   "cls": 1.20122,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/percent/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 1.21118,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/percent/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 1.35569,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/percent/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 1.12278,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/percent/",
+   "width": 390,
+   "scheme": "light",
+   "load": 1,
+   "cls": 1.22566,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/percent/",
+   "width": 390,
+   "scheme": "light",
+   "load": 2,
+   "cls": 1.3559,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/percent/",
+   "width": 390,
+   "scheme": "light",
+   "load": 3,
+   "cls": 1.15514,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/percent/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 1.07806,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/percent/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 1.13315,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/percent/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 1.15958,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/percent/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 1,
+   "cls": 1.07806,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/percent/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 2,
+   "cls": 1.14854,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/percent/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 3,
+   "cls": 1.07754,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/record/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 1.15929,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/record/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 1.29268,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/record/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 1.31779,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/record/",
+   "width": 390,
+   "scheme": "light",
+   "load": 1,
+   "cls": 1.31779,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/record/",
+   "width": 390,
+   "scheme": "light",
+   "load": 2,
+   "cls": 1.20057,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/record/",
+   "width": 390,
+   "scheme": "light",
+   "load": 3,
+   "cls": 1.34995,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/record/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 1.06806,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/record/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 1.08531,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/record/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 1.17689,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/record/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 1,
+   "cls": 1.05651,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/record/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 2,
+   "cls": 1.18794,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/record/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 3,
+   "cls": 1.05703,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/relation/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 1.13362,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/relation/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 1.31694,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/relation/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 1.1332,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/relation/",
+   "width": 390,
+   "scheme": "light",
+   "load": 1,
+   "cls": 1.13383,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/relation/",
+   "width": 390,
+   "scheme": "light",
+   "load": 2,
+   "cls": 1.24927,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/relation/",
+   "width": 390,
+   "scheme": "light",
+   "load": 3,
+   "cls": 1.31694,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/relation/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 1.18846,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/relation/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 1.18794,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/relation/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 1.17741,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/relation/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 1,
+   "cls": 1.05703,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/relation/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 2,
+   "cls": 1.06808,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/relation/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 3,
+   "cls": 1.18846,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/ru-requisites/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 1.51591,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/ru-requisites/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 1.48375,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/ru-requisites/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 1.41916,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/ru-requisites/",
+   "width": 390,
+   "scheme": "light",
+   "load": 1,
+   "cls": 1.41894,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/ru-requisites/",
+   "width": 390,
+   "scheme": "light",
+   "load": 2,
+   "cls": 1.48375,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/ru-requisites/",
+   "width": 390,
+   "scheme": "light",
+   "load": 3,
+   "cls": 1.19741,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/ru-requisites/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 1.24137,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/ru-requisites/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 1.26773,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/ru-requisites/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 1.20999,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/ru-requisites/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 1,
+   "cls": 1.20999,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/ru-requisites/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 2,
+   "cls": 1.21052,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/ru-requisites/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 3,
+   "cls": 1.20999,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/string/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 1.35499,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/string/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 1.35499,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/string/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 1.41427,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/string/",
+   "width": 390,
+   "scheme": "light",
+   "load": 1,
+   "cls": 1.3552,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/string/",
+   "width": 390,
+   "scheme": "light",
+   "load": 2,
+   "cls": 1.3552,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/string/",
+   "width": 390,
+   "scheme": "light",
+   "load": 3,
+   "cls": 1.41427,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/string/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 1.22059,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/string/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 1.13116,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/string/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 1.24084,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/string/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 1,
+   "cls": 1.24137,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/string/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 2,
+   "cls": 1.23033,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/string/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 3,
+   "cls": 1.22006,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/text/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 1.34548,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/text/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 1.29883,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/text/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 1.5299,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/text/",
+   "width": 390,
+   "scheme": "light",
+   "load": 1,
+   "cls": 1.1459,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/text/",
+   "width": 390,
+   "scheme": "light",
+   "load": 2,
+   "cls": 1.49759,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/text/",
+   "width": 390,
+   "scheme": "light",
+   "load": 3,
+   "cls": 1.1459,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/text/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 1.18084,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/text/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 1.29052,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/text/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 1.08357,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/text/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 1,
+   "cls": 1.10101,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/text/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 2,
+   "cls": 1.21893,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/text/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 3,
+   "cls": 1.08966,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/time/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 1.19395,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/time/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 1.14701,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/time/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 1.17917,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/time/",
+   "width": 390,
+   "scheme": "light",
+   "load": 1,
+   "cls": 1.36381,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/time/",
+   "width": 390,
+   "scheme": "light",
+   "load": 2,
+   "cls": 1.33165,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/time/",
+   "width": 390,
+   "scheme": "light",
+   "load": 3,
+   "cls": 1.3636,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/time/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 1.06877,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/time/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 1.18898,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/time/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 1.17741,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/time/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 1,
+   "cls": 1.18898,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/time/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 2,
+   "cls": 1.05824,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/time/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 3,
+   "cls": 1.05824,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/user/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 1.1275,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/user/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 1.45155,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/user/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 1.22087,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/user/",
+   "width": 390,
+   "scheme": "light",
+   "load": 1,
+   "cls": 1.34469,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/user/",
+   "width": 390,
+   "scheme": "light",
+   "load": 2,
+   "cls": 1.19669,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/user/",
+   "width": 390,
+   "scheme": "light",
+   "load": 3,
+   "cls": 1.12792,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/user/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 1.05626,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/user/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 1.06679,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/user/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 1.44356,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": [
+    "http 404: https://ui-view.test/_docara/vendor/simai-framework/runtime/24d64b7f6eb7a782d648dbb5b44f7eb763ec815b/distr/core/contracts/icon-names.v1.json",
+    "console: Failed to load resource: the server responded with a status of 404 ()"
+   ]
+  },
+  {
+   "path": "ru/properties/user/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 1,
+   "cls": 1.06626,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/user/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 2,
+   "cls": 1.2631,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/properties/user/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 3,
+   "cls": 1.1749,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/recipes/data-in-flow/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 0.01863,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/recipes/data-in-flow/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 0.01636,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/recipes/data-in-flow/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 0.01863,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/recipes/data-in-flow/",
+   "width": 390,
+   "scheme": "light",
+   "load": 1,
+   "cls": 0.01863,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/recipes/data-in-flow/",
+   "width": 390,
+   "scheme": "light",
+   "load": 2,
+   "cls": 0.01863,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/recipes/data-in-flow/",
+   "width": 390,
+   "scheme": "light",
+   "load": 3,
+   "cls": 0.01845,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/recipes/data-in-flow/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 0.01117,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/recipes/data-in-flow/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 0.01091,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/recipes/data-in-flow/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 0.01274,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/recipes/data-in-flow/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 1,
+   "cls": 0.01117,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/recipes/data-in-flow/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 2,
+   "cls": 0.01274,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/recipes/data-in-flow/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 3,
+   "cls": 0.01117,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/recipes/editing/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 0.19883,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/recipes/editing/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 0.21556,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/recipes/editing/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 0.21556,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/recipes/editing/",
+   "width": 390,
+   "scheme": "light",
+   "load": 1,
+   "cls": 0.10004,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/recipes/editing/",
+   "width": 390,
+   "scheme": "light",
+   "load": 2,
+   "cls": 0.21556,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/recipes/editing/",
+   "width": 390,
+   "scheme": "light",
+   "load": 3,
+   "cls": 0.21753,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/recipes/editing/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 0.05933,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/recipes/editing/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 0.05786,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/recipes/editing/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 0.05933,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/recipes/editing/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 1,
+   "cls": 0.00468,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/recipes/editing/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 2,
+   "cls": 0.05786,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/recipes/editing/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 3,
+   "cls": 0.05786,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/recipes/load-from-server/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 0.29892,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/recipes/load-from-server/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 0.29892,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/recipes/load-from-server/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 0.29892,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/recipes/load-from-server/",
+   "width": 390,
+   "scheme": "light",
+   "load": 1,
+   "cls": 0.29892,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/recipes/load-from-server/",
+   "width": 390,
+   "scheme": "light",
+   "load": 2,
+   "cls": 0.29656,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/recipes/load-from-server/",
+   "width": 390,
+   "scheme": "light",
+   "load": 3,
+   "cls": 0.29956,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/recipes/load-from-server/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 0.01156,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/recipes/load-from-server/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 0.01174,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/recipes/load-from-server/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 0.01354,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/recipes/load-from-server/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 1,
+   "cls": 0.02714,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/recipes/load-from-server/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 2,
+   "cls": 0.05037,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/recipes/load-from-server/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 3,
+   "cls": 0.01354,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/recipes/selection-and-bulk-actions/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 0.34989,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/recipes/selection-and-bulk-actions/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 0.34972,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/recipes/selection-and-bulk-actions/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 0.21765,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/recipes/selection-and-bulk-actions/",
+   "width": 390,
+   "scheme": "light",
+   "load": 1,
+   "cls": 0.34827,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/recipes/selection-and-bulk-actions/",
+   "width": 390,
+   "scheme": "light",
+   "load": 2,
+   "cls": 0.34989,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/recipes/selection-and-bulk-actions/",
+   "width": 390,
+   "scheme": "light",
+   "load": 3,
+   "cls": 0.34989,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/recipes/selection-and-bulk-actions/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 0.00914,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/recipes/selection-and-bulk-actions/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 0.01078,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/recipes/selection-and-bulk-actions/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 0.01056,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/recipes/selection-and-bulk-actions/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 1,
+   "cls": 0.00914,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/recipes/selection-and-bulk-actions/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 2,
+   "cls": 0.00914,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/recipes/selection-and-bulk-actions/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 3,
+   "cls": 0.01078,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/recipes/states/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 0.69775,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/recipes/states/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 0.69496,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/recipes/states/",
+   "width": 390,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 0.69775,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/recipes/states/",
+   "width": 390,
+   "scheme": "light",
+   "load": 1,
+   "cls": 0.69496,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/recipes/states/",
+   "width": 390,
+   "scheme": "light",
+   "load": 2,
+   "cls": 0.69775,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/recipes/states/",
+   "width": 390,
+   "scheme": "light",
+   "load": 3,
+   "cls": 0.69496,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/recipes/states/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 1,
+   "cls": 0.17639,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/recipes/states/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 2,
+   "cls": 0.17428,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/recipes/states/",
+   "width": 1440,
+   "scheme": "dark",
+   "load": 3,
+   "cls": 0.17428,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/recipes/states/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 1,
+   "cls": 0.17428,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/recipes/states/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 2,
+   "cls": 0.17428,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  },
+  {
+   "path": "ru/recipes/states/",
+   "width": 1440,
+   "scheme": "light",
+   "load": 3,
+   "cls": 0.17428,
+   "sideways": 0,
+   "frameSideways": 0,
+   "errors": []
+  }
+ ]
+}

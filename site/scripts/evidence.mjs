@@ -105,6 +105,12 @@ const open = async (width, scheme) => {
   page.on('response', (response) => { if (response.status() >= 400) errors.push(`http ${response.status()}: ${response.url()}`); });
   return {context, page, errors};
 };
+// A page whose network never goes quiet (a long-polling example) is taken
+// once it has loaded; the wait for quiet is then only a cap.
+const settle = async (page, url) => {
+  await page.goto(url, {waitUntil: 'load', timeout: 60000});
+  await page.waitForLoadState('networkidle', {timeout: 15000}).catch(() => {});
+};
 // Frames load lazily: scroll through the page so every example starts, then
 // let it settle.
 const wake = async (page) => {
@@ -167,7 +173,7 @@ const worker = async () => {
     const {context, page, errors} = await open(job.width, job.scheme);
     const result = {...job};
     try {
-      await page.goto(new URL(job.path, base).href, {waitUntil: 'networkidle', timeout: 60000});
+      await settle(page, new URL(job.path, base).href);
       await wake(page);
       result.frames = await measure(page);
       if (job.path === 'ru/') result.header = await header(page);
@@ -201,11 +207,12 @@ const shoot = async (page, width, file) => {
   await page.setViewportSize({width, height: 900});
   shots.push(file);
 };
-if (!only) {
+const shotErrors = [];
+if (!only) try {
   for (const scheme of SCHEMES) {
     for (const width of WIDTHS) {
       const {context, page} = await open(width, scheme);
-      await page.goto(new URL('ru/', base).href, {waitUntil: 'networkidle'});
+      await settle(page, new URL('ru/', base).href);
       await wake(page);
       for (const [index, label] of TABS.entries()) {
         const frame = page.frames().find((one) => one !== page.mainFrame());
@@ -218,13 +225,13 @@ if (!only) {
   for (const width of WIDTHS) {
     for (const [name, path] of SHOTS) {
       const {context, page} = await open(width, 'light');
-      await page.goto(new URL(path, base).href, {waitUntil: 'networkidle'});
+      await settle(page, new URL(path, base).href);
       await wake(page);
       await shoot(page, width, `${name}-${width}-light.png`);
       await context.close();
     }
   }
-}
+} catch (error) { shotErrors.push(String(error.message).slice(0, 200)); }
 await browser.close();
 
 const failing = results.filter((result) => !result.ok);
@@ -251,9 +258,10 @@ const summary = {
     footer_names_version_and_pair: home.every((result) => result.header.footerText.includes(version) && result.header.footerText.includes(pair)),
   },
   screenshots: shots.length,
+  screenshot_errors: shotErrors,
   failing: failing.map(({path, width, scheme, load, cls, sideways, frameSideways, errors, failed, header: hero}) => ({path, width, scheme, load, cls, sideways, frameSideways, errors: errors.slice(0, 5), failed, header: hero && {centreOffset: hero.centreOffset, effectUnderText: hero.effectUnderText, height: hero.height, tools: hero.tools.length}})),
 };
 writeFileSync(join(out, 'evidence.json'), `${JSON.stringify({base, results}, null, 1)}\n`);
 writeFileSync(join(out, 'summary.json'), `${JSON.stringify(summary, null, 1)}\n`);
 console.log(JSON.stringify({...summary, failing: summary.failing.length}, null, 1));
-process.exit(failing.length ? 1 : 0);
+process.exit(failing.length || shotErrors.length ? 1 : 0);
