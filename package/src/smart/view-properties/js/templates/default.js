@@ -1250,7 +1250,7 @@ function renderSectionBar(context, section, count) {
                     String(section.label ?? section.key), 'sf-property-view-section-title min-w-0')}
             <sf-button-icon
                     size="1/2"
-                    appearance="link"
+                    appearance="ghost"
                     scheme="secondary"
                     icon="delete"
                     data-action="remove-section"

@@ -56,6 +56,7 @@ Every remote branch ahead of `main`, with the release that takes it.
 |---|---|
 | `round/view-r1` | view 1.9.0 (the round) |
 | `round/view-r1-*` | view 1.9.0: the round's helper branches, merged into `round/view-r1` |
+| `fix/view-c106-settings` | view 1.9.0: round item D2 (the gear's window on sf-settings), to merge into `round/view-r1` |
 | `fix/view-pro-followups` | view 1.9.0 (base of the round) |
 | `fix/view-footer-colmenu` | view 1.9.0 (in `round/view-r1`) |
 | `fix/view-set-j1` | view 1.9.0 (in `round/view-r1`) |
