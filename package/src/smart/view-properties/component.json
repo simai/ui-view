@@ -2,7 +2,7 @@
   "$comment": "sf-property-view from its component.json (standard simai.smart-component 1.3.8, vocabulary 1.1.5), migrated from ui-control control/smart-architecture/migration/out/property-view; every x-todo decided in x-decisions.",
   "id": "smart.view-properties",
   "tag": "sf-view-properties",
-  "version": "1.16.9",
+  "version": "1.17.0",
   "kind": "leaf",
   "family": "record",
   "implements": [
@@ -253,7 +253,7 @@
     "panel-width": {
       "type": "string",
       "default": "",
-      "summary": "An exact panel width, for a consumer whose layout the ladder step does not fit. Empty leaves panel-size in charge; a length here wins over it. A stacked panel is narrowed from this width rather than from the ladder."
+      "summary": "Former name until 2027-01-01 (C289 (2), C157 (2)): the panel never takes a width of its own. A length here is mapped to the nearest step of the drawer ladder (20rem \u2192 1/2, 24rem \u2192 1, 30rem \u2192 2; wider lands on 2) when panel-size is not set, with a console notice. Use panel-size."
     },
     "personal-layer-text": {
       "type": "string",
@@ -327,7 +327,7 @@
         "tabs"
       ],
       "default": "list",
-      "summary": "Where the sections are read: as a list beside the groups, which suits a settings screen with many of them, or as a row of tabs above them, which suits a record with a few. The sections are the same either way."
+      "summary": "Where the sections of an inline view are read: as a list beside the groups, which suits a settings screen with many of them, or as a row of tabs above them, which suits a record with a few. A panel lays them out by its width since 1.17.0 (C289 (5)): tabs with \u00ab\u0415\u0449\u0451 (n)\u00bb in a panel, the column in a panel of size full, a list of rows on a phone; there this setting is not read."
     },
     "sections-label": {
       "type": "string",
@@ -1900,6 +1900,19 @@
           "to": "1.16.9",
           "changes": [
             "Over SIMAI Framework ui-24d64b7f6eb7 (ui-source 40541c0c4fba): the money field's currency choice and the settings' variant choice ask sf-dropdown for appearance=\"bordered\", the field look's current name (sf-dropdown 1.18.1, FM-9); \"outlined\" is its dated former name until 2027-01-01. The same look; nothing to change for a host."
+          ]
+        },
+        {
+          "from": "1.16.9",
+          "to": "1.17.0",
+          "changes": [
+            "C289 (1), (5), R250: the sections are laid out by width, not by a setting: a panel shows them as an underline sf-tabs line under the head (overflow more, «Ещё (n)»); a panel of size full and a wide inline view keep the section column at the start; on a phone they are an sf-list of rows, each opening its section with «←». sections-as applies to an inline view only.",
+            "C289 (2), C157 (2): the panel is drawn at a step of the sf-drawer ladder (1/2, 1, 2) or full and never grows; panel-width is a dated former name until 2027-01-01, mapped to the nearest step with a console notice and an SF.deprecations entry.",
+            "C289 (3), (6), R254: «Удалить» is the last row of the head's «⋯» menu, with «Копировать ссылку» and «Открыть на всю страницу»; a record to read has no foot, and nothing stands on the drawer's edge outside the panel.",
+            "C289 (4), R252: a record to read is an sf-list-description: the label beside the value on one row, each group a heading of the list, «Изменить» in the group's heading.",
+            "C289 (6): the head is one row of the drawer's control height; a record opened from another shows «← <record>» above its title as the drawer's back line (sf-drawer-back), which returns to the previous record.",
+            "C289 (7), C182: Save is never disabled; a Save over empty required fields or entries that are not values is refused with the message under each field and, for two or more, a summary with a link per field; a host's confirmation is asked in place with sf-confirm.",
+            "C289 (8), (9), (10): the first paint keeps its boxes (no layout shift when the record comes); value buttons are 24px high at least on a phone (--sf-hit--min); the view asks the Loader for every tag it draws, so a page needs no defineFieldsOf or own defines."
           ]
         }
       ]

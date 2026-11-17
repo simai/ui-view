@@ -685,30 +685,6 @@ class SfPropertyView extends PropertyViewElement {
         return null;
     }
 
-    // One edge control: an sf-button-icon of the panel's size is its text
-    // height and the ladder's padding on each side, the same sum the button
-    // draws itself with (40px at size 1 on a desktop, 36px on a phone).
-    get edgeControlWidth() {
-        const step = this.size === "1/2" ? "1\\/2" : "1";
-        return `calc(var(--sf-text-height-${step}) + 2 * var(--sf-ui-${step}--space-y-tightness-default))`;
-    }
-
-    // What the strip beside a wide panel takes from the window: the drawer's
-    // step between the panel and the strip (space-1/2), one control, and the
-    // same step again to the window's edge.
-    get edgeRoom() {
-        return `calc(${this.edgeControlWidth} + 2 * var(--sf-space-1\\/2))`;
-    }
-
-    // How many controls the strip carries: copy-link with an address,
-    // open-full when the host can open the record as a page. The close is in
-    // the panel's head since 1.16.0 (C14, C157 (6)).
-    get edgeControlCount() {
-        // Copy-link and open-full are rows of the head's «⋯» since 1.17.0
-        // (C289 (6), R254): nothing stands outside the panel any more.
-        return 0;
-    }
-
     get closeLabel() {
         return this.getAttribute("close-label") || pageText(PROPERTY_VIEW_TEXT, "closeLabel", this);
     }
@@ -1417,20 +1393,6 @@ class SfPropertyView extends PropertyViewElement {
             this.requestComponentUpdate("viewport");
         };
         this.wideMedia?.addEventListener?.("change", this._onWideChange);
-        // The drawer says when its edge controls stand in its head's row
-        // (data-sf-drawer-edge-in-head, sf-drawer 1.16.0): a phone, size full,
-        // or no room beside the panel. There they are page buttons beside the
-        // close, size 1/3 without the raised plate (C205 (2)), in a row; the
-        // drawer decides it by measuring, so the view listens rather than
-        // guessing from its own width.
-        this._edgeInHead = false;
-        this._edgeObserver = typeof MutationObserver === "function" ? new MutationObserver(() => {
-            const inHead = Boolean(this.querySelector(".sf-drawer[data-sf-drawer-edge-in-head]"));
-            if (inHead === this._edgeInHead) return;
-            this._edgeInHead = inHead;
-            this.requestComponentUpdate("edge-in-head");
-        }) : null;
-        this._edgeObserver?.observe(this, {subtree: true, attributes: true, attributeFilter: ["data-sf-drawer-edge-in-head"]});
         // A view placed before it is told its record (an assembly binds
         // record-id after it places the part) asks the host nothing yet: the
         // record-id it is given reads it (attributeChangedCallback).
@@ -1487,8 +1449,6 @@ class SfPropertyView extends PropertyViewElement {
         this._onDocumentSortableIntent = null;
         if (this._onWideChange) this.wideMedia?.removeEventListener?.("change", this._onWideChange);
         this._onWideChange = null;
-        this._edgeObserver?.disconnect();
-        this._edgeObserver = null;
         this.wideMedia = null;
         super.onDisconnected?.();
     }
@@ -1651,7 +1611,6 @@ class SfPropertyView extends PropertyViewElement {
             // An entry that is not a value yet holds both saves (port 1.16.0):
             // Save is drawn disabled while there is one, with the count of what
             // is wrong beside it and each message under its field.
-            inputsInvalid: this.inputErrors.size > 0,
             controlErrors: this.controlErrors,
             canPickRecords: this.canPickRecords,
             canUploadFiles: this.canUploadFiles,
@@ -1759,9 +1718,6 @@ class SfPropertyView extends PropertyViewElement {
             openFullLabel: this.openFullLabel,
             inheritedText: this.inheritedText,
             wide: this.wide,
-            edgeControlWidth: this.edgeControlWidth,
-            edgeControlCount: this.edgeControlCount,
-            edgeInHead: Boolean(this._edgeInHead),
             phoneSection: this.phoneSection,
             phoneSectionLabel: this.phoneSectionLabel,
             backLabel: this.backLabel,
@@ -2458,13 +2414,6 @@ class SfPropertyView extends PropertyViewElement {
         return Boolean(field?.when) && !fieldConditions(field, values).enabled;
     }
 
-    // An entry that is not a value yet stops a save, and says so where it is.
-    _inputsInvalid() {
-        if (!this.inputErrors.size) return null;
-        this.requestComponentUpdate("errors");
-        return {answer: "refused", reason: "input_invalid", errors: Object.fromEntries(this.inputErrors)};
-    }
-
     // Which fields in a group are picked from a list the host pages rather than
     // typed. A lookup that brought its list inline is chosen from in place and
     // asks for nothing. A field its condition hides now still has its first page
@@ -2605,7 +2554,7 @@ class SfPropertyView extends PropertyViewElement {
         for (const [key, message] of errors) if (!this.errors.has(key) && !this.inputErrors.has(key)) this.errors.set(key, message);
         this._focusErrorsAfterRender = true;
         this.requestComponentUpdate("errors");
-        return {answer: "refused", reason: "invalid", errors: Object.fromEntries(errors)};
+        return {answer: "refused", reason: "invalid", errors: Object.fromEntries(new Map([...this.inputErrors, ...errors]))};
     }
 
     // The errors of the surface in the order their fields stand.

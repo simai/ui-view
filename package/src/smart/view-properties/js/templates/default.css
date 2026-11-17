@@ -981,24 +981,6 @@
     visibility: hidden;
     transition: transform var(--sf-duration-normal) var(--sf-ease-exit), visibility 0s linear var(--sf-duration-normal);
   }
-  /* A panel filling the screen has the strip inside it, in a row along its top
-     at the drawer's inline step (space-1). The head starts its line after the
-     strip and a step more, so the record's name is not under the controls
-     (docs review, round 4, 2026-10-20). The strip's width is the template's:
-     how many controls it carries times one control, and the steps between. */
-  .sf-property-view-panel--fills .sf-property-view-head {
-    padding-inline-start: calc(var(--sf-space-1) + var(--sf-property-view--edge-room, 0px) + var(--sf-space-1\/2));
-  }
-  /* Since sf-drawer 1.16.0 (C157 (2), C14) a panel that fills the screen takes
-     its edge controls into the head's row at its end (data-sf-drawer-edge-in-head)
-     and says how much room they take (--sf-drawer-edge-room). The record's name
-     then starts on the panel's own axis and the head stops a step short of
-     them: still padded for a strip at the start, the name ran under the
-     copy-link and open-full controls (ui-pro f29d4bf, taken back here). */
-  .sf-drawer[data-sf-drawer-edge-in-head] .sf-property-view-panel--fills .sf-property-view-head {
-    padding-inline-start: var(--sf-property-view--panel-axis);
-    padding-inline-end: calc(var(--sf-property-view--panel-axis) + var(--sf-drawer-edge-room, 0px) + var(--sf-space-1\/3));
-  }
 
 
   /* A value is a button that opens its group, so reading and changing are one
@@ -1169,5 +1151,24 @@
   /* The question before a save is sf-confirm in the foot (C182, C166). */
   .sf-property-view-confirm {
     display: block;
+  }
+
+  /* The drawer's body grows with its content (flex: 1 0 auto) and its panel
+     scrolls; the card scrolls its own middle under a head and a foot that
+     stay, so the body holding the card is held to the panel's height. Grown,
+     the drawer's panel scrolled the whole card -- head and foot with it -- and
+     an edited group drew a stray bar under the foot (DEV msg-084fb861). */
+  .sf-drawer-body:has(> .sf-property-view-panel) {
+    flex: 1 1 0%;
+    min-block-size: 0;
+  }
+
+  .sf-drawer-body > .sf-property-view-panel {
+    min-block-size: 0;
+    max-block-size: calc(100% + 2 * var(--sf-property-view--panel-bleed));
+  }
+
+  .sf-property-view-scroll {
+    min-block-size: 0;
   }
 }

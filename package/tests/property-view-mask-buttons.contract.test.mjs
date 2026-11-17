@@ -54,12 +54,18 @@ test('an incomplete entry a control reports is held per field, and only that con
   assert.match(template, /setFieldError: \(target, message\) => context\.component\.reportFieldError\(target, message\),/u);
 });
 
-test('both saves stop while an entry is not a value, and Save says so by being disabled', () => {
-  assert.match(view, /async saveGroup\(\{confirm = null\} = \{\}\) \{\n\s+if \(this\.openAll\) return this\.saveAll\(\{confirm\}\);\n\s+if \(this\.editing && this\.inputErrors\.size\) return this\._inputsInvalid\(\);/u);
-  assert.match(view, /async saveAll\(\{confirm = null\} = \{\}\) \{\n\s+if \(this\.inputErrors\.size\) return this\._inputsInvalid\(\);/u);
-  assert.match(view, /inputsInvalid: this\.inputErrors\.size > 0,/u);
-  assert.match(template, /\?disabled=\$\{\(!creating && context\.changed\.size === 0\) \|\| context\.inputsInvalid\}/u);
-  assert.match(template, /\?disabled=\$\{context\.changed\.size === 0 \|\| context\.inputsInvalid\}\n\s+@click=\$\{\(\) => context\.component\.saveGroup\(\)\}/u);
+// C182 (7), sf-view-properties 1.17.0 (C289 (7)): Save is never disabled. A
+// Save over entries that are not values, or over required fields left empty,
+// is refused with the errors listed (under each field, and a summary with a
+// link per field when there are two or more) and focus taken to them.
+test('both saves stop while an entry is not a value, and Save is never disabled', () => {
+  assert.match(view, /async saveGroup\(\{confirm = null\} = \{\}\) \{\n\s+if \(this\.openAll\) return this\.saveAll\(\{confirm\}\);\n\s+if \(!this\.editing\) return null;\n\s+const missing = this\._missingRequired\(\);\n\s+if \(this\.inputErrors\.size \|\| missing\.size\) return this\._refuseWithErrors\(missing\);/u);
+  assert.match(view, /async saveAll\(\{confirm = null\} = \{\}\) \{\n\s+const missing = this\._missingRequired\(\);\n\s+if \(this\.inputErrors\.size \|\| missing\.size\) return this\._refuseWithErrors\(missing\);/u);
+  assert.match(body(view, '    _refuseWithErrors(errors) {'), /answer: "refused", reason: "invalid"/u);
+  const saves = template.match(/<sf-button[^>]*?data-action="save"[\s\S]*?><\/sf-button>/gu) ?? [];
+  assert.ok(saves.length >= 1, 'Save is drawn');
+  for (const save of saves) assert.doesNotMatch(save, /\?disabled=/u, 'Save is never disabled');
+  assert.doesNotMatch(template, /context\.inputsInvalid/u);
   // The reason: the count beside Save reads the merged errors.
   assert.match(view, /errors: this\.inputErrors\.size \? new Map\(\[\.\.\.this\.errors, \.\.\.this\.inputErrors\]\) : this\.errors/u);
   assert.equal((template.match(/\$\{context\.errorsText\}: \$\{context\.errors\.size\}/gu) ?? []).length, 2);

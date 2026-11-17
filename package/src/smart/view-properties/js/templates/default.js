@@ -1190,6 +1190,7 @@ function renderPanelHead(context) {
                 <h2 class="sf-property-view-title min-w-0 overflow-hidden">${level ? context.phoneSectionLabel : (context.panelLabel || context.recordLabel || context.recordId || '')}</h2>
                 ${context.recordId && context.mode !== 'create' ? html`<sf-button-icon
                         appearance="ghost"
+                        scheme="on-surface"
                         size="1/3"
                         icon="star"
                         ?filled=${context.favourite}

@@ -67,7 +67,7 @@ test("CLI discovers and describes the whole data view", () => {
   // drawer's head, the filled head clears them; 1.16.4 VP-5/VP-8). 1.16.1,
   // 1.16.2 and ui-pro's 1.16.4 are ui-pro's own patched copies, never this set's.
   const record = JSON.parse(run("describe", "smart.view-properties", "--format", "ai"));
-  assert.equal(record.identity.version, '1.16.9');
+  assert.equal(record.identity.version, '1.17.0');
   assert.deepEqual(composite.host_port.supported_versions, ["1.0.0", "1.1.0", "1.2.0", "1.3.0", "1.4.0", "1.5.0", "1.6.0", "1.7.0", "1.8.0", "1.9.0", "1.10.0", "1.11.0", "1.12.0", "1.13.0", "1.14.0", "1.15.0"]);
 });
 

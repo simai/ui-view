@@ -7,6 +7,20 @@ in brackets. The site page «Изменения» says the same in Russian.
 
 - Over the SIMAI Framework pair `ui-24d64b7f6eb7` (npm 5.20261117.1311,
   ui-source `40541c0c4fba`, core.runtime 1.59.0); the site on Docara 3.14.1.
+- `sf-view-properties` 1.17.0, the record card by C289 (round 1 group 2):
+  a panel lays its sections out by width (an underline tab line with
+  «Ещё (n)»; the section column in a full panel; a list of rows with «←» on
+  a phone) and is drawn at a step of the drawer ladder, never wider;
+  `panel-width` is a dated former name until 2027-01-01, mapped to the
+  nearest step with a console notice. A record to read is an
+  `sf-list-description` (label beside value, groups as headings) with no
+  foot: «Удалить», «Копировать ссылку» and «Открыть на всю страницу» are
+  rows of the head's «⋯», nothing stands outside the panel. The head is one
+  row; a record opened from another shows «← <record>» above its title.
+  Save is never disabled: empty required fields are refused with a summary
+  of links, a host's confirmation is asked with `sf-confirm`. No layout
+  shift on the first paint, value buttons 24px on a phone, and the view asks
+  the Loader for every tag it draws (no `defineFieldsOf` needed).
 - `sf-view-table` 1.21.2 follows the Framework file it builds in
   (`src/smart/pagination/index.js` moved in the pair); nothing of its own.
 - `sf-view` 1.13.2 and `sf-view-properties` 1.16.9 ask `sf-dropdown` for

@@ -92,6 +92,12 @@ SF.RuleLoader['cl-view-properties'] = {
     // The sections are tabs either way: a row above the groups, or vertical
     // tabs beside them (decision C96 point 5).
     { name: 'cl-tabs' },
+    // The record is read as sf-list-description's rows (C289 (4)), a phone's
+    // sections are sf-list rows (C289 (5)) and a save the host asks to confirm
+    // is sf-confirm (C182): drawn by this panel, so fetched by it.
+    { name: 'cl-list-description' },
+    { name: 'cl-list' },
+    { name: 'cl-confirm' },
     // The utility classes its templates write, asked for with the component (SIMAI Framework loader: a Framework component gets them from template-utilities.generated.json, a package component names them here); fetched after the first paint, they moved the drawn parts -- the bulk band's gap came 0 -> 8 and the band 8 px down some 150 ms in (View 1.8.1 acceptance, queue #172). The list is scripts/generate-template-utilities.mjs run over the overlay.
     { name: 'align-items/default' },
     { name: 'align-self/default' },
