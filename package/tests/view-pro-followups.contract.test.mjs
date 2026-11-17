@@ -52,7 +52,7 @@ test('sf-view-table: a row has one menu; a group and a host row-settings action 
   assert.match(source, /props\["@click"\] = \(event\) => this\.openRowMenu\(event, row, \{group: \{\.\.\.action, members\}\}\);/);
   assert.match(source, /if \(menu === "row-settings" && !hasClickHandler\) \{\n[^\n]*\n\s*props\["@click"\] = \(event\) => this\.openRowMenu\(event, row\);/);
   const open = source.slice(source.indexOf('    openContextMenu(event, opts = {}) {'), source.indexOf('        const target =', source.indexOf('    openContextMenu(event, opts = {}) {')));
-  assert.match(open, /opts\.menu === "row-settings" \|\| \(!opts\.menu && opts\.type === "left"\)/);
+  assert.match(open, /opts\.menu === "row-settings" \|\| \(!opts\.menu && opts\.type === "left" && opts\.row\)/);
   assert.match(open, /return this\.openRowMenu\(event, opts\.row \?\? \{\}/);
 });
 

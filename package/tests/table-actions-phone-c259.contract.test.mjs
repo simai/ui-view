@@ -73,7 +73,7 @@ test('sf-view-table: one row menu on sf-menu-context for= over the table and the
   assert.match(menu, /addEventListener\("sf-menu-context-open"/);
   // The ≡ and the list ⋯ open it on the row, so a table in a shadow root
   // (not found by `for`) still gets its row.
-  const open = between(source, '    async openRowMenu(event, row = {}) {', '\n    }\n');
+  const open = between(source, '    async openRowMenu(event, row = {}, {group = null, items = null} = {}) {', '\n    }\n');
   assert.match(open, /menu\.toggleFor\(anchor, target \? \{target\} : \{\}\)/);
   // The table's own right-click and menu-key paths are gone but in a shadow root.
   assert.doesNotMatch(source, /openRowContextMenu\(|openListRowMenu\(|menuPointAt\(/);

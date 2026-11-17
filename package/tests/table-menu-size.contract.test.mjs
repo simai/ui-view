@@ -22,7 +22,8 @@ test('sf-view-table: the row menu takes the resolved size and the density on eve
   const create = source.slice(source.indexOf('    rowMenu() {'), source.indexOf('    rowMenu() {') + 1500);
   assert.doesNotMatch(create, /setAttribute\("size"/);
   // The menus the table draws take the resolved size, not the written attribute alone.
-  assert.equal((source.match(/size=\$\{this\.menuSize\}/g) ?? []).length, 9);
+  // Eight since CM-8: the hand-drawn second row menu is gone.
+  assert.equal((source.match(/size=\$\{this\.menuSize\}/g) ?? []).length, 8);
   assert.doesNotMatch(source, /<sf-menu-context\s+size=\$\{this\.controlSize/);
 });
 

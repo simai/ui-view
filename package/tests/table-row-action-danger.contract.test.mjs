@@ -29,7 +29,9 @@ test('the kit marks its own delete destructive and nothing else', () => {
 test('the row menu carries the mark through, for an action and for a group member', () => {
   assert.match(table, /\{id: action\.id, text: action\.name, icon: iconOf\(action\), danger: action\.danger === true\}/u);
   assert.match(table, /\{id: member\.id, text: member\.name, icon: iconOf\(member\), danger: member\.danger === true\}/u);
-  assert.match(table, /scheme: member\.danger \? "error" : "on-surface"/u);
+  // A group's own button opens the same menu with its members alone (CM-8);
+  // they carry the mark the same way.
+  assert.match(table, /danger: member\.danger === true,\n\s*\}\)\);/u);
 });
 
 test('a host that narrows the catalogue keeps the kit mark', () => {

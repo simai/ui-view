@@ -35,9 +35,9 @@ import BundledPreferences from "../../core/js/preferences.js";
 // publishes it; this bundle's copy is the fallback).
 const preferences = () => globalThis.SF?.Preferences || BundledPreferences;
 const tablePreferenceKey = (key) => `sf-table/${String(key).replace(/[^\w.:-]+/gu, "-")}`;
-// What a cell may draw as markup rather than as an element of its own.
 // The id prefix of the entries a host listed for one row action (CM-8).
 const ROW_MENU_ITEM = "listed:";
+// What a cell may draw as markup rather than as an element of its own.
 const LIGHT_CELL_TAGS = new Set(["sf-badge", "sf-tag", "sf-avatar"]);
 // How long the content table of an sf-view waits for the view's code before
 // it draws on its own (saved-views r2, D2), and the grace after the view's
@@ -6509,7 +6509,7 @@ class SfTable extends TableElement {
     openContextMenu(event, opts = {}) {
         // The row's menu is the one standard menu bound to the rows (CM-8,
         // C164 (2)); the table no longer draws a second one of its own.
-        if (opts.menu === "row-settings" || (!opts.menu && opts.type === "left")) {
+        if (opts.menu === "row-settings" || (!opts.menu && opts.type === "left" && opts.row)) {
             this.closeContextMenu(false);
             return this.openRowMenu(event, opts.row ?? {}, {
                 group: Array.isArray(opts.action?.members) ? opts.action : null,

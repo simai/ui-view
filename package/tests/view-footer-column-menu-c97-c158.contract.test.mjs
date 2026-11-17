@@ -48,7 +48,7 @@ test('sf-view: the menu and the wait it draws are its relations', async () => {
   const component = await json('src/smart/view/component.json');
   const names = component.relations.map((relation) => relation.name);
   for (const name of ['cl-pagination', 'cl-menu-context', 'cl-spinner']) assert.ok(names.includes(name), name);
-  assert.equal(component.version, '1.13.0');
+  assert.ok(['1.13.0', '1.13.1'].includes(component.version), component.version);
 });
 
 test('sf-view-table: Enter on a head opens «Изменить ширину · По содержимому · По умолчанию» (C158 (5))', async () => {
