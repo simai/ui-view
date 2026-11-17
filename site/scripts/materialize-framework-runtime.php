@@ -379,7 +379,12 @@ $coreReceipt = $runPhp([$packageRoot . '/scripts/sync-framework-rule-registry.ph
    carries them itself. The list is explicit on purpose: a directory appears here
    because a component was read and found to need it, not because a glob matched.
    Generalising this belongs in Docara, and is written up in the handoff. */
-$componentAssetDirectories = ['component/flag/flags'];
+/* core/lang: since the pair ui-1ed6b6c9a040 (owner decision C282) every
+   language but English is a language file that core fetches by URL beside
+   core/js (core/lang/<code>/<family>.json, listed in core/lang/index.json):
+   nothing points at it from CSS, so a Russian page drew English words and
+   logged a 404 per family. Carried here until Docara projects it. */
+$componentAssetDirectories = ['component/flag/flags', 'core/lang'];
 $runtimeDistribution = $runtimeBase . '/distr';
 $carried = 0;
 foreach ($componentAssetDirectories as $directory) {
