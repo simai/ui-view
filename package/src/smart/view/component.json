@@ -2,7 +2,7 @@
   "$comment": "sf-data-view from its component.json (standard simai.smart-component 1.3.8, vocabulary 1.1.5), migrated from ui-control control/smart-architecture/migration/out/data-view; every x-todo decided in x-decisions.",
   "id": "smart.view",
   "tag": "sf-view",
-  "version": "1.13.0",
+  "version": "1.13.1",
   "kind": "leaf",
   "family": "table",
   "settings": {
@@ -1598,6 +1598,13 @@
           "to": "1.13.0",
           "changes": [
             "C97 (5): the footer is the view's own, one row «41–60 из 240 · По 20 ▾ · ‹ [3] из 12 ›» -- the range (with the offer to count) and the page size as a quiet button «По 20 ▾» with a menu drawn by the view (slot footer, light DOM), the page row sf-pagination appearance=field, navigation only; a page row given without appearance gets field. It no longer relies on sf-pagination's compatible footer (no appearance), which retires on 2027-01-01. The state stays the page row's (setState, page-sizes, its words); the first paint draws the same row. Nothing to change for a host."
+          ]
+        },
+        {
+          "from": "1.13.0",
+          "to": "1.13.1",
+          "changes": [
+            "The move and confirm window's footer per C159 (4) and C144: the main action first at the start, the quiet «Отмена» (ghost, on-surface) last, --sf-space-1/3 apart (8, compact 4); it was an outline «Отмена» first and the main button last at the end, 20 apart (modal study MD-2)."
           ]
         }
       ]

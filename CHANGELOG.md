@@ -57,6 +57,20 @@ in brackets. The site page «Изменения» says the same in Russian.
   as a double click on the edge still does. The edge says its share («16 %») and
   its name from the language files (it was Russian in the template). Space on
   a sort button still sorts; Enter there opens the menu.
+- SIMAI Pro products batch, the view's part (2026-11-17). `sf-view` 1.13.1:
+  the move and confirm window's footer puts the main action first at the
+  start and a quiet «Отмена» last, 8 apart, 4 compact (C159 (4), C144; it
+  was an outline «Отмена» first and the main button at the end, 20 apart).
+  `sf-view-table` 1.21.1: filter chips stand 4 apart (C105 H5; were 8) and
+  use the tag's current names (`kind`, `active`, `sf-tag-close`; `type`,
+  `root-class="active"` and `close` were the former ones, `close` a dated
+  alias until 2026-12-01); the search fields have the glass at the start,
+  the field's own clear (Escape clears too) and an accessible name (C123,
+  C153 (6)); a group action's button in a row («Опубликовать») and a host
+  action whose `menu` is `row-settings` open the one standard row menu, the
+  group's members alone for a group (C164 (2)): the table's hand-drawn second
+  row menu is gone. `sf-view-properties` 1.16.8: the count beside «Неразмещённые»
+  is a grey tonal `sf-badge` (C140 (3)), not a tag.
 
 ## 1.8.1 — 2026-11-15
 

@@ -982,6 +982,9 @@ function renderUnplaced(context) {
     if (!context.configuring) return nothing;
 
     const fields = context.unplaced;
+    // The count beside the bin's title is a count, read and never pressed: the
+    // grey tonal badge (C140 (3); accordion AC-3, tags TG-5). It was a tag in
+    // the retired appearance surface.
     // The Framework's own accordion rather than a fold built here: the owner
     // asked for it by name, and a second thing that opens and closes is a
     // second thing to keep looking right (owner, 2026-10-09).
@@ -1010,12 +1013,10 @@ function renderUnplaced(context) {
                     <span class="sf-accordion-title flex items-cross-center gap-1/3">
                         ${context.unplacedTitle}
                         ${fields.length
-                            ? html`<sf-tag
-                                    kind="default"
+                            ? html`<sf-badge
                                     size="1/3"
-                                    appearance="surface"
                                     text=${String(fields.length)}
-                            ></sf-tag>`
+                            ></sf-badge>`
                             : nothing}
                     </span>
                     <sf-icon icon="chevron_right" size="1/2"></sf-icon>

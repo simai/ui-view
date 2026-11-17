@@ -36,6 +36,8 @@ import BundledPreferences from "../../core/js/preferences.js";
 const preferences = () => globalThis.SF?.Preferences || BundledPreferences;
 const tablePreferenceKey = (key) => `sf-table/${String(key).replace(/[^\w.:-]+/gu, "-")}`;
 // What a cell may draw as markup rather than as an element of its own.
+// The id prefix of the entries a host listed for one row action (CM-8).
+const ROW_MENU_ITEM = "listed:";
 const LIGHT_CELL_TAGS = new Set(["sf-badge", "sf-tag", "sf-avatar"]);
 // How long the content table of an sf-view waits for the view's code before
 // it draws on its own (saved-views r2, D2), and the grace after the view's
@@ -3573,72 +3575,6 @@ class SfTable extends TableElement {
         this.closeContextMenu();
     }
 
-    renderRowSettingsContextMenu(data) {
-        const {
-            x,
-            y,
-            position,
-            transform,
-            items = this.getActionRowItems(data.row || {}).map((action) => ({
-                component: "sf-button",
-                props: {
-                    appearance: "link",
-                    scheme: "on-surface",
-                    text: action.name,
-                    "@click": (event) => {
-                        const handler = action.component.props["@click"] || action.component.props.onClick;
-                        handler?.(event);
-                        this.closeContextMenu();
-                    },
-                },
-            })),
-        } = data;
-        let pos = `translateY(calc(${transform !== undefined ? transform : -50}%))`;
-        if (position) {
-            switch (position) {
-                case "left-bottom":
-                case "right-bottom":
-                    pos = `translateY(calc(${transform !== undefined ? transform : -100}% + var(--sf-context-menu-tail-corner-offset)))`;
-                    break;
-            }
-        }
-        return html`
-            <sf-menu-context
-                    size=${this.menuSize}
-                    :key=${x + y}
-                    aria-label=${this.getContextMenuLabel({...data, menu: 'row-settings'})}
-                    style="
-            position: fixed;
-            left: calc(${x}px + var(--sf-context-menu-tail-corner-offset));
-            inset-block-start: ${y}px;
-            transform: ${pos};
-            z-index: var(--sf-table-context-menu--z-index, ${this.contextMenuZIndex()});
-          "
-                    .entries=${items.map((item, at) => {
-                        // The standard menu's rows (owner, 2026-10-14): these were
-                        // link buttons, the one menu of the table drawn otherwise.
-                        const props = item.props || item.component?.props || {};
-                        return {
-                            id: String(at),
-                            text: props.text ?? item.name ?? "",
-                            icon: props.iconLeft ?? props.iconStart ?? props.icon ?? undefined,
-                            danger: props.scheme === "error" || item.danger === true,
-                            disabled: Boolean(props.disabled),
-                        };
-                    })}
-                    @sf-menu-context-select=${(event) => {
-                        const item = items[Number(event.detail?.id)];
-                        const props = item?.props || item?.component?.props || {};
-                        const handler = props["@click"] ?? props.onClick;
-                        if (typeof handler === "function") handler({currentTarget: event.target, target: event.target, preventDefault() {}, stopPropagation() {}});
-                        this.closeContextMenu();
-                    }}
-                    position="${position || "left"}"
-            >
-            </sf-menu-context>
-        `;
-    }
-
     getColumnItems() {
         const dataColumns = this.getTableData().columns || [];
         const originalIndexByKey = new Map(
@@ -5206,8 +5142,6 @@ class SfTable extends TableElement {
         const menu = data.menu || data.menuType || data.contextMenu;
 
         switch (menu) {
-            case 'row-settings':
-                return this.renderRowSettingsContextMenu(data);
             case 'create':
                 return this.renderCreateContextMenu(data);
             case 'list-sort':
@@ -5223,9 +5157,7 @@ class SfTable extends TableElement {
             case 'tag-settings':
                 return this.renderTagsSettingsContextMenu(data);
             default:
-                return data.type === 'left'
-                    ? this.renderRowSettingsContextMenu(data)
-                    : this.renderTableSettingsContextMenu(data);
+                return this.renderTableSettingsContextMenu(data);
         }
     }
 
@@ -6575,6 +6507,15 @@ class SfTable extends TableElement {
 
 
     openContextMenu(event, opts = {}) {
+        // The row's menu is the one standard menu bound to the rows (CM-8,
+        // C164 (2)); the table no longer draws a second one of its own.
+        if (opts.menu === "row-settings" || (!opts.menu && opts.type === "left")) {
+            this.closeContextMenu(false);
+            return this.openRowMenu(event, opts.row ?? {}, {
+                group: Array.isArray(opts.action?.members) ? opts.action : null,
+                items: Array.isArray(opts.items) ? opts.items : null,
+            });
+        }
         this.closeContextMenu(false);
         this.contextTarget?.classList.remove("active");
         const target =
@@ -7147,11 +7088,17 @@ class SfTable extends TableElement {
     // a row's «≡» (or a list row's «⋯») opens it at the button. Every way in
     // asks the same `open` question, answered by fillRowMenu: one list (C164
     // (2)), every action of the row (C259 (3)).
-    async openRowMenu(event, row = {}) {
+    //
+    // A group's own button (an «Опубликовать» drawn in the row) opens the same
+    // menu with that group's members alone (CM-8): it was a second menu of the
+    // table's own, drawn by hand with a tail beside the button.
+    async openRowMenu(event, row = {}, {group = null, items = null} = {}) {
         const anchor = event?.currentTarget?.querySelector?.("button")
             ?? event?.target?.closest?.("button")
             ?? event?.currentTarget;
         if (!(anchor instanceof Element)) return null;
+        this._rowMenuGroup = Array.isArray(items) && items.length ? {row, items}
+            : Array.isArray(group?.members) ? {row, group} : null;
         // The standard menu is a lazy relation of the table: fetched after the
         // page is ready, and asked for here if a press comes first.
         await globalThis.SF?.Loader?.ensure?.(["sf-menu-context"]);
@@ -7160,7 +7107,11 @@ class SfTable extends TableElement {
         // The row is named: a table inside a shadow root (sf-view's own
         // table) is not found by `for`, which reads the document's ids.
         const target = anchor.closest("[data-row-id]") ?? undefined;
-        return menu.toggleFor(anchor, target ? {target} : {});
+        try {
+            return menu.toggleFor(anchor, target ? {target} : {});
+        } finally {
+            this._rowMenuGroup = null;
+        }
     }
 
     // Whether the rows carry a menu: the host's row actions, whatever
@@ -7236,8 +7187,49 @@ class SfTable extends TableElement {
         const selection = Array.isArray(row.actions) && row.actions.every((item) => typeof item === "string")
             ? row.actions
             : null;
-        const many = Array.isArray(ids) && ids.length > 1;
+        const asked = this._rowMenuGroup && String(this._rowMenuGroup.row?.id) === String(row?.id) ? this._rowMenuGroup : null;
+        const only = asked?.group ?? null;
+        // A list a host built for one row action (its `menu` with `items`):
+        // the entries of the same standard menu, each choice its own handler.
+        if (asked?.items) {
+            const entries = asked.items.map((item, at) => {
+                const props = item.props || item.component?.props || {};
+                return {
+                    id: `${ROW_MENU_ITEM}${at}`,
+                    text: props.text ?? item.name ?? "",
+                    icon: props.iconStart ?? props.icon ?? undefined,
+                    danger: props.scheme === "error" || item.danger === true,
+                    disabled: Boolean(props.disabled),
+                };
+            });
+            menu.setAttribute("size", this.menuSize);
+            followDensity(menu, this);
+            menu.setAttribute("aria-label", this.getContextMenuLabel({row, menu: "row-settings"}));
+            menu.entries = entries;
+            this._rowMenuContext = {row, items: [], listed: asked.items, anchor, ids: null};
+            return entries.length;
+        }
+        const many = !only && Array.isArray(ids) && ids.length > 1;
         let items = this.getActionRowItems(row);
+        if (only) {
+            const group = items.find((item) => item.id === only.id && Array.isArray(item.members));
+            const members = (group?.members ?? [])
+                .filter((member) => !selection || selection.includes(member.id));
+            const entries = members.map((member) => ({
+                id: member.id, text: member.name,
+                icon: member.icon ?? member.component?.props?.icon ?? undefined,
+                danger: member.danger === true,
+            }));
+            entries.sort((a, b) => Number(a.danger === true) - Number(b.danger === true));
+            const firstDanger = entries.findIndex((entry) => entry.danger === true);
+            if (firstDanger > 0) entries.splice(firstDanger, 0, {type: "separator"});
+            menu.setAttribute("size", this.menuSize);
+            followDensity(menu, this);
+            menu.setAttribute("aria-label", `${this.getContextMenuLabel({row, menu: "row-settings"})}: ${only.name ?? only.id}`);
+            menu.entries = entries;
+            this._rowMenuContext = {row, items: group ? [group] : [], anchor, ids: null};
+            return entries.length;
+        }
         if (many) {
             const rows = this.getTableData().rows.filter((one) => ids.some((id) => String(id) === String(one.id)));
             items = items.filter((action) => rows.every((one) => this.getActionRowItems(one).some((other) => other.id === action.id)));
@@ -7298,7 +7290,14 @@ class SfTable extends TableElement {
             const context = this._rowMenuContext;
             if (!context) return;
             const id = event.detail?.id;
-            const {row, items, anchor, ids} = context;
+            const {row, items, anchor, ids, listed} = context;
+            if (listed && String(id ?? "").startsWith(ROW_MENU_ITEM)) {
+                const item = listed[Number(String(id).slice(ROW_MENU_ITEM.length))];
+                const props = item?.props || item?.component?.props || {};
+                const handler = props["@click"] ?? props.onClick;
+                if (typeof handler === "function") handler({currentTarget: anchor, target: anchor, preventDefault() {}, stopPropagation() {}});
+                return;
+            }
             // A menu over several selected rows acts on all of them.
             if (ids && id) {
                 this.requestActionIntent(id, ids);
@@ -7379,21 +7378,7 @@ class SfTable extends TableElement {
             if (Array.isArray(action.members)) {
                 const members = allowedMembers(action);
                 const props = {...(action.component?.props || {})};
-                props["@click"] = (event) => this.openContextMenu(event, {
-                    type: "left", row, action, menu: "row-settings",
-                    items: members.map((member) => ({
-                        component: "sf-button",
-                        props: {
-                            appearance: "link",
-                            scheme: member.danger ? "error" : "on-surface",
-                            text: member.name,
-                            "@click": () => {
-                                this.requestActionIntent(member.id, [row.id]);
-                                this.closeContextMenu();
-                            },
-                        },
-                    })),
-                });
+                props["@click"] = (event) => this.openRowMenu(event, row, {group: {...action, members}});
                 return {...action, component: {...(action.component || {}), props}};
             }
             const component = action.component || {};
@@ -7406,7 +7391,10 @@ class SfTable extends TableElement {
                 typeof props["@click"] === "function" ||
                 typeof props.onClick === "function";
 
-            if (menu && !hasClickHandler) {
+            if (menu === "row-settings" && !hasClickHandler) {
+                // The row's own menu is the one standard menu (CM-8, C164 (2)).
+                props["@click"] = (event) => this.openRowMenu(event, row);
+            } else if (menu && !hasClickHandler) {
                 props["@click"] = (event) => {
                     const menuOptions =
                         menu && typeof menu === "object"

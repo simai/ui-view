@@ -24,6 +24,7 @@ function instance() {
         getTableData() { return {rows: this.rows}; },
         emitTableEvent(name, detail) { this.events.push({name, detail}); return true; },
         openContextMenu(event, data) { this.menu = data; },
+        openRowMenu(event, row, options = {}) { this.menu = {row, ...options}; },
     };
 }
 

@@ -2087,16 +2087,21 @@ class SfDataView extends DataViewElement {
                 content.append(placeList);
             }
         }
+        // The footer of every window (C159 (4), C144): the main action first at
+        // the start, the quiet «Отмена» last, --sf-space-1/3 apart (8, compact
+        // 4). It was an outline «Отмена» first and the main button last at the
+        // end, 20 apart (modal study MD-2).
         const footer = document.createElement("div");
         footer.slot = "footer";
-        footer.className = "flex justify-end gap-2";
-        const cancel = document.createElement("sf-button");
-        cancel.setAttribute("appearance", "outline");
-        cancel.setAttribute("text", pageText(DATA_VIEW_TEXT, "cancel", this));
+        footer.className = "sf-data-view-dialog-actions flex items-cross-center gap-1/3 flex-wrap";
         const confirm = document.createElement("sf-button");
         confirm.setAttribute("text", apply);
         confirm.dataset.apply = "";
-        footer.append(cancel, confirm);
+        const cancel = document.createElement("sf-button");
+        cancel.setAttribute("appearance", "ghost");
+        cancel.setAttribute("scheme", "on-surface");
+        cancel.setAttribute("text", pageText(DATA_VIEW_TEXT, "cancel", this));
+        footer.append(confirm, cancel);
         modal.append(content, footer);
         this.append(modal);
         // The nodes are the page's own, drawn in the window's portal: they are

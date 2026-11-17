@@ -49,11 +49,13 @@ function renderListToolbar(context) {
                         value="${value}"
                         placeholder=${context.searchPlaceholder}
                         name="sf_table_search"
+                        input-type="search"
+                        icon-start="search"
+                        clearable
                         aria-label=${context.searchPlaceholder}
                         @input=${(e) => context.component.searchChange({value: getEventInputValue(e, value)})}
                         @keydown=${(e) => context.component.handleSearchKeyDown(e)}
                         @keyup=${(e) => context.component.handleSearchKeyUp(e)}
-                        hint-icon="search"
                 ></sf-input>
                 <!-- C144: filter and sort are one group of neighbours (H5,
                      --sf-space-1/3); the field before them and «Создать»
@@ -96,17 +98,21 @@ function renderListToolbar(context) {
                     ></sf-button-icon>` : nothing}
             </div>
             ${active.length ? html`
+                <!-- Chips are neighbours 4 apart (C105 H5, --sf-space-1/4); the
+                     «Сбросить» after them is a button, 8 from the chips. -->
                 <div class="sf-table-list-tags flex items-cross-center gap-1/3">
+                    <div class="sf-table-chips flex items-cross-center gap-1/4">
                     ${active.map(([k, tag]) => {
                         const filterValue = filterValues?.[k] || {};
                         const count = Array.isArray(filterValue.values) ? filterValue.values.length : tag.count || '';
                         return html`
-                            <sf-tag type="default" size=${context.controlSize ?? nothing} text='${tag.label}' interactive closable :key=${k}
-                                    root-class="active" count='${count}'
-                                    @close="${() => context.component.removeFilterTag(k)}"
+                            <sf-tag kind="default" size=${context.controlSize ?? nothing} text='${tag.label}' interactive closable :key=${k}
+                                    active count='${count}'
+                                    @sf-tag-close="${() => context.component.removeFilterTag(k)}"
                                     @click=${(e) => context.component.openContextMenu(e, {type: 'bottom', menu: 'tag-settings', fieldKey: k, anchorSelector: '.sf-tag'})}
                             ></sf-tag>`;
                     })}
+                    </div>
                     <sf-button size=${context.controlSize ?? nothing} appearance="ghost" scheme="on-surface" text=${context.clearText}
                                @click="${() => context.component.removeFilterTag()}"></sf-button>
                 </div>` : nothing}
@@ -163,6 +169,10 @@ function renderToolbar(context) {
                             }}
                     ></sf-button-icon>` : nothing}
                 </div>` : nothing}
+                ${activeFilterTags.length ? html`
+                <!-- Chips are neighbours 4 apart (C105 H5, --sf-space-1/4); the
+                     buttons around them keep the toolbar's 8. -->
+                <div class="sf-table-chips flex items-cross-center gap-1/4 flex-wrap min-w-0">
                 ${activeFilterTags.map(([k, tag]) => {
                     const filterValue = filterValues?.[k] || {};
                     const hasFilteredValues = Object.prototype.hasOwnProperty.call(
@@ -176,14 +186,14 @@ function renderToolbar(context) {
                     return html`
                         <div class="sf-table-tags">
                             <sf-tag
-                                    type="default"
+                                    kind="default"
                                     size=${context.controlSize ?? nothing}
                                     text='${tag.label}'
                                     interactive
                                     closable
                                     :key=${k}
-                                    root-class="${hasFilteredValues ? 'active' : ''}"
-                                    @close="${() => {
+                                    ?active=${hasFilteredValues}
+                                    @sf-tag-close="${() => {
                                         context.component.removeFilterTag(k);
                                     }}"
                                     @click=${(e) => {
@@ -198,6 +208,7 @@ function renderToolbar(context) {
                             ></sf-tag>
                         </div>`
                 })}
+                </div>` : nothing}
                 ${activeFilterTags.length || hasUnsavedFilterDataChanges ? html`
                     ${hasUnsavedFilterDataChanges ? html`
                         <sf-button
@@ -228,6 +239,10 @@ function renderToolbar(context) {
                         value="${value}"
                         placeholder=${context.searchPlaceholder}
                         name="sf_table_search"
+                        input-type="search"
+                        icon-start="search"
+                        clearable
+                        aria-label=${context.searchPlaceholder}
                         @input=${(e) => {
                             context.component.searchChange({
                                 value: getEventInputValue(e, value)
@@ -239,27 +254,7 @@ function renderToolbar(context) {
                         @keyup=${(e) => {
                             context.component.handleSearchKeyUp(e);
                         }}
-                        hint-icon="search"
-                >
-          <span slot="right">
-                <sf-button-icon
-                        size=${context.controlSize ?? nothing}
-                        appearance="ghost"
-                        scheme="on-surface"
-                        icon=${value.length ? 'close' : 'search'}
-                        aria-label=${value.length ? 'Очистить поиск' : 'Поиск'}
-                        @click=${(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            if (!value.length) return false;
-                            context.component.updateSearchState({
-                                value: '',
-                            });
-                        }}
-                ></sf-button-icon>
-            
-          </span>
-                </sf-input>
+                ></sf-input>
 
                 ${context.layoutSwitch ? html`
                     <sf-segmented class="sf-table-layout-switch" size=${context.controlSize ?? nothing}
