@@ -2510,14 +2510,6 @@ class SfDataView extends DataViewElement {
                     .replace("{total}", this._shownTotal(this.total))
                 : "";
         }
-        const search = this.shadowRoot.querySelector("[data-search]");
-        if (search && search.value !== this.query.search) search.value = this.query.search;
-        const select = this.shadowRoot.querySelector("[data-view]");
-        if (select) {
-            const previous = select.value;
-            select.replaceChildren(new Option(pageText(DATA_VIEW_TEXT, "currentViewText", this), ""), ...this.savedViews.map((view) => new Option(view.label, view.key)));
-            select.value = this.savedViews.some((view) => view.key === previous) ? previous : "";
-        }
     }
 
     saveView({key, label, level = "personal", revision, roles, layout, settings} = {}) {

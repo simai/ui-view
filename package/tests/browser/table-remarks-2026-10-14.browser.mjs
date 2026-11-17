@@ -32,6 +32,8 @@ const modules = [
   'smart/smart/menu-context/js/menu-context.js', 'smart/smart/sortable/js/sortable.js',
   'smart/smart/pagination/js/pagination.js', 'smart/smart/resizer/js/resizer.js',
   'smart/smart/tabs/js/tabs.js', 'smart/smart/switch/js/switch.js', 'smart/smart/settings/js/settings.js',
+  // A link cell is SIMAI Framework sf-reference-link since view round 1 (D8).
+  'smart/smart/reference-link/js/reference-link.js',
   'smart/smart/view-table/js/view-table.js',
 ].map((p) => join(out, p));
 
@@ -138,7 +140,8 @@ try {
       table.openContextSubmenu({currentTarget: anchor, target: anchor, preventDefault() {}, stopPropagation() {}},
         {type: 'filter-template-actions', template: {key: 'mine', name: 'Мой'}});
       await new Promise((done) => setTimeout(done, 400));
-      const submenu = document.querySelector('sf-menu-context[data-context-submenu]');
+      // A saved view's «⋯» is the Framework's shared menu since view round 1.
+      const submenu = document.querySelector('[data-sf-menu-shared]');
       return {
         rowLabel, linkButtons, chosen: window.chosen,
         submenu: [...(submenu?.querySelectorAll('.sf-context-menu-item-label') ?? [])].map((node) => node.textContent.trim()),

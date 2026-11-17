@@ -11,8 +11,8 @@
 //     the one bottom sheet (C106 (8), C157 (5)) as wide as the screen;
 //   - saving a template and a chip's filter are forms, --sf-popup-form-width
 //     (320; 288 compact), whatever they hold;
-//   - the menus (create, toolbar actions, list sort) stay sf-menu-context's,
-//     between --sf-popup-menu-min-width and --sf-popup-menu-max-width;
+//   - the menus (create, toolbar actions, list sort) are the Framework's shared
+//     menu (SF.menu.open, view round 1), between --sf-popup-menu-min-width and --sf-popup-menu-max-width;
 //   - a clean console.
 import {resolve, join} from 'node:path';
 import {chromium} from 'playwright';
@@ -76,15 +76,29 @@ try {
         const r = target?.getBoundingClientRect();
         return r ? {width: Math.round(r.width * 100) / 100, left: Math.round(r.left), right: Math.round(r.right), classes: target.className?.baseVal ?? target.className} : null;
       };
+      // Create, the view's actions and the list's sort open the Framework's
+      // shared menu since view round 1 (SF.menu.open): measured there.
+      const openShared = async (menu) => {
+        t.closeContextMenu?.(false);
+        await wait(150);
+        t.openContextMenu(fake(filterButton), {type: 'bottom', menu});
+        await wait(500);
+        const shared = document.querySelector('[data-sf-menu-shared]');
+        const target = shared?.querySelector('.sf-context-menu');
+        const r = shared?.isOpen ? target?.getBoundingClientRect() : null;
+        shared?.close?.();
+        await wait(200);
+        return r ? {width: Math.round(r.width * 100) / 100, left: Math.round(r.left), right: Math.round(r.right), classes: target.className} : null;
+      };
       const trigger = filterButton?.getBoundingClientRect().width ?? null;
       const out = {trigger, screen: window.innerWidth};
       out['filter-settings (panel)'] = await open('filter-settings');
       out['table-settings (panel)'] = await open('table-settings');
       out['filter-favorites (form)'] = await open('filter-favorites');
       out['tag-settings (form)'] = await open('tag-settings', {fieldKey: 'title'});
-      out['create (menu)'] = await open('create');
-      out['toolbar-actions (menu)'] = await open('toolbar-actions');
-      out['list-sort (menu)'] = await open('list-sort');
+      out['create (menu)'] = await openShared('create');
+      out['toolbar-actions (menu)'] = await openShared('toolbar-actions');
+      out['list-sort (menu)'] = await openShared('list-sort');
       t.closeContextMenu?.(false);
       const vars = getComputedStyle(document.documentElement);
       out.vars = Object.fromEntries(['--sf-popup-panel-width', '--sf-popup-form-width', '--sf-popup-menu-min-width', '--sf-popup-menu-max-width'].map((n) => [n, vars.getPropertyValue(n).trim()]));

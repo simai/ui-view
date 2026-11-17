@@ -300,7 +300,8 @@ try {
   const applyButton = async (page) => page.evaluate(() => {
     const bottom = document.querySelector('sf-menu-context .sf-context-menu-footer');
     const buttons = [...(bottom?.querySelectorAll('sf-button') ?? [])];
-    const commit = buttons[buttons.length - 1];
+    // The main action stands first since view round 1 (D3, C157 (3)).
+    const commit = buttons[0];
     return {
       text: commit?.getAttribute('text') ?? null,
       ariaLabel: commit?.getAttribute('aria-label') ?? null,
@@ -355,7 +356,7 @@ try {
     await new Promise((done) => setTimeout(done, 400));
     const bottom = document.querySelector('sf-menu-context .sf-context-menu-footer');
     const buttons = [...(bottom?.querySelectorAll('sf-button') ?? [])];
-    return buttons[buttons.length - 1]?.getAttribute('text') ?? null;
+    return buttons[0]?.getAttribute('text') ?? null;
   });
   if (translated !== 'Apply filter (2)') {
     note({case: 'filter button label is translatable', got: translated, expected: 'Apply filter (2)'});

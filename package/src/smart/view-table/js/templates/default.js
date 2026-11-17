@@ -286,7 +286,7 @@ function renderToolbar(context) {
                                             scheme="on-surface"
                                             segment="end"
                                             icon="keyboard_arrow_down"
-                                            aria-label=${context.component.text('createOptionsLabel')}
+                                            aria-label=${context.component.text('createMoreLabel')}
                                             aria-haspopup="menu"
                                             @click=${(e) => {
                                                 context.component.openContextMenu(e, {

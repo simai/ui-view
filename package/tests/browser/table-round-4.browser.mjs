@@ -273,7 +273,8 @@ try {
       const node = new Function('return ' + source)()();
       const control = node?.querySelector('button') ?? node;
       const button = control.getBoundingClientRect();
-      const surface = document.querySelector('sf-menu-context .sf-context-menu');
+      // Create and the view's actions open the Framework's shared menu since view round 1.
+      const surface = document.querySelector('[data-sf-menu-shared] .sf-context-menu');
       const box = surface?.getBoundingClientRect();
       return box ? {
         underButton: Math.round(box.top) >= Math.round(button.bottom) - 2,

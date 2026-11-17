@@ -29,12 +29,12 @@ test('Smart Table names every owned action and contextual surface', async () => 
   assert.match(template, /aria-label=\$\{context\.component\.text\('saveFilterTemplateLabel'\)\}/);
   // The search field is named and clears itself (C123 (5), C153 (6), TI-10).
   assert.equal((template.match(/aria-label=\$\{context\.searchPlaceholder\}/g) || []).length, 2);
-  assert.match(template, /aria-label=\$\{context\.component\.text\('createOptionsLabel'\)\}/);
+  assert.match(template, /aria-label=\$\{context\.component\.text\('createMoreLabel'\)\}/);
   // The gear in the toolbar became the view's actions; column settings keep
   // their own gear in the table's head, labelled there.
   assert.match(template, /aria-label=\$\{context\.component\.text\('contextViewActionsLabel'\)\}/);
   assert.match(table, /ariaLabel: this\.text\("settingsColumnLabel"\)/);
-  assert.match(template, /context\.actions[\s\S]*createOptionsLabel/);
+  assert.match(template, /context\.actions[\s\S]*createMoreLabel/);
   assert.match(template, /context\.settings && state\.toolbarActions\?\.length[\s\S]*contextViewActionsLabel/);
   assert.match(template, /<table[\s\S]*aria-label=\$\{context\.ariaLabel \|\| nothing\}/);
   assert.doesNotMatch(template, /Resize sidebar/);

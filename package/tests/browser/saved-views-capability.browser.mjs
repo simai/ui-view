@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // Usage: node this-file /absolute/path/to/output
 //
-// A data view offers saved views when the host keeps them, and not otherwise.
+// A data view offers saved views when the host keeps them, and not otherwise:
+// the table's filter templates (view round 1 D4), never controls of its own.
 //
 // The toolbar's «Вид / Название вида / Сохранить вид / Удалить вид» were drawn
 // for every host. A host that claims neither saved-views nor
@@ -64,15 +65,19 @@ try {
 
   const measured = await page.evaluate(() => ['plain', 'keeper'].map((id) => {
     const view = document.querySelector(`#${id}`);
-    const saved = view.shadowRoot?.querySelector('[data-saved-views]');
-    const visible = Boolean(saved) && !saved.hidden && saved.getClientRects().length > 0;
-    return {id, offered: visible};
+    // Saved views are the table's filter templates since view round 1 (D4):
+    // the view's own select and buttons are gone from its shadow root, and
+    // the view turns the table's templates on where the host keeps views.
+    const table = view.table;
+    return {id, offered: table?.getAttribute('filter-templates') === 'true',
+      ownControls: view.shadowRoot?.querySelectorAll('select, input, button').length ?? 0};
   }));
 
   const plain = measured.find((entry) => entry.id === 'plain');
   const keeper = measured.find((entry) => entry.id === 'keeper');
   if (plain?.offered) failures.push({said: 'a host that keeps no views is offered «Сохранить вид»'});
   if (!keeper?.offered) failures.push({said: 'a host that keeps views is not offered them'});
+  if (measured.some((entry) => entry.ownControls)) failures.push({said: 'the view draws controls of its own'});
 
   console.log(JSON.stringify({
     probe: 'saved-views-capability',

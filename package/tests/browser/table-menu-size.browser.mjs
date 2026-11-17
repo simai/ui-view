@@ -13,7 +13,8 @@
 //   sized itself (size="1" or "1/2") opened in the same area;
 // - at 1440 they are the ladder: 1 is 40/16 (32/14 compact), 1/2 is 32/14
 //   (28/12 compact);
-// - the list layout's sort menu, which the table draws itself, carries the
+// - the list layout's sort menu, the Framework's shared menu (SF.menu.open)
+//   since view round 1, carries the
 //   same size;
 // - a second opening follows the table as it stands then.
 // Console errors fail the probe.
@@ -115,7 +116,9 @@ async function stand(width, theme, density, run) {
     const owner = at ? document.querySelector(at) : null;
     const menu = owner ? owner.querySelector('sf-menu-context[data-context-main-menu]')
       : [...document.querySelectorAll('sf-menu-context')].find((one) => one.isOpen);
-    const table = owner ?? (menu?.dataset.sfTableMenu ? document.querySelector('sf-view-table[data-sf-row-menu-open]') : null);
+    // The row menu and the shared menu (SF.menu.open, the list's sort since view
+    // round 1) stand on <body>: the table they belong to is the marked one.
+    const table = owner ?? document.querySelector('sf-view-table[data-sf-row-menu-open]');
     const densityOf = (node) => node?.closest?.('[data-sf-density]')?.getAttribute('data-sf-density') ?? 'normal';
     const surface = menu?.querySelector(':scope > .sf-context-menu');
     const item = surface?.querySelector('.sf-context-menu-item');
@@ -173,7 +176,7 @@ async function stand(width, theme, density, run) {
       await button.scrollIntoViewIfNeeded();
       await button.click();
       return true;
-    }, `#l-${id}`);
+    }, null, `#l-${id}`);
   }
 
   // A pair before C79 keeps a written size on the normal ladder in a compact
