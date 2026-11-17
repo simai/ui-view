@@ -1,4 +1,3 @@
-import {render} from 'lit';
 import {renderCellField} from '../../field-renderers/index.js';
 
 // The record's change history (owner decision C305 (2), RC-3; VP-18).
@@ -76,38 +75,35 @@ export function historyFromRevisions(revisions, {fields = [], cursor = null, kin
 }
 
 // A value as its template draws it in the compact place (C302: the table's
-// cell, «Кратко»), read as text: sf-change takes text (C279). An element the
-// template draws (a badge, a person) gives its text or label attribute.
-function plainText(node) {
-    let out = '';
-    for (const child of node.childNodes) {
-        if (child.nodeType === 3) out += child.textContent;
-        else if (child.nodeType === 1) {
-            if (child.matches?.('.sf-icon, [aria-hidden="true"]') && !child.getAttribute('text')) continue;
-            const own = child.childNodes.length ? plainText(child) : '';
-            out += own.trim() ? own : (child.getAttribute('text') || child.getAttribute('label') || '');
-            if (getComputedStyle?.(child)?.display === 'block') out += ' ';
-        }
+// cell, «Кратко»), read as text: sf-change takes text (C279). The compact
+// template answers the host's cell shape -- a string, {component: {type,
+// props}}, a link {href, text} or a list of those; a part's text is its
+// props' text (a badge), else nothing (an avatar beside the name).
+function cellText(shape) {
+    if (shape === null || shape === undefined || shape === false) return '';
+    if (typeof shape === 'string' || typeof shape === 'number') return String(shape);
+    if (Array.isArray(shape)) return shape.map(cellText).filter(Boolean).join(' ');
+    if (typeof shape === 'object') {
+        const props = shape.component?.props ?? shape.props ?? null;
+        if (shape.component && shape.component.type === 'avatar') return '';
+        if (props) return String(props.text ?? props.label ?? props.value ?? '');
+        return String(shape.text ?? shape.label ?? '');
     }
-    return out;
+    return '';
 }
 
 export function valueText(field, value, host) {
     if (value === null || value === undefined || value === '') return '';
-    if (!field) return typeof value === 'object' ? String(value.label ?? value.name ?? value.text ?? JSON.stringify(value)) : String(value);
-    const box = globalThis.document?.createElement?.('div');
-    if (!box) return String(value);
+    const own = typeof value === 'object' ? String(value.label ?? value.name ?? value.text ?? '') : String(value);
+    if (!field) return own;
     let drawn = null;
     try {
         drawn = renderCellField(field, value, host);
     } catch {
         drawn = null;
     }
-    if (drawn === null || drawn === undefined) return typeof value === 'object' ? String(value.label ?? value.name ?? '') : String(value);
-    render(drawn, box);
-    const text = plainText(box).replace(/\s+/gu, ' ').trim();
-    render(null, box);
-    return text || (typeof value === 'object' ? String(value.label ?? value.name ?? '') : String(value));
+    const text = cellText(drawn).replace(/\s+/gu, ' ').trim();
+    return text || own;
 }
 
 /**

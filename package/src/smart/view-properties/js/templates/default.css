@@ -1245,6 +1245,12 @@
     min-inline-size: 0;
   }
 
+  /* Before sf-popover is defined its window would draw in the row and shift
+     the panel at the first paint (VP-29). */
+  .sf-property-view-quick:not(:defined) > [slot="content"] {
+    display: none;
+  }
+
   .sf-property-view-quick-value {
     display: inline-flex;
     align-items: center;

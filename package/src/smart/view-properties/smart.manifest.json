@@ -1892,7 +1892,7 @@
       },
       {
         "path": "src/smart/view-properties/js/templates/default.css",
-        "sha256": "74837e4c0ca16dfa99a53017c419bc5ed0aa4965bcb0068d94ce359ac8a76e4b"
+        "sha256": "7bac2e2c0a7e3019379b73345a797daf8a0a1fdec4a2d5c2e85a577c8243dbf1"
       },
       {
         "path": "src/smart/view-properties/js/conditions.js",
@@ -1904,7 +1904,7 @@
       },
       {
         "path": "src/smart/view-properties/js/history.js",
-        "sha256": "9f53634185ad6a1095ca51bba7b1ff4ae60a7568671e30bf14ca8fa3eac42979"
+        "sha256": "b96073a785ddaf8b17f9222087ef31cb1d9aee6d187bcf0b3ae1a113b0d737ff"
       },
       {
         "path": "src/smart/view-properties/js/requisites.js",
