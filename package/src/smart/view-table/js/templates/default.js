@@ -334,7 +334,11 @@ function renderToolbar(context) {
 // (Создать when the table may create). A slot `empty` replaces it whole.
 function renderEmptyState(context, dataState) {
     const component = context.component;
-    if (component?.hasSlotContent?.('empty')) return component.getSlotContent('empty');
+    // The page's own state (C296): slot="empty" for no records, slot="error"
+    // for a failed load; an error without one falls back to the empty slot
+    // as before, then to the Framework's sf-empty-state.
+    const slot = dataState === 'error' && component?.hasSlotContent?.('error') ? 'error' : 'empty';
+    if (component?.hasSlotContent?.(slot)) return component.getSlotContent(slot);
     const brick = component.emptyBrick(dataState);
     return html`<sf-empty-state kind=${brick.kind} size=${brick.size} heading-level=${brick.headingLevel}
                                 icon=${brick.icon || nothing} heading=${brick.title || nothing} text=${brick.text || nothing} live=${brick.live || nothing}
@@ -725,7 +729,7 @@ function rowStrings(kinds) {
     const signature = kinds.join("|");
     const known = ROW_STRINGS.get(signature);
     if (known) return known;
-    const pieces = ['<tr data-selected=', ROW_HOLE, ' draggable=', ROW_HOLE, ' aria-level=', ROW_HOLE,
+    const pieces = ['<tr data-selected=', ROW_HOLE, ' aria-selected=', ROW_HOLE, ' draggable=', ROW_HOLE, ' aria-level=', ROW_HOLE,
         ' aria-expanded=', ROW_HOLE, ' aria-setsize=', ROW_HOLE, ' aria-posinset=', ROW_HOLE, ' aria-busy=', ROW_HOLE,
         ' aria-rowindex=', ROW_HOLE, ' data-row-id=', ROW_HOLE, ' data-current=', ROW_HOLE, ' aria-current=', ROW_HOLE,
         ' tabindex="-1" @mousedown=', ROW_HOLE, ' @click=', ROW_HOLE, ' @dblclick=', ROW_HOLE, ' @keydown=', ROW_HOLE, '>'];
@@ -875,7 +879,10 @@ export function renderTableTemplate(context) {
             .slice(0, limit)
             .map(({column}) => column);
         const filled = (value) => !(value === null || value === undefined || value === '' || (Array.isArray(value) && !value.length));
-        return html`
+        // A record list (C259, VT-2): «≡» right after the box, where the
+        // table has it; the quick actions of a resource list (C31) keep the end.
+        const record = !context.quickActionIds?.length;
+        return html`${renderListHead(select)}
             <ul class="sf-table-list" role="list" id=${`${context.rowAreaId}-list`} aria-label=${context.ariaLabel || nothing}
                 aria-busy=${dataState === 'loading' ? 'true' : nothing}>
                 ${rows.map((row, rowIndex) => row.__tree?.more
@@ -886,6 +893,7 @@ export function renderTableTemplate(context) {
                         </li>`)
                     : keyed(`item:${context.component.rowsGeneration?.() ?? 0}:${row.id ?? rowIndex}`, html`
                         <li class="sf-table-list-item"
+                            data-sf-record=${record && menu ? '' : nothing}
                             data-row-id=${context.component.getRowKey(row, rowIndex)}
                             data-selected=${row.select?.component?.props?.checked === true ? '' : nothing}
                             data-current=${context.component.isCursorRow(row, rowIndex) ? '' : nothing}
@@ -898,6 +906,7 @@ export function renderTableTemplate(context) {
                             @dblclick=${(event) => context.component.handleRowOpen(event, row)}
                             @keydown=${(event) => context.component.handleRowKeydown(event, row)}>
                             ${select ? html`<span class="sf-table-list-select">${renderCellValue(row, select)}</span>` : nothing}
+                            ${record && menu ? renderListMenu(row) : nothing}
                             <div class="sf-table-list-main">
                                 <div class="sf-table-list-title">${title
                                     ? (row.__tree || row.path ? renderTreeCell(context, row, listTitle(row)) : listTitle(row))
@@ -911,11 +920,44 @@ export function renderTableTemplate(context) {
                                             </span>`)}
                                     </div>` : nothing}
                             </div>
-                            ${context.quickActionIds?.length
-                                ? renderListActions(row, menu)
-                                : menu ? html`<span class="sf-table-list-menu">${renderCellValue(row, menu)}</span>` : nothing}
+                            ${context.quickActionIds?.length ? renderListActions(row, menu) : nothing}
                         </li>`))}
             </ul>`;
+    }
+
+    // The page's box over a phone list (VT-2, BA-6): the head's box, with its
+    // words, so a whole page is marked in one press as in the table.
+    function renderListHead(select) {
+        if (!select) return nothing;
+        return html`<div class="sf-table-list-head" data-sf-list-all>
+            ${renderHeadLabel(context, select)}
+            <span class="sf-table-list-head-text" aria-hidden="true">${context.component.text('listSelectPage')}</span>
+        </div>`;
+    }
+
+    // A record row's «≡» (C259 (3), C146 (5)): the row's one menu, every
+    // action of the row; the same menu the right button and a long press open.
+    function renderListMenu(row) {
+        const component = context.component;
+        if (!component.listRowActions(row).rest.length && !component.listRowActions(row).quick.length) return nothing;
+        const size = context.size === '1/2' ? '1/2' : '1';
+        const name = component.getRowNameText(row);
+        return html`<span class="sf-table-list-menu"><button type="button"
+                class=${`sf-icon-button sf-icon-button--size-${size} sf-icon-button--icon sf-icon-button--ghost sf-icon-button--on-surface flex items-cross-center`}
+                aria-label=${name ? `${component.text('rowActionsLabel')}: ${name}` : component.text('rowActionsLabel')}
+                aria-haspopup="menu" data-sf-row-menu
+                @click=${(event) => {
+                    event.stopPropagation();
+                    component.openRowMenu(event, row);
+                }}><i class="sf-icon sf-icon--weight-regular pointer-event-none" aria-hidden="true">menu</i></button></span>`;
+    }
+
+    // The amount of a record row (C259): the first money (else number)
+    // column's value, as its cell shows it.
+    function listAmountColumn(columns) {
+        const data = columns.filter((column) => column?.key && !SYSTEM_COLUMNS.has(column.key) && !column.system && column.visible !== false);
+        const type = (column) => column.propertyType ?? column.property_type ?? column.type;
+        return data.find((column) => type(column) === 'money') ?? data.find((column) => context.component.isNumberColumn?.(column) && column.list !== 'hidden') ?? null;
     }
 
     // ─── the list of resources (owner decision C31) ─────────────────────────
@@ -933,13 +975,17 @@ export function renderTableTemplate(context) {
         const supporting = roles.supporting.filter(visible);
         const facts = roles.facts.filter(visible);
         const opensRow = component.getAttribute('row-open') === 'row';
+        // A record list (C259, VT-2): no quick actions -- «≡» after the box,
+        // the title over its second line, then every fact and the amount.
+        const record = !context.quickActionIds?.length;
+        const amount = record ? listAmountColumn(columns) : null;
         const titleOf = (row) => {
             const text = component.listText(title, row[title?.key]);
             return title?.role === 'title' || roles.title || opensRow
                 ? renderTitleLink(context, row, text)
                 : text;
         };
-        return html`
+        return html`${renderListHead(select)}
             <ul class="sf-table-list sf-table-list--resource" role="list" id=${`${context.rowAreaId}-list`} aria-label=${context.ariaLabel || nothing}
                 aria-busy=${dataState === 'loading' ? 'true' : nothing}
                 style=${`--sf-table-resource--actions: ${Math.max(1, (context.quickActionIds?.length ?? 0) + (menu ? 1 : 0))}`}>
@@ -957,6 +1003,7 @@ export function renderTableTemplate(context) {
                     const lead = state?.dot === 'neutral' ? state.word : '';
                     return keyed(`item:${component.rowsGeneration?.() ?? 0}:${row.id ?? rowIndex}`, html`
                         <li class="sf-table-list-item sf-table-resource"
+                            data-sf-record=${record && menu ? '' : nothing}
                             data-row-id=${component.getRowKey(row, rowIndex)}
                             data-selected=${row.select?.component?.props?.checked === true ? '' : nothing}
                             data-current=${component.isCursorRow(row, rowIndex) ? '' : nothing}
@@ -971,6 +1018,7 @@ export function renderTableTemplate(context) {
                             @dblclick=${(event) => component.handleRowOpen(event, row)}
                             @keydown=${(event) => component.handleRowKeydown(event, row)}>
                             ${select ? html`<span class="sf-table-list-select">${renderCellValue(row, select)}</span>` : nothing}
+                            ${record && menu ? renderListMenu(row) : nothing}
                             ${status ? html`<span class="sf-table-resource-status">${state ? tooltip(html`
                                 <span class="sf-dot sf-dot--${state.dot}" data-tooltip="" data-status=${state.value}>
                                     <span class="sf-dot-item"></span>
@@ -984,11 +1032,17 @@ export function renderTableTemplate(context) {
                                     ? html`<span class="sf-table-resource-lead">${lead}</span>${words.length ? ' · ' : ''}`
                                     : nothing}${words.join(' · ')}</span>` : nothing}
                             </span>
+                            ${record && menu ? html`<span class="sf-table-list-end">
+                                ${shown.filter(({fact}) => fact).map(({column, fact}) => html`<span class="sf-table-resource-fact">${renderFact(column, fact)}</span>`)}
+                                ${amount && row[amount.key] !== undefined && row[amount.key] !== null && row[amount.key] !== ''
+                                    ? html`<span class="sf-table-list-amount"><span class="sf-table-visually-hidden">${amount.label ?? amount.key}: </span>${renderCellValue(row, amount)}</span>`
+                                    : nothing}
+                            </span>` : html`
                             ${facts.length ? html`<span class="sf-table-resource-facts">${shown.map(({column, fact}) => html`
                                 <span class="sf-table-resource-fact" data-worst=${fact && worst?.column === column && fact.level > 0 ? '' : nothing}>${fact
                                     ? renderFact(column, fact)
                                     : nothing}</span>`)}</span>` : nothing}
-                            ${renderListActions(row, menu)}
+                            ${renderListActions(row, menu)}`}
                         </li>`);
                 })}
             </ul>`;
@@ -1004,7 +1058,7 @@ export function renderTableTemplate(context) {
     function renderFactBadge(fact) {
         const size = context.size === '1/2' ? '1/3' : '1/2';
         const badge = html`<sf-badge size=${size} appearance="tonal"
-                scheme=${fact.status ? nothing : 'neutral'} status=${fact.status || nothing}
+                scheme=${fact.status ? nothing : (fact.scheme || 'neutral')} status=${fact.status || nothing}
                 text=${fact.text} data-tooltip=${fact.tip ? '' : nothing}></sf-badge>`;
         return fact.tip ? tooltip(badge, fact.tip) : badge;
     }
@@ -1059,16 +1113,33 @@ export function renderTableTemplate(context) {
     // click or a trip through the row's menu.
     function renderTitleLink(context, row, value) {
         if (!context.component.canOpenRow?.(row) || row?.id == null) return value;
-        return html`<a class="sf-table-title-link" href=${row.href ?? row.url ?? '#'}
+        const address = row.href ?? row.url ?? '';
+        // A record without an address opens through the view and is a button:
+        // a link to «#» opened the same page in a new tab (VT-9).
+        if (!address) {
+            return html`<button type="button" class="sf-table-title-link"
+                @click=${(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    if (event.detail > 1) return;
+                    context.component.requestOpen?.(row, false);
+                    context.component.requestActionIntent('view', [row.id]);
+                }}>${value}</button>`;
+        }
+        return html`<a class="sf-table-title-link" href=${address}
                 @click=${(event) => {
                     if (event.button > 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
-                        if (row.href ?? row.url) return;
+                        if (row.href ?? row.url) {
+                            context.component.requestOpen?.(row, true);
+                            return;
+                        }
                     }
                     event.preventDefault();
                     event.stopPropagation();
                     // The second click of a double click is the same wish:
                     // opened once, not twice.
                     if (event.detail > 1) return;
+                    context.component.requestOpen?.(row, false);
                     context.component.requestActionIntent('view', [row.id]);
                 }}>${value}</a>`;
     }
@@ -1101,6 +1172,7 @@ export function renderTableTemplate(context) {
         const offset = slice ? slice.first : 0;
         const span = String(Math.max(columns.length, 1));
         const draggable = (component.hasAttribute('drag-rows') || component.getAttribute('row-reorder') === 'true');
+        const selectable = columns.some((column) => column?.key === 'select');
         const sticky = columns.map((column, index) => component.getStickyCellStyle(columns, index) || nothing);
         const cellKinds = columns.map((column) => cellKind(component, column, columns));
         const pinned = columns.map((column) => (component.isPinnedColumn(column) ? '' : nothing));
@@ -1128,8 +1200,12 @@ export function renderTableTemplate(context) {
             const current = component.isCurrentRow(row, index);
             const cursor = component.isCursorRow(row, index);
             const kinds = [];
+            const marked = row.select?.component?.props?.checked === true;
             const values = [
-                row.select?.component?.props?.checked === true ? '' : nothing,
+                marked ? '' : nothing,
+                // The grid's selection, read by a screen reader (VT-4): every
+                // row of a selectable grid says whether it is marked.
+                selectable ? String(marked) : nothing,
                 draggable && !row.__tree?.more ? 'true' : nothing,
                 row.__tree ? String(row.__tree.level + 1) : nothing,
                 row.__tree?.hasChildren ? String(row.__tree.expanded === true) : nothing,
@@ -1429,6 +1505,31 @@ export function renderTableTemplate(context) {
         return html`<span class="sf-table-cell-text" title=${text.length > 80 ? text : nothing}>${text}</span>`;
     }
 
+    // The totals at the foot (owner decision C296, q-totals B): a row for the
+    // page and one for everything under the filter, each when the host gives
+    // it; the numbers are the host's (totals), drawn as their cells are, in
+    // the columns marked `total`; the words stand in the first data column.
+    function renderFoot() {
+        const component = context.component;
+        const totals = component.totals;
+        if (!totals || resolvedDataState(context) !== 'populated') return nothing;
+        const columns = component.getColumns?.() || [];
+        const sides = [['page', 'totalsPage'], ['all', 'totalsAll']].filter(([side]) => totals[side]);
+        const marked = columns.filter((column) => column?.total === true);
+        if (!sides.length || !marked.length) return nothing;
+        const labelAt = columns.findIndex((column) => column?.key && !SYSTEM_COLUMNS.has(column.key) && !column.system && column.total !== true);
+        return html`<tfoot class="sf-table-totals">${sides.map(([side, word]) => html`<tr data-sf-totals=${side}>${columns.map((column, index) => {
+            const sticky = component.getStickyCellStyle(columns, index) || nothing;
+            if (index === labelAt) return html`<th scope="row" data-key=${column.key} style=${sticky}>${component.text(word)}</th>`;
+            const value = column.total === true ? totals[side]?.[column.key] : undefined;
+            if (value === undefined || value === null || value === '') return html`<td data-key=${column.key} style=${sticky}></td>`;
+            const typed = component.getTypedCellValue?.(column, value) ?? String(value);
+            return html`<td data-key=${column.key} data-sf-cell=${cellKind(component, column, columns)} style=${sticky}>${typeof typed === 'string' || typeof typed === 'number'
+                ? html`<span class="sf-table-cell-bare">${typed}</span>`
+                : renderCellItem(typed, component)}</td>`;
+        })}</tr>`)}</tfoot>`;
+    }
+
     // The name is the table's (or the list's) alone: a named section is a
     // region, and the data view around the table names its own region by the
     // list's heading, so a second one of the same name only repeats it to a
@@ -1469,11 +1570,12 @@ export function renderTableTemplate(context) {
                             class="table border-separate border-spacing-0 min-w-full ${context.keyedNarrow ? 'sf-table-keyed' : `${context.component?.contentSized ? 'sf-table-content-sized' : 'w-max'} table-fixed`} transition"
                             role=${context.component.isTree?.() ? 'treegrid' : nothing}
                             aria-label=${context.ariaLabel || nothing}
-                            aria-rowcount=${context.component.windowRowCount?.() ?? nothing}
+                            aria-rowcount=${context.component.ariaRowCount?.() ?? context.component.windowRowCount?.() ?? nothing}
                     >
                         ${renderColgroup(context)}
                         ${renderHead(context)}
                         ${renderBody(context)}
+                        ${renderFoot()}
                     </table>`}
                 </div>
                 ${context.verticalScroll === 'page' && !context.list

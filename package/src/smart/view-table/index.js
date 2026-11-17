@@ -7,7 +7,7 @@ import en from "./lang/en.json";
 import ru from "./lang/ru.json";
 import {renderTableTemplate, columnStyle} from "./js/templates/default";
 import {optionBadgeProps} from "../helpers/option-badge.js";
-import {dateTimeAttribute, renderCellField, renderFilterField} from "../field-renderers/index.js";
+import {dateTimeAttribute, renderCellField, renderEditField, renderFilterField} from "../field-renderers/index.js";
 import {htmlText} from "../field-renderers/html.js";
 import {html, nothing, render} from "lit";
 import {ref} from "lit/directives/ref.js";
@@ -108,6 +108,16 @@ const STATUS_DOTS = Object.freeze({
     success: "success", danger: "error", neutral: "neutral", info: "info", primary: "primary",
 });
 const STATUS_WORDS = Object.freeze({ok: "statusOk", warning: "statusWarning", error: "statusError", stopped: "statusStopped"});
+// sort="key:asc" (owner decision C296): the attribute's short form, a list of
+// one; null when it is not that form (the JSON list keeps working).
+function parseSortText(text) {
+    const match = /^\s*([^:\s][^:]*?)\s*:\s*(asc|desc)\s*$/u.exec(String(text ?? ""));
+    return match ? [{key: match[1], direction: match[2]}] : null;
+}
+
+// The schemes a fact's badge takes from its option (C140 (2)).
+const SHORT_EDIT_TYPES = new Set(["choice", "enum", "select", "user", "date", "datetime", "number", "integer", "money"]);
+const BADGE_SCHEMES = new Set(["neutral", "primary", "secondary", "success", "info", "warning", "error"]);
 const FACT_LEVELS = Object.freeze({warning: 1, error: 2});
 
 const positioning = () => globalThis.SF?.Position || BundledPosition;
@@ -214,6 +224,10 @@ class SfTable extends TableElement {
             // The row the page has open (component.json settings.current).
             current: {attribute: "current", default: ""},
             selectable: {type: Boolean, default: true},
+            // The count of records under the filter, when the host knows it
+            // (owner decision C296): the grid's aria-rowcount (VT-4) and the
+            // «all N» of the bar of group actions. 0: not known.
+            total: {type: Number, default: 0},
             // Who owns the vertical scroll. `self` keeps the rows in their own
             // scroll area, which is what a host that bounds the table's height
             // wants and what every page has had so far. `page` gives the
@@ -682,6 +696,8 @@ class SfTable extends TableElement {
     }
 
     set sort(list) {
+        // The short form of C296's contract: "key:asc" or "key:desc".
+        if (typeof list === "string") list = parseSortText(list) ?? (() => { try { return JSON.parse(list); } catch { return null; } })();
         const first = Array.isArray(list) ? list[0] : list;
         const key = first?.key ?? first?.field ?? null;
         const direction = first?.direction ?? first?.dir ?? null;
@@ -726,6 +742,67 @@ class SfTable extends TableElement {
     focusRowAction({id} = {}) {
         if (id === null || id === undefined || id === "") return {outcome: "refused", reason: "empty"};
         this.focusRow(String(id), {reveal: true});
+        return {outcome: "applied"};
+    }
+
+    // The settings a markup author writes as attributes: sort="key:dir" is
+    // read before the base's JSON reading of list attributes, which would
+    // otherwise say the short form is not JSON (C296).
+    sfReadListAttributes() {
+        if (!this.__sfListAttributesRead && this.hasAttribute?.("sort")) {
+            const short = parseSortText(this.getAttribute("sort"));
+            if (short) this.sort = short;
+        }
+        return super.sfReadListAttributes?.();
+    }
+
+    // The totals at the foot (C296, q-totals B): the host's numbers, never
+    // counted here -- under a filter only the server sees every record.
+    // {page?: {key: value}, all?: {key: value}}, keyed by the columns marked
+    // `total`; a row per side given, «На странице» then «Всего».
+    get totals() { return this._totals ?? null; }
+
+    set totals(value) {
+        const shaped = value && typeof value === "object" && !Array.isArray(value) ? value : null;
+        this._totals = shaped ? Object.freeze({
+            ...(shaped.page && typeof shaped.page === "object" ? {page: {...shaped.page}} : {}),
+            ...(shaped.all && typeof shaped.all === "object" ? {all: {...shaped.all}} : {}),
+        }) : null;
+        this.requestComponentUpdate?.("totals");
+    }
+
+    // Opening a record (C296): sf-view-table-open {id, newTab} beside the
+    // view intent the title has always raised; newTab when a modifier or the
+    // middle button took the record's address to a tab of its own.
+    requestOpen(row, newTab = false) {
+        const id = row?.id;
+        if (id === null || id === undefined || id === "") return false;
+        return this.emitTableEvent("open", Object.freeze({id, newTab: newTab === true}));
+    }
+
+    // Brings a record's row into view without moving the focus (C296); a row
+    // outside the drawn range is drawn first. Answers an outcome, as
+    // focus-row does.
+    scrollToRow(rowId) {
+        const id = rowId && typeof rowId === "object" ? rowId.id : rowId;
+        if (id === null || id === undefined || id === "") return {outcome: "refused", reason: "empty"};
+        const key = String(id).replace(/"/gu, '\\"');
+        const element = this.isList
+            ? this.querySelector(`.sf-table-list-item[data-row-id="${key}"]`)
+            : this.refs.table?.value?.querySelector(`tbody tr[data-row-id="${key}"]`);
+        if (element) {
+            element.scrollIntoView?.({block: "nearest", behavior: "instant"});
+            return {outcome: "applied"};
+        }
+        const rows = this.getTableData().rows || [];
+        const index = rows.findIndex((one, at) => this.getRowKey(one, at) === String(id));
+        if (index < 0) return {outcome: "refused", reason: "unknown"};
+        if (this._windowed) {
+            this._windowRange = this.clampWindow({first: index - WINDOW_MARGIN, last: index + WINDOW_MARGIN}, rows.length);
+            this._windowOnly = true;
+            this._pendingScrollRow = String(id);
+            this.requestComponentUpdate("window");
+        }
         return {outcome: "applied"};
     }
 
@@ -1397,6 +1474,14 @@ class SfTable extends TableElement {
     }
 
     // aria-rowcount of a windowed table: every row, the head's included.
+    // aria-rowcount (VT-4, APG grid): the head and every record under the
+    // filter when the host says how many (total), else the drawn window's.
+    ariaRowCount() {
+        const total = Number(this.getProp?.("total") ?? this.getAttribute("total") ?? 0);
+        if (Number.isSafeInteger(total) && total > 0) return String(total + 1);
+        return this.windowRowCount();
+    }
+
     windowRowCount() {
         return this._windowed ? String((this._windowCount ?? 0) + 1) : null;
     }
@@ -1594,12 +1679,21 @@ class SfTable extends TableElement {
     }
 
     handleRowOpen(event, row) {
+        if (event?.type === "dblclick") {
+            const edit = this.cellEditTarget(event);
+            if (edit) {
+                event.preventDefault();
+                this.openCellEditor(edit.row, edit.column, edit.cell);
+                return this;
+            }
+        }
         if (this.isRowControlTarget(event?.target) || !this.canOpenRow(row)) return this;
         // With row-open="row" the first click of a double click has opened
         // the record already: the second is the same wish, not a second one.
         if (event?.type === "dblclick" && this.getAttribute("row-open") === "row") return this;
         const id = row?.id;
         if (id == null) return this;
+        this.requestOpen(row, false);
         return this.requestActionIntent("view", [id]);
     }
 
@@ -2894,7 +2988,13 @@ class SfTable extends TableElement {
         const status = String(props?.status ?? props?.level ?? option?.status ?? "").replace(/^danger$/u, "error");
         const text = this.listText(column, raw);
         if (!text) return null;
-        return {text, level: FACT_LEVELS[status] ?? 0, status: FACT_LEVELS[status] ? status : "", tip: String(props?.tip ?? props?.title ?? option?.tip ?? "")};
+        // The option's colour reaches the badge (owner decision C140 (2): a
+        // status or a value is the tonal badge of its scheme; VT-18 of the
+        // sf-view-table study: five statuses drew five grey badges). A
+        // warning or an error the fact names wins over it.
+        const scheme = String(props?.scheme ?? option?.scheme ?? "");
+        return {text, level: FACT_LEVELS[status] ?? 0, status: FACT_LEVELS[status] ? status : "", scheme: BADGE_SCHEMES.has(scheme) ? scheme : "",
+            tip: String(props?.tip ?? props?.title ?? option?.tip ?? "")};
     }
 
     // The id of the table's shared name tooltip (C146 (7)).
@@ -4285,6 +4385,104 @@ class SfTable extends TableElement {
         }));
     }
 
+    // C296: a short field -- a choice, a person, yes/no, a date, a number --
+    // the host lets this person write is edited at the cell, in a small menu
+    // or popover, when the author turns inline-edit on. Longer fields are the
+    // record card's. A boolean keeps its checkbox in the cell.
+    cellShortEditable(row = {}, column = {}) {
+        if (this.getAttribute("inline-edit") !== "true" || column.system) return false;
+        const type = column.propertyType ?? column.property_type ?? column.type;
+        if (!SHORT_EDIT_TYPES.has(type)) return false;
+        if ((type === "user" || type === "choice" || type === "enum" || type === "select") && !Array.isArray(column.options)) return false;
+        return Array.isArray(row.editable) && row.editable.map(String).includes(String(column.key));
+    }
+
+    // Opens the editor of one cell: a menu of the choices (checked at the
+    // value), or a popover with the Framework's own edit field and Save and
+    // Cancel. What is chosen goes to the host as cell-set, like the checkbox.
+    async openCellEditor(row, column, cell) {
+        if (!row || !column || !(cell instanceof Element) || !this.cellShortEditable(row, column)) return null;
+        if (this.cellPending(row, column)) return null;
+        const type = column.propertyType ?? column.property_type ?? column.type;
+        const value = row[column.key];
+        const label = column.label ?? column.key;
+        if (type === "boolean" || Array.isArray(column.options)) {
+            const options = type === "boolean"
+                ? [{value: true, label: this.text("cellEditYes")}, {value: false, label: this.text("cellEditNo")}]
+                : column.options;
+            const current = value && typeof value === "object" && !Array.isArray(value) ? (value.value ?? value.id) : value;
+            const entries = options.map((option, index) => ({
+                id: String(index),
+                text: String(option?.label ?? option?.text ?? option?.value ?? ""),
+                checked: String(option?.value) === String(current),
+            }));
+            const choice = await menuOpen({anchor: cell, entries, label: `${this.text("cellEditLabel")}: ${label}`, size: this.menuSize});
+            if (choice?.id === undefined || choice?.id === null) return null;
+            const picked = options[Number(choice.id)];
+            if (!picked || String(picked.value) === String(current)) return null;
+            this.setCellValue(row, column, picked.value);
+            return {outcome: "applied"};
+        }
+        return this.openCellPopover(row, column, cell, value, label);
+    }
+
+    openCellPopover(row, column, cell, value, label) {
+        this.closeCellPopover();
+        const box = document.createElement("div");
+        box.className = "sf-table-cell-editor";
+        box.setAttribute("popover", "auto");
+        box.setAttribute("role", "dialog");
+        box.setAttribute("aria-label", `${this.text("cellEditLabel")}: ${label}`);
+        let draft = value;
+        const host = {setFieldValue: (_field, next) => { draft = next; }, text: (key) => this.text(key)};
+        const field = {...column, key: column.key, label, propertyType: column.propertyType ?? column.property_type ?? column.type};
+        const size = this.getPropsContext().size === "1/2" ? "1/2" : "1";
+        const finish = (apply) => {
+            const was = String(value ?? "");
+            this.closeCellPopover();
+            if (apply && String(draft ?? "") !== was) this.setCellValue(row, column, draft);
+            cell.closest("tr")?.focus?.({preventScroll: true});
+        };
+        render(html`<form class="sf-table-cell-editor-form" @submit=${(event) => { event.preventDefault(); finish(true); }}
+                @keydown=${(event) => { if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); finish(false); } }}>
+            ${renderEditField(field, value, host, {size})}
+            <div class="sf-table-cell-editor-actions">
+                <sf-button size=${size} type="submit" scheme="primary" text=${this.text("cellEditApply")}
+                    @click=${() => finish(true)}></sf-button>
+                <sf-button size=${size} look="outline" text=${this.text("cellEditCancel")}
+                    @click=${() => finish(false)}></sf-button>
+            </div>
+        </form>`, box);
+        box.addEventListener("toggle", (event) => { if (event.newState === "closed") this.closeCellPopover(box); });
+        document.body.append(box);
+        const rect = cell.getBoundingClientRect();
+        box.style.insetBlockStart = `${Math.round(rect.bottom)}px`;
+        box.style.insetInlineStart = `${Math.round(rect.left)}px`;
+        box.style.minInlineSize = `${Math.round(rect.width)}px`;
+        this._cellPopover = box;
+        try { box.showPopover(); } catch { /* not supported: stays in place */ }
+        requestAnimationFrame(() => box.querySelector("input, select, textarea, button, [tabindex]")?.focus?.());
+        return {outcome: "opened"};
+    }
+
+    closeCellPopover(only = null) {
+        const box = this._cellPopover;
+        if (!box || (only && only !== box)) return;
+        this._cellPopover = null;
+        try { if (box.matches(":popover-open")) box.hidePopover(); } catch { /* gone */ }
+        render(nothing, box);
+        box.remove();
+    }
+
+    // Double click or F2 on a short editable cell opens its editor.
+    cellEditTarget(event) {
+        const cell = event.target instanceof Element ? event.target.closest("tbody td[data-key]") : null;
+        if (!cell || !this.contains(cell)) return null;
+        const row = this.rowOfElement(cell);
+        const column = (this.getTableData().columns || []).find((one) => String(one.key) === cell.dataset.key);
+        return row && column && this.cellShortEditable(row, column) ? {row, column, cell} : null;
+    }
+
     clearCellPending(id, key) {
         if (this._pendingCells?.delete(`${id}\u0000${key}`)) this.requestComponentUpdate("cell-pending");
     }
@@ -4326,7 +4524,25 @@ class SfTable extends TableElement {
         // formatFieldValue first): the table's own date parsing is gone (VF-10).
         const rendered = renderCellField(column, value, host);
         if (rendered !== null && rendered !== undefined) return rendered;
+        // A number in the page's language (VT-14 of the sf-view-table study:
+        // «1.5» in a Russian table, while money and dates were localised):
+        // every digit the value has, never rounded, grouped as the language
+        // groups. The renderer set leaves a plain number to the host; this is
+        // the set's answer when the host has none.
+        if ((type === "integer" || type === "number") && !(column.variant || column.filter?.variant)) return this.localNumber(value);
         return null;
+    }
+
+    localNumber(value) {
+        const text = typeof value === "number" ? (Number.isFinite(value) ? String(value) : "") : String(value ?? "").trim();
+        if (!/^-?\d+(\.\d+)?$/u.test(text)) return null;
+        const digits = (text.split(".")[1] ?? "").length;
+        const locale = this.closest?.("[lang]")?.getAttribute("lang") || globalThis.document?.documentElement?.lang || undefined;
+        try {
+            return new Intl.NumberFormat(locale || undefined, {minimumFractionDigits: digits, maximumFractionDigits: digits}).format(Number(text));
+        } catch {
+            return null;
+        }
     }
 
     // The machine reading of a date cell (C40, PD-9): a date or a date and time
@@ -5089,8 +5305,29 @@ class SfTable extends TableElement {
         if (!data?.open) {
             render(null, this.getPortalContainer());
             this.hidePortal();
+            if (this._settingsHost?.isConnected) render(null, this._settingsHost);
             return nothing;
         }
+
+        // The column window (C296, VT-12): the Framework's sf-settings panel is
+        // a popover of its own (the top layer, against the gear or «Все
+        // колонки…»), so it is not put in the table's full-viewport portal --
+        // a 1440x800 layer for a 320-wide panel. It stands in a host of no box.
+        if (data.menu === 'table-settings') {
+            render(null, this.getPortalContainer());
+            this.hidePortal();
+            this.bindContextEvent();
+            render(html`<div class="sf-table-context-layer" data-sf-table-settings-layer ${ref(this.refs.contextMenu)}>
+                    ${this.renderTableSettingsContextMenu(data)}</div>`, this.getSettingsHost());
+            const panel = this._settingsHost.querySelector("sf-settings[data-table-settings]");
+            if (panel && panel !== this._settingsShown) {
+                this._settingsShown = panel;
+                this.showSettingsPanel(panel);
+            }
+            requestAnimationFrame(() => this.redrawWhenComponentsUpgrade(this._settingsHost));
+            return nothing;
+        }
+        if (this._settingsHost?.isConnected) render(null, this._settingsHost);
 
         // On the layer stack before it is drawn: the windows take their
         // z-index from their place in it.
@@ -6099,6 +6336,20 @@ class SfTable extends TableElement {
         this._portalContainer = portal;
 
         return portal;
+    }
+
+    // The column window's host (VT-12): no box of its own, in this element
+    // so the panel reads the table's density and the Loader sees it.
+    getSettingsHost() {
+        if (this._settingsHost?.isConnected) return this._settingsHost;
+        const host = document.createElement("div");
+        host.className = "sf-table-settings-host";
+        host.dataset.sfInstance = this.getInstanceId();
+        for (const type of ["change", "input"]) host.addEventListener(type, (event) => event.stopPropagation());
+        this.insertBefore(host, this.firstChild);
+        globalThis.SF?.Loader?.watch?.(host);
+        this._settingsHost = host;
+        return host;
     }
 
     // The top layer is entered while a window is open and left when none is.
@@ -7611,6 +7862,7 @@ class SfTable extends TableElement {
     }
 
     disconnectedCallback() {
+        this.closeCellPopover();
         this.unbindWindowScroll();
         for (const controller of this._toolbarRoving?.values() ?? []) controller.destroy();
         this._toolbarRoving?.clear();
@@ -7681,6 +7933,12 @@ class SfTable extends TableElement {
             render(null, this._portalContainer);
             this._portalContainer.remove();
             this._portalContainer = null;
+        }
+        if (this._settingsHost) {
+            render(null, this._settingsHost);
+            this._settingsHost.remove();
+            this._settingsHost = null;
+            this._settingsShown = null;
         }
         super.disconnectedCallback();
     }
@@ -7863,12 +8121,19 @@ class SfTable extends TableElement {
         this.bindRowActionsEvents(this.refs.table?.value);
         this.bindToolbarKeyboard();
         this.syncGrid();
+        this.syncListStops();
         this.bindRowMenu();
         this.toggleAttribute("data-sf-keyed-narrow", this.isKeyedNarrow);
         if (this._windowed) this.bindWindowScroll();
         // A row the keyboard asked for outside the drawn range is drawn now:
         // it is focused and scrolled into view, and the scroll that brings
         // moves the range around it -- not the place the page was at before.
+        if (this._pendingScrollRow) {
+            const id = this._pendingScrollRow;
+            this._pendingScrollRow = null;
+            this.refs.table?.value?.querySelector(`tbody tr[data-row-id="${id.replace(/"/gu, '\\"')}"]`)
+                ?.scrollIntoView?.({block: "nearest", behavior: "instant"});
+        }
         if (this._pendingFocusRow) {
             const id = this._pendingFocusRow;
             this._pendingFocusRow = null;
@@ -8062,14 +8327,17 @@ class SfTable extends TableElement {
         table.addEventListener("keydown", (event) => this.handleHeadKeydown(event, table), {signal});
         table.addEventListener("contextmenu", (event) => {
             const cell = event.target instanceof Element ? event.target.closest("th") : null;
-            if (!cell || cell.parentElement?.parentElement !== table.tHead || !this.headStopOf(cell)) return;
+            if (!cell || cell.parentElement?.parentElement !== table.tHead) return;
+            const key = cell.dataset.key;
+            const column = key ? this.getColumns().find((item) => String(item?.key) === key) : null;
+            if (!column || column.system) return;
             event.preventDefault();
             event.stopPropagation();
             // Shift+F10 and the menu key opened it already.
             if (Date.now() - (this._headMenuKeyAt ?? 0) < 500) return;
             if (event.target.closest("[data-sf-column-resizer]")) return;
-            const point = event.button === 2 ? {x: event.clientX, y: event.clientY} : null;
-            this.openColumnMenu(cell, this.headStopOf(cell), point);
+            const point = event.button === 2 || !this.headStopOf(cell) ? {x: event.clientX, y: event.clientY} : null;
+            this.openColumnMenu(cell, this.headStopOf(cell) ?? cell, point);
         }, {signal});
     }
 
@@ -8118,10 +8386,47 @@ class SfTable extends TableElement {
         stop.focus({preventScroll: false});
     }
 
+    // The column's menu (owner decision C296, q-columns B): on the head --
+    // the right button, a long press, Shift+F10, the menu key, Enter on a
+    // head with an edge -- sort up and down, pin, hide and «Все колонки…»
+    // (the column window), then the width (C158 (5)). The window stays for
+    // the order and for bringing a hidden column back.
+    columnMenuEntries(column, cell) {
+        const entries = [];
+        const sort = this.state?.sort ?? {};
+        if (column.sortable === true && !column.system) {
+            entries.push({id: "sort-asc", text: this.text("columnSortAsc"), icon: "arrow_upward",
+                checked: sort.key === column.key && sort.direction === "asc"});
+            entries.push({id: "sort-desc", text: this.text("columnSortDesc"), icon: "arrow_downward",
+                checked: sort.key === column.key && sort.direction === "desc"});
+        }
+        const settings = this.getPropsContext?.().settings !== false && this.getAttribute("settings-menu") !== "false";
+        if (!column.system && settings) {
+            const pinned = this.isColumnPinned(column);
+            const group = [{id: "pin", text: this.text(pinned ? "columnUnpin" : "columnPin"), icon: "push_pin"}];
+            // The title stays: it is the record's name and its link (C146 (5)).
+            const shown = this.getColumnItems().filter((item) => item?.key && !item.system && this.isColumnVisible(item));
+            if (column.role !== "title" && shown.length > 1) group.push({id: "hide", text: this.text("columnHide"), icon: "visibility_off"});
+            if (entries.length) entries.push({kind: "separator"});
+            entries.push(...group, {id: "all", text: this.text("columnAll"), icon: "view_column"});
+        }
+        if (cell?.querySelector?.("[data-sf-column-resizer]")) {
+            if (entries.length) entries.push({kind: "separator"});
+            entries.push(
+                {id: "resize", text: this.text("columnWidthChangeText")},
+                {id: "fit", text: this.text("columnWidthFitText")},
+                {id: "default", text: this.text("columnWidthDefaultText")},
+            );
+        }
+        return entries;
+    }
+
     async openColumnMenu(cell, anchor = cell, point = null) {
         const key = cell?.dataset?.key;
         const column = key ? this.getColumns().find((item) => String(item?.key) === key) : null;
-        if (!column) return null;
+        if (!column || column.system) return null;
+        const entries = this.columnMenuEntries(column, cell);
+        if (!entries.length) return null;
         await globalThis.SF?.Loader?.ensure?.(["sf-menu-context"]);
         await customElements.whenDefined?.("sf-menu-context");
         const menu = this.columnMenu();
@@ -8129,14 +8434,42 @@ class SfTable extends TableElement {
         followDensity(menu, this);
         const label = column.label || column.key;
         menu.setAttribute("aria-label", `${this.text("columnMenuLabel")}: ${label}`);
-        menu.entries = [
-            {id: "resize", text: this.text("columnWidthChangeText")},
-            {id: "fit", text: this.text("columnWidthFitText")},
-            {id: "default", text: this.text("columnWidthDefaultText")},
-        ];
-        this._columnMenuContext = {key, cell, anchor};
+        menu.entries = entries;
+        this._columnMenuContext = {key, cell, anchor, column};
         if (point) return menu.openAt?.(point.x, point.y);
         return typeof menu.toggleFor === "function" ? menu.toggleFor(anchor, {align: "start"}) : menu.openFor?.(anchor, {align: "start"});
+    }
+
+    // A choice of the column menu: the sort goes out as a person's sort
+    // (sort-change), the pin and the hide as column settings (save), «Все
+    // колонки…» opens the column window against the head.
+    applyColumnMenuChoice(id, context) {
+        const {key, column} = context;
+        if (id === "sort-asc" || id === "sort-desc") {
+            const direction = id === "sort-asc" ? "asc" : "desc";
+            const sort = this.state?.sort ?? {};
+            if (sort.key === key && sort.direction === direction) return true;
+            this.setSort(key, direction);
+            this.emitTableEvent("sort-change", Object.freeze({key, direction}));
+            return true;
+        }
+        if (id === "pin") {
+            this.toggleColumnPinned(column);
+            return true;
+        }
+        if (id === "hide") {
+            this.patchColumnSettings(key, {visible: false}, "column-hide");
+            return true;
+        }
+        if (id === "all") {
+            const gear = this.querySelector('thead th[data-key="settings"] button, thead th[data-key="settings"] [role="button"]');
+            const anchor = gear ?? context.cell;
+            this._settingsTab = "columns";
+            this.openContextMenu({currentTarget: anchor, target: anchor, timeStamp: performance.now(), preventDefault() {}, stopPropagation() {}},
+                {menu: "table-settings"});
+            return true;
+        }
+        return false;
     }
 
     columnMenu() {
@@ -8150,6 +8483,19 @@ class SfTable extends TableElement {
             const id = event.detail?.id ?? event.detail?.entry?.id;
             const stop = this.headStopOf(context.cell) ?? context.anchor;
             menu.close?.();
+            if (id !== "all" && this.applyColumnMenuChoice(id, context)) {
+                requestAnimationFrame(() => {
+                    const cell = this.refs.table?.value?.querySelector(`thead th[data-key="${this.escapeColumnKey(context.key)}"]`);
+                    const again = this.headStopOf(cell) ?? (cell?.isConnected ? null : null);
+                    if (again?.isConnected) this.focusHeadStop(again);
+                });
+                return;
+            }
+            if (id === "all") {
+                // After the menu has closed and given the focus back.
+                requestAnimationFrame(() => this.applyColumnMenuChoice(id, context));
+                return;
+            }
             if (id === "resize") {
                 const edge = context.cell.querySelector("[data-sf-column-resizer]");
                 // After the menu has given the focus back to its opener.
@@ -8193,6 +8539,95 @@ class SfTable extends TableElement {
         return this.applyColumnResizeWidths(key, fitted, frozen);
     }
 
+    // ─── the list's keyboard (VT-3; C146 (8) as in the grid) ────────────────
+    // The list of records is one Tab stop, as the table is: the record the
+    // person was on (or its control), else the current one, else the first.
+    // ↑↓ walk the records from the record or any of its controls, ←→ walk a
+    // record's own controls (box, «≡», title, actions); Home/End and Enter,
+    // Space keep their row meaning (handleRowKeydown). 27 stops for 8 rows
+    // and 39 for 12 before (the study's now-admin at 390).
+    listItems(list = this.querySelector(":scope .sf-table-list")) {
+        return list ? [...list.querySelectorAll(":scope > li.sf-table-list-item[data-row-id]")] : [];
+    }
+
+    listControls(item) {
+        return [item, ...[...item.querySelectorAll("a[href], button:not([disabled]), input:not([disabled]):not([type=hidden])")]
+            .filter((element) => !element.closest(".sf-tooltip, [hidden]"))];
+    }
+
+    syncListStops() {
+        const list = this.isList ? this.querySelector(":scope .sf-table-list") : null;
+        if (!list) {
+            this._listAbort?.abort();
+            this._listBound = null;
+            return;
+        }
+        this.bindListKeys(list);
+        const items = this.listItems(list);
+        const stops = items.flatMap((item) => this.listControls(item));
+        let stop = this._listStop?.isConnected && stops.includes(this._listStop) ? this._listStop : null;
+        stop ??= list.querySelector(":scope > li[data-current]") ?? items[0] ?? null;
+        for (const element of stops) {
+            const index = element === stop ? "0" : "-1";
+            if (element.getAttribute("tabindex") !== index) element.setAttribute("tabindex", index);
+        }
+        this._listStop = stop;
+    }
+
+    bindListKeys(list) {
+        if (this._listBound === list) return;
+        this._listAbort?.abort();
+        this._listAbort = new AbortController();
+        this._listBound = list;
+        const {signal} = this._listAbort;
+        list.addEventListener("focusin", (event) => {
+            const target = event.target instanceof Element ? event.target : null;
+            if (!target || target === this._listStop || !this.listItems(list).some((item) => item.contains(target))) return;
+            this._listStop = target;
+            this.syncListStops();
+        }, {signal});
+        list.addEventListener("keydown", (event) => {
+            if (event.defaultPrevented || event.altKey || event.metaKey) return;
+            const target = event.target instanceof Element ? event.target : null;
+            const items = this.listItems(list);
+            const item = items.find((one) => one.contains(target));
+            if (!item || target.closest("textarea, select, [contenteditable]") || (target.matches("input") && !/^(checkbox|radio)$/u.test(target.type))) return;
+            const controls = this.listControls(item);
+            const at = controls.indexOf(target);
+            let next = null;
+            if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+                const forward = (event.key === "ArrowRight") !== this.isRightToLeft();
+                next = controls[at + (forward ? 1 : -1)] ?? null;
+            } else if ((event.key === "ArrowDown" || event.key === "ArrowUp") && target !== item && !target.matches(".sf-table-title-link")) {
+                // From a control: the same place in the next record (from the
+                // record itself and its title the row's own keys move).
+                const other = items[items.indexOf(item) + (event.key === "ArrowDown" ? 1 : -1)];
+                const list2 = other ? this.listControls(other) : [];
+                next = list2[Math.min(Math.max(at, 0), list2.length - 1)] ?? null;
+            } else {
+                return;
+            }
+            if (!next || next === target) return;
+            event.preventDefault();
+            this._listStop = next;
+            this.syncListStops();
+            next.focus({preventScroll: false});
+        }, {signal});
+        let queued = 0;
+        const observer = new MutationObserver((records) => {
+            if (queued || !records.some((record) => [...record.addedNodes].some((node) => node.nodeType === 1))) return;
+            queued = requestAnimationFrame(() => {
+                queued = 0;
+                if (this._listBound === list) this.syncListStops();
+            });
+        });
+        observer.observe(list, {childList: true, subtree: true});
+        signal.addEventListener("abort", () => {
+            observer.disconnect();
+            if (queued) cancelAnimationFrame(queued);
+        });
+    }
+
     gridRows(table = this.refs.table?.value) {
         if (!table) return [];
         return [...table.querySelectorAll(":scope > thead > tr, :scope > tbody > tr[data-row-id]")];
@@ -8213,6 +8648,10 @@ class SfTable extends TableElement {
             if (grid) table.setAttribute("role", "grid");
             else if (table.getAttribute("role") === "grid") table.removeAttribute("role");
         }
+        // Several rows may be marked (VT-4): said on the grid, not on a plain table.
+        const many = grid && this.getColumns().some((column) => column?.key === "select");
+        if (many) table.setAttribute("aria-multiselectable", "true");
+        else table.removeAttribute("aria-multiselectable");
         this.syncHeadStops(table);
         if (!grid) return;
         const rows = this.gridRows(table);
@@ -8291,6 +8730,20 @@ class SfTable extends TableElement {
         if (event.defaultPrevented || !this.isGrid) return;
         const target = event.target instanceof Element ? event.target : null;
         if (!target) return;
+        // F2 edits the short cell under the focus, or the row's first one.
+        if (event.key === "F2") {
+            const tr = target.closest("tbody tr[data-row-id]");
+            const record = tr && this.rowOfElement(tr);
+            const columns = this.getTableData().columns || [];
+            const cells = tr ? [...tr.querySelectorAll(":scope > td[data-key]")] : [];
+            const own = target.closest("td[data-key]");
+            const cell = [own, ...cells].find((one) => one && record && this.cellShortEditable(record, columns.find((c) => String(c.key) === one.dataset.key) ?? {}));
+            if (cell) {
+                event.preventDefault();
+                this.openCellEditor(record, columns.find((c) => String(c.key) === cell.dataset.key), cell);
+            }
+            return;
+        }
         // A field keeps its own keys.
         if (target.closest("textarea, select, [contenteditable]") || (target.matches("input") && !/^(checkbox|radio)$/u.test(target.type))) return;
         // An edge that sets a width keeps its arrows, Home and End.
