@@ -378,25 +378,15 @@ class SfDataView extends DataViewElement {
           </style>
           <slot name="first-paint"></slot>
           <section part="layout" style="position: relative">
-            <div part="toolbar"><slot name="toolbar">
-              <label>Поиск <input type="search" data-search></label>
-              <!-- Saved views are offered only when the host says it keeps them.
-                   They were offered always, and a host that claims neither
-                   saved-views nor shared-saved-views answers every one of these
-                   with capability-not-provided -- so «Сохранить вид» could do
-                   nothing but refuse, which is not a control, it is a trap. The
-                   owner met them on a page whose host claims only row-actions
-                   (owner, 2026-10-09). -->
-              <span data-saved-views hidden>
-                <label>Вид <select data-view><option value="">Текущий</option></select></label>
-                <label>Название вида <input type="text" data-view-name></label>
-                <button type="button" data-save>Сохранить вид</button>
-                <button type="button" data-delete>Удалить вид</button>
-              </span>
-            </slot></div>
+            <!-- The author's toolbar, or nothing (VF-3, set standard 7.9): the view
+                 drew a raw search, view select and buttons with Russian words in
+                 its shadow root when the slot was empty, which consumers hid with
+                 an empty <span slot="toolbar">. The table draws the search and
+                 the saved views itself, with SIMAI Framework controls. -->
+            <div part="toolbar" hidden><slot name="toolbar"></slot></div>
             <div part="status" role="status" aria-live="polite" hidden></div>
             <div part="drop" hidden></div>
-            <slot name="content"><sf-view-table toolbar="false"></sf-view-table></slot>
+            <slot name="content"><sf-view-table></sf-view-table></slot>
             <slot name="show-all"></slot>
             <div part="footer"><slot name="footer"></slot><slot name="pagination"><sf-pagination appearance="field" top="false" bottom="false"></sf-pagination></slot></div>
             <slot name="bulk"></slot>
@@ -868,10 +858,6 @@ class SfDataView extends DataViewElement {
         ];
         for (const name of events) this.shadowRoot.addEventListener(name, this._bound);
         for (const name of events) this.addEventListener(name, this._bound);
-        this.shadowRoot.querySelector("[data-search]").addEventListener("change", this._bound);
-        this.shadowRoot.querySelector("[data-view]").addEventListener("change", this._bound);
-        this.shadowRoot.querySelector("[data-save]").addEventListener("click", this._bound);
-        this.shadowRoot.querySelector("[data-delete]").addEventListener("click", this._bound);
         this._readDeclaredPort();
         this._seedPageSize();
         this._seedPrintedQuery();
@@ -1240,10 +1226,6 @@ class SfDataView extends DataViewElement {
         ];
         for (const name of events) this.shadowRoot.removeEventListener(name, this._bound);
         for (const name of events) this.removeEventListener(name, this._bound);
-        this.shadowRoot.querySelector("[data-search]").removeEventListener("change", this._bound);
-        this.shadowRoot.querySelector("[data-view]").removeEventListener("change", this._bound);
-        this.shadowRoot.querySelector("[data-save]").removeEventListener("click", this._bound);
-        this.shadowRoot.querySelector("[data-delete]").removeEventListener("click", this._bound);
         this.pending = null;
     }
 
@@ -1651,8 +1633,6 @@ class SfDataView extends DataViewElement {
 
     _syncSearchBoxes(value) {
         const text = String(value ?? "");
-        const own = this.shadowRoot?.querySelector("input[data-search]");
-        if (own && own.value !== text && this.shadowRoot.activeElement !== own) own.value = text;
         const table = this.table;
         if (table?.updateSearchState && (table.state?.search?.value ?? "") !== text && !table.contains(document.activeElement)) {
             table.updateSearchState({value: text}, false);
@@ -1973,7 +1953,7 @@ class SfDataView extends DataViewElement {
             return {answer: "refused", reason: "no-targets"};
         }
         const label = String(record.title ?? record.label ?? record.name ?? record.id);
-        // The choices are sf-radio, which nothing else on the page may have
+        // The choices are sf-input-choice, which nothing else on the page may have
         // asked for: a Loader that scans the light DOM never meets the
         // dialog's (Larena: an empty choice list, 2026-10-12). _dialog asks
         // for it with the window, and waits briefly.
@@ -2024,7 +2004,7 @@ class SfDataView extends DataViewElement {
     // this element's language and theme. Resolves with what was chosen, true
     // for a plain confirmation, or null.
     async _dialog({title, text = "", apply, options = null, reorder = false}) {
-        await this._ensureElements(["sf-modal", "sf-button", ...(options ? ["sf-radio"] : [])]);
+        await this._ensureElements(["sf-modal", "sf-button", ...(options ? ["sf-input-choice"] : [])]);
         if (!globalThis.customElements?.get("sf-modal")) {
             this.notify(pageText(DATA_VIEW_TEXT, "noticeUnavailable", this));
             return null;
@@ -2047,36 +2027,33 @@ class SfDataView extends DataViewElement {
             content.append(body);
         }
         const name = `${this.instanceId}-move`;
+        // The choices are SIMAI Framework sf-input-choice in its list look
+        // (C165 (1), VF-5): the group, its name, the arrows and the form value
+        // are the Framework's, not a radiogroup the view assembled from radios.
+        let parentChoice = null;
+        let placeChoice = null;
         if (options) {
-            const list = document.createElement("div");
-            list.setAttribute("role", "radiogroup");
-            list.setAttribute("aria-label", title);
-            list.className = "flex flex-col gap-1";
-            list.style.cssText = "overflow-y: auto; min-block-size: 0; flex: 1 1 auto;";
-            options.forEach((option, index) => {
-                const radio = document.createElement("sf-radio");
-                radio.setAttribute("name", name);
-                radio.setAttribute("value", option.id === null ? "" : String(option.id));
-                radio.setAttribute("label", String(option.label));
-                if (Array.isArray(option.path) && option.path.length) radio.setAttribute("description", option.path.join(" / "));
-                if (index === 0) radio.setAttribute("checked", "");
-                list.append(radio);
-            });
-            content.append(list);
+            parentChoice = document.createElement("sf-input-choice");
+            parentChoice.setAttribute("appearance", "list");
+            parentChoice.setAttribute("name", name);
+            parentChoice.setAttribute("aria-label", title);
+            parentChoice.style.cssText = "overflow-y: auto; min-block-size: 0; flex: 1 1 auto;";
+            parentChoice.items = options.map((option) => ({
+                value: option.id === null ? "" : String(option.id),
+                label: String(option.label),
+                ...(Array.isArray(option.path) && option.path.length ? {caption: option.path.join(" / ")} : {}),
+            }));
+            parentChoice.value = options[0].id === null ? "" : String(options[0].id);
+            content.append(parentChoice);
             if (reorder) {
-                const placeList = document.createElement("div");
-                placeList.setAttribute("role", "radiogroup");
-                placeList.setAttribute("aria-label", pageText(DATA_VIEW_TEXT, "movePlace", this));
-                placeList.className = "flex gap-2";
-                for (const [value, key] of [["last", "moveLast"], ["first", "moveFirst"]]) {
-                    const radio = document.createElement("sf-radio");
-                    radio.setAttribute("name", `${name}-place`);
-                    radio.setAttribute("value", value);
-                    radio.setAttribute("label", pageText(DATA_VIEW_TEXT, key, this));
-                    if (value === "last") radio.setAttribute("checked", "");
-                    placeList.append(radio);
-                }
-                content.append(placeList);
+                placeChoice = document.createElement("sf-input-choice");
+                placeChoice.setAttribute("appearance", "list");
+                placeChoice.setAttribute("name", `${name}-place`);
+                placeChoice.setAttribute("label", pageText(DATA_VIEW_TEXT, "movePlace", this));
+                placeChoice.items = [["last", "moveLast"], ["first", "moveFirst"]]
+                    .map(([value, key]) => ({value, label: pageText(DATA_VIEW_TEXT, key, this)}));
+                placeChoice.value = "last";
+                content.append(placeChoice);
             }
         }
         // The footer of every window (C159 (4), C144): the main action first at
@@ -2098,18 +2075,19 @@ class SfDataView extends DataViewElement {
         this.append(modal);
         // The nodes are the page's own, drawn in the window's portal: they are
         // read where they are.
-        const checked = (radioName) => [...content.querySelectorAll(`sf-radio[name="${radioName}"]`)]
-            .find((radio) => radio.checked === true || radio.hasAttribute("checked") && radio.checked !== false);
+        const chosenValue = (choice, fallback) => {
+            const value = Array.isArray(choice?.value) ? choice.value[0] : choice?.value;
+            return value === undefined || value === null ? fallback : String(value);
+        };
         let chosen = null;
         cancel.addEventListener("click", () => modal.close({reason: "cancelled"}));
         confirm.addEventListener("click", () => {
             if (!options) {
                 chosen = true;
             } else {
-                const parentRadio = checked(name);
-                const value = parentRadio?.getAttribute("value") ?? "";
+                const value = chosenValue(parentChoice, "");
                 const option = options.find((item) => (item.id === null ? "" : String(item.id)) === value) ?? options[0];
-                const place = reorder ? checked(`${name}-place`)?.getAttribute("value") : "last";
+                const place = reorder ? chosenValue(placeChoice, "last") : "last";
                 chosen = {parent: option.id, index: place === "first" ? 0 : null};
             }
             modal.confirm();
@@ -2243,13 +2221,6 @@ class SfDataView extends DataViewElement {
         this._readPrintedPageSize();
         this._applyForAll();
         if (this._current !== undefined && this.table && this.table.current !== this._current) this.table.current = this._current;
-        // The saved-view controls appear when the host keeps saved views and
-        // not before: this is the only place that runs both when a host is set
-        // and when data arrives, which is when the answer can have changed.
-        const savedViews = this.shadowRoot?.querySelector?.("[data-saved-views]");
-        if (savedViews) {
-            savedViews.hidden = !this.knownCapability("saved-views");
-        }
         this._paginationAppearance();
         this._watchPagination();
         this._queueFooter();
@@ -2465,14 +2436,10 @@ class SfDataView extends DataViewElement {
             fallbackTable.setAttribute("aria-label", pageText(DATA_VIEW_TEXT, "recordsLabel", this));
         }
         const toolbar = this.shadowRoot.querySelector('[part="toolbar"]');
-        // A slotted table that draws its own toolbar (search, filter) needs no
-        // second one: the view's fallback search stood beside the table's, two
-        // searches in the documented minimal markup (docs trial 4).
-        const slottedTable = this.querySelector(`:scope > ${tagSelector("sf-view-table")}[slot="content"]`);
-        const authorToolbar = slottedTable?.getAttribute("data-sf-host-toolbar") ?? slottedTable?.getAttribute("toolbar");
-        const tableHasToolbar = Boolean(slottedTable) && authorToolbar !== "false";
         const ownToolbar = this.querySelector(':scope > [slot="toolbar"]');
-        if (toolbar) toolbar.hidden = !this.renders("toolbar") || (tableHasToolbar && !ownToolbar) || this._queryRefused === true;
+        // Only the author's own toolbar is drawn here; without one the part
+        // takes no room (VF-3).
+        if (toolbar) toolbar.hidden = !ownToolbar || !this.renders("toolbar") || this._queryRefused === true;
         const pageRow = this.shadowRoot.querySelector('slot[name="pagination"]');
         // A tree has no pages: a level that is long ends in Show more, and the
         // host gives no total for the page row to count. Nor is there a page
@@ -2803,17 +2770,7 @@ class SfDataView extends DataViewElement {
         if (event.target === this || event.target?.closest?.(tagSelector("sf-view")) !== this && !this.shadowRoot.contains(event.target)) return;
         // An event crossing the shadow boundary is observed once, at the shadow root.
         if (event.currentTarget === this && this.shadowRoot.contains(event.target)) return;
-        if (event.type === "change" && event.target.matches?.("[data-search]")) return this.changeQuery({search: event.target.value}, "search");
-        if (event.type === "change" && event.target.matches?.("[data-view]")) return event.target.value && this.openView(event.target.value);
         if (event.type === "click" && event.target.matches?.("[data-show-all]")) return this.openList("row-cap");
-        if (event.type === "click" && event.target.matches?.("[data-save]")) {
-            const label = this.shadowRoot.querySelector("[data-view-name]")?.value?.trim();
-            if (label) return this.saveView({key: label, label});
-        }
-        if (event.type === "click" && event.target.matches?.("[data-delete]")) {
-            const key = this.shadowRoot.querySelector("[data-view]").value;
-            if (key) return this.deleteView(key);
-        }
         if (event.type === "sf-view-table-cell-set") return this.setCell(event.detail ?? {});
         if (event.type === "sf-view-table-move") return this.reorderRows(event.detail ?? {});
         if (event.type === "sf-view-table-search-change") {

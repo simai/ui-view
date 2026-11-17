@@ -62,17 +62,19 @@ function renderListToolbar(context) {
                      after them stand a group apart (H6, --sf-space-1). -->
                 ${context.component.offersFilter(active.length) || context.component.getColumns().some((column) => column?.sortable && !column.system) ? html`<div class="sf-table-list-view-buttons flex items-cross-center gap-1/3">
                 ${context.component.offersFilter(active.length) ? html`<span class="sf-table-list-filter">
+                    <!-- The count of active conditions is the icon's own badge
+                         (sf-button-icon badge-count, simai/ui-source#12): it
+                         joins the button's name in the page language. -->
                     <sf-button-icon
                             size=${context.controlSize ?? nothing}
                             appearance=${active.length ? 'default' : 'outline'}
                             scheme="primary"
                             icon="filter_list"
-                            aria-label=${active.length
-                                ? context.component.text('listFilterLabel').replace('{count}', String(active.length))
-                                : context.filterText}
+                            badge-count=${active.length || nothing}
+                            badge-label=${active.length ? context.component.text('filterBadgeLabel') : nothing}
+                            aria-label=${context.filterText}
                             @click=${(e) => context.component.openContextMenu(e, {type: 'bottom', menu: 'filter-settings'})}
                     ></sf-button-icon>
-                    ${active.length ? html`<span class="sf-table-list-filter-count" aria-hidden="true">${active.length}</span>` : nothing}
                 </span>` : nothing}
                 ${context.component.getColumns().some((column) => column?.sortable && !column.system) ? html`
                     <sf-button-icon
@@ -156,7 +158,7 @@ function renderToolbar(context) {
                             size=${context.controlSize ?? nothing}
                             appearance="default"
                             scheme="primary"
-                            aria-label="Сохранить шаблон фильтра"
+                            aria-label=${context.component.text('saveFilterTemplateLabel')}
                             ?disabled=${!activeFilterTags.length}
                             segment="end"
                             icon="bookmark_add"
@@ -215,7 +217,7 @@ function renderToolbar(context) {
                                 size=${context.controlSize ?? nothing}
                                 appearance="default"
                                 scheme="primary"
-                                text="Сохранить"
+                                text=${context.component.text('saveText')}
                                 @click="${() => context.component.saveCurrentFilterTemplateData()}"
                         ></sf-button>
                     ` : nothing}
@@ -281,10 +283,10 @@ function renderToolbar(context) {
                                     <sf-button-icon
                                             size=${context.controlSize ?? nothing}
                                             appearance="outline"
-                                            scheme="primary"
+                                            scheme="on-surface"
                                             segment="end"
                                             icon="keyboard_arrow_down"
-                                            aria-label="Дополнительные действия создания"
+                                            aria-label=${context.component.text('createOptionsLabel')}
                                             aria-haspopup="menu"
                                             @click=${(e) => {
                                                 context.component.openContextMenu(e, {
@@ -307,9 +309,9 @@ function renderToolbar(context) {
                             <sf-button-icon
                                     size=${context.controlSize ?? nothing}
                                     appearance="outline"
-                                    scheme="primary"
+                                    scheme="on-surface"
                                     icon="more_horiz"
-                                    aria-label="Действия с представлением"
+                                    aria-label=${context.component.text('contextViewActionsLabel')}
                                     aria-haspopup="menu"
                                     @click=${e => {
                                         context.component.openContextMenu(e, { menu: 'toolbar-actions' });
@@ -650,18 +652,23 @@ function renderLinkCell(value) {
         return nothing;
     }
 
-    const content = html`
-        <span class="sf-table-link-cell-content flex flex-col min-w-0">
-            <span class="sf-table-link-cell-text">${cell.text}</span>
+    // The link is the SIMAI Framework's sf-reference-link on the cell's text
+    // line, as the field renderers draw a reference in a cell (VF-10); the
+    // supporting line under it stays the list's own text. Without a safe href
+    // the words are plain text: a link that leads nowhere is not drawn as one.
+    return html`
+        <span class="sf-table-link-cell flex flex-col min-w-0">
+            ${cell.href ? html`<sf-reference-link
+                    line="1/2"
+                    appearance="plain"
+                    icon=""
+                    label=${cell.text}
+                    href=${cell.href}></sf-reference-link>` : html`<span class="sf-table-link-cell-text">${cell.text}</span>`}
             ${cell.subtext === null ? nothing : html`
                 <span class="sf-table-link-cell-subtext sf-text-1/2">${cell.subtext}</span>
             `}
         </span>
     `;
-
-    return cell.href
-        ? html`<a class="sf-table-link-cell" href=${cell.href}>${content}</a>`
-        : html`<span class="sf-table-link-cell">${content}</span>`;
 }
 
 
@@ -739,6 +746,9 @@ function rowStrings(kinds) {
                 '><i class="sf-icon sf-icon--weight-regular pointer-event-none" aria-hidden="true">menu</i></button>');
         } else if (kind === 'text') {
             pieces.push('<span class=', ROW_HOLE, ' title=', ROW_HOLE, ' .textContent=', ROW_HOLE, '></span>');
+        } else if (kind === 'time') {
+            // A date (C40, PD-9): a time element with the record's own day.
+            pieces.push('<time class=', ROW_HOLE, ' datetime=', ROW_HOLE, ' .textContent=', ROW_HOLE, '></time>');
         } else if (kind === 'node') {
             pieces.push(ROW_HOLE);
         }
@@ -1153,6 +1163,9 @@ export function renderTableTemplate(context) {
                 } else if (mark?.kind === 'text') {
                     kinds.push('text');
                     values.push(mark.className, mark.title ?? nothing, mark.text);
+                } else if (mark?.kind === 'time') {
+                    kinds.push('time');
+                    values.push(mark.className, mark.datetime, mark.text);
                 } else if (mark?.kind === 'empty') {
                     kinds.push('empty');
                 } else if (column.key === 'actions') {
@@ -1313,7 +1326,7 @@ export function renderTableTemplate(context) {
                         appearance: "ghost",
                         scheme: "on-surface",
                         icon: "menu",
-                        ariaLabel: "Меню",
+                        ariaLabel: context.component.text('menuLabel'),
                         value: "menu",
                     },
                 }, context.component);
@@ -1366,6 +1379,8 @@ export function renderTableTemplate(context) {
                     return renderCellValues(typed, context.component);
                 }
 
+                const datetime = typeof typed === "string" ? context.component?.cellDateTime?.(column, value) : "";
+                if (datetime) return html`<time datetime=${datetime}>${typed}</time>`;
                 return renderCellItem(typed, context.component);
             }
         }

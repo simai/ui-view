@@ -7,9 +7,8 @@ import en from "./lang/en.json";
 import ru from "./lang/ru.json";
 import {renderTableTemplate, columnStyle} from "./js/templates/default";
 import {optionBadgeProps} from "../helpers/option-badge.js";
-import {renderCellField, renderFilterField} from "../field-renderers/index.js";
+import {dateTimeAttribute, renderCellField, renderFilterField} from "../field-renderers/index.js";
 import {htmlText} from "../field-renderers/html.js";
-import {DATE_TYPES, formatDateValue} from "./js/format-value.js";
 import {html, nothing, render} from "lit";
 import {ref} from "lit/directives/ref.js";
 import {pageText} from "../../core/js/page-language";
@@ -1543,6 +1542,8 @@ class SfTable extends TableElement {
         const typed = this.getTypedCellValue(column, value);
         if (typed !== null && typeof typed !== "undefined") {
             if (typeof typed !== "string" && typeof typed !== "number") return null;
+            const datetime = this.cellDateTime(column, value);
+            if (datetime) return {kind: "time", className: "sf-table-cell-bare", text: String(typed), datetime};
             return {kind: "text", className: "sf-table-cell-bare", text: String(typed)};
         }
         if (typeof value === "boolean") return null;
@@ -3463,7 +3464,7 @@ class SfTable extends TableElement {
                     position="${position || ""}"
             >
                 <div class="flex flex-col flex-1 gap-2" slot="content">
-                    <div class="sf-table-context-top"><span class="sf-text-2 bold">Сохранение шаблона</span></div>
+                    <div class="sf-table-context-top"><span class="sf-text-2 bold">${this.text('saveTemplateLabel')}</span></div>
                     <div class="sf-table-context-main">
                         <form ${ref(this.refs.templateForm)} id="save_template" class="flex flex-col gap-1/2">
                             <sf-input
@@ -3504,17 +3505,17 @@ class SfTable extends TableElement {
                     </div>
                 </div>
                 <div class="sf-table-context-bottom sf-context-menu-footer">
+                    <sf-button size=${this.size}
+                            ?disabled=${this.state.saveInputValue.length === 0}
+                            @click="${() => {
+                                this.saveFilterTemplate();
+                            }}" root-class="flex-1" text="${this.text('applyText')}"></sf-button>
                     <sf-button size=${this.size} @click="${() => {
                         this.tempSettings = null;
                         this.requestComponentUpdate('table')
                     }
                     }" appearance="outline" scheme="on-surface" root-class="flex-1"
                                text="${this.text('resetText')}"></sf-button>
-                    <sf-button size=${this.size}
-                            ?disabled=${this.state.saveInputValue.length === 0}
-                            @click="${() => {
-                                this.saveFilterTemplate();
-                            }}" root-class="flex-1" text="${this.text('applyText')}"></sf-button>
                 </div>
                 </div>
             </sf-menu-context>
@@ -4341,12 +4342,23 @@ class SfTable extends TableElement {
             const files = value.map((file) => renderCellField(column, file, host)).filter((item) => item !== null && item !== undefined);
             return files.length ? files : null;
         }
+        // A date reads as the SIMAI Framework's field renderers read it (the
+        // record's own day and clock, in the page's language; the host's
+        // formatFieldValue first): the table's own date parsing is gone (VF-10).
         const rendered = renderCellField(column, value, host);
         if (rendered !== null && rendered !== undefined) return rendered;
-        // A date the host did not format reads in the page's language rather
-        // than as stored (format-date); the host's formatFieldValue still wins.
-        if (DATE_TYPES.has(type)) return formatDateValue(type, value, this) || null;
         return null;
+    }
+
+    // The machine reading of a date cell (C40, PD-9): a date or a date and time
+    // the Framework reads is printed as a time element whose datetime is the
+    // record's own day and clock, as the record panel prints it. '' for any
+    // other cell, or a value that is no date.
+    cellDateTime(column = {}, value) {
+        const type = column.propertyType ?? column.property_type ?? column.type;
+        if (type !== "date" && type !== "datetime") return "";
+        if (typeof value !== "string" && !(value && typeof value === "object" && !Array.isArray(value))) return "";
+        return dateTimeAttribute({...column, propertyType: type}, value) || "";
     }
 
     // The text a long-text cell shows on its one line: formatted text is its
@@ -4371,7 +4383,7 @@ class SfTable extends TableElement {
             size: this.size,
             getFilterControlValue: (key) => this.getFilterControlValue(key),
             patchTempFilterValue: (key, patch) => this.patchTempFilterValue(key, patch),
-            getFilterOperatorLabel: (operator) => this.getFilterOperatorLabel(operator),
+            getFilterOperatorLabel: (operator) => this.getFilterOperatorLabel(operator, field),
             getFilterOptionSearch: (key) => this.getFilterOptionSearch(key),
             patchTempFilterOptionSearch: (key, search) => this.patchTempFilterOptionSearch(key, search),
             getVisibleFilterOptions: (item) => this.getVisibleFilterOptions(item),
@@ -4456,7 +4468,12 @@ class SfTable extends TableElement {
         `;
     }
 
-    getFilterOperatorLabel(operator) {
+    // A date's comparisons read as time, not as amounts (PD-6): «Позже»,
+    // «Не раньше», «Раньше», «Не позже» for a date or a date and time field.
+    getFilterOperatorLabel(operator, field = null) {
+        const type = field?.propertyType ?? field?.property_type ?? field?.type ?? field?.dataType ?? field?.filter?.control;
+        const dated = {gt: 'operatorAfter', gte: 'operatorOnOrAfter', lt: 'operatorBefore', lte: 'operatorOnOrBefore'};
+        if ((type === 'date' || type === 'datetime') && dated[operator]) return this.text(dated[operator]);
         const keys = {
             eq: 'operatorEq', gt: 'operatorGt', gte: 'operatorGte',
             lt: 'operatorLt', lte: 'operatorLte', between: 'operatorBetween',
@@ -4662,18 +4679,6 @@ class SfTable extends TableElement {
                             </div>`}
                 </div>
                         <sf-button slot="footer" size=${this.size} @click="${() => {
-                            // Reset means the defaults, not "forget what I just
-                            // typed here": the draft goes, and the host is asked
-                            // to clear the person's own layer — order, widths,
-                            // visibility and pinning — because the defaults are
-                            // the host's to decide, not this component's.
-                            this.tempSettings = null;
-                            this.requestComponentUpdate('table');
-                            this.requestColumnSettingsReset();
-                        }
-                        }" appearance="outline" scheme="on-surface" root-class="flex-1"
-                                   text="${this.text('resetText')}"></sf-button>
-                        <sf-button slot="footer" size=${this.size} @click="${() => {
                             const tempFilter = this.tempSettings?.filter;
 
                             if (tempFilter) {
@@ -4738,6 +4743,18 @@ class SfTable extends TableElement {
                                    text=${pendingConditions
                                        ? `${this.text("filterApplyText", "filter-apply-text")} (${pendingConditions})`
                                        : this.text("filterApplyText", "filter-apply-text")}></sf-button>
+                        <sf-button slot="footer" size=${this.size} @click="${() => {
+                            // Reset means the defaults, not "forget what I just
+                            // typed here": the draft goes, and the host is asked
+                            // to clear the person's own layer — order, widths,
+                            // visibility and pinning — because the defaults are
+                            // the host's to decide, not this component's.
+                            this.tempSettings = null;
+                            this.requestComponentUpdate('table');
+                            this.requestColumnSettingsReset();
+                        }
+                        }" appearance="outline" scheme="on-surface" root-class="flex-1"
+                                   text="${this.text('resetText')}"></sf-button>
             </sf-menu-context>
         `;
     }
@@ -4780,12 +4797,6 @@ class SfTable extends TableElement {
                     </div>
                     <div class="sf-table-context-bottom sf-context-menu-footer">
                         <sf-button size=${this.size} @click="${() => {
-                            this.tempSettings = null;
-                            this.requestComponentUpdate('table')
-                        }
-                        }" appearance="outline" scheme="on-surface" root-class="flex-1"
-                                   text="${this.text('resetText')}"></sf-button>
-                        <sf-button size=${this.size} @click="${() => {
                             const tempFilter = this.tempSettings?.filter;
 
                             if (tempFilter) {
@@ -4813,6 +4824,12 @@ class SfTable extends TableElement {
                             this.tempSettings = null;
                             this.closeContextMenu();
                         }}" root-class="flex-1" text="${this.text('applyText')}"></sf-button>
+                        <sf-button size=${this.size} @click="${() => {
+                            this.tempSettings = null;
+                            this.requestComponentUpdate('table')
+                        }
+                        }" appearance="outline" scheme="on-surface" root-class="flex-1"
+                                   text="${this.text('resetText')}"></sf-button>
                     </div>
                 </div>
             </sf-menu-context>

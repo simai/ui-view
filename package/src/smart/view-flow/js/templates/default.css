@@ -131,7 +131,6 @@
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    justify-content: space-between;
     gap: var(--sf-space-1\/3);
   }
 
@@ -156,7 +155,6 @@
   .sf-view-flow__actions {
     display: flex;
     gap: var(--sf-space-1\/3);
-    margin-inline-start: auto;
   }
 
   .sf-view-flow__actions[hidden] { display: none; }

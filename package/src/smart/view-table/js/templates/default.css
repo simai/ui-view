@@ -578,17 +578,13 @@
   }
 
   :is(sf-view-table, sf-table) .sf-table-link-cell {
-    color: inherit;
-    display: inline-flex;
     max-width: 100%;
     min-width: 0;
-    text-decoration: none;
   }
 
   /* One link in a table (owner, 2026-10-14): the link colour, no underline at
      rest, the underline on hover and focus -- the title, a link cell and a
      related record alike. Three styles side by side were visual noise. */
-  :is(sf-view-table, sf-table) a.sf-table-link-cell .sf-table-link-cell-text,
   :is(sf-view-table, sf-table) .sf-table-title-link,
   :is(sf-view-table, sf-table) .sf-reference-link :where(.sf-reference-link__link, .sf-reference-link-left > a) {
     color: var(--sf-link);
@@ -596,7 +592,6 @@
     text-underline-offset: var(--sf-a3);
   }
 
-  :is(sf-view-table, sf-table) a.sf-table-link-cell:is(:hover, :focus-visible) .sf-table-link-cell-text,
   :is(sf-view-table, sf-table) .sf-table-title-link:is(:hover, :focus-visible),
   :is(sf-view-table, sf-table) .sf-reference-link :where(.sf-reference-link__link, .sf-reference-link-left > a):is(:hover, :focus-visible) {
     text-decoration: underline;
@@ -1113,26 +1108,11 @@
     }
   }
 
-  /* The filter button carries how many conditions are on. */
+  /* The filter button carries how many conditions are on: the icon
+     button's own badge (badge-count). */
   :is(sf-view-table, sf-table) .sf-table-list-filter {
-    position: relative;
     display: inline-flex;
     flex: none;
-  }
-
-  :is(sf-view-table, sf-table) .sf-table-list-filter-count {
-    position: absolute;
-    inset-block-start: calc(var(--sf-a4) * -1);
-    inset-inline-end: calc(var(--sf-a4) * -1);
-    min-inline-size: var(--sf-text-height-1\/2);
-    padding-inline: var(--sf-a2);
-    border-radius: var(--sf-radius-circle);
-    background-color: var(--sf-error);
-    color: var(--sf-on-error);
-    font-size: var(--sf-text-size-1\/2);
-    line-height: var(--sf-text-height-1\/2);
-    text-align: center;
-    pointer-events: none;
   }
 
   /* Active filters: one row of chips that scrolls sideways, so the list starts

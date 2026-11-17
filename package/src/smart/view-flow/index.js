@@ -24,7 +24,6 @@
 import SfBaseElement from "../../core/js/smart-base";
 import {applied, elementFromManifest, refused} from "../../core/js/element-manifest";
 import {confirmSurface} from "../helpers/confirm-surface.js";
-import {formatDateValue} from "../view-table/js/format-value.js";
 import {renderViewFlowTemplate} from "./js/templates/default.js";
 import {answerValues, groupsOf, missingRequired, readSettle} from "./js/answer.js";
 import manifest from "./component.json";
@@ -144,17 +143,15 @@ class SfViewFlow extends Surface {
         return answerValues(this.blockGroups, this._changed);
     }
 
-    // The host the view renderers read: its formatFieldValue first, and for a
-    // date it did not format, the date in the page's language -- as
-    // sf-view-properties reads a field shown.
+    // The host the view renderers read: its formatFieldValue first; a date it
+    // did not format reads as the SIMAI Framework's field renderers read it
+    // (VF-10: the set's own date parsing is gone).
     get viewHost() {
         if (this._viewHost) return this._viewHost;
         this._viewHost = {
             formatFieldValue: (field, value) => {
                 const given = this._formatter?.(field, value);
-                if (typeof given === "string") return given;
-                const type = field?.propertyType ?? field?.property_type ?? field?.type ?? field?.dataType;
-                return formatDateValue(type, value, this) || undefined;
+                return typeof given === "string" ? given : undefined;
             },
         };
         return this._viewHost;
