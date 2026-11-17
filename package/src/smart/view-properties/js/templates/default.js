@@ -1,5 +1,4 @@
 import {html, nothing} from 'lit';
-import {keyed} from 'lit/directives/keyed.js';
 import "./default.css";
 import {renderViewField, renderEditField} from '../../../field-renderers/index.js';
 import {renderFieldValue} from '../field-value.js';
@@ -332,6 +331,49 @@ function renderEntryName(context, kind, key, label, titleClass) {
 // What a press inside a field's value may land on that acts on its own.
 const INNER_CONTROL = 'a[href], button, input, select, textarea, [role="button"], [role="link"]';
 
+// A field read (C289 (4), C180 (3)): a row of sf-list-description's parts --
+// the label in the list's label column, the value beside it from a list of
+// 22rem, over it in a narrower list and on a phone. The list's sheet draws the
+// row on one rung of the ladder (a one-line row is the rung's control height,
+// 40 at size 1), so a property takes a row, not a card's 84 px. The value is
+// the field renderers' as before; a value that opens its group for editing is
+// a button of the line's height, 24 at the least (VW-7, §8.9).
+function renderReadRow(context, field, sectionKey, groupKey) {
+    if (field.when) field = context.conditionedField(field);
+    const key = String(field.key ?? '');
+    const error = context.controlErrors?.has(key) ? null : context.errors.get(key);
+    const opens = !(field.readonly === true || !context.mayEdit || context.openAll);
+    return html`
+        <div class="sf-list-description-row sf-property-view-field sf-property-view-row" data-field=${key}>
+            <dt class="sf-list-description-label sf-property-view-field-label">${String(field.label ?? key)}${field.hint
+                    ? html`<sf-help-mark class="sf-list-description-help sf-property-view-hint" size=${context.size === '1/2' ? '1/3' : '1/2'}
+                                         label=${String(field.hint)} text=${String(field.hint)}></sf-help-mark>`
+                    : nothing}${field.rare ? html` <span class="sf-property-view-rare color-on-surface-variant">${context.rareText}</span>` : nothing}${field.inherited
+                    ? html` <span class="sf-property-view-inherited color-on-surface-variant">${context.inheritedText}</span>`
+                    : nothing}</dt>
+            <dd class="sf-list-description-value">
+                <span class="sf-list-description-line">
+                    ${opens
+                            ? html`<button
+                                    type="button"
+                                    class="sf-property-view-field-value sf-property-view-field-open min-w-0 text-start cursor-pointer"
+                                    data-open-group=${groupKey}
+                                    title=${context.editText}
+                                    @click=${(event) => {
+                                        const path = event.composedPath();
+                                        const inner = path.slice(0, Math.max(0, path.indexOf(event.currentTarget)));
+                                        if (inner.some((node) => node.matches?.(INNER_CONTROL))) return;
+                                        context.component.editGroup(sectionKey, groupKey);
+                                    }}
+                            >${renderFieldValue(context, field, false)}<i class="sf-icon sf-icon--size-1/2 sf-property-view-pen" aria-hidden="true">edit</i></button>`
+                            : html`<span class="sf-property-view-field-value min-w-0">${renderFieldValue(context, field, false)}</span>`}
+                </span>
+                ${error ? html`<span class="sf-property-view-field-error color-error" role="alert">${error}</span>` : nothing}
+            </dd>
+        </div>
+    `;
+}
+
 function renderField(context, field, editing, sectionKey = '', groupKey = '') {
     // A field as its conditions make it now (port 1.14.0): required or not,
     // enabled or drawn disabled as a readonly field is. Not while the view is
@@ -539,13 +581,40 @@ function renderGroup(context, section, group) {
         ? Number.isInteger(group.field_count) && group.field_count > 0 ? group.field_count : 0
         : 0;
     const reading = waiting > 0 || Boolean(context.component.isGroupReading?.(groupKey));
+    // Read, the group is a section of the record's description list: its name
+    // a list section heading with «Изменить» as its action, its fields rows of
+    // the list (C289 (4)). Edited, arranged or holding related records it stays
+    // the card it was.
+    if (!editing && !configuring && group.kind !== 'related') {
+        const readRows = waiting > 0
+            ? html`${Array.from({length: waiting}, (_, at) => html`<div class="sf-list-description-row sf-property-view-row" aria-hidden="true"><dt class="sf-list-description-label"><div class="sf-skeleton sf-skeleton--animation-pulse"><div class="sf-skeleton-text sf-skeleton-text--size-1 w-2/3"></div></div></dt><dd class="sf-list-description-value"><div class="sf-skeleton sf-skeleton--animation-pulse"><div class="sf-skeleton-text sf-skeleton-text--size-1 ${SKELETON_WIDTHS[at % SKELETON_WIDTHS.length]}"></div></div></dd></div>`)}`
+            : html`${fields.map((field) => renderReadRow(context, field, String(section.key ?? ''), groupKey))}`;
+        return html`
+            <section class="sf-property-view-group sf-property-view-group--list" data-group=${groupKey} aria-busy=${reading ? 'true' : nothing}>
+                <div class="sf-list-description-head sf-property-view-group-header">
+                    <div class="sf-list-description-title sf-property-view-group-title" role="heading" aria-level="3">${String(group.label ?? groupKey)}${group.rare
+                            ? html` <span class="sf-property-view-rare color-on-surface-variant">${context.rareText}</span>` : nothing}</div>
+                    ${context.mayEdit && !context.openAll && group.editable !== false
+                            ? html`<span class="sf-list-description-action"><sf-button
+                                    appearance="ghost"
+                                    size=${context.controlSize ?? nothing}
+                                    text=${context.editText}
+                                    data-action="edit"
+                                    @click=${() => context.component.editGroup(String(section.key ?? ''), groupKey)}
+                            ></sf-button></span>`
+                            : nothing}
+                </div>
+                ${fields.length || waiting ? html`<dl class="sf-list-description-part sf-property-view-group-fields" aria-label=${String(group.label ?? groupKey)}>${readRows}</dl>` : nothing}
+            </section>
+        `;
+    }
     const rows = waiting > 0
         ? html`${Array.from({length: waiting}, (_, at) => html`<div class="sf-skeleton sf-skeleton--animation-pulse" aria-hidden="true">
             <div class="sf-skeleton-text sf-skeleton-text--size-1 ${SKELETON_WIDTHS[at % SKELETON_WIDTHS.length]}"></div></div>`)}`
         : html`${fields.map((field) => renderField(context, field, editing, String(section.key ?? ''), groupKey))}`;
 
     return html`
-        <section class="sf-property-view-group bg-surface-page flex flex-col gap-2 ${editing ? 'sf-property-view-group--editing' : ''}"
+        <section class="sf-property-view-group bg-surface-page flex flex-col gap-2 ${editing ? 'sf-property-view-group--editing' : ''} ${group.kind === 'related' && !editing && !configuring ? 'sf-property-view-group--related' : ''}"
                  data-group=${groupKey}
                  aria-busy=${reading ? 'true' : nothing}
                  data-sf-sortable-item=${configuring ? groupKey : nothing}
@@ -633,20 +702,25 @@ function renderGroup(context, section, group) {
 // list is: a list of one is a control nobody can use, and it would put a screen
 // between a person and the only groups there are.
 function renderPhoneSectionList(context, sections) {
+    // The rows are sf-list's (C289 (5), C148 (4)): a section opens as a level
+    // of the panel, «←» in its head (C157 (6)).
+    const items = sections.map((section) => ({
+        id: String(section.key),
+        text: String(section.label ?? section.key),
+        ...(section.icon ? {icon: String(section.icon)} : {}),
+    }));
     return html`
-        <nav class="sf-property-view-phone-sections flex flex-col" aria-label=${context.sectionsLabel}>
-            ${sections.map((section) => html`
-                <button
-                        type="button"
-                        class="sf-property-view-phone-section flex items-cross-center justify-between gap-1"
-                        data-phone-section=${String(section.key)}
-                        @click=${() => context.component.openPhoneSection(String(section.key))}
-                >
-                    <span class="sf-property-view-phone-section-label">${String(section.label ?? section.key)}</span>
-                    <i class="sf-icon" aria-hidden="true">chevron_right</i>
-                </button>
-            `)}
-        </nav>
+        <sf-list
+                class="sf-property-view-phone-sections"
+                label=${context.sectionsLabel}
+                size=${context.controlSize ?? nothing}
+                divided
+                .items=${items}
+                @sf-list-open=${(event) => {
+                    const id = event.detail?.id;
+                    if (id !== undefined && id !== null) context.component.openPhoneSection(String(id));
+                }}
+        ></sf-list>
     `;
 }
 
@@ -802,6 +876,9 @@ function renderSectionTabs(context, sections) {
     return html`
         <sf-tabs
                 class="sf-property-view-tabs"
+                type="underline"
+                overflow="more"
+                ?sticky=${context.panel}
                 size=${context.controlSize ?? nothing}
                 active-index=${String(at)}
                 aria-label=${context.sectionsLabel}
@@ -833,26 +910,24 @@ function sizeStyle(context) {
 // arrangement as the view's reset question. Going back sends nothing and keeps
 // what was entered.
 function renderConfirmation(context) {
+    // The Framework's question in place (C289, C182; sf-confirm inline, C166):
+    // the host's words and the two answers where Save was pressed. It was a bar
+    // of this component's own.
     return html`
-        <div class="sf-property-view-actions flex items-cross-center gap-1/3 flex-wrap" role="group"
-             data-confirming="true">
-            <span class="sf-property-view-confirm-text" role="alert">${context.confirmation.text}</span>
-            <span class="grow"></span>
-            <sf-button
-                    appearance="default"
+        <div class="sf-property-view-actions sf-property-view-confirm" data-confirming="true">
+            <sf-confirm
+                    appearance="inline"
                     size=${context.controlSize ?? nothing}
-                    text=${context.confirmSaveText}
-                    data-action="confirm-save"
-                    @click=${() => context.component.confirmSave()}
-            ></sf-button>
-            <sf-button
-                    appearance="ghost"
-                    scheme="on-surface"
-                    size=${context.controlSize ?? nothing}
-                    text=${context.keepEditingText}
-                    data-action="keep-editing"
-                    @click=${() => context.component.cancelConfirmation()}
-            ></sf-button>
+                    question=${context.confirmation.text}
+                    confirm-id="save"
+                    accept-text=${context.confirmSaveText}
+                    decline-text=${context.keepEditingText}
+                    @sf-confirm-answer=${(event) => {
+                        event.preventDefault?.();
+                        if (event.detail?.accepted) context.component.confirmSave();
+                        else context.component.cancelConfirmation();
+                    }}
+            ></sf-confirm>
         </div>
     `;
 }
@@ -869,7 +944,6 @@ function renderOpenAllBar(context) {
                     size=${context.controlSize ?? nothing}
                     text=${creating ? context.createText : context.saveText}
                     data-action=${creating ? 'create' : 'save'}
-                    ?disabled=${(!creating && context.changed.size === 0) || context.inputsInvalid}
                     @click=${() => context.component.saveAll()}
             ></sf-button>
             <sf-button
@@ -895,18 +969,16 @@ function renderActions(context, {panel = false} = {}) {
     // 2026-10-14): a reader sees values, not controls that would refuse.
     if (context.mode === 'view') return nothing;
     if (context.openAll) return renderOpenAllBar(context);
-    const removable = context.mode !== 'create' && context.recordActions.includes('record.delete');
     // While the view is arranged the foot carries that mode's controls instead:
     // saving a record and arranging the view it is read in are two modes, and a
     // bar holding both would offer a save for something nobody was editing.
     if (context.configuring) return renderConfigureBar(context);
     if (context.editing && context.confirmation) return renderConfirmation(context);
-    // A panel's foot holds every action on the record -- the host's own, slotted
-    // as `footer`, and the delete -- in one bar under the fields (owner,
-    // 2026-10-14). They were drawn in the scrolling body, the delete as one more
-    // section of it.
+    // A panel's foot holds the host's own actions, slotted as `footer`, and
+    // the group's Save and Cancel. Deleting is a row of the head's «⋯» (C289
+    // (3), C180 (2)): a foot stands for two actions or more, never for one delete.
     const hosted = panel && context.hasHostSlot('footer');
-    if (!context.editing && !removable && !hosted) return nothing;
+    if (!context.editing && !hosted) return nothing;
 
     return html`
         <div class="sf-property-view-actions flex items-cross-center gap-1/3 flex-wrap" role="group">
@@ -917,7 +989,6 @@ function renderActions(context, {panel = false} = {}) {
                                 size=${context.controlSize ?? nothing}
                                 text=${context.saveText}
                                 data-action="save"
-                                ?disabled=${context.changed.size === 0 || context.inputsInvalid}
                                 @click=${() => context.component.saveGroup()}
                         ></sf-button>
                         <sf-button
@@ -937,19 +1008,6 @@ function renderActions(context, {panel = false} = {}) {
                     : nothing}
             <span class="grow"></span>
             ${hosted ? html`<div class="sf-property-view-host-footer flex flex-wrap items-cross-center gap-1/3">${context.hostSlot('footer')}</div>` : nothing}
-            ${removable
-                    ? html`
-                        <sf-button-icon
-                                appearance="ghost"
-                                status="danger"
-                                size=${context.controlSize ?? nothing}
-                                icon="delete"
-                                data-action="delete"
-                                title=${context.deleteText}
-                                aria-label=${context.deleteText}
-                                @click=${() => context.component.deleteRecord()}
-                        ></sf-button-icon>`
-                    : nothing}
         </div>
     `;
 }
@@ -1055,7 +1113,8 @@ function renderMenuControl(context) {
     // The views are chosen from this menu too, so more than one of them is a
     // reason for it to stand even with nothing else in it.
     const views = !context.configuring && (context.viewProfiles?.length ?? 0) > 1;
-    if (!items.length && !host && !views) return nothing;
+    const record = (context.recordMenuItems?.length ?? 0) > 0 || context.canDeleteRecord;
+    if (!items.length && !host && !views && !record) return nothing;
 
     // Always the menu, never the one item drawn in its place. The place is the
     // panel's own: what belongs in it depends on the task, and a consumer that
@@ -1071,7 +1130,7 @@ function renderMenuControl(context) {
         <sf-button-icon
                 appearance="ghost"
                 scheme="on-surface"
-                size=${context.controlSize ?? nothing}
+                size=${context.panel ? '1/3' : (context.controlSize ?? nothing)}
                 icon="more_horiz"
                 data-action="menu"
                 aria-haspopup="menu"
@@ -1097,11 +1156,29 @@ function renderMenuControl(context) {
 // stood beside the star for ~115 ms and then jumped to the end (D1, 1.16.3).
 function renderPanelHead(context) {
     const level = phoneLevel(context);
+    // One row of the ladder's step 2 (48 at a desktop; C289 (6), R254), its
+    // buttons the head's 1/3 as sf-drawer draws its own (C180 (2)). A related
+    // record opened from this one is drawn inside the same panel (sf-drawer
+    // C157 (6)); its way back is the line «← <Запись>» over the title, on the
+    // drawer's own back part (data-sf-drawer-back), so the title does not move
+    // and the close still closes the whole chain.
     return html`
-        <header class="sf-property-view-head flex flex-col gap-1">
+        <header class="sf-property-view-head flex flex-col">
+            ${context.nestedUnder ? html`<div class="sf-property-view-back">
+                <sf-button
+                        appearance="ghost"
+                        scheme="on-surface"
+                        size="1/3"
+                        icon-start="arrow_back"
+                        text=${context.nestedUnder}
+                        aria-label=${`${context.backLabel}: ${context.nestedUnder}`}
+                        data-action="nested-back"
+                        data-sf-drawer-back
+                ></sf-button>
+            </div>` : nothing}
             <div class="sf-property-view-title-row">
                 ${level ? html`<sf-button-icon
-                        size=${context.controlSize ?? nothing}
+                        size="1/3"
                         appearance="ghost"
                         scheme="on-surface"
                         icon="arrow_back"
@@ -1111,17 +1188,10 @@ function renderPanelHead(context) {
                         @click=${() => context.component.closePhoneSection()}
                 ></sf-button-icon>` : nothing}
                 <h2 class="sf-property-view-title min-w-0 overflow-hidden">${level ? context.phoneSectionLabel : (context.panelLabel || context.recordLabel || context.recordId || '')}</h2>
-                <!-- One glyph, filled when the record is a favourite and outlined
-                     when it is not: a star that changes shape as well as fill
-                     says two things where one will do (owner, 2026-10-08). The
-                     press raises the component's own event; whether the record
-                     is a favourite stays the host's to decide and to answer.
-                     A record being created is not one yet and cannot be a
-                     favourite: no star until it has an id (Larena storage
-                     review, 2026-10-28). -->
                 ${context.recordId && context.mode !== 'create' ? html`<sf-button-icon
                         appearance="ghost"
-                        size=${context.controlSize ?? nothing}
+                        scheme="on-surface"
+                        size="1/3"
                         icon="star"
                         ?filled=${context.favourite}
                         data-action="favourite"
@@ -1133,7 +1203,7 @@ function renderPanelHead(context) {
                 ${context.hasHostSlot('actions') ? context.hostSlot('actions') : nothing}
                 ${renderMenuControl(context)}
                 <sf-button-close
-                        size=${context.controlSize ?? '1'}
+                        size="1/3"
                         aria-label=${context.closeLabel}
                         data-action="close"
                         @click=${() => context.component.closePanel('close')}
@@ -1146,81 +1216,6 @@ function renderPanelHead(context) {
 // A section opened on a phone, inside a panel: a level of the panel (C157 (6)).
 function phoneLevel(context) {
     return Boolean(context.panel && !context.wide && (context.sections?.length ?? 0) > 1 && context.phoneSection !== null);
-}
-
-// The edge controls stand on a raised surface, elevation 3 as a menu does: its
-// own fill and shadow, and the text role that goes with it. On --sf-surface-page
-// they were the page's darkest colour on a dimmed page in the dark theme and
-// could hardly be found (owner, 2026-10-13). Inline, because the button's own
-// appearance rule outranks any selector this sheet could write.
-const EDGE_SURFACE = '--sf-icon-button--background-color: var(--sf-surface-popup); --sf-on-surface-variant: var(--sf-on-surface-popup-variant); box-shadow: var(--sf-shadow-popup)';
-
-// Round, and on the panel's outer edge rather than inside its head: in a stack
-// each panel keeps its own set visible past the one above it, which is what the
-// mockup shows and what a row inside the head cannot do.
-//
-// A panel filling the screen has no outside, and the drawer brings the strip in
-// along the top of it, at its inline start. There the controls stand in a row,
-// as the drawer lays its own edge out, and the head keeps their room
-// (panelFills): a column there stood over the record's name and the first rows
-// on a phone (docs review, round 4, 2026-10-20).
-function panelFills(context) {
-    return !context.wide || context.panelSize === 'full';
-}
-
-function renderPanelControls(context) {
-    // The close is in the head (C14, C157 (6)); the strip keeps copy-link and
-    // open-full, and is hidden when the host gives neither. It is drawn from the
-    // first render all the same: sf-drawer takes a slot="edge" child into its
-    // edge area when it renders or when one is added to it directly, not when
-    // one appears later deeper in its content, so a strip drawn only once the
-    // record said it has an address stayed in the panel's body, over the record.
-    const shown = Boolean(context.edgeControlCount);
-    // In the drawer's head (data-sf-drawer-edge-in-head) the controls are the
-    // page's buttons beside the close (C205 (2)): size 1/3, as the head's other
-    // buttons, on the panel without the raised plate, in a row 8 apart as the
-    // drawer lays its edge out. Beside the panel they keep the panel's size on
-    // their plate, in a column. A Smart button draws its look once, so the
-    // controls are drawn anew when the place changes (keyed).
-    const inHead = Boolean(context.edgeInHead);
-    const row = inHead || panelFills(context);
-    const size = inHead ? '1/3' : (context.controlSize ?? nothing);
-    const plate = inHead ? nothing : EDGE_SURFACE;
-    return html`
-        <div class="sf-property-view-edge ${shown ? `flex ${row ? 'flex-row' : 'flex-col'} ${inHead ? 'gap-1/3' : 'gap-1/2'}` : ''}" slot="edge" ?hidden=${!shown}>
-            ${keyed(inHead, html`${context.address
-                    ? html`
-                        <sf-button-copy
-                                appearance="tonal"
-                                root-style=${plate}
-                                size=${size}
-                                icon="link"
-                                value=${context.addressUrl}
-                                label=${context.copyLinkLabel}
-                                success-text=${context.linkCopiedLabel}
-                                duration=${String(context.copyFeedbackMs)}
-                                data-action="copy-link"
-                                .propertyView=${context.component}
-                                @sf-copy-button-copied=${() => context.component.announceAddressCopy(true)}
-                                @sf-copy-button-copy-failed=${() => context.component.announceAddressCopy(false)}
-                        ></sf-button-copy>`
-                    : nothing}
-            ${context.canOpenFullPage
-                    ? html`
-                        <sf-button-icon
-                                appearance="tonal"
-                                scheme="on-surface"
-                                root-style=${plate}
-                                size=${size}
-                                icon="open_in_full"
-                                aria-label=${context.openFullLabel}
-                                title=${context.openFullLabel}
-                                data-action="open-full"
-                                @click=${() => context.component.openFullPage()}
-                        ></sf-button-icon>`
-                    : nothing}`)}
-        </div>
-    `;
 }
 
 // The phone's list screen: below the breakpoint, with more than one section and
@@ -1475,8 +1470,35 @@ function renderAddSection(context) {
 // column reaches the top of the panel the way a rail of tabs does.
 function sidebarDrawn(context) {
     const sections = listed(context, context.sections);
-    return Boolean(context.wide && context.sectionsAs === 'list'
+    return Boolean(context.sectionsLayout === 'column'
         && (sections.length > 1 || context.configuring));
+}
+
+// The line of tabs under the head (C289 (1)): a panel narrower than the whole
+// screen, or a page that asked for tabs, with more than one section. While the
+// view is arranged the sections are rows that take a drop, drawn over the
+// groups instead (sectionsStacked).
+function lineTabsDrawn(context, sections) {
+    return context.sectionsLayout === 'tabs' && sections.length > 1 && !context.configuring;
+}
+
+function sectionsStacked(context) {
+    return context.sectionsLayout === 'tabs' && context.configuring;
+}
+
+// The errors of a save, from two of them (C182 (6)): a summary over the
+// fields with a link to each, which takes the focus; one error takes the
+// focus to its field. The look is sf-form's summary (the quiet error
+// container), so a record and a form say it the same way.
+function renderErrorSummary(context) {
+    const list = context.errorList ?? [];
+    if (list.length < 2 || !(context.editing || context.openAll)) return nothing;
+    return html`<div class="sf-property-view-error-summary" role="alert" tabindex="-1">
+        <p class="sf-property-view-error-summary-title">${context.errorsText}: ${list.length}</p>
+        <ul class="sf-property-view-error-summary-list">${list.map((error) => html`<li><a href=${`#${error.key}`}
+            data-field-link=${error.key}
+            @click=${(event) => { event.preventDefault(); context.component.focusField(error.key); }}>${error.label}: ${error.message}</a></li>`)}</ul>
+    </div>`;
 }
 
 // The record on its way: the arrangement's shape in the Framework's skeleton
@@ -1502,7 +1524,7 @@ function renderLoading(context) {
     // (.sf-tabs-main-container), both from the tabs' sheet; the strip was one
     // text line before, and the record still moved down by 49px at size 1.
     // The root is not .sf-tabs: that class is the tabs script's to bind.
-    const tabs = html`<div class="sf-property-view-tabs sf-property-view-tabs--skeleton" aria-hidden="true" data-sf-skeleton="tabs" data-sections-as=${context.sectionsAs} data-size=${context.size}><div class="sf-tabs-top-container"><div class="sf-property-view-tabs-skeleton-strip flex items-cross-center gap-2">${[0, 1, 2].map((at) => html`<div class="flex-none" style="inline-size: 6rem">${bar(at + 3)}</div>`)}</div></div><div class="sf-tabs-main-container"></div></div>`;
+    const tabs = html`<div class="sf-property-view-tabs sf-property-view-tabs--skeleton" aria-hidden="true" data-sf-skeleton="tabs" data-sections-as=${context.sectionsLayout === 'tabs' ? 'tabs' : 'list'} data-size=${context.size}><div class="sf-tabs-top-container"><div class="sf-property-view-tabs-skeleton-strip flex items-cross-center gap-2">${[0, 1, 2].map((at) => html`<div class="flex-none" style="inline-size: 6rem">${bar(at + 3)}</div>`)}</div></div><div class="sf-tabs-main-container"></div></div>`;
     return html`${tabs}<div class="sf-property-view-loading flex flex-col gap-4" data-state="loading">${Array.from({length: SKELETON_GROUPS}, (_, group) => html`<section class="sf-property-view-group bg-surface-page flex flex-col gap-2" aria-busy="true"><header class="sf-property-view-group-header flex items-cross-center content-main-between gap-2"><div class="flex-1">${bar(group)}</div></header>${Array.from({length: SKELETON_FIELDS}, (_, field) => bar(group + field + 1))}</section>`)}<span class="sr-only" role="status">${context.message}</span></div>`;
 }
 
@@ -1528,7 +1550,8 @@ function renderBody(context, railOutside = false, withActions = true) {
         <div class="sf-property-view-status" role="status" aria-live="polite" ?hidden=${!context.message}>
             ${context.message}
         </div>
-        ${!context.panel && (context.hasHostSlot('actions') || context.hasHostSlot('menu') || context.panelMenuItems.length)
+        ${!context.panel && (context.hasHostSlot('actions') || context.hasHostSlot('menu') || context.panelMenuItems.length
+                || context.canDeleteRecord || (context.recordMenuItems?.length ?? 0) > 0)
                 ? html`
                     <div class="sf-property-view-host-actions flex flex-wrap items-cross-center justify-end gap-1">
                         ${context.hasHostSlot('actions') ? context.hostSlot('actions') : nothing}
@@ -1536,9 +1559,7 @@ function renderBody(context, railOutside = false, withActions = true) {
                     </div>`
                 : nothing}
         ${onPhoneSectionList(context, sections) ? renderPhoneSectionList(context, sections) : nothing}
-        ${context.wide && context.sectionsAs === 'tabs' && sections.length > 1
-                ? renderSectionTabs(context, sections)
-                : nothing}
+        ${lineTabsDrawn(context, sections) ? renderSectionTabs(context, sections) : nothing}
         <div class="sf-property-view-layout"
              style=${`--sf-property-view--sections-width: ${context.sectionsWidth};${context.panel ? '' : sizeStyle(context)}`}
              data-sections=${String(sections.length)}
@@ -1546,7 +1567,7 @@ function renderBody(context, railOutside = false, withActions = true) {
             ${!context.panel && !context.wide && sections.length > 1 && context.phoneSection !== null
                     ? renderPhoneSectionHead(context)
                     : nothing}
-            ${sidebarDrawn(context) && !railOutside ? renderSectionList(context, sections) : nothing}
+            ${(sidebarDrawn(context) && !railOutside) || sectionsStacked(context) ? renderSectionList(context, sections) : nothing}
             ${context.isEmptyRecord && !context.configuring
                     ? html`<p class="sf-property-view-empty-record color-on-surface-variant"
                               role="status">${context.emptyRecordText}</p>`
@@ -1567,7 +1588,10 @@ function renderBody(context, railOutside = false, withActions = true) {
                         </div>`
                     : html`
                         <div class="sf-property-view-body flex-auto min-w-0 flex flex-col gap-4">
-                            ${context.visible(current?.groups).map((group) => renderGroup(context, current, group))}
+                            ${renderErrorSummary(context)}
+                            <div class="sf-list-description sf-list-description--size-${context.size === '1/2' ? 'half' : '1'} sf-list-description--layout-auto sf-list-description--sections sf-property-view-list">
+                                <div class="sf-list-description-list">${context.visible(current?.groups).map((group) => renderGroup(context, current, group))}</div>
+                            </div>
                         </div>`}
         </div>
         ${withActions && context.hasHostSlot('footer')
@@ -1631,20 +1655,17 @@ export function renderPropertyViewTemplate(context) {
                 placement="inline-end"
                 modal="true"
                 overlay="true"
-                size=${context.wide ? context.panelSize : 'full'}
-                width=${context.wide ? (context.drawerWidth || nothing) : nothing}
+                size=${context.wide ? context.drawerStep : 'full'}
                 gutter="var(--sf-space-1)"
                 panel-style=${`--sf-drawer-background: var(--sf-surface-area); --sf-property-view--sections-width: ${context.sectionsWidth}; scrollbar-gutter: auto;${sizeStyle(context)}`}
                 show-close="false"
                 close-label=${context.closeLabel}
-                label=${context.panelLabel || context.recordId || ''}
+                label=${context.panelLabel || context.recordLabel || context.recordId || ''}
         >
-            ${renderPanelControls(context)}
-            <div class="sf-property-view-panel relative flex flex-col gap-2${rail ? ' sf-property-view-panel--railed' : ''}${panelFills(context) && context.edgeControlCount ? ' sf-property-view-panel--fills' : ''}"
-                 style=${panelFills(context) && context.edgeControlCount
-                         ? `--sf-property-view--edge-room: calc(${context.edgeControlCount} * ${context.edgeControlWidth} + ${context.edgeControlCount - 1} * var(--sf-space-1\\/2));`
-                         : nothing}
+            <div class="sf-property-view-panel relative flex flex-col gap-2${rail ? ' sf-property-view-panel--railed' : ''}"
                  data-record-id=${context.recordId || ''}
+                 data-sections-layout=${context.sectionsLayout}
+                 data-nested=${context.nestedUnder ? 'true' : nothing}
             >
                 ${renderPanelHead(context)}
                 <div class="sf-property-view-scroll flex-auto min-h-0 ${rail ? 'flex' : 'flex flex-col'}">

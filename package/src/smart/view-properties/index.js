@@ -27,6 +27,8 @@ import {ICON_CHOICES} from "../../core/js/icon-choices.js";
 import {pageText} from "../../core/js/page-language";
 import {FOCUSABLE, hasLayer, hasLayerAbove, openLayers} from "../../core/js/layer-stack";
 import {followDensity} from "../../core/js/density.js";
+import {copyText} from "../../core/js/clipboard.js";
+import {noteDeprecated} from "../../core/js/deprecations.js";
 import {renderPropertyViewTemplate} from "./js/templates/default";
 // The day-and-time reading is the field renderers' (A-14): this view kept a
 // copy from before it was lifted into the Framework.
@@ -106,6 +108,33 @@ const DRAWER_CLOSE_REASONS = {escape: "escape", outside: "outside", close: "api"
 // through `--sf-property-view--sections-width`, which the component passes to
 // the panel and sets on the layout it draws in place.
 const SECTIONS_WIDTH = "14rem";
+
+// The panel's widths are sf-drawer's ladder and nothing else (C157 (2), C289
+// (2)): 20, 24 and 30rem and the whole screen. `panel-width` is the dated
+// former name (until 2027-01-01): a width it asks for lands on the nearest
+// step, and anything wider than the widest step on that step -- Larena's 40rem
+// and ui-admin's 44rem take 30rem. A record that needs more room opens on the
+// whole screen, where its sections stand in a column.
+const PANEL_STEPS = [["1/2", 20], ["1", 24], ["2", 30]];
+const PANEL_WIDTH_UNTIL = "2027-01-01";
+const nearestPanelStep = (width) => {
+    const found = /^\s*(\d+(?:\.\d+)?)\s*(rem|em|px)\s*$/u.exec(String(width ?? ""));
+    if (!found) return "2";
+    const rem = found[2] === "px" ? Number(found[1]) / 16 : Number(found[1]);
+    let best = PANEL_STEPS[0];
+    for (const step of PANEL_STEPS) if (Math.abs(step[1] - rem) < Math.abs(best[1] - rem)) best = step;
+    return best[0];
+};
+
+// The tags the card draws, asked of the Loader before they are needed
+// (component-set standard draft 1.1 §7.11, VF-16): a page that defined none of
+// them -- a chat message, a card printed into a page by itself -- gets the
+// whole card, not its markup. The rule's relations name most of them; asking
+// costs nothing for a tag already defined.
+const DRAWN_TAGS = [
+    "sf-drawer", "sf-button", "sf-button-icon", "sf-button-close", "sf-tabs", "sf-list", "sf-list-description",
+    "sf-help-mark", "sf-empty-state", "sf-confirm", "sf-menu-context", "sf-badge", "sf-icon",
+];
 
 // How long the copy control shows its tick. The Framework's own clipboard holds
 // its tick for this long, and two controls that say «copied» for two different
@@ -544,8 +573,42 @@ class SfPropertyView extends PropertyViewElement {
         return this.selectedSection ?? "";
     }
 
-    get panelSize() {
-        return this.getAttribute("panel-size") || "1";
+    // The step the drawer is drawn at (C289 (2)): panel-size when it names a
+    // step; else the step nearest the width a former `panel-width` asked for.
+    // Not a getter named panelSize: the declared property of that name is the
+    // attribute's own accessor and wins over a getter, so a panel-width alone
+    // was drawn at the default step 1.
+    get drawerStep() {
+        const size = this.getAttribute("panel-size");
+        if (["1/2", "1", "2", "full"].includes(size)) return size;
+        const width = this.panelWidth;
+        return width ? nearestPanelStep(width) : "1";
+    }
+
+    // How the sections are laid out (C289 (1), (5); R250): the component
+    // decides by width and the person does not set it. A panel on a phone is
+    // the list of sections, each opening as a level with «←»; a panel on the
+    // whole screen keeps a column on the left; any narrower panel draws a line
+    // of tabs under its head, what does not fit in «Ещё (n)». In place (not a
+    // panel) a wide page keeps `sections-as`.
+    get sectionsLayout() {
+        if (!this.wide) return "phone";
+        // Arranging keeps the rail of sections beside the groups, each its own
+        // scroller, in a panel of any step: the sections are dragged there.
+        if (this.panel) return this.drawerStep === "full" || this.configuring ? "column" : "tabs";
+        return this.sectionsAs === "tabs" ? "tabs" : "column";
+    }
+
+    // Once per element: a former `panel-width` is said in the console with
+    // the step it lands on, and noted in SF.deprecations.
+    _notePanelWidth() {
+        const width = this.panelWidth;
+        if (!width || this.hasAttribute("panel-size") || this._panelWidthNoted === width) return;
+        this._panelWidthNoted = width;
+        const step = nearestPanelStep(width);
+        noteDeprecated({component: "sf-view-properties", kind: "attribute", from: "panel-width", to: "panel-size",
+            since: "2026-11-17", remove_after: PANEL_WIDTH_UNTIL, package: "view"});
+        globalThis.console?.info?.(`[SIMAI Framework] sf-view-properties: panel-width="${width}" is a former name until ${PANEL_WIDTH_UNTIL}; the panel is drawn at the step panel-size="${step}" (C157 (2), C289 (2)).`);
     }
 
     get panelLabel() {
@@ -622,38 +685,9 @@ class SfPropertyView extends PropertyViewElement {
     // round 4, 2026-10-20). The cap holds for every width, not only for one
     // grown by the rail: a consumer's own panel-width meets the same edge.
     get drawerWidth() {
-        const width = this.panelWidth;
-        if (!width) return null;
-        if (!this.wide) return width;
-        // The rail is drawn while the view is arranged even with one section,
-        // because that is where a second one is made.
-        const railed = this.sectionsAs === "list" && ((this.sections ?? []).length >= 2 || this.configuring);
-        const wanted = railed ? `calc(${width} + ${SECTIONS_WIDTH} + var(--sf-space-4))` : width;
-        // Never wider than the window: grown by the rail, a 40rem panel ran past
-        // the left edge and its sections were cut off (owner, 2026-10-14).
-        return `min(${wanted}, calc(100vw - ${this.edgeRoom}))`;
-    }
-
-    // One edge control: an sf-button-icon of the panel's size is its text
-    // height and the ladder's padding on each side, the same sum the button
-    // draws itself with (40px at size 1 on a desktop, 36px on a phone).
-    get edgeControlWidth() {
-        const step = this.size === "1/2" ? "1\\/2" : "1";
-        return `calc(var(--sf-text-height-${step}) + 2 * var(--sf-ui-${step}--space-y-tightness-default))`;
-    }
-
-    // What the strip beside a wide panel takes from the window: the drawer's
-    // step between the panel and the strip (space-1/2), one control, and the
-    // same step again to the window's edge.
-    get edgeRoom() {
-        return `calc(${this.edgeControlWidth} + 2 * var(--sf-space-1\\/2))`;
-    }
-
-    // How many controls the strip carries: copy-link with an address,
-    // open-full when the host can open the record as a page. The close is in
-    // the panel's head since 1.16.0 (C14, C157 (6)).
-    get edgeControlCount() {
-        return (this.address ? 1 : 0) + (this.canOpenFullPage ? 1 : 0);
+        // The panel never grows and never takes a width of its own (C289 (2)):
+        // the drawer is drawn at a step of its ladder.
+        return null;
     }
 
     get closeLabel() {
@@ -1033,6 +1067,22 @@ class SfPropertyView extends PropertyViewElement {
         return items;
     }
 
+    // What the «⋯» holds for the record itself (C289 (3), (6); C180 (2)):
+    // copy its address and open it as a page -- they stood outside the panel
+    // on the scrim and drew a white glyph on a white plate -- and, last and
+    // apart, deleting it. A reading panel has no foot for one delete.
+    get recordMenuItems() {
+        const items = [];
+        if (this.address) items.push({id: "copy-link", name: this.copyLinkLabel, icon: "link"});
+        if (this.canOpenFullPage) items.push({id: "open-full", name: this.openFullLabel, icon: "open_in_full"});
+        return items;
+    }
+
+    get canDeleteRecord() {
+        return this.mode !== "view" && this.mode !== "create" && this.recordActions.includes("record.delete")
+            && !this.configuring;
+    }
+
     // ─── the standard menu (owner, 2026-10-12) ──────────────────────────────
     // The «⋯» and the view chooser open the Framework's standard menu: one
     // sf-menu-context beside the page, filled for whichever control asked.
@@ -1089,12 +1139,19 @@ class SfPropertyView extends PropertyViewElement {
                 value: current?.label ?? "", submenu: this.viewProfileEntries(),
             });
         }
+        const record = this.recordMenuItems;
+        if (entries.length && record.length) entries.push({type: "separator"});
+        entries.push(...record.map((item) => ({id: item.id, text: item.name, icon: item.icon})));
         const items = this.panelMenuItems;
         if (entries.length && items.length) entries.push({type: "separator"});
         entries.push(...items.map((item) => ({id: item.id, text: item.name, icon: item.icon})));
         const hosted = this.hostMenuEntries();
         if (entries.length && hosted.length) entries.push({type: "separator"});
         entries.push(...hosted);
+        if (this.canDeleteRecord) {
+            if (entries.length) entries.push({type: "separator"});
+            entries.push({id: "delete", text: this.deleteText, icon: "delete", danger: true});
+        }
         if (!entries.length) return null;
         return this.openStandardMenu(anchor, {
             label: this.menuLabel, entries,
@@ -1149,6 +1206,9 @@ class SfPropertyView extends PropertyViewElement {
         if (id === "configure") return this.startConfiguringView();
         if (id === "reset") return this.resetView();
         if (id === "show-rare") return this.toggleShowRare();
+        if (id === "copy-link") return this.copyAddress();
+        if (id === "open-full") return this.openFullPage();
+        if (id === "delete") return this.deleteRecord();
         return false;
     }
 
@@ -1194,8 +1254,43 @@ class SfPropertyView extends PropertyViewElement {
         if (name === "hidden" || name === "open" || name === "full") this.syncPanelOpen();
     }
 
+    // Every tag the card draws, asked of the Loader once per connection
+    // (§7.11, VF-16); the card draws again once they are defined, so a part
+    // drawn before its definition upgrades in place.
+    _askForDrawnTags() {
+        const registry = globalThis.customElements;
+        const loader = globalThis.SF?.Loader;
+        if (typeof registry?.get !== "function" || typeof loader?.ensure !== "function") return;
+        const missing = DRAWN_TAGS.filter((tag) => !registry.get(tag));
+        if (!missing.length) return;
+        Promise.resolve(loader.ensure(missing, {timeout: 10000})).catch(() => null).then(() => {
+            if (this.isConnected) this.requestComponentUpdate("parts-defined");
+        });
+    }
+
+    // Every other tag the view has drawn -- a field's control, a host's
+    // renderer, a part a template draws only sometimes -- asked for once it is
+    // in the view and not defined (C289 (10), VF-16): a page that defines
+    // nothing of its own still gets the whole card.
+    _askForUndefinedTags() {
+        const registry = globalThis.customElements;
+        const loader = globalThis.SF?.Loader;
+        if (typeof registry?.get !== "function" || typeof loader?.ensure !== "function") return;
+        this._askedTags ??= new Set(DRAWN_TAGS);
+        const missing = new Set();
+        for (const node of this.querySelectorAll(":not(:defined)")) {
+            const tag = node.localName;
+            if (tag.startsWith("sf-") && !this._askedTags.has(tag) && !registry.get(tag)) missing.add(tag);
+        }
+        if (!missing.size) return;
+        for (const tag of missing) this._askedTags.add(tag);
+        Promise.resolve(loader.ensure([...missing], {timeout: 10000})).catch(() => null);
+    }
+
     onConnected() {
         super.onConnected?.();
+        this._notePanelWidth();
+        this._askForDrawnTags();
         // Born loading. The first render comes before the host is asked, and
         // drawn with no state it was the empty body -- one frame of «nothing
         // here» before the skeleton, the flash the table had (rules of the
@@ -1241,6 +1336,23 @@ class SfPropertyView extends PropertyViewElement {
             this._panelWasOpen = open;
             if (this._titleFocusUntil) requestAnimationFrame(() => this._focusTitleFirst());
         });
+        // Every render, not once (onAfterRender runs a callback once unless
+        // told otherwise): the errors to focus after a refused Save, the tags
+        // to ask the Loader for, the back line of a related record.
+        this._offEveryRender = this.onAfterRender?.(() => {
+            if (this._focusErrorsAfterRender) {
+                this._focusErrorsAfterRender = false;
+                requestAnimationFrame(() => this._focusErrors());
+            }
+            this._askForUndefinedTags();
+            // The panel's level for a related record (C289 (6)): whether this
+            // panel's drawer is drawn inside another one is known once it is open.
+            const nested = this._nestedLabel();
+            if (nested !== this._nestedUnderLabel) {
+                this._nestedUnderLabel = nested;
+                this.requestComponentUpdate("nested");
+            }
+        }, {once: false});
         // The drop is sf-sortable's to report and the component's to apply or
         // refuse -- that is the seam the mechanism already publishes, so no drag
         // is implemented here. The lists name themselves `field:<group>` and
@@ -1311,20 +1423,6 @@ class SfPropertyView extends PropertyViewElement {
             this.requestComponentUpdate("viewport");
         };
         this.wideMedia?.addEventListener?.("change", this._onWideChange);
-        // The drawer says when its edge controls stand in its head's row
-        // (data-sf-drawer-edge-in-head, sf-drawer 1.16.0): a phone, size full,
-        // or no room beside the panel. There they are page buttons beside the
-        // close, size 1/3 without the raised plate (C205 (2)), in a row; the
-        // drawer decides it by measuring, so the view listens rather than
-        // guessing from its own width.
-        this._edgeInHead = false;
-        this._edgeObserver = typeof MutationObserver === "function" ? new MutationObserver(() => {
-            const inHead = Boolean(this.querySelector(".sf-drawer[data-sf-drawer-edge-in-head]"));
-            if (inHead === this._edgeInHead) return;
-            this._edgeInHead = inHead;
-            this.requestComponentUpdate("edge-in-head");
-        }) : null;
-        this._edgeObserver?.observe(this, {subtree: true, attributes: true, attributeFilter: ["data-sf-drawer-edge-in-head"]});
         // A view placed before it is told its record (an assembly binds
         // record-id after it places the part) asks the host nothing yet: the
         // record-id it is given reads it (attributeChangedCallback).
@@ -1363,6 +1461,8 @@ class SfPropertyView extends PropertyViewElement {
         this._endTitleFocus();
         this._offAfterRender?.();
         this._offAfterRender = null;
+        this._offEveryRender?.();
+        this._offEveryRender = null;
         this._panelWasOpen = false;
         // The settings surface listens on the document, so a panel that goes away
         // while it is open takes that listener with it.
@@ -1381,8 +1481,6 @@ class SfPropertyView extends PropertyViewElement {
         this._onDocumentSortableIntent = null;
         if (this._onWideChange) this.wideMedia?.removeEventListener?.("change", this._onWideChange);
         this._onWideChange = null;
-        this._edgeObserver?.disconnect();
-        this._edgeObserver = null;
         this.wideMedia = null;
         super.onDisconnected?.();
     }
@@ -1525,8 +1623,9 @@ class SfPropertyView extends PropertyViewElement {
             panel: this.panel,
             panelOpen: this.panelOpen,
             // The record's own name heads a panel the page gave no label: the
-            // host answers it with the record (port 1.14.0 record.label).
-            recordLabel: this.record?.label ? String(this.record.label) : "",
+            // host answers it with the record (port 1.14.0 record.label); the
+            // reference host and most pages send record.title, read as well.
+            recordLabel: this._recordName(this.record),
             loadFailure: this.record ? null : this.loadFailure ?? null,
             editText: this.editText,
             saveText: this.saveText,
@@ -1545,7 +1644,6 @@ class SfPropertyView extends PropertyViewElement {
             // An entry that is not a value yet holds both saves (port 1.16.0):
             // Save is drawn disabled while there is one, with the count of what
             // is wrong beside it and each message under its field.
-            inputsInvalid: this.inputErrors.size > 0,
             controlErrors: this.controlErrors,
             canPickRecords: this.canPickRecords,
             canUploadFiles: this.canUploadFiles,
@@ -1653,12 +1751,16 @@ class SfPropertyView extends PropertyViewElement {
             openFullLabel: this.openFullLabel,
             inheritedText: this.inheritedText,
             wide: this.wide,
-            edgeControlWidth: this.edgeControlWidth,
-            edgeControlCount: this.edgeControlCount,
-            edgeInHead: Boolean(this._edgeInHead),
             phoneSection: this.phoneSection,
             phoneSectionLabel: this.phoneSectionLabel,
             backLabel: this.backLabel,
+            drawerStep: this.drawerStep,
+            sectionsLayout: this.sectionsLayout,
+            nestedUnder: this._nestedUnderLabel || "",
+            canDeleteRecord: this.canDeleteRecord,
+            recordMenuItems: this.recordMenuItems,
+            errorList: this.errorList,
+            requiredErrorText: this.requiredErrorText,
         });
     }
 
@@ -2041,6 +2143,24 @@ class SfPropertyView extends PropertyViewElement {
         title.focus({preventScroll: true});
     }
 
+    // The record this panel was opened from, when its drawer is drawn inside
+    // another panel at the same edge (sf-drawer's nesting, C157 (6)): that
+    // panel's title, for the «← <Запись>» line over this one's.
+    _recordName(record) {
+        const name = record?.label || record?.title;
+        return name ? String(name) : "";
+    }
+
+    _nestedLabel() {
+        const below = this.panel ? this._ownDrawer()?.nestedUnder?.() : null;
+        if (!below) return "";
+        const owner = below.parentElement;
+        if (owner && owner !== this && typeof owner.panelLabel === "string") {
+            return owner.panelLabel || this._recordName(owner.record) || owner.recordId || this.backLabel;
+        }
+        return below.getAttribute("heading") || below.getAttribute("label") || this.backLabel;
+    }
+
     _ownDrawer() {
         return [...this.children].find((child) => child.localName === "sf-drawer") ?? null;
     }
@@ -2106,19 +2226,16 @@ class SfPropertyView extends PropertyViewElement {
         }
     }
 
-    // Copying is sf-button-copy's (owner, 2026-10-14): one implementation of
-    // the act, its tick and its spoken result, with the Framework's fallback
-    // for a browser that refuses the clipboard. The view keeps only what it
-    // says about it.
-    // The control stands on the drawer's outer edge, which may be outside this
-    // element, so it carries the view it belongs to.
+    // Copying is the Framework's clipboard (core/js/clipboard.js, with its
+    // fallback for a browser that refuses the clipboard); the «⋯» row that
+    // asks for it says the result in the panel's status line, read out
+    // politely, and the event carries it to the host.
     copyControl() {
-        return [...document.querySelectorAll('sf-button-copy[data-action="copy-link"]')]
-            .find((control) => control.propertyView === this) ?? null;
+        return null;
     }
 
     get addressCopied() {
-        return this.copyControl()?.state?.phase === "success";
+        return this._addressCopied === true;
     }
 
     announceAddressCopy(copied) {
@@ -2132,9 +2249,25 @@ class SfPropertyView extends PropertyViewElement {
 
     async copyAddress() {
         if (!this.address) return null;
-        const control = this.copyControl();
-        if (!control?.copy) return null;
-        return Boolean(await control.copy());
+        let copied = false;
+        try {
+            copied = Boolean(await copyText(this.addressUrl ?? String(this.address)));
+        } catch {
+            copied = false;
+        }
+        this._addressCopied = copied;
+        if (copied) {
+            this.message = this.linkCopiedLabel;
+            this.requestComponentUpdate("address-copied");
+            clearTimeout(this._copiedTimer);
+            this._copiedTimer = setTimeout(() => {
+                this._addressCopied = false;
+                if (this.message === this.linkCopiedLabel) this.message = "";
+                this.requestComponentUpdate("address-copied");
+            }, COPY_FEEDBACK_MS);
+        }
+        this.announceAddressCopy(copied);
+        return copied;
     }
 
     openFullPage() {
@@ -2320,13 +2453,6 @@ class SfPropertyView extends PropertyViewElement {
         return Boolean(field?.when) && !fieldConditions(field, values).enabled;
     }
 
-    // An entry that is not a value yet stops a save, and says so where it is.
-    _inputsInvalid() {
-        if (!this.inputErrors.size) return null;
-        this.requestComponentUpdate("errors");
-        return {answer: "refused", reason: "input_invalid", errors: Object.fromEntries(this.inputErrors)};
-    }
-
     // Which fields in a group are picked from a list the host pages rather than
     // typed. A lookup that brought its list inline is chosen from in place and
     // asks for nothing. A field its condition hides now still has its first page
@@ -2422,10 +2548,105 @@ class SfPropertyView extends PropertyViewElement {
         this.sfEmit("saved", {id, revision: revision === null ? "" : String(revision)});
     }
 
+    // The fields a save covers: the group being edited, or on a surface open
+    // all at once every editable group shown.
+    _editedFields() {
+        const out = [];
+        for (const section of this.sections ?? []) {
+            for (const group of this.visible(section?.groups)) {
+                if (group.kind === "related" || group.editable === false) continue;
+                const edited = this.openAll || (this.editing && String(section.key) === this.editing.section
+                    && String(group.key) === this.editing.group);
+                if (!edited) continue;
+                for (const field of this.visible(group.fields)) {
+                    out.push(field.when ? this.conditionedField(field) : field);
+                }
+            }
+        }
+        return out;
+    }
+
+    // A required field left empty is said at the field before anything is sent
+    // (C182 (6)); the host's own refusal is said the same way.
+    _missingRequired() {
+        const missing = new Map();
+        const values = this.fieldValues();
+        for (const field of this._editedFields()) {
+            if (!field.required || field.readonly === true || this.fieldDisabled(field)) continue;
+            const key = String(field.key ?? "");
+            const value = values.get(key);
+            const empty = value === undefined || value === null || value === ""
+                || (Array.isArray(value) && value.length === 0);
+            if (empty) missing.set(key, this.requiredErrorText);
+        }
+        return missing;
+    }
+
+    get requiredErrorText() {
+        return this.getAttribute("required-error-text") || pageText(PROPERTY_VIEW_TEXT, "requiredErrorText", this);
+    }
+
+    // Save is never drawn disabled (C182 (7)): pressed with something wrong it
+    // shows every error at its field and, from two, a summary with a link to
+    // each, which takes the focus; one error takes the focus to its field.
+    _refuseWithErrors(errors) {
+        for (const [key, message] of errors) if (!this.errors.has(key) && !this.inputErrors.has(key)) this.errors.set(key, message);
+        this._focusErrorsAfterRender = true;
+        this.requestComponentUpdate("errors");
+        return {answer: "refused", reason: this.inputErrors.size ? "input_invalid" : "required",
+            errors: Object.fromEntries(new Map([...this.inputErrors, ...errors]))};
+    }
+
+    // The errors of the surface in the order their fields stand.
+    get errorList() {
+        const all = this.inputErrors.size ? new Map([...this.errors, ...this.inputErrors]) : this.errors;
+        if (!all.size) return [];
+        const labels = new Map();
+        for (const section of this.sections ?? []) for (const group of section?.groups ?? []) {
+            for (const field of group?.fields ?? []) labels.set(String(field.key ?? ""), String(field.label ?? field.key ?? ""));
+        }
+        const order = [...labels.keys()];
+        return [...all.entries()]
+            .sort(([a], [b]) => (order.indexOf(a) + 1 || 1e9) - (order.indexOf(b) + 1 || 1e9))
+            .map(([key, message]) => ({key, label: labels.get(key) ?? key, message}));
+    }
+
+    // The field a summary link points to: its first control.
+    focusField(key) {
+        const root = this._ownDrawerRoot?.() ?? this;
+        const scope = (this.panel ? root : this) ?? this;
+        const field = scope?.querySelector?.(`[data-field="${CSS.escape(String(key))}"]`);
+        const target = field?.querySelector?.("input:not([type=hidden]), textarea, select, button, [tabindex]:not([tabindex='-1'])");
+        (target ?? field)?.focus?.({preventScroll: false});
+        field?.scrollIntoView?.({block: "nearest"});
+        return Boolean(target ?? field);
+    }
+
+    _focusErrors() {
+        const list = this.errorList;
+        if (!list.length) return;
+        if (list.length === 1) {
+            this.focusField(list[0].key);
+            return;
+        }
+        const scope = this.panel ? (this._ownDrawerRoot?.() ?? this) : this;
+        scope?.querySelector?.(".sf-property-view-error-summary")?.focus?.({preventScroll: false});
+    }
+
     async saveGroup({confirm = null} = {}) {
         if (this.openAll) return this.saveAll({confirm});
-        if (this.editing && this.inputErrors.size) return this._inputsInvalid();
-        if (!this.editing || this.changed.size === 0) return null;
+        if (!this.editing) return null;
+        const missing = this._missingRequired();
+        if (this.inputErrors.size || missing.size) return this._refuseWithErrors(missing);
+        // Nothing changed: Save leaves the group as it is (Save is never
+        // disabled, C182 (7)).
+        if (this.changed.size === 0) {
+            this.editing = null;
+            this.errors.clear();
+            this.conflict = null;
+            this.requestComponentUpdate("editing");
+            return null;
+        }
         const values = this._savedValues();
         if (!Object.keys(values).length) return null;
         this.confirmation = null;
@@ -2470,6 +2691,7 @@ class SfPropertyView extends PropertyViewElement {
         }
         if (answer.answer === "refused") {
             this.errors = new Map(Object.entries(answer.errors ?? {}).map(([key, value]) => [key, String(value)]));
+            this._focusErrorsAfterRender = this.errors.size > 0;
             this.requestComponentUpdate("errors");
             return answer;
         }
@@ -2481,7 +2703,8 @@ class SfPropertyView extends PropertyViewElement {
     // (record.create), an edit saves every changed field as one revision
     // (record.save), port 1.12.0.
     async saveAll({confirm = null} = {}) {
-        if (this.inputErrors.size) return this._inputsInvalid();
+        const missing = this._missingRequired();
+        if (this.inputErrors.size || missing.size) return this._refuseWithErrors(missing);
         if (this.mode !== "create" && this.changed.size === 0) return null;
         const creating = this.mode === "create";
         const values = this._savedValues();
@@ -2542,6 +2765,7 @@ class SfPropertyView extends PropertyViewElement {
         }
         if (answer.answer === "refused") {
             this.errors = new Map(Object.entries(answer.errors ?? {}).map(([key, value]) => [key, String(value)]));
+            this._focusErrorsAfterRender = this.errors.size > 0;
             if (!this.errors.size && answer.message) this.conflict = answer.message;
             this.requestComponentUpdate("errors");
             return answer;

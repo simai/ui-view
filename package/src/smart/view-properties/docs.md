@@ -154,11 +154,11 @@ Framework grammar: `0` a digit, `a` a letter, `*` any character, `\` escapes
 the next one, every other character a fixed part shown in the field. The value
 saved is the text as shown, fixed parts included (`"+7 (912) 345-67-89"`). A
 cleared field saves `null`, or `""` when it declares `"nullable": false`.
-`required` stays a mark: the host validates.
 
-While any masked field of the surface does not fill its mask, Save is disabled
-— for one group (`group.save`) and for the whole record (`record.save`) alike
-— and the count of what is wrong stands beside it. The field itself says
+While any masked field of the surface does not fill its mask, Save stays
+enabled (it is never disabled, C182 (7)) but refuses -- for one group
+(`group.save`) and for the whole record (`record.save`) alike -- and the count
+of what is wrong stands beside it. The field itself says
 «Заполните поле полностью» once the person leaves it, and what was typed is
 kept. Each masked field is complete or not on its own.
 
@@ -256,12 +256,44 @@ once per revision and every section is served from that one answer, as before.
 A save that reaches past the object — one that moves every record of a type —
 may be confirmed first (port 1.14.0, the same shape as the data view port's).
 The host answers the save `refused` with `reason: "confirm_required"` and
-`confirm: {summary, digest}`. The panel shows the summary in the bar where save
-was pressed, with «Подтвердить и сохранить» and «Вернуться к правке». Confirming
+`confirm: {summary, digest}`. The panel asks in place where save was pressed,
+with the Framework's `sf-confirm` (inline): the summary, «Подтвердить и
+сохранить» and «Вернуться к правке». Confirming
 raises the same `group.save` or `record.save` again with `confirm` set to the
 digest; going back sends nothing and keeps every entry. A host whose digest no
 longer matches what the save would do asks again, and the new summary is shown:
 a person confirms what will actually happen. A create is never confirmed.
+
+## Save never disabled (since 1.17.0, C289 (7), C182)
+
+Save is never disabled. A Save over required fields left empty, or over
+entries that are not values yet, raises nothing: each field says what is wrong
+(«Заполните поле» for an empty required one), and with two or more a summary
+(role `alert`) above the fields lists them in field order, each a link to its
+field; the focus goes to the summary, or to the one field when only one is
+wrong. `saveGroup()` and `saveAll()` answer `{answer: "refused", reason:
+"required" | "input_invalid", errors}`. The host still validates what it
+receives.
+
+## The record card (since 1.17.0, C289)
+
+- The sections are laid out by width: in a panel an underline `sf-tabs` line
+  under the head, the ones that do not fit under «Ещё (n)»; in a panel of size
+  `full` (and a wide inline view) the section column at the start; on a phone
+  a list of `sf-list` rows, each opening its section with «←» in the head.
+  `sections-as` is read by an inline view only.
+- The panel is drawn at a step of the `sf-drawer` ladder (`panel-size` 1/2,
+  1, 2 or full) and never grows. `panel-width` is a former name until
+  2027-01-01: a length is mapped to the nearest step, with a console notice.
+- A record to read is an `sf-list-description`: the label beside the value,
+  each group a heading of the list with «Изменить» in it. It has no foot:
+  «Удалить», «Копировать ссылку» and «Открыть на всю страницу» are rows of the
+  head's «⋯» menu; nothing stands outside the panel.
+- The head is one row. A record opened from another (a nested panel at the
+  same edge) shows «← <запись>» above its title; it returns to the previous
+  record.
+- The view asks the Loader for every tag it draws: a page that defines nothing
+  of its own (no `defineFieldsOf`) gets the whole card.
 
 ## Conditional fields
 

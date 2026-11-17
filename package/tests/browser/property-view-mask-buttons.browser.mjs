@@ -7,7 +7,8 @@
 // (record.save, «Изменить всё») -- at the view's sizes 1 and 1/2:
 // - a masked string types through the mask; the stored text shows; the value
 //   saved is the text as shown, fixed parts included;
-// - while it is incomplete Save is disabled, the count stands beside it, the
+// - while it is incomplete Save stays enabled (never disabled, C182 (7),
+//   sf-view-properties 1.17.0), the count stands beside it, the
 //   field says «Заполните поле полностью» once left (and the panel does not say
 //   it twice), and neither save is raised -- by the button or by the action;
 // - two masked fields are complete or not each on its own;
@@ -85,7 +86,7 @@ try {
         {key: 'contacts', label: 'Контакты', columns: 1, fields: [
           {key: 'phone', label: 'Телефон', propertyType: 'string', mask: '+7 (000) 000-00-00', value: '+7 (912) 345-67-89'},
           {key: 'fax', label: 'Факс', propertyType: 'string', mask: '+7 (000) 000-00-00', value: null},
-          {key: 'inn', label: 'ИНН', propertyType: 'string', mask: '0000000000', nullable: false, required: true, value: '7701234567'},
+          {key: 'inn', label: 'ИНН', propertyType: 'string', mask: '0000000000', nullable: false, value: '7701234567'},
           {key: 'shown', label: 'Телефон офиса', propertyType: 'string', mask: '+7 (000) 000-00-00', readonly: true, value: '+7 (495) 111-22-33'},
           {key: 'title', label: 'Название', propertyType: 'string', value: 'Ромашка'},
           {key: 'kind', label: 'Вид', propertyType: 'choice', variant: 'buttons', options, value: 'person'},
@@ -166,7 +167,7 @@ try {
       await make(mode, size);
       const first = await look();
       check(at('the stored masked text shows'), first.phone.text === '+7 (912) 345-67-89' && !first.phone.invalid, first);
-      check(at('nothing changed: Save is disabled, as before'), first.saveDisabled === true, first);
+      check(at('nothing changed: Save is still enabled (C182 (7))'), first.saveDisabled === false, first);
       check(at('a read-only masked field is shown, not typed in'), !first.shown.input && first.shown.text === '+7 (495) 111-22-33', first);
       check(at('a choice as buttons shows the stored option'), JSON.stringify(first.kind) === '["true","false"]'
         && JSON.stringify(first.tier) === '["true","false"]' && first.tierSize === '1/2', first);
@@ -175,15 +176,15 @@ try {
       check(at('disabled by a condition: the group is disabled'), first.off.length === 2 && first.off.every((one) => one === true), first);
       check(at('a choice without the variant is the dropdown'), first.dropdown, first);
 
-      // Typing an incomplete phone: Save disabled with the count; the message once left.
+      // Typing an incomplete phone: Save enabled with the count; the message once left.
       await retype('phone', '912345');
       const typing = await look();
-      check(at('typing incomplete: Save disabled, the count beside it'), typing.saveDisabled === true && /1$/u.test(typing.count)
+      check(at('typing incomplete: Save enabled, the count beside it'), typing.saveDisabled === false && /1$/u.test(typing.count)
         && typing.phone.text === '+7 (912) 345' && typing.phone.message === '', typing);
       await leave();
       const left = await look();
       check(at('left incomplete: the field says so, once'), left.phone.invalid && left.phone.message === 'Заполните поле полностью'
-        && left.panelErrors.length === 0 && left.saveDisabled === true, left);
+        && left.panelErrors.length === 0 && left.saveDisabled === false, left);
       await page.locator('sf-view-properties [data-action="save"]').click({force: true});
       const viaAction = await saveBy(mode);
       check(at('neither the button nor the action raises a save'), viaAction.answer === 'refused' && viaAction.reason === 'input_invalid'
@@ -196,11 +197,11 @@ try {
       await leave();
       const one = await look();
       check(at('the phone completed, the fax still holds the save'), !one.phone.invalid && one.phone.text === '+7 (912) 345-67-00'
-        && one.fax.invalid && one.fax.message === 'Заполните поле полностью' && one.saveDisabled === true && /1$/u.test(one.count), one);
+        && one.fax.invalid && one.fax.message === 'Заполните поле полностью' && one.saveDisabled === false && /1$/u.test(one.count), one);
       await retype('fax', '');
       await leave();
       const freed = await look();
-      check(at('the fax cleared: Save is enabled'), freed.saveDisabled === false && !freed.fax.invalid && freed.count === '', freed);
+      check(at('the fax cleared: the count goes'), freed.saveDisabled === false && !freed.fax.invalid && freed.count === '', freed);
 
       // Clearing a nullable-false field, and the choices.
       await retype('inn', '');

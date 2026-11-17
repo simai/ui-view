@@ -97,6 +97,12 @@ const headLabels = async (lang) => {
         found[icon] = button.getAttribute('aria-label') ?? '';
       }
     }
+    // Copy-link and open-full are rows of the head's «⋯» menu since
+    // view-properties 1.17.0 (C289 (6)): their words are the rows the menu is
+    // given, read where the menu reads them.
+    for (const item of document.querySelector('sf-view-properties')?.recordMenuItems ?? []) {
+      if (wanted.includes(item.icon) && !(item.icon in found)) found[item.icon] = item.name ?? '';
+    }
     return found;
   });
   await page.close();
@@ -123,7 +129,7 @@ try {
   // The three that were missing have to be drawn at all, or the check proves
   // nothing about them.
   for (const icon of ['close', 'link', 'open_in_full']) {
-    if (!(icon in ru)) failures.push({icon, said: 'the head does not draw this control, so its language cannot be checked'});
+    if (!(icon in ru)) failures.push({icon, said: 'the head (or its menu) does not draw this control, so its language cannot be checked'});
   }
 
   console.log(JSON.stringify({

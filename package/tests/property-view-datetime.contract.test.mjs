@@ -80,8 +80,10 @@ test('a datetime and a time are the renderer set\'s sf-input-date, not a pair of
 
 test('an entry a control reports as not a value yet stops both saves and is said under the field', () => {
   const view = read('src/smart/view-properties/index.js');
-  assert.match(view, /if \(this\.editing && this\.inputErrors\.size\) return this\._inputsInvalid\(\);/u);
-  assert.match(view, /async saveAll\(\{confirm = null\} = \{\}\) \{\n\s+if \(this\.inputErrors\.size\) return this\._inputsInvalid\(\);/u);
+  // Since 1.17.0 (C182) a Save over entries that are not values is refused
+  // with the errors listed, never quietly ignored.
+  assert.match(view, /if \(this\.inputErrors\.size \|\| missing\.size\) return this\._refuseWithErrors\(missing\);/u);
+  assert.match(view, /async saveAll\(\{confirm = null\} = \{\}\) \{\n\s+const missing = this\._missingRequired\(\);\n\s+if \(this\.inputErrors\.size \|\| missing\.size\) return this\._refuseWithErrors\(missing\);/u);
   assert.match(view, /errors: this\.inputErrors\.size \? new Map\(\[\.\.\.this\.errors, \.\.\.this\.inputErrors\]\) : this\.errors/u);
   // Every place a change is dropped drops the reported entries with it.
   assert.equal((view.match(/this\.changed\.clear\(\);\n\s+this\._clearInputs\(\);/gu) ?? []).length,

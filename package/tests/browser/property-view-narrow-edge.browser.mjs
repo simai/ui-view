@@ -1,12 +1,14 @@
 #!/usr/bin/env node
 // Usage: node this-file /absolute/path/to/output
-// The record panel's edge controls -- copy-link, open-full -- at narrow
-// widths. Beside a wide panel they stand outside its inline start; in a panel
-// that fills the screen they come inside along its top. The docs review (round 4,
-// 2026-10-20) found them half off the screen in a ~1000px frame and over the
-// record's name on a phone. What has to hold at every width: each control is on
-// the screen, is the topmost element at its own centre, and covers neither the
-// panel (when it stands beside it) nor the title (when it stands inside).
+// The record panel's controls at narrow widths. Since sf-view-properties
+// 1.17.0 (C289 (2), (6), R254) nothing stands outside the panel: copy-link and
+// open-full are rows of the head's «⋯» menu, and the panel is drawn at a step
+// of the drawer ladder (a former panel-width="44rem" lands on step 2, 30rem).
+// The docs review (round 4, 2026-10-20) found the old edge strip half off the
+// screen in a ~1000px frame and over the record's name on a phone. What has to
+// hold at every width: no control on the drawer's edge; each control of the
+// head is on the screen, inside the panel, the topmost element at its own
+// centre, and not over the record's name; the panel is no wider than its step.
 import {resolve, join} from 'node:path';
 import {existsSync} from 'node:fs';
 import {chromium} from 'playwright';
@@ -29,6 +31,7 @@ const styles = [
 const modules = [
   'core/core/js/core.js', 'core/core/js/smart-base.js', 'smart/smart/icon/js/icon.js',
   'smart/smart/button/js/button.js', 'smart/smart/button-icon/js/button-icon.js',
+  'smart/smart/button-close/js/button-close.js',
   'smart/smart/button-copy/js/button-copy.js',
   'smart/smart/input/js/input.js', 'smart/smart/switch/js/switch.js',
   'smart/smart/dropdown/js/dropdown.js', 'smart/smart/list-item/js/list-item.js',
@@ -117,7 +120,8 @@ try {
       const shell = content?.closest('[data-sf-drawer-root]') ?? document;
       const panel = shell.querySelector('.sf-drawer-panel')?.getBoundingClientRect();
       const title = content?.querySelector('.sf-property-view-title')?.getBoundingClientRect();
-      const controls = [...shell.querySelectorAll('.sf-property-view-edge button')].map((button) => {
+      const edge = shell.querySelectorAll('.sf-property-view-edge button, [slot="edge"] button').length;
+      const controls = [...(content?.querySelectorAll('.sf-property-view-head button') ?? [])].filter((button) => button.getBoundingClientRect().width > 0).map((button) => {
         const box = button.getBoundingClientRect();
         const hit = deepHit(box.x + box.width / 2, box.y + box.height / 2);
         return {
@@ -130,6 +134,7 @@ try {
       return {
         wide: Boolean(view.wide),
         viewport: innerWidth,
+        edge,
         panel: panel ? {left: Math.round(panel.left), right: Math.round(panel.right)} : null,
         title: title ? {left: Math.round(title.left), right: Math.round(title.right), top: Math.round(title.top), bottom: Math.round(title.bottom)} : null,
         controls,
@@ -138,36 +143,29 @@ try {
     measuredAt[width] = seen;
     await page.close();
 
-    // The close is in the panel's head since view-properties 1.16.0 (C14,
-    // C157 (6)); the strip carries copy-link and open-full.
-    if (seen.controls.length !== 2) {
-      note({width, case: 'the strip carries copy-link and open-full', got: seen.controls.length, expected: 2});
+    if (seen.edge) note({width, case: 'nothing stands on the drawer edge outside the panel', got: seen.edge, expected: 0});
+    const actions = seen.controls.map((control) => control.action);
+    if (!actions.includes('menu') || !actions.includes('close')) {
+      note({width, case: 'the head holds the «⋯» menu and the close', got: actions});
     }
-    const off = seen.controls.filter((control) => control.left < 0 || control.right > seen.viewport);
+    if (seen.wide && seen.panel && seen.panel.right - seen.panel.left > 481) {
+      note({width, case: 'the panel is drawn at its step (panel-width 44rem lands on 30rem)', got: seen.panel, expected: '<= 480 px'});
+    }
+    const off = seen.controls.filter((control) => control.left < 0 || control.right > seen.viewport
+      || (seen.panel && (control.left < seen.panel.left || control.right > seen.panel.right)));
     if (off.length) {
-      note({width, case: "every edge control is on the screen", got: off,
-        expected: `0 <= left and right <= ${seen.viewport}`});
+      note({width, case: 'every control is on the screen and inside the panel', got: {panel: seen.panel, off}});
     }
     const under = seen.controls.filter((control) => !control.onTop);
     if (under.length) {
-      note({width, case: 'every edge control is the topmost element at its centre', got: under});
+      note({width, case: 'every control is the topmost element at its centre', got: under});
     }
-    if (seen.wide) {
-      const over = seen.controls.filter((control) => control.right > seen.panel.left);
-      if (over.length) {
-        note({width, case: 'beside a wide panel the strip stands outside it', got: {panel: seen.panel, over}});
-      }
-    } else if (seen.title) {
-      // Since sf-drawer 1.16.0 (C157 (2), C14) a panel that fills the screen
-      // draws its edge controls in its head's row at the end, where they stood
-      // along its top at the start before; either way none may cross the
-      // title's box.
+    if (seen.title) {
       const covering = seen.controls.filter((control) => control.right > seen.title.left
         && control.left < seen.title.right
         && control.bottom > seen.title.top && control.top < seen.title.bottom);
       if (covering.length) {
-        note({width, case: "in a panel that fills the screen no control stands over the record's name",
-          got: {title: seen.title, covering}});
+        note({width, case: "no control stands over the record's name", got: {title: seen.title, covering}});
       }
     } else {
       note({width, case: 'the panel draws its title', got: null});

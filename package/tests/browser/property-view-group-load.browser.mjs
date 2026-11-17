@@ -141,7 +141,9 @@ const look = (page) => page.evaluate(() => {
     section: view.selectedSection,
     revision: view.revision,
     fields: [...view.querySelectorAll('.sf-property-view-field')].map((node) => node.dataset.field),
-    skeletons: view.querySelectorAll('.sf-property-view-group[aria-busy="true"] .sf-skeleton').length,
+    // One line per field: a group read as a list (1.17.0, C289 (4)) draws a
+    // row with a label bar and a value bar; the value bars are counted.
+    skeletons: view.querySelectorAll('.sf-property-view-group[aria-busy="true"] .sf-skeleton:not(.sf-list-description-label .sf-skeleton)').length,
   };
 });
 // The act's own result is dropped: selectSection answers the element, which

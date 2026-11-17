@@ -879,8 +879,13 @@ try {
     const panel = (() => {
       const drawer = panelView.querySelector('sf-drawer');
       const content = panelOf('record-7');
-      const controls = (node) => [...(node?.querySelectorAll('[data-action]') ?? [])]
-        .map((item) => item.getAttribute('data-action'))
+      // Copy-link and open-full are rows of the head's «⋯» menu since 1.17.0
+      // (C289 (6)): the drawn controls and the menu's record rows together.
+      const viewOf = (recordId) => [...document.querySelectorAll('sf-view-properties')]
+        .find((view) => view.getAttribute('record-id') === recordId);
+      const controls = (node, recordId) => [...[...(node?.querySelectorAll('[data-action]') ?? [])]
+        .map((item) => item.getAttribute('data-action')),
+      ...(viewOf(recordId)?.recordMenuItems ?? []).map((item) => item.id)]
         .filter((name) => ['close', 'copy-link', 'open-full'].includes(name));
       return {
         drawer: Boolean(drawer),
@@ -889,8 +894,8 @@ try {
         placement: drawer?.getAttribute('placement'),
         closeOnEsc: drawer?.getAttribute('close-on-esc'),
         portalled: Boolean(content) && !panelView.contains(content),
-        controls: controls(shellOf('record-7')),
-        withoutAddress: controls(shellOf('record-8')),
+        controls: controls(shellOf('record-7'), 'record-7'),
+        withoutAddress: controls(shellOf('record-8'), 'record-8'),
         body: Boolean(content?.querySelector('.sf-property-view-body')),
         painted: content ? getComputedStyle(content.closest('.sf-drawer-panel') ?? content).backgroundColor : null,
       };
@@ -899,8 +904,9 @@ try {
     // Esc closes the panel by announcing it, and the announcement carries how many
     // fields were changed and not saved -- closing over unsaved work is the host's
     // decision, not the component's.
-    panelOf('record-7')?.closest('[data-sf-drawer-root]')
-      ?.querySelector('[data-action="open-full"]')?.click();
+    // Open-full is a row of the «⋯» menu: chosen as the menu chooses it.
+    [...document.querySelectorAll('sf-view-properties')].find((view) => view.getAttribute('record-id') === 'record-7')
+      ?.chooseMenuItem?.('open-full');
     await new Promise((done) => setTimeout(done, 250));
     const panelAnnounced = panelEvents.map((entry) => ({name: entry.name,
       address: entry.detail?.address ?? null, reason: entry.detail?.reason ?? null,
@@ -1447,13 +1453,14 @@ try {
       note({case: "a number reads as the host's text with the field's unit",
         got: measured.before?.text?.sum, expected: '25 025,93 ₽'});
     }
-    // «No group cards» was the consumer's first complaint about the look. A card
-    // is a painted box: a border, a radius, padding and a surface.
+    // Since 1.17.0 (C289 (4), R252) a group read is a heading of the record's
+    // description list, not a painted card: no border, no radius, no padding,
+    // no surface of its own (an edited group keeps its card).
     const card = measured.before?.card ?? {};
-    if (card.border === '0px' || card.radius === '0px' || card.padding === '0px'
-      || !card.background || card.background === 'rgba(0, 0, 0, 0)') {
-      note({case: 'a group is a painted card', got: card,
-        expected: 'a border, a radius, padding and a surface colour'});
+    if (card.border !== '0px' || card.radius !== '0px' || card.padding !== '0px'
+      || (card.background && card.background !== 'rgba(0, 0, 0, 0)')) {
+      note({case: 'a group read is a heading of the list, not a card', got: card,
+        expected: 'no border, radius, padding or surface'});
     }
 
     // Rare: hidden, shown on request, and no second read.
@@ -1501,10 +1508,12 @@ try {
     // The four a consumer measured on their stand.
     const seen = measured.look ?? {};
     const wide = measured.width ?? {};
-    // 40rem is 640px at the default root size. The ladder step must lose to it.
-    if (wide.painted === null || Math.abs(Number(wide.painted) - 640) > 2) {
-      note({case: 'panel-width sets an exact panel width and beats panel-size',
-        got: wide.painted, expected: '640 -- 40rem at the default root size'});
+    // Since 1.17.0 (C289 (2)) the panel never takes a width of its own:
+    // panel-size names the step, and a former panel-width beside it is not read
+    // (alone it lands on the nearest step). Step 1 is 24rem, 384px.
+    if (wide.painted === null || Math.abs(Number(wide.painted) - 384) > 2) {
+      note({case: 'panel-size names the step; panel-width does not beat it',
+        got: wide.painted, expected: '384 -- step 1, 24rem at the default root size'});
     }
     if (wide.titleClipped !== false) {
       note({case: 'a title the consumer asked room for is not cut',
@@ -1842,9 +1851,8 @@ try {
       note({case: 'the portalled panel carries its own styles', got: inPanel.painted,
         expected: 'a painted surface from rules that are not scoped to the element'});
     }
-    // The close is in the panel's head and copy-link and open-full in the strip
-    // beside it since view-properties 1.16.0 (C14, C157 (6)); the order in the
-    // document is the drawer's (edge area, then panel), so the set is compared.
+    // The close is in the panel's head (C14, C157 (6)); copy-link and
+    // open-full are rows of its «⋯» menu since 1.17.0 (C289 (6)).
     if ([...(inPanel.controls ?? [])].sort().join(',') !== 'close,copy-link,open-full') {
       note({case: 'a panel with an address carries all three controls', got: inPanel.controls,
         expected: 'close, copy-link, open-full'});
@@ -2024,20 +2032,25 @@ try {
     });
     await new Promise((done) => setTimeout(done, 700));
     const screenOf = () => view.querySelector('.sf-property-view-layout')?.getAttribute('data-screen') ?? null;
+    // The phone's sections are sf-list rows since 1.17.0 (C289 (5)); a row
+    // opens its section through the list's sf-list-open.
+    const listedRows = () => view.querySelector('sf-list.sf-property-view-phone-sections')?.items?.length ?? 0;
+    const openRow = (id) => view.querySelector('sf-list.sf-property-view-phone-sections')
+      ?.dispatchEvent(new CustomEvent('sf-list-open', {detail: {id}, bubbles: true}));
     const first = {
       screen: screenOf(),
-      listed: view.querySelectorAll('[data-phone-section]').length,
+      listed: listedRows(),
       groups: view.querySelectorAll('.sf-property-view-group').length,
       tree: Boolean(view.querySelector('sf-tree')),
     };
-    view.querySelector('[data-phone-section="extra"]')?.click();
+    openRow('extra');
     await new Promise((done) => setTimeout(done, 400));
     const opened = {
       screen: screenOf(),
       title: view.querySelector('.sf-property-view-phone-title')?.textContent?.trim() ?? null,
       back: Boolean(view.querySelector('[data-action="phone-back"]')),
       group: view.querySelector('.sf-property-view-group')?.getAttribute('data-group') ?? null,
-      listed: view.querySelectorAll('[data-phone-section]').length,
+      listed: listedRows(),
     };
     view.editGroup('extra', 'g2');
     await new Promise((done) => setTimeout(done, 400));
@@ -2058,13 +2071,16 @@ try {
     await new Promise((done) => setTimeout(done, 200));
     view.querySelector('[data-action="phone-back"]')?.click();
     await new Promise((done) => setTimeout(done, 400));
-    const back = {screen: screenOf(), listed: view.querySelectorAll('[data-phone-section]').length};
+    const back = {screen: screenOf(), listed: listedRows()};
     // A two-column group on a phone: the container query has to collapse it, or
     // every label and every value wraps onto two lines in a 390px panel.
-    view.querySelector('[data-phone-section="main"]')?.click();
+    openRow('main');
     await new Promise((done) => setTimeout(done, 400));
     const fields = view.querySelector('[data-group="g1"] .sf-property-view-group-fields');
-    const columns = fields ? getComputedStyle(fields).gridTemplateColumns : null;
+    // Read as a list since 1.17.0 (C289 (4)): the group's rows are a subgrid of
+    // the description list, so the list's own tracks are the columns.
+    const tracks = view.querySelector('.sf-property-view-list > .sf-list-description-list') ?? fields;
+    const columns = tracks ? getComputedStyle(tracks).gridTemplateColumns : null;
     const layout = view.querySelector('.sf-property-view-layout');
     const layoutStyle = layout ? getComputedStyle(layout) : null;
     const containment = layout ? {
@@ -2175,13 +2191,11 @@ try {
 
     view.copyAddress?.();
     await new Promise((done) => window.setTimeout(done, 200));
-    // The copy stands on the drawer's outer edge, beside the panel rather than
-    // inside it, so it is looked for in the document.
-    const copies = [...document.querySelectorAll('[data-action="copy-link"]')];
-    const copyControl = copies[copies.length - 1] ?? null;
+    // Copying is a row of the «⋯» menu since 1.17.0 (C289 (6)): the panel says
+    // it copied in its status line, where a person reading it looks.
     const copy = {
       copied: view.addressCopied === true,
-      glyph: copyControl?.querySelector('.sf-icon')?.textContent.trim() ?? null,
+      said: String(view.message ?? ''),
     };
 
     const arranging = (() => {
@@ -2210,9 +2224,9 @@ try {
       got: {editControls: head.edits},
       expected: 'the related record open and the group behind it still being read'});
   }
-  if (!head.copy.copied || head.copy.glyph !== 'check') {
-    note({case: 'the copy control says it copied', got: head.copy,
-      expected: "a tick in place of the link glyph -- copying leaves nothing a person can see"});
+  if (!head.copy.copied || !head.copy.said) {
+    note({case: 'copying says it copied', got: head.copy,
+      expected: 'the panel says «Ссылка скопирована» -- copying leaves nothing a person can see'});
   }
   // Reset lives in the bar at the foot, with its confirmation. The same act
   // behind the «…» as well is one destruction reachable two ways, one quietly.

@@ -92,6 +92,19 @@ SF.RuleLoader['cl-view-properties'] = {
     // The sections are tabs either way: a row above the groups, or vertical
     // tabs beside them (decision C96 point 5).
     { name: 'cl-tabs' },
+    // A record to read is a description list: the label beside the value,
+    // each group a heading of the list (C289 (4)).
+    { name: 'cl-list-description' },
+    // The phone's list of sections is sf-list rows (C289 (5)).
+    { name: 'cl-list' },
+    // The loading skeleton's bars (.sf-skeleton) come with the panel: found
+    // by the Loader's class scan after the first paint, they grew the
+    // skeleton groups from 95 to 175 px some 550 ms in (CLS 0.074 at 390,
+    // C289 (8)).
+    { name: 'skeleton' },
+    // A host's confirmation of a save is asked in place with sf-confirm
+    // (C289 (7), C182).
+    { name: 'cl-confirm' },
     // The utility classes its templates write, asked for with the component (SIMAI Framework loader: a Framework component gets them from template-utilities.generated.json, a package component names them here); fetched after the first paint, they moved the drawn parts -- the bulk band's gap came 0 -> 8 and the band 8 px down some 150 ms in (View 1.8.1 acceptance, queue #172). The list is scripts/generate-template-utilities.mjs run over the overlay.
     { name: 'align-items/default' },
     { name: 'align-self/default' },

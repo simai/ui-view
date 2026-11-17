@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-properties",
-  "version": "1.16.11",
+  "version": "1.17.0",
   "title": "Property view",
   "summary": "One object's fields shown as sections, groups and fields, each drawn by the per-type field renderer set, behind a separate host port. A group is edited and saved as one revision by the button, and a reference field is picked from the host's own candidates a page at a time. The pair to the data view: that one is a set of records, this one is a single object.",
   "kind": "composite",
@@ -34,6 +34,7 @@
     "uses": [
       "component.accordion",
       "component.icons",
+      "component.skeleton",
       "smart.avatar",
       "smart.badge",
       "smart.button",
@@ -41,6 +42,7 @@
       "smart.button-copy",
       "smart.button-icon",
       "smart.checkbox",
+      "smart.confirm",
       "smart.drawer",
       "smart.dropdown",
       "smart.empty-state",
@@ -54,6 +56,8 @@
       "smart.input-date",
       "smart.input-lookup",
       "smart.input-textarea",
+      "smart.list",
+      "smart.list-description",
       "smart.list-item",
       "smart.popover",
       "smart.profile-picker",
@@ -447,7 +451,7 @@
       "panel-width": {
         "type": "string",
         "default": "",
-        "description": "An exact panel width, for a consumer whose layout the ladder step does not fit. Empty leaves panel-size in charge; a length here wins over it. A stacked panel is narrowed from this width rather than from the ladder."
+        "description": "Former name until 2027-01-01 (C289 (2), C157 (2)): the panel never takes a width of its own. A length here is mapped to the nearest step of the drawer ladder (20rem → 1/2, 24rem → 1, 30rem → 2; wider lands on 2) when panel-size is not set, with a console notice. Use panel-size."
       },
       "personal-layer-text": {
         "type": "string",
@@ -506,7 +510,7 @@
       "sections-as": {
         "type": "string",
         "default": "list",
-        "description": "Where the sections are read: as a list beside the groups, which suits a settings screen with many of them, or as a row of tabs above them, which suits a record with a few. The sections are the same either way.",
+        "description": "Where the sections of an inline view are read: as a list beside the groups, which suits a settings screen with many of them, or as a row of tabs above them, which suits a record with a few. A panel lays them out by its width since 1.17.0 (C289 (5)): tabs with «Ещё (n)» in a panel, the column in a panel of size full, a list of rows on a phone; there this setting is not read.",
         "enum": [
           "list",
           "tabs"
@@ -1715,6 +1719,20 @@
         "changes": [
           "Over SIMAI Framework ui-24d64b7f6eb7: its icon buttons and buttons ask for the look ghost where they asked for link, ghost's former name (component.icon-buttons 1.14.0, sf-button-icon 1.13.3, sf-button 1.16.3, RG-IB-1..3, C213); the printed row menu wrote sf-icon-button--link, which the pair answers with a console warning. The same look; nothing to change for a host."
         ]
+      },
+      {
+        "from": "1.16.11",
+        "to": "1.17.0",
+        "changes": [
+          "C289 (1), (5), R250: the sections are laid out by width, not by a setting: a panel shows them as an underline sf-tabs line under the head (overflow more, «Ещё (n)»); a panel of size full and a wide inline view keep the section column at the start; on a phone they are an sf-list of rows, each opening its section with «←». sections-as applies to an inline view only.",
+          "C289 (2), C157 (2): the panel is drawn at a step of the sf-drawer ladder (1/2, 1, 2) or full and never grows; panel-width is a dated former name until 2027-01-01, mapped to the nearest step with a console notice and an SF.deprecations entry.",
+          "C289 (3), (6), R254: «Удалить» is the last row of the head's «⋯» menu, with «Копировать ссылку» and «Открыть на всю страницу»; a record to read has no foot, and nothing stands on the drawer's edge outside the panel.",
+          "C289 (4), R252: a record to read is an sf-list-description: the label beside the value on one row, each group a heading of the list, «Изменить» in the group's heading.",
+          "C289 (6): the head is one row of the drawer's control height; a record opened from another shows «← <record>» above its title as the drawer's back line (sf-drawer-back), which returns to the previous record.",
+          "C289 (6): a panel the page gave no panel-label is headed by the record's name, record.label or record.title (the reference host and most pages send title); it showed the record id. The back line and the drawer's accessible name read the same name.",
+          "C289 (7), C182: Save is never disabled; a Save over empty required fields or entries that are not values is refused with the message under each field and, for two or more, a summary with a link per field; a host's confirmation is asked in place with sf-confirm.",
+          "C289 (8), (9), (10): the first paint keeps its boxes (no layout shift when the record comes); value buttons are 24px high at least on a phone (--sf-hit--min); the view asks the Loader for every tag it draws, so a page needs no defineFieldsOf or own defines."
+        ]
       }
     ]
   },
@@ -1724,15 +1742,15 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-properties/index.js",
-        "sha256": "9618f090b5b621364e509465dab4674d792ae0e1e10d00623590bf6791b6a31a"
+        "sha256": "e82cbe743dd9576a77896a29539f85a4a27040c6529c706f620d496b3eb57d4f"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.js",
-        "sha256": "5567551d7587e3573e492bf486f7e0ca8fdd6b96de64b88cb8a43a693dad9652"
+        "sha256": "8c196b78994ceb8c466837db6615ee968fe815f25c1609f963f60cce76e6b832"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.css",
-        "sha256": "527b5db44fcf995d604b8241ca322664c8df482dae34a405cc0c0fee41abdfa8"
+        "sha256": "2d2c1446c678df699b644eb0362495c53ddbc03310c446d5b9a8e9982d1b8a2b"
       },
       {
         "path": "src/smart/view-properties/js/conditions.js",
@@ -1768,7 +1786,7 @@
       },
       {
         "path": "src/smart/view-properties/rule.js",
-        "sha256": "d65093af451bf046d258f80d04de464311b5d7214741d58529e2350604d399f9"
+        "sha256": "791cd7abb8467c2e55b6bb48a4bb1df4e271ab2d0dff7093a67d1198249450eb"
       },
       {
         "path": "src/core/contracts/ports/simai.property-view-port/1.4.0/port.json",
@@ -1776,7 +1794,7 @@
       },
       {
         "path": "src/smart/view-properties/docs.md",
-        "sha256": "d5a1782b5fe4f08d29b496d707e0857c59d16fd3f4031c1075974a20062f0932"
+        "sha256": "db00537f1686c621b5e824b33035e5ccbf638ce6eb8e2b11eb0262039b39546d"
       }
     ],
     "generated_runtime": []

@@ -49,9 +49,11 @@ test('the bar asks, in both bars, in both languages', () => {
   assert.match(template, /function renderOpenAllBar\(context\) \{\n\s+if \(context\.confirmation\) return renderConfirmation\(context\);/u);
   assert.match(template, /if \(context\.editing && context\.confirmation\) return renderConfirmation\(context\);/u);
   const bar = template.slice(template.indexOf('function renderConfirmation('), template.indexOf('function renderOpenAllBar('));
-  assert.match(bar, /role="alert">\$\{context\.confirmation\.text\}/u);
-  assert.match(bar, /data-action="confirm-save"[\s\S]*context\.component\.confirmSave\(\)/u);
-  assert.match(bar, /data-action="keep-editing"[\s\S]*context\.component\.cancelConfirmation\(\)/u);
+  // The Framework's question in place since 1.17.0 (C289, C182): sf-confirm
+  // inline with the host's words; accepted raises the digest, declined keeps editing.
+  assert.match(bar, /<sf-confirm[\s\S]*appearance="inline"[\s\S]*question=\$\{context\.confirmation\.text\}/u);
+  assert.match(bar, /accept-text=\$\{context\.confirmSaveText\}[\s\S]*decline-text=\$\{context\.keepEditingText\}/u);
+  assert.match(bar, /if \(event\.detail\?\.accepted\) context\.component\.confirmSave\(\);\n\s+else context\.component\.cancelConfirmation\(\);/u);
   // The words are the language files' since standard 1.3.8 §11 (lang/<locale>.json).
   for (const key of ['confirm-save-text', 'keep-editing-text']) {
     for (const language of ['en', 'ru']) {
