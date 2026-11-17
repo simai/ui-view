@@ -103,6 +103,27 @@ up). Each component.json says the same under `x-decisions`
   group's members alone for a group (C164 (2)): the table's hand-drawn second
   row menu is gone. `sf-view-properties` 1.16.8: the count beside «Неразмещённые»
   is a grey tonal `sf-badge` (C140 (3)), not a tag.
+- `sf-view-table` 1.22.0, the gear's window on SIMAI Framework `sf-settings`
+  (owner decision C106): the column settings are `sf-settings look="panel"`,
+  not `sf-menu-context` tabs with rows the table drew. «Поля» is the panel's
+  fields list with its search: a shown column has the theme's light fill and
+  a check at the end, the handle stands at the start (drag or Alt+arrows),
+  the pin is the Framework's pin button and pinned columns stay on top.
+  «Вид» holds the density as a choice (the fill alone) and switches for the
+  lines, one line, the held head and «Для всех моих таблиц». Everything still
+  applies at once with the same events (`save {kind: columns}` with reason
+  `column-visibility`, `column-pin` or `column-order`; `view-change`);
+  «Сбросить» puts the fields back as the window opened with them, or the
+  view to its defaults, by the tab it stands on; the window reopens on the
+  tab it was closed on. The panel draws at the gear's density (C22): the
+  handles and pins the table wrote at 1/2 by hand are gone, a size reaches
+  it only when the host wrote one; on a phone it is the bottom sheet. The
+  labels `column-move-label`, `pin-column-label`, `unpin-column-label`,
+  `column-search-placeholder` and `column-search-empty-text` are no longer
+  read by the gear: `sf-settings` says its own words in the page language.
+  The filter window keeps its tabs: its saved views need a sortable,
+  pinnable choice of one with a row menu and a rename in place, which
+  `sf-settings` does not offer yet.
 
 ## 1.8.1 — 2026-11-15
 

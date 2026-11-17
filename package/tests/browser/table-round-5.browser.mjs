@@ -2,9 +2,10 @@
 // Usage: node this-file /absolute/path/to/output
 // Round five, measured: both windows bounded to the viewport with their head and
 // buttons in view and the list scrolling inside; a pin that applies on the spot,
-// reaches the host and shows a filled mark; a drag that applies; a visibility
-// tick that is not lost by closing the window; and the search inset like every
-// other block in the window.
+// reaches the host and shows a pinned mark; a visibility tick that is not lost
+// by closing the window; «Сбросить» back to the opening state. Since C106 the
+// gear's window is SIMAI Framework sf-settings look="panel": its rows, pins,
+// search and insets are the Framework's, read here by their parts.
 import {resolve, join} from 'node:path';
 import {chromium} from 'playwright';
 
@@ -17,6 +18,7 @@ const styles = [
   'component/component/context-menu/css/context-menu.css',
   'component/component/checkbox/css/checkbox.css',
   'component/component/tabs/css/tabs.css',
+  'smart/smart/switch/css/switch.css', 'smart/smart/settings/css/settings.css',
   'smart/smart/view-table/css/view-table.css', 'smart/smart/resizer/css/resizer.css',
 ].map((p) => join(out, p));
 const modules = [
@@ -26,6 +28,7 @@ const modules = [
   'smart/smart/input/js/input.js', 'smart/smart/spinner/js/spinner.js',
   'smart/smart/button-close/js/button-close.js', 'smart/smart/menu-context/js/menu-context.js',
   'smart/smart/tabs/js/tabs.js', 'smart/smart/tag/js/tag.js',
+  'smart/smart/switch/js/switch.js', 'smart/smart/settings/js/settings.js',
   'smart/smart/pagination/js/pagination.js', 'smart/smart/resizer/js/resizer.js', 'smart/smart/view-table/js/view-table.js',
 ].map((p) => join(out, p));
 
@@ -63,10 +66,14 @@ const open = async (height = 700) => {
   return page;
 };
 
+// The open window: the filter's sf-menu-context panel, or the gear's
+// sf-settings panel (C106).
+const SURFACE = 'sf-menu-context .sf-table-context-menu, sf-settings[data-table-settings] .sf-settings-panel:not([hidden])';
+
 const openWindow = async (page, label) => {
   // The gear closes the window it opened (owner, 2026-10-15): one left open
   // by the step before is closed first, so the click opens it again.
-  if (await page.evaluate(() => Boolean(document.querySelector('sf-menu-context .sf-table-context-menu')))) {
+  if (await page.evaluate((surface) => Boolean(document.querySelector(surface)), SURFACE)) {
     await page.keyboard.press('Escape');
     await page.waitForTimeout(300);
   }
@@ -84,7 +91,7 @@ const openWindow = async (page, label) => {
   }, label);
   if (!opened) throw new Error(`no control labelled ${label}`);
   await page.waitForTimeout(700);
-  const surface = await page.evaluate(() => Boolean(document.querySelector('sf-menu-context .sf-table-context-menu')));
+  const surface = await page.evaluate((selector) => Boolean(document.querySelector(selector)), SURFACE);
   if (!surface) throw new Error(`the window ${label} did not open`);
 };
 
@@ -94,7 +101,7 @@ try {
   //    the filter window's fields are laid out in columns and may simply fit.
   //    Measured at two heights, because a ceiling that only works on a tall
   //    screen is not a ceiling.
-  for (const [label, headSelector] of [['Настройки', '.sf-table-column-search'], ['Фильтр', '.sf-tabs-top-container']]) {
+  for (const [label, headSelector] of [['Настройки', '.sf-settings-panel-search'], ['Фильтр', '.sf-tabs-top-container']]) {
     for (const height of [700, 460]) {
       const page = await open(height);
       await openWindow(page, label);
@@ -109,12 +116,12 @@ try {
         if (!switched) throw new Error('the filter window has no fields tab');
         await page.waitForTimeout(600);
       }
-      const fit = await page.evaluate((head) => {
-        const surface = document.querySelector('sf-menu-context .sf-table-context-menu');
+      const fit = await page.evaluate(([head, selector]) => {
+        const surface = document.querySelector(selector);
         if (!surface) return null;
         const box = surface.getBoundingClientRect();
-        const list = surface.querySelector('.sf-context-menu-columns');
-        const bottom = surface.querySelector('.sf-context-menu-footer');
+        const list = surface.querySelector('.sf-context-menu-columns, .sf-settings-panel-body');
+        const bottom = surface.querySelector('.sf-context-menu-footer, .sf-settings-panel-footer');
         const top = surface.querySelector(head);
         const visible = (node) => {
           const rect = node?.getBoundingClientRect();
@@ -132,7 +139,7 @@ try {
           listInsideWindow: listBox ? Math.round(listBox.bottom) <= Math.round(box.bottom) + 1 : null,
           pageScrolls: document.documentElement.scrollHeight > window.innerHeight + 1,
         };
-      }, headSelector);
+      }, [headSelector, SURFACE]);
       if (!fit || !fit.insideScreen || fit.headVisible !== true || fit.buttonsVisible !== true
           || fit.listReachable !== true || fit.listInsideWindow !== true || fit.pageScrolls) {
         note({case: `window ${label} at ${height}`, got: fit, expected: 'inside the screen, head and buttons in view, the list reachable within the window, and no page scroll'});
@@ -144,22 +151,39 @@ try {
   const page = await open(900);
   await openWindow(page, 'Настройки');
 
-  // 2. A pin applies on the spot, reaches the host and shows a filled mark.
+  // The gear's window is the Framework's settings panel (C106): «Поля» and
+  // «Вид» as tabs, a search, one «Сбросить», a dialog.
+  const kind = await page.evaluate(() => {
+    const settings = document.querySelector('sf-settings[data-table-settings]');
+    const panel = settings?.querySelector('.sf-settings-panel');
+    return {
+      look: settings?.getAttribute('look') ?? null,
+      role: panel?.getAttribute('role') ?? null,
+      tabs: [...(panel?.querySelectorAll('.sf-settings-panel-tabs [role="tab"]') ?? [])].map((tab) => tab.textContent.trim()),
+      search: Boolean(panel?.querySelector('[data-sf-search]')),
+      footer: [...(panel?.querySelectorAll('.sf-settings-panel-footer sf-button') ?? [])].map((node) => node.getAttribute('text')),
+      oldMenu: Boolean(document.querySelector('sf-menu-context [data-column-key]')),
+    };
+  });
+  if (kind.look !== 'panel' || kind.role !== 'dialog' || kind.tabs.join() !== 'Поля,Вид' || !kind.search
+      || kind.footer.join() !== 'Сбросить' || kind.oldMenu) {
+    note({case: 'the gear opens sf-settings look=panel', got: kind, expected: 'a dialog with «Поля», «Вид», a search and one «Сбросить»'});
+  }
+
+  // 2. A pin applies on the spot, reaches the host and shows a pinned mark.
   const pins = await page.evaluate(async () => {
-    const row = () => [...document.querySelectorAll('sf-menu-context [data-column-key]')]
-      .find((item) => item.dataset.columnKey === 'f3');
+    const row = () => document.querySelector('sf-settings[data-table-settings] .sf-settings-row-main[data-sf-option="f3"]')?.closest('.sf-settings-row');
     const read = () => {
       const node = row();
-      const button = node?.querySelector('[icon="push_pin"]');
+      const button = node?.querySelector('.sf-settings-row-pin');
       return {
-        pinned: node?.dataset.pinned,
-        pressed: button?.getAttribute('aria-pressed'),
-        filled: button?.hasAttribute('filled') || button?.getAttribute('filled') === '',
-        glyph: button?.querySelector('.sf-icon') ? getComputedStyle(button.querySelector('.sf-icon')).fontVariationSettings : null,
+        pinned: node?.hasAttribute('data-pinned') ?? null,
+        scheme: button?.getAttribute('scheme') ?? null,
+        name: button?.getAttribute('aria-label') ?? null,
       };
     };
     const before = read();
-    row()?.querySelector('[icon="push_pin"] button')?.click();
+    row()?.querySelector('.sf-settings-row-pin button')?.click();
     await new Promise((done) => setTimeout(done, 400));
     const table = document.getElementById('t');
     return {
@@ -170,12 +194,12 @@ try {
       draft: table.tempSettings ? Object.keys(table.tempSettings) : [],
     };
   });
-  if (pins.after?.pinned !== '1' || pins.after?.pressed !== 'true' || pins.after?.filled !== true
-      || pins.saved !== 1 || !pins.committed) {
-    note({case: 'pin applies at once', got: pins, expected: 'pinned, pressed, filled, one change emitted, and committed to the settings'});
+  if (pins.after?.pinned !== true || pins.after?.scheme !== 'primary' || pins.after?.name !== 'Открепить: Поле 3'
+      || pins.saved !== 1 || !pins.committed || pins.draft.length) {
+    note({case: 'pin applies at once', got: pins, expected: 'pinned, the pin primary and named «Открепить», one change emitted, and committed to the settings'});
   }
-  if (pins.before?.filled !== false) {
-    note({case: 'pin look', got: pins.before, expected: 'a loose column shows an unfilled pin'});
+  if (pins.before?.pinned !== false || pins.before?.name !== 'Закрепить: Поле 3') {
+    note({case: 'pin look', got: pins.before, expected: 'a loose column offers «Закрепить»'});
   }
 
   // 3. The window has no «Применить» left, a tick applies on the spot, and
@@ -183,26 +207,25 @@ try {
   //    rule of 2026-10-05: everything here applies as it is pressed.
   const atOnce = await page.evaluate(async () => {
     const table = document.getElementById('t');
-    const surface = document.querySelector('sf-menu-context .sf-table-context-menu');
-    const buttons = [...surface.querySelectorAll('.sf-context-menu-footer sf-button')]
+    const panel = document.querySelector('sf-settings[data-table-settings] .sf-settings-panel');
+    const buttons = [...panel.querySelectorAll('.sf-settings-panel-footer sf-button')]
       .map((node) => node.getAttribute('text'));
     const visible = () => (table.getColumns?.() ?? []).filter((col) => col.visible !== false).length;
     const before = {buttons, visible: visible(), saved: window.saved.length};
 
-    const row = [...document.querySelectorAll('sf-menu-context [data-column-key]')]
-      .find((item) => item.dataset.columnKey === 'f5');
-    row?.querySelector('input[type="checkbox"]')?.click();
+    panel.querySelector('.sf-settings-row-main[data-sf-option="f5"]')?.click();
     await new Promise((done) => setTimeout(done, 400));
     const afterTick = {visible: visible(), saved: window.saved.length,
+      checked: panel.querySelector('.sf-settings-row-main[data-sf-option="f5"]')?.getAttribute('aria-checked') ?? null,
       draft: table.tempSettings ? Object.keys(table.tempSettings) : []};
 
     // A click away loses nothing now. A press, as a person makes it: the
-    // window hears the layer stack's pointerdown (sf-view-table 1.15.2), not
-    // a click alone.
+    // window hears the layer stack's pointerdown, not a click alone.
     document.body.dispatchEvent(new PointerEvent('pointerdown', {bubbles: true, composed: true}));
     document.body.click();
     await new Promise((done) => setTimeout(done, 300));
-    const afterAway = {visible: visible(), windowClosed: !document.querySelector('sf-menu-context .sf-table-context-menu')};
+    const afterAway = {visible: visible(),
+      windowClosed: !document.querySelector('sf-settings[data-table-settings] .sf-settings-panel:not([hidden])')};
     return {before, afterTick, afterAway};
   });
   if (atOnce.before?.buttons?.includes('Применить')) {
@@ -210,6 +233,7 @@ try {
   }
   if (atOnce.afterTick?.visible !== atOnce.before.visible - 1
       || atOnce.afterTick?.saved !== atOnce.before.saved + 1
+      || atOnce.afterTick?.checked !== 'false'
       || atOnce.afterTick?.draft.length !== 0) {
     note({case: 'tick applies at once', got: atOnce, expected: 'the column hides, one change is announced, nothing is left pending'});
   }
@@ -221,130 +245,53 @@ try {
   await openWindow(page, 'Настройки');
   const reset = await page.evaluate(async () => {
     const table = document.getElementById('t');
+    const panel = () => document.querySelector('sf-settings[data-table-settings] .sf-settings-panel');
     const visible = () => (table.getColumns?.() ?? []).filter((col) => col.visible !== false).length;
     const pinned = () => (table.getPinnedColumnKeys?.() ?? []).filter((key) => !['select', 'settings'].includes(key));
     const opened = {visible: visible(), pinned: pinned().length};
-    const row = (key) => [...document.querySelectorAll('sf-menu-context [data-column-key]')]
-      .find((item) => item.dataset.columnKey === key);
-    row('f7')?.querySelector('input[type="checkbox"]')?.click();
+    panel().querySelector('.sf-settings-row-main[data-sf-option="f7"]')?.click();
     await new Promise((done) => setTimeout(done, 300));
-    row('f9')?.querySelector('[icon="push_pin"] button')?.click();
+    panel().querySelector('.sf-settings-row-main[data-sf-option="f9"]')?.closest('.sf-settings-row')
+      ?.querySelector('.sf-settings-row-pin button')?.click();
     await new Promise((done) => setTimeout(done, 350));
     const changed = {visible: visible(), pinned: pinned().length};
     const savedBefore = window.saved.length;
-    document.querySelector('sf-menu-context .sf-context-menu-footer sf-button button')?.click();
+    // The footer's data-* go down to the native button (sf-button).
+    panel().querySelector('button[data-sf-reset], [data-sf-reset] button')?.click();
     await new Promise((done) => setTimeout(done, 400));
-    return {opened, changed, restored: {visible: visible(), pinned: pinned().length},
+    const rows = panel() ? {
+      f7: panel().querySelector('.sf-settings-row-main[data-sf-option="f7"]')?.getAttribute('aria-checked'),
+      f9: panel().querySelector('.sf-settings-row-main[data-sf-option="f9"]')?.closest('.sf-settings-row')?.hasAttribute('data-pinned'),
+    } : null;
+    return {opened, changed, restored: {visible: visible(), pinned: pinned().length}, rows,
       announcements: window.saved.length - savedBefore};
   });
   if (reset.changed?.visible !== reset.opened.visible - 1 || reset.changed?.pinned !== reset.opened.pinned + 1) {
     note({case: 'reset setup', got: reset, expected: 'the tick and the pin took effect before Reset was pressed'});
   }
   if (reset.restored?.visible !== reset.opened.visible || reset.restored?.pinned !== reset.opened.pinned
-      || reset.announcements !== 1) {
-    note({case: 'reset returns to the opening state', got: reset, expected: 'both changes undone, announced once'});
+      || reset.announcements !== 1 || reset.rows?.f7 !== 'true' || reset.rows?.f9 !== false) {
+    note({case: 'reset returns to the opening state', got: reset, expected: 'both changes undone in the table and the panel, announced once'});
   }
 
-  // 4. The search is inset like every other block in the window.
+  // 4. The search finds a column (no case, ё as е), and the panel draws at the
+  //    gear's density: no size of the table's own hand inside it (C22).
   await openWindow(page, 'Настройки');
-  const inset = await page.evaluate(() => {
-    const surface = document.querySelector('sf-menu-context .sf-table-context-menu');
-    const search = surface?.querySelector('.sf-table-column-search');
-    const list = surface?.querySelector('.sf-context-menu-columns');
-    const read = (node) => {
-      if (!node) return null;
-      const style = getComputedStyle(node);
-      const box = node.getBoundingClientRect();
-      return {start: Math.round(parseFloat(style.paddingInlineStart)), end: Math.round(parseFloat(style.paddingInlineEnd)), left: Math.round(box.left)};
-    };
-    const surfaceBox = surface?.getBoundingClientRect();
-    const field = search?.querySelector('.sf-input-field')?.getBoundingClientRect();
-    return {
-      search: read(search), list: read(list),
-      gapToWindowEdge: field && surfaceBox ? Math.round(field.left - surfaceBox.left) : null,
-    };
+  const search = await page.evaluate(async () => {
+    const panel = document.querySelector('sf-settings[data-table-settings] .sf-settings-panel');
+    const field = panel?.querySelector('[data-sf-search]');
+    if (!field) return null;
+    field.value = 'поле 1';
+    field.dispatchEvent(new Event('input', {bubbles: true}));
+    await new Promise((done) => setTimeout(done, 300));
+    const shown = [...panel.querySelectorAll('.sf-settings-row')].filter((row) => !row.hidden && row.getClientRects().length)
+      .map((row) => row.querySelector('[data-sf-option]')?.dataset.sfOption);
+    return {shown, density: panel.getAttribute('data-sf-density'),
+      size: document.querySelector('sf-settings[data-table-settings]').getAttribute('size')};
   });
-  if (!inset.search || inset.search.start !== inset.list?.start || inset.search.end !== inset.list?.end
-      || !(inset.gapToWindowEdge > 0)) {
-    note({case: 'search inset', got: inset, expected: 'the same inset as the list, and clear of the window edge'});
-  }
-
-  // The check above compares this window's blocks with each other, so it is
-  // blind to the thing a person actually sees: whether they agree with the rows
-  // the Framework draws inside them. Both are measured here from one origin --
-  // the padding box of .sf-context-menu-content, which is the panel the items
-  // live in -- against the axis the menu publishes for its own items.
-  const axis = await page.evaluate(() => {
-    const content = document.querySelector('sf-menu-context .sf-context-menu-content')
-      ?? document.querySelector('sf-menu-context .sf-table-context-menu');
-    if (!content) return null;
-    // From the padding edge, where the published inset is counted from: the
-    // panel has a hairline border since the standard menu (2026-10-12), and
-    // the border box put every block a pixel off an axis they all shared.
-    const origin = content.getBoundingClientRect().left + content.clientLeft;
-    const end = content.getBoundingClientRect().right - content.clientLeft;
-    const start = (node) => node ? Math.round((node.getBoundingClientRect().left - origin) * 10) / 10 : null;
-    const finish = (node) => node ? Math.round((end - node.getBoundingClientRect().right) * 10) / 10 : null;
-    const px = (value) => {
-      const probe = document.createElement('div');
-      probe.style.position = 'absolute';
-      probe.style.visibility = 'hidden';
-      probe.style.inlineSize = value;
-      content.append(probe);
-      const width = probe.getBoundingClientRect().width;
-      probe.remove();
-      return Math.round(width * 10) / 10;
-    };
-    const style = getComputedStyle(content);
-    const published = style.getPropertyValue('--sf-context-menu--item-inset-start-1').trim();
-    const row = content.querySelector('[data-column-key]');
-    // The panel's body is its scroll area (SIMAI Framework C106 addendum to
-    // C105, since ui-994f9db407fa): it stands its rows' plates the inset
-    // --sf-space-1/4 from the panel's edge, the border inside it (C105 H4), and
-    // a row's content the item inset further in. The footer keeps the
-    // published inset from the panel's outer edge.
-    const body = content.querySelector('.sf-context-menu-body');
-    const bodyInset = body
-      ? Math.round((body.getBoundingClientRect().left - origin + parseFloat(getComputedStyle(body).paddingInlineStart)) * 10) / 10
-      : 0;
-    return {
-      bodyInset,
-      border: content.clientLeft,
-      published: published ? px(published) : null,
-      // Each block is measured by its content, not by its own padded box: a
-      // block's box spans the panel, and a Framework control's host is
-      // display: contents and has no box at all. Both mistakes read as zero or
-      // as the panel's own edge, which is how a measurement can look like a
-      // defect that is not there.
-      searchField: start(content.querySelector('.sf-table-column-search .sf-input-field')),
-      searchFieldEnd: finish(content.querySelector('.sf-table-column-search .sf-input-field')),
-      rowStart: start(row),
-      rowPinEnd: finish(row?.querySelector('[icon="push_pin"] button')),
-      buttons: start(content.querySelector('.sf-context-menu-footer sf-button button')),
-    };
-  });
-  if (!axis || axis.published === null) {
-    note({case: 'menu axis', got: axis, expected: 'the menu publishes its item axis for this window to read'});
-  } else {
-    const off = (value, want) => value === null || Math.abs(value - want) > 0.5;
-    const inBody = axis.bodyInset + axis.published;
-    // The footer's buttons too: the window's blocks start on one axis, where
-    // the Framework's panel rows put their text (the plates' inset plus the
-    // item inset, 15 from the padding edge). The table zeroed the menu's
-    // inline padding, from which the footer takes its margin, and its
-    // buttons stood at 11 (ui-pro release fix, 2026-11-15).
-    if (off(axis.searchField, inBody) || off(axis.rowStart, inBody) || off(axis.buttons, inBody)) {
-      note({case: 'blocks on the menu axis', got: axis,
-        expected: `the search field, the rows and the footer's buttons at the body's inset plus the item inset (${inBody}), as the Framework's panel rows`});
-    }
-    // The pin sits at the end edge, so the search field and the pin have to
-    // finish on one axis. The panel's body keeps the scrollbar's room
-    // (Framework panel, 2026-10-15), so that axis is the published inset plus
-    // the gutter -- the same for both, never less than the start's.
-    if (axis.searchFieldEnd === null || axis.rowPinEnd === null
-        || Math.abs(axis.searchFieldEnd - axis.rowPinEnd) > 0.5 || axis.searchFieldEnd < axis.published - 0.5) {
-      note({case: 'the end edge too', got: axis, expected: 'the search field and the pin finish at the same axis'});
-    }
+  const expectedShown = ['f1', ...Array.from({length: 10}, (_, at) => `f${at + 10}`)];
+  if (!search || [...search.shown].sort().join() !== [...expectedShown].sort().join() || search.size !== null) {
+    note({case: 'the panel search and its size', got: search, expected: {shown: expectedShown, size: null}});
   }
   // 5. The filter window names its object and says what is pending: the owner's
   //    separate item of 2026-10-05. With nothing pending the button reads as it
@@ -415,7 +362,7 @@ try {
   }
   await filterPage.close();
 
-  console.error(JSON.stringify({pins, atOnce, reset, inset, quiet, pending, marked, translated}, null, 1));
+  console.error(JSON.stringify({kind, pins, atOnce, reset, search, quiet, pending, marked, translated}, null, 1));
   await page.close();
 } finally {
   await browser.close();

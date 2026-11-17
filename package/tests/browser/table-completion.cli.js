@@ -77,13 +77,13 @@ async page => {
         focusPreserved: document.activeElement?.getAttribute('aria-label') === 'Изменить ширину столбца: Имя',
       }));
       await page.getByRole('button', {name: 'Настройки таблицы'}).click();
-      await page.waitForFunction(() => document.querySelector('.sf-table-portal sf-menu-context'));
+      await page.waitForFunction(() => document.querySelector('.sf-table-portal sf-settings[data-table-settings]'));
       const overlay = await page.evaluate(() => {
-        const menu = document.querySelector('.sf-table-portal sf-menu-context');
-        const surface = menu.querySelector('.sf-context-menu') || menu;
+        const menu = document.querySelector('.sf-table-portal sf-settings[data-table-settings]');
+        const surface = menu.querySelector('.sf-settings-panel') || menu;
         const rect = surface.getBoundingClientRect();
         return {
-          named: Boolean(menu.getAttribute('aria-label')),
+          named: Boolean(menu.getAttribute('label')),
           fitsInline: rect.left >= -1 && rect.right <= innerWidth + 1,
           fitsBlock: rect.top >= -1 && rect.bottom <= innerHeight + 1,
         };
@@ -92,7 +92,7 @@ async page => {
       await page.waitForTimeout(80);
       const escapeRestoresFocus = await page.evaluate(() =>
         document.activeElement?.getAttribute('aria-label') === 'Настройки таблицы' &&
-        !document.querySelector('.sf-table-portal sf-menu-context')
+        !document.querySelector('.sf-table-portal sf-settings[data-table-settings]')
       );
       const resizeDirectionCorrect = dir === 'rtl' ? after < before : after > before;
       const row = {theme, dir, before, after, resizeDirectionCorrect, escapeRestoresFocus, ...geometry, ...overlay};
@@ -133,13 +133,13 @@ async page => {
     tables[0].openContextMenu(fakeEvent(triggers[0]), {menu: 'table-settings'});
     tables[1].openContextMenu(fakeEvent(triggers[1]), {menu: 'table-settings'});
     await new Promise(resolve => setTimeout(resolve, 100));
-    const independent = document.querySelectorAll('.sf-table-portal').length === 2 && document.querySelectorAll('.sf-table-portal sf-menu-context').length === 2;
+    const independent = document.querySelectorAll('.sf-table-portal').length === 2 && document.querySelectorAll('.sf-table-portal sf-settings[data-table-settings]').length === 2;
     tables[0].remove();
     await new Promise(resolve => setTimeout(resolve, 80));
     return {
       independent,
       disposed: document.querySelectorAll('.sf-table-portal').length === 1,
-      survivorOpen: document.querySelectorAll('.sf-table-portal sf-menu-context').length === 1,
+      survivorOpen: document.querySelectorAll('.sf-table-portal sf-settings[data-table-settings]').length === 1,
     };
   });
   if (Object.values(lifecycle).some(value => value !== true)) failures.push({lifecycle});
@@ -149,14 +149,14 @@ async page => {
   await cdp.send('Emulation.setPageScaleFactor', {pageScaleFactor: 1});
   await load({width: 1280, height: 900});
   await page.getByRole('button', {name: 'Настройки таблицы'}).click();
-  await page.waitForFunction(() => document.querySelector('.sf-table-portal sf-menu-context'));
+  await page.waitForFunction(() => document.querySelector('.sf-table-portal sf-settings[data-table-settings]'));
   await cdp.send('Emulation.setPageScaleFactor', {pageScaleFactor: 2});
   await page.waitForFunction(() => visualViewport?.scale === 2);
   await page.waitForTimeout(150);
   const zoom = await page.evaluate(() => {
     const viewport = visualViewport;
-    const menu = document.querySelector('.sf-table-portal sf-menu-context');
-    const rect = (menu.querySelector('.sf-context-menu') || menu).getBoundingClientRect();
+    const menu = document.querySelector('.sf-table-portal sf-settings[data-table-settings]');
+    const rect = (menu.querySelector('.sf-settings-panel') || menu).getBoundingClientRect();
     return {
       scale: viewport.scale,
       fitsInline: rect.left >= viewport.offsetLeft - 1 && rect.right <= viewport.offsetLeft + viewport.width + 1,

@@ -564,8 +564,6 @@ class SfTable extends TableElement {
             createItems: [],
             // What the toolbar's own control offers, straight from the host.
             toolbarActions: [],
-            // What is typed over the list of fields in the column settings.
-            columnSettingsQuery: "",
             sort: {key: null, direction: null},
 
             saveInputValue: '',
@@ -2640,32 +2638,6 @@ class SfTable extends TableElement {
         this.syncFilterTemplateOrder(orderedByGroup);
     }
 
-    // A column list may be narrowed by the search: the move is placed against
-    // the shown neighbours, and the columns the search hides keep their places.
-    onColumnSettingsIntent(event) {
-        const list = event.target;
-        const {item, index} = event.detail ?? {};
-        if (!(list instanceof Element) || !item) return;
-        const pinnedGroup = list.getAttribute('data-group') === 'pinned';
-        const shown = SfTable.reorderedKeys(list, item, index);
-        const at = shown.indexOf(item);
-        const columns = this.getColumnItems().filter((column) => column?.key && !column.system);
-        const groupKeys = columns.filter((column) => this.isColumnPinned(column) === pinnedGroup).map((column) => column.key)
-            .filter((key) => key !== item);
-        const before = shown[at + 1];
-        const after = shown[at - 1];
-        let place = before !== undefined ? groupKeys.indexOf(before) : -1;
-        if (place === -1) place = after !== undefined ? groupKeys.indexOf(after) + 1 : groupKeys.length;
-        groupKeys.splice(place === -1 ? groupKeys.length : place, 0, item);
-        const otherKeys = columns.filter((column) => this.isColumnPinned(column) !== pinnedGroup).map((column) => column.key);
-        const ordered = pinnedGroup ? [...groupKeys, ...otherKeys] : [...otherKeys, ...groupKeys];
-        ordered.forEach((key, position) => this.patchTempColumnSettings(key, {order: (position + 1) * 10}));
-        this.requestComponentUpdate('column-order');
-        // The consumer's owner read the drag as applying at once, because the
-        // list redraws from the draft; it does, as every control in the window.
-        this.commitColumnSettings('column-order');
-    }
-
     syncFilterTemplateOrder(orderedByGroup) {
         const currentFilter = this.getPendingFilterState();
         const templates = this.getFilterTemplates(currentFilter).map(
@@ -3988,98 +3960,6 @@ class SfTable extends TableElement {
         });
     }
 
-    // What the person typed over the list of fields. Kept in state so the list
-    // and the field agree after a render; there can be hundreds of fields and
-    // scrolling for one is not an answer.
-    setColumnSettingsQuery(value = "") {
-        return this.set({columnSettingsQuery: String(value ?? "")});
-    }
-
-    // Case and ё/е are not differences a person means when searching.
-    matchesColumnQuery(label = "", query = "") {
-        const normalise = (value) => String(value ?? "").toLowerCase().replace(/ё/gu, "е");
-        const needle = normalise(query).trim();
-        if (!needle) return true;
-
-        return normalise(label).includes(needle);
-    }
-
-    getColumnCheckboxItems(options = {}) {
-        const {
-            checked,
-            onChange,
-            refPrefix = "column",
-        } = options;
-
-        const {pin = false, handle = false, query = "", group = ""} = options;
-        // A group is one of the two sortable lists: the pinned columns -- the
-        // system ones among them, offered nothing -- or the loose ones.
-        const inGroup = (col) => !group
-            || (group === 'pinned' ? (col.system || this.isColumnPinned(col)) : (!col.system && !this.isColumnPinned(col)));
-
-        return this.getColumnItems().filter(
-            (col) => inGroup(col) && (!pin || col.system || this.matchesColumnQuery(col.label, query)),
-        ).map((col) => {
-            const itemRef = this.getItemRef(`${refPrefix}:${col.key}`) || false;
-            const isChecked = typeof checked === "function" ? Boolean(checked(col)) : Boolean(checked);
-            const box = html`
-                <sf-checkbox
-                    size=${this.size}
-                    label=${col.label}
-                    position="end"
-                    root-class="content-main-between"
-                    ?checked=${isChecked}
-                    ${ref(itemRef)}
-                    @change=${event => onChange?.(col, event)}
-                ></sf-checkbox>
-            `;
-            if (!pin || col.system) {
-                return box;
-            }
-            // The pin sits beside the visibility box, because both are answers
-            // about the same column. The box and the row menu are always pinned
-            // and are offered nothing.
-            const pinned = this.isColumnPinned(col);
-
-            return html`
-                <div class="sf-table-column-option flex items-cross-center gap-1/3"
-                     data-column-key=${col.key}
-                     data-sf-sortable-item=${col.key}
-                     data-pinned=${pinned ? "1" : "0"}>
-                    ${handle
-                        ? html`<sf-button-icon
-                                size="1/2"
-                                appearance="ghost"
-                                scheme="on-surface"
-                                icon="drag_indicator"
-                                data-move
-                                data-sf-sortable-handle
-                                root-class="sf-table-column-move cursor-grab"
-                                aria-label=${`${this.text("columnMoveLabel", "column-move-label")}: ${col.label || col.key}`}
-                            ></sf-button-icon>`
-                        : nothing}
-                    <span class="flex-1 min-w-0">${box}</span>
-                    <!-- A pinned column's pin is filled and a loose one's is
-                         outlined, the way a pinned filter template already
-                         shows itself. Colour alone had to carry the state, and
-                         the two schemes are close enough that a person reading
-                         a list of twenty pins could not tell which were set. -->
-                    <sf-button-icon
-                        size="1/2"
-                        appearance="ghost"
-                        scheme=${pinned ? "primary" : "on-surface"}
-                        ?filled=${pinned}
-                        icon="push_pin"
-                        title=${pinned ? this.text("unpinColumnLabel", "unpin-column-label") : this.text("pinColumnLabel", "pin-column-label")}
-                        aria-label=${pinned ? this.text("unpinColumnLabel", "unpin-column-label") : this.text("pinColumnLabel", "pin-column-label")}
-                        aria-pressed=${pinned ? "true" : "false"}
-                        @click=${() => this.toggleColumnPinned(col)}
-                    ></sf-button-icon>
-                </div>
-            `;
-        });
-    }
-
     // «Сбросить» in the column settings: the state the window opened with,
     // applied at once and announced once -- not the host's defaults, which is
     // what the filter window's own Reset asks for.
@@ -4164,26 +4044,6 @@ class SfTable extends TableElement {
                 class="flex flex-col gap-1/3"
                 @sf-sortable-intent=${onIntent}>${rows}</sf-sortable>` : nothing);
         return html`${list('pinned', pinnedRows)}${list('loose', looseRows)}`;
-    }
-
-    getTableColsData(group = '') {
-        return this.getColumnCheckboxItems({
-            group,
-            pin: true,
-            handle: true,
-            query: this.state.columnSettingsQuery || "",
-            refPrefix: "table-column",
-            checked: (col) => this.isColumnVisible(col),
-            onChange: (col, event) => {
-                this.patchTempColumnSettings(col.key, {
-                    visible: Boolean(event.target?.checked),
-                });
-                // Everything in this window applies at once, by the consumer
-                // owner's decision of 2026-10-05, so a click outside loses
-                // nothing and no «Применить» is left to press.
-                this.commitColumnSettings('column-visibility');
-            },
-        });
     }
 
     getFilterTagColsData() {
@@ -5011,131 +4871,163 @@ class SfTable extends TableElement {
         return this;
     }
 
+    // The gear's window (owner decision C106): SIMAI Framework sf-settings in
+    // its panel look, not sf-menu-context's tabs with rows drawn here. Two
+    // groups as tabs, «Поля» -- the columns, shown or not, in their order, the
+    // pinned ones on top, with the panel's search -- and «Вид» -- the rows'
+    // density, the lines, one line, the held head and whether a change is for
+    // all the person's tables. Everything applies at once (2026-10-05);
+    // «Сбросить» puts back the fields as the window opened with them, or the
+    // view's defaults, by the tab it stands on. The panel takes its density
+    // from the gear (C22); a size is passed only when the host wrote one.
     renderTableSettingsContextMenu(data) {
-        const {
-            x,
-            y,
-            position,
-            transform,
-            columnCount,
-            columnsCount,
-        } = data;
-        let pos = `translateX(${transform !== undefined ? transform : 0}%)`;
-        const menuColumnCount =
-            columnCount ?? columnsCount ?? this.contextMenuColumns ?? 1;
-        const cols = this.getTableColsData()
-        const pinnedCols = this.getTableColsData('pinned');
-        const looseCols = this.getTableColsData('loose');
-        const query = this.state.columnSettingsQuery || "";
-        // The settings window is about the columns. Its "Actions" tab was asked
-        // to go on 2026-10-02: row actions are offered in the row's own menu and
-        // bulk actions in the band under the table, so a third place to find
-        // them taught nobody anything.
         return html`
-            <sf-menu-context
-                    size=${this.menuSize}
-                    :key=${x + y + this._renderToken}
-                    aria-label=${this.getContextMenuLabel({...data, menu: 'table-settings'})}
-                    style="
-            position: fixed;
-            left: ${x}px;
-            inset-block-start: calc(${y}px + calc(var(--sf-focus-outline-width) * 2));
-            transform: ${pos};
-            z-index: var(--sf-table-context-menu--z-index, ${this.contextMenuZIndex()});
-            --sf-table-context-menu--max-block-size: calc(100dvh - ${y}px - var(--sf-space-4));
-            --sf-table-context-menu--trigger-inline-size: ${this.contextTriggerInlineSize(data)}px;
-          "
-                    root-class="sf-table-context-menu ${this.contextWindowClass('table-settings', menuColumnCount)} ${this.size === "1/2" ? "sf-table-context-menu--dense " : ""}flex flex-col"
-                    position="${position || ""}"
-                    role="dialog"
-                    tabs=${`${this.text('settingsFieldsTab')}|${this.text('settingsViewTab')}`}
-                    active-tab=${this._settingsTab === 'view' ? '1' : '0'}
-                    closable
-                    @sf-menu-context-tab=${(event) => {
-                        event.stopPropagation();
-                        this._settingsTab = event.detail?.index === 1 ? 'view' : 'fields';
-                        this.requestComponentUpdate('settings-tab');
-                    }}
-                    @sf-menu-context-close=${(event) => {
-                        event.stopPropagation();
-                        this.closeContextMenu();
-                    }}
-            >
-                <!-- Two tabs (owner, 2026-10-14) in the Framework's panel
-                     (2026-10-15): its head -- the tabs and the way out --
-                     stays while the rows scroll, and its width is its own.
-                     Esc, a click outside and the gear again close it too. -->
-                <div class="sf-table-context-body flex flex-col flex-1" slot="content">
-                    ${this._settingsTab === 'view' ? this.renderTableViewSettings() : html`
-                    <!-- The search: a site can have hundreds of fields, and
-                         scrolling for one is not an answer. -->
-                    <label class="sf-table-column-search flex flex-col">
-                        <sf-input
-                            size=${this.size}
-                            appearance="bordered"
-                            root-class="sf-table-column-search-input"
-                            name="sf_table_column_search"
-                            .value=${query}
-                            placeholder=${this.text("columnSearchPlaceholder", "column-search-placeholder")}
-                            aria-label=${this.text("columnSearchPlaceholder", "column-search-placeholder")}
-                            @input=${(event) => this.setColumnSettingsQuery(event.target?.value ?? "")}
-                        ></sf-input>
-                    </label>
-                    <div class="sf-context-menu-columns flex flex-col flex-1 gap-1/3 overflow-auto"
-                         data-column-settings-list>
-                        ${cols.length
-                            ? this.renderSortableGroups(pinnedCols, looseCols, {name: 'table-columns',
-                                label: this.text('settingsColumnLabel'),
-                                onIntent: (event) => this.onColumnSettingsIntent(event)})
-                            : html`<div class="sf-table-column-empty p-1 color-on-surface-variant">
-                                ${this.text("columnSearchEmptyText", "column-search-empty-text")}
-                            </div>`}
-                    </div>
-                    `}
-                </div>
-                <!-- «Применить» went with the consumer owner's decision of
-                     2026-10-05: every control in this window applies as it is
-                     pressed. «Сбросить» is the way back -- for the fields, the
-                     settings as they stood when the window was opened; for the
-                     view, the defaults. -->
-                <!-- One button that stays, its words and act following the
-                     tab: the panel took its footer once, at the start. -->
-                <sf-button slot="footer" size=${this.size} appearance="outline" scheme="on-surface" root-class="flex-1"
-                           text=${this._settingsTab === 'view' ? this.text('viewReset') : this.text('resetText')}
-                           @click=${() => (this._settingsTab === 'view' ? this.resetTableView() : this.restoreColumnSettingsOnOpen())}></sf-button>
-            </sf-menu-context>
+            <sf-settings
+                    look="panel"
+                    search
+                    data-table-settings
+                    for=${this.settingsTriggerId(data.anchor)}
+                    size=${this.controlSize ?? nothing}
+                    label=${this.getContextMenuLabel({...data, menu: 'table-settings'})}
+                    .items=${this.tableSettingsItems()}
+                    @sf-settings-changed=${(event) => this.onTableSettingChanged(event)}
+                    @sf-settings-reset=${(event) => this.onTableSettingsReset(event)}
+                    @sf-settings-open=${(event) => event.stopPropagation()}
+                    @sf-settings-opened=${(event) => event.stopPropagation()}
+                    @sf-settings-close=${(event) => this.onTableSettingsClose(event)}
+                    @sf-settings-closed=${(event) => this.onTableSettingsClosed(event)}
+            ></sf-settings>
         `;
     }
 
-    // The gear's «Вид»: the rows' density as a radio list, three switches, and
-    // whether a change is for this table or for all the person's tables.
-    renderTableViewSettings() {
+    // The panel opens against the control that opened the window, which it
+    // names by id (sf-settings for=): a control without one is given one.
+    settingsTriggerId(anchor) {
+        const trigger = anchor instanceof Element ? anchor : this;
+        if (!trigger.id) trigger.id = `${this.getInstanceId()}--settings-trigger`;
+        return trigger.id;
+    }
+
+    // The gear's settings as sf-settings items, made again only when what they
+    // say changes, so the panel is not handed a new list on every drawing.
+    tableSettingsItems() {
         const view = this.tableView;
-        const size = this.size === "1/2" ? "1/2" : "1";
-        const everywhere = this._viewEverywhere === true;
-        const row = (label, control) => html`<div class="sf-table-settings-row">${control}<span>${label}</span></div>`;
-        const density = ["compact", "normal", "spacious"];
-        const label = {compact: "viewDensityCompact", normal: "viewDensityNormal", spacious: "viewDensitySpacious"};
-        const check = (field, text) => html`<label class="sf-table-settings-row" data-view-option=${field}>
-            <sf-checkbox size=${size} ?checked=${view[field] === true}
-                         @change=${(event) => this.setTableView({[field]: Boolean(event.target?.checked ?? event.detail?.checked)}, {everywhere})}></sf-checkbox>
-            <span>${this.text(text)}</span></label>`;
-        return html`
-            <div class="sf-table-view-settings flex flex-col flex-1 gap-1/3" data-table-view-settings>
-                <div class="sf-table-settings-heading">${this.text('viewDensity')}</div>
-                <div role="radiogroup" aria-label=${this.text('viewDensity')} class="flex flex-col">
-                    ${density.map((value) => html`<label class="sf-table-settings-row" data-view-density=${value}>
-                        <sf-radio size=${size} name=${`${this.getInstanceId()}-density`} value=${value} ?checked=${view.density === value}
-                                  @change=${() => this.setTableView({density: value}, {everywhere})}></sf-radio>
-                        <span>${this.text(label[value])}</span></label>`)}
-                </div>
-                ${check("lines", "viewLines")}
-                ${check("singleLine", "viewSingleLine")}
-                ${this.getAttribute("vertical-scroll") === "page" ? check("stickyHead", "viewStickyHead") : nothing}
-                ${this.viewPreferenceKey ? html`<div class="sf-table-settings-separator" role="separator"></div>
-                    ${row(this.text('viewEverywhere'), html`<sf-checkbox size=${size} data-view-everywhere ?checked=${everywhere}
-                        @change=${(event) => { this._viewEverywhere = Boolean(event.target?.checked ?? event.detail?.checked); this.requestComponentUpdate('view-everywhere'); }}></sf-checkbox>`)}` : nothing}
-            </div>`;
+        const options = this.getColumnItems().filter((column) => column?.key).map((column) => ({
+            id: String(column.key),
+            text: column.label || String(column.key),
+            checked: this.isColumnVisible(column),
+            // The box and the row menu are always pinned (offered nothing).
+            pinned: Boolean(column.system) || this.isColumnPinned(column),
+        }));
+        const density = {compact: "viewDensityCompact", normal: "viewDensityNormal", spacious: "viewDensitySpacious"};
+        const toggle = (id, word) => ({id, type: "switch", text: this.text(word), value: view[id] === true});
+        const items = [
+            {type: "group", text: this.text("settingsFieldsTab"), items: [
+                {id: "columns", type: "fields", text: this.text("settingsFieldsTab"), sortable: true, pinnable: true, options},
+            ]},
+            {type: "group", text: this.text("settingsViewTab"), items: [
+                {id: "density", type: "choice", text: this.text("viewDensity"), value: view.density,
+                    options: Object.entries(density).map(([id, word]) => ({id, text: this.text(word)}))},
+                toggle("lines", "viewLines"),
+                toggle("singleLine", "viewSingleLine"),
+                ...(this.getAttribute("vertical-scroll") === "page" ? [toggle("stickyHead", "viewStickyHead")] : []),
+                ...(this.viewPreferenceKey ? [{type: "separator"},
+                    {id: "everywhere", type: "switch", text: this.text("viewEverywhere"), value: this._viewEverywhere === true}] : []),
+            ]},
+        ];
+        const key = JSON.stringify(items);
+        if (this._settingsItems?.key !== key) this._settingsItems = {key, items};
+        return this._settingsItems.items;
+    }
+
+    // The fields list's value as the table holds it: what the panel shows
+    // after a change the table took otherwise or not at all.
+    tableSettingsColumns() {
+        const columns = this.tableSettingsItems()[0].items[0].options;
+        return columns.map(({id, checked, pinned}) => ({id, checked, pinned}));
+    }
+
+    // A setting a person changed in the panel, applied as the window's own
+    // controls applied it: a pin through toggleColumnPinned (the end of the
+    // pinned block, the start of the loose ones), a column shown or hidden,
+    // the order of every column (a drag or Alt+arrows), the view through
+    // setTableView, for this table or for all of them.
+    onTableSettingChanged(event) {
+        event.stopPropagation();
+        const settings = event.currentTarget;
+        const {id, value} = event.detail ?? {};
+        if (id === "columns") this.applyColumnsSetting(value);
+        else if (id === "everywhere") this._viewEverywhere = value === true;
+        else if (["density", "lines", "singleLine", "stickyHead"].includes(id)) {
+            this.setTableView({[id]: value}, {everywhere: this._viewEverywhere === true});
+        }
+        // A change the table did not take (a system column's pin or place)
+        // goes back in the panel; one it took is already the same.
+        requestAnimationFrame(() => {
+            if (id === "columns" && settings?.isConnected) settings.setValue?.("columns", this.tableSettingsColumns());
+        });
+    }
+
+    applyColumnsSetting(value = []) {
+        const columns = this.getColumnItems().filter((column) => column?.key);
+        const byKey = new Map(columns.map((column) => [String(column.key), column]));
+        const asked = (Array.isArray(value) ? value : []).filter((one) => byKey.has(one?.id));
+        const pin = asked.find((one) => !byKey.get(one.id).system && Boolean(one.pinned) !== this.isColumnPinned(byKey.get(one.id)));
+        if (pin) return this.toggleColumnPinned(byKey.get(pin.id));
+        const shown = asked.find((one) => Boolean(one.checked) !== this.isColumnVisible(byKey.get(one.id)));
+        if (shown) {
+            this.patchTempColumnSettings(byKey.get(shown.id).key, {visible: Boolean(shown.checked)});
+            return this.commitColumnSettings("column-visibility");
+        }
+        const loose = (list) => list.filter((key) => !byKey.get(key).system);
+        const ordered = loose(asked.map((one) => one.id));
+        const before = loose(columns.map((column) => String(column.key)));
+        if (ordered.join("\n") === before.join("\n")) return this;
+        ordered.forEach((key, position) => this.patchTempColumnSettings(byKey.get(key).key, {order: (position + 1) * 10}));
+        this.requestComponentUpdate("column-order");
+        return this.commitColumnSettings("column-order");
+    }
+
+    // The tab the panel stands on: its groups are tabs (a search and a fields
+    // list), «Поля» first.
+    settingsTabOf(settings) {
+        const tabs = settings?.querySelector?.(".sf-settings-panel-tabs");
+        return Number(tabs?.getAttribute("active-index") ?? 0) === 1 ? "view" : "fields";
+    }
+
+    onTableSettingsReset(event) {
+        event.stopPropagation();
+        event.preventDefault();
+        if (this.settingsTabOf(event.currentTarget) === "view") this.resetTableView();
+        else this.restoreColumnSettingsOnOpen();
+    }
+
+    // The window opens again on the tab it was closed on.
+    onTableSettingsClose(event) {
+        event.stopPropagation();
+        this._settingsTab = this.settingsTabOf(event.currentTarget);
+    }
+
+    // Closed by the panel itself (×, Escape, a press outside, Tab out): the
+    // window goes; the panel has already put the focus back. A panel leaving
+    // because the window closed is not connected any more.
+    onTableSettingsClosed(event) {
+        event.stopPropagation();
+        if (event.currentTarget?.isConnected && this.state.contextMenu?.open) this.closeContextMenu(false);
+    }
+
+    // The panel drawn, it is opened against its trigger, on the tab it was
+    // closed on; a trigger the page cannot find by id is passed in.
+    async showSettingsPanel(settings) {
+        await customElements.whenDefined("sf-settings");
+        await settings.whenRendered?.();
+        if (!settings.isConnected) return;
+        const view = this._settingsTab === "view";
+        const answer = await settings.show?.(view ? "density" : "columns");
+        if (answer?.outcome === "unavailable" && answer.reason === "no-trigger" && settings.isConnected) {
+            settings.toggle?.(this.state.contextMenu?.anchor ?? this);
+            if (view) settings.chooseGroup?.(1);
+        }
     }
 
     renderMainContextMenu(data) {
@@ -5242,7 +5134,7 @@ class SfTable extends TableElement {
         if (data?.open) {
             globalThis.SF?.Loader?.ensure?.(data.menu === 'tag-settings'
                 ? ["sf-input-date", "sf-slider-range"]
-                : ["sf-sortable", "sf-radio", "sf-tabs"]);
+                : ["sf-sortable", "sf-radio", "sf-tabs", "sf-settings"]);
         }
         if (!data?.open) {
             render(null, this.getPortalContainer());
@@ -5275,6 +5167,12 @@ class SfTable extends TableElement {
         );
         this.showPortal();
         this.bindContextViewport();
+        // The gear's panel opens itself once it is drawn, once per window.
+        const settings = this.getPortalContainer().querySelector("sf-settings[data-table-settings]");
+        if (settings && settings !== this._settingsShown) {
+            this._settingsShown = settings;
+            this.showSettingsPanel(settings);
+        }
         requestAnimationFrame(() => {
             this.clampContextMenusToViewport();
             // The menu lives in the portal, not in this element's own tree.

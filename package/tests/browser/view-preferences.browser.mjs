@@ -9,7 +9,8 @@
 // - the gear's «Вид» tab sets the rows' density, kept for this table, or for
 //   all the person's tables with «Для всех моих таблиц»; alternate rows are
 //   no longer the person's (C146 (4), since 1.19.0: the report's author
-//   sets the stripes attribute), so the tab offers none.
+//   sets the stripes attribute), so the tab offers none. Since 1.22.0 (C106)
+//   the gear's window is SIMAI Framework sf-settings look="panel".
 import {resolve, join} from 'node:path';
 import {chromium} from 'playwright';
 
@@ -22,6 +23,7 @@ const styles = [
   'smart/smart/empty-state/css/empty-state.css',
   'component/component/tabs/css/tabs.css', 'component/component/context-menu/css/context-menu.css',
   'component/component/checkbox/css/checkbox.css', 'component/component/radio/css/radio.css', 'component/component/buttons/css/buttons.css',
+  'smart/smart/switch/css/switch.css', 'smart/smart/settings/css/settings.css',
   'smart/smart/view-table/css/view-table.css', 'smart/smart/resizer/css/resizer.css',
 ].map((p) => join(out, p));
 const modules = [
@@ -31,6 +33,7 @@ const modules = [
   'smart/smart/dropdown/js/dropdown.js', 'smart/smart/input/js/input.js',
   'smart/smart/spinner/js/spinner.js', 'smart/smart/menu-context/js/menu-context.js',
   'smart/smart/tabs/js/tabs.js', 'smart/smart/tag/js/tag.js', 'smart/smart/radio/js/radio.js',
+  'smart/smart/switch/js/switch.js', 'smart/smart/settings/js/settings.js',
   'smart/smart/pagination/js/pagination.js', 'smart/smart/empty-state/js/empty-state.js',
   'smart/smart/resizer/js/resizer.js', 'smart/smart/view-table/js/view-table.js',
   'smart/smart/view/js/view.js',
@@ -118,18 +121,20 @@ try {
     table.openContextMenu({currentTarget: anchor, target: anchor, preventDefault() {}, stopPropagation() {}}, {menu: 'table-settings'});
   });
   await viewed.waitForTimeout(600);
-  const tabs = await viewed.evaluate(() => [...document.querySelectorAll('sf-menu-context .sf-context-menu-tabs [role="tab"]')].map((tab) => tab.textContent.trim()));
-  await viewed.evaluate(() => [...document.querySelectorAll('sf-menu-context .sf-context-menu-tabs [role="tab"]')][1]?.click());
+  const PANEL = 'sf-settings[data-table-settings] .sf-settings-panel';
+  const tabs = await viewed.evaluate((panel) => [...document.querySelectorAll(`${panel} .sf-settings-panel-tabs [role="tab"]`)].map((tab) => tab.textContent.trim()), PANEL);
+  await viewed.evaluate((panel) => [...document.querySelectorAll(`${panel} .sf-settings-panel-tabs [role="tab"]`)][1]?.click(), PANEL);
   await viewed.waitForTimeout(500);
-  const pick = (selector) => viewed.evaluate((query) => {
-    const host = document.querySelector(query);
-    (host?.querySelector('input') ?? host?.querySelector('button') ?? host)?.click();
-    return Boolean(host);
-  }, selector);
-  const panel = await viewed.evaluate(() => Boolean(document.querySelector('[data-table-view-settings]')));
-  await pick('[data-view-density="compact"] sf-radio');
+  // A row of the panel is pressed as a person presses it.
+  const pick = (setting, option = null) => viewed.evaluate(([panel, id, value]) => {
+    const row = document.querySelector(`${panel} .sf-settings-row-main[data-sf-setting="${id}"]${value ? `[data-sf-option="${value}"]` : ''}`);
+    row?.click();
+    return Boolean(row);
+  }, [PANEL, setting, option]);
+  const panel = await viewed.evaluate((selector) => Boolean(document.querySelector(`${selector} [data-sf-list="choice:density"]`)), PANEL);
+  await pick('density', 'compact');
   await viewed.waitForTimeout(300);
-  const offersStripes = await pick('[data-view-option="stripes"] sf-checkbox');
+  const offersStripes = await pick('stripes');
   await viewed.waitForTimeout(300);
   const own = await viewed.evaluate(() => ({
     density: document.getElementById('t').getAttribute('data-sf-view-density'),
@@ -137,32 +142,42 @@ try {
     kept: JSON.parse(localStorage.getItem('sf-pref:sf-table/demo.list') ?? 'null')?.view ?? null,
     padding: getComputedStyle(document.querySelector('#t tbody td')).paddingTop,
   }));
-  await pick('[data-view-everywhere]');
+  await pick('everywhere');
   await viewed.waitForTimeout(200);
-  await pick('[data-view-option="lines"] sf-checkbox');
+  await pick('lines');
   await viewed.waitForTimeout(300);
   const everywhere = await viewed.evaluate(() => ({
     general: JSON.parse(localStorage.getItem('sf-pref:sf-table/*') ?? 'null')?.view ?? null,
     lines: document.getElementById('t').hasAttribute('data-sf-view-lines'),
   }));
   if (tabs.join() !== 'Поля,Вид' || !panel) note({case: 'the gear has «Поля» and «Вид»', got: {tabs, panel}});
-  // No hole under the tabs, and a way out on their row (owner, 2026-10-15).
-  const head = await viewed.evaluate(() => {
-    const menu = document.querySelector('sf-menu-context');
-    const tabs = menu?.querySelector('.sf-context-menu-head');
-    const first = menu?.querySelector('[data-table-view-settings] > *');
-    return {gap: tabs && first ? Math.round(first.getBoundingClientRect().top - tabs.getBoundingClientRect().bottom) : null,
-      panels: menu?.querySelector('.sf-context-menu-head .sf-tabs-main-container')?.getBoundingClientRect().height ?? null,
-      close: Boolean(menu?.querySelector('.sf-context-menu-close button'))};
-  });
-  if (head.gap === null || head.gap < 0 || head.gap > 16 || head.panels || !head.close) note({case: 'the tab row: no hole, no overlap, a close button', got: head});
+  // The tabs and a way out on one row (owner, 2026-10-15): the panel's head.
+  const head = await viewed.evaluate((selector) => {
+    const panel = document.querySelector(selector);
+    const tabs = panel?.querySelector('.sf-settings-panel-head .sf-settings-panel-tabs');
+    const close = panel?.querySelector('.sf-settings-panel-head .sf-settings-panel-close');
+    const row = (node) => node?.getBoundingClientRect();
+    return {tabs: Boolean(tabs), close: Boolean(close),
+      oneRow: tabs && close ? Math.abs((row(tabs).top + row(tabs).bottom) / 2 - (row(close).top + row(close).bottom) / 2) <= 4 : null,
+      selected: panel?.querySelector('.sf-settings-panel-tabs [role="tab"][aria-selected="true"]')?.textContent.trim() ?? null};
+  }, PANEL);
+  if (!head.tabs || !head.close || !head.oneRow || head.selected !== 'Вид') note({case: 'the tab row: the tabs and a close button on one row', got: head});
   if (own.density !== 'compact' || own.kept?.density !== 'compact') note({case: 'the view is set and kept for this table', got: own});
   if (offersStripes || own.stripes) note({case: 'alternate rows are the author\'s, not offered in «Вид»', got: {offersStripes, own}});
   if (everywhere.general?.lines !== true || !everywhere.lines) note({case: '«Для всех моих таблиц» keeps it for every table', got: everywhere});
-  await viewed.evaluate(() => document.querySelector('sf-menu-context .sf-context-menu-close button')?.click());
+  await viewed.evaluate((selector) => document.querySelector(`${selector} .sf-settings-panel-close button`)?.click(), PANEL);
   await viewed.waitForTimeout(300);
-  const closed = await viewed.evaluate(() => !document.querySelector('sf-menu-context .sf-context-menu-head'));
+  const closed = await viewed.evaluate(() => !document.querySelector('sf-settings[data-table-settings] .sf-settings-panel:not([hidden])'));
   if (!closed) note({case: 'the close button closes the window'});
+  // The window opens again on the tab it was closed on.
+  await viewed.evaluate(() => {
+    const table = document.getElementById('t');
+    const anchor = table.querySelector('thead th') ?? table;
+    table.openContextMenu({currentTarget: anchor, target: anchor, preventDefault() {}, stopPropagation() {}}, {menu: 'table-settings'});
+  });
+  await viewed.waitForTimeout(600);
+  const reopened = await viewed.evaluate((selector) => document.querySelector(`${selector} .sf-settings-panel-tabs [role="tab"][aria-selected="true"]`)?.textContent.trim() ?? null, PANEL);
+  if (reopened !== 'Вид') note({case: 'the window reopens on «Вид»', got: reopened});
   await viewed.close();
   console.log(JSON.stringify({arranged, kept, painted, firstQuery, hostedHeads, hostedQuery, tabs, own, everywhere, head}));
 } finally {

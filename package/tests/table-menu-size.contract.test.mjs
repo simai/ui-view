@@ -22,8 +22,11 @@ test('sf-view-table: the row menu takes the resolved size and the density on eve
   const create = source.slice(source.indexOf('    rowMenu() {'), source.indexOf('    rowMenu() {') + 1500);
   assert.doesNotMatch(create, /setAttribute\("size"/);
   // The menus the table draws take the resolved size, not the written attribute alone.
-  // Eight since CM-8: the hand-drawn second row menu is gone.
-  assert.equal((source.match(/size=\$\{this\.menuSize\}/g) ?? []).length, 8);
+  // Eight since CM-8: the hand-drawn second row menu is gone. Seven since
+  // C106: the gear's window is sf-settings, which takes the host's own size
+  // only (controlSize) and the density of the gear.
+  assert.equal((source.match(/size=\$\{this\.menuSize\}/g) ?? []).length, 7);
+  assert.match(source, /<sf-settings\s+look="panel"[\s\S]*?size=\$\{this\.controlSize \?\? nothing\}/u);
   assert.doesNotMatch(source, /<sf-menu-context\s+size=\$\{this\.controlSize/);
 });
 

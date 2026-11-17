@@ -74,6 +74,7 @@
         "cl-reference-link",
         "cl-resizer",
         "cl-segmented",
+        "cl-settings",
         "cl-slider-range",
         "cl-sortable",
         "cl-spinner",

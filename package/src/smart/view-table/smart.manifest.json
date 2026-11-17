@@ -1,7 +1,11 @@
 {
   "schema_version": 2,
   "id": "smart.view-table",
+<<<<<<< HEAD
   "version": "1.21.4",
+=======
+  "version": "1.22.0",
+>>>>>>> origin/fix/view-c106-settings
   "title": "Table",
   "summary": "Complete server-backed collection view with search, filters, table preferences, row and bulk actions, and pagination.",
   "kind": "composite",
@@ -54,6 +58,7 @@
       "smart.reference-link",
       "smart.resizer",
       "smart.segmented",
+      "smart.settings",
       "smart.slider-range",
       "smart.sortable",
       "smart.spinner",
@@ -2846,6 +2851,7 @@
       },
       {
         "from": "1.21.1",
+<<<<<<< HEAD
         "to": "1.21.2",
         "changes": [
           "Over SIMAI Framework ui-24d64b7f6eb7 (ui-source 40541c0c4fba, core.runtime 1.59.0) the Framework file it builds in, src/smart/pagination/index.js, moved; the provenance and the version follow. Nothing of its own; nothing to change for a host."
@@ -2863,6 +2869,11 @@
         "to": "1.21.4",
         "changes": [
           "Over SIMAI Framework ui-24d64b7f6eb7: its icon buttons and buttons ask for the look ghost where they asked for link, ghost's former name (component.icon-buttons 1.14.0, sf-button-icon 1.13.3, sf-button 1.16.3, RG-IB-1..3, C213); the printed row menu wrote sf-icon-button--link, which the pair answers with a console warning. The same look; nothing to change for a host."
+=======
+        "to": "1.22.0",
+        "changes": [
+          "C106: the gear's window is SIMAI Framework sf-settings look=\"panel\" (sf-settings 1.6.3), not sf-menu-context tabs with rows drawn by the table. «Поля» is its fields list -- a column shown or not (the theme's light fill and a check at the end), its order (the handle at the start, a drag or Alt+arrows, the position said), pinned on top (the Framework pin button), the panel's search -- and «Вид» its density choice (the fill alone) and switches (lines, one line, the held head, «Для всех моих таблиц» after a line). Every change applies at once as before (save {kind: columns} with reason column-visibility, column-pin or column-order; view-change); «Сбросить» puts the fields back as the window opened with them or the view to its defaults, by the tab it stands on; the window reopens on the tab it was closed on. The panel takes the gear's density (C22): the hand-set 1/2 handles and pins are gone, a size is passed only when the host wrote one; on a phone it is the bottom sheet (C106 (8), C157 (5)). The host labels column-move-label, pin-column-label, unpin-column-label, column-search-placeholder and column-search-empty-text are no longer read by the gear: sf-settings speaks its own words in the page language. The filter window keeps its tabs (its templates need what sf-settings does not offer)."
+>>>>>>> origin/fix/view-c106-settings
         ]
       }
     ]
@@ -2873,7 +2884,11 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-table/index.js",
+<<<<<<< HEAD
         "sha256": "63d022005241cf2c3c889addc1e87257ef56e94b0ebcfb09fd4b1284c4ea96a0"
+=======
+        "sha256": "f200bf065d7f93401975e696209d408f082b78c3cc6e6d2f17eb84c8dbb0abea"
+>>>>>>> origin/fix/view-c106-settings
       },
       {
         "path": "src/smart/view-table/js/templates/default.js",
@@ -2881,7 +2896,7 @@
       },
       {
         "path": "src/smart/view-table/js/templates/default.css",
-        "sha256": "277ba7692d34afb1bc74a76032e33dcd1b9e50ff3ce785e791ba39240c92630a"
+        "sha256": "ad8c06600f78de17b722c1ea337d9af6c171025b611ed72c83078504089144e6"
       },
       {
         "path": "src/smart/helpers/option-badge.js",
@@ -2889,11 +2904,15 @@
       },
       {
         "path": "src/smart/view-table/rule.js",
-        "sha256": "b3ed61276e9b06ce9755dcb53da1cd4caf7bbf1eb862d903f7fb52fb6c63dcc5"
+        "sha256": "321138086622411b2f57f5c08dce41326e551b0c5af831447dae0870bb85f463"
       },
       {
         "path": "src/smart/view-table/docs/smart-table-guide.md",
+<<<<<<< HEAD
         "sha256": "db8d4f1be4d948e3edcdb9d8e1af9f226c9179948d35d11db45dfae0def27a24"
+=======
+        "sha256": "d62efe969328a8ddef5a819c539be4f3012bf55a1e1565e071089778455c14ff"
+>>>>>>> origin/fix/view-c106-settings
       },
       {
         "path": "src/smart/pagination/index.js",
