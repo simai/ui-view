@@ -154,7 +154,12 @@ try {
       })(),
       embeddedPagesHidden: shadow.querySelector('slot[name="pagination"]')?.hidden ?? null,
       embeddedStatusPresent: Boolean(shadow.querySelector('[part="status"]')),
-      pageToolbarHidden: pageShadow.querySelector('[part="toolbar"]')?.hidden ?? null,
+      // The search and the views are the table's own toolbar since view round 1
+      // (D4): the view's toolbar part holds only a toolbar the page slots, so a
+      // page that turned its table's toolbar off (toolbar="false") and slots
+      // none has no toolbar -- the view no longer draws a bare search of its own.
+      pageToolbarAsWritten: pageList.table ? pageList.table.getAttribute('toolbar') === 'false' && pageShadow.querySelector('[part="toolbar"]')?.hidden === true : null,
+      embeddedTableToolbarOff: embedded.table ? embedded.table.getAttribute('toolbar') === 'false' : null,
       pagePagesHidden: pageShadow.querySelector('slot[name="pagination"]')?.hidden ?? null,
       pageShowAllVisible: Boolean(pageList.querySelector(':scope > [slot="show-all"]')),
     };
@@ -207,19 +212,19 @@ try {
       got: {reason: m.listOpenReason, query: m.listOpenCarriesQuery},
       expected: "reason row-cap and the query -- the component builds no address"});
   }
-  if (m.embeddedToolbarHidden !== true || m.embeddedPagesHidden !== true) {
+  if (m.embeddedToolbarHidden !== true || m.embeddedTableToolbarOff !== true || m.embeddedPagesHidden !== true) {
     note({case: 'chrome="" leaves out the parts that draw themselves',
-      got: {toolbar: m.embeddedToolbarHidden, pagination: m.embeddedPagesHidden}, expected: 'both out'});
+      got: {toolbar: m.embeddedToolbarHidden, tableToolbarOff: m.embeddedTableToolbarOff, pagination: m.embeddedPagesHidden}, expected: 'both out'});
   }
   if (m.embeddedStatusPresent !== true) {
     note({case: 'the status line is not something chrome can remove',
       got: m.embeddedStatusPresent,
       expected: 'present -- a list that could not say a load failed would look empty when it is broken'});
   }
-  if (m.pageToolbarHidden !== false || m.pagePagesHidden !== false || m.pageShowAllVisible !== false) {
+  if (m.pageToolbarAsWritten !== true || m.pagePagesHidden !== false || m.pageShowAllVisible !== false) {
     note({case: 'a list that asks for nothing is what it was before',
-      got: {toolbar: m.pageToolbarHidden, pagination: m.pagePagesHidden, showAll: m.pageShowAllVisible},
-      expected: 'both parts drawn and no show-all row'});
+      got: {toolbarAsWritten: m.pageToolbarAsWritten, pagination: m.pagePagesHidden, showAll: m.pageShowAllVisible},
+      expected: 'the page row drawn, the toolbar as the page wrote it, no show-all row'});
   }
 } finally {
   await browser.close();

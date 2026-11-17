@@ -7,9 +7,8 @@ import en from "./lang/en.json";
 import ru from "./lang/ru.json";
 import {renderTableTemplate, columnStyle} from "./js/templates/default";
 import {optionBadgeProps} from "../helpers/option-badge.js";
-import {renderCellField, renderFilterField} from "../field-renderers/index.js";
+import {dateTimeAttribute, renderCellField, renderFilterField} from "../field-renderers/index.js";
 import {htmlText} from "../field-renderers/html.js";
-import {DATE_TYPES, formatDateValue} from "./js/format-value.js";
 import {html, nothing, render} from "lit";
 import {ref} from "lit/directives/ref.js";
 import {pageText} from "../../core/js/page-language";
@@ -19,6 +18,8 @@ import BundledPosition from "../../core/js/position.js";
 import {holdOpenSurfaceMark} from "../../core/js/open-surface-mark.js";
 import {layerZIndex} from "../../core/js/layer-stack.js";
 import {followDensity} from "../../core/js/density.js";
+import {menuOpen} from "../../core/js/menu-open.js";
+import {roving} from "../../core/js/roving.js";
 import BundledPreferences from "../../core/js/preferences.js";
 
 // Sized for what they hold rather than for reading, so they take no floor.
@@ -564,8 +565,6 @@ class SfTable extends TableElement {
             createItems: [],
             // What the toolbar's own control offers, straight from the host.
             toolbarActions: [],
-            // What is typed over the list of fields in the column settings.
-            columnSettingsQuery: "",
             sort: {key: null, direction: null},
 
             saveInputValue: '',
@@ -981,113 +980,90 @@ class SfTable extends TableElement {
         return this;
     }
 
-    renderToolbarActionsContextMenu(data) {
-        const {x, y} = data;
-        // The standard menu's entries, not link buttons: a link button in a
-        // menu drew centred text on a light block that looked like no other
-        // menu in the admin (owner, 2026-10-13).
-        const actions = this.getToolbarActions();
-        const entries = actions.map((action) => ({
-            id: String(action.id),
-            text: action.label,
-            ...(action.icon ? {icon: action.icon} : {}),
-        }));
-        const select = (event) => {
-            const action = actions.find((item) => String(item.id) === event.detail?.id);
-            this.closeContextMenu();
-            if (action) this.requestToolbarAction(action.id);
-        };
-        return html`
-            <sf-menu-context
-                    size=${this.menuSize}
-                    :key=${x + y}
-                    aria-label=${this.getContextMenuLabel({...data, menu: 'toolbar-actions'})}
-                    style="
-            position: fixed;
-            left: ${x}px;
-            inset-block-start: calc(${y}px + calc(var(--sf-focus-outline-width) * 2));
-            z-index: var(--sf-table-context-menu--z-index, ${this.contextMenuZIndex()});
-          "
-                    data-context-main-menu
-                    .entries=${entries}
-                    @sf-menu-context-select=${select}
-            ></sf-menu-context>
-        `;
+    // The view's three action menus -- the create arrow's variants, the
+    // toolbar's «⋯» and the list's sort -- are the page's one menu of actions,
+    // SIMAI Framework SF.menu.open (C184 (4), VF-1, set standard 7.5): the
+    // Framework places it at its control, closes it on a press outside or
+    // Escape, toggles it from the same control and gives the focus back. They
+    // were sf-menu-context windows the table drew in its own portal with
+    // position: fixed. Each entry list answers {entries, choose(id)}.
+    actionMenu(menu) {
+        if (menu === 'toolbar-actions') {
+            // The standard menu's entries, not link buttons: a link button in a
+            // menu drew centred text on a light block that looked like no other
+            // menu in the admin (owner, 2026-10-13).
+            const actions = this.getToolbarActions();
+            return {
+                entries: actions.map((action) => ({
+                    id: String(action.id),
+                    text: action.label,
+                    ...(action.icon ? {icon: action.icon} : {}),
+                })),
+                choose: (id) => {
+                    const action = actions.find((item) => String(item.id) === id);
+                    if (action) this.requestToolbarAction(action.id);
+                },
+            };
+        }
+        if (menu === 'list-sort') {
+            // The list has no column heads to sort by, so its sort is a menu:
+            // the host's own order, then each sortable column one way and the
+            // other. Choosing one raises sf-table-sort-change exactly as a head
+            // does.
+            const current = this.state.sort || {};
+            const choices = new Map();
+            const option = (text, key, direction) => {
+                const id = `${key ?? ''}:${direction ?? ''}`;
+                choices.set(id, [key, direction]);
+                return {id, text, kind: 'radio', checked: current.key === key && current.direction === direction};
+            };
+            const sortable = this.getColumns().filter((column) => column?.sortable && !column.system
+                && !["select", "settings", "actions"].includes(column.key));
+            return {
+                entries: [
+                    option(this.text('sortNone'), null, null),
+                    ...sortable.flatMap((column) => [
+                        option(`${column.label ?? column.key}, ${this.text('sortAscending')}`, column.key, 'asc'),
+                        option(`${column.label ?? column.key}, ${this.text('sortDescending')}`, column.key, 'desc'),
+                    ]),
+                ],
+                choose: (id) => {
+                    const choice = choices.get(id);
+                    if (!choice) return;
+                    const [key, direction] = choice;
+                    this.setSort(key, direction);
+                    this.emitTableEvent('sort-change', Object.freeze({key, direction}));
+                },
+            };
+        }
+        if (menu === 'create') {
+            const createItems = this.state.createItems || [];
+            return {
+                entries: createItems.map((item) => ({id: String(item.id), text: item.name})),
+                choose: (id) => {
+                    const item = createItems.find((entry) => String(entry.id) === id);
+                    if (item) this.requestCreateIntent(item.id);
+                },
+            };
+        }
+        return null;
     }
 
-    // The list has no column heads to sort by, so its sort is a menu: the host's
-    // own order, then each sortable column one way and the other. Choosing one
-    // raises sf-table-sort-change exactly as a head does.
-    renderListSortContextMenu(data) {
-        const {x, y} = data;
-        const current = this.state.sort || {};
-        const choose = (key, direction) => {
-            this.closeContextMenu();
-            this.setSort(key, direction);
-            this.emitTableEvent('sort-change', Object.freeze({key, direction}));
-        };
-        const choices = new Map();
-        const option = (text, key, direction) => {
-            const id = `${key ?? ''}:${direction ?? ''}`;
-            choices.set(id, [key, direction]);
-            return {id, text, kind: 'radio', checked: current.key === key && current.direction === direction};
-        };
-        const select = (event) => {
-            const choice = choices.get(event.detail?.id);
-            if (choice) choose(...choice);
-        };
-        const sortable = this.getColumns().filter((column) => column?.sortable && !column.system
-            && !["select", "settings", "actions"].includes(column.key));
-        const items = [
-            option(this.text('sortNone'), null, null),
-            ...sortable.flatMap((column) => [
-                option(`${column.label ?? column.key}, ${this.text('sortAscending')}`, column.key, 'asc'),
-                option(`${column.label ?? column.key}, ${this.text('sortDescending')}`, column.key, 'desc'),
-            ]),
-        ];
-        return html`
-            <sf-menu-context
-                    size=${this.menuSize}
-                    :key=${x + y}
-                    aria-label=${this.getContextMenuLabel({...data, menu: 'list-sort'})}
-                    style="
-            position: fixed;
-            left: ${x}px;
-            inset-block-start: calc(${y}px + calc(var(--sf-focus-outline-width) * 2));
-            z-index: var(--sf-table-context-menu--z-index, ${this.contextMenuZIndex()});
-          "
-                    data-context-main-menu
-                    .entries=${items}
-                    @sf-menu-context-select=${select}
-            ></sf-menu-context>
-        `;
-    }
-
-    renderCreateContextMenu(data) {
-        const {x, y} = data;
-        const createItems = this.state.createItems;
-        const entries = createItems.map((item) => ({id: String(item.id), text: item.name}));
-        const select = (event) => {
-            const item = createItems.find((entry) => String(entry.id) === event.detail?.id);
-            this.closeContextMenu();
-            if (item) this.requestCreateIntent(item.id);
-        };
-        return html`
-            <sf-menu-context
-                    size=${this.menuSize}
-                    :key=${x + y}
-                    aria-label=${this.getContextMenuLabel({...data, menu: 'create'})}
-                    style="
-            position: fixed;
-            left: ${x}px;
-            inset-block-start: calc(${y}px + calc(var(--sf-focus-outline-width) * 2));
-            z-index: var(--sf-table-context-menu--z-index, ${this.contextMenuZIndex()});
-          "
-                    data-context-main-menu
-                    .entries=${entries}
-                    @sf-menu-context-select=${select}
-            ></sf-menu-context>
-        `;
+    // Opens one of the action menus at its control through SF.menu.open and
+    // acts on the row chosen. A second press on the same control closes it.
+    async openActionMenu(menu, anchor) {
+        const built = this.actionMenu(menu);
+        if (!built || !(anchor instanceof Element)) return null;
+        anchor.setAttribute('aria-expanded', 'true');
+        const choice = await menuOpen({
+            anchor,
+            entries: built.entries,
+            label: this.getContextMenuLabel({menu}),
+            size: this.menuSize,
+        });
+        if (anchor.isConnected) anchor.setAttribute('aria-expanded', 'false');
+        if (choice?.id !== undefined && choice?.id !== null) built.choose(String(choice.id));
+        return choice;
     }
 
     // Sorting reports intent only: the table marks the header and emits
@@ -1545,6 +1521,8 @@ class SfTable extends TableElement {
         const typed = this.getTypedCellValue(column, value);
         if (typed !== null && typeof typed !== "undefined") {
             if (typeof typed !== "string" && typeof typed !== "number") return null;
+            const datetime = this.cellDateTime(column, value);
+            if (datetime) return {kind: "time", className: "sf-table-cell-bare", text: String(typed), datetime};
             return {kind: "text", className: "sf-table-cell-bare", text: String(typed)};
         }
         if (typeof value === "boolean") return null;
@@ -2640,32 +2618,6 @@ class SfTable extends TableElement {
         this.syncFilterTemplateOrder(orderedByGroup);
     }
 
-    // A column list may be narrowed by the search: the move is placed against
-    // the shown neighbours, and the columns the search hides keep their places.
-    onColumnSettingsIntent(event) {
-        const list = event.target;
-        const {item, index} = event.detail ?? {};
-        if (!(list instanceof Element) || !item) return;
-        const pinnedGroup = list.getAttribute('data-group') === 'pinned';
-        const shown = SfTable.reorderedKeys(list, item, index);
-        const at = shown.indexOf(item);
-        const columns = this.getColumnItems().filter((column) => column?.key && !column.system);
-        const groupKeys = columns.filter((column) => this.isColumnPinned(column) === pinnedGroup).map((column) => column.key)
-            .filter((key) => key !== item);
-        const before = shown[at + 1];
-        const after = shown[at - 1];
-        let place = before !== undefined ? groupKeys.indexOf(before) : -1;
-        if (place === -1) place = after !== undefined ? groupKeys.indexOf(after) + 1 : groupKeys.length;
-        groupKeys.splice(place === -1 ? groupKeys.length : place, 0, item);
-        const otherKeys = columns.filter((column) => this.isColumnPinned(column) !== pinnedGroup).map((column) => column.key);
-        const ordered = pinnedGroup ? [...groupKeys, ...otherKeys] : [...otherKeys, ...groupKeys];
-        ordered.forEach((key, position) => this.patchTempColumnSettings(key, {order: (position + 1) * 10}));
-        this.requestComponentUpdate('column-order');
-        // The consumer's owner read the drag as applying at once, because the
-        // list redraws from the draft; it does, as every control in the window.
-        this.commitColumnSettings('column-order');
-    }
-
     syncFilterTemplateOrder(orderedByGroup) {
         const currentFilter = this.getPendingFilterState();
         const templates = this.getFilterTemplates(currentFilter).map(
@@ -3491,7 +3443,7 @@ class SfTable extends TableElement {
                     position="${position || ""}"
             >
                 <div class="flex flex-col flex-1 gap-2" slot="content">
-                    <div class="sf-table-context-top"><span class="sf-text-2 bold">Сохранение шаблона</span></div>
+                    <div class="sf-table-context-top"><span class="sf-text-2 bold">${this.text('saveTemplateLabel')}</span></div>
                     <div class="sf-table-context-main">
                         <form ${ref(this.refs.templateForm)} id="save_template" class="flex flex-col gap-1/2">
                             <sf-input
@@ -3532,17 +3484,17 @@ class SfTable extends TableElement {
                     </div>
                 </div>
                 <div class="sf-table-context-bottom sf-context-menu-footer">
+                    <sf-button size=${this.size}
+                            ?disabled=${this.state.saveInputValue.length === 0}
+                            @click="${() => {
+                                this.saveFilterTemplate();
+                            }}" root-class="flex-1" text="${this.text('applyText')}"></sf-button>
                     <sf-button size=${this.size} @click="${() => {
                         this.tempSettings = null;
                         this.requestComponentUpdate('table')
                     }
                     }" appearance="outline" scheme="on-surface" root-class="flex-1"
                                text="${this.text('resetText')}"></sf-button>
-                    <sf-button size=${this.size}
-                            ?disabled=${this.state.saveInputValue.length === 0}
-                            @click="${() => {
-                                this.saveFilterTemplate();
-                            }}" root-class="flex-1" text="${this.text('applyText')}"></sf-button>
                 </div>
                 </div>
             </sf-menu-context>
@@ -3988,98 +3940,6 @@ class SfTable extends TableElement {
         });
     }
 
-    // What the person typed over the list of fields. Kept in state so the list
-    // and the field agree after a render; there can be hundreds of fields and
-    // scrolling for one is not an answer.
-    setColumnSettingsQuery(value = "") {
-        return this.set({columnSettingsQuery: String(value ?? "")});
-    }
-
-    // Case and ё/е are not differences a person means when searching.
-    matchesColumnQuery(label = "", query = "") {
-        const normalise = (value) => String(value ?? "").toLowerCase().replace(/ё/gu, "е");
-        const needle = normalise(query).trim();
-        if (!needle) return true;
-
-        return normalise(label).includes(needle);
-    }
-
-    getColumnCheckboxItems(options = {}) {
-        const {
-            checked,
-            onChange,
-            refPrefix = "column",
-        } = options;
-
-        const {pin = false, handle = false, query = "", group = ""} = options;
-        // A group is one of the two sortable lists: the pinned columns -- the
-        // system ones among them, offered nothing -- or the loose ones.
-        const inGroup = (col) => !group
-            || (group === 'pinned' ? (col.system || this.isColumnPinned(col)) : (!col.system && !this.isColumnPinned(col)));
-
-        return this.getColumnItems().filter(
-            (col) => inGroup(col) && (!pin || col.system || this.matchesColumnQuery(col.label, query)),
-        ).map((col) => {
-            const itemRef = this.getItemRef(`${refPrefix}:${col.key}`) || false;
-            const isChecked = typeof checked === "function" ? Boolean(checked(col)) : Boolean(checked);
-            const box = html`
-                <sf-checkbox
-                    size=${this.size}
-                    label=${col.label}
-                    position="end"
-                    root-class="content-main-between"
-                    ?checked=${isChecked}
-                    ${ref(itemRef)}
-                    @change=${event => onChange?.(col, event)}
-                ></sf-checkbox>
-            `;
-            if (!pin || col.system) {
-                return box;
-            }
-            // The pin sits beside the visibility box, because both are answers
-            // about the same column. The box and the row menu are always pinned
-            // and are offered nothing.
-            const pinned = this.isColumnPinned(col);
-
-            return html`
-                <div class="sf-table-column-option flex items-cross-center gap-1/3"
-                     data-column-key=${col.key}
-                     data-sf-sortable-item=${col.key}
-                     data-pinned=${pinned ? "1" : "0"}>
-                    ${handle
-                        ? html`<sf-button-icon
-                                size="1/2"
-                                appearance="ghost"
-                                scheme="on-surface"
-                                icon="drag_indicator"
-                                data-move
-                                data-sf-sortable-handle
-                                root-class="sf-table-column-move cursor-grab"
-                                aria-label=${`${this.text("columnMoveLabel", "column-move-label")}: ${col.label || col.key}`}
-                            ></sf-button-icon>`
-                        : nothing}
-                    <span class="flex-1 min-w-0">${box}</span>
-                    <!-- A pinned column's pin is filled and a loose one's is
-                         outlined, the way a pinned filter template already
-                         shows itself. Colour alone had to carry the state, and
-                         the two schemes are close enough that a person reading
-                         a list of twenty pins could not tell which were set. -->
-                    <sf-button-icon
-                        size="1/2"
-                        appearance="ghost"
-                        scheme=${pinned ? "primary" : "on-surface"}
-                        ?filled=${pinned}
-                        icon="push_pin"
-                        title=${pinned ? this.text("unpinColumnLabel", "unpin-column-label") : this.text("pinColumnLabel", "pin-column-label")}
-                        aria-label=${pinned ? this.text("unpinColumnLabel", "unpin-column-label") : this.text("pinColumnLabel", "pin-column-label")}
-                        aria-pressed=${pinned ? "true" : "false"}
-                        @click=${() => this.toggleColumnPinned(col)}
-                    ></sf-button-icon>
-                </div>
-            `;
-        });
-    }
-
     // «Сбросить» in the column settings: the state the window opened with,
     // applied at once and announced once -- not the host's defaults, which is
     // what the filter window's own Reset asks for.
@@ -4164,26 +4024,6 @@ class SfTable extends TableElement {
                 class="flex flex-col gap-1/3"
                 @sf-sortable-intent=${onIntent}>${rows}</sf-sortable>` : nothing);
         return html`${list('pinned', pinnedRows)}${list('loose', looseRows)}`;
-    }
-
-    getTableColsData(group = '') {
-        return this.getColumnCheckboxItems({
-            group,
-            pin: true,
-            handle: true,
-            query: this.state.columnSettingsQuery || "",
-            refPrefix: "table-column",
-            checked: (col) => this.isColumnVisible(col),
-            onChange: (col, event) => {
-                this.patchTempColumnSettings(col.key, {
-                    visible: Boolean(event.target?.checked),
-                });
-                // Everything in this window applies at once, by the consumer
-                // owner's decision of 2026-10-05, so a click outside loses
-                // nothing and no «Применить» is left to press.
-                this.commitColumnSettings('column-visibility');
-            },
-        });
     }
 
     getFilterTagColsData() {
@@ -4481,12 +4321,23 @@ class SfTable extends TableElement {
             const files = value.map((file) => renderCellField(column, file, host)).filter((item) => item !== null && item !== undefined);
             return files.length ? files : null;
         }
+        // A date reads as the SIMAI Framework's field renderers read it (the
+        // record's own day and clock, in the page's language; the host's
+        // formatFieldValue first): the table's own date parsing is gone (VF-10).
         const rendered = renderCellField(column, value, host);
         if (rendered !== null && rendered !== undefined) return rendered;
-        // A date the host did not format reads in the page's language rather
-        // than as stored (format-date); the host's formatFieldValue still wins.
-        if (DATE_TYPES.has(type)) return formatDateValue(type, value, this) || null;
         return null;
+    }
+
+    // The machine reading of a date cell (C40, PD-9): a date or a date and time
+    // the Framework reads is printed as a time element whose datetime is the
+    // record's own day and clock, as the record panel prints it. '' for any
+    // other cell, or a value that is no date.
+    cellDateTime(column = {}, value) {
+        const type = column.propertyType ?? column.property_type ?? column.type;
+        if (type !== "date" && type !== "datetime") return "";
+        if (typeof value !== "string" && !(value && typeof value === "object" && !Array.isArray(value))) return "";
+        return dateTimeAttribute({...column, propertyType: type}, value) || "";
     }
 
     // The text a long-text cell shows on its one line: formatted text is its
@@ -4511,7 +4362,7 @@ class SfTable extends TableElement {
             size: this.size,
             getFilterControlValue: (key) => this.getFilterControlValue(key),
             patchTempFilterValue: (key, patch) => this.patchTempFilterValue(key, patch),
-            getFilterOperatorLabel: (operator) => this.getFilterOperatorLabel(operator),
+            getFilterOperatorLabel: (operator) => this.getFilterOperatorLabel(operator, field),
             getFilterOptionSearch: (key) => this.getFilterOptionSearch(key),
             patchTempFilterOptionSearch: (key, search) => this.patchTempFilterOptionSearch(key, search),
             getVisibleFilterOptions: (item) => this.getVisibleFilterOptions(item),
@@ -4596,7 +4447,12 @@ class SfTable extends TableElement {
         `;
     }
 
-    getFilterOperatorLabel(operator) {
+    // A date's comparisons read as time, not as amounts (PD-6): «Позже»,
+    // «Не раньше», «Раньше», «Не позже» for a date or a date and time field.
+    getFilterOperatorLabel(operator, field = null) {
+        const type = field?.propertyType ?? field?.property_type ?? field?.type ?? field?.dataType ?? field?.filter?.control;
+        const dated = {gt: 'operatorAfter', gte: 'operatorOnOrAfter', lt: 'operatorBefore', lte: 'operatorOnOrBefore'};
+        if ((type === 'date' || type === 'datetime') && dated[operator]) return this.text(dated[operator]);
         const keys = {
             eq: 'operatorEq', gt: 'operatorGt', gte: 'operatorGte',
             lt: 'operatorLt', lte: 'operatorLte', between: 'operatorBetween',
@@ -4802,18 +4658,6 @@ class SfTable extends TableElement {
                             </div>`}
                 </div>
                         <sf-button slot="footer" size=${this.size} @click="${() => {
-                            // Reset means the defaults, not "forget what I just
-                            // typed here": the draft goes, and the host is asked
-                            // to clear the person's own layer — order, widths,
-                            // visibility and pinning — because the defaults are
-                            // the host's to decide, not this component's.
-                            this.tempSettings = null;
-                            this.requestComponentUpdate('table');
-                            this.requestColumnSettingsReset();
-                        }
-                        }" appearance="outline" scheme="on-surface" root-class="flex-1"
-                                   text="${this.text('resetText')}"></sf-button>
-                        <sf-button slot="footer" size=${this.size} @click="${() => {
                             const tempFilter = this.tempSettings?.filter;
 
                             if (tempFilter) {
@@ -4878,6 +4722,18 @@ class SfTable extends TableElement {
                                    text=${pendingConditions
                                        ? `${this.text("filterApplyText", "filter-apply-text")} (${pendingConditions})`
                                        : this.text("filterApplyText", "filter-apply-text")}></sf-button>
+                        <sf-button slot="footer" size=${this.size} @click="${() => {
+                            // Reset means the defaults, not "forget what I just
+                            // typed here": the draft goes, and the host is asked
+                            // to clear the person's own layer — order, widths,
+                            // visibility and pinning — because the defaults are
+                            // the host's to decide, not this component's.
+                            this.tempSettings = null;
+                            this.requestComponentUpdate('table');
+                            this.requestColumnSettingsReset();
+                        }
+                        }" appearance="outline" scheme="on-surface" root-class="flex-1"
+                                   text="${this.text('resetText')}"></sf-button>
             </sf-menu-context>
         `;
     }
@@ -4920,12 +4776,6 @@ class SfTable extends TableElement {
                     </div>
                     <div class="sf-table-context-bottom sf-context-menu-footer">
                         <sf-button size=${this.size} @click="${() => {
-                            this.tempSettings = null;
-                            this.requestComponentUpdate('table')
-                        }
-                        }" appearance="outline" scheme="on-surface" root-class="flex-1"
-                                   text="${this.text('resetText')}"></sf-button>
-                        <sf-button size=${this.size} @click="${() => {
                             const tempFilter = this.tempSettings?.filter;
 
                             if (tempFilter) {
@@ -4953,6 +4803,12 @@ class SfTable extends TableElement {
                             this.tempSettings = null;
                             this.closeContextMenu();
                         }}" root-class="flex-1" text="${this.text('applyText')}"></sf-button>
+                        <sf-button size=${this.size} @click="${() => {
+                            this.tempSettings = null;
+                            this.requestComponentUpdate('table')
+                        }
+                        }" appearance="outline" scheme="on-surface" root-class="flex-1"
+                                   text="${this.text('resetText')}"></sf-button>
                     </div>
                 </div>
             </sf-menu-context>
@@ -5011,143 +4867,169 @@ class SfTable extends TableElement {
         return this;
     }
 
+    // The gear's window (owner decision C106): SIMAI Framework sf-settings in
+    // its panel look, not sf-menu-context's tabs with rows drawn here. Two
+    // groups as tabs, «Поля» -- the columns, shown or not, in their order, the
+    // pinned ones on top, with the panel's search -- and «Вид» -- the rows'
+    // density, the lines, one line, the held head and whether a change is for
+    // all the person's tables. Everything applies at once (2026-10-05);
+    // «Сбросить» puts back the fields as the window opened with them, or the
+    // view's defaults, by the tab it stands on. The panel takes its density
+    // from the gear (C22); a size is passed only when the host wrote one.
     renderTableSettingsContextMenu(data) {
-        const {
-            x,
-            y,
-            position,
-            transform,
-            columnCount,
-            columnsCount,
-        } = data;
-        let pos = `translateX(${transform !== undefined ? transform : 0}%)`;
-        const menuColumnCount =
-            columnCount ?? columnsCount ?? this.contextMenuColumns ?? 1;
-        const cols = this.getTableColsData()
-        const pinnedCols = this.getTableColsData('pinned');
-        const looseCols = this.getTableColsData('loose');
-        const query = this.state.columnSettingsQuery || "";
-        // The settings window is about the columns. Its "Actions" tab was asked
-        // to go on 2026-10-02: row actions are offered in the row's own menu and
-        // bulk actions in the band under the table, so a third place to find
-        // them taught nobody anything.
         return html`
-            <sf-menu-context
-                    size=${this.menuSize}
-                    :key=${x + y + this._renderToken}
-                    aria-label=${this.getContextMenuLabel({...data, menu: 'table-settings'})}
-                    style="
-            position: fixed;
-            left: ${x}px;
-            inset-block-start: calc(${y}px + calc(var(--sf-focus-outline-width) * 2));
-            transform: ${pos};
-            z-index: var(--sf-table-context-menu--z-index, ${this.contextMenuZIndex()});
-            --sf-table-context-menu--max-block-size: calc(100dvh - ${y}px - var(--sf-space-4));
-            --sf-table-context-menu--trigger-inline-size: ${this.contextTriggerInlineSize(data)}px;
-          "
-                    root-class="sf-table-context-menu ${this.contextWindowClass('table-settings', menuColumnCount)} ${this.size === "1/2" ? "sf-table-context-menu--dense " : ""}flex flex-col"
-                    position="${position || ""}"
-                    role="dialog"
-                    tabs=${`${this.text('settingsFieldsTab')}|${this.text('settingsViewTab')}`}
-                    active-tab=${this._settingsTab === 'view' ? '1' : '0'}
-                    closable
-                    @sf-menu-context-tab=${(event) => {
-                        event.stopPropagation();
-                        this._settingsTab = event.detail?.index === 1 ? 'view' : 'fields';
-                        this.requestComponentUpdate('settings-tab');
-                    }}
-                    @sf-menu-context-close=${(event) => {
-                        event.stopPropagation();
-                        this.closeContextMenu();
-                    }}
-            >
-                <!-- Two tabs (owner, 2026-10-14) in the Framework's panel
-                     (2026-10-15): its head -- the tabs and the way out --
-                     stays while the rows scroll, and its width is its own.
-                     Esc, a click outside and the gear again close it too. -->
-                <div class="sf-table-context-body flex flex-col flex-1" slot="content">
-                    ${this._settingsTab === 'view' ? this.renderTableViewSettings() : html`
-                    <!-- The search: a site can have hundreds of fields, and
-                         scrolling for one is not an answer. -->
-                    <label class="sf-table-column-search flex flex-col">
-                        <sf-input
-                            size=${this.size}
-                            appearance="bordered"
-                            root-class="sf-table-column-search-input"
-                            name="sf_table_column_search"
-                            .value=${query}
-                            placeholder=${this.text("columnSearchPlaceholder", "column-search-placeholder")}
-                            aria-label=${this.text("columnSearchPlaceholder", "column-search-placeholder")}
-                            @input=${(event) => this.setColumnSettingsQuery(event.target?.value ?? "")}
-                        ></sf-input>
-                    </label>
-                    <div class="sf-context-menu-columns flex flex-col flex-1 gap-1/3 overflow-auto"
-                         data-column-settings-list>
-                        ${cols.length
-                            ? this.renderSortableGroups(pinnedCols, looseCols, {name: 'table-columns',
-                                label: this.text('settingsColumnLabel'),
-                                onIntent: (event) => this.onColumnSettingsIntent(event)})
-                            : html`<div class="sf-table-column-empty p-1 color-on-surface-variant">
-                                ${this.text("columnSearchEmptyText", "column-search-empty-text")}
-                            </div>`}
-                    </div>
-                    `}
-                </div>
-                <!-- «Применить» went with the consumer owner's decision of
-                     2026-10-05: every control in this window applies as it is
-                     pressed. «Сбросить» is the way back -- for the fields, the
-                     settings as they stood when the window was opened; for the
-                     view, the defaults. -->
-                <!-- One button that stays, its words and act following the
-                     tab: the panel took its footer once, at the start. -->
-                <sf-button slot="footer" size=${this.size} appearance="outline" scheme="on-surface" root-class="flex-1"
-                           text=${this._settingsTab === 'view' ? this.text('viewReset') : this.text('resetText')}
-                           @click=${() => (this._settingsTab === 'view' ? this.resetTableView() : this.restoreColumnSettingsOnOpen())}></sf-button>
-            </sf-menu-context>
+            <sf-settings
+                    look="panel"
+                    search
+                    data-table-settings
+                    for=${this.settingsTriggerId(data.anchor)}
+                    size=${this.controlSize ?? nothing}
+                    label=${this.getContextMenuLabel({...data, menu: 'table-settings'})}
+                    .items=${this.tableSettingsItems()}
+                    @sf-settings-changed=${(event) => this.onTableSettingChanged(event)}
+                    @sf-settings-reset=${(event) => this.onTableSettingsReset(event)}
+                    @sf-settings-open=${(event) => event.stopPropagation()}
+                    @sf-settings-opened=${(event) => event.stopPropagation()}
+                    @sf-settings-close=${(event) => this.onTableSettingsClose(event)}
+                    @sf-settings-closed=${(event) => this.onTableSettingsClosed(event)}
+            ></sf-settings>
         `;
     }
 
-    // The gear's «Вид»: the rows' density as a radio list, three switches, and
-    // whether a change is for this table or for all the person's tables.
-    renderTableViewSettings() {
+    // The panel opens against the control that opened the window, which it
+    // names by id (sf-settings for=): a control without one is given one.
+    settingsTriggerId(anchor) {
+        const trigger = anchor instanceof Element ? anchor : this;
+        if (!trigger.id) trigger.id = `${this.getInstanceId()}--settings-trigger`;
+        return trigger.id;
+    }
+
+    // The gear's settings as sf-settings items, made again only when what they
+    // say changes, so the panel is not handed a new list on every drawing.
+    tableSettingsItems() {
         const view = this.tableView;
-        const size = this.size === "1/2" ? "1/2" : "1";
-        const everywhere = this._viewEverywhere === true;
-        const row = (label, control) => html`<div class="sf-table-settings-row">${control}<span>${label}</span></div>`;
-        const density = ["compact", "normal", "spacious"];
-        const label = {compact: "viewDensityCompact", normal: "viewDensityNormal", spacious: "viewDensitySpacious"};
-        const check = (field, text) => html`<label class="sf-table-settings-row" data-view-option=${field}>
-            <sf-checkbox size=${size} ?checked=${view[field] === true}
-                         @change=${(event) => this.setTableView({[field]: Boolean(event.target?.checked ?? event.detail?.checked)}, {everywhere})}></sf-checkbox>
-            <span>${this.text(text)}</span></label>`;
-        return html`
-            <div class="sf-table-view-settings flex flex-col flex-1 gap-1/3" data-table-view-settings>
-                <div class="sf-table-settings-heading">${this.text('viewDensity')}</div>
-                <div role="radiogroup" aria-label=${this.text('viewDensity')} class="flex flex-col">
-                    ${density.map((value) => html`<label class="sf-table-settings-row" data-view-density=${value}>
-                        <sf-radio size=${size} name=${`${this.getInstanceId()}-density`} value=${value} ?checked=${view.density === value}
-                                  @change=${() => this.setTableView({density: value}, {everywhere})}></sf-radio>
-                        <span>${this.text(label[value])}</span></label>`)}
-                </div>
-                ${check("lines", "viewLines")}
-                ${check("singleLine", "viewSingleLine")}
-                ${this.getAttribute("vertical-scroll") === "page" ? check("stickyHead", "viewStickyHead") : nothing}
-                ${this.viewPreferenceKey ? html`<div class="sf-table-settings-separator" role="separator"></div>
-                    ${row(this.text('viewEverywhere'), html`<sf-checkbox size=${size} data-view-everywhere ?checked=${everywhere}
-                        @change=${(event) => { this._viewEverywhere = Boolean(event.target?.checked ?? event.detail?.checked); this.requestComponentUpdate('view-everywhere'); }}></sf-checkbox>`)}` : nothing}
-            </div>`;
+        const options = this.getColumnItems().filter((column) => column?.key).map((column) => ({
+            id: String(column.key),
+            text: column.label || String(column.key),
+            checked: this.isColumnVisible(column),
+            // The box and the row menu are always pinned (offered nothing).
+            pinned: Boolean(column.system) || this.isColumnPinned(column),
+        }));
+        const density = {compact: "viewDensityCompact", normal: "viewDensityNormal", spacious: "viewDensitySpacious"};
+        const toggle = (id, word) => ({id, type: "switch", text: this.text(word), value: view[id] === true});
+        const items = [
+            {type: "group", text: this.text("settingsFieldsTab"), items: [
+                {id: "columns", type: "fields", text: this.text("settingsFieldsTab"), sortable: true, pinnable: true, options},
+            ]},
+            {type: "group", text: this.text("settingsViewTab"), items: [
+                {id: "density", type: "choice", text: this.text("viewDensity"), value: view.density,
+                    options: Object.entries(density).map(([id, word]) => ({id, text: this.text(word)}))},
+                toggle("lines", "viewLines"),
+                toggle("singleLine", "viewSingleLine"),
+                ...(this.getAttribute("vertical-scroll") === "page" ? [toggle("stickyHead", "viewStickyHead")] : []),
+                ...(this.viewPreferenceKey ? [{type: "separator"},
+                    {id: "everywhere", type: "switch", text: this.text("viewEverywhere"), value: this._viewEverywhere === true}] : []),
+            ]},
+        ];
+        const key = JSON.stringify(items);
+        if (this._settingsItems?.key !== key) this._settingsItems = {key, items};
+        return this._settingsItems.items;
+    }
+
+    // The fields list's value as the table holds it: what the panel shows
+    // after a change the table took otherwise or not at all.
+    tableSettingsColumns() {
+        const columns = this.tableSettingsItems()[0].items[0].options;
+        return columns.map(({id, checked, pinned}) => ({id, checked, pinned}));
+    }
+
+    // A setting a person changed in the panel, applied as the window's own
+    // controls applied it: a pin through toggleColumnPinned (the end of the
+    // pinned block, the start of the loose ones), a column shown or hidden,
+    // the order of every column (a drag or Alt+arrows), the view through
+    // setTableView, for this table or for all of them.
+    onTableSettingChanged(event) {
+        event.stopPropagation();
+        const settings = event.currentTarget;
+        const {id, value} = event.detail ?? {};
+        if (id === "columns") this.applyColumnsSetting(value);
+        else if (id === "everywhere") this._viewEverywhere = value === true;
+        else if (["density", "lines", "singleLine", "stickyHead"].includes(id)) {
+            this.setTableView({[id]: value}, {everywhere: this._viewEverywhere === true});
+        }
+        // A change the table did not take (a system column's pin or place)
+        // goes back in the panel; one it took is already the same.
+        requestAnimationFrame(() => {
+            if (id === "columns" && settings?.isConnected) settings.setValue?.("columns", this.tableSettingsColumns());
+        });
+    }
+
+    applyColumnsSetting(value = []) {
+        const columns = this.getColumnItems().filter((column) => column?.key);
+        const byKey = new Map(columns.map((column) => [String(column.key), column]));
+        const asked = (Array.isArray(value) ? value : []).filter((one) => byKey.has(one?.id));
+        const pin = asked.find((one) => !byKey.get(one.id).system && Boolean(one.pinned) !== this.isColumnPinned(byKey.get(one.id)));
+        if (pin) return this.toggleColumnPinned(byKey.get(pin.id));
+        const shown = asked.find((one) => Boolean(one.checked) !== this.isColumnVisible(byKey.get(one.id)));
+        if (shown) {
+            this.patchTempColumnSettings(byKey.get(shown.id).key, {visible: Boolean(shown.checked)});
+            return this.commitColumnSettings("column-visibility");
+        }
+        const loose = (list) => list.filter((key) => !byKey.get(key).system);
+        const ordered = loose(asked.map((one) => one.id));
+        const before = loose(columns.map((column) => String(column.key)));
+        if (ordered.join("\n") === before.join("\n")) return this;
+        ordered.forEach((key, position) => this.patchTempColumnSettings(byKey.get(key).key, {order: (position + 1) * 10}));
+        this.requestComponentUpdate("column-order");
+        return this.commitColumnSettings("column-order");
+    }
+
+    // The tab the panel stands on: its groups are tabs (a search and a fields
+    // list), «Поля» first.
+    settingsTabOf(settings) {
+        const tabs = settings?.querySelector?.(".sf-settings-panel-tabs");
+        return Number(tabs?.getAttribute("active-index") ?? 0) === 1 ? "view" : "fields";
+    }
+
+    onTableSettingsReset(event) {
+        event.stopPropagation();
+        event.preventDefault();
+        if (this.settingsTabOf(event.currentTarget) === "view") this.resetTableView();
+        else this.restoreColumnSettingsOnOpen();
+    }
+
+    // The window opens again on the tab it was closed on.
+    onTableSettingsClose(event) {
+        event.stopPropagation();
+        this._settingsTab = this.settingsTabOf(event.currentTarget);
+    }
+
+    // Closed by the panel itself (×, Escape, a press outside, Tab out): the
+    // window goes; the panel has already put the focus back. A panel leaving
+    // because the window closed is not connected any more.
+    onTableSettingsClosed(event) {
+        event.stopPropagation();
+        if (event.currentTarget?.isConnected && this.state.contextMenu?.open) this.closeContextMenu(false);
+    }
+
+    // The panel drawn, it is opened against its trigger, on the tab it was
+    // closed on; a trigger the page cannot find by id is passed in.
+    async showSettingsPanel(settings) {
+        await customElements.whenDefined("sf-settings");
+        await settings.whenRendered?.();
+        if (!settings.isConnected) return;
+        const view = this._settingsTab === "view";
+        const answer = await settings.show?.(view ? "density" : "columns");
+        if (answer?.outcome === "unavailable" && answer.reason === "no-trigger" && settings.isConnected) {
+            settings.toggle?.(this.state.contextMenu?.anchor ?? this);
+            if (view) settings.chooseGroup?.(1);
+        }
     }
 
     renderMainContextMenu(data) {
         const menu = data.menu || data.menuType || data.contextMenu;
 
         switch (menu) {
-            case 'create':
-                return this.renderCreateContextMenu(data);
-            case 'list-sort':
-                return this.renderListSortContextMenu(data);
-            case 'toolbar-actions':
-                return this.renderToolbarActionsContextMenu(data);
             case 'filter-favorites':
                 return this.renderFilterFavoritesContextMenu(data);
             case 'filter-settings':
@@ -5161,78 +5043,38 @@ class SfTable extends TableElement {
         }
     }
 
-    renderTemplateActionsContextSubmenu(data) {
-        const {
-            x,
-            y,
-            position,
-            transform,
-            template = {},
-        } = data;
-        let pos = `translateY(${transform !== undefined ? transform : 0}%)`;
+    // A saved view's actions -- rename, make it the default, delete or
+    // restore -- through SF.menu.open, at its «⋯» inside the filter window
+    // (VF-1): the menu was a second sf-menu-context the table placed with
+    // position: fixed and a tail. A delete or a restore is marked in the window
+    // and applied with «Применить», as before.
+    async openTemplateActionsMenu(anchor, template = {}) {
         const temp = this.getFilterTemplateByKey(template.key, this.tempSettings?.filter || null);
-        let isDeleted = (temp || template).deleted;
+        const isDeleted = (temp || template).deleted;
         const isDefaultTemplate = (temp || template).default === true;
-        return html`
-            <sf-menu-context
-                    size=${this.menuSize}
-                    :key=${`${template.key || ''}-${x}-${y}`}
-                    aria-label=${this.getContextMenuLabel({...data, type: 'filter-template-actions'})}
-                    style="
-          position: fixed;
-        left: calc(${x}px + var(--sf-context-menu-tail-corner-offset));
-            inset-block-start: ${y}px;
-          z-index: var(--sf-table-context-submenu--z-index, ${this.contextMenuZIndex()});
-          transform: ${pos}
-        "
-                    data-context-submenu
-                    root-class="sf-table-context-submenu flex flex-col"
-                    position="${position || "right"}"
-                    .entries=${[
-                        // The standard menu's rows (owner, 2026-10-14), not link
-                        // buttons; a delete is marked as one, a restore is not.
-                        {id: 'rename', text: this.text('renameText'), icon: 'edit'},
-                        {id: 'default', text: isDefaultTemplate ? this.text('defaultTemplateText') : this.text('makeDefaultLabel'),
-                            icon: isDefaultTemplate ? 'remove' : 'check'},
-                        {id: 'delete', text: isDeleted ? this.text('restoreText') : this.text('deleteActionText'),
-                            icon: isDeleted ? 'restore_from_trash' : 'delete', danger: !isDeleted, keepOpen: true},
-                    ]}
-                    @sf-menu-context-select=${(event) => {
-                        const id = event.detail?.id;
-                        if (id === 'rename') {
-                            this.set((prevState) => ({
-                                filter: {
-                                    ...(prevState.filter || {}),
-                                    rename: template.key,
-                                },
-                                contextMenu: {
-                                    ...(prevState.contextMenu || {}),
-                                    submenu: null,
-                                },
-                            }));
-                        } else if (id === 'default') {
-                            this.changeTempFilterTemplateSettings(template.key, {
-                                default: !template.default,
-                            });
-                            this.closeContextSubmenu();
-                        } else if (id === 'delete') {
-                            this.patchTempFilterTemplateSettings(template.key, {
-                                deleted: !isDeleted,
-                            });
-                        }
-                    }}
-            >
-            </sf-menu-context>
-        `;
-    }
-
-    renderContextSubmenu(data) {
-        switch (data?.type) {
-            case 'filter-template-actions':
-                return this.renderTemplateActionsContextSubmenu(data);
-            default:
-                return nothing;
+        const choice = await menuOpen({
+            anchor,
+            label: this.getContextMenuLabel({type: 'filter-template-actions', template}),
+            size: this.menuSize,
+            entries: [
+                // The standard menu's rows (owner, 2026-10-14), not link
+                // buttons; a delete is marked as one, a restore is not.
+                {id: 'rename', text: this.text('renameText'), icon: 'edit'},
+                {id: 'default', text: isDefaultTemplate ? this.text('defaultTemplateText') : this.text('makeDefaultLabel'),
+                    icon: isDefaultTemplate ? 'remove' : 'check'},
+                {id: 'delete', text: isDeleted ? this.text('restoreText') : this.text('deleteActionText'),
+                    icon: isDeleted ? 'restore_from_trash' : 'delete', danger: !isDeleted},
+            ],
+        });
+        const id = choice?.id;
+        if (id === 'rename') {
+            this.set((prevState) => ({filter: {...(prevState.filter || {}), rename: template.key}}));
+        } else if (id === 'default') {
+            this.changeTempFilterTemplateSettings(template.key, {default: !isDefaultTemplate});
+        } else if (id === 'delete') {
+            this.patchTempFilterTemplateSettings(template.key, {deleted: !isDeleted});
         }
+        return choice;
     }
 
     renderContextMenu(data) {
@@ -5242,7 +5084,7 @@ class SfTable extends TableElement {
         if (data?.open) {
             globalThis.SF?.Loader?.ensure?.(data.menu === 'tag-settings'
                 ? ["sf-input-date", "sf-slider-range"]
-                : ["sf-sortable", "sf-radio", "sf-tabs"]);
+                : ["sf-sortable", "sf-radio", "sf-tabs", "sf-settings"]);
         }
         if (!data?.open) {
             render(null, this.getPortalContainer());
@@ -5259,10 +5101,8 @@ class SfTable extends TableElement {
                         class="sf-table-context-layer"
                         data-sf-sheet=${this.isList && ["filter-settings", "tag-settings"].includes(data.menu) ? "" : nothing}
                         ${ref(this.refs.contextMenu)}
-                        @click=${(event) => this.handleContextLayerClick(event)}
                 >
                     ${this.renderMainContextMenu(data)}
-                    ${data.submenu?.open ? this.renderContextSubmenu(data.submenu) : nothing}
                     ${this.isList && ["filter-settings", "tag-settings"].includes(data.menu) ? html`
                         <div class="sf-table-sheet-close">
                             <sf-button-icon size=${this.size} appearance="ghost" scheme="on-surface"
@@ -5275,6 +5115,12 @@ class SfTable extends TableElement {
         );
         this.showPortal();
         this.bindContextViewport();
+        // The gear's panel opens itself once it is drawn, once per window.
+        const settings = this.getPortalContainer().querySelector("sf-settings[data-table-settings]");
+        if (settings && settings !== this._settingsShown) {
+            this._settingsShown = settings;
+            this.showSettingsPanel(settings);
+        }
         requestAnimationFrame(() => {
             this.clampContextMenusToViewport();
             // The menu lives in the portal, not in this element's own tree.
@@ -6383,19 +6229,13 @@ class SfTable extends TableElement {
     // the next column. The consumer measured a menu whose left edge matched the
     // button's left and whose right edge stood 34 to 124px beyond it.
     getContextMenuPlacement(menu) {
-        const isSubmenu = menu.hasAttribute('data-context-submenu');
-        const data = isSubmenu ? this.state.contextMenu?.submenu : this.state.contextMenu;
+        const data = this.state.contextMenu;
         const anchor = this.resolveContextAnchor(data);
         if (!anchor) return null;
-        const position = String(data.position || (isSubmenu || data.type === 'left' ? 'left' : ''));
+        const position = String(data.position || (data.type === 'left' ? 'left' : ''));
         const family = /^(left|right)(-top|-bottom)?$/.exec(position);
         if (!family) {
-            // A menu belonging to a control at the end of its row aligns to that
-            // control's end edge; otherwise it hangs past the button and over
-            // whatever is beside it. The create arrow and the view's actions are
-            // both such controls.
-            const toTheEnd = ['create', 'toolbar-actions'].includes(data.menu);
-            return {anchor, side: 'block-end', align: toTheEnd ? 'end' : 'start', tail: null};
+            return {anchor, side: 'block-end', align: 'start', tail: null};
         }
         const suffix = family[2] || '';
         return {
@@ -6515,6 +6355,16 @@ class SfTable extends TableElement {
                 group: Array.isArray(opts.action?.members) ? opts.action : null,
                 items: Array.isArray(opts.items) ? opts.items : null,
             });
+        }
+        // The action menus are SF.menu.open's: no window of the table's own.
+        if (["create", "list-sort", "toolbar-actions"].includes(opts.menu)) {
+            this.closeContextMenu(false);
+            const opener = event.currentTarget instanceof Element ? event.currentTarget
+                : event.target instanceof Element ? event.target : null;
+            if (!opener) return;
+            event.preventDefault?.();
+            event.stopPropagation?.();
+            return this.openActionMenu(opts.menu, this.resolveBoxedAnchor(event, opener));
         }
         this.closeContextMenu(false);
         this.contextTarget?.classList.remove("active");
@@ -6644,91 +6494,17 @@ class SfTable extends TableElement {
         return this;
     }
 
+    // A saved view's «⋯» opens the page's one menu of actions (VF-1).
     openContextSubmenu(event, opts = {}) {
         event.preventDefault();
         event.stopPropagation();
-
         const target = event.target instanceof Element ? event.target : null;
-        const anchorTarget =
-            event.currentTarget instanceof Element ? event.currentTarget : target;
-
-        if (!anchorTarget) {
-            return;
-        }
-
+        const anchorTarget = event.currentTarget instanceof Element ? event.currentTarget : target;
+        if (!anchorTarget) return null;
         // The opener is usually an sf-button-icon, whose host is display:contents
-        // and has no box at all: anchoring to it put the menu at the top left of
-        // the viewport, which the clamp then pushed to the window's edge -- the
-        // consumer saw it open far from its button, over the admin menu. The
-        // native control on the event path is the thing with a box.
+        // and has no box at all; the native control on the event path has one.
         const boxed = this.resolveBoxedAnchor(event, anchorTarget);
-        const rect = boxed.getBoundingClientRect();
-        const anchorKey =
-            opts.anchorKey ||
-            opts.template?.key ||
-            anchorTarget.dataset?.contextSubmenuAnchor ||
-            "";
-
-        if (
-            anchorKey &&
-            this.state.contextMenu?.submenu?.open &&
-            this.state.contextMenu.submenu.anchorKey === anchorKey
-        ) {
-            this.closeContextSubmenu();
-            return;
-        }
-
-        const data = {
-            open: true,
-            type: opts.type,
-            anchorKey,
-            x: rect.left + rect.width,
-            y: rect.y + rect.height / 2,
-            position: opts.position || 'left',
-            transform: -50,
-            ...opts,
-            anchor: boxed,
-            anchorRef: this.describeContextAnchor(boxed),
-        };
-
-        this.set((state) => ({
-            contextMenu: {
-                ...(state.contextMenu || {}),
-                submenu: data,
-            },
-        }));
-    }
-
-    handleContextLayerClick(event) {
-        const target = event.target;
-
-        if (!(target instanceof Element)) {
-            return;
-        }
-
-        if (target.closest("[data-context-submenu]")) {
-            return;
-        }
-
-        if (target.closest("[data-context-submenu-anchor]")) {
-            return;
-        }
-
-        if (
-            this.state.contextMenu?.submenu?.open &&
-            !target.closest("[data-context-main-menu]")
-        ) {
-            this.closeContextSubmenu();
-        }
-    }
-
-    closeContextSubmenu() {
-        this.set((state) => ({
-            contextMenu: {
-                ...(state.contextMenu || {}),
-                submenu: null,
-            },
-        }));
+        return this.openTemplateActionsMenu(boxed, opts.template || {});
     }
 
     // Every element the table draws goes through here -- its own controls,
@@ -7836,6 +7612,8 @@ class SfTable extends TableElement {
 
     disconnectedCallback() {
         this.unbindWindowScroll();
+        for (const controller of this._toolbarRoving?.values() ?? []) controller.destroy();
+        this._toolbarRoving?.clear();
         // The row menu lives beside the page, not inside the table: it goes
         // with the table that made it.
         this._rowMenu?.close?.({restoreFocus: false});
@@ -8083,6 +7861,7 @@ class SfTable extends TableElement {
         this.adoptSelectionGlyphs();
         this._observeResponsiveBox();
         this.bindRowActionsEvents(this.refs.table?.value);
+        this.bindToolbarKeyboard();
         this.syncGrid();
         this.bindRowMenu();
         this.toggleAttribute("data-sf-keyed-narrow", this.isKeyedNarrow);
@@ -8159,6 +7938,30 @@ class SfTable extends TableElement {
         this.bindColumnDragEvent();
         this.syncWindow();
         this.markClippedTitles();
+    }
+
+    // The toolbar's keyboard is SIMAI Framework roving.js (C184 (1)-(3),
+    // VF-6): each group of the toolbar's buttons -- the filter with its chips
+    // and their buttons at the start, create and the view's actions at the
+    // end -- is one Tab stop, the arrows walk it in the row's direction, ↓ on
+    // a menu button opens its menu, and Tab comes back to the button left.
+    // The search field and the layout switch keep their own keys and stops.
+    bindToolbarKeyboard() {
+        const groups = [...this.querySelectorAll(":scope .sf-table-toolbar .sf-table-toolbar-start, :scope .sf-table-toolbar .sf-table-toolbar-end, :scope .sf-table-toolbar .sf-table-list-search")]
+            .filter((group) => group.closest("sf-view-table, sf-table") === this);
+        this._toolbarRoving ??= new Map();
+        for (const [group, controller] of this._toolbarRoving) {
+            if (!groups.includes(group) || !group.isConnected) {
+                controller.destroy();
+                this._toolbarRoving.delete(group);
+            }
+        }
+        const buttons = (group) => () => [...group.querySelectorAll("button")]
+            .filter((button) => !button.closest("sf-input, .sf-input, sf-segmented, .sf-segmented"));
+        for (const group of groups) {
+            if (this._toolbarRoving.has(group)) continue;
+            this._toolbarRoving.set(group, roving(group, {items: buttons(group), orientation: "horizontal"}));
+        }
     }
 
     // A name cut by its two lines (C146 (7)) says so on its cell, and the

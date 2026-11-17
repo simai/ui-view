@@ -14,19 +14,28 @@ test('Smart Table names every owned action and contextual surface', async () => 
   // Nine since the compact list, whose sort is a menu (it has no column heads).
   // Eight again since CM-8: the row's second, hand-drawn menu is gone; a row
   // has the one standard menu bound to the rows (rowMenu, made in script).
-  assert.equal((table.match(/<sf-menu-context/g) || []).length, 8);
-  assert.equal((table.match(/<sf-menu-context[\s\S]*?aria-label=/g) || []).length, 8);
+  // Seven since C106: the gear's window is SIMAI Framework sf-settings in its
+  // panel look, named by the same label.
+  // Three since view round 1 (D5): the create, view-actions, list-sort and
+  // template menus open the Framework's shared menu (SF.menu.open, menuOpen)
+  // with a label each; the table draws only the windows it still owns.
+  assert.equal((table.match(/<sf-menu-context/g) || []).length, 3);
+  assert.equal((table.match(/<sf-menu-context[\s\S]*?aria-label=/g) || []).length, 3);
+  assert.match(table, /await menuOpen\(\{\s*anchor,\s*entries: built\.entries,\s*label: this\.getContextMenuLabel\(\{menu\}\),/u);
+  assert.match(table, /await menuOpen\(\{\s*anchor,\s*label: this\.getContextMenuLabel\(\{type: 'filter-template-actions', template\}\),/u);
+  assert.match(table, /<sf-settings\s+look="panel"[\s\S]*?label=\$\{this\.getContextMenuLabel\(\{\.\.\.data, menu: 'table-settings'\}\)\}/u);
   assert.match(table, /getContextMenuLabel\(data = \{\}\)/);
-  assert.match(template, /aria-label="Сохранить шаблон фильтра"/);
+  // The words are the language files' (draft set standard 7.10).
+  assert.match(template, /aria-label=\$\{context\.component\.text\('saveFilterTemplateLabel'\)\}/);
   // The search field is named and clears itself (C123 (5), C153 (6), TI-10).
   assert.equal((template.match(/aria-label=\$\{context\.searchPlaceholder\}/g) || []).length, 2);
-  assert.match(template, /aria-label="Дополнительные действия создания"/);
+  assert.match(template, /aria-label=\$\{context\.component\.text\('createMoreLabel'\)\}/);
   // The gear in the toolbar became the view's actions; column settings keep
   // their own gear in the table's head, labelled there.
-  assert.match(template, /aria-label="Действия с представлением"/);
+  assert.match(template, /aria-label=\$\{context\.component\.text\('contextViewActionsLabel'\)\}/);
   assert.match(table, /ariaLabel: this\.text\("settingsColumnLabel"\)/);
-  assert.match(template, /context\.actions[\s\S]*Дополнительные действия создания/);
-  assert.match(template, /context\.settings && state\.toolbarActions\?\.length[\s\S]*Действия с представлением/);
+  assert.match(template, /context\.actions[\s\S]*createMoreLabel/);
+  assert.match(template, /context\.settings && state\.toolbarActions\?\.length[\s\S]*contextViewActionsLabel/);
   assert.match(template, /<table[\s\S]*aria-label=\$\{context\.ariaLabel \|\| nothing\}/);
   assert.doesNotMatch(template, /Resize sidebar/);
   assert.doesNotMatch(template, /Math\.random\(\)/);

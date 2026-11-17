@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-table",
-  "version": "1.21.4",
+  "version": "1.23.0",
   "title": "Table",
   "summary": "Complete server-backed collection view with search, filters, table preferences, row and bulk actions, and pagination.",
   "kind": "composite",
@@ -54,6 +54,7 @@
       "smart.reference-link",
       "smart.resizer",
       "smart.segmented",
+      "smart.settings",
       "smart.slider-range",
       "smart.sortable",
       "smart.spinner",
@@ -2864,6 +2865,20 @@
         "changes": [
           "Over SIMAI Framework ui-24d64b7f6eb7: its icon buttons and buttons ask for the look ghost where they asked for link, ghost's former name (component.icon-buttons 1.14.0, sf-button-icon 1.13.3, sf-button 1.16.3, RG-IB-1..3, C213); the printed row menu wrote sf-icon-button--link, which the pair answers with a console warning. The same look; nothing to change for a host."
         ]
+      },
+      {
+        "from": "1.21.4",
+        "to": "1.22.0",
+        "changes": [
+          "C106: the gear's window is SIMAI Framework sf-settings look=\"panel\" (sf-settings 1.6.3), not sf-menu-context tabs with rows drawn by the table. «Поля» is its fields list -- a column shown or not (the theme's light fill and a check at the end), its order (the handle at the start, a drag or Alt+arrows, the position said), pinned on top (the Framework pin button), the panel's search -- and «Вид» its density choice (the fill alone) and switches (lines, one line, the held head, «Для всех моих таблиц» after a line). Every change applies at once as before (save {kind: columns} with reason column-visibility, column-pin or column-order; view-change); «Сбросить» puts the fields back as the window opened with them or the view to its defaults, by the tab it stands on; the window reopens on the tab it was closed on. The panel takes the gear's density (C22): the hand-set 1/2 handles and pins are gone, a size is passed only when the host wrote one; on a phone it is the bottom sheet (C106 (8), C157 (5)). The host labels column-move-label, pin-column-label, unpin-column-label, column-search-placeholder and column-search-empty-text are no longer read by the gear: sf-settings speaks its own words in the page language. The filter window keeps its tabs (its templates need what sf-settings does not offer)."
+        ]
+      },
+      {
+        "from": "1.22.0",
+        "to": "1.23.0",
+        "changes": [
+          "View round 1 (D1, D3, D5-D8, PD-9): the create, view-actions, list-sort and saved-view menus open the SIMAI Framework's shared menu (SF.menu.open); the panel footers put the main action first; the toolbar's button groups are roving.js groups; every toolbar word is in lang/; the filter count is sf-button-icon badge-count; the Create row is one scheme; dates are the field renderers' reading in a time element with its machine value (format-value.js is gone); the link cell is sf-reference-link; date operators of a chip read Позже, Не раньше, Раньше, Не позже."
+        ]
       }
     ]
   },
@@ -2873,15 +2888,15 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-table/index.js",
-        "sha256": "63d022005241cf2c3c889addc1e87257ef56e94b0ebcfb09fd4b1284c4ea96a0"
+        "sha256": "fa271fc18ea6df7c61addec41ffb1bed5d07aa4eeaea0db572045fc02b9d2722"
       },
       {
         "path": "src/smart/view-table/js/templates/default.js",
-        "sha256": "3e4a3e320eac7712f2e6f1d14dc698cbdc0919cac55e49567085d410cc5b8d97"
+        "sha256": "fe5ac02d1e1c8bdac35cf91c07d39d2a2af274b68ca42e9387cc211d2025b76b"
       },
       {
         "path": "src/smart/view-table/js/templates/default.css",
-        "sha256": "277ba7692d34afb1bc74a76032e33dcd1b9e50ff3ce785e791ba39240c92630a"
+        "sha256": "f0eb9f7e25eb0c621d8274af4f1310cc257e461ff907683fb9651f23c919afd5"
       },
       {
         "path": "src/smart/helpers/option-badge.js",
@@ -2889,11 +2904,11 @@
       },
       {
         "path": "src/smart/view-table/rule.js",
-        "sha256": "b3ed61276e9b06ce9755dcb53da1cd4caf7bbf1eb862d903f7fb52fb6c63dcc5"
+        "sha256": "321138086622411b2f57f5c08dce41326e551b0c5af831447dae0870bb85f463"
       },
       {
         "path": "src/smart/view-table/docs/smart-table-guide.md",
-        "sha256": "db8d4f1be4d948e3edcdb9d8e1af9f226c9179948d35d11db45dfae0def27a24"
+        "sha256": "6ee6a7c8b82ef308cd105d041c77626f22b3a13b0f867f012be74d7a1d3966e4"
       },
       {
         "path": "src/smart/pagination/index.js",

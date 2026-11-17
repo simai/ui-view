@@ -32,8 +32,10 @@ SF.RuleLoader['cl-view-table'] = {
     { name: 'cl-empty-state' },
     { name: 'cl-input-date', lazy: true },
     { name: 'cl-dropdown' },
-    // The gear's tabs, «Поля» and «Вид» (owner, 2026-10-14).
+    // The filter window's tabs, «Шаблоны» and «Поля» (owner, 2026-10-14).
     { name: 'cl-tabs', lazy: true },
+    // The gear's window is sf-settings in its panel look, «Поля» and «Вид» (owner decision C106).
+    { name: 'cl-settings', lazy: true },
     { name: 'cl-menu-context', lazy: true },
     // The windows' lists are reordered with sf-sortable (owner, 2026-10-13).
     { name: 'cl-sortable', lazy: true },

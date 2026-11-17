@@ -15,6 +15,7 @@ const styles = [
   'component/component/context-menu/css/context-menu.css',
   'component/component/toast/css/toast.css',
   'smart/smart/view-table/css/view-table.css', 'smart/smart/resizer/css/resizer.css',
+  'component/component/tabs/css/tabs.css', 'smart/smart/switch/css/switch.css', 'smart/smart/settings/css/settings.css',
 ].map((p) => join(out, p));
 const modules = [
   'core/core/js/core.js', 'core/core/js/smart-base.js', 'smart/smart/icon/js/icon.js', 'smart/smart/button/js/button.js',
@@ -24,6 +25,7 @@ const modules = [
   'smart/smart/button-close/js/button-close.js', 'smart/smart/toast/js/toast.js',
   'smart/smart/menu-context/js/menu-context.js', 'smart/smart/tabs/js/tabs.js',
   'smart/smart/tag/js/tag.js', 'smart/smart/pagination/js/pagination.js',
+  'smart/smart/switch/js/switch.js', 'smart/smart/settings/js/settings.js',
   'smart/smart/resizer/js/resizer.js', 'smart/smart/view-table/js/view-table.js', 'smart/smart/view/js/view.js',
 ].map((p) => join(out, p));
 
@@ -167,34 +169,38 @@ try {
     if (!gear) return {gear: 'not found'};
     await page.mouse.click(gear.x, gear.y);
     await page.waitForTimeout(500);
+    // The gear's window is SIMAI Framework sf-settings look="panel" since
+    // 1.22.0 (C106): a row is .sf-settings-row, its pin the Framework's pin.
     const state = () => page.evaluate(() => {
-      const rows = [...document.querySelectorAll('sf-menu-context [data-column-key]')];
+      const panel = document.querySelector('sf-settings[data-table-settings] .sf-settings-panel');
+      const rows = [...(panel?.querySelectorAll('.sf-settings-row') ?? [])].filter((row) => row.querySelector('[data-sf-option]'));
       return {
         rows: rows.map((row) => ({
-          key: row.dataset.columnKey, pinned: row.dataset.pinned,
-          pressed: row.querySelector('[icon="push_pin"]')?.getAttribute('aria-pressed') ?? null,
-          handle: Boolean(row.querySelector('[data-move]')),
+          key: row.querySelector('[data-sf-option]').dataset.sfOption, pinned: row.hasAttribute('data-pinned') ? '1' : '0',
+          pressed: row.hasAttribute('data-pinned') && row.querySelector('.sf-settings-row-pin')?.getAttribute('scheme') === 'primary' ? 'true' : 'false',
+          handle: Boolean(row.querySelector('.sf-settings-row-handle')),
         })),
         // The one-tab title went (2026-10-05); the two tabs «Поля» and «Вид»
-        // came (owner, 2026-10-14) and are the settings' own, counted apart.
-        tabs: document.querySelectorAll('sf-menu-context sf-tabs:not(.sf-context-menu-tabs)').length,
-        search: Boolean(document.querySelector('sf-menu-context [name="sf_table_column_search"]')),
+        // came (owner, 2026-10-14): the panel's one tab row.
+        tabs: panel?.querySelectorAll('.sf-settings-panel-tabs [role="tab"]').length ?? 0,
+        search: Boolean(panel?.querySelector('[data-sf-search]')),
         pinnedByTable: document.getElementById('t').getPinnedColumnKeys?.() ?? null,
       };
     });
     const before = await state();
-    const pin = await centre(page, `() => [...document.querySelectorAll('sf-menu-context [data-column-key]')].find((row) => row.dataset.columnKey === 'code')?.querySelector('[icon="push_pin"]')`);
+    const pin = await centre(page, `() => document.querySelector('sf-settings[data-table-settings] .sf-settings-row:has(> [data-sf-option="code"]) .sf-settings-row-pin button')`);
     if (pin) await page.mouse.click(pin.x, pin.y);
     await page.waitForTimeout(500);
     const after = await state();
     // And the search over the names.
-    const field = await centre(page, `() => document.querySelector('sf-menu-context [name="sf_table_column_search"]')`);
+    const field = await centre(page, `() => document.querySelector('sf-settings[data-table-settings] [data-sf-search]')`);
     let filtered = null;
     if (field) {
       await page.mouse.click(field.x, field.y);
       await page.keyboard.type('раздел');
       await page.waitForTimeout(400);
-      filtered = await page.evaluate(() => [...document.querySelectorAll('sf-menu-context [data-column-key]')].map((row) => row.dataset.columnKey));
+      filtered = await page.evaluate(() => [...document.querySelectorAll('sf-settings[data-table-settings] .sf-settings-row')]
+        .filter((row) => !row.hidden && row.getClientRects().length).map((row) => row.querySelector('[data-sf-option]')?.dataset.sfOption).filter(Boolean));
     }
     return {before, after, filtered};
   })();
@@ -210,8 +216,8 @@ try {
     if (!settings.before?.rows?.every((row) => row.handle)) {
       note({case: 'pins', got: settings.before, expected: 'a handle on every row'});
     }
-    if (settings.before?.tabs !== 0 || settings.before?.search !== true) {
-      note({case: 'pins', got: settings.before, expected: 'no tab title, and a search field'});
+    if (settings.before?.tabs !== 2 || settings.before?.search !== true) {
+      note({case: 'pins', got: settings.before, expected: 'the two tabs «Поля» and «Вид», and a search field'});
     }
     if (!settings.filtered || settings.filtered.join() !== 'section') {
       note({case: 'column search', got: settings.filtered, expected: 'the list filtered to the field searched for'});
@@ -267,16 +273,22 @@ try {
       const node = new Function('return ' + source)()();
       const control = node?.querySelector('button') ?? node;
       const button = control.getBoundingClientRect();
-      const surface = document.querySelector('sf-menu-context .sf-context-menu');
+      // Create and the view's actions open the Framework's shared menu since view round 1.
+      const surface = document.querySelector('[data-sf-menu-shared] .sf-context-menu');
       const box = surface?.getBoundingClientRect();
       return box ? {
         underButton: Math.round(box.top) >= Math.round(button.bottom) - 2,
+        // SF.menu.open places a menu at the button's start edge and keeps it
+        // inside the window (view round 1); it has no end alignment to ask for
+        // (order to the Framework). The menu touches its button and stays in.
         endAligned: Math.abs(Math.round(box.right - button.right)) <= 2,
         pastTheButton: Math.round(box.right - button.right),
+        inside: box.left >= 0 && box.right <= window.innerWidth + 0.5,
+        touches: box.left <= button.right && box.right >= button.left,
       } : null;
     }, locate);
-    if (!placed?.underButton || !placed?.endAligned) {
-      note({case: `menu ${name}`, got: placed, expected: 'under the button, aligned to its end edge'});
+    if (!placed?.underButton || !placed?.inside || !placed?.touches) {
+      note({case: `menu ${name}`, got: placed, expected: 'under the button, over its width, inside the window'});
     }
     await page.keyboard.press('Escape');
     await page.waitForTimeout(250);

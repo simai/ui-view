@@ -78,6 +78,22 @@ function renderFoot(context) {
     const answering = context.open || context.pending;
     return html`
         <footer class="sf-view-flow__footer">
+            <!-- The main action first, at the start, then the way out (C159 (4),
+                 C157 (3)): «Отправить», then «Отмена». -->
+            <div class="sf-view-flow__actions" ?hidden=${!answering}>
+                <sf-button scheme="primary" size=${context.size}
+                           text=${context.submitText} data-action="submit"
+                           ?loading=${context.pressed === true}
+                           ?disabled=${context.answersLocked && context.pressed !== true}
+                           @click=${() => component.confirm()}></sf-button>
+                ${context.cancelable
+                    ? html`<sf-button appearance="outline" scheme="on-surface" size=${context.size}
+                                      text=${context.cancelText} data-action="cancel"
+                                      ?loading=${context.pressed === false}
+                                      ?disabled=${context.answersLocked && context.pressed !== false}
+                                      @click=${() => component.cancel()}></sf-button>`
+                    : nothing}
+            </div>
             <!-- Always in the page, empty while there is nothing to say: a live
                  region that appears together with its words is not heard. -->
             <p class="sf-view-flow__status${context.statusError ? " sf-view-flow__status--error" : ""}"
@@ -86,20 +102,6 @@ function renderFoot(context) {
                     ? html`<sf-icon icon=${context.statusIcon} size="1/2" aria-hidden="true"></sf-icon><span>${context.statusText}</span>`
                     : nothing}
             </p>
-            <div class="sf-view-flow__actions" ?hidden=${!answering}>
-                ${context.cancelable
-                    ? html`<sf-button appearance="outline" scheme="on-surface" size=${context.size}
-                                      text=${context.cancelText} data-action="cancel"
-                                      ?loading=${context.pressed === false}
-                                      ?disabled=${context.answersLocked && context.pressed !== false}
-                                      @click=${() => component.cancel()}></sf-button>`
-                    : nothing}
-                <sf-button scheme="primary" size=${context.size}
-                           text=${context.submitText} data-action="submit"
-                           ?loading=${context.pressed === true}
-                           ?disabled=${context.answersLocked && context.pressed !== true}
-                           @click=${() => component.confirm()}></sf-button>
-            </div>
         </footer>`;
 }
 

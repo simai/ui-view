@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-properties",
-  "version": "1.17.0",
+  "version": "1.17.2",
   "title": "Property view",
   "summary": "One object's fields shown as sections, groups and fields, each drawn by the per-type field renderer set, behind a separate host port. A group is edited and saved as one revision by the button, and a reference field is picked from the host's own candidates a page at a time. The pair to the data view: that one is a set of records, this one is a single object.",
   "kind": "composite",
@@ -1733,6 +1733,14 @@
           "C289 (7), C182: Save is never disabled; a Save over empty required fields or entries that are not values is refused with the message under each field and, for two or more, a summary with a link per field; a host's confirmation is asked in place with sf-confirm.",
           "C289 (8), (9), (10): the first paint keeps its boxes (no layout shift when the record comes); value buttons are 24px high at least on a phone (--sf-hit--min); the view asks the Loader for every tag it draws, so a page needs no defineFieldsOf or own defines."
         ]
+      },
+      {
+        "from": "1.17.0",
+        "to": "1.17.2",
+        "changes": [
+          "View round 1 (VF-10, msg-e78f2e51): the host's formatFieldValue or the field renderers read a date, the set's own date parsing is gone; a percent is the SIMAI Framework's formatPercent, 12,5 % and 12.5 % in every language (C203 (3)).",
+          "Merge of view round 1: the card group's 1.17.0 and the table group's change (numbered 1.17.1 on round/view-r1-table, not a set version) as one version above both."
+        ]
       }
     ]
   },
@@ -1742,7 +1750,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-properties/index.js",
-        "sha256": "e82cbe743dd9576a77896a29539f85a4a27040c6529c706f620d496b3eb57d4f"
+        "sha256": "1a823dbaa885a7ba0c2046f69f5dea910e9128092f94b5c8902712e8cec155fd"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.js",
@@ -1774,7 +1782,7 @@
       },
       {
         "path": "src/smart/view-properties/js/money.js",
-        "sha256": "8e7ba7bab391daf9f28e403bee2a3e3f2fd2ad1ec11742421fceff0d18b0c188"
+        "sha256": "ca936af5b59ee2f0fe8788df3f69cccdc1cb6fd3045213bbd1a14d4f5963f537"
       },
       {
         "path": "src/smart/view-properties/js/set-fields.css",

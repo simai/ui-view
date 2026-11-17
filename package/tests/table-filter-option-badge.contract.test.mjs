@@ -20,9 +20,9 @@ test('a date cell asks the field renderers first and keeps no format of its own 
   const table = await read('src/smart/view-table/index.js');
 
   // C19: the renderer set formats a date (module.smart-field-renderers), the
-  // table inherits; its own reading is only for a value the set leaves empty.
+  // table inherits and keeps no reading of its own (VF-10, draft set standard 7.9).
   assert.match(
     table,
-    /const rendered = renderCellField\(column, value, host\);\s*if \(rendered !== null && rendered !== undefined\) return rendered;[\s\S]{0,240}?if \(DATE_TYPES\.has\(type\)\) return formatDateValue\(type, value, this\) \|\| null;/u,
+    /const rendered = renderCellField\(column, value, host\);\s*if \(rendered !== null && rendered !== undefined\) return rendered;\s*return null;/u,
   );
 });

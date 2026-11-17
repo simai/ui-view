@@ -1,4 +1,5 @@
 import {formatDecimal} from './decimal.js';
+import {formatPercent} from '../../field-renderers/decimal.js';
 
 // Money and percent as a person reads them, from decimal strings, never a
 // float: the currency's sign and minor units come from Intl, the digits from
@@ -45,17 +46,11 @@ export function moneyParts(value, fixed) {
     return {amount: value, currency: fixed || null};
 }
 
+// The set writes a percent as the SIMAI Framework's renderer does (C203 (3),
+// msg-e78f2e51): the page's decimal separator and one spelling in every
+// language, «12,5 %», «12.5 %». It used to read the space from Intl and wrote
+// «12.5%» in English beside the renderer's «12.5 %».
 export function percentText(value, locale) {
-    const number = formatDecimal(value, locale);
-    if (!number) return '';
-    // ru-RU writes «12,5 %», en «12.5%»: the space is the locale's, read from Intl.
-    let spaced = false;
-    try {
-        spaced = new Intl.NumberFormat(locale, {style: 'percent'}).formatToParts(0.5)
-            .some((part) => part.type === 'literal' && /\s/u.test(part.value));
-    } catch {
-        spaced = false;
-    }
-    return `${number}${spaced ? ' ' : ''}%`;
+    return formatPercent(value, locale);
 }
 

@@ -22,6 +22,7 @@ const styles = [
   'component/component/skeleton/css/skeleton.css',
   'smart/smart/view-table/css/view-table.css', 'smart/smart/resizer/css/resizer.css',
   'smart/smart/sortable/css/sortable.css',
+  'component/component/tabs/css/tabs.css', 'smart/smart/switch/css/switch.css', 'smart/smart/settings/css/settings.css',
 ].map((p) => join(out, p));
 const modules = [
   'core/core/js/core.js', 'core/core/js/smart-base.js', 'smart/smart/icon/js/icon.js', 'smart/smart/button/js/button.js',
@@ -29,7 +30,11 @@ const modules = [
   'smart/smart/list-item/js/list-item.js', 'smart/smart/dropdown/js/dropdown.js',
   'smart/smart/input/js/input.js', 'smart/smart/spinner/js/spinner.js',
   'smart/smart/menu-context/js/menu-context.js', 'smart/smart/sortable/js/sortable.js',
-  'smart/smart/pagination/js/pagination.js', 'smart/smart/resizer/js/resizer.js', 'smart/smart/view-table/js/view-table.js',
+  'smart/smart/pagination/js/pagination.js', 'smart/smart/resizer/js/resizer.js',
+  'smart/smart/tabs/js/tabs.js', 'smart/smart/switch/js/switch.js', 'smart/smart/settings/js/settings.js',
+  // A link cell is SIMAI Framework sf-reference-link since view round 1 (D8).
+  'smart/smart/reference-link/js/reference-link.js',
+  'smart/smart/view-table/js/view-table.js',
 ].map((p) => join(out, p));
 
 const failures = [];
@@ -67,12 +72,13 @@ try {
     if (!opened) throw new Error('no settings control');
     await page.waitForTimeout(700);
     const window = await page.evaluate(() => {
-      const surface = document.querySelector('sf-menu-context .sf-table-context-menu');
+      // The gear's window is sf-settings look="panel" since 1.22.0 (C106).
+      const surface = document.querySelector('sf-settings[data-table-settings] .sf-settings-panel:not([hidden])');
       if (!surface) return null;
-      const footer = surface.querySelector('.sf-context-menu-footer');
+      const footer = surface.querySelector('.sf-settings-panel-footer');
       return {
         width: Math.round(surface.getBoundingClientRect().width),
-        size: surface.closest('sf-menu-context')?.getAttribute('size'),
+        size: surface.closest('sf-settings')?.getAttribute('size'),
         footer: Boolean(footer),
       };
     });
@@ -134,7 +140,8 @@ try {
       table.openContextSubmenu({currentTarget: anchor, target: anchor, preventDefault() {}, stopPropagation() {}},
         {type: 'filter-template-actions', template: {key: 'mine', name: 'Мой'}});
       await new Promise((done) => setTimeout(done, 400));
-      const submenu = document.querySelector('sf-menu-context[data-context-submenu]');
+      // A saved view's «⋯» is the Framework's shared menu since view round 1.
+      const submenu = document.querySelector('[data-sf-menu-shared]');
       return {
         rowLabel, linkButtons, chosen: window.chosen,
         submenu: [...(submenu?.querySelectorAll('.sf-context-menu-item-label') ?? [])].map((node) => node.textContent.trim()),

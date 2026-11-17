@@ -2,7 +2,7 @@
   "$comment": "sf-property-view from its component.json (standard simai.smart-component 1.3.8, vocabulary 1.1.5), migrated from ui-control control/smart-architecture/migration/out/property-view; every x-todo decided in x-decisions.",
   "id": "smart.view-properties",
   "tag": "sf-view-properties",
-  "version": "1.17.0",
+  "version": "1.17.2",
   "x-history": [
     {
       "version": "1.16.11",
@@ -2033,6 +2033,14 @@
             "C289 (6): a panel the page gave no panel-label is headed by the record's name, record.label or record.title (the reference host and most pages send title); it showed the record id. The back line and the drawer's accessible name read the same name.",
             "C289 (7), C182: Save is never disabled; a Save over empty required fields or entries that are not values is refused with the message under each field and, for two or more, a summary with a link per field; a host's confirmation is asked in place with sf-confirm.",
             "C289 (8), (9), (10): the first paint keeps its boxes (no layout shift when the record comes); value buttons are 24px high at least on a phone (--sf-hit--min); the view asks the Loader for every tag it draws, so a page needs no defineFieldsOf or own defines."
+          ]
+        },
+        {
+          "from": "1.17.0",
+          "to": "1.17.2",
+          "changes": [
+            "View round 1 (VF-10, msg-e78f2e51): the host's formatFieldValue or the field renderers read a date, the set's own date parsing is gone; a percent is the SIMAI Framework's formatPercent, 12,5 % and 12.5 % in every language (C203 (3)).",
+            "Merge of view round 1: the card group's 1.17.0 and the table group's change (numbered 1.17.1 on round/view-r1-table, not a set version) as one version above both."
           ]
         }
       ]

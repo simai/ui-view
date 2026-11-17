@@ -553,7 +553,8 @@ try {
     await tight.mouse.click(at.x, at.y);
     await tight.waitForTimeout(400);
     return tight.evaluate(() => {
-      const menu = document.querySelector('sf-menu-context');
+      // The view's actions open the Framework's shared menu since view round 1.
+      const menu = document.querySelector('[data-sf-menu-shared]');
       const surface = menu?.querySelector('.sf-context-menu') ?? menu;
       const content = menu?.querySelector('.sf-context-menu-content');
       // The standard menu's rows (2026-10-13); they were link buttons.

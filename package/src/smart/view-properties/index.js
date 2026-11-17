@@ -33,7 +33,6 @@ import {renderPropertyViewTemplate} from "./js/templates/default";
 // The day-and-time reading is the field renderers' (A-14): this view kept a
 // copy from before it was lifted into the Framework.
 import {fieldConditions} from "./js/conditions.js";
-import {formatDateValue} from "../view-table/js/format-value.js";
 
 // Every port version this composite accepts, in one place, the way sf-view
 // keeps its list -- a guard naming a narrower set than the published versions is
@@ -1591,9 +1590,7 @@ class SfPropertyView extends PropertyViewElement {
         Object.assign(view, {
             formatFieldValue: (field, value) => {
                 const own = host?.formatFieldValue?.(field, value);
-                if (typeof own === "string") return own;
-                const type = field?.propertyType ?? field?.property_type ?? field?.type ?? field?.dataType;
-                return formatDateValue(type, value, this) || undefined;
+                return typeof own === "string" ? own : undefined;
             },
         });
         this._viewHost = {host, view};
