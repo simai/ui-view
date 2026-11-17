@@ -3,6 +3,79 @@
   "id": "smart.view-table",
   "tag": "sf-view-table",
   "version": "1.21.3",
+  "x-history": [
+    {
+      "version": "1.21.3",
+      "kind": "patch",
+      "recorded_on": "2026-11-17",
+      "consumer": "Nothing to change for a host: former names that ended 2026-12-01 now end 2027-01-01 and keep coming as before.",
+      "evidence": "https://github.com/simai/ui-view/commit/fa0ee5e8a1ee42a718079a2430cc9b36df8b93c6"
+    },
+    {
+      "version": "1.21.2",
+      "kind": "patch",
+      "recorded_on": "2026-11-17",
+      "consumer": "Nothing to change for a host: only the SIMAI Framework file it builds in moved with the repin.",
+      "evidence": "https://github.com/simai/ui-view/commit/12a1f16bf2063fb522fe6c6074049a0fd08e1886"
+    },
+    {
+      "version": "1.21.1",
+      "kind": "patch",
+      "recorded_on": "2026-11-17",
+      "consumer": "Nothing to change for a host: filter chips, search fields and the row menu use the Framework's current names and spacing.",
+      "evidence": "https://github.com/simai/ui-view/commit/15af7a0972a5625f9df050e3c8ed55acf71fcff0"
+    },
+    {
+      "version": "1.21.0",
+      "kind": "minor",
+      "recorded_on": "2026-11-17",
+      "consumer": "Nothing to change for a host; people can set a column's width from the keyboard, and the width they choose is kept as before.",
+      "evidence": "https://github.com/simai/ui-view/commit/4c1a3e3c70de704ecd5f95f99fdbc7d6a5ab944e"
+    },
+    {
+      "version": "1.20.3",
+      "kind": "patch",
+      "recorded_on": "2026-11-17",
+      "consumer": "Nothing to change for a host: a resource row's more button names its record.",
+      "evidence": "https://github.com/simai/ui-view/commit/e1ef6090bb2e3c80e15211949b77d0cb032fb03d"
+    },
+    {
+      "version": "1.20.2",
+      "kind": "patch",
+      "recorded_on": "2026-11-16",
+      "consumer": "Nothing to change for a host: the utility classes come with the component, so the first paint no longer shifts.",
+      "evidence": "https://github.com/simai/ui-view/commit/cc73a1fa9632a29db947dde22160a9016bfee4ed"
+    },
+    {
+      "version": "1.20.1",
+      "kind": "patch",
+      "recorded_on": "2026-11-16",
+      "consumer": "Nothing to change for a host: the list toolbar's three groups stand --sf-space-1 apart.",
+      "evidence": "https://github.com/simai/ui-view/commit/2f3c8571f96002ef0092886077f24ebd6981d502"
+    },
+    {
+      "version": "1.20.0",
+      "kind": "minor",
+      "recorded_on": "2026-11-16",
+      "consumer": "A host may name key columns (columns[].key_cell, key_line) to choose what a phone row keeps; row menus follow the host's row actions, so a page that set the menu through row-actions passes them as row actions.",
+      "evidence": "https://github.com/simai/ui-view/commit/6fbaf50f70987175cbbaba7c2d5d298852a94c7f"
+    },
+    {
+      "version": "1.19.9",
+      "kind": "patch",
+      "recorded_on": "2026-11-16",
+      "consumer": "Nothing to change for a host: only the SIMAI Framework file it builds in moved with the repin.",
+      "evidence": "https://github.com/simai/ui-view/commit/e214dd608fdcf39cea527676fc522afd718922d4"
+    }
+  ],
+  "x-framework-first": {
+    "$comment": "Copies of Framework parts kept knowingly, part id (docs/FRAMEWORK-FIRST.md) to the Framework order (FO) each waits for (set standard draft 1.1 §7.3). The repin that brings an order removes its copy.",
+    "waits": {
+      "T-21": "FO-4",
+      "T-22": "FO-5",
+      "T-33": "FO-2"
+    }
+  },
   "kind": "leaf",
   "family": "table",
   "settings": {

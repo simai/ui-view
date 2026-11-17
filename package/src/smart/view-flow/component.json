@@ -3,6 +3,31 @@
   "id": "smart.view-flow",
   "tag": "sf-view-flow",
   "version": "1.1.4",
+  "x-history": [
+    {
+      "version": "1.1.4",
+      "kind": "patch",
+      "recorded_on": "2026-11-16",
+      "consumer": "Nothing to change for a host: the utility classes come with the component, so the first paint no longer shifts.",
+      "evidence": "https://github.com/simai/ui-view/commit/cc73a1fa9632a29db947dde22160a9016bfee4ed"
+    },
+    {
+      "version": "1.1.3",
+      "kind": "patch",
+      "recorded_on": "2026-11-16",
+      "consumer": "Nothing to change for a host: only the SIMAI Framework file it builds in moved with the repin.",
+      "evidence": "https://github.com/simai/ui-view/commit/e214dd608fdcf39cea527676fc522afd718922d4"
+    }
+  ],
+  "x-framework-first": {
+    "$comment": "Copies of Framework parts kept knowingly, part id (docs/FRAMEWORK-FIRST.md) to the Framework order (FO) each waits for (set standard draft 1.1 §7.3). The repin that brings an order removes its copy.",
+    "waits": {
+      "F-03": "FO-8",
+      "F-04": "FO-8",
+      "F-05": "FO-3",
+      "F-06": "FO-8"
+    }
+  },
   "kind": "leaf",
   "family": "record",
   "settings": {
