@@ -891,9 +891,31 @@
     flex: 0 0 auto;
     z-index: 2;
     margin-inline: calc(-1 * var(--sf-property-view--panel-bleed));
-    padding: var(--sf-property-view--panel-bleed) var(--sf-property-view--panel-axis) var(--sf-space-1);
+    /* One row of the ladder's step 2 (C289 (6), R254): 48 at a desktop, its
+       hairline inside, the 1/3 buttons centred on it as in sf-drawer's head.
+       It took the gutter above and a step below the row, 73 in all. */
+    box-sizing: border-box;
+    padding: 0 var(--sf-property-view--panel-axis);
     background-color: var(--sf-surface-area);
     border-block-end: var(--sf-px) solid var(--sf-outline-variant);
+  }
+
+  .sf-property-view-head > .sf-property-view-title-row {
+    min-block-size: calc(var(--sf-ui-2--control-height) - var(--sf-px));
+  }
+
+  /* «← <Запись>» over the title of a related record opened inside the panel
+     (C289 (6)): a line of its own, the title stays where it was. */
+  .sf-property-view-back {
+    display: flex;
+    padding-block-start: var(--sf-space-1\/4);
+  }
+
+  /* The drawer draws a head of its own for a panel drawn inside another, with
+     its back arrow; the card's head carries the way back as a line, so the
+     drawer's row would be a second head. */
+  .sf-drawer-panel:has(> .sf-drawer-body .sf-property-view-panel) > .sf-drawer-head {
+    display: none;
   }
   /* The head's one row: back, title, star, a spacer, the host's actions, the
      «⋯» and the close. Laid out here, in the sheet that comes with the
@@ -984,6 +1006,13 @@
      the pointer is on it or the keyboard is in it. */
   .sf-property-view-field-open {
     inline-size: 100%;
+    /* A value that opens its group is a control, a target of 24 at the least
+       (VW-7, §8.9; --sf-hit--min): on a phone the line is 20. */
+    min-block-size: max(var(--sf-hit--min), var(--sf-list-description--line, 0px));
+    display: flex;
+    align-items: center;
+    gap: var(--sf-space-1\/4);
+    margin-block: calc((var(--sf-list-description--line, var(--sf-hit--min)) - max(var(--sf-hit--min), var(--sf-list-description--line, 0px))) / 2);
     padding: 0;
     border: 0;
     background: none;
@@ -1042,5 +1071,103 @@
     color: var(--sf-code--color);
     font-family: var(--sf-code--font-family);
     white-space: pre;
+  }
+
+  /* The record read as one description list (C289 (4), C180 (3)):
+     sf-list-description's parts and sheet, the groups its sections. A read
+     group is a subgrid of the list, so every label of the section shares one
+     column; it is no card (no frame, no fill, no inner padding). A group
+     edited, arranged or holding related records keeps its card and takes the
+     whole row of the list. */
+  .sf-property-view-list {
+    --sf-list-description-label-width: 40%;
+  }
+
+  .sf-property-view-list > .sf-list-description-list > .sf-property-view-group {
+    grid-column: 1 / -1;
+    min-inline-size: 0;
+  }
+
+  .sf-property-view-group.sf-property-view-group--list {
+    display: grid;
+    grid-template-columns: subgrid;
+    align-content: start;
+    gap: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    container-type: normal;
+  }
+
+  .sf-property-view-group--list > .sf-property-view-group-header {
+    padding-block-end: 0;
+    border-block-end: 0;
+  }
+
+  .sf-property-view-list > .sf-list-description-list > .sf-property-view-group + .sf-property-view-group {
+    margin-block-start: var(--sf-space-1);
+  }
+
+  .sf-property-view-group--list .sf-property-view-group-title {
+    font-size: inherit;
+    line-height: inherit;
+  }
+
+  /* The value's line keeps its room from the first frame (VW-1, C8): a row is
+     the rung's control height whatever arrives in it, a value that upgrades
+     late included. */
+  .sf-property-view-row .sf-list-description-line {
+    min-block-size: var(--sf-list-description--line);
+  }
+
+  .sf-property-view-row .sf-property-view-field-value {
+    min-inline-size: 0;
+    flex: 1 1 auto;
+  }
+
+  .sf-property-view-row .sf-property-view-field-error {
+    font-size: var(--sf-list-description--below-font-size);
+    line-height: var(--sf-list-description--below-line);
+  }
+
+  /* The errors summary (C182 (6)), sf-form's look: the quiet error container
+     over the fields. */
+  .sf-property-view-error-summary {
+    margin: 0;
+    padding: var(--sf-space-1\/2) var(--sf-space-1);
+    border-radius: var(--sf-radius--ui);
+    background: var(--sf-error-container);
+    color: var(--sf-on-error-container);
+    font-size: var(--sf-text-size-1\/2);
+    line-height: var(--sf-text-height-1\/2);
+  }
+
+  .sf-property-view-error-summary:focus {
+    outline: none;
+  }
+
+  .sf-property-view-error-summary:focus-visible {
+    outline: var(--sf-focus--width) var(--sf-focus--style) var(--sf-focus--color);
+    outline-offset: var(--sf-focus--offset);
+  }
+
+  .sf-property-view-error-summary-title {
+    margin: 0;
+    font-weight: var(--sf-weight--medium);
+  }
+
+  .sf-property-view-error-summary-list {
+    margin: var(--sf-space-1\/4) 0 0;
+    padding-inline-start: var(--sf-space-1);
+  }
+
+  .sf-property-view-error-summary-list a {
+    color: inherit;
+  }
+
+  /* The question before a save is sf-confirm in the foot (C182, C166). */
+  .sf-property-view-confirm {
+    display: block;
   }
 }

@@ -62,6 +62,7 @@
     "remove-group-text": "Remove this area",
     "remove-section-text": "Remove this section",
     "rename-text": "Rename",
+    "required-error-text": "Fill in this field",
     "reset-view-ask-text": "Reset the whole view?",
     "reset-view-text": "Reset",
     "save-failed-text": "The save failed",
