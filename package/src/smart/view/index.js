@@ -617,28 +617,37 @@ class SfDataView extends DataViewElement {
     // page size. In the light DOM, slotted, so the Framework's styles reach
     // the buttons and the menu (the band of bulk controls is placed so too).
     get footerStart() {
-        if (this._footerStart?.isConnected) return this._footerStart;
+        if (this._footerStart?.isConnected && this._footerParts) return this._footerStart;
         const existing = this.querySelector(':scope > [slot="footer"][data-sf-view-made]');
         const start = existing ?? document.createElement("div");
         start.setAttribute("slot", "footer");
         start.setAttribute("data-sf-view-made", "");
         start.classList.add("sf-view-footer-start");
-        if (!start.querySelector("[data-sf-footer]")) {
-            start.innerHTML = '<span class="sf-view-footer-total" data-sf-footer="total">'
-                + '<span class="sf-view-footer-range" data-sf-footer="range" role="status"></span>'
-                + '<sf-button class="sf-view-footer-count" data-sf-footer="count" appearance="ghost" scheme="primary" hidden></sf-button>'
-                + '<sf-spinner data-sf-footer="counting" hidden></sf-spinner></span>'
-                + '<sf-button class="sf-view-footer-size" data-sf-footer="size" appearance="ghost" scheme="on-surface" icon-end="arrow_drop_down" aria-haspopup="menu"></sf-button>'
-                + '<sf-menu-context class="sf-view-footer-size-menu" data-sf-footer="size-menu" popup></sf-menu-context>';
-            start.querySelector('[data-sf-footer="count"]').addEventListener("click", () => this.pagination?.requestCount?.("total"));
-            start.querySelector('[data-sf-footer="size"]').addEventListener("click", (event) => this._togglePageSizeMenu(event.currentTarget));
-            start.querySelector('[data-sf-footer="size-menu"]').addEventListener("sf-menu-context-select", (event) => {
-                event.currentTarget?.close?.();
-                this._setPageSize(event.detail?.id ?? event.detail?.entry?.id);
-            });
-        }
+        // The parts are kept by reference: a Smart button moves the data-*
+        // attributes of its host onto the <button> it draws, so a query by
+        // attribute finds the inner button once the element is defined.
+        start.innerHTML = '<span class="sf-view-footer-total">'
+            + '<span class="sf-view-footer-range" role="status"></span>'
+            + '<sf-button class="sf-view-footer-count" appearance="ghost" scheme="primary" hidden></sf-button>'
+            + '<sf-spinner class="sf-view-footer-counting" hidden></sf-spinner></span>'
+            + '<sf-button class="sf-view-footer-size" appearance="ghost" scheme="on-surface" icon-end="arrow_drop_down" aria-haspopup="menu"></sf-button>'
+            + '<sf-menu-context class="sf-view-footer-size-menu" popup></sf-menu-context>';
+        const parts = {
+            range: start.querySelector(".sf-view-footer-range"),
+            count: start.querySelector(".sf-view-footer-count"),
+            counting: start.querySelector(".sf-view-footer-counting"),
+            size: start.querySelector(".sf-view-footer-size"),
+            menu: start.querySelector(".sf-view-footer-size-menu"),
+        };
+        parts.count?.addEventListener("click", () => this.pagination?.requestCount?.("total"));
+        parts.size?.addEventListener("click", () => this._togglePageSizeMenu(parts.size));
+        parts.menu?.addEventListener("sf-menu-context-select", (event) => {
+            event.currentTarget?.close?.();
+            this._setPageSize(event.detail?.id ?? event.detail?.entry?.id);
+        });
         if (!start.isConnected) this.append(start);
         this._footerStart = start;
+        this._footerParts = parts;
         return start;
     }
 
@@ -672,8 +681,8 @@ class SfDataView extends DataViewElement {
         // the row is an sf-pagination (its module may still be on the way).
         if (!pagination || typeof pagination.setState !== "function" || typeof pagination.requestCount !== "function"
             || !this.renders("pagination")) return;
-        const start = this.footerStart;
-        const part = (name) => start.querySelector(`[data-sf-footer="${name}"]`);
+        if (!this.footerStart) return;
+        const part = (name) => this._footerParts?.[name] ?? null;
         const size = this.controlSize;
         const sized = (element) => {
             if (!element) return;
@@ -708,14 +717,14 @@ class SfDataView extends DataViewElement {
         write(button, "text", pagination.sfWord?.("page-size-text", {vars: {size: pageSize}}) ?? String(pageSize));
         write(button, "aria-label", `${pagination.pageSizeLabel ?? ""} ${pageSize}`.trim());
         if (button) button.hidden = pagination.showPageSize === false || !hasPages;
-        const menu = part("size-menu");
+        const menu = part("menu");
         sized(menu);
         write(menu, "aria-label", pagination.pageSizeLabel ?? "");
     }
 
     _togglePageSizeMenu(button) {
         const pagination = this.pagination;
-        const menu = this.footerStart.querySelector('[data-sf-footer="size-menu"]');
+        const menu = this.footerStart && this._footerParts?.menu;
         if (!pagination || !menu) return;
         const sizes = Array.isArray(pagination.pageSizes) ? pagination.pageSizes : [];
         menu.entries = sizes.map((size) => ({

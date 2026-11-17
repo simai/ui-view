@@ -26,9 +26,11 @@ test('sf-view: the footer is its own row, the page row in the field appearance (
   assert.match(appearance, /pagination\.setAttribute\("appearance", "field"\);/);
   // The range, the offer to count and the quiet page-size button with its menu.
   const start = source.slice(source.indexOf('    get footerStart() {'), source.indexOf('    // The page row\'s attributes are its state'));
-  assert.match(start, /data-sf-footer="range" role="status"/);
-  assert.match(start, /<sf-button class="sf-view-footer-size" data-sf-footer="size" appearance="ghost" scheme="on-surface" icon-end="arrow_drop_down" aria-haspopup="menu">/);
-  assert.match(start, /<sf-menu-context class="sf-view-footer-size-menu" data-sf-footer="size-menu" popup>/);
+  assert.match(start, /<span class="sf-view-footer-range" role="status">/);
+  assert.match(start, /<sf-button class="sf-view-footer-size" appearance="ghost" scheme="on-surface" icon-end="arrow_drop_down" aria-haspopup="menu">/);
+  assert.match(start, /<sf-menu-context class="sf-view-footer-size-menu" popup>/);
+  // Kept by reference: a Smart button moves its host's data-* onto its <button>.
+  assert.match(start, /this\._footerParts = parts;/);
   // The words are the page row's (one language file for the row).
   const draw = source.slice(source.indexOf('    _drawFooter() {'), source.indexOf('    _togglePageSizeMenu('));
   assert.match(draw, /pagination\.rangeText/);
