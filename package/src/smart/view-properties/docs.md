@@ -332,7 +332,7 @@ test compares with the manifest.
   элемент снова. `full` показывает запись на месте, без выезжающей панели.
 - `sf-view-properties-close` — отменяемый запрос: страница решает, закрывать ли.
 - `sf-view-properties-open` и `sf-view-properties-delete` заменили `-open-record` и `-delete-record`; старые имена приходят
-  следом до 2026-12-01.
+  следом до 2027-01-01.
 - Пока запись загружается, скелетон рисует и полосу вкладок разделов (`sections-as="tabs"`).
 
 ## Former tag

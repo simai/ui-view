@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-properties",
-  "version": "1.16.8",
+  "version": "1.16.10",
   "title": "Property view",
   "summary": "One object's fields shown as sections, groups and fields, each drawn by the per-type field renderer set, behind a separate host port. A group is edited and saved as one revision by the button, and a reference field is picked from the host's own candidates a page at a time. The pair to the data view: that one is a set of records, this one is a single object.",
   "kind": "composite",
@@ -1086,7 +1086,7 @@
       "canonical": true
     },
     "sf-view-properties-open": {
-      "summary": "A referenced record was asked open, vocabulary §5 open: {field, value, answer}. The old sf-property-view-open-record follows once until 2026-12-01 (aliases.json).",
+      "summary": "A referenced record was asked open, vocabulary §5 open: {field, value, answer}. The old sf-property-view-open-record follows once until 2027-01-01 (aliases.json).",
       "payload": {
         "type": "object",
         "required": [
@@ -1110,7 +1110,7 @@
       "canonical": true
     },
     "sf-view-properties-delete": {
-      "summary": "The record's delete was asked and answered, vocabulary §5 delete: {record_id, collection, revision, answer}. The old sf-property-view-delete-record follows once until 2026-12-01 (aliases.json).",
+      "summary": "The record's delete was asked and answered, vocabulary §5 delete: {record_id, collection, revision, answer}. The old sf-property-view-delete-record follows once until 2027-01-01 (aliases.json).",
       "payload": {
         "type": "object",
         "required": [
@@ -1694,6 +1694,20 @@
         "changes": [
           "The not-placed bin's count is a grey tonal sf-badge (C140 (3); accordion AC-3, tags TG-5), not an sf-tag in the retired appearance surface."
         ]
+      },
+      {
+        "from": "1.16.8",
+        "to": "1.16.9",
+        "changes": [
+          "Over SIMAI Framework ui-24d64b7f6eb7 (ui-source 40541c0c4fba): the money field's currency choice and the settings' variant choice ask sf-dropdown for appearance=\"bordered\", the field look's current name (sf-dropdown 1.18.1, FM-9); \"outlined\" is its dated former name until 2027-01-01. The same look; nothing to change for a host."
+        ]
+      },
+      {
+        "from": "1.16.9",
+        "to": "1.16.10",
+        "changes": [
+          "Former names (aliases.json, every alias that ended 2026-12-01) now end 2027-01-01 (draft set standard §13.4, view round 1 G1): no alias may end before the main consumer moves to the set, Larena on data-sf-sets=\"admin view\" on 2026-12-15, with at least two weeks' margin. The old names keep coming as before; nothing to change for a host."
+        ]
       }
     ]
   },
@@ -1707,7 +1721,7 @@
       },
       {
         "path": "src/smart/view-properties/js/templates/default.js",
-        "sha256": "ac6a468e6897df7ac4a75c862b50c6227598f2fadb03c8cd6ac1a65817532290"
+        "sha256": "3cc274b37380afc67dc46b0c1cee6e99a03211dcb66f0f5533dd1c925b13387d"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.css",
@@ -1743,7 +1757,7 @@
       },
       {
         "path": "src/smart/view-properties/js/set-fields.js",
-        "sha256": "5186f15be38ea810912463a6c1e4dc265708df87765c923bb57f58ba85b4f580"
+        "sha256": "b975f18dfc7a5dbf2c29d1f7cfa41b434998ff56681d8b584c000ea83995ca88"
       },
       {
         "path": "src/smart/view-properties/rule.js",
@@ -1755,7 +1769,7 @@
       },
       {
         "path": "src/smart/view-properties/docs.md",
-        "sha256": "e2a29465f32db3b5e62cd95f9bcfe65ebe6838aa73bcad1af2dccf3cc974fbe6"
+        "sha256": "d5a1782b5fe4f08d29b496d707e0857c59d16fd3f4031c1075974a20062f0932"
       }
     ],
     "generated_runtime": []

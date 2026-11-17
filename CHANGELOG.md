@@ -3,9 +3,36 @@
 The set `view`, by its npm version `@simai-studio/view`; component versions
 in brackets. The site page «Изменения» says the same in Russian.
 
-## Unreleased (fix/view-set-j1, for 1.8.2)
+## Version line
 
-- Over the SIMAI Framework pair `ui-078a4b4c6f6e` (npm 5.20261116.1505).
+Component version numbers are assigned only in this set (draft set standard
+§5.7). ui-pro's copies of the set's folders shipped numbers of their own,
+which are not versions of this set: `sf-view` 1.12.6, `sf-view-table`
+1.17.1, 1.19.7, 1.19.8 and 1.20.4, `sf-view-properties` 1.16.2, 1.16.4 and
+1.16.8. No set release shipped any of them (this set's own unreleased steps
+`sf-view-table` 1.17.1 and `sf-view-properties` 1.16.4 and 1.16.8 carry the
+same numbers with other content); every next set version is above them
+(`sf-view` 1.13.x, `sf-view-table` 1.21.x, `sf-view-properties` 1.16.10 and
+up). Each component.json says the same under `x-decisions`
+`pro-copy-versions`.
+
+## Unreleased (round/view-r1, for 1.9.0)
+
+- Over the SIMAI Framework pair `ui-24d64b7f6eb7` (npm 5.20261117.1311,
+  ui-source `40541c0c4fba`, core.runtime 1.59.0); the site on Docara 3.14.1.
+- `sf-view-table` 1.21.2 follows the Framework file it builds in
+  (`src/smart/pagination/index.js` moved in the pair); nothing of its own.
+- `sf-view` 1.13.2 and `sf-view-properties` 1.16.9 ask `sf-dropdown` for
+  `appearance="bordered"`, the field look's current name (FM-9; `outlined`
+  is its dated former name until 2027-01-01). The same look.
+- `sf-view` 1.13.3: the bulk band orders its actions and marks a deleting
+  one with SIMAI Framework `sf-pagination`'s own `isDestructiveAction` and
+  `orderActions`; the set's copy is gone (Framework first, A3).
+- `sf-view` 1.13.4, `sf-view-table` 1.21.3 and `sf-view-properties` 1.16.10:
+  every former name that ended on 2026-12-01 (23 in `aliases.json`: view-table
+  16, view 3, view-properties 4) now ends on 2027-01-01, after Larena moves to
+  `data-sf-sets="admin view"` on 2026-12-15 with two weeks' margin (§13.4,
+  G1). The old names keep coming; nothing to change for a host.
 - `sf-view-properties` 1.16.4 (VP-5, VP-8) and 1.16.5: the page buttons in
   the drawer head beside the close are size 1/3, 8 apart (C205 (2)); the
   filled head of a phone panel clears them (taken back from ui-pro f29d4bf).

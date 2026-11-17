@@ -23,7 +23,12 @@ test('VP-8: on a phone Save (Create) and Cancel share the foot row in halves, 8 
   assert.doesNotMatch(desktop, /flex: 1 1 calc\(\(100% - var\(--sf-space-1\\\/3\)\) \/ 2\)/u);
 });
 
-test('1.16.4 and its migration step (the set moved on to 1.16.5)', () => {
-  assert.ok(['1.16.4', '1.16.5', '1.16.6', '1.16.7', '1.16.8'].includes(manifest.version), manifest.version);
+const atLeast = (version, floor) => {
+  const [a, b] = [version, floor].map((value) => value.split('.').map(Number));
+  return (a.map((part, index) => part - b[index]).find((delta) => delta !== 0) ?? 0) >= 0;
+};
+
+test('1.16.4 and its migration step (the set moved on since)', () => {
+  assert.ok(atLeast(manifest.version, '1.16.4'), manifest.version);
   assert.match(JSON.stringify(manifest), /"from":"1\.16\.3","to":"1\.16\.4"/u);
 });

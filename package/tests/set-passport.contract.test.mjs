@@ -65,6 +65,14 @@ test('the passport takes the form the pinned SIMAI Framework gives', {skip: !set
   const lock = json(join(setRoot, 'framework.lock.json'));
   assert.equal(lock.package, passport.id);
   assert.equal(lock.source.revision, passport.framework.source_revision, 'the passport and the lock name one SIMAI Framework revision');
+  // The pinned pair carries the core.runtime the passport asks for (§9.1): the
+  // floor is not above the overlay's core.runtime passport.
+  const floor = /^>=\s*(\d+)\.(\d+)\.(\d+)$/u.exec(passport.framework.core_runtime);
+  assert.ok(floor, `core_runtime is a floor (>=x.y.z): ${passport.framework.core_runtime}`);
+  const pinned = fromOverlay('src/core/passports/core.runtime.json').version.split('.').map(Number);
+  const wanted = floor.slice(1).map(Number);
+  const order = wanted.map((part, index) => part - pinned[index]).find((delta) => delta !== 0) ?? 0;
+  assert.ok(order <= 0, `core_runtime ${passport.framework.core_runtime} is above the pinned core.runtime ${pinned.join('.')}`);
   assert.equal(passport.release, undefined, 'the release block is written by the release route, not in the source');
 });
 
@@ -93,6 +101,43 @@ test('the passport lists every component of the set and only them', {skip: !setR
     const dated = (existsSync(aliasFile) ? json(aliasFile).aliases : []).filter((alias) => alias.kind === 'tag');
     assert.deepEqual((component.element_aliases ?? []).map(({from, since, remove_after: removeAfter}) => ({from, since, removeAfter})),
       dated.map(({from, since, remove_after: removeAfter}) => ({from, since, removeAfter})));
+  }
+});
+
+// Draft set standard §3.2 (VW-4, view round 1 F4): a component's status in
+// set.json is its status in the shared registry. One known difference waits
+// on the Framework: sf-view-flow is preview here (dispatcher decision
+// 2026-11-17, point 10) and released in the registry; the registry is
+// corrected with the next Framework group build. The entry fails once the
+// registry agrees, so it is removed then.
+const STATUS_PENDING = {
+  'sf-view-flow': {set: 'preview', registry: 'released', order: 'registry status correction, ordered from SIMAI Framework through the dispatcher (view round 1, 2026-11-17)'},
+};
+
+test('each component has the status the registry gives it', {skip: !setRoot && 'SET_ROOT is not given'}, () => {
+  const passport = json(join(setRoot, 'set.json'));
+  const owner = fromOverlay('contracts/registry/names.json').owners.find(({kind, id}) => kind === 'set' && id === passport.id);
+  assert.ok(owner, `the registry has the set ${passport.id}`);
+  const registered = Object.fromEntries(owner.names.map(({element, status}) => [element, status]));
+  for (const component of passport.components) {
+    const pending = STATUS_PENDING[component.element];
+    if (pending) {
+      assert.equal(component.status, pending.set, `${component.element}: the passport's status is the pending one`);
+      assert.equal(registered[component.element], pending.registry,
+        `${component.element}: the registry now says ${registered[component.element]}; drop the pending entry (${pending.order})`);
+      continue;
+    }
+    assert.equal(component.status, registered[component.element], `${component.element}: set.json ${component.status}, registry ${registered[component.element]}`);
+  }
+});
+
+test('package.json and README name every component of the passport', {skip: !setRoot && 'SET_ROOT is not given'}, () => {
+  const passport = json(join(setRoot, 'set.json'));
+  const description = json(join(setRoot, 'package.json')).description;
+  const readme = readFileSync(join(setRoot, 'README.md'), 'utf8');
+  for (const {element} of passport.components) {
+    assert.match(description, new RegExp(`(?<![\\w-])${element}(?![\\w-])`, 'u'), `package.json description names ${element}`);
+    assert.match(readme, new RegExp(`\`${element}\``, 'u'), `README names ${element}`);
   }
 });
 

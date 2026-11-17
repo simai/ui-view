@@ -8,9 +8,12 @@ import {URL} from 'node:url';
 // key columns (columns[].key_cell) alone, without sideways scroll; the key
 // cell may carry a second line (columns[].key_line); every action of a row
 // is in one row menu, sf-menu-context bound with `for` to the table's and the
-// list's rows. SIMAI Framework utility.table 1.7.0 carries the same rule on
-// ui-source feat/table-actions-phone-c259, not in pair ui-078a4b4c6f6e, so
-// the set draws it itself. The browser measures are in the evidence probe.
+// list's rows. SIMAI Framework utility.table 1.7.0 carries the same rule for
+// the plain table since pair ui-24d64b7f6eb7 (ui-source's own
+// tests/table-actions-phone-c259.contract.test.mjs, hence this file's view-
+// prefix); the set's drawing stays until the framework-first record decides
+// it (draft set standard §7.1-7.4). The browser measures are in the evidence
+// probe.
 const root = new URL('../', import.meta.url);
 const read = (path) => readFile(new URL(path, root), 'utf8');
 const between = (source, from, to) => {

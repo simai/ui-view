@@ -17,9 +17,9 @@ declare(strict_types=1);
  * the project lock is read from the working tree.
  *
  * The free release is the one the set is built over (package/framework.lock.json
- * and package/set.json name its ui-source revision). Docara 3.11.1 bundles an
- * older pair, ui-7153f7a9c092, which the set cannot run on (core.runtime 1.8.6;
- * the set needs 1.25.0).
+ * and package/set.json name its ui-source revision). Docara 3.14.1 bundles an
+ * older pair, ui-b4a77681f0a7, not the one the set is built over; this script
+ * replaces it with the pinned release.
  *
  *   php scripts/materialize-framework-runtime.php /absolute/ui \
  *       --receipt=/absolute/build/package-receipt.json \
@@ -30,11 +30,11 @@ declare(strict_types=1);
  * files' hashes in simai-framework.lock.json, never the files.
  */
 
-const UI_METADATA_REVISION = 'fe1461ca2fe5179c28ea11d18eacfb99b6c0cc67';
-const UI_RUNTIME_REVISION = '1e5ec795a1ce640b58a2a3903d11b5e726f4fb82';
-const SOURCE_REVISION = '54c89e61ef9b89ed683fe530d43bdbf215fbafdd';
-const BUILDER_REVISION = '9c9c1b1510393b24adb98ea2ca523b26474cf0cf';
-const RELEASE_LOCK = 'contracts/releases/ui-1e5ec795a1ce.lock.json';
+const UI_METADATA_REVISION = '74c5279c9ae54d07068ab8abac59ee87c416080d';
+const UI_RUNTIME_REVISION = '24d64b7f6eb7a782d648dbb5b44f7eb763ec815b';
+const SOURCE_REVISION = '40541c0c4fba6c24659907eb987c74f17a4fc46a';
+const BUILDER_REVISION = '16e9a81c1f2838f7cfeebbbd19654016743c9672';
+const RELEASE_LOCK = 'contracts/releases/ui-24d64b7f6eb7.lock.json';
 // The release on npm, the form the guide's CDN snippets use
 // (https://cdn.jsdelivr.net/npm/<package>@<version>/distr/...). The version is
 // derived from the release commit, never chosen: 5.<yyyymmdd>.<hhmm> of its
@@ -42,7 +42,7 @@ const RELEASE_LOCK = 'contracts/releases/ui-1e5ec795a1ce.lock.json';
 // the commit. scripts/sync-framework-documentation-versions.php checks the
 // version against UI_RUNTIME_REVISION and moves the snippets with it.
 const NPM_PACKAGE = '@simai-studio/ui';
-const NPM_VERSION = '5.20261106.1146';
+const NPM_VERSION = '5.20261117.1311';
 // The set this repository holds: its receipt must name this repository's
 // package folder (checked against the checkout below).
 const PACKAGES = [

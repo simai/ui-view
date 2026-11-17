@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-table",
-  "version": "1.21.1",
+  "version": "1.21.3",
   "title": "Table",
   "summary": "Complete server-backed collection view with search, filters, table preferences, row and bulk actions, and pagination.",
   "kind": "composite",
@@ -1342,7 +1342,7 @@
   },
   "events": {
     "sf-view-table-select": {
-      "summary": "The marked rows changed, vocabulary §5 select {ids}: once per change of the explicit selection, clearing included. The old name sf-port-output follows once with its old detail until 2026-12-01 (aliases.json).",
+      "summary": "The marked rows changed, vocabulary §5 select {ids}: once per change of the explicit selection, clearing included. The old name sf-port-output follows once with its old detail until 2027-01-01 (aliases.json).",
       "payload": {
         "type": "object",
         "required": [
@@ -1358,7 +1358,7 @@
       "canonical": true
     },
     "sf-view-table-apply": {
-      "summary": "A row's or the selection's action, vocabulary §5 apply: {action, scope: entry | selection, ids, revisions}. The host decides; emission is not success. The old name sf-table-action-intent follows once with its old detail until 2026-12-01 (aliases.json).",
+      "summary": "A row's or the selection's action, vocabulary §5 apply: {action, scope: entry | selection, ids, revisions}. The host decides; emission is not success. The old name sf-table-action-intent follows once with its old detail until 2027-01-01 (aliases.json).",
       "payload": {
         "type": "object",
         "required": [
@@ -1389,7 +1389,7 @@
       "canonical": true
     },
     "sf-view-table-save": {
-      "summary": "The person's column settings, vocabulary §5 save {kind: columns, reason, columnSettings, tableSettingsKey}. The old name sf-table-column-settings-change follows once with its old detail until 2026-12-01 (aliases.json).",
+      "summary": "The person's column settings, vocabulary §5 save {kind: columns, reason, columnSettings, tableSettingsKey}. The old name sf-table-column-settings-change follows once with its old detail until 2027-01-01 (aliases.json).",
       "payload": {
         "type": "object",
         "required": [
@@ -1444,7 +1444,7 @@
       "canonical": true
     },
     "sf-view-table-create": {
-      "summary": "The create button or one of its kinds, vocabulary §5 create {item}. The old name sf-table-create-intent follows once with its old detail until 2026-12-01 (aliases.json).",
+      "summary": "The create button or one of its kinds, vocabulary §5 create {item}. The old name sf-table-create-intent follows once with its old detail until 2027-01-01 (aliases.json).",
       "payload": {
         "type": "object",
         "required": [],
@@ -1493,7 +1493,7 @@
       "canonical": true
     },
     "sf-view-table-query": {
-      "summary": "A context query of the composition input port, vocabulary §5.1 query {reason, context, sequence}. The old name sf-table-query-intent follows once with its old detail until 2026-12-01 (aliases.json).",
+      "summary": "A context query of the composition input port, vocabulary §5.1 query {reason, context, sequence}. The old name sf-table-query-intent follows once with its old detail until 2027-01-01 (aliases.json).",
       "payload": {
         "type": "object",
         "required": [
@@ -1517,7 +1517,7 @@
       "canonical": true
     },
     "sf-view-table-refresh": {
-      "summary": "The retry button of a failed list, vocabulary §5 refresh. The old name sf-table-retry follows once with its old detail until 2026-12-01 (aliases.json).",
+      "summary": "The retry button of a failed list, vocabulary §5 refresh. The old name sf-table-retry follows once with its old detail until 2027-01-01 (aliases.json).",
       "payload": {
         "type": "object",
         "required": [],
@@ -1705,7 +1705,7 @@
       "canonical": true
     },
     "sf-view-table-expand": {
-      "summary": "A tree row opened or closed, vocabulary §5 expand {id, expanded}. The old name sf-table-tree-toggle follows once with its old detail until 2026-12-01 (aliases.json).",
+      "summary": "A tree row opened or closed, vocabulary §5 expand {id, expanded}. The old name sf-table-tree-toggle follows once with its old detail until 2027-01-01 (aliases.json).",
       "payload": {
         "type": "object",
         "required": [
@@ -1722,7 +1722,7 @@
       "canonical": true
     },
     "sf-view-table-load-more": {
-      "summary": "The next page of a tree level, vocabulary §5 load-more {direction: after, parent, cursor}. The old name sf-table-tree-more follows once with its old detail until 2026-12-01 (aliases.json).",
+      "summary": "The next page of a tree level, vocabulary §5 load-more {direction: after, parent, cursor}. The old name sf-table-tree-more follows once with its old detail until 2027-01-01 (aliases.json).",
       "payload": {
         "type": "object",
         "required": [
@@ -1776,7 +1776,7 @@
       "canonical": true
     },
     "sf-view-table-move": {
-      "summary": "Rows put in another order, vocabulary §5 move {ids, before, order}. The old name sf-table-rows-reorder follows once with its old detail until 2026-12-01 (aliases.json).",
+      "summary": "Rows put in another order, vocabulary §5 move {ids, before, order}. The old name sf-table-rows-reorder follows once with its old detail until 2027-01-01 (aliases.json).",
       "payload": {
         "type": "object",
         "required": [
@@ -2075,35 +2075,35 @@
       "alias_of": "sf-view-table-move"
     },
     "sf-table:column-settings-change": {
-      "summary": "Dated alias of sf-table-save until 2026-12-01 (detail-adds).",
+      "summary": "Dated alias of sf-table-save until 2027-01-01 (detail-adds).",
       "payload": {
         "type": "object"
       },
       "alias_of": "sf-view-table-save"
     },
     "onColumnSettingsChange": {
-      "summary": "Dated alias of sf-table-save until 2026-12-01 (detail-adds).",
+      "summary": "Dated alias of sf-table-save until 2027-01-01 (detail-adds).",
       "payload": {
         "type": "object"
       },
       "alias_of": "sf-view-table-save"
     },
     "onSearchEnd": {
-      "summary": "Dated alias of sf-table-search-change until 2026-12-01 (split).",
+      "summary": "Dated alias of sf-table-search-change until 2027-01-01 (split).",
       "payload": {
         "type": "object"
       },
       "alias_of": "sf-view-table-search-change"
     },
     "onTemplateSave": {
-      "summary": "Dated alias of sf-view-table-template-save until 2026-12-01 (split).",
+      "summary": "Dated alias of sf-view-table-template-save until 2027-01-01 (split).",
       "payload": {
         "type": "object"
       },
       "alias_of": "sf-view-table-template-save"
     },
     "onFilterUpdate": {
-      "summary": "Dated alias of sf-table-filter-change until 2026-12-01 (same-detail).",
+      "summary": "Dated alias of sf-table-filter-change until 2027-01-01 (same-detail).",
       "payload": {
         "type": "object"
       },
@@ -2843,6 +2843,20 @@
         "changes": [
           "SIMAI Pro follow-ups: filter chips stand --sf-space-1/4 apart (C105 H5; were 8) and are written with their current names (kind=default, active, sf-tag-close; were type, root-class=active and the dated close); the search fields carry the glass at the start, the field's own clear and a name (icon-start, clearable, aria-label; C123, C153 (6), TI-10); a group action's button and a host action with menu row-settings open the one standard row menu (C164 (2), CM-8) -- the hand-drawn second row menu is gone."
         ]
+      },
+      {
+        "from": "1.21.1",
+        "to": "1.21.2",
+        "changes": [
+          "Over SIMAI Framework ui-24d64b7f6eb7 (ui-source 40541c0c4fba, core.runtime 1.59.0) the Framework file it builds in, src/smart/pagination/index.js, moved; the provenance and the version follow. Nothing of its own; nothing to change for a host."
+        ]
+      },
+      {
+        "from": "1.21.2",
+        "to": "1.21.3",
+        "changes": [
+          "Former names (aliases.json, every alias that ended 2026-12-01) now end 2027-01-01 (draft set standard §13.4, view round 1 G1): no alias may end before the main consumer moves to the set, Larena on data-sf-sets=\"admin view\" on 2026-12-15, with at least two weeks' margin. The old names keep coming as before; nothing to change for a host."
+        ]
       }
     ]
   },
@@ -2872,11 +2886,11 @@
       },
       {
         "path": "src/smart/view-table/docs/smart-table-guide.md",
-        "sha256": "e3eda465c5c95449c65aaa35d90a5b2dbd3edd6a6a13a39b71afae0a91c88abf"
+        "sha256": "db8d4f1be4d948e3edcdb9d8e1af9f226c9179948d35d11db45dfae0def27a24"
       },
       {
         "path": "src/smart/pagination/index.js",
-        "sha256": "db0416ab0766b055e2a9cae922c824e5efcd0150c0497544c3dd356ece73c0e1"
+        "sha256": "424b8ae852757155c6d997f83c65b647056c1c418d80685e5e618ab35f2877de"
       }
     ],
     "generated_runtime": []

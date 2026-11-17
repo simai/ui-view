@@ -1,6 +1,6 @@
 # The site of the set view
 
-Documentation and demonstrations of SIMAI View, built with Docara 3.11.1
+Documentation and demonstrations of SIMAI View, built with Docara 3.14.1
 (`composer.json` pins it). Its live examples run the set's own build over the
 SIMAI Framework pair the set is built on. The layout follows the set site
 scheme the owner agreed on 2026-11-05 (ui-control
