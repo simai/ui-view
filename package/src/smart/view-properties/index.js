@@ -1484,10 +1484,27 @@ class SfPropertyView extends PropertyViewElement {
             if (this._focusFieldAfterRender && this.editing) {
                 const key = this._focusFieldAfterRender;
                 this._focusFieldAfterRender = null;
-                const form = this.formEdit ? this._formOf(this.editing.group) : null;
-                const give = () => (form?.focusField ? form.focusField(key) : this.focusField(key));
-                if (form?.whenDrawn) customElements.whenDefined("sf-form").then(() => form.whenDrawn(give));
-                else requestAnimationFrame(give);
+                // sf-form may draw before or after this hook: wait (a few frames
+                // at most) until its control of the field is there.
+                const formed = Boolean(this.formEdit);
+                let frames = 0;
+                const give = () => {
+                    const form = formed ? this._formOf(this.editing?.group) : null;
+                    const ready = !formed || (form?.focusField && form.controlOf?.(key));
+                    if (!ready && frames++ < 30) return requestAnimationFrame(give);
+                    if (form?.focusField) form.focusField(key);
+                    else this.focusField(key);
+                };
+                requestAnimationFrame(give);
+            }
+            if (this._focusAfterStep && this.record && this.getAttribute("data-state") !== "loading") {
+                this._focusAfterStep = false;
+                requestAnimationFrame(() => {
+                    const root = this.panel ? this.panelContent?.() : this;
+                    const active = document.activeElement;
+                    if (root && active && root.contains(active) && active !== document.body) return;
+                    root?.querySelector?.(".sf-property-view-title")?.focus?.({preventScroll: true});
+                });
             }
             // The full screen's history column reads its first page itself.
             if (this.historySide && (!this.historyFeed || this.historyFeed.record !== this.recordId) && this.record && !this._sideAsked) {
@@ -1589,6 +1606,9 @@ class SfPropertyView extends PropertyViewElement {
             const root = this.panel ? this.panelContent() : this;
             if (!root || !event.composedPath?.().includes(root) || (this.panel && !this.isTopPanel)) return;
             event.preventDefault();
+            // The next record redraws the panel: the focus comes back to its
+            // title so the keys go on stepping.
+            this._focusAfterStep = true;
             this.step(event.key === "ArrowDown" ? "next" : "previous");
         };
         document.addEventListener("keydown", this._onStepKey);

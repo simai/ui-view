@@ -1347,7 +1347,7 @@ function renderPanelHead(context) {
                         title=${context.backLabel}
                         @click=${() => context.component.closePhoneSection()}
                 ></sf-button-icon>` : nothing}
-                <h2 class="sf-property-view-title min-w-0 overflow-hidden">${history ? context.word('historyText') : level ? context.phoneSectionLabel : record}</h2>
+                <h2 class="sf-property-view-title min-w-0 overflow-hidden" tabindex="-1">${history ? context.word('historyText') : level ? context.phoneSectionLabel : record}</h2>
                 ${context.recordId && context.mode !== 'create' && !history ? html`<sf-button-icon
                         appearance="ghost"
                         scheme="on-surface"

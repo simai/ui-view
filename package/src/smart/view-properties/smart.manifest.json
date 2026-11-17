@@ -1884,11 +1884,11 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-properties/index.js",
-        "sha256": "daa3f8d6ab28e59d69405c0788869ed07d38b17107b16820ece01778592c8922"
+        "sha256": "fcc1594f0fc7aaf9a037f0e2550abe6b2acc985addf8039dc6209b038a3f1986"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.js",
-        "sha256": "ed90bb9ae6cd125f3a36d5c0ef134e9f1580d6010e7769f3729708b34619607f"
+        "sha256": "7551a15b2b40466c9de6851b1f07be6b9adecbb6416843123c7c97643bdbcc45"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.css",
@@ -1904,7 +1904,11 @@
       },
       {
         "path": "src/smart/view-properties/js/history.js",
-        "sha256": "b96073a785ddaf8b17f9222087ef31cb1d9aee6d187bcf0b3ae1a113b0d737ff"
+        "sha256": "799e601403e311e0aca6adf504e6b14e370e3453a6173b9630afc3472afd30fa"
+      },
+      {
+        "path": "src/smart/view-properties/js/history-port.js",
+        "sha256": "a6c6021431295a4a1313eb1b7aa5de0a94c51e321134c120d84c5131f63091b5"
       },
       {
         "path": "src/smart/view-properties/js/requisites.js",
