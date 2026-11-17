@@ -7097,8 +7097,8 @@ class SfTable extends TableElement {
             ?? event?.target?.closest?.("button")
             ?? event?.currentTarget;
         if (!(anchor instanceof Element)) return null;
-        this._rowMenuGroup = Array.isArray(items) && items.length ? {row, items}
-            : Array.isArray(group?.members) ? {row, group} : null;
+        this._rowMenuGroup = Array.isArray(items) && items.length ? {row, items, anchor}
+            : Array.isArray(group?.members) ? {row, group, anchor} : null;
         // The standard menu is a lazy relation of the table: fetched after the
         // page is ready, and asked for here if a press comes first.
         await globalThis.SF?.Loader?.ensure?.(["sf-menu-context"]);
@@ -7273,6 +7273,13 @@ class SfTable extends TableElement {
         // offers. A press outside a record's row (the head, a «load more»
         // row) and a row without actions open nothing.
         menu.addEventListener("sf-menu-context-open", (event) => {
+            // An opening asked for one row's group or listed entries (CM-8):
+            // the row is the one named, wherever the opener stands.
+            const asked = this._rowMenuGroup;
+            if (asked) {
+                if (!this.fillRowMenu(menu, asked.row, null, asked.anchor)) event.preventDefault();
+                return;
+            }
             const target = event.detail?.target;
             const element = target instanceof Element ? target.closest("[data-row-id]") : null;
             const row = element && this.contains(element) ? this.rowOfElement(element) : null;
