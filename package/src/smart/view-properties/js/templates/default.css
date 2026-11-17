@@ -1169,14 +1169,20 @@
      stay, so the body holding the card is held to the panel's height. Grown,
      the drawer's panel scrolled the whole card -- head and foot with it -- and
      an edited group drew a stray bar under the foot (DEV msg-084fb861). */
-  .sf-drawer-body:has(> .sf-property-view-panel) {
+  .sf-drawer-panel > .sf-drawer-body:has(> .sf-property-view-panel) {
     flex: 1 1 0%;
     min-block-size: 0;
+    /* The card's bands reach the panel's top and foot themselves; the body's
+       block padding is not taken back by a margin of the card's own guess:
+       below a drawer head (a panel drawn inside another) the body pads 12, not
+       the gutter's 16, and the back line stood 4 px above the panel. */
+    padding-block: 0;
   }
 
   .sf-drawer-body > .sf-property-view-panel {
     min-block-size: 0;
-    max-block-size: calc(100% + 2 * var(--sf-property-view--panel-bleed));
+    max-block-size: 100%;
+    margin-block: 0;
   }
 
   .sf-property-view-scroll {
