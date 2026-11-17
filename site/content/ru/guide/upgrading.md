@@ -22,7 +22,9 @@ profile: how_to
    Для рабочего сайта лучше закрепить версию:
 
    <!-- release:cdn-pinned -->
-   x
+   ```html
+   <script src="https://cdn.jsdelivr.net/npm/@simai-studio/ui@5.20261117.1311/distr/core/js/core.min.js" data-sf-sets="view@1.9.0"></script>
+   ```
    <!-- /release:cdn-pinned -->
 
 2. Поменяйте номер набора — и, если новая версия требует, номер SIMAI

@@ -3,7 +3,7 @@ description: SIMAI View — таблицы, списки и карточки з�
 profile: landing
 ---
 
-:::hero {layout=centered padding=xl media=none}
+:::hero {layout=centered padding=2xl effect=heat-mosaic}
 # SIMAI View
 
 Таблицы, списки и карточки записей для SIMAI Framework: приложение отдаёт данные, а компоненты сами ищут, сортируют, листают и показывают запись.
@@ -31,7 +31,9 @@ profile: landing
 загрузит нужные компоненты:
 
 <!-- release:cdn -->
-x
+```html
+<script src="https://cdn.jsdelivr.net/npm/@simai-studio/ui@5.20261117.1311/distr/core/js/core.min.js" data-sf-sets="view"></script>
+```
 <!-- /release:cdn -->
 
 Другие способы, версии и лицензия — в разделе [Подключение](/ru/guide/connection/).
@@ -49,6 +51,21 @@ x
 
 :::::surface {width=full tone=muted padding=lg}
 <!-- release:footer -->
-x
+::::grid {columns=3 gap=4}
+:::card {variant=plain}
+### Версия
+SIMAI View 1.9.0, кандидат выпуска; последняя выпущенная — 1.8.1 от 15 ноября 2026 года. [История изменений](/ru/guide/changes/)
+:::
+:::card {variant=plain}
+### Совместимость
+Собран и проверен над выпуском SIMAI Framework `ui-24d64b7f6eb7`; работает с Core `core.runtime` 1.51.0 или новее. [Подключение](/ru/guide/connection/)
+:::
+:::card {variant=plain}
+### Лицензия
+Бесплатно для малого бизнеса и некоммерческого использования, остальным — коммерческая лицензия SIMAI. [Условия лицензии](/ru/guide/connection/#лицензия)
+:::
+::::
+
+[Руководство](/ru/guide/) · [Компоненты](/ru/components/) · [Рецепты](/ru/recipes/) · [Свойства](/ru/properties/) · [npm](https://www.npmjs.com/package/@simai-studio/view) · [SIMAI Framework](https://ui.simai.io/)
 <!-- /release:footer -->
 :::::

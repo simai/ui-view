@@ -160,6 +160,9 @@ const spoken = (date) => {
 };
 const version = pkg.version;
 const release = releases.find((one) => one.version === version);
+if (release && release.requires.framework !== pair) {
+  throw new Error(`view ${version} (${release.id}) is built over ${release.requires.framework}, the site over ${pair}: rebuild the site over the release's pair`);
+}
 const cdn = `https://cdn.jsdelivr.net/npm/@simai-studio/ui@${npm}/distr/core`;
 const BLOCKS = {
   'cdn': ['```html', `<script src="${cdn}/js/core.min.js" data-sf-sets="view"></script>`, '```'].join('\n'),
