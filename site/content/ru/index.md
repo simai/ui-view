@@ -30,9 +30,9 @@ profile: landing
 Набор подключается одной строкой рядом с SIMAI Framework — Loader сам
 загрузит нужные компоненты:
 
-```html
-<script src="https://cdn.jsdelivr.net/npm/@simai-studio/ui@5.20261105.1447/distr/core/js/core.min.js" data-sf-sets="view"></script>
-```
+<!-- release:cdn -->
+x
+<!-- /release:cdn -->
 
 Другие способы, версии и лицензия — в разделе [Подключение](/ru/guide/connection/).
 
@@ -48,22 +48,7 @@ profile: landing
 :::
 
 :::::surface {width=full tone=muted padding=lg}
-::::grid {columns=4 gap=2}
-:::card {variant=plain}
-### Версия
-SIMAI View 1.1.0 от 5 ноября 2026 года. [История изменений](/ru/guide/changes/)
-:::
-:::card {variant=plain}
-### Совместимость
-Собран и проверен над выпуском SIMAI Framework `ui-62b1d9b6dc8d`; работает с Core `core.runtime` 1.25.0 или новее. [Подключение](/ru/guide/connection/)
-:::
-:::card {variant=plain}
-### Лицензия
-Бесплатно для малого бизнеса и некоммерческого использования, остальным — коммерческая лицензия SIMAI. [Условия лицензии](/ru/guide/connection/#лицензия)
-:::
-:::card {variant=plain}
-### Ссылки
-[Руководство](/ru/guide/) · [Компоненты](/ru/components/) · [npm](https://www.npmjs.com/package/@simai-studio/view) · [SIMAI Framework](https://ui.simai.io/)
-:::
-::::
+<!-- release:footer -->
+x
+<!-- /release:footer -->
 :::::
