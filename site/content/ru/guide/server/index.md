@@ -43,4 +43,4 @@ sequenceDiagram
 ## См. также
 
 - [Запросы и ответы](../concepts/intents/)
-- [Загрузка данных с сервера](../recipes/load-from-server/)
+- [Загрузка данных с сервера](/ru/recipes/load-from-server/)

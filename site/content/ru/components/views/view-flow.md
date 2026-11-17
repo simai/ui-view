@@ -102,6 +102,6 @@ CSS-переменные: `--sf-view-flow-radius`, `-inset`, `-gap`,
 
 ## См. также
 
-- [Данные в потоке (чат)](/ru/guide/recipes/data-in-flow/)
+- [Данные в потоке (чат)](/ru/recipes/data-in-flow/)
 - [Карточка записи sf-view-properties](../view-properties/)
-- [Поля](/ru/fields/)
+- [Свойства](/ru/properties/)

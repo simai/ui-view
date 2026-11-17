@@ -182,5 +182,5 @@ profile: reference
 
 - [Умная таблица sf-view-table](../view-table/)
 - [Карточка записи sf-view-properties](../view-properties/)
-- [Загрузка данных с сервера](/ru/guide/recipes/load-from-server/)
+- [Загрузка данных с сервера](/ru/recipes/load-from-server/)
 - [Запросы и ответы](/ru/guide/concepts/intents/)

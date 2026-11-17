@@ -47,4 +47,4 @@ profile: reference
 ## См. также
 
 - [Основные понятия](../concepts/)
-- [Рецепты](../recipes/)
+- [Рецепты](/ru/recipes/)

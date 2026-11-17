@@ -115,5 +115,5 @@ profile: tutorial
 ## См. также
 
 - [Подключение](../connection/) — версии, npm и своя копия набора.
-- [Загрузка данных с сервера](../recipes/load-from-server/)
+- [Загрузка данных с сервера](/ru/recipes/load-from-server/)
 - [Умная таблица sf-view-table](/ru/components/views/view-table/)

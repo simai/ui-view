@@ -226,4 +226,4 @@ profile: reference
 ## См. также
 
 - [Представление данных sf-view](../view/)
-- [Правка записей](/ru/guide/recipes/editing/)
+- [Правка записей](/ru/recipes/editing/)

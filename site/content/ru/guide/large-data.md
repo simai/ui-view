@@ -49,5 +49,5 @@ profile: explanation
 
 ## См. также
 
-- [Страницы](../recipes/paging/)
-- [Загрузка данных с сервера](../recipes/load-from-server/)
+- [Страницы](/ru/recipes/paging/)
+- [Загрузка данных с сервера](/ru/recipes/load-from-server/)

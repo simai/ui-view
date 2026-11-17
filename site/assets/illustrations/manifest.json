@@ -1,0 +1,61 @@
+{
+  "schema": "ui-view.site-illustrations",
+  "schema_version": 1,
+  "$comment": "Pictures of the site examples: copies of the D22 set (simai/ui-doc assets/illustrations/, flat SVG from the pair palette). The site lint holds every copy to the hash below and every image source of the examples to this folder.",
+  "source": {
+    "repository": "simai/ui-doc",
+    "path": "assets/illustrations",
+    "revision": "7c988cc171c0f4ef7573c18a0b3c9e10e447e0a6",
+    "rule": "D22"
+  },
+  "pictures": [
+    {
+      "file": "cover-01-16x9.svg",
+      "alt": "",
+      "shape": "16:9",
+      "sha256": "cf3f9c7219182fff9283806649f13109646a3edf4add1e1fd8d2310bf136e9e6"
+    },
+    {
+      "file": "place-01-3x2.svg",
+      "alt": "Холмы и солнце над долиной",
+      "shape": "3:2",
+      "sha256": "65725fd73688c5e86c1b65bd542439cddfd6da213285976d33ce7f8831f81820"
+    },
+    {
+      "file": "place-02-3x2.svg",
+      "alt": "Город у подножия холмов",
+      "shape": "3:2",
+      "sha256": "86cac1a89d763218b370da8a3b5a1a49d63423b73aac85bc3bead837a3ae1b0c"
+    },
+    {
+      "file": "place-03-3x2.svg",
+      "alt": "Озеро между холмами",
+      "shape": "3:2",
+      "sha256": "e640feaac6d8c1e4c880758bad38f9b265f8c120bae32020ed5e6e2fd64296e8"
+    },
+    {
+      "file": "place-04-3x2.svg",
+      "alt": "Лес на склоне холма",
+      "shape": "3:2",
+      "sha256": "1c6d28901a32ae2bd95f61eecd0b9c1e5542f24be7a8b3008b067092bad9ff6b"
+    },
+    {
+      "file": "place-05-3x2.svg",
+      "alt": "Долина под утренним солнцем",
+      "shape": "3:2",
+      "sha256": "baa2152e84c8cce6e611e7f6e8a754e9452b433b4b16059556e229cb42fca218"
+    },
+    {
+      "file": "product-01-4x3.svg",
+      "alt": "Ваза на столе",
+      "shape": "4:3",
+      "sha256": "6e7da33e2fd5783fe91f2c49ed17e73762d75d9a8e569acb757d818460d14381"
+    },
+    {
+      "file": "product-02-4x3.svg",
+      "alt": "Чашка на столе",
+      "shape": "4:3",
+      "sha256": "7a14ad8be08ef5b456917f4a8ec41c30b325193dee32df02a1437c74d538804b"
+    }
+  ]
+}

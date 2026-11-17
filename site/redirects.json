@@ -9,6 +9,23 @@
     {"from": "components/view-properties", "to": "ru/components/views/view-properties"},
     {"from": "ru/components/views/view-property-block", "to": "ru/components/views/view-flow"},
     {"from": "demos/orders", "to": "ru"},
-    {"from": "demos/staff", "to": "ru"}
+    {"from": "demos/staff", "to": "ru"},
+    {"from": "ru/guide/recipes", "to": "ru/recipes"},
+    {"from": "ru/guide/recipes/data-in-flow", "to": "ru/recipes/data-in-flow"},
+    {"from": "ru/guide/recipes/editing", "to": "ru/recipes/editing"},
+    {"from": "ru/guide/recipes/load-from-server", "to": "ru/recipes/load-from-server"},
+    {"from": "ru/guide/recipes/paging", "to": "ru/recipes/paging"},
+    {"from": "ru/guide/recipes/search-filter-sort", "to": "ru/recipes/search-filter-sort"},
+    {"from": "ru/guide/recipes/selection-and-bulk-actions", "to": "ru/recipes/selection-and-bulk-actions"},
+    {"from": "ru/guide/recipes/states", "to": "ru/recipes/states"},
+    {"from": "ru/fields", "to": "ru/properties"},
+    {"from": "ru/fields/text", "to": "ru/properties/string"},
+    {"from": "ru/fields/numbers", "to": "ru/properties/integer"},
+    {"from": "ru/fields/dates", "to": "ru/properties/date"},
+    {"from": "ru/fields/flags", "to": "ru/properties/boolean"},
+    {"from": "ru/fields/choice", "to": "ru/properties/choice"},
+    {"from": "ru/fields/links", "to": "ru/properties/user"},
+    {"from": "ru/fields/files", "to": "ru/properties/file"},
+    {"from": "ru/fields/color", "to": "ru/properties/color"}
   ]
 }
