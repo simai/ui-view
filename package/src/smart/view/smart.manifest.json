@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view",
-  "version": "1.13.2",
+  "version": "1.13.3",
   "title": "Data view",
   "summary": "Host-driven data view that composes toolbar, content and pagination around a separate data port.",
   "kind": "composite",
@@ -1707,6 +1707,13 @@
         "changes": [
           "Over SIMAI Framework ui-24d64b7f6eb7 (ui-source 40541c0c4fba): the bulk band's action list asks sf-dropdown for appearance=\"bordered\", the field look's current name (sf-dropdown 1.18.1, FM-9); \"outlined\" is its dated former name until 2027-01-01. The same look; nothing to change for a host."
         ]
+      },
+      {
+        "from": "1.13.2",
+        "to": "1.13.3",
+        "changes": [
+          "Framework first (draft set standard §7.4, view round 1 A3): the bulk band orders its actions and marks a deleting one with SIMAI Framework sf-pagination's own isDestructiveAction and orderActions (smart/pagination/js/actions.js, in the pair since ui-078a4b4c6f6e) instead of its copy _bulkDestructive, kept until the pair carried it. The same rule and order; nothing to change for a host."
+        ]
       }
     ]
   },
@@ -1716,7 +1723,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view/index.js",
-        "sha256": "1df58a1cc5df5f4ff8122d05aa8481191032322d3d5f99cc7391cbc6556c7bbd"
+        "sha256": "36a84c97e8c7ad487a3672e007cb6105dca5a72a87f7f70ad90858abd8e1da98"
       },
       {
         "path": "src/core/contracts/ports/simai.dataview-port/1.5.0/port.json",

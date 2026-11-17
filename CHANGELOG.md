@@ -12,6 +12,9 @@ in brackets. The site page «Изменения» says the same in Russian.
 - `sf-view` 1.13.2 and `sf-view-properties` 1.16.9 ask `sf-dropdown` for
   `appearance="bordered"`, the field look's current name (FM-9; `outlined`
   is its dated former name until 2027-01-01). The same look.
+- `sf-view` 1.13.3: the bulk band orders its actions and marks a deleting
+  one with SIMAI Framework `sf-pagination`'s own `isDestructiveAction` and
+  `orderActions`; the set's copy is gone (Framework first, A3).
 - `sf-view-properties` 1.16.4 (VP-5, VP-8) and 1.16.5: the page buttons in
   the drawer head beside the close are size 1/3, 8 apart (C205 (2)); the
   filled head of a phone panel clears them (taken back from ui-pro f29d4bf).

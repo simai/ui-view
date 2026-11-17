@@ -16,8 +16,14 @@ test('sf-view: Apply over a deleting action is status danger, never the former e
   const band = source.slice(source.indexOf('    _renderBulkBand() {'), source.indexOf('    applyBulkAction() {'));
   assert.match(band, /if \(danger\) apply\.setAttribute\("status", "danger"\);/);
   assert.doesNotMatch(band, /setAttribute\("status", "error"\)/);
-  // The same rule as SIMAI Framework sf-pagination 1.6.0 (isDestructiveAction).
-  assert.match(band, /_bulkDestructive\(item\) \{\n\s*return Boolean\(item\) && \(item\.danger === true \|\| \/\^\(delete\|remove\|destroy\|trash\)\\b\/iu\.test\(String\(item\.value \?\? item\.id \?\? ""\)\)\);/);
+  // The rule is SIMAI Framework sf-pagination's own (isDestructiveAction and
+  // orderActions, smart/pagination/js/actions.js, in the pair since
+  // ui-078a4b4c6f6e): no copy of it is left in the set (draft set standard
+  // §7.4, view round 1 A3).
+  assert.match(source, /import \{isDestructiveAction, orderActions\} from "\.\.\/pagination\/js\/actions\.js";/);
+  assert.match(band, /\.\.\.orderActions\(actions\)\.map\(/);
+  assert.match(band, /const danger = isDestructiveAction\(actions\.find\(/);
+  assert.doesNotMatch(source, /_bulkDestructive/);
 });
 
 test('sf-view-table: no ⋮ (more_vert) is left; the view and template actions draw more_horiz', async () => {
