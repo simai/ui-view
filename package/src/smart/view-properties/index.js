@@ -1263,6 +1263,25 @@ class SfPropertyView extends PropertyViewElement {
         });
     }
 
+    // Every other tag the view has drawn -- a field's control, a host's
+    // renderer, a part a template draws only sometimes -- asked for once it is
+    // in the view and not defined (C289 (10), VF-16): a page that defines
+    // nothing of its own still gets the whole card.
+    _askForUndefinedTags() {
+        const registry = globalThis.customElements;
+        const loader = globalThis.SF?.Loader;
+        if (typeof registry?.get !== "function" || typeof loader?.ensure !== "function") return;
+        this._askedTags ??= new Set(DRAWN_TAGS);
+        const missing = new Set();
+        for (const node of this.querySelectorAll(":not(:defined)")) {
+            const tag = node.localName;
+            if (tag.startsWith("sf-") && !this._askedTags.has(tag) && !registry.get(tag)) missing.add(tag);
+        }
+        if (!missing.size) return;
+        for (const tag of missing) this._askedTags.add(tag);
+        Promise.resolve(loader.ensure([...missing], {timeout: 10000})).catch(() => null);
+    }
+
     onConnected() {
         super.onConnected?.();
         this._notePanelWidth();
@@ -1315,6 +1334,7 @@ class SfPropertyView extends PropertyViewElement {
                 this._focusErrorsAfterRender = false;
                 requestAnimationFrame(() => this._focusErrors());
             }
+            this._askForUndefinedTags();
             // The panel's level for a related record (C289 (6)): whether this
             // panel's drawer is drawn inside another one is known once it is open.
             const nested = this._nestedLabel();
