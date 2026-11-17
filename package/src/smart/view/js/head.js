@@ -246,12 +246,12 @@ export class ListHead {
                  <h2 class="sf-view-head-name"><span data-name></span><sf-badge data-count size="1/2" appearance="tonal" scheme="primary" hidden></sf-badge></h2>
                  <div class="sf-view-head-title-end">
                    <sf-button-icon class="sf-view-head-kind-menu" data-kind-menu size="${size}" ${outline} icon="table_rows" aria-haspopup="menu"></sf-button-icon>
-                   <sf-button-icon class="sf-view-head-tune" data-open="view" size="${size}" ${outline} icon="tune"></sf-button-icon>
+                   <sf-button-icon class="sf-view-head-tune" data-head-open="view" size="${size}" ${outline} icon="tune"></sf-button-icon>
                    <sf-button-icon class="sf-view-head-more" data-list-menu size="${size}" appearance="ghost" scheme="on-surface" icon="more_vert" aria-haspopup="menu" hidden></sf-button-icon>
                  </div>
                </div>
                <div class="sf-view-head-row">
-                 <sf-button-icon class="sf-view-head-filter-icon" data-open="filter" size="${size}" icon="filter_list"></sf-button-icon>
+                 <sf-button-icon class="sf-view-head-filter-icon" data-head-open="filter" size="${size}" icon="filter_list"></sf-button-icon>
                  <div class="sf-view-head-search"><sf-input data-search appearance="filled" size="${size}" icon-start="search" input-type="search" clearable></sf-input></div>
                  <sf-button-icon class="sf-view-head-create" data-create size="${size}" icon="add" aria-haspopup="menu" hidden></sf-button-icon>
                </div>
@@ -284,6 +284,9 @@ export class ListHead {
         // A body moves with its window (sf-drawer takes its content out of the
         // host), so each body listens for itself.
         for (const body of this.root.querySelectorAll("[data-body]")) this._bindBody(body);
+        // sf-drawer renders its content into a portal: keep the bodies now.
+        this._sheetBody = this.root.querySelector("sf-drawer[data-sheet] [data-body]");
+        this._recordBody = this.root.querySelector("sf-drawer[data-record] [data-body]");
         this._fieldsKey = null;
         this.render();
     }
@@ -397,7 +400,7 @@ export class ListHead {
         const parts = [];
         if (phone && filterName) {
             const dot = this.changed ? " •" : "";
-            parts.push(`<sf-button class="sf-view-head-filter-name" data-open="filter" size="${size}" appearance="ghost" scheme="primary" icon-start="bookmark" text="${esc(filterName + dot)}" title="${esc(this.text("headFilterNamed").replace("{name}", filterName))}"></sf-button>`);
+            parts.push(`<sf-button class="sf-view-head-filter-name" data-head-open="filter" size="${size}" appearance="ghost" scheme="primary" icon-start="bookmark" text="${esc(filterName + dot)}" title="${esc(this.text("headFilterNamed").replace("{name}", filterName))}"></sf-button>`);
         }
         for (const name of this.chosen) {
             const field = this.field(name);
@@ -411,7 +414,7 @@ export class ListHead {
             parts.push(`<div class="sf-view-head-join">${phone ? button : `<sf-popover data-pop="value:${esc(name)}" placement="bottom-start" width="20rem" offset="var(--sf-space-1\\/4)">${button}<div slot="content" data-body></div></sf-popover>`}${remove}</div>`);
         }
         if (this.anyCondition) parts.push(`<sf-button data-clear size="${size}" appearance="outline" scheme="on-surface" text="${esc(this.text("headClear"))}"></sf-button>`);
-        if (phone && this.chosen.length) parts.push(`<sf-button-icon data-open="save" size="${size}" icon="bookmark_add" appearance="outline" scheme="on-surface" aria-label="${esc(this.text("headSaveFilter"))}"></sf-button-icon>`);
+        if (phone && this.chosen.length) parts.push(`<sf-button-icon data-head-open="save" size="${size}" icon="bookmark_add" appearance="outline" scheme="on-surface" aria-label="${esc(this.text("headSaveFilter"))}"></sf-button-icon>`);
         box.innerHTML = parts.join("");
         for (const node of box.querySelectorAll(".sf-view-head-filter-name")) this._truncate(node, "14rem");
         box.hidden = phone ? parts.length === 0 : false;
@@ -856,9 +859,9 @@ export class ListHead {
             this._openKind(`value:${field.getAttribute("data-field")}`);
             return;
         }
-        const opener = target.closest("[data-open]");
+        const opener = target.closest("[data-head-open]");
         if (opener) {
-            this._openKind(opener.getAttribute("data-open"));
+            this._openKind(opener.getAttribute("data-head-open"));
             return;
         }
         const views = target.closest("[data-views], [data-kind-menu]");
