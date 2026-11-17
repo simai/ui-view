@@ -33,7 +33,23 @@ const LISTENED = Object.freeze([
     "sf-pagination-change", "sf-pagination-size-change", "sf-pagination-apply", "sf-pagination-load-more",
     "sf-pagination-selection-clear", "sf-pagination-count", "sf-pagination-action-change",
     "sf-pagination-action-for-all-change", "sf-view-save",
+    // The board's (sf-view-board, layout="board"; owner decisions C298, C304).
+    "sf-view-board-move", "sf-view-board-more", "sf-view-board-open", "sf-view-board-create",
+    "sf-view-board-select", "sf-view-board-apply",
 ]);
+// The layout registry (owner decision C298, BD-1): a layout name and the
+// element that draws it. auto, table and list are the table's; board is
+// sf-view-board. Larena's word kanban reads as board. A name the registry does
+// not hold warns once and draws the table, as before.
+const LAYOUTS = new Map([["auto", "sf-view-table"], ["table", "sf-view-table"], ["list", "sf-view-table"], ["board", "sf-view-board"]]);
+const LAYOUT_ALIASES = Object.freeze({kanban: "board"});
+const layoutName = (value) => {
+    const name = String(value ?? "").trim().toLowerCase();
+    return LAYOUT_ALIASES[name] ?? name;
+};
+// The board's first paint: lanes of a head and cards (BD-2).
+const FIRST_PAINT_LANES = 4;
+const FIRST_PAINT_CARDS = 3;
 // The table's and the page row's events by their names since standard 1.3.8
 // (vocabulary 1.1.5): the old names they still send until 2027-01-01 are not
 // listened to, so each act is taken once.
@@ -447,15 +463,19 @@ class SfDataView extends DataViewElement {
     // the page row drew unstyled -- the search text 6 px from its icon, raw
     // checkboxes. An element the author slots later takes the place of the view's.
     _lightDefaults() {
+        // A board (layout="board", BD-1) is its content and has no page row:
+        // each lane has its own «Показать ещё» (C304).
+        const board = this.layoutKind === "board";
         const defaults = [
             ["content", "sf-view-table", {}],
             ["pagination", "sf-pagination", {appearance: "field", top: "false", bottom: "false"}],
         ];
+        if (board) defaults[0][1] = "sf-view-board";
         for (const [slot, tag, attributes] of defaults) {
             // A part the view does not draw (chrome without pagination, an
             // embedded list) gets no default element: it would print a page
             // row nobody sees into the first paint.
-            if (slot === "pagination" && !this.renders("pagination")) {
+            if (slot === "pagination" && (board || !this.renders("pagination"))) {
                 [...(this.children ?? [])].filter((child) => child.getAttribute?.("slot") === slot
                     && child.hasAttribute?.("data-sf-view-default")).forEach((child) => child.remove());
                 continue;
@@ -479,6 +499,36 @@ class SfDataView extends DataViewElement {
             this._defaultsWatch = new MutationObserver(() => this._lightDefaults());
             this._defaultsWatch.observe(this, {childList: true});
         }
+    }
+
+    // The layout the view draws (BD-1): the registry's name for its layout
+    // attribute; an unknown one warns once and is the table.
+    get layoutKind() {
+        const written = this.getAttribute?.("layout");
+        if (written === null || written === undefined || written === "") return "table";
+        const name = layoutName(written);
+        if (LAYOUTS.has(name)) return LAYOUTS.get(name) === "sf-view-board" ? "board" : name;
+        this._layoutWarned ??= new Set();
+        if (!this._layoutWarned.has(name)) {
+            this._layoutWarned.add(name);
+            console.warn(`sf-view: layout "${written}" is not a layout of the view set; the table draws it (layouts: ${[...LAYOUTS.keys(), ...Object.keys(LAYOUT_ALIASES)].join(", ")})`);
+        }
+        return "table";
+    }
+
+    static registerLayout(name, tag) {
+        if (!/^[a-z][a-z0-9-]*$/u.test(String(name)) || !/^sf-[a-z0-9-]+$/u.test(String(tag))) throw new TypeError("A layout is a name and an sf- element");
+        LAYOUTS.set(String(name), String(tag));
+    }
+
+    static get layouts() {
+        return Object.fromEntries(LAYOUTS);
+    }
+
+    get board() {
+        const slot = this.shadowRoot?.querySelector('slot[name="content"]');
+        return slot?.assignedElements?.().find((element) => isTag(element, "sf-view-board"))
+            ?? this.querySelector?.(':scope > sf-view-board[slot="content"]') ?? null;
     }
 
     get table() {
@@ -845,6 +895,20 @@ class SfDataView extends DataViewElement {
     // root are drawn without the table's sheet. The documented markup gives
     // them, and then nothing is made.
     _ownParts() {
+        // A board (layout="board"): sf-view-board in the content slot, and no
+        // page row -- each lane has its own «Показать ещё» (C304).
+        if (this.layoutKind === "board") {
+            if (!this.querySelector(':scope > [slot="content"]')) {
+                const board = document.createElement("sf-view-board");
+                board.slot = "content";
+                board.toggleAttribute("data-sf-view-made", true);
+                this.append(board);
+            }
+            globalThis.SF?.Loader?.ensure?.(["sf-view-board"]);
+            this._applyBulkActions();
+            this._applyForAll();
+            return;
+        }
         if (!this.querySelector(`:scope > ${tagSelector("sf-view-table")}[slot="content"], :scope > [slot="content"]`)) {
             const table = document.createElement("sf-view-table");
             table.slot = "content";
@@ -999,8 +1063,7 @@ class SfDataView extends DataViewElement {
         if (!this._seedPrintedQuery({answer: data})) this.query = asked;
         // A printed skeleton the server sent as well goes with the first
         // answer, in the same frame.
-        this.removeAttribute("data-sf-awaiting");
-        for (const node of this._firstPaintNodes()) node.remove?.();
+        this._dropFirstPaint();
         return true;
     }
 
@@ -1116,6 +1179,7 @@ class SfDataView extends DataViewElement {
     // choice -- a list is a list, a table is a table only where there is room
     // (auto), as the table resolves it.
     _firstPaintLayout(table) {
+        if (this.layoutKind === "board") return "board";
         const written = table?.getAttribute?.("data-sf-host-layout") || table?.getAttribute?.("layout") || this.getAttribute?.("layout");
         const own = ["auto", "table", "list"].includes(written) ? written : (this.renders("toolbar") ? "auto" : "table");
         const value = this.getAttribute?.("layout-switch");
@@ -1181,7 +1245,14 @@ class SfDataView extends DataViewElement {
             + "</div>";
         if (layoutSwitch) skeleton.setAttribute("data-layout-switch", "");
         else skeleton.removeAttribute?.("data-layout-switch");
-        skeleton.setAttribute("data-layout", ["auto", "table", "list"].includes(layout) ? layout : "table");
+        skeleton.setAttribute("data-layout", ["auto", "table", "list", "board"].includes(layout) ? layout : "table");
+        // The board's shape (BD-2): lanes of a head and cards, no table and no
+        // page row, so nothing flashes a table before the lanes come.
+        if (layout === "board") {
+            const lane = `<div><div data-part="head">${bar}</div>${'<div data-part="card"><i class="sf-skeleton-text"></i><i class="sf-skeleton-text"></i></div>'.repeat(FIRST_PAINT_CARDS)}</div>`;
+            // On a phone the lane switcher's row stands above (the sheet shows it).
+            return `<div class="sf-data-view-skeleton-switch">${bar}</div><div class="sf-data-view-skeleton-board">${lane.repeat(FIRST_PAINT_LANES)}</div>`;
+        }
         const columns = this.expectedColumns;
         const rows = this.firstPaintRows;
         const listFields = Number.parseInt(table?.getAttribute("list-fields") ?? "", 10);
@@ -1214,8 +1285,35 @@ class SfDataView extends DataViewElement {
     // skeleton goes and the layout comes, in one frame.
     _endFirstPaint() {
         if (this.getAttribute("data-sf-awaiting") === null) return;
-        this.removeAttribute?.("data-sf-awaiting");
-        for (const node of this._firstPaintNodes()) node.remove?.();
+        this._dropFirstPaint();
+    }
+
+    // The skeleton goes when the layout can draw: a board's code comes by the
+    // Loader after the view's, so its skeleton stays until sf-view-board is
+    // defined and has drawn its lanes (BD-2: no empty frame, no jump).
+    _dropFirstPaint() {
+        const drop = () => {
+            this.removeAttribute?.("data-sf-awaiting");
+            for (const node of this._firstPaintNodes()) node.remove?.();
+        };
+        const registry = globalThis.customElements;
+        if (this.layoutKind !== "board" || typeof registry?.whenDefined !== "function") return drop();
+        if (registry.get("sf-view-board") && this.board?.querySelector?.(".sf-view-board__lanes > *")) return drop();
+        if (this._firstPaintWait) return;
+        const frame = () => new Promise((done) => (globalThis.requestAnimationFrame ?? globalThis.setTimeout)(() => done()));
+        const wait = registry.whenDefined("sf-view-board").then(async () => {
+            this._syncBoard?.();
+            for (let tries = 0; tries < 120; tries += 1) {
+                await this.board?.whenRendered?.();
+                if (this.board?.querySelector?.(".sf-view-board__lanes > *") || !this.board?.lanes?.length) return;
+                await frame();
+            }
+        });
+        const late = new Promise((done) => globalThis.setTimeout(done, 3000));
+        this._firstPaintWait = Promise.race([wait, late]).catch(() => {}).then(() => {
+            this._firstPaintWait = null;
+            drop();
+        });
     }
 
     _firstPaintNodes() {
@@ -1671,7 +1769,7 @@ class SfDataView extends DataViewElement {
         } else if (!revalidating) {
             this._setState("loading", pageText(DATA_VIEW_TEXT, "stateLoading", this));
         }
-        return this._raise("query.change", {sequence, query: copy(this.query), reason}, {query: true});
+        return this._raise("query.change", {sequence, query: this._layoutQuery(), reason}, {query: true});
     }
 
     _syncSearchBoxes(value) {
@@ -1776,6 +1874,7 @@ class SfDataView extends DataViewElement {
             this.countKnown = this.countedQuery !== null && this.countedQuery === this._countKey();
         }
         if (Number.isSafeInteger(data.total)) this.totalExact = data.total_exact !== false;
+        this._acceptBoard(data);
         this._answered = true;
         if (Array.isArray(data.saved_views)) this.savedViews = copy(data.saved_views);
         if (data.column_settings) this.columnSettings = copy(data.column_settings);
@@ -2277,6 +2376,7 @@ class SfDataView extends DataViewElement {
         if (this.controlSize) this.pagination?.setAttribute?.("size", this.controlSize);
         else this.pagination?.removeAttribute?.("size");
         this._forwardLabels();
+        this._syncBoard();
         const table = this.table;
         if (table) {
             // The two chrome columns. Written as attributes rather than left to the
@@ -2488,8 +2588,9 @@ class SfDataView extends DataViewElement {
         // host gives no total for the page row to count. Nor is there a page
         // row before the first answer or when there is no list to page: it
         // said «Всего: 10» over a loading, failed or refused list (docs trial 4).
+        // A board has none either: each lane has its own «Показать ещё» (C304).
         const nothingToCount = !this._answered || this._queryRefused || ["error", "no-access"].includes(this.getAttribute("data-state"));
-        if (pageRow) pageRow.hidden = !this.renders("pagination") || this.treeMode === "tree" || nothingToCount;
+        if (pageRow) pageRow.hidden = !this.renders("pagination") || this.treeMode === "tree" || this.layoutKind === "board" || nothingToCount;
         if (!this.capHidesRows) {
             if (this._showAll?.isConnected) this._showAll.remove();
             this._showAll = null;
@@ -2782,9 +2883,121 @@ class SfDataView extends DataViewElement {
         });
     }
 
+    // ── the board (layout="board", sf-view-board; owner decisions C298, C304) ──
+
+    // The query a layout asks: the board's window is the first per_lane
+    // records of every lane by its lane field, and the totals of all lanes, in
+    // one request (BD-4; draft view-config/1, open point 1).
+    _layoutQuery(extra = null) {
+        const query = copy(this.query);
+        if (this.layoutKind !== "board") return query;
+        const options = this._boardOptions();
+        query.window = {lanes: options.lane_field ?? null, per_lane: options.per_lane ?? 20, ...(extra ?? {})};
+        return query;
+    }
+
+    // layouts.board as the host's view answers it (view_config), else as the
+    // page gave it on the board.
+    _boardOptions() {
+        const fromHost = this._boardHostOptions;
+        const fromPage = this.board?.options;
+        return {...(fromPage && typeof fromPage === "object" ? fromPage : {}), ...(fromHost ?? {})};
+    }
+
+    // The board's part of an answer: the lanes (a continuation of one lane
+    // after «Показать ещё»), the move rules and the order field.
+    _acceptBoard(data) {
+        const layouts = data.view_config?.layouts ?? data.layouts;
+        if (layouts?.board && typeof layouts.board === "object") this._boardHostOptions = copy(layouts.board);
+        if (data.board && typeof data.board === "object") {
+            if (data.board.moves && typeof data.board.moves === "object") this._boardMoves = copy(data.board.moves);
+            if (data.board.order_field !== undefined) this._boardOrderField = data.board.order_field ?? "";
+        }
+        if (!Array.isArray(data.lanes)) return;
+        const more = this._laneMore;
+        this._laneMore = null;
+        if (more !== null && more !== undefined) {
+            const lane = data.lanes.find((entry) => String(entry.value) === String(more)) ?? {records: []};
+            const known = (this.boardLanes ?? []).find((entry) => String(entry.value) === String(more));
+            if (known) {
+                known.records = [...(known.records ?? []), ...copy(lane.records ?? [])];
+                known.cursor = lane.cursor ?? null;
+            }
+            this.board?.appendLane?.(String(more), {records: lane.records ?? [], cursor: lane.cursor ?? null, total: lane.total, totals: lane.totals});
+        } else {
+            this.boardLanes = copy(data.lanes);
+            this._boardFresh = true;
+        }
+        // The records on screen are the lanes' records: a write's answer
+        // patches them as it patches a table's rows.
+        this.records = (this.boardLanes ?? []).flatMap((lane) => lane.records ?? []);
+    }
+
+    _syncBoard() {
+        const board = this.board;
+        if (!board || this.layoutKind !== "board") return;
+        board.fields = this.columns ?? [];
+        if (this._boardHostOptions) board.options = {...(board.options ?? {}), ...this._boardHostOptions};
+        board.moves = this._boardMoves ?? {};
+        if (this._boardFresh) {
+            this._boardFresh = false;
+            board.lanes = this.boardLanes ?? [];
+        }
+        const refused = this._queryRefused === true;
+        board.setAttribute("order-field", this._boardOrderField ?? "");
+        board.toggleAttribute("sort-active", Array.isArray(this.query.sort) && this.query.sort.length > 0);
+        board.setAttribute("selectable", this.renders("select") && !refused ? "true" : "false");
+        board.setAttribute("creatable", this.hostOffers("create-record") && !refused ? "true" : "false");
+        // A move is a change of the lane field: the host's record.set (BD-5).
+        board.setAttribute("movable", this.hostOffers("inline-edit") && !refused ? "true" : "false");
+        if (this.controlSize) board.setAttribute("size", this.controlSize);
+        if (!board.hasAttribute("aria-label")) board.setAttribute("aria-label", this.getAttribute("aria-label") || pageText(DATA_VIEW_TEXT, "recordsLabel", this));
+    }
+
+    async _onBoardEvent(event) {
+        const board = event.target?.closest?.("sf-view-board");
+        if (!board || board !== this.board) return;
+        const detail = event.detail ?? {};
+        if (event.type === "sf-view-board-move") {
+            const answer = await this._raise("record.set", {
+                record_id: detail.id, key: detail.field, value: detail.to, before: detail.before ?? null, revision: detail.revision ?? null,
+            });
+            const record = answer?.data?.records?.find?.((entry) => String(entry.id) === String(detail.id));
+            board.settleMove(detail.id, answer?.answer === "applied"
+                ? {answer: "applied", ...(record ? {record} : {})}
+                : {answer: answer?.answer ?? "refused", reason: answer?.reason ?? "", message: hostMessage(answer ?? {})});
+            return;
+        }
+        if (event.type === "sf-view-board-more") {
+            this._laneMore = detail.lane;
+            const answer = await this._raise("query.change", {
+                sequence: this.sequence, reason: "lane-more",
+                query: this._layoutQuery({lane: detail.lane, cursor: detail.cursor ?? null, offset: detail.offset ?? 0}),
+            });
+            if (answer?.answer !== "applied" && this._laneMore !== null) {
+                this._laneMore = null;
+                board.appendLane(detail.lane, {records: []});
+            }
+            return;
+        }
+        if (event.type === "sf-view-board-open") {
+            const allowed = this.sfEmit("open", {id: detail.id}, {cancelable: true});
+            if (allowed) await this._raise("record.open", {action_id: "view", record_ids: [detail.id], record_id: detail.id});
+            return;
+        }
+        if (event.type === "sf-view-board-create") {
+            await this._raise("view.create_record", {item: null, values: {[detail.field]: detail.value}});
+            return;
+        }
+        if (event.type === "sf-view-board-apply") {
+            await this._action({action_id: detail.action, record_ids: detail.ids ?? []}, {selectedBulk: true});
+        }
+    }
+
     _onEvent(event) {
         if (this._seenEvents.has(event)) return;
         this._seenEvents.add(event);
+        if (event.type.startsWith("sf-view-board-")) return this._onBoardEvent(event);
         // The port's event for a shared saved view (view.save_shared): a page
         // raises save {kind: "view", key, label} on the view itself (vocabulary
         // 1.1.5 §9; sf-view 1.12.0), so it is taken before the rule that

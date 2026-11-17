@@ -7,7 +7,7 @@
   },
   "id": "view",
   "title": "SIMAI View",
-  "summary": "Data views for SIMAI Framework pages: the data view sf-view over a host's data port, the smart table sf-view-table (search, filters, sorting, pages, columns, row actions), the record card sf-view-properties and the flow block sf-view-flow for a flow (a chat, a feed).",
+  "summary": "Data views for SIMAI Framework pages: the data view sf-view over a host's data port, the smart table sf-view-table (search, filters, sorting, pages, columns, row actions), the record card sf-view-properties, the flow block sf-view-flow for a flow (a chat, a feed) and the board sf-view-board (lanes by one field, cards moved between them).",
   "repository": "simai/ui-view",
   "licence": {
     "class": "simai-pro",
@@ -175,6 +175,27 @@
         "cl-spinner",
         "cl-switch",
         "cl-tag"
+      ]
+    },
+    {
+      "element": "sf-view-board",
+      "rule": "cl-view-board",
+      "folder": "view-board",
+      "status": "preview",
+      "requires": [
+        "cl-avatar",
+        "cl-badge",
+        "cl-button",
+        "cl-button-icon",
+        "cl-checkbox",
+        "cl-icon",
+        "cl-menu-context",
+        "cl-progress-scale",
+        "cl-reference-link",
+        "cl-sortable",
+        "cl-tabs",
+        "cl-tag",
+        "cl-toast"
       ]
     }
   ]

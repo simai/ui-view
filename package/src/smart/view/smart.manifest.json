@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view",
-  "version": "1.14.0",
+  "version": "1.16.0",
   "title": "Data view",
   "summary": "Host-driven data view that composes toolbar, content and pagination around a separate data port.",
   "kind": "composite",
@@ -1735,6 +1735,13 @@
         "changes": [
           "View round 1 (D4, D5, VW-2): the shadow root draws no control of its own (the fallback search, view select and save/delete buttons are gone; the toolbar part shows only an author's slotted toolbar); the default sf-view-table and sf-pagination are light DOM, where the page's sheets reach them, so the table's search gap is the Framework's; the move dialog chooses through sf-input-choice in its list look."
         ]
+      },
+      {
+        "from": "1.14.0",
+        "to": "1.16.0",
+        "changes": [
+          "The layout registry (owner decision C298, BD-1): layout=\"board\" (alias kanban) draws sf-view-board in the content slot, with no page row; a name outside the registry warns once (it drew the table silently) and still draws the table. The board's first paint holds lanes of a head and cards, not a table (BD-2). A board's query carries window {lanes, per_lane} (BD-4); the answer's lanes, board.moves and board.order_field go to the board; a move is record.set of the lane field, «Показать ещё» a query.change with window.lane."
+        ]
       }
     ]
   },
@@ -1744,7 +1751,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view/index.js",
-        "sha256": "23a70c57b870b00677422ece66df15f288a69945088c95d01823174dae6a4e78"
+        "sha256": "2053c3e046115909c44c4b86dc1826bf04bc4e77aff892c07f5f447f2859053b"
       },
       {
         "path": "src/core/contracts/ports/simai.dataview-port/1.5.0/port.json",
@@ -1764,7 +1771,7 @@
       },
       {
         "path": "src/smart/view/js/first-paint.css",
-        "sha256": "720e3b20863a421249c326aa4ffa0d930aea41112488ef18bdf3cad964a11374"
+        "sha256": "12f11cbc001c70159896ea90100cb14de1d05bb6ce86391506c5ce9ef4b5b92e"
       }
     ],
     "generated_runtime": []

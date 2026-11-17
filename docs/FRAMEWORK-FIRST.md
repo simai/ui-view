@@ -21,7 +21,8 @@ is not re-read yet). Evidence is `package/src/smart/<folder>/…` at `4317b84` u
 | sf-view-table | 38 | 17 | 13 | 3 | 5 |
 | sf-view-properties | 29 | 12 | 8 | 2 | 7 |
 | sf-view-flow | 6 | 2 | 3 | 1 | 0 |
-| all | 88 | 36 | 28 | 7 | 17 |
+| sf-view-board | 9 | 8 | 0 | 0 | 1 |
+| all | 97 | 44 | 28 | 7 | 18 |
 
 ## Framework orders
 
@@ -143,3 +144,21 @@ is not re-read yet). Evidence is `package/src/smart/<folder>/…` at `4317b84` u
 | F-04 | collapsible group | sf-accordion | `copy` | kept, waits FO-8 | view-flow/js/templates/default.js:52-75 |
 | F-05 | field conditions | none (same as P-14) | `order` | kept, waits FO-3 | view-flow/js/answer.js:8 |
 | F-06 | answers | sf-form footer: main first at the start (C159 (4), C182 (7)) | `copy` | kept, waits FO-8; its footer order is round item D10 | view-flow/js/templates/default.js:78-110; js/templates/default.css:156-160 |
+
+## sf-view-board
+
+Added in view round 2 (board helper, owner decisions C298, C304), read over pair `ui-1ed6b6c9a040`.
+Evidence is `package/src/smart/view-board/…` on `round/view-r2-board`.
+
+| Id | Part | Framework part | Verdict | State | Evidence |
+|---|---|---|---|---|---|
+| B-01 | drag, long press, drop line, keyboard move, announcements | sf-sortable (C171); 1.7 roving, sf-sortable-check, Enter/Space (BV-6..BV-8) behind a feature check | `fw` | uses the Framework | view-board/js/templates/default.js (sf-sortable per lane); index.js sortableRoves, _onCheck |
+| B-02 | card | .sf-card | `fw` | uses the Framework | view-board/js/templates/default.js renderCard |
+| B-03 | card fields («Кратко») | field-renderers renderCellField (C300 (2)); a template per field (C302) waits the template registry | `fw` | uses the Framework; per-field templates come with the registry | view-board/index.js cellShape |
+| B-04 | lane head: name, count, «+», «⋯» | sf-badge (C140), sf-button-icon | `fw` | uses the Framework | view-board/js/templates/default.js renderLane |
+| B-05 | card menu and lane menu, «Переместить в» with reasons | SF.menu.open (submenu, caption) | `fw` | uses the Framework | view-board/index.js openCardMenu, openLaneMenu |
+| B-06 | selection bar | sf-bulk-actions (C295) behind a feature check; before it a strip of sf-button | `fw` | uses the Framework where the pair has it | view-board/js/templates/default.js renderBulk |
+| B-07 | phone lane switcher | sf-tabs (pills, counts) | `fw` | uses the Framework | view-board/js/templates/default.js |
+| B-08 | refusal message | sf-toast | `fw` | uses the Framework | view-board/index.js _refuse |
+| B-09 | lanes, window, moves, limits, order, board grid keys | none: the board layout itself | `set` | the set's own | view-board/js/board.js, index.js |
+

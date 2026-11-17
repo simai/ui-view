@@ -16,6 +16,21 @@ same numbers with other content); every next set version is above them
 up). Each component.json says the same under `x-decisions`
 `pro-copy-versions`.
 
+## Unreleased (round/view-r2-board)
+
+- `sf-view-board` 1.0.0 (preview), the board layout (owner decisions C298,
+  C304): lanes by one field from the host's lane window (the first
+  `per_lane` records of every lane and the totals of all lanes in one query),
+  cards with up to four fields in the «Кратко» place, a move as a change of the
+  lane field the host settles, soft limits, folded and hidden lanes, one lane
+  per screen on a phone, one Tab stop with the arrows inside. Options under
+  `layouts.board` of `simai.view-config/1`.
+- `sf-view` 1.16.0: the layout registry; `layout="board"` (Larena's `kanban`)
+  draws `sf-view-board`, an unknown layout warns once and draws the table;
+  the board's first paint holds lanes, not a table, and stays until the
+  board has drawn them (and the lane switcher's row on a phone), so nothing
+  jumps.
+
 ## Unreleased (round/view-r1, for 1.9.0)
 
 - Over the SIMAI Framework pair `ui-1ed6b6c9a040` (npm 5.20261117.1612,

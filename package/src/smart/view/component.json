@@ -2,8 +2,15 @@
   "$comment": "sf-data-view from its component.json (standard simai.smart-component 1.3.8, vocabulary 1.1.5), migrated from ui-control control/smart-architecture/migration/out/data-view; every x-todo decided in x-decisions.",
   "id": "smart.view",
   "tag": "sf-view",
-  "version": "1.14.0",
+  "version": "1.16.0",
   "x-history": [
+    {
+      "version": "1.16.0",
+      "kind": "minor",
+      "recorded_on": "2026-11-18",
+      "consumer": "New: layout=\"board\" (and Larena's kanban) draws sf-view-board over the lane window (query.window {lanes, per_lane}; the answer's lanes); a layout the view set does not hold warns once and draws the table. Nothing changes for a table.",
+      "evidence": "control/evidence/2026-11-18-view-r2-board"
+    },
     {
       "version": "1.14.0",
       "kind": "minor",
@@ -1713,6 +1720,13 @@
           "to": "1.14.0",
           "changes": [
             "View round 1 (D4, D5, VW-2): the shadow root draws no control of its own (the fallback search, view select and save/delete buttons are gone; the toolbar part shows only an author's slotted toolbar); the default sf-view-table and sf-pagination are light DOM, where the page's sheets reach them, so the table's search gap is the Framework's; the move dialog chooses through sf-input-choice in its list look."
+          ]
+        },
+        {
+          "from": "1.14.0",
+          "to": "1.16.0",
+          "changes": [
+            "The layout registry (owner decision C298, BD-1): layout=\"board\" (alias kanban) draws sf-view-board in the content slot, with no page row; a name outside the registry warns once (it drew the table silently) and still draws the table. The board's first paint holds lanes of a head and cards, not a table (BD-2). A board's query carries window {lanes, per_lane} (BD-4); the answer's lanes, board.moves and board.order_field go to the board; a move is record.set of the lane field, «Показать ещё» a query.change with window.lane."
           ]
         }
       ]
