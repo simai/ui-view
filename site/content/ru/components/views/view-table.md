@@ -5,7 +5,7 @@ profile: reference
 
 # Умная таблица
 
-:badge[sf-view-table]{variant=main scheme=on-surface size=1} :badge[Версия 1.21.4]{variant=tonal scheme=neutral size=1}
+:badge[sf-view-table]{variant=main scheme=on-surface size=1} :badge[Версия 1.23.1]{variant=tonal scheme=neutral size=1}
 
 Умная таблица показывает записи таблицей или компактным списком. Каждая колонка называет тип своих значений, и таблица сама рисует подходящую ячейку: ссылку на запись, выбор цветной меткой, файл, цвет. Настройка колонок, выбор строк, меню строки и колонки встроены.
 

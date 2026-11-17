@@ -5,7 +5,7 @@ profile: reference
 
 # Блок в потоке
 
-:badge[sf-view-flow]{variant=main scheme=on-surface size=1} :badge[Версия 1.1.4]{variant=tonal scheme=neutral size=1} :badge[Предварительная версия]{variant=tonal scheme=warning size=1}
+:badge[sf-view-flow]{variant=main scheme=on-surface size=1} :badge[Версия 1.1.6]{variant=tonal scheme=neutral size=1} :badge[Предварительная версия]{variant=tonal scheme=warning size=1}
 
 Блок в потоке — несколько свойств записи **внутри потока**: сообщения чата, ленты, комментариев — везде, где содержимое идёт одно за другим. Блок делает одно из двух:
 
