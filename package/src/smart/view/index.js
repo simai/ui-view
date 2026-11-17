@@ -452,6 +452,14 @@ class SfDataView extends DataViewElement {
             ["pagination", "sf-pagination", {appearance: "field", top: "false", bottom: "false"}],
         ];
         for (const [slot, tag, attributes] of defaults) {
+            // A part the view does not draw (chrome without pagination, an
+            // embedded list) gets no default element: it would print a page
+            // row nobody sees into the first paint.
+            if (slot === "pagination" && !this.renders("pagination")) {
+                [...(this.children ?? [])].filter((child) => child.getAttribute?.("slot") === slot
+                    && child.hasAttribute?.("data-sf-view-default")).forEach((child) => child.remove());
+                continue;
+            }
             const own = [...(this.children ?? [])].filter((child) => child.getAttribute?.("slot") === slot);
             const mine = own.filter((child) => child.hasAttribute?.("data-sf-view-default"));
             if (own.length > mine.length) {
@@ -1366,6 +1374,7 @@ class SfDataView extends DataViewElement {
     attributeChangedCallback(name, previous, next) {
         if (previous === next || !this.isConnected) return;
         if (name === "preferences-key") this._applyPreferences();
+        if (name === "chrome") this._lightDefaults();
         this._renderProjection();
     }
 
