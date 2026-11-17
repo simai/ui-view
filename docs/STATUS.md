@@ -31,7 +31,8 @@ Framework-first record in [FRAMEWORK-FIRST](FRAMEWORK-FIRST.md).
 | Process files (F1) | done | `docs/START.md`, this page, `docs/DECISIONS.md`; `package/tests/set-process-files.contract.test.mjs` |
 | Framework-first record and waits (F2) | done | `docs/FRAMEWORK-FIRST.md`; component.json `x-framework-first`; `package/tests/framework-first.contract.test.mjs` |
 | Journal with kind, consumer and evidence (F3, F5) | done | component.json `x-history`; `package/docs/view/units.json` |
-| Site per C290 and the set-site scheme (E1-E11) | done, local only (ui-view.test) | `site/scripts/site-lint.mjs`; `docs/evidence/2026-11-17-view-r1-site/` |
+| Site per C290 and the set-site scheme (E1-E10) | done, local only (ui-view.test) | `site/scripts/site-lint.mjs` |
+| Site evidence 8.11/8.12 (E11) | measured; first paint and the hero effect red, waiting Docara orders | `docs/evidence/2026-11-17-view-r1-site/` |
 | Passport docs URL empty until the site answers (E12) | waits a Framework order (component-set schema) | [DECISIONS](DECISIONS.md) D3 |
 | Record card per C289 (C1-C10), table defects (D1-D10) | in the round, other branches | ui-control round view-r1 assignment |
 
