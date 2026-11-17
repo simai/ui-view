@@ -67,3 +67,58 @@ test('every former event name of a package component is recorded in the journal,
   }
   assert.deepEqual(problems, []);
 });
+
+// The version line (draft set standard §5.7, VS1.r2, VW-3; view round 1 B2).
+// Version numbers are assigned only in the set. ui-pro's copies shipped
+// numbers of their own (read from ui-pro origin/main component.json history,
+// 2026-11-17); none of them is a set version with other content, and the
+// set's current version is above every one, so the next release is too.
+const PRO_COPY_NUMBERS = {
+  view: ['1.12.6'],
+  'view-table': ['1.17.1', '1.19.7', '1.19.8', '1.20.4'],
+  'view-properties': ['1.16.2', '1.16.4', '1.16.8'],
+};
+// What each set release shipped (package/dist/smart/<folder>/smart.manifest.json
+// at the Build commit each contracts/releases/view-<12>.lock.json names).
+const RELEASED = {
+  'view 1.0.0': {view: '1.8.0', 'view-table': '1.14.0', 'view-properties': '1.9.1'},
+  'view 1.1.0': {view: '1.8.1', 'view-table': '1.15.0', 'view-properties': '1.10.0'},
+  'view 1.2.0': {view: '1.8.2', 'view-table': '1.15.0', 'view-properties': '1.10.1'},
+  'view 1.3.0': {view: '1.8.2', 'view-table': '1.15.0', 'view-properties': '1.11.0'},
+  'view 1.4.0': {view: '1.9.0', 'view-table': '1.15.1', 'view-properties': '1.11.1'},
+  'view 1.5.0': {view: '1.10.0', 'view-table': '1.16.0', 'view-properties': '1.13.1'},
+  'view 1.5.1': {view: '1.10.0', 'view-table': '1.16.1', 'view-properties': '1.13.2'},
+  'view 1.6.0': {view: '1.11.0', 'view-table': '1.17.0', 'view-properties': '1.13.2'},
+  'view 1.7.0': {view: '1.12.0', 'view-table': '1.18.0', 'view-properties': '1.13.3'},
+  'view 1.7.1': {view: '1.12.0', 'view-table': '1.18.1', 'view-properties': '1.13.3'},
+  'view 1.8.0': {view: '1.12.3', 'view-table': '1.19.5', 'view-properties': '1.15.2'},
+  'view 1.8.1': {view: '1.12.3', 'view-table': '1.19.6', 'view-properties': '1.16.3'},
+};
+const semver = (version) => version.split('.').map(Number);
+const above = (a, b) => (semver(a).map((part, index) => part - semver(b)[index]).find((delta) => delta !== 0) ?? 0) > 0;
+
+test('the version line: no set release shipped a number a pro copy shipped, and the set is above them all', () => {
+  for (const [folder, numbers] of Object.entries(PRO_COPY_NUMBERS)) {
+    const component = read(`src/smart/${folder}/component.json`);
+    for (const number of numbers) {
+      for (const [release, shipped] of Object.entries(RELEASED)) {
+        assert.notEqual(shipped[folder], number, `${release} shipped ${folder} ${number}, a number ui-pro's copy shipped too`);
+      }
+      assert.ok(above(component.version, number), `${folder} ${component.version} is above ui-pro's ${number}`);
+    }
+  }
+});
+
+test('the journal says which numbers are ui-pro\'s and not the set\'s', () => {
+  for (const [folder, numbers] of Object.entries(PRO_COPY_NUMBERS)) {
+    const note = read(`src/smart/${folder}/component.json`)['x-decisions']?.['pro-copy-versions'] ?? '';
+    assert.match(note, /^Version line \(draft set standard §5\.7/u, folder);
+    for (const number of numbers) assert.ok(note.includes(number), `${folder}: the note names ui-pro's ${number}`);
+  }
+  const setRoot = process.env.SET_ROOT;
+  if (setRoot) {
+    const changes = readFileSync(resolve(setRoot, '..', 'CHANGELOG.md'), 'utf8');
+    assert.match(changes, /^## Version line$/mu, 'CHANGELOG states the version line');
+    for (const numbers of Object.values(PRO_COPY_NUMBERS)) for (const number of numbers) assert.ok(changes.includes(number), `CHANGELOG names ${number}`);
+  }
+});

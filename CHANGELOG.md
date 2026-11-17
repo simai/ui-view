@@ -3,6 +3,19 @@
 The set `view`, by its npm version `@simai-studio/view`; component versions
 in brackets. The site page «Изменения» says the same in Russian.
 
+## Version line
+
+Component version numbers are assigned only in this set (draft set standard
+§5.7). ui-pro's copies of the set's folders shipped numbers of their own,
+which are not versions of this set: `sf-view` 1.12.6, `sf-view-table`
+1.17.1, 1.19.7, 1.19.8 and 1.20.4, `sf-view-properties` 1.16.2, 1.16.4 and
+1.16.8. No set release shipped any of them (this set's own unreleased steps
+`sf-view-table` 1.17.1 and `sf-view-properties` 1.16.4 and 1.16.8 carry the
+same numbers with other content); every next set version is above them
+(`sf-view` 1.13.x, `sf-view-table` 1.21.x, `sf-view-properties` 1.16.10 and
+up). Each component.json says the same under `x-decisions`
+`pro-copy-versions`.
+
 ## Unreleased (round/view-r1, for 1.9.0)
 
 - Over the SIMAI Framework pair `ui-24d64b7f6eb7` (npm 5.20261117.1311,
