@@ -1965,6 +1965,7 @@
             "C289 (3), (6), R254: «Удалить» is the last row of the head's «⋯» menu, with «Копировать ссылку» and «Открыть на всю страницу»; a record to read has no foot, and nothing stands on the drawer's edge outside the panel.",
             "C289 (4), R252: a record to read is an sf-list-description: the label beside the value on one row, each group a heading of the list, «Изменить» in the group's heading.",
             "C289 (6): the head is one row of the drawer's control height; a record opened from another shows «← <record>» above its title as the drawer's back line (sf-drawer-back), which returns to the previous record.",
+            "C289 (6): a panel the page gave no panel-label is headed by the record's name, record.label or record.title (the reference host and most pages send title); it showed the record id. The back line and the drawer's accessible name read the same name.",
             "C289 (7), C182: Save is never disabled; a Save over empty required fields or entries that are not values is refused with the message under each field and, for two or more, a summary with a link per field; a host's confirmation is asked in place with sf-confirm.",
             "C289 (8), (9), (10): the first paint keeps its boxes (no layout shift when the record comes); value buttons are 24px high at least on a phone (--sf-hit--min); the view asks the Loader for every tag it draws, so a page needs no defineFieldsOf or own defines."
           ]

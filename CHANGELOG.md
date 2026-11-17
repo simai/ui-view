@@ -29,7 +29,9 @@ up). Each component.json says the same under `x-decisions`
   `sf-list-description` (label beside value, groups as headings) with no
   foot: «Удалить», «Копировать ссылку» and «Открыть на всю страницу» are
   rows of the head's «⋯», nothing stands outside the panel. The head is one
-  row; a record opened from another shows «← <record>» above its title.
+  row; a record opened from another shows «← <record>» above its title,
+  and a panel with no `panel-label` is headed by `record.label` or
+  `record.title` (it showed the record id).
   Save is never disabled: empty required fields are refused with a summary
   of links, a host's confirmation is asked with `sf-confirm`. No layout
   shift on the first paint, value buttons 24px on a phone, and the view asks

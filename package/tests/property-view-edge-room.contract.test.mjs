@@ -42,3 +42,10 @@ test('nothing stands outside the panel: no edge strip, record actions in the men
   assert.match(items, /id: "open-full"/u);
   assert.match(source, /\{id: "delete", text: this\.deleteText, icon: "delete", danger: true\}/u);
 });
+
+test('a panel with no panel-label is headed by the record name, label or title (C289 (6))', () => {
+  const name = body(source, '    _recordName(record) {');
+  assert.match(name, /record\?\.label \|\| record\?\.title/u);
+  assert.match(source, /recordLabel: this\._recordName\(this\.record\)/u);
+  assert.match(template, /label=\$\{context\.panelLabel \|\| context\.recordLabel \|\| context\.recordId/u);
+});

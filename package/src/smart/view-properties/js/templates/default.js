@@ -1660,7 +1660,7 @@ export function renderPropertyViewTemplate(context) {
                 panel-style=${`--sf-drawer-background: var(--sf-surface-area); --sf-property-view--sections-width: ${context.sectionsWidth}; scrollbar-gutter: auto;${sizeStyle(context)}`}
                 show-close="false"
                 close-label=${context.closeLabel}
-                label=${context.panelLabel || context.recordId || ''}
+                label=${context.panelLabel || context.recordLabel || context.recordId || ''}
         >
             <div class="sf-property-view-panel relative flex flex-col gap-2${rail ? ' sf-property-view-panel--railed' : ''}"
                  data-record-id=${context.recordId || ''}

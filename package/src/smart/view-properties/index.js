@@ -1623,8 +1623,9 @@ class SfPropertyView extends PropertyViewElement {
             panel: this.panel,
             panelOpen: this.panelOpen,
             // The record's own name heads a panel the page gave no label: the
-            // host answers it with the record (port 1.14.0 record.label).
-            recordLabel: this.record?.label ? String(this.record.label) : "",
+            // host answers it with the record (port 1.14.0 record.label); the
+            // reference host and most pages send record.title, read as well.
+            recordLabel: this._recordName(this.record),
             loadFailure: this.record ? null : this.loadFailure ?? null,
             editText: this.editText,
             saveText: this.saveText,
@@ -2145,12 +2146,17 @@ class SfPropertyView extends PropertyViewElement {
     // The record this panel was opened from, when its drawer is drawn inside
     // another panel at the same edge (sf-drawer's nesting, C157 (6)): that
     // panel's title, for the «← <Запись>» line over this one's.
+    _recordName(record) {
+        const name = record?.label || record?.title;
+        return name ? String(name) : "";
+    }
+
     _nestedLabel() {
         const below = this.panel ? this._ownDrawer()?.nestedUnder?.() : null;
         if (!below) return "";
         const owner = below.parentElement;
         if (owner && owner !== this && typeof owner.panelLabel === "string") {
-            return owner.panelLabel || owner.record?.label || owner.recordId || this.backLabel;
+            return owner.panelLabel || this._recordName(owner.record) || owner.recordId || this.backLabel;
         }
         return below.getAttribute("heading") || below.getAttribute("label") || this.backLabel;
     }
