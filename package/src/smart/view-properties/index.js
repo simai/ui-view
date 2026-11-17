@@ -575,7 +575,10 @@ class SfPropertyView extends PropertyViewElement {
 
     // The step the drawer is drawn at (C289 (2)): panel-size when it names a
     // step; else the step nearest the width a former `panel-width` asked for.
-    get panelSize() {
+    // Not a getter named panelSize: the declared property of that name is the
+    // attribute's own accessor and wins over a getter, so a panel-width alone
+    // was drawn at the default step 1.
+    get drawerStep() {
         const size = this.getAttribute("panel-size");
         if (["1/2", "1", "2", "full"].includes(size)) return size;
         const width = this.panelWidth;
@@ -590,7 +593,7 @@ class SfPropertyView extends PropertyViewElement {
     // panel) a wide page keeps `sections-as`.
     get sectionsLayout() {
         if (!this.wide) return "phone";
-        if (this.panel) return this.panelSize === "full" ? "column" : "tabs";
+        if (this.panel) return this.drawerStep === "full" ? "column" : "tabs";
         return this.sectionsAs === "tabs" ? "tabs" : "column";
     }
 
@@ -1741,6 +1744,7 @@ class SfPropertyView extends PropertyViewElement {
             phoneSection: this.phoneSection,
             phoneSectionLabel: this.phoneSectionLabel,
             backLabel: this.backLabel,
+            drawerStep: this.drawerStep,
             sectionsLayout: this.sectionsLayout,
             nestedUnder: this._nestedUnderLabel || "",
             canDeleteRecord: this.canDeleteRecord,

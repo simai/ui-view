@@ -1727,11 +1727,11 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-properties/index.js",
-        "sha256": "971c4b981caabb5a517f120c3584bfab669a627026f655c2f00f60ef8d6c106a"
+        "sha256": "b2141ff33b541f961eb1aebb8afe3b72799ba2c82f60fc02c3c407444a46b0a5"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.js",
-        "sha256": "aaf91bace8dc36a4aa11bb305e5e5f80cb1cdd77c297bd5ecc6466d56a664afa"
+        "sha256": "8f6c2ed2f11d1f10ffba1b95ca64e6a8f300be9b1aacc57c3574779d951fb623"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.css",

@@ -1654,7 +1654,7 @@ export function renderPropertyViewTemplate(context) {
                 placement="inline-end"
                 modal="true"
                 overlay="true"
-                size=${context.wide ? context.panelSize : 'full'}
+                size=${context.wide ? context.drawerStep : 'full'}
                 gutter="var(--sf-space-1)"
                 panel-style=${`--sf-drawer-background: var(--sf-surface-area); --sf-property-view--sections-width: ${context.sectionsWidth}; scrollbar-gutter: auto;${sizeStyle(context)}`}
                 show-close="false"

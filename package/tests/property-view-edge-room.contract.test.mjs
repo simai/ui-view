@@ -23,7 +23,7 @@ const body = (text, start) => {
 test('the panel never takes a width of its own: a step of the drawer ladder', () => {
   assert.match(body(source, '    get drawerWidth() {'), /return null;/u);
   assert.match(source, /const PANEL_STEPS = \[\["1\/2", 20\], \["1", 24\], \["2", 30\]\];/u);
-  assert.match(body(source, '    get panelSize() {'), /return width \? nearestPanelStep\(width\) : "1";/u);
+  assert.match(body(source, '    get drawerStep() {'), /return width \? nearestPanelStep\(width\) : "1";/u);
   assert.doesNotMatch(template, /\swidth=\$\{/u, 'the drawer is never given a width');
 });
 
