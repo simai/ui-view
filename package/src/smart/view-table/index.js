@@ -116,12 +116,14 @@ function parseSortText(text) {
     return match ? [{key: match[1], direction: match[2]}] : null;
 }
 
-// The schemes a fact's badge takes from its option (C140 (2)).
+// The table's former container settings (C296, VT-13), dated until 2027-01-01.
 const CONTAINER_SETTINGS = ["toolbar", "pagin", "filter-templates", "filter-text", "clear-text", "search-placeholder",
     "create-text", "creatable", "pagination-total", "pagination-page-size", "page-sizes", "filter-apply-text", "layout-switch"];
 const CONTAINER_SETTING_HOME = {"pagin": "sf-pagination", "pagination-total": "sf-pagination total",
     "pagination-page-size": "sf-pagination page-size", "page-sizes": "sf-pagination page-sizes"};
+// The short fields edited at the cell (C296 q-edit).
 const SHORT_EDIT_TYPES = new Set(["choice", "enum", "select", "user", "date", "datetime", "number", "integer", "money"]);
+// The schemes a fact's badge takes from its option (C140 (2)).
 const BADGE_SCHEMES = new Set(["neutral", "primary", "secondary", "success", "info", "warning", "error"]);
 const FACT_LEVELS = Object.freeze({warning: 1, error: 2});
 
@@ -958,10 +960,7 @@ class SfTable extends TableElement {
     }
 
     setBulkActions(actions = []) {
-        if (!this.closest?.("sf-view")) {
-            noteDeprecated({component: "sf-view-table", tag: "sf-view-table", kind: "method", from: "setBulkActions",
-                to: "sf-bulk-actions actions", since: "2026-11-18", remove_after: "2027-01-01", package: "view"});
-        }
+        this.noteBulkActionsName?.();
         if (!Array.isArray(actions) || Array.from(actions).some((action) =>
             !action || typeof action !== 'object'
             || typeof action.id !== 'string' || !action.id.trim()
@@ -970,16 +969,6 @@ class SfTable extends TableElement {
             throw new TypeError('Bulk actions require opaque id and name only');
         }
         return this.set({bulkActions: actions.map(({id, name}) => ({id, name}))});
-    }
-
-    // C295 / C296: group actions are sf-bulk-actions' job. Where the page's
-    // pair carries that element, a table standing alone places one bar after
-    // its rows (count, clear and «all N» come with it: BA-2, BA-5); where it
-    // does not, the table's own buttons stay above the rows as before. Inside
-    // sf-view the view draws the bar. setBulkActions / bulkActions are the
-    // former names of the bar's actions until 2027-01-01.
-    hasBulkBar() {
-        return typeof customElements !== "undefined" && Boolean(customElements.get("sf-bulk-actions"));
     }
 
     renderBulkActions(place = "before") {
@@ -1002,6 +991,22 @@ class SfTable extends TableElement {
                     if (ids.length) this.requestActionIntent(action.id, ids, {scope: "selection"});
                 }}></sf-button>`)}
         </div>`;
+    }
+
+    // C295 / C296: group actions are sf-bulk-actions' job. Where the page's
+    // pair carries that element, a table standing alone places one bar after
+    // its rows (count, clear and «all N» come with it: BA-2, BA-5); where it
+    // does not, the table's own buttons stay above the rows as before. Inside
+    // sf-view the view draws the bar. setBulkActions / bulkActions are the
+    // former names of the bar's actions until 2027-01-01.
+    noteBulkActionsName() {
+        if (this.closest?.("sf-view")) return;
+        noteDeprecated({component: "sf-view-table", tag: "sf-view-table", kind: "method", from: "setBulkActions",
+            to: "sf-bulk-actions actions", since: "2026-11-18", remove_after: "2027-01-01", package: "view"});
+    }
+
+    hasBulkBar() {
+        return typeof customElements !== "undefined" && Boolean(customElements.get("sf-bulk-actions"));
     }
 
     renderBulkBar() {
@@ -1647,7 +1652,7 @@ class SfTable extends TableElement {
             const text = this.cellText(column, value);
             return {kind: "text", className: "sf-table-cell-clip", text, title: text};
         }
-        const typed = this.getTypedCellValue(column, value);
+        const typed = this.cellValue(column, value);
         if (typed !== null && typeof typed !== "undefined") {
             if (typeof typed !== "string" && typeof typed !== "number") return null;
             const datetime = this.cellDateTime(column, value);
@@ -1723,14 +1728,6 @@ class SfTable extends TableElement {
     }
 
     handleRowOpen(event, row) {
-        if (event?.type === "dblclick") {
-            const edit = this.cellEditTarget(event);
-            if (edit) {
-                event.preventDefault();
-                this.openCellEditor(edit.row, edit.column, edit.cell);
-                return this;
-            }
-        }
         if (this.isRowControlTarget(event?.target) || !this.canOpenRow(row)) return this;
         // With row-open="row" the first click of a double click has opened
         // the record already: the second is the same wish, not a second one.
@@ -4513,7 +4510,6 @@ class SfTable extends TableElement {
         this.closeCellPopover();
         const box = document.createElement("div");
         box.className = "sf-table-cell-editor";
-        box.setAttribute("popover", "auto");
         box.setAttribute("role", "dialog");
         box.setAttribute("aria-label", `${this.text("cellEditLabel")}: ${label}`);
         let draft = value;
@@ -4530,20 +4526,26 @@ class SfTable extends TableElement {
                 @keydown=${(event) => { if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); finish(false); } }}>
             ${renderEditField(field, value, host, {size})}
             <div class="sf-table-cell-editor-actions">
-                <sf-button size=${size} type="submit" scheme="primary" text=${this.text("cellEditApply")}
+                <sf-button size=${size} scheme="primary" text=${this.text("cellEditApply")}
                     @click=${() => finish(true)}></sf-button>
-                <sf-button size=${size} look="outline" text=${this.text("cellEditCancel")}
+                <sf-button size=${size} appearance="outline" scheme="on-surface" text=${this.text("cellEditCancel")}
                     @click=${() => finish(false)}></sf-button>
             </div>
         </form>`, box);
-        box.addEventListener("toggle", (event) => { if (event.newState === "closed") this.closeCellPopover(box); });
         document.body.append(box);
-        const rect = cell.getBoundingClientRect();
-        box.style.insetBlockStart = `${Math.round(rect.bottom)}px`;
-        box.style.insetInlineStart = `${Math.round(rect.left)}px`;
-        box.style.minInlineSize = `${Math.round(rect.width)}px`;
         this._cellPopover = box;
-        try { box.showPopover(); } catch { /* not supported: stays in place */ }
+        // Placed by the Framework's one anchoring helper (SF.Position): under
+        // the cell, at least as wide, flipped or shifted to stay in view, in
+        // the top layer. A press outside closes it without saving.
+        this._cellPlace = positioning().anchor(cell, box, {side: "block-end", align: "start", matchWidth: "min"});
+        const outside = (event) => {
+            // A picker the field opens stands in its own layer: not outside.
+            const target = event.composedPath?.()[0] ?? event.target;
+            if (box.contains(target) || target?.closest?.(":popover-open, dialog[open]")) return;
+            this.closeCellPopover(box);
+        };
+        this._cellOutside = outside;
+        document.addEventListener("pointerdown", outside, true);
         requestAnimationFrame(() => box.querySelector("input, select, textarea, button, [tabindex]")?.focus?.());
         return {outcome: "opened"};
     }
@@ -4552,7 +4554,10 @@ class SfTable extends TableElement {
         const box = this._cellPopover;
         if (!box || (only && only !== box)) return;
         this._cellPopover = null;
-        try { if (box.matches(":popover-open")) box.hidePopover(); } catch { /* gone */ }
+        this._cellPlace?.stop?.();
+        this._cellPlace = null;
+        if (this._cellOutside) document.removeEventListener("pointerdown", this._cellOutside, true);
+        this._cellOutside = null;
         render(nothing, box);
         box.remove();
     }
@@ -4607,11 +4612,18 @@ class SfTable extends TableElement {
         // formatFieldValue first): the table's own date parsing is gone (VF-10).
         const rendered = renderCellField(column, value, host);
         if (rendered !== null && rendered !== undefined) return rendered;
-        // A number in the page's language (VT-14 of the sf-view-table study:
-        // «1.5» in a Russian table, while money and dates were localised):
-        // every digit the value has, never rounded, grouped as the language
-        // groups. The renderer set leaves a plain number to the host; this is
-        // the set's answer when the host has none.
+        return null;
+    }
+
+    // What a cell draws: the field renderers' answer, and when they leave a
+    // plain number to the host and the host has none, the number in the
+    // page's language (VT-14 of the sf-view-table study: «1.5» in a Russian
+    // table, while money and dates were localised) -- every digit the value
+    // has, never rounded, grouped as the language groups.
+    cellValue(column = {}, value) {
+        const typed = this.getTypedCellValue(column, value);
+        if (typed !== null && typed !== undefined) return typed;
+        const type = column.propertyType ?? column.property_type ?? column.type;
         if ((type === "integer" || type === "number") && !(column.variant || column.filter?.variant)) return this.localNumber(value);
         return null;
     }
@@ -8164,6 +8176,32 @@ class SfTable extends TableElement {
         this._responsiveObserver.observe(target);
     }
 
+    // C296 / C295 (VT-13): the table draws columns and rows. Its toolbar,
+    // search, filter, saved templates, create button, layout switch, own
+    // paging and own group buttons are the container's (sf-view,
+    // sf-pagination, sf-bulk-actions). They keep working, as they were,
+    // until 2027-01-01; a table standing alone that is given one is noted in
+    // SF.deprecations once. Inside sf-view the view writes them: no note.
+    noteContainerSettings() {
+        if (this._containerNoted || this.closest?.("sf-view")) return;
+        this._containerNoted = true;
+        for (const name of CONTAINER_SETTINGS) {
+            // toolbar="false" and the like already say what the table becomes.
+            if (!this.hasAttribute(name) || this.getAttribute(name) === "false") continue;
+            noteDeprecated({component: "sf-view-table", tag: "sf-view-table", kind: "attribute", attribute: name,
+                from: name, to: CONTAINER_SETTING_HOME[name] ?? "sf-view", since: "2026-11-18", remove_after: "2027-01-01", package: "view"});
+        }
+    }
+
+    // A row scrollToRow asked for outside the drawn range is drawn now, and
+    // brought into view inside the table's scroll (C296).
+    revealPendingRow() {
+        const id = this._pendingScrollRow;
+        this._pendingScrollRow = null;
+        this.refs.table?.value?.querySelector(`tbody tr[data-row-id="${id.replace(/"/gu, '\\"')}"]`)
+            ?.scrollIntoView?.({block: "nearest", behavior: "instant"});
+    }
+
     afterRender() {
         this.drawingWith(() => this.afterDraw());
     }
@@ -8197,23 +8235,6 @@ class SfTable extends TableElement {
         }
     }
 
-    // C296 / C295 (VT-13): the table draws columns and rows. Its toolbar,
-    // search, filter, saved templates, create button, layout switch, own
-    // paging and own group buttons are the container's (sf-view,
-    // sf-pagination, sf-bulk-actions). They keep working, as they were,
-    // until 2027-01-01; a table standing alone that is given one is noted in
-    // SF.deprecations once. Inside sf-view the view writes them: no note.
-    noteContainerSettings() {
-        if (this._containerNoted || this.closest?.("sf-view")) return;
-        this._containerNoted = true;
-        for (const name of CONTAINER_SETTINGS) {
-            // toolbar="false" and the like already say what the table becomes.
-            if (!this.hasAttribute(name) || this.getAttribute(name) === "false") continue;
-            noteDeprecated({component: "sf-view-table", tag: "sf-view-table", kind: "attribute", attribute: name,
-                from: name, to: CONTAINER_SETTING_HOME[name] ?? "sf-view", since: "2026-11-18", remove_after: "2027-01-01", package: "view"});
-        }
-    }
-
     afterDraw() {
         this.noteContainerSettings();
         this.preloadSelectionGlyphs();
@@ -8226,15 +8247,7 @@ class SfTable extends TableElement {
         this.bindRowMenu();
         this.toggleAttribute("data-sf-keyed-narrow", this.isKeyedNarrow);
         if (this._windowed) this.bindWindowScroll();
-        // A row the keyboard asked for outside the drawn range is drawn now:
-        // it is focused and scrolled into view, and the scroll that brings
-        // moves the range around it -- not the place the page was at before.
-        if (this._pendingScrollRow) {
-            const id = this._pendingScrollRow;
-            this._pendingScrollRow = null;
-            this.refs.table?.value?.querySelector(`tbody tr[data-row-id="${id.replace(/"/gu, '\\"')}"]`)
-                ?.scrollIntoView?.({block: "nearest", behavior: "instant"});
-        }
+        if (this._pendingScrollRow) this.revealPendingRow();
         if (this._pendingFocusRow) {
             const id = this._pendingFocusRow;
             this._pendingFocusRow = null;
@@ -8787,6 +8800,16 @@ class SfTable extends TableElement {
         }, {signal});
         this.bindHeadMenu(table, signal);
         table.addEventListener("keydown", (event) => this.handleGridKeydown(event, table), {signal});
+        // A double press on a short field the record lets this person write
+        // edits it at the cell (C296); it does not open the record. Caught on
+        // the way down, before the row's own double press.
+        table.addEventListener("dblclick", (event) => {
+            const edit = this.cellEditTarget(event);
+            if (!edit) return;
+            event.preventDefault();
+            event.stopPropagation();
+            this.openCellEditor(edit.row, edit.column, edit.cell);
+        }, {signal, capture: true});
         // A row's buttons come after the draw: the «Действия» buttons of the
         // row a person is on, and a Smart button's own <button>, which its
         // element draws once defined. Each new control leaves the Tab order

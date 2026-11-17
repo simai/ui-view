@@ -16,6 +16,35 @@ same numbers with other content); every next set version is above them
 up). Each component.json says the same under `x-decisions`
 `pro-copy-versions`.
 
+## Unreleased (round/view-r2-table)
+
+- `sf-view-table` 1.24.0 (owner decision C296, view round 2, VT-1..VT-18):
+  the table draws columns and rows. A column head's menu (right press,
+  Enter, Shift+F10) is sort, pin, hide and «Все колонки», then the width
+  entries; the columns window is the SIMAI Framework `sf-settings` panel at
+  the gear, without the table's own full-screen portal. With
+  `inline-edit`, a short field (choice, a person with options, date,
+  number, money) edits at the cell on a double press or F2 -- the
+  Framework's menu or a small popover with the field of its type -- and
+  emits `cell-set`; longer fields stay the record card's. A totals row at
+  the foot shows the host's `totals` for the columns marked `total`. New:
+  `total` (the grid's `aria-rowcount`, «all N»), `sort="key:dir"`, the
+  `open` event `{id, newTab}`, `scrollToRow`, the `empty` and `error`
+  slots, eight public `--sf-view-table-*` variables (the `--sf-table-*`
+  names stay until 2027-01-01). Rows say `aria-selected`, a selectable
+  grid `aria-multiselectable`; a title without an address is a button,
+  not `href="#"`; the hover fill is the 8 % state; a status badge is at
+  most the row less 8 and takes its option's scheme; the width grip is a
+  24 zone; the empty-state action has air below it; numbers follow the
+  page language; head cells never wrap letter by letter; the phone list is
+  C259's («≡» after the box, status and amount at the end, «all on the
+  page» box) with one Tab stop. The toolbar, search, filter, templates,
+  create, layout switch, `pagin` and `setBulkActions` are dated former
+  settings until 2027-01-01, noted in `SF.deprecations` on a table
+  standing alone. Behind feature checks (parts not yet in a released
+  pair): `sf-bulk-actions` after the rows of a table standing alone, and
+  `SF.fieldRenderers.dateFilter` for date filters (C293 DF-1, DF-4, DF-6).
+
 ## Unreleased (round/view-r1, for 1.9.0)
 
 - Over the SIMAI Framework pair `ui-1ed6b6c9a040` (npm 5.20261117.1612,

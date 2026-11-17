@@ -443,6 +443,149 @@
       "mode": "same-detail",
       "section": "§8",
       "note": "the event name carries the tag"
+    },
+    {
+      "from": "toolbar",
+      "to": null,
+      "kind": "attribute",
+      "component": "sf-view-table",
+      "since": "2026-11-18",
+      "remove_after": "2027-01-01",
+      "mode": "host-attribute",
+      "section": "C296, C295 (VT-13)",
+      "note": "the container's job (sf-view, sf-pagination, sf-bulk-actions); read by the table as before until the date, noted in SF.deprecations once on a table standing alone; no shim"
+    },
+    {
+      "from": "pagin",
+      "to": null,
+      "kind": "attribute",
+      "component": "sf-view-table",
+      "since": "2026-11-18",
+      "remove_after": "2027-01-01",
+      "mode": "host-attribute",
+      "section": "C296, C295 (VT-13)",
+      "note": "the container's job (sf-view, sf-pagination, sf-bulk-actions); read by the table as before until the date, noted in SF.deprecations once on a table standing alone; no shim"
+    },
+    {
+      "from": "filter-templates",
+      "to": null,
+      "kind": "attribute",
+      "component": "sf-view-table",
+      "since": "2026-11-18",
+      "remove_after": "2027-01-01",
+      "mode": "host-attribute",
+      "section": "C296, C295 (VT-13)",
+      "note": "the container's job (sf-view, sf-pagination, sf-bulk-actions); read by the table as before until the date, noted in SF.deprecations once on a table standing alone; no shim"
+    },
+    {
+      "from": "filter-text",
+      "to": null,
+      "kind": "attribute",
+      "component": "sf-view-table",
+      "since": "2026-11-18",
+      "remove_after": "2027-01-01",
+      "mode": "host-attribute",
+      "section": "C296, C295 (VT-13)",
+      "note": "the container's job (sf-view, sf-pagination, sf-bulk-actions); read by the table as before until the date, noted in SF.deprecations once on a table standing alone; no shim"
+    },
+    {
+      "from": "clear-text",
+      "to": null,
+      "kind": "attribute",
+      "component": "sf-view-table",
+      "since": "2026-11-18",
+      "remove_after": "2027-01-01",
+      "mode": "host-attribute",
+      "section": "C296, C295 (VT-13)",
+      "note": "the container's job (sf-view, sf-pagination, sf-bulk-actions); read by the table as before until the date, noted in SF.deprecations once on a table standing alone; no shim"
+    },
+    {
+      "from": "search-placeholder",
+      "to": null,
+      "kind": "attribute",
+      "component": "sf-view-table",
+      "since": "2026-11-18",
+      "remove_after": "2027-01-01",
+      "mode": "host-attribute",
+      "section": "C296, C295 (VT-13)",
+      "note": "the container's job (sf-view, sf-pagination, sf-bulk-actions); read by the table as before until the date, noted in SF.deprecations once on a table standing alone; no shim"
+    },
+    {
+      "from": "create-text",
+      "to": null,
+      "kind": "attribute",
+      "component": "sf-view-table",
+      "since": "2026-11-18",
+      "remove_after": "2027-01-01",
+      "mode": "host-attribute",
+      "section": "C296, C295 (VT-13)",
+      "note": "the container's job (sf-view, sf-pagination, sf-bulk-actions); read by the table as before until the date, noted in SF.deprecations once on a table standing alone; no shim"
+    },
+    {
+      "from": "creatable",
+      "to": null,
+      "kind": "attribute",
+      "component": "sf-view-table",
+      "since": "2026-11-18",
+      "remove_after": "2027-01-01",
+      "mode": "host-attribute",
+      "section": "C296, C295 (VT-13)",
+      "note": "the container's job (sf-view, sf-pagination, sf-bulk-actions); read by the table as before until the date, noted in SF.deprecations once on a table standing alone; no shim"
+    },
+    {
+      "from": "pagination-total",
+      "to": null,
+      "kind": "attribute",
+      "component": "sf-view-table",
+      "since": "2026-11-18",
+      "remove_after": "2027-01-01",
+      "mode": "host-attribute",
+      "section": "C296, C295 (VT-13)",
+      "note": "the container's job (sf-view, sf-pagination, sf-bulk-actions); read by the table as before until the date, noted in SF.deprecations once on a table standing alone; no shim"
+    },
+    {
+      "from": "pagination-page-size",
+      "to": null,
+      "kind": "attribute",
+      "component": "sf-view-table",
+      "since": "2026-11-18",
+      "remove_after": "2027-01-01",
+      "mode": "host-attribute",
+      "section": "C296, C295 (VT-13)",
+      "note": "the container's job (sf-view, sf-pagination, sf-bulk-actions); read by the table as before until the date, noted in SF.deprecations once on a table standing alone; no shim"
+    },
+    {
+      "from": "page-sizes",
+      "to": null,
+      "kind": "attribute",
+      "component": "sf-view-table",
+      "since": "2026-11-18",
+      "remove_after": "2027-01-01",
+      "mode": "host-attribute",
+      "section": "C296, C295 (VT-13)",
+      "note": "the container's job (sf-view, sf-pagination, sf-bulk-actions); read by the table as before until the date, noted in SF.deprecations once on a table standing alone; no shim"
+    },
+    {
+      "from": "filter-apply-text",
+      "to": null,
+      "kind": "attribute",
+      "component": "sf-view-table",
+      "since": "2026-11-18",
+      "remove_after": "2027-01-01",
+      "mode": "host-attribute",
+      "section": "C296, C295 (VT-13)",
+      "note": "the container's job (sf-view, sf-pagination, sf-bulk-actions); read by the table as before until the date, noted in SF.deprecations once on a table standing alone; no shim"
+    },
+    {
+      "from": "layout-switch",
+      "to": null,
+      "kind": "attribute",
+      "component": "sf-view-table",
+      "since": "2026-11-18",
+      "remove_after": "2027-01-01",
+      "mode": "host-attribute",
+      "section": "C296, C295 (VT-13)",
+      "note": "the container's job (sf-view, sf-pagination, sf-bulk-actions); read by the table as before until the date, noted in SF.deprecations once on a table standing alone; no shim"
     }
   ]
 }

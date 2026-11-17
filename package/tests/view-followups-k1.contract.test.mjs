@@ -43,10 +43,10 @@ test('sf-view-table: the right button, the keys and a long press open the row me
   // answers the right button and the keys itself (bindShadowRowMenu) alone.
   const shadow = source.slice(source.indexOf('    bindShadowRowMenu() {'), source.indexOf('    // The entries of the row the menu opens for'));
   assert.match(shadow, /if \(!inShadow\(\) \|\| event\.defaultPrevented\) return;/);
-  // The head's width menu (C158 (5)) answers the right button on a head with
-  // an edge, a menu of its own and no row's.
+  // The column menu (C158 (5), C296) answers the right button on any head of
+  // a data column, a menu of its own and no row's.
   const head = source.slice(source.indexOf('    bindHeadMenu(table, signal) {'), source.indexOf('    handleHeadKeydown(event, table) {'));
-  assert.match(head, /!this\.headStopOf\(cell\)\) return;/);
+  assert.match(head, /if \(!column \|\| column\.system\) return;/);
   const outside = source.replace(shadow, '').replace(head, '');
   for (const gone of [/function menuPointAt\(/, /openRowMenuOf\(/, /openListRowMenu\(/, /openRowContextMenu\(/, /_listContextMenu/, /isMenuKey/, /keepsBrowserMenu/, /addEventListener\("contextmenu"/]) {
     assert.doesNotMatch(outside, gone, String(gone));

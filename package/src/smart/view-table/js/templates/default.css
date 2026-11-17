@@ -1900,9 +1900,6 @@
 /* C296: the editor of a short field, a small popover at the cell. */
 @layer sf.components {
     .sf-table-cell-editor {
-        position: fixed;
-        inset: auto;
-        margin: var(--sf-a4) 0 0;
         padding: var(--sf-space-1\/2);
         border: 0;
         border-radius: var(--sf-radius-1);

@@ -104,11 +104,13 @@ function renderListToolbar(context) {
                      «Сбросить» after them is a button, 8 from the chips. -->
                 <div class="sf-table-list-tags flex items-cross-center gap-1/3">
                     <div class="sf-table-chips flex items-cross-center gap-1/4">
-                    ${active.map(([k, tag]) => {
+                    ${active.map(([k, written]) => {
+                        // A date chip says its condition (C293 DF-4).
+                        const tag = {...written, label: context.component.filterChipText(k, written)};
                         const filterValue = filterValues?.[k] || {};
                         const count = Array.isArray(filterValue.values) ? filterValue.values.length : tag.count || '';
                         return html`
-                            <sf-tag kind="default" size=${context.controlSize ?? nothing} text='${context.component.filterChipText(k, tag)}' interactive closable :key=${k}
+                            <sf-tag kind="default" size=${context.controlSize ?? nothing} text='${tag.label}' interactive closable :key=${k}
                                     active count='${count}'
                                     @sf-tag-close="${() => context.component.removeFilterTag(k)}"
                                     @click=${(e) => context.component.openContextMenu(e, {type: 'bottom', menu: 'tag-settings', fieldKey: k, anchorSelector: '.sf-tag'})}
@@ -175,7 +177,9 @@ function renderToolbar(context) {
                 <!-- Chips are neighbours 4 apart (C105 H5, --sf-space-1/4); the
                      buttons around them keep the toolbar's 8. -->
                 <div class="sf-table-chips flex items-cross-center gap-1/4 flex-wrap min-w-0">
-                ${activeFilterTags.map(([k, tag]) => {
+                ${activeFilterTags.map(([k, written]) => {
+                    // A date chip says its condition (C293 DF-4).
+                    const tag = {...written, label: context.component.filterChipText(k, written)};
                     const filterValue = filterValues?.[k] || {};
                     const hasFilteredValues = Object.prototype.hasOwnProperty.call(
                             filterValues || {},
@@ -190,7 +194,7 @@ function renderToolbar(context) {
                             <sf-tag
                                     kind="default"
                                     size=${context.controlSize ?? nothing}
-                                    text='${context.component.filterChipText(k, tag)}'
+                                    text='${tag.label}'
                                     interactive
                                     closable
                                     :key=${k}
@@ -944,7 +948,7 @@ export function renderTableTemplate(context) {
         const name = component.getRowNameText(row);
         return html`<span class="sf-table-list-menu"><button type="button"
                 class=${`sf-icon-button sf-icon-button--size-${size} sf-icon-button--icon sf-icon-button--ghost sf-icon-button--on-surface flex items-cross-center`}
-                aria-label=${name ? `${component.text('rowActionsLabel')}: ${name}` : component.text('rowActionsLabel')}
+                aria-label=${name ? `${component.text('contextRowActionsLabel')}: ${name}` : component.text('contextRowActionsLabel')}
                 aria-haspopup="menu" data-sf-row-menu
                 @click=${(event) => {
                     event.stopPropagation();
@@ -1202,7 +1206,7 @@ export function renderTableTemplate(context) {
             const kinds = [];
             const marked = row.select?.component?.props?.checked === true;
             const values = [
-                marked ? '' : nothing,
+                row.select?.component?.props?.checked === true ? '' : nothing,
                 // The grid's selection, read by a screen reader (VT-4): every
                 // row of a selectable grid says whether it is marked.
                 selectable ? String(marked) : nothing,
@@ -1433,7 +1437,7 @@ export function renderTableTemplate(context) {
         const carriesHostComponent = typeof value === "object" && !Array.isArray(value)
             && Boolean(value.component?.type);
         if (!carriesHostComponent) {
-            const typed = context.component?.getTypedCellValue?.(column, value);
+            const typed = context.component?.cellValue?.(column, value);
             if (typed !== null && typeof typed !== "undefined") {
                 // Badges and tags from the renderer set wrap onto the next line,
                 // as the host's own values do: this branch drew them in one
@@ -1523,7 +1527,7 @@ export function renderTableTemplate(context) {
             if (index === labelAt) return html`<th scope="row" data-key=${column.key} style=${sticky}>${component.text(word)}</th>`;
             const value = column.total === true ? totals[side]?.[column.key] : undefined;
             if (value === undefined || value === null || value === '') return html`<td data-key=${column.key} style=${sticky}></td>`;
-            const typed = component.getTypedCellValue?.(column, value) ?? String(value);
+            const typed = component.cellValue?.(column, value) ?? String(value);
             return html`<td data-key=${column.key} data-sf-cell=${cellKind(component, column, columns)} style=${sticky}>${typeof typed === 'string' || typeof typed === 'number'
                 ? html`<span class="sf-table-cell-bare">${typed}</span>`
                 : renderCellItem(typed, component)}</td>`;
