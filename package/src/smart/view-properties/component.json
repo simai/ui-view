@@ -9,7 +9,7 @@
       "kind": "minor",
       "recorded_on": "2026-11-18",
       "consumer": "New settings edit, history, modal; events step, history; methods openHistory, editField, step; port intent record.history (capability record-history) with the adapter SfPropertyView.historyFromRevisions; a panel docks beside a list marked data-sf-drawer-dock-host from 64rem (modal=\"true\" keeps the scrim); closing over unsaved entries asks in the card first; seven public --sf-view-properties-* variables, --sf-property-view--sections-width a former name until 2027-01-01.",
-      "evidence": "https://github.com/simai/ui-view/tree/round/view-r2-card"
+      "evidence": "control/evidence/2026-11-18-view-r2-card/README.md"
     },
     {
       "version": "1.17.2",

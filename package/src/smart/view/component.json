@@ -9,7 +9,7 @@
       "kind": "minor",
       "recorded_on": "2026-11-18",
       "consumer": "New method recordBeside(id, direction): the id of the next or the previous record in the order the view shows, for a record card that steps through the list (sf-view-properties-step, C305 (4)); nothing to change for a host that does not step. 1.15.0 is the list head's step on its own branch.",
-      "evidence": "https://github.com/simai/ui-view/tree/round/view-r2-card"
+      "evidence": "control/evidence/2026-11-18-view-r2-card/README.md"
     },
     {
       "version": "1.14.0",

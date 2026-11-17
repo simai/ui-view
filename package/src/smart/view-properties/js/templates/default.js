@@ -402,7 +402,7 @@ function renderQuickValue(context, field, sectionKey, groupKey) {
             }}
             @sf-popover-close=${(event) => {
                 if (event.target !== event.currentTarget) return;
-                if (context.component.quick?.key === key) context.component.endQuick();
+                context.component.endQuick(key);
             }}>
         <button slot="trigger" type="button"
                 class="sf-property-view-field-value sf-property-view-field-open sf-property-view-quick-value min-w-0 text-start cursor-pointer"

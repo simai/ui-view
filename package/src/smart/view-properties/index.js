@@ -720,12 +720,11 @@ class SfPropertyView extends PropertyViewElement {
         return this.editMode === "group+quick" && this.mayEdit && !this.openAll && !this.configuring;
     }
 
-    // A short field: one control at its value. The field says so itself with
-    // quick (true or false); otherwise its type does. A list of several, a set
-    // type, a condition and a read-only field go through the group.
+    // A short field: one control at its value, by its type. A list of several,
+    // a set type, a condition and a read-only field go through the group. (A
+    // field's own say -- a port field key -- is ordered with the port edition.)
     isQuickField(field) {
         if (!field || field.readonly === true || field.when || field.multiple === true) return false;
-        if (field.quick === true || field.quick === false) return field.quick;
         const type = String(field.propertyType || field.type || "");
         if (!QUICK_TYPES.has(type) || drawsSetField(field)) return false;
         // A person picked from the host's pages needs the picker's host.
@@ -1826,8 +1825,8 @@ class SfPropertyView extends PropertyViewElement {
         return true;
     }
 
-    endQuick() {
-        if (!this.quick) return false;
+    endQuick(key = null) {
+        if (!this.quick || (key !== null && this.quick.key !== key)) return false;
         this.quick = null;
         this.changed.clear();
         this._clearInputs();
@@ -1902,7 +1901,7 @@ class SfPropertyView extends PropertyViewElement {
         const found = this.visible(current?.groups).find((entry) => String(entry.key) === String(group));
         if (!found || !this.formDraws(found)) return null;
         const fields = this.visible(found.fields, {conditions: false}).map((field) => {
-            const {value, quick, width, ...rest} = field;
+            const {value, width, ...rest} = field;
             return {...rest, key: String(field.key ?? "")};
         });
         const value = Object.fromEntries(this.visible(found.fields, {conditions: false})
