@@ -5528,6 +5528,9 @@ class SfTable extends TableElement {
         this._columnResizeDetach = attach(table, {
             handles: '.sf-table-column-resizer',
             session: (handle) => this.columnResizeSession(handle),
+            // The value a screen reader hears: the share of the way from the
+            // least width to the most, «27 %» (C158 (3)).
+            text: (share) => this.text('columnWidthValue').replace('{n}', String(share)),
         });
     }
 
@@ -5553,7 +5556,12 @@ class SfTable extends TableElement {
             measure: () => th.getBoundingClientRect().width,
             limits: () => {
                 const {minWidth, maxWidth} = this.getColumnResizeLimits(column, th.getBoundingClientRect().width);
-                return {min: minWidth, max: maxWidth};
+                // A column with no most width of its own goes as wide as the
+                // table's box: the share a screen reader hears runs from the
+                // least width to there (C158 (3)), and End is that width. With
+                // no end the share was 0 % at any width.
+                const box = this.refs.scroll?.value?.clientWidth ?? 0;
+                return {min: minWidth, max: Number.isFinite(maxWidth) ? maxWidth : Math.max(minWidth, box || minWidth)};
             },
             direction: () => (table && getComputedStyle(table).direction === 'rtl' ? -1 : 1),
             step: this.resolveCssLength(getComputedStyle(this).getPropertyValue('--sf-space-1'), 16),
@@ -5587,11 +5595,12 @@ class SfTable extends TableElement {
                 clear();
                 this.hideColumnResizeGuide();
             },
-            // Back to the width the column has by itself: its content's, or
-            // the one the host declared.
+            // A double click on the edge is the fit to content (C158 (5));
+            // «По умолчанию» in the head's menu is the width the column has
+            // by itself (resetColumnWidth).
             reset: () => {
                 clear();
-                this.resetColumnWidth(key);
+                this.fitColumnToContent(key);
             },
         };
     }
@@ -8202,7 +8211,188 @@ class SfTable extends TableElement {
         // sets a width with the pointer.
         const controls = [...row.querySelectorAll("a[href], button:not([disabled]), input:not([disabled]):not([type=hidden]), select:not([disabled]), textarea:not([disabled])")]
             .filter((element) => !element.closest(".sf-tooltip, [hidden]") && !element.matches("[data-sf-column-resizer]"));
+        // The head of a column whose width can be set and that has nothing to
+        // press (no sort) is a stop itself: the arrows reach it and Enter
+        // opens its width menu (C158 (5)).
+        const heads = row.parentElement?.tagName === "THEAD"
+            ? [...row.children].filter((cell) => this.headStopOf(cell) === cell)
+            : [];
+        if (heads.length) {
+            return [...controls, ...heads].sort((a, b) => (a.compareDocumentPosition(b) & 4 ? -1 : 1));
+        }
         return [...own, ...controls];
+    }
+
+    // ─── a column's width from the keyboard (owner decision C158 (5)) ───────
+    // The table stays one Tab stop (C146 (8)): the arrows walk the heads, and
+    // Enter on a head whose column has an edge -- Shift+F10, the menu key or
+    // the right button too -- opens «Изменить ширину · По содержимому · По
+    // умолчанию». «Изменить ширину» takes the focus to the edge, where the
+    // arrows set the width (SIMAI Framework SF.Resizer.attach, sf-resizer
+    // 1.3.0); Enter or Escape there go back to the head. A double click on the
+    // edge is the fit to content. Space on a sort button still sorts.
+
+    // The stop of a head: its sort button, or the head itself; null for a
+    // column without an edge (the system columns, the last column, a column
+    // marked resizable: false).
+    headStopOf(cell) {
+        if (!(cell instanceof Element) || cell.tagName !== "TH") return null;
+        if (!cell.querySelector("[data-sf-column-resizer]")) return null;
+        return cell.querySelector(".sf-table-sort-button") ?? cell;
+    }
+
+    // A plain table (no grid) keeps its sort buttons as its stops; a head with
+    // nothing to press is reached by the arrows from them, and is the head
+    // row's one stop when the row has no other.
+    syncHeadStops(table) {
+        const row = table?.tHead?.rows?.[0];
+        if (!row) return;
+        const heads = [...row.children].filter((cell) => this.headStopOf(cell) === cell);
+        for (const head of heads) if (head.getAttribute("aria-haspopup") !== "menu") head.setAttribute("aria-haspopup", "menu");
+        if (this.isGrid) return;
+        const others = this.gridControls(row).filter((element) => !heads.includes(element));
+        heads.forEach((head, index) => {
+            const value = index === 0 && !others.length ? "0" : "-1";
+            if (head.getAttribute("tabindex") !== value) head.setAttribute("tabindex", value);
+        });
+    }
+
+    // The head's keys go first, so Enter on a sort button opens the width
+    // menu rather than sorting; the right button on a head with an edge opens
+    // the same menu (the row menu's `for` asks only about rows).
+    bindHeadMenu(table, signal) {
+        table.addEventListener("keydown", (event) => this.handleHeadKeydown(event, table), {signal});
+        table.addEventListener("contextmenu", (event) => {
+            const cell = event.target instanceof Element ? event.target.closest("th") : null;
+            if (!cell || cell.parentElement?.parentElement !== table.tHead || !this.headStopOf(cell)) return;
+            event.preventDefault();
+            event.stopPropagation();
+            // Shift+F10 and the menu key opened it already.
+            if (Date.now() - (this._headMenuKeyAt ?? 0) < 500) return;
+            if (event.target.closest("[data-sf-column-resizer]")) return;
+            const point = event.button === 2 ? {x: event.clientX, y: event.clientY} : null;
+            this.openColumnMenu(cell, this.headStopOf(cell), point);
+        }, {signal});
+    }
+
+    handleHeadKeydown(event, table) {
+        if (event.defaultPrevented) return;
+        const target = event.target instanceof Element ? event.target : null;
+        const cell = target?.closest?.("th");
+        if (!cell || cell.parentElement?.parentElement !== table.tHead) return;
+        // On the edge: Enter and Escape go back to the head (the Framework's
+        // gesture leaves them to the table).
+        if (target.matches("[data-sf-column-resizer]")) {
+            if (event.key !== "Enter" && event.key !== "Escape") return;
+            const stop = this.headStopOf(cell);
+            if (!stop) return;
+            event.preventDefault();
+            event.stopPropagation();
+            this.focusHeadStop(stop);
+            return;
+        }
+        const stop = this.headStopOf(cell);
+        const onStop = stop && target === stop;
+        if (onStop && (event.key === "Enter" || event.key === "ContextMenu" || (event.shiftKey && event.key === "F10"))) {
+            event.preventDefault();
+            event.stopPropagation();
+            this._headMenuKeyAt = Date.now();
+            this.openColumnMenu(cell, stop);
+            return;
+        }
+        // A plain table walks its heads with the arrows as a grid does.
+        if (this.isGrid || (event.key !== "ArrowLeft" && event.key !== "ArrowRight")) return;
+        const stops = this.gridControls(cell.parentElement);
+        const at = stops.indexOf(target);
+        if (at < 0) return;
+        const forward = (event.key === "ArrowRight") !== this.isRightToLeft();
+        const next = stops[at + (forward ? 1 : -1)];
+        if (!next) return;
+        event.preventDefault();
+        this.focusHeadStop(next);
+    }
+
+    focusHeadStop(stop) {
+        if (this.isGrid) {
+            this._gridStop = stop;
+            this.syncGrid();
+        }
+        stop.focus({preventScroll: false});
+    }
+
+    async openColumnMenu(cell, anchor = cell, point = null) {
+        const key = cell?.dataset?.key;
+        const column = key ? this.getColumns().find((item) => String(item?.key) === key) : null;
+        if (!column) return null;
+        await globalThis.SF?.Loader?.ensure?.(["sf-menu-context"]);
+        await customElements.whenDefined?.("sf-menu-context");
+        const menu = this.columnMenu();
+        menu.setAttribute("size", this.menuSize);
+        followDensity(menu, this);
+        const label = column.label || column.key;
+        menu.setAttribute("aria-label", `${this.text("columnMenuLabel")}: ${label}`);
+        menu.entries = [
+            {id: "resize", text: this.text("columnWidthChangeText")},
+            {id: "fit", text: this.text("columnWidthFitText")},
+            {id: "default", text: this.text("columnWidthDefaultText")},
+        ];
+        this._columnMenuContext = {key, cell, anchor};
+        if (point) return menu.openAt?.(point.x, point.y);
+        return typeof menu.toggleFor === "function" ? menu.toggleFor(anchor, {align: "start"}) : menu.openFor?.(anchor, {align: "start"});
+    }
+
+    columnMenu() {
+        if (this._columnMenu?.isConnected) return this._columnMenu;
+        const menu = document.createElement("sf-menu-context");
+        menu.setAttribute("popup", "");
+        menu.dataset.sfTableMenu = "column";
+        menu.addEventListener("sf-menu-context-select", (event) => {
+            const context = this._columnMenuContext;
+            if (!context) return;
+            const id = event.detail?.id ?? event.detail?.entry?.id;
+            const stop = this.headStopOf(context.cell) ?? context.anchor;
+            menu.close?.();
+            if (id === "resize") {
+                const edge = context.cell.querySelector("[data-sf-column-resizer]");
+                // After the menu has given the focus back to its opener.
+                requestAnimationFrame(() => edge?.focus({preventScroll: true}));
+                return;
+            }
+            if (id === "fit") this.fitColumnToContent(context.key);
+            else if (id === "default") this.resetColumnWidth(context.key);
+            requestAnimationFrame(() => {
+                const cell = this.refs.table?.value?.querySelector(`thead th[data-key="${this.escapeColumnKey(context.key)}"]`);
+                const again = this.headStopOf(cell) ?? stop;
+                if (again?.isConnected) this.focusHeadStop(again);
+            });
+        });
+        (this.closest("dialog[open]") || document.body).append(menu);
+        this._columnMenu = menu;
+        return menu;
+    }
+
+    // «По содержимому»: the column as wide as its head and the values shown
+    // want on one line, up to the cap of a content width, read the way the
+    // table measures its content widths (sf-table-measuring: auto layout at
+    // max-content, for one read), and kept as the person's width.
+    fitColumnToContent(key) {
+        const table = this.refs.table?.value;
+        if (!(table instanceof HTMLTableElement) || !key) return this;
+        const column = this.getColumns().find((item) => String(item?.key) === String(key));
+        const th = table.querySelector(`thead th[data-key="${this.escapeColumnKey(key)}"]`);
+        if (!column || !th) return this;
+        let width = 0;
+        table.classList.add("sf-table-measuring");
+        try {
+            if (getComputedStyle(table).tableLayout === "auto") width = th.getBoundingClientRect().width;
+        } finally {
+            table.classList.remove("sf-table-measuring");
+        }
+        if (!width) return this;
+        const {minWidth, maxWidth} = this.getColumnResizeLimits(column, width);
+        const fitted = Math.min(Math.max(contentStep(width), minWidth), maxWidth, Math.max(minWidth, this.columnWidthCap()));
+        const frozen = this.freezeColumnsWidthForResize(table);
+        return this.applyColumnResizeWidths(key, fitted, frozen);
     }
 
     gridRows(table = this.refs.table?.value) {
@@ -8225,6 +8415,7 @@ class SfTable extends TableElement {
             if (grid) table.setAttribute("role", "grid");
             else if (table.getAttribute("role") === "grid") table.removeAttribute("role");
         }
+        this.syncHeadStops(table);
         if (!grid) return;
         const rows = this.gridRows(table);
         const stops = rows.flatMap((row) => this.gridControls(row));
@@ -8256,6 +8447,7 @@ class SfTable extends TableElement {
             this._gridStop = target;
             this.syncGrid();
         }, {signal});
+        this.bindHeadMenu(table, signal);
         table.addEventListener("keydown", (event) => this.handleGridKeydown(event, table), {signal});
         // A row's buttons come after the draw: the «Действия» buttons of the
         // row a person is on, and a Smart button's own <button>, which its

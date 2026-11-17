@@ -46,9 +46,15 @@
     "apply-text": "Применить",
     "clear-text": "Очистить",
     "close-text": "Закрыть",
+    "column-menu-label": "Ширина столбца",
     "column-move-label": "Переместить столбец",
+    "column-resize-label": "Изменить ширину столбца",
     "column-search-empty-text": "Поля не найдены",
     "column-search-placeholder": "Поиск по полям",
+    "column-width-change-text": "Изменить ширину",
+    "column-width-default-text": "По умолчанию",
+    "column-width-fit-text": "По содержимому",
+    "column-width-value": "{n} %",
     "context-create-options-label": "Варианты создания",
     "context-field-filter-label": "Настройка фильтра",
     "context-filter-settings-label": "Настройки фильтра",
@@ -104,6 +110,7 @@
     "search-placeholder": "Поиск",
     "select-all-label": "Выбрать все строки",
     "select-row-label": "Выбрать строку",
+    "selected-rows-heading": "Выбрано",
     "settings-column-label": "Настройки",
     "settings-fields-tab": "Поля",
     "settings-view-tab": "Вид",
@@ -135,7 +142,6 @@
     "view-reset": "Сбросить вид",
     "view-single-line": "Текст в одну строку",
     "view-sticky-head": "Закреплять фильтр и шапку",
-    "view-stripes": "Чередовать строки",
-    "selected-rows-heading": "Выбрано"
+    "view-stripes": "Чередовать строки"
   }
 }

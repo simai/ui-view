@@ -10,7 +10,7 @@
 ```html
 <sf-view aria-label="Документы">
   <sf-view-table slot="content" aria-label="Документы" toolbar="false"></sf-view-table>
-  <sf-pagination slot="pagination" top="false" bottom="false"></sf-pagination>
+  <sf-pagination slot="pagination" appearance="field" top="false" bottom="false"></sf-pagination>
 </sf-view>
 ```
 
@@ -125,9 +125,26 @@ payload}`, стандарт §4.9), или из `capabilities` рядом с о�
       "columns": [{"key": "title", "label": "Название"}]}}
   </script>
   <sf-view-table slot="content" aria-label="Каталог"></sf-view-table>
-  <sf-pagination slot="pagination" page-size="20"></sf-pagination>
+  <sf-pagination slot="pagination" appearance="field" page-size="20"></sf-pagination>
 </sf-view>
 ```
+
+## Низ списка (с версии 1.13.0)
+
+Низ списка — одна строка: «41–60 из 240 · По 20 ▾ · ‹ [3] из 12 ›». Диапазон
+и размер страницы рисует само представление, переход по страницам —
+`sf-pagination` в виде `appearance="field"`. Кнопки на краях гаснут, а не
+пропадают, поэтому ширина строки не меняется, пока человек листает. Размер
+страницы — тихая кнопка «По 20 ▾» с меню; выбранный размер человек сохраняет,
+как и сортировку. Если хост умеет считать по запросу, а число неточное или
+неизвестно, после диапазона стоит «посчитать». На узком экране поле страниц
+переносится на свою строку и стоит в её конце.
+
+Строка страниц без `appearance`, которую дала страница, получает
+`appearance="field"`: прежний вид без `appearance` (совместимый низ
+`sf-pagination`) снимается 2027-01-01. Состояние по-прежнему хранит строка
+страниц: `page-sizes`, слова (`page-size-label`, `show-count-label`) и
+события `sf-pagination-change` и `sf-pagination-count` работают как раньше.
 
 ## Список ресурсов (с версии 1.11.0)
 

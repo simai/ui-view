@@ -18,6 +18,9 @@ SF.RuleLoader['cl-view'] = {
     { name: 'cl-checkbox' },
     { name: 'cl-dropdown' },
     { name: 'cl-button-icon' },
+    // C97 (5): the footer's page-size menu is the view's own (it was sf-pagination's compatible footer's); sf-spinner is the wait while the host counts.
+    { name: 'cl-menu-context' },
+    { name: 'cl-spinner' },
     // The utility classes its templates write, asked for with the component (SIMAI Framework loader: a Framework component gets them from template-utilities.generated.json, a package component names them here); fetched after the first paint, they moved the drawn parts -- the bulk band's gap came 0 -> 8 and the band 8 px down some 150 ms in (View 1.8.1 acceptance, queue #172). The list is scripts/generate-template-utilities.mjs run over the overlay.
     { name: 'align-items/default' },
     { name: 'display/default' },

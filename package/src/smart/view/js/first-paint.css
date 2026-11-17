@@ -263,24 +263,100 @@
   .sf-data-view-skeleton-list > div > div > .sf-skeleton-text:first-child { inline-size: 60%; }
   .sf-data-view-skeleton-list > div > div > .sf-skeleton-text:nth-child(even) { inline-size: 75%; }
 
-  /* The page row's words: as long as the words they stand for. */
-  .sf-data-view-skeleton nav .sf-skeleton-text:not([data-control]) {
-    inline-size: 5em;
+  /* The footer (C97 (5)), laid out as the live one (the view's shadow part
+     footer): one row as tall as the ladder says -- the control of the step,
+     --sf-space-1 above and below it and the line under it -- the range at
+     the start, the page-size button, the page field last; where they do not
+     fit, the page field takes a line of its own and still ends there. */
+  .sf-data-view-skeleton-footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--sf-space-1);
+    box-sizing: border-box;
+    min-block-size: calc(2 * var(--sf-space-1) + var(--sf-data-view-skeleton--control) + var(--sf-px));
+    padding-block: var(--sf-space-1);
+    border-block-end: var(--sf-px) solid var(--sf-outline-variant);
   }
 
-  /* The page row's field with «из N» after it (sf-pagination 1.5: the field
-     of one digit and the words, 2.5 controls) and the page-size button (2.75
-     controls), with the pagination's gap between the controls of its pages. */
-  .sf-data-view-skeleton nav .sf-pagination-container {
+  .sf-data-view-skeleton-footer-start {
+    display: flex;
+    flex: 1 1 auto;
+    align-items: center;
+    gap: var(--sf-space-1);
+    min-inline-size: 0;
+  }
+
+  /* The range: as long as the words it stands for. */
+  .sf-data-view-skeleton-footer-start > span {
+    flex: 1 1 auto;
+    min-inline-size: 0;
+  }
+
+  .sf-data-view-skeleton-footer-start > span > .sf-skeleton-text {
+    inline-size: 6em;
+  }
+
+  /* The page row: first, previous, the field of one digit with «из N» (2.5
+     controls), next, last, with the pagination's gap between them. */
+  .sf-data-view-skeleton-footer-pages {
+    display: flex;
+    align-items: center;
     gap: var(--sf-pagination-gap, var(--sf-space-1\/3));
+    margin-inline-start: auto;
   }
 
-  .sf-data-view-skeleton nav .sf-skeleton-text[data-control="page"] {
+  .sf-data-view-skeleton-footer .sf-skeleton-text[data-control="page"] {
     inline-size: calc(var(--sf-data-view-skeleton--control) * 2.5);
   }
 
-  .sf-data-view-skeleton nav .sf-skeleton-text[data-control="size"] {
+  /* The page-size button «По 20 ▾» (2.75 controls). */
+  .sf-data-view-skeleton-footer .sf-skeleton-text[data-control="size"] {
     inline-size: calc(var(--sf-data-view-skeleton--control) * 2.75);
+  }
+
+  /* The live footer's start (slot footer of the view): the range, the offer
+     to count, then the page-size button at its end, beside the page row. */
+  :is(sf-view, sf-data-view) > .sf-view-footer-start {
+    display: flex;
+    align-items: center;
+    gap: var(--sf-space-1);
+    min-inline-size: 0;
+  }
+
+  :is(sf-view, sf-data-view) > .sf-view-footer-start > .sf-view-footer-total {
+    display: flex;
+    flex: 1 1 auto;
+    align-items: center;
+    gap: var(--sf-space-1\/3);
+    min-inline-size: 0;
+  }
+
+  /* The range: the step's text in the quiet ink, figures of one width so the
+     number does not move its neighbours while a person pages. */
+  :is(sf-view, sf-data-view) > .sf-view-footer-start .sf-view-footer-range {
+    color: var(--sf-on-surface-variant);
+    font-family: var(--sf-text--family);
+    font-size: var(--sf-text-size-1);
+    line-height: var(--sf-text-height-1);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  :is(sf-view, sf-data-view)[size="1/2"] > .sf-view-footer-start .sf-view-footer-range {
+    font-size: var(--sf-text-size-1\/2);
+    line-height: var(--sf-text-height-1\/2);
+  }
+
+  :is(sf-view, sf-data-view) > .sf-view-footer-start [hidden] {
+    display: none;
+  }
+
+  /* The page row ends the footer, on its own line too where it wraps
+     (sf-pagination's host is display: contents: its nav is the footer's
+     item). */
+  :is(sf-view, sf-data-view) > sf-pagination[slot="pagination"] > nav {
+    margin-inline-start: auto;
   }
 
   .sf-data-view-skeleton[data-layout="list"] .sf-data-view-skeleton-table {

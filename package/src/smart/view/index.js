@@ -349,6 +349,31 @@ class SfDataView extends DataViewElement {
                or where the view drew it, and the layout stands back. */
             :host([data-sf-awaiting]) [part="layout"] { display: none; }
             :host(:not([data-sf-awaiting])) slot[name="first-paint"] { display: none; }
+            /* The list's footer (C97 (5)): «41–60 из 240 · По 20 ▾ · ‹ [3] из 12 ›»
+               in one row, as tall as the size ladder says -- the control height
+               of the step, the row's padding above and below it and the line
+               under it, the same sum sf-pagination publishes as
+               --sf-pagination-block-size-<step>. The range and the page size
+               (slot footer) take the room at the start, the page field stands
+               last; where the two do not fit, the page field wraps to a line
+               of its own and still ends there. */
+            [part="footer"] {
+              --sf-view--footer-control-height: var(--sf-ui-1--control-height);
+              display: flex;
+              flex-wrap: wrap;
+              align-items: center;
+              gap: var(--sf-space-1);
+              box-sizing: border-box;
+              min-block-size: calc(2 * var(--sf-space-1) + var(--sf-view--footer-control-height) + var(--sf-px));
+              padding-block: var(--sf-space-1);
+              border-block-end: var(--sf-px) solid var(--sf-outline-variant);
+            }
+            :host([size="1/2"]) [part="footer"] { --sf-view--footer-control-height: var(--sf-ui-1\\/2--control-height); }
+            /* A footer with no page row in it (the page row hidden: a tree, a
+               failed or refused list) draws nothing, not an empty line. */
+            [part="footer"]:has(> slot[name="pagination"][hidden]) { display: none; }
+            slot[name="footer"]::slotted(*) { flex: 1 1 auto; min-inline-size: 0; }
+            slot[name="pagination"]::slotted(*) { margin-inline-start: auto; }
           </style>
           <slot name="first-paint"></slot>
           <section part="layout" style="position: relative">
@@ -372,7 +397,7 @@ class SfDataView extends DataViewElement {
             <div part="drop" hidden></div>
             <slot name="content"><sf-view-table toolbar="false"></sf-view-table></slot>
             <slot name="show-all"></slot>
-            <slot name="pagination"><sf-pagination top="false" bottom="false"></sf-pagination></slot>
+            <div part="footer"><slot name="footer"></slot><slot name="pagination"><sf-pagination appearance="field" top="false" bottom="false"></sf-pagination></slot></div>
             <slot name="bulk"></slot>
             <slot name="notice"></slot>
             <slot name="dialog"></slot>
@@ -568,6 +593,155 @@ class SfDataView extends DataViewElement {
             ?? slot.querySelector("sf-pagination");
     }
 
+    // ---------- the footer (owner decision C97 (5)) ----------
+    // One row: «41–60 из 240 · По 20 ▾ · ‹ [3] из 12 ›». The range and the page
+    // size are the view's own; the page row is sf-pagination with an explicit
+    // appearance, field, which draws the navigation only. Without an
+    // appearance sf-pagination drew all three as its compatible footer, which
+    // retires on 2027-01-01 (ui-source change journal
+    // value-pagination-footer-parts-to-view). The state stays the page row's:
+    // the view writes it there (setState) as it always did and reads it back
+    // here, so a page that set page-sizes, total-label or its own words on the
+    // page row keeps them, and the words are sf-pagination's (range,
+    // range-many, page-size-text: one language file for the row).
+
+    // The page row in the field appearance. A row the page gave without one is
+    // given it (C97 handoff 1); an appearance the page chose is kept.
+    _paginationAppearance(pagination = this.pagination) {
+        if (!pagination?.setAttribute || pagination.hasAttribute?.("appearance")) return;
+        pagination.setAttribute("appearance", "field");
+        pagination.setAttribute("data-sf-view-appearance", "");
+    }
+
+    // The start of the footer: the range (and the offer to count), then the
+    // page size. In the light DOM, slotted, so the Framework's styles reach
+    // the buttons and the menu (the band of bulk controls is placed so too).
+    get footerStart() {
+        if (this._footerStart?.isConnected) return this._footerStart;
+        const existing = this.querySelector(':scope > [slot="footer"][data-sf-view-made]');
+        const start = existing ?? document.createElement("div");
+        start.setAttribute("slot", "footer");
+        start.setAttribute("data-sf-view-made", "");
+        start.classList.add("sf-view-footer-start");
+        if (!start.querySelector("[data-sf-footer]")) {
+            start.innerHTML = '<span class="sf-view-footer-total" data-sf-footer="total">'
+                + '<span class="sf-view-footer-range" data-sf-footer="range" role="status"></span>'
+                + '<sf-button class="sf-view-footer-count" data-sf-footer="count" appearance="ghost" scheme="primary" hidden></sf-button>'
+                + '<sf-spinner data-sf-footer="counting" hidden></sf-spinner></span>'
+                + '<sf-button class="sf-view-footer-size" data-sf-footer="size" appearance="ghost" scheme="on-surface" icon-end="arrow_drop_down" aria-haspopup="menu"></sf-button>'
+                + '<sf-menu-context class="sf-view-footer-size-menu" data-sf-footer="size-menu" popup></sf-menu-context>';
+            start.querySelector('[data-sf-footer="count"]').addEventListener("click", () => this.pagination?.requestCount?.("total"));
+            start.querySelector('[data-sf-footer="size"]').addEventListener("click", (event) => this._togglePageSizeMenu(event.currentTarget));
+            start.querySelector('[data-sf-footer="size-menu"]').addEventListener("sf-menu-context-select", (event) => {
+                event.currentTarget?.close?.();
+                this._setPageSize(event.detail?.id ?? event.detail?.entry?.id);
+            });
+        }
+        if (!start.isConnected) this.append(start);
+        this._footerStart = start;
+        return start;
+    }
+
+    // The page row's attributes are its state: whatever writes them -- this
+    // view's projection, a count, the person paging -- the footer is drawn
+    // again, once per task.
+    _watchPagination() {
+        const pagination = this.pagination;
+        if (!pagination || this._watchedPagination === pagination || typeof MutationObserver === "undefined") return;
+        this._paginationObserver?.disconnect();
+        this._watchedPagination = pagination;
+        this._paginationObserver = new MutationObserver(() => this._queueFooter());
+        this._paginationObserver.observe(pagination, {attributes: true});
+        if (!globalThis.customElements?.get?.("sf-pagination")) {
+            globalThis.customElements?.whenDefined?.("sf-pagination")?.then?.(() => this._queueFooter());
+        }
+    }
+
+    _queueFooter() {
+        if (this._footerQueued) return;
+        this._footerQueued = true;
+        Promise.resolve().then(() => {
+            this._footerQueued = false;
+            if (this.isConnected) this._drawFooter();
+        });
+    }
+
+    _drawFooter() {
+        const pagination = this.pagination;
+        // Drawn from the page row's own reading of its state, so not before
+        // the row is an sf-pagination (its module may still be on the way).
+        if (!pagination || typeof pagination.setState !== "function" || typeof pagination.requestCount !== "function"
+            || !this.renders("pagination")) return;
+        const start = this.footerStart;
+        const part = (name) => start.querySelector(`[data-sf-footer="${name}"]`);
+        const size = this.controlSize;
+        const sized = (element) => {
+            if (!element) return;
+            if (size) element.setAttribute("size", size);
+            else element.removeAttribute("size");
+        };
+        const write = (element, name, value) => {
+            if (element && element.getAttribute(name) !== value) element.setAttribute(name, value);
+        };
+        const range = part("range");
+        const text = pagination.rangeText ?? "";
+        if (range && range.textContent !== text) range.textContent = text;
+        // «41–60 из ~450» or «из многих»: the offer to count, where the host
+        // counts on request, and a short wait while it does (as the
+        // compatible footer offered it).
+        const exact = pagination.countKnown !== false && pagination.totalExact !== false;
+        const counting = Boolean(pagination.counting);
+        const count = part("count");
+        sized(count);
+        write(count, "text", pagination.showCountLabel ?? "");
+        if (count) count.hidden = exact || counting || !pagination.canCount;
+        const spinner = part("counting");
+        sized(spinner);
+        write(spinner, "aria-label", pagination.countingLabel ?? "");
+        if (spinner) spinner.hidden = exact || !counting;
+        // The page size: a quiet button «По 20 ▾» that opens a menu of the
+        // sizes offered (C97 (3)); named «На странице: 20».
+        const pageSize = pagination.pageSize;
+        const hasPages = pagination.countKnown === false || Number(pagination.total) > 0;
+        const button = part("size");
+        sized(button);
+        write(button, "text", pagination.sfWord?.("page-size-text", {vars: {size: pageSize}}) ?? String(pageSize));
+        write(button, "aria-label", `${pagination.pageSizeLabel ?? ""} ${pageSize}`.trim());
+        if (button) button.hidden = pagination.showPageSize === false || !hasPages;
+        const menu = part("size-menu");
+        sized(menu);
+        write(menu, "aria-label", pagination.pageSizeLabel ?? "");
+    }
+
+    _togglePageSizeMenu(button) {
+        const pagination = this.pagination;
+        const menu = this.footerStart.querySelector('[data-sf-footer="size-menu"]');
+        if (!pagination || !menu) return;
+        const sizes = Array.isArray(pagination.pageSizes) ? pagination.pageSizes : [];
+        menu.entries = sizes.map((size) => ({
+            id: String(size),
+            text: pagination.sfWord?.("page-size-text", {vars: {size}}) ?? String(size),
+            kind: "radio",
+            checked: size === pagination.pageSize,
+        }));
+        // sf-button's host is display: contents: the menu is placed against
+        // the button it draws.
+        const anchor = button?.querySelector?.("button") ?? button;
+        if (typeof menu.toggleFor === "function") menu.toggleFor(anchor, {align: "end", width: "content"});
+        else menu.openFor?.(anchor, {align: "end"});
+    }
+
+    // Another page size reads the list from its first page; the person keeps
+    // it (SF.Preferences, as the sort). The row shows the size at once.
+    _setPageSize(value) {
+        const size = Math.trunc(Number(value));
+        if (!Number.isInteger(size) || size <= 0) return undefined;
+        if (size === Number(this.query.per_page) && this.pagination?.pageSize === size) return undefined;
+        this.pagination?.setState?.({pageSize: size, current: 1});
+        this._keepPreference({pageSize: size});
+        return this.changeQuery({per_page: size, page: 1}, "page-size-change");
+    }
+
     // Files from the computer dropped on the view (accept-files, owner
     // 2026-10-15, the file manager) are the host's to upload: the view says
     // so with sf-data-view-files-drop {files}. They do not go through the
@@ -617,6 +791,7 @@ class SfDataView extends DataViewElement {
         if (!this.querySelector(':scope > [slot="pagination"]')) {
             const pagination = document.createElement("sf-pagination");
             pagination.slot = "pagination";
+            pagination.setAttribute("appearance", "field");
             pagination.setAttribute("top", "false");
             pagination.setAttribute("bottom", "false");
             pagination.toggleAttribute("data-sf-view-made", true);
@@ -953,17 +1128,15 @@ class SfDataView extends DataViewElement {
         // The head is a row like the others (sf-view-table 1.17.1).
         const row = () => `<div>${select ? `<span data-chrome>${bar}</span>` : ""}${settings ? `<span data-chrome>${control()}</span>` : ""}${`<span>${bar}</span>`.repeat(columns)}</div>`;
         const record = `<div>${select ? bar : "<span></span>"}<div>${bar.repeat(fields + 1)}</div>${settings ? control() : "<span></span>"}</div>`;
-        // The page row as sf-pagination 1.5 draws its compatible footer (C97):
-        // the range, then the arrows to the first and the previous page, the
-        // page field with «из N», the arrows to the next and the last, and the
-        // page-size button. The markup keeps the 1.4 order (range, pages,
-        // size); the pagination sheet puts the pages last and, on a narrow
-        // page, on a line of their own, so the skeleton wraps where the row does.
-        const pageRow = `<nav class="sf-pagination sf-pagination--size-${this.size} sf-pagination--footer flex flex-col"><div class="sf-pagination-main flex items-cross-center content-main-between">`
-            + `<div class="sf-pagination-left flex items-cross-center">${bar}</div>`
-            + `<div class="sf-pagination-container flex items-cross-center">${control()}${control()}${control("page")}${control()}${control()}</div>`
-            + `<div class="sf-pagination-count flex items-cross-center">${control("size")}</div>`
-            + "</div></nav>";
+        // The footer as the view draws it (C97 (5)): the range at the start,
+        // the page-size button, and the page row in the field appearance --
+        // the arrows to the first and the previous page, the page field with
+        // «из N», the arrows to the next and the last. The view's sheet lays
+        // it out as the live row is laid out, so it wraps where the row does.
+        const pageRow = `<div class="sf-data-view-skeleton-footer" data-size="${this.size}">`
+            + `<div class="sf-data-view-skeleton-footer-start"><span>${bar}</span>${control("size")}</div>`
+            + `<div class="sf-data-view-skeleton-footer-pages">${control()}${control()}${control("page")}${control()}${control()}</div>`
+            + "</div>";
         return [
             // An own toolbar slot is a row of the view's layout, even empty.
             ownToolbar ? '<div class="sf-data-view-skeleton-own-toolbar"></div>' : "",
@@ -2048,6 +2221,9 @@ class SfDataView extends DataViewElement {
         if (savedViews) {
             savedViews.hidden = !this.knownCapability("saved-views");
         }
+        this._paginationAppearance();
+        this._watchPagination();
+        this._queueFooter();
         this.pagination?.setState?.({showMoreBusy: false});
         // The page row no longer carries the band: the card does, so the strip
         // can hold the bottom of the window without the row coming along. The

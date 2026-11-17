@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view",
-  "version": "1.12.5",
+  "version": "1.13.0",
   "title": "Data view",
   "summary": "Host-driven data view that composes toolbar, content and pagination around a separate data port.",
   "kind": "composite",
@@ -34,7 +34,9 @@
       "smart.button-icon",
       "smart.checkbox",
       "smart.dropdown",
+      "smart.menu-context",
       "smart.pagination",
+      "smart.spinner",
       "smart.toast",
       "smart.view-table"
     ],
@@ -1684,6 +1686,13 @@
         "changes": [
           "#172: the utility classes its templates write are its relations, asked for with the component; fetched after the first paint they moved the drawn parts (the bulk band 0 -> 8 gap, 8 px down)"
         ]
+      },
+      {
+        "from": "1.12.5",
+        "to": "1.13.0",
+        "changes": [
+          "C97 (5): the footer is the view's own, one row «41–60 из 240 · По 20 ▾ · ‹ [3] из 12 ›» -- the range (with the offer to count) and the page size as a quiet button «По 20 ▾» with a menu drawn by the view (slot footer, light DOM), the page row sf-pagination appearance=field, navigation only; a page row given without appearance gets field. It no longer relies on sf-pagination's compatible footer (no appearance), which retires on 2027-01-01. The state stays the page row's (setState, page-sizes, its words); the first paint draws the same row. Nothing to change for a host."
+        ]
       }
     ]
   },
@@ -1693,7 +1702,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view/index.js",
-        "sha256": "c672f1bb0368d175e18c59f1aec88f93e6d8b247a1fc0cbcc85fb43c99e47c99"
+        "sha256": "dff3207f3429285d3368375d8d2f4b3599b059ed8953190dcef0ad375ff36b7f"
       },
       {
         "path": "src/core/contracts/ports/simai.dataview-port/1.5.0/port.json",
@@ -1701,7 +1710,7 @@
       },
       {
         "path": "src/smart/view/docs.md",
-        "sha256": "1c058c935304931289818d25a17e15eb3782cb487d4da68f221a0a0daa44373d"
+        "sha256": "c167daccdb45700e1d094e992c62e475f6c518730a98df5f7a2438894729316c"
       },
       {
         "path": "tests/fixtures/data-view-composite-lab.html",
@@ -1713,7 +1722,7 @@
       },
       {
         "path": "src/smart/view/js/first-paint.css",
-        "sha256": "0ba9d9ce5c62c5c313bce2f78b0493e59e4b9af9770bee0e1722e9ef8fc1e7a1"
+        "sha256": "720e3b20863a421249c326aa4ffa0d930aea41112488ef18bdf3cad964a11374"
       }
     ],
     "generated_runtime": []

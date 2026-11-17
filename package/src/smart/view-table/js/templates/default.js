@@ -432,8 +432,9 @@ function renderHead(context) {
                                          still a button with its name and its
                                          arrows. It is no Tab stop of its own
                                          (owner decision C146 (8), the resizer
-                                         study RS-10): the table is one stop,
-                                         and a width is set by the pointer. -->
+                                         study RS-10): the table is one stop;
+                                         the keyboard reaches it from the head's
+                                         menu, «Изменить ширину» (C158 (5)). -->
                                     <button type="button"
                                             tabindex="-1"
                                             role="separator"
@@ -441,8 +442,8 @@ function renderHead(context) {
                                             class="sf-table-column-resizer"
                                             id=${context.component.getColumnResizerId(column.key)}
                                             data-sf-column-resizer=${column.key}
-                                            aria-label="Изменить ширину столбца: ${column.label || column.key}"
-                                            aria-keyshortcuts="ArrowLeft ArrowRight Home End Enter"
+                                            aria-label="${context.component.text('columnResizeLabel')}: ${column.label || column.key}"
+                                            aria-keyshortcuts="ArrowLeft ArrowRight Home End Enter Escape"
                                     ></button>
                                 </div>`}
                             </th>`

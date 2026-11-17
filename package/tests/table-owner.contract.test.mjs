@@ -53,7 +53,7 @@ test('Smart Table exposes keyboard column resizing without literal design dimens
   // The column edges are the Framework's resize gesture since 2026-10-14
   // (SF.Resizer.attach): arrows, Home and End, Enter to reset, and a double
   // click; the edge is a focusable separator.
-  assert.match(template, /aria-keyshortcuts="ArrowLeft ArrowRight Home End Enter"/);
+  assert.match(template, /aria-keyshortcuts="ArrowLeft ArrowRight Home End Enter Escape"/);
   assert.match(template, /role="separator"/);
   assert.match(table, /this\._columnResizeDetach = attach\(table, \{\s*handles: '\.sf-table-column-resizer',/u);
   assert.match(table, /import \{ref\} from "lit\/directives\/ref\.js"/);

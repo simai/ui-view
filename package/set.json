@@ -33,7 +33,9 @@
         "cl-button-icon",
         "cl-checkbox",
         "cl-dropdown",
+        "cl-menu-context",
         "cl-pagination",
+        "cl-spinner",
         "cl-toast",
         "cl-view-table"
       ],

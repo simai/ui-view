@@ -2,7 +2,7 @@
   "$comment": "sf-data-view from its component.json (standard simai.smart-component 1.3.8, vocabulary 1.1.5), migrated from ui-control control/smart-architecture/migration/out/data-view; every x-todo decided in x-decisions.",
   "id": "smart.view",
   "tag": "sf-view",
-  "version": "1.12.5",
+  "version": "1.13.0",
   "kind": "leaf",
   "family": "table",
   "settings": {
@@ -891,6 +891,15 @@
       "name": "cl-button-icon"
     },
     {
+      "name": "cl-menu-context",
+      "$comment": [
+        "C97 (5): the footer's page-size menu is the view's own (it was sf-pagination's compatible footer's); sf-spinner is the wait while the host counts."
+      ]
+    },
+    {
+      "name": "cl-spinner"
+    },
+    {
       "name": "align-items/default",
       "$comment": [
         "The utility classes its templates write, asked for with the component (SIMAI Framework loader: a Framework component gets them from template-utilities.generated.json, a package component names them here); fetched after the first paint, they moved the drawn parts -- the bulk band's gap came 0 -> 8 and the band 8 px down some 150 ms in (View 1.8.1 acceptance, queue #172). The list is scripts/generate-template-utilities.mjs run over the overlay."
@@ -1582,6 +1591,13 @@
           "to": "1.12.5",
           "changes": [
             "#172: the utility classes its templates write are its relations, asked for with the component; fetched after the first paint they moved the drawn parts (the bulk band 0 -> 8 gap, 8 px down)"
+          ]
+        },
+        {
+          "from": "1.12.5",
+          "to": "1.13.0",
+          "changes": [
+            "C97 (5): the footer is the view's own, one row «41–60 из 240 · По 20 ▾ · ‹ [3] из 12 ›» -- the range (with the offer to count) and the page size as a quiet button «По 20 ▾» with a menu drawn by the view (slot footer, light DOM), the page row sf-pagination appearance=field, navigation only; a page row given without appearance gets field. It no longer relies on sf-pagination's compatible footer (no appearance), which retires on 2027-01-01. The state stays the page row's (setState, page-sizes, its words); the first paint draws the same row. Nothing to change for a host."
           ]
         }
       ]

@@ -46,9 +46,15 @@
     "apply-text": "Apply",
     "clear-text": "Clear",
     "close-text": "Close",
+    "column-menu-label": "Column width",
     "column-move-label": "Move the column",
+    "column-resize-label": "Resize the column",
     "column-search-empty-text": "No field matches",
     "column-search-placeholder": "Search the fields",
+    "column-width-change-text": "Change the width",
+    "column-width-default-text": "Default width",
+    "column-width-fit-text": "Fit to content",
+    "column-width-value": "{n}%",
     "context-create-options-label": "Ways to create",
     "context-field-filter-label": "Filtering by",
     "context-filter-settings-label": "Filter settings",
@@ -104,6 +110,7 @@
     "search-placeholder": "Search",
     "select-all-label": "Select every row",
     "select-row-label": "Select the row",
+    "selected-rows-heading": "Selected",
     "settings-column-label": "Settings",
     "settings-fields-tab": "Fields",
     "settings-view-tab": "View",
@@ -135,7 +142,6 @@
     "view-reset": "Reset the view",
     "view-single-line": "Text on one line",
     "view-sticky-head": "Keep the filter and the head in view",
-    "view-stripes": "Alternate rows",
-    "selected-rows-heading": "Selected"
+    "view-stripes": "Alternate rows"
   }
 }
