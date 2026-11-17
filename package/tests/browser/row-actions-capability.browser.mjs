@@ -80,7 +80,8 @@ const measure = async (capabilities) => {
     return {
       columns: [...document.querySelectorAll('#list thead th')].map((th) => th.dataset.key),
       rowMenus: row.querySelectorAll('[data-sf-row-menu] button, button[data-sf-row-menu]').length,
-      nameLink: Boolean(row.querySelector('td a[href]')),
+      // A record without an address opens from a title button (C296 VT-9).
+      nameLink: Boolean(row.querySelector('td a[href], td button.sf-table-title-link')),
     };
   });
   await page.close();

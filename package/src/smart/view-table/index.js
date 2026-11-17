@@ -7848,6 +7848,8 @@ class SfTable extends TableElement {
         this.stopContextMenuPositions();
         render(null, this.getPortalContainer());
         this.hidePortal();
+        // The column window's host empties with the window (VT-12).
+        if (this._settingsHost?.isConnected) render(null, this._settingsHost);
         if (this.refs.contextMenu) {
             this.refs.contextMenu.value = null;
         }
@@ -8759,7 +8761,8 @@ class SfTable extends TableElement {
             else if (table.getAttribute("role") === "grid") table.removeAttribute("role");
         }
         // Several rows may be marked (VT-4): said on the grid, not on a plain table.
-        const many = grid && this.getColumns().some((column) => column?.key === "select");
+        // Read from the drawn head: no column setting is asked outside a draw.
+        const many = grid && Boolean(table.querySelector(':scope > thead th[data-key="select"]'));
         if (many) table.setAttribute("aria-multiselectable", "true");
         else table.removeAttribute("aria-multiselectable");
         this.syncHeadStops(table);

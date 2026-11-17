@@ -144,10 +144,10 @@ try {
     };
   });
   if (strip.icons !== 0 || strip.tag !== 'BUTTON' || strip.cursor !== 'col-resize'
-      || strip.width < 8 || strip.width > 12 || Math.abs(strip.offEdge) > 1
+      || strip.width < 22 || strip.width > 26 || Math.abs(strip.offEdge) > 1
       // The keys of the Framework's resize gesture since 2026-10-14.
       || !strip.label?.startsWith('Изменить ширину столбца') || strip.keys !== 'ArrowLeft ArrowRight Home End Enter Escape') {
-    note({case: 'resize strip', got: strip, expected: 'no handle; a strip of 8-12px on the edge, named, with the arrows'});
+    note({case: 'resize strip', got: strip, expected: 'no handle; a 24px zone on the edge, named, with the arrows (C158 (1), C296 VT-10)'});
   }
 
   // 3. The line shows while the pointer is on the strip, and follows the edge
