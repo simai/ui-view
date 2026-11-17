@@ -5,6 +5,13 @@
   "version": "1.1.6",
   "x-history": [
     {
+      "version": "1.1.6",
+      "kind": "patch",
+      "recorded_on": "2026-11-17",
+      "consumer": "Nothing to change for a host: only the SIMAI Framework file it builds in moved with the repin.",
+      "evidence": "https://github.com/simai/ui-view/commit/72efdf758ad42334369aa418dc0e1b149f457fd9"
+    },
+    {
       "version": "1.1.5",
       "kind": "patch",
       "recorded_on": "2026-11-17",
