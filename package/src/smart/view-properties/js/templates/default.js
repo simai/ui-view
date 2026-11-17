@@ -169,7 +169,7 @@ function renderFieldSettings(context, field, key) {
                                 <span class="sf-property-view-settings-label color-on-surface-variant">${context.variantText}</span>
                                 <sf-dropdown
                                         size="1/2"
-                                        appearance="outlined"
+                                        appearance="bordered"
                                         mode="select"
                                         search="false"
                                         data-action="variant"

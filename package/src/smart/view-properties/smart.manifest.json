@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-properties",
-  "version": "1.16.8",
+  "version": "1.16.9",
   "title": "Property view",
   "summary": "One object's fields shown as sections, groups and fields, each drawn by the per-type field renderer set, behind a separate host port. A group is edited and saved as one revision by the button, and a reference field is picked from the host's own candidates a page at a time. The pair to the data view: that one is a set of records, this one is a single object.",
   "kind": "composite",
@@ -1694,6 +1694,13 @@
         "changes": [
           "The not-placed bin's count is a grey tonal sf-badge (C140 (3); accordion AC-3, tags TG-5), not an sf-tag in the retired appearance surface."
         ]
+      },
+      {
+        "from": "1.16.8",
+        "to": "1.16.9",
+        "changes": [
+          "Over SIMAI Framework ui-24d64b7f6eb7 (ui-source 40541c0c4fba): the money field's currency choice and the settings' variant choice ask sf-dropdown for appearance=\"bordered\", the field look's current name (sf-dropdown 1.18.1, FM-9); \"outlined\" is its dated former name until 2027-01-01. The same look; nothing to change for a host."
+        ]
       }
     ]
   },
@@ -1707,7 +1714,7 @@
       },
       {
         "path": "src/smart/view-properties/js/templates/default.js",
-        "sha256": "ac6a468e6897df7ac4a75c862b50c6227598f2fadb03c8cd6ac1a65817532290"
+        "sha256": "3cc274b37380afc67dc46b0c1cee6e99a03211dcb66f0f5533dd1c925b13387d"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.css",
@@ -1743,7 +1750,7 @@
       },
       {
         "path": "src/smart/view-properties/js/set-fields.js",
-        "sha256": "5186f15be38ea810912463a6c1e4dc265708df87765c923bb57f58ba85b4f580"
+        "sha256": "b975f18dfc7a5dbf2c29d1f7cfa41b434998ff56681d8b584c000ea83995ca88"
       },
       {
         "path": "src/smart/view-properties/rule.js",

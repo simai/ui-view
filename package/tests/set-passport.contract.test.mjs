@@ -65,6 +65,14 @@ test('the passport takes the form the pinned SIMAI Framework gives', {skip: !set
   const lock = json(join(setRoot, 'framework.lock.json'));
   assert.equal(lock.package, passport.id);
   assert.equal(lock.source.revision, passport.framework.source_revision, 'the passport and the lock name one SIMAI Framework revision');
+  // The pinned pair carries the core.runtime the passport asks for (§9.1): the
+  // floor is not above the overlay's core.runtime passport.
+  const floor = /^>=\s*(\d+)\.(\d+)\.(\d+)$/u.exec(passport.framework.core_runtime);
+  assert.ok(floor, `core_runtime is a floor (>=x.y.z): ${passport.framework.core_runtime}`);
+  const pinned = fromOverlay('src/core/passports/core.runtime.json').version.split('.').map(Number);
+  const wanted = floor.slice(1).map(Number);
+  const order = wanted.map((part, index) => part - pinned[index]).find((delta) => delta !== 0) ?? 0;
+  assert.ok(order <= 0, `core_runtime ${passport.framework.core_runtime} is above the pinned core.runtime ${pinned.join('.')}`);
   assert.equal(passport.release, undefined, 'the release block is written by the release route, not in the source');
 });
 

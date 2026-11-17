@@ -3,9 +3,15 @@
 The set `view`, by its npm version `@simai-studio/view`; component versions
 in brackets. The site page «Изменения» says the same in Russian.
 
-## Unreleased (fix/view-set-j1, for 1.8.2)
+## Unreleased (round/view-r1, for 1.9.0)
 
-- Over the SIMAI Framework pair `ui-078a4b4c6f6e` (npm 5.20261116.1505).
+- Over the SIMAI Framework pair `ui-24d64b7f6eb7` (npm 5.20261117.1311,
+  ui-source `40541c0c4fba`, core.runtime 1.59.0); the site on Docara 3.14.1.
+- `sf-view-table` 1.21.2 follows the Framework file it builds in
+  (`src/smart/pagination/index.js` moved in the pair); nothing of its own.
+- `sf-view` 1.13.2 and `sf-view-properties` 1.16.9 ask `sf-dropdown` for
+  `appearance="bordered"`, the field look's current name (FM-9; `outlined`
+  is its dated former name until 2027-01-01). The same look.
 - `sf-view-properties` 1.16.4 (VP-5, VP-8) and 1.16.5: the page buttons in
   the drawer head beside the close are size 1/3, 8 apart (C205 (2)); the
   filled head of a phone panel clears them (taken back from ui-pro f29d4bf).

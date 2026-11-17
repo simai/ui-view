@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view",
-  "version": "1.13.1",
+  "version": "1.13.2",
   "title": "Data view",
   "summary": "Host-driven data view that composes toolbar, content and pagination around a separate data port.",
   "kind": "composite",
@@ -1700,6 +1700,13 @@
         "changes": [
           "The move and confirm window's footer per C159 (4) and C144: the main action first at the start, the quiet «Отмена» (ghost, on-surface) last, --sf-space-1/3 apart (8, compact 4); it was an outline «Отмена» first and the main button last at the end, 20 apart (modal study MD-2)."
         ]
+      },
+      {
+        "from": "1.13.1",
+        "to": "1.13.2",
+        "changes": [
+          "Over SIMAI Framework ui-24d64b7f6eb7 (ui-source 40541c0c4fba): the bulk band's action list asks sf-dropdown for appearance=\"bordered\", the field look's current name (sf-dropdown 1.18.1, FM-9); \"outlined\" is its dated former name until 2027-01-01. The same look; nothing to change for a host."
+        ]
       }
     ]
   },
@@ -1709,7 +1716,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view/index.js",
-        "sha256": "0327277370dba89db1a53d559037777d4f0718888266a210bb1973667afcfaf7"
+        "sha256": "1df58a1cc5df5f4ff8122d05aa8481191032322d3d5f99cc7391cbc6556c7bbd"
       },
       {
         "path": "src/core/contracts/ports/simai.dataview-port/1.5.0/port.json",

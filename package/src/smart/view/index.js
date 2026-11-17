@@ -1810,7 +1810,7 @@ class SfDataView extends DataViewElement {
             band.innerHTML = `
                 <span class="sf-pagination-actions-count" data-sf-bulk="count"></span>
                 <span class="sf-pagination-actions-separator" aria-hidden="true"></span>
-                <sf-dropdown data-sf-bulk="actions" appearance="outlined" search="false" mode="select"></sf-dropdown>
+                <sf-dropdown data-sf-bulk="actions" appearance="bordered" search="false" mode="select"></sf-dropdown>
                 <sf-button data-sf-bulk="apply" data-sf-bulk-danger="false" appearance="outline" scheme="on-surface"></sf-button>
                 <span class="sf-pagination-actions-separator" aria-hidden="true" data-sf-bulk="for-all-separator"></span>
                 <sf-checkbox data-sf-bulk="for-all"></sf-checkbox>

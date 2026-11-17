@@ -291,7 +291,7 @@ function renderMoneyEdit(field, value, host, ctx) {
             <sf-dropdown
                     class="sf-view-fields-currency"
                     size=${ctx.size}
-                    appearance="outlined"
+                    appearance="bordered"
                     mode="select"
                     search="false"
                     value=${currency ?? ''}

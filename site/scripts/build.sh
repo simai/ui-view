@@ -6,7 +6,7 @@
 #      copy (scripts/materialize-framework-runtime.php; vendor/ is ignored);
 #   2. extracts the release's distr from ui's git objects into .framework/
 #      (ignored) for Docara's page composition runtime (DOCARA_SIMAI_UI_ROOT),
-#      which Docara 3.11.1 cannot project for this release itself;
+#      which Docara 3.14.1 cannot project for this release itself;
 #   3. runs docara build production and verify-static.
 # <set build workspace> is the one package/scripts/gates.sh wrote (it holds
 # build/package-receipt.json and build/wave-1/output/package/view). Serve the
