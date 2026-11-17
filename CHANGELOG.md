@@ -18,6 +18,19 @@ up). Each component.json says the same under `x-decisions`
 
 ## Unreleased (round/view-r1, for 1.9.0)
 
+- `sf-view` 1.15.0, the list head (C297 head part, C299, C300, C301;
+  study 2026-11-17-list-head-filters): `head="list"` draws a title row (name
+  and count, the views menu, the display kind as `sf-segmented`, «Настроить
+  вид», «⋯» by right) and a head row («Фильтр» with its bookmark, joined
+  filter field buttons, «Очистить», the search up to 20rem, «Создать» the
+  only filled button with its split menu); no gear in the table. A phone
+  gets one icon row, a sideways row of fields and bottom sheets
+  (`sf-drawer`); a desktop gets `sf-popover` windows. «Настроить вид» by
+  kind with the C298 levels; record field settings in a side drawer.
+  Intents `filter.*`, `settings.save`, `entity.fields.save`,
+  `view.create_record`; the port's `describe()`; events `display-change` and
+  `settings-open`. Without `head` nothing changes. Long saved filter names
+  are cut only when `sf-button` has `overflow="truncate"` (feature check).
 - Over the SIMAI Framework pair `ui-1ed6b6c9a040` (npm 5.20261117.1612,
   ui-source `acc113415d98`, core.runtime 1.60.0; the round's helpers built
   over `ui-24d64b7f6eb7`, npm 5.20261117.1311); the site on Docara 3.17.0

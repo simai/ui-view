@@ -206,6 +206,37 @@ payload}`, стандарт §4.9), или из `capabilities` рядом с о�
   (`sf-table-action-intent`) по-прежнему должно быть в `actions` записи и
   идёт в `record.mutate` или `record.open`.
 
+## Шапка списка (с версии 1.15.0)
+
+`head="list"` включает шапку списка по решениям C297, C299, C300 и C301; без
+атрибута вид рисует панель таблицы, как раньше. `heading` даёт название
+списка (иначе `aria-label`).
+
+- Строка заголовка: название и число записей, меню видов («Все задачи ▾»),
+  переключатель способа показа (`sf-segmented`, только способы из
+  `describe().layouts`), «Настроить вид» и «⋯» (поля записи, права, экспорт —
+  только при правах из `describe().permissions`).
+- Строка действий: «Фильтр» с закладкой сохранения, поля фильтра (кнопка поля
+  и крестик, цвет при условии, число значений; условие словами — только в
+  подсказке и окне), «Очистить», поиск до 20rem и «Создать» (единственная
+  залитая кнопка; другие пункты — в её меню). Шестерёнки в таблице нет.
+- Поиск и фильтры складываются (И), значения одного поля — ИЛИ. Поиск в
+  сохранённый фильтр не попадает.
+- Телефон (уже 600px): в заголовке значок способа показа (меню способов и
+  видов), «Настроить вид» и «⋯»; ниже «Фильтр», поиск и «+»; поля фильтра —
+  одна строка с прокруткой; каждое окно — нижняя панель `sf-drawer`. На
+  компьютере окна — `sf-popover`.
+- Хост отвечает `describe()` на порте (`fields`, `layouts`, `permissions`,
+  `record_fields`) и отдаёт в данных `saved_filters`, `view_config`, `locked`.
+- Намерения: `filter.save`, `filter.update`, `filter.rename`, `filter.share`,
+  `filter.default`, `filter.delete`; `settings.save {layer, view, type, patch,
+  base_revision}` (личное — сразу, общее — только при `shared_settings`);
+  `entity.fields.save {groups}`; `view.create_record {item}`. Состояние шапки —
+  `query`: `filters_chosen`, `filters`, `saved_filter`, `search`, `view`.
+- События: `sf-view-display-change` (отменяемое) и `sf-view-settings-open`.
+- Окончательная форма данных придёт с `view-config/1`; до неё шапка не
+  закрепляет формат.
+
 ## Port 1.5.0: a write answered with its record, and a view that remembers its fields
 
 Port [1.5.0](../../core/contracts/ports/simai.dataview-port/1.5.0/port.json) adds two things, both additive. The 24 cases
