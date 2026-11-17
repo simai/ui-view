@@ -452,8 +452,8 @@ class SfDataView extends DataViewElement {
             ["pagination", "sf-pagination", {appearance: "field", top: "false", bottom: "false"}],
         ];
         for (const [slot, tag, attributes] of defaults) {
-            const own = [...this.children].filter((child) => child.getAttribute("slot") === slot);
-            const mine = own.filter((child) => child.hasAttribute("data-sf-view-default"));
+            const own = [...(this.children ?? [])].filter((child) => child.getAttribute?.("slot") === slot);
+            const mine = own.filter((child) => child.hasAttribute?.("data-sf-view-default"));
             if (own.length > mine.length) {
                 mine.forEach((child) => child.remove());
                 continue;
@@ -465,7 +465,9 @@ class SfDataView extends DataViewElement {
             for (const [name, value] of Object.entries(attributes)) element.setAttribute(name, value);
             this.append(element);
         }
-        if (!this._defaultsWatch) {
+        // A host without MutationObserver (a server render, a test DOM) keeps the
+        // defaults it was connected with.
+        if (!this._defaultsWatch && typeof MutationObserver === "function") {
             this._defaultsWatch = new MutationObserver(() => this._lightDefaults());
             this._defaultsWatch.observe(this, {childList: true});
         }

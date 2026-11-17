@@ -229,7 +229,9 @@ test('the toolbar actions are the host list, and nothing without one', () => {
     // takes the navigation over.
     assert.match(source, /this\.emitTableEvent\('toolbar-action', [\s\S]*?\{cancelable: true\}\)/u);
     assert.match(source, /if \(allowed && action\.href && this\.isSameSiteHref\(action\.href\)\)/u);
-    assert.match(source, /case 'toolbar-actions':\s*\n\s*return this\.renderToolbarActionsContextMenu\(data\)/u);
+    // The menu is the Framework's shared one (view round 1 D5).
+    assert.match(source, /actionMenu\(menu\) \{[\s\S]*?menu === 'toolbar-actions'/u);
+    assert.doesNotMatch(source, /renderToolbarActionsContextMenu/u);
 });
 
 test('an href on a toolbar action may only name this same site', () => {

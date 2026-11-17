@@ -233,7 +233,9 @@ test('the manifest declares the answer message and treats it as untrusted', () =
 // error state says the host's sentence. Only access reasons are «no access».
 const LONG_SEARCH = 'я'.repeat(300);
 const TOO_LONG = 'Строка поиска длиннее 255 символов';
-const toolbarShown = (view) => view.shadowRoot.toolbar.hidden === false && view.table.getAttribute('toolbar') !== 'false';
+// The view's own toolbar part holds only an author's slotted toolbar (view-r1 D4):
+// the search and the views are the table's toolbar, so that is the one that stays.
+const toolbarShown = (view) => view.table.getAttribute('toolbar') !== 'false';
 
 test('refused for the query: an error state with the host sentence, the toolbar and the query stay', async () => {
   const {view, set} = await viewAnswering((payload) => listing(payload));

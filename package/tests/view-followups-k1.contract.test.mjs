@@ -31,7 +31,7 @@ test('sf-view-table: no ⋮ (more_vert) is left; the view and template actions d
     assert.doesNotMatch(await read(path), /more_vert/u, path);
   }
   const template = await read('src/smart/view-table/js/templates/default.js');
-  assert.match(template, /icon="more_horiz"\n\s*aria-label="Действия с представлением"/);
+  assert.match(template, /icon="more_horiz"\n\s*aria-label=\$\{context\.component\.text\('contextViewActionsLabel'\)\}/);
 });
 
 test('sf-view-table: the right button, the keys and a long press open the row menu through sf-menu-context for= (C164, #168)', async () => {

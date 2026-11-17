@@ -25,7 +25,10 @@ test('sf-view-table: the row menu takes the resolved size and the density on eve
   // Eight since CM-8: the hand-drawn second row menu is gone. Seven since
   // C106: the gear's window is sf-settings, which takes the host's own size
   // only (controlSize) and the density of the gear.
-  assert.equal((source.match(/size=\$\{this\.menuSize\}/g) ?? []).length, 7);
+  // Three since view round 1 (D5): four menus open the Framework's shared
+  // menu, which is given the same size (menuOpen size: this.menuSize).
+  assert.equal((source.match(/size=\$\{this\.menuSize\}/g) ?? []).length, 3);
+  assert.equal((source.match(/await menuOpen\(\{[\s\S]{0,200}?size: this\.menuSize,/gu) ?? []).length, 2);
   assert.match(source, /<sf-settings\s+look="panel"[\s\S]*?size=\$\{this\.controlSize \?\? nothing\}/u);
   assert.doesNotMatch(source, /<sf-menu-context\s+size=\$\{this\.controlSize/);
 });

@@ -7827,30 +7827,6 @@ class SfTable extends TableElement {
         this.drawingWith(() => this.afterDraw());
     }
 
-    // The toolbar's keyboard is SIMAI Framework roving.js (C184 (1)-(3),
-    // VF-6): each group of the toolbar's buttons -- the filter with its chips
-    // and their buttons at the start, create and the view's actions at the
-    // end -- is one Tab stop, the arrows walk it in the row's direction, ↓ on
-    // a menu button opens its menu, and Tab comes back to the button left.
-    // The search field and the layout switch keep their own keys and stops.
-    bindToolbarKeyboard() {
-        const groups = [...this.querySelectorAll(":scope .sf-table-toolbar .sf-table-toolbar-start, :scope .sf-table-toolbar .sf-table-toolbar-end, :scope .sf-table-toolbar .sf-table-list-search")]
-            .filter((group) => group.closest("sf-view-table, sf-table") === this);
-        this._toolbarRoving ??= new Map();
-        for (const [group, controller] of this._toolbarRoving) {
-            if (!groups.includes(group) || !group.isConnected) {
-                controller.destroy();
-                this._toolbarRoving.delete(group);
-            }
-        }
-        const buttons = (group) => () => [...group.querySelectorAll("button")]
-            .filter((button) => !button.closest("sf-input, .sf-input, sf-segmented, .sf-segmented"));
-        for (const group of groups) {
-            if (this._toolbarRoving.has(group)) continue;
-            this._toolbarRoving.set(group, roving(group, {items: buttons(group), orientation: "horizontal"}));
-        }
-    }
-
     // The selection boxes draw their tick only when a box is checked: an
     // unchecked row's glyph is empty, so the page's first icon font never had
     // «check», and the first box checked waited for a second font before its
@@ -7962,6 +7938,30 @@ class SfTable extends TableElement {
         this.bindColumnDragEvent();
         this.syncWindow();
         this.markClippedTitles();
+    }
+
+    // The toolbar's keyboard is SIMAI Framework roving.js (C184 (1)-(3),
+    // VF-6): each group of the toolbar's buttons -- the filter with its chips
+    // and their buttons at the start, create and the view's actions at the
+    // end -- is one Tab stop, the arrows walk it in the row's direction, ↓ on
+    // a menu button opens its menu, and Tab comes back to the button left.
+    // The search field and the layout switch keep their own keys and stops.
+    bindToolbarKeyboard() {
+        const groups = [...this.querySelectorAll(":scope .sf-table-toolbar .sf-table-toolbar-start, :scope .sf-table-toolbar .sf-table-toolbar-end, :scope .sf-table-toolbar .sf-table-list-search")]
+            .filter((group) => group.closest("sf-view-table, sf-table") === this);
+        this._toolbarRoving ??= new Map();
+        for (const [group, controller] of this._toolbarRoving) {
+            if (!groups.includes(group) || !group.isConnected) {
+                controller.destroy();
+                this._toolbarRoving.delete(group);
+            }
+        }
+        const buttons = (group) => () => [...group.querySelectorAll("button")]
+            .filter((button) => !button.closest("sf-input, .sf-input, sf-segmented, .sf-segmented"));
+        for (const group of groups) {
+            if (this._toolbarRoving.has(group)) continue;
+            this._toolbarRoving.set(group, roving(group, {items: buttons(group), orientation: "horizontal"}));
+        }
     }
 
     // A name cut by its two lines (C146 (7)) says so on its cell, and the

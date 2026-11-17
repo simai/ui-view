@@ -14,7 +14,11 @@ const json = async (path) => JSON.parse(await read(path));
 test('sf-view: the footer is its own row, the page row in the field appearance (C97 (5))', async () => {
   const source = await read('src/smart/view/index.js');
   // One shadow part holds the view's start (slot footer) and the page row.
-  assert.match(source, /<div part="footer"><slot name="footer"><\/slot><slot name="pagination"><sf-pagination appearance="field" top="false" bottom="false"><\/sf-pagination><\/slot><\/div>/);
+  assert.match(source, /<div part="footer"><slot name="footer"><\/slot><slot name="pagination"><\/slot><\/div>/);
+  // The default page row is light DOM since view round 1 (D4): an element in
+  // the shadow root is out of the page's sheets, so the view writes it beside
+  // the author's elements and takes it away when the author slots their own.
+  assert.match(source, /\["pagination", "sf-pagination", \{appearance: "field", top: "false", bottom: "false"\}\]/);
   // The row is as tall as the ladder says: the control of the step, the
   // --sf-space-1 padding above and below it and the line under it.
   assert.match(source, /min-block-size: calc\(2 \* var\(--sf-space-1\) \+ var\(--sf-view--footer-control-height\) \+ var\(--sf-px\)\);/);

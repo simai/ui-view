@@ -43,7 +43,9 @@ test('native opener and synthetic events retain their geometry',()=>{
 
 test('viewport x coordinates use physical left positioning in RTL too',()=>{
  assert.doesNotMatch(source, /inset-inline-start: (?:calc\()?\$\{x\}/);
- assert.match(source, /left: calc\(\$\{x\}px/);
+ // The windows the table still places itself write a physical left (the
+ // template submenu that used calc() opens the shared menu since view round 1).
+ assert.match(source, /left: \$\{x\}px;/);
 });
 
 test('boxless opener without a native control anchors to its first rendered box (sf-tag chip)',()=>{
