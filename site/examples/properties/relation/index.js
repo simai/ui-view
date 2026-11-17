@@ -1,362 +1,535 @@
 // Written by scripts/build-properties.mjs from scripts/property-catalogue.js
-// and scripts/property-demo.js; edit those.
-const TYPE = 'relation';
-
-// The catalogue of the «Свойства» section: every property type of the SIMAI
-// Framework field renderers' registry (SF.fieldRenderers.registry), the ones
-// the set view draws itself included (money, percent, items, compound,
-// ru.requisites), each with the fields an example shows and three values a
-// field: one per record, the third record empty.
-//
-// It is plain data. scripts/build-properties.mjs reads it to write the pages
-// and puts it, with scripts/property-demo.js, into every example's index.js.
-// Pictures are copies of the D22 set in assets/illustrations/ (manifest.json
-// there); the hex values below are colour fields' data, nothing is drawn with
-// them (site lint, colour allow list «colour field data»).
-
-// Pictures are the D22 set's copies (assets/illustrations/); scripts/build-properties.mjs
-// puts the ones an example names beside it, in its assets/ folder.
-const PICTURES = 'assets/';
-const PEOPLE = [
-  {value: 'u-1', label: 'Анна Белова', avatarText: 'АБ'},
-  {value: 'u-2', label: 'Илья Орлов', avatarText: 'ИО'},
-  {value: 'u-3', label: 'Мария Котова', avatarText: 'МК'},
-  {value: 'u-4', label: 'Олег Смирнов', avatarText: 'ОС'},
-  {value: 'u-5', label: 'Ирина Волкова', avatarText: 'ИВ'},
-];
-const CONTRACTS = [
-  {value: 'c-118', label: 'Договор № 118 от 3 марта 2026', href: '#contract-118'},
-  {value: 'c-204', label: 'Договор № 204 от 17 июня 2026', href: '#contract-204'},
-  {value: 'c-311', label: 'Договор № 311 от 2 октября 2026', href: '#contract-311'},
-];
-const CLIENTS = [
-  {value: 'k-1', label: 'ООО «Северный ветер»'},
-  {value: 'k-2', label: 'АО «Техносфера»'},
-  {value: 'k-3', label: 'ИП Кузнецова С. А.'},
-];
-const COUNTRIES = [
-  {value: 'ru', label: 'Россия'}, {value: 'de', label: 'Германия'}, {value: 'fr', label: 'Франция'},
-  {value: 'it', label: 'Италия'}, {value: 'es', label: 'Испания'}, {value: 'jp', label: 'Япония'},
-];
-const LANGUAGES = [
-  {value: 'ru', label: 'Русский'}, {value: 'en', label: 'Английский'}, {value: 'de', label: 'Немецкий'},
-  {value: 'zh', label: 'Китайский'}, {value: 'es', label: 'Испанский'},
-];
-const STATUS = [
-  {value: 'draft', label: 'Черновик', scheme: 'neutral'},
-  {value: 'review', label: 'На проверке', scheme: 'warning'},
-  {value: 'active', label: 'Действует', scheme: 'success'},
-  {value: 'closed', label: 'Закрыт', scheme: 'error'},
-];
-const PRIORITY = [{value: 'low', label: 'Низкий'}, {value: 'normal', label: 'Обычный'}, {value: 'high', label: 'Высокий'}];
-const SKILLS = [
-  {value: 'js', label: 'JavaScript', scheme: 'primary'}, {value: 'php', label: 'PHP', scheme: 'primary'},
-  {value: 'sql', label: 'SQL', scheme: 'success'}, {value: 'ux', label: 'UX', scheme: 'warning'},
-  {value: 'qa', label: 'Тестирование', scheme: 'neutral'},
-];
-const DAYS = [
-  {value: 'mon', label: 'Понедельник'}, {value: 'tue', label: 'Вторник'}, {value: 'wed', label: 'Среда'},
-  {value: 'thu', label: 'Четверг'}, {value: 'fri', label: 'Пятница'}, {value: 'sat', label: 'Суббота'},
-  {value: 'sun', label: 'Воскресенье'},
-];
-// colour field data
-const SWATCHES = ['#1d4ed8', '#0f766e', '#b45309', '#be123c', '#6d28d9', '#334155'];
-const pdf = (label, size) => ({label, mime: 'application/pdf', href: '#file', size});
-const picture = (label, file) => ({label, mime: 'image/svg+xml', href: `${PICTURES}${file}`, size: 1024});
-const rub = (amount) => ({amount, currency: 'RUB'});
-const ITEM_COLUMNS = [
-  {key: 'name', label: 'Наименование', type: 'string', required: true},
-  {key: 'qty', label: 'Кол-во', type: 'number'},
-  {key: 'price', label: 'Цена', type: 'money', settings: {currency: 'RUB'}},
-  {key: 'sum', label: 'Сумма', type: 'money', compute: {op: 'multiply', of: ['qty', 'price']}, total: 'sum'},
-];
-const ADDRESS_PARTS = [
-  {key: 'city', label: 'Город', propertyType: 'string'},
-  {key: 'street', label: 'Улица и дом', propertyType: 'string'},
-  {key: 'zip', label: 'Индекс', propertyType: 'string'},
-];
-const BANK = {bik: '044525225', corr_account: '30101810400000000225'};
-
-// The options a card asks the host for (field.options), by field key.
-const OPTIONS_OF = {owner: PEOPLE, contract: CONTRACTS, client: CLIENTS, country: COUNTRIES, languages: LANGUAGES};
-
-// The families group the types on the section's overview, in this order.
-const FAMILIES = [
-  {id: 'text', title: 'Текст'},
-  {id: 'numbers', title: 'Числа и суммы'},
-  {id: 'dates', title: 'Дата и время'},
-  {id: 'flags', title: 'Да или нет'},
-  {id: 'choice', title: 'Выбор'},
-  {id: 'links', title: 'Люди и связи'},
-  {id: 'files', title: 'Файлы'},
-  {id: 'color', title: 'Цвет'},
-  {id: 'composite', title: 'Составные'},
-];
-
-// A type: its family, the fields its example shows (the first is the type
-// without a variant), and for each field three values, one per record.
-const CATALOGUE = {
-  string: {family: 'text', fields: [
-    [{key: 'title', label: 'Название', propertyType: 'string', placeholder: 'Например, «Портал клиента»', required: true},
-      ['Портал клиента', 'Мобильное приложение', null]],
-    [{key: 'phone', label: 'Телефон', propertyType: 'string', variant: 'phone'},
-      ['+7 916 123-45-67', '+7 843 200-10-20', null]],
-    [{key: 'secret', label: 'Пароль хранилища', propertyType: 'string', variant: 'password'},
-      [{set: true}, {set: false}, null]],
-  ]},
-  text: {family: 'text', fields: [
-    [{key: 'about', label: 'Описание', propertyType: 'text', width: 'full', placeholder: 'Пара предложений о проекте'},
-      ['Личный кабинет для клиентов: счета, заявки и документы.\nЗапуск — до конца года.', 'Приложение для курьеров.', null]],
-  ]},
-  html: {family: 'text', fields: [
-    [{key: 'notes', label: 'Описание с оформлением', propertyType: 'html', width: 'full'},
-      ['<p>Этапы: <strong>дизайн</strong>, разработка, <em>запуск</em>.</p><ul><li>Дизайн — ноябрь</li><li>Запуск — декабрь</li></ul>', '<p>Требования <strong>согласованы</strong>.</p>', null]],
-  ]},
-  include: {family: 'text', fields: [
-    [{key: 'config', label: 'Настройки', propertyType: 'include', language: 'json', width: 'full'},
-      ['{\n  "theme": "light",\n  "pageSize": 25\n}', '{"push": true}', null]],
-  ]},
-  integer: {family: 'numbers', fields: [
-    [{key: 'stock', label: 'Остаток', propertyType: 'integer', unit: 'шт.'}, [128, 7, null]],
-    [{key: 'seats', label: 'Мест в номере', propertyType: 'integer', variant: 'stepper', min: 1, max: 6, step: 1}, [2, 4, null]],
-  ]},
-  number: {family: 'numbers', fields: [
-    [{key: 'price', label: 'Цена', propertyType: 'number', unit: '₽', precision: 2}, [54990.5, 890, null]],
-    [{key: 'progress', label: 'Готовность', propertyType: 'number', variant: 'scale', min: 0, max: 100}, [72, 15, null]],
-    [{key: 'quota', label: 'Занято места', propertyType: 'number', variant: 'meter', min: 0, max: 100}, [64, 91, null]],
-    [{key: 'weight', label: 'Вес', propertyType: 'number', variant: 'stepper', unit: 'кг', min: 0, max: 50, step: 0.5, precision: 1}, [2.5, 12, null]],
-  ]},
-  money: {family: 'numbers', fields: [
-    [{key: 'budget', label: 'Бюджет', propertyType: 'money'}, [rub('1500000.00'), {amount: '12000', currency: 'USD'}, null]],
-    [{key: 'fee', label: 'Взнос', propertyType: 'money', currency: 'RUB', min: '0'}, [rub('4990.50'), rub('120'), null]],
-  ]},
-  percent: {family: 'numbers', fields: [
-    [{key: 'discount', label: 'Скидка', propertyType: 'percent'}, ['12.5', '5', null]],
-  ]},
-  date: {family: 'dates', fields: [
-    [{key: 'birthday', label: 'Дата рождения', propertyType: 'date'}, ['1990-04-12', '1985-11-30', null]],
-  ]},
-  datetime: {family: 'dates', fields: [
-    [{key: 'meeting', label: 'Начало встречи', propertyType: 'datetime', step: 15}, ['2026-11-15T10:30:00', '2026-12-01T16:00:00', null]],
-  ]},
-  time: {family: 'dates', fields: [
-    [{key: 'workday', label: 'Начало рабочего дня', propertyType: 'time', min: '07:00', max: '12:00', step: 30}, ['09:00', '10:30', null]],
-  ]},
-  boolean: {family: 'flags', fields: [
-    [{key: 'newsletter', label: 'Подписан на рассылку', propertyType: 'boolean'}, [true, false, null]],
-    [{key: 'remote', label: 'Работает удалённо', propertyType: 'boolean', trueText: 'Удалённо', falseText: 'В офисе'}, [false, true, null]],
-  ]},
-  choice: {family: 'choice', fields: [
-    [{key: 'status', label: 'Статус', propertyType: 'choice', options: STATUS}, ['active', 'review', null]],
-    [{key: 'priority', label: 'Приоритет', propertyType: 'choice', variant: 'buttons', options: PRIORITY}, ['high', 'normal', null]],
-  ]},
-  choices: {family: 'choice', fields: [
-    [{key: 'skills', label: 'Навыки', propertyType: 'choices', options: SKILLS, width: 'full'}, [['js', 'sql', 'ux'], ['php'], null]],
-    [{key: 'days', label: 'Дни приёма', propertyType: 'choices', variant: 'checklist', options: DAYS, width: 'full'}, [['mon', 'wed', 'fri'], ['tue', 'thu'], null]],
-  ]},
-  user: {family: 'links', fields: [
-    [{key: 'owner', label: 'Ответственный', propertyType: 'user', placeholder: 'Выберите сотрудника', searchPlaceholder: 'Имя сотрудника'}, [PEOPLE[0], PEOPLE[3], null]],
-  ]},
-  record: {family: 'links', fields: [
-    [{key: 'contract', label: 'Договор', propertyType: 'record', placeholder: 'Выберите договор', searchPlaceholder: 'Номер договора'}, [CONTRACTS[0], CONTRACTS[2], null]],
-  ]},
-  relation: {family: 'links', fields: [
-    [{key: 'client', label: 'Клиент', propertyType: 'relation', placeholder: 'Выберите клиента', searchPlaceholder: 'Название клиента'}, [CLIENTS[0], CLIENTS[1], null]],
-  ]},
-  lookup: {family: 'choice', fields: [
-    [{key: 'country', label: 'Страна', propertyType: 'lookup', source: 'countries', options: COUNTRIES}, [COUNTRIES[0], COUNTRIES[2], null]],
-    [{key: 'languages', label: 'Языки', propertyType: 'lookup', multiple: true, source: 'languages', options: LANGUAGES, width: 'full'},
-      [[LANGUAGES[0], LANGUAGES[1]], [LANGUAGES[0]], null]],
-  ]},
-  file: {family: 'files', fields: [
-    [{key: 'docs', label: 'Документы', propertyType: 'file', multiple: true, accept: '.pdf,.docx', width: 'full', uploadText: 'Перетащите файлы или выберите', uploadHint: 'PDF или DOCX, до 10 МБ'},
-      [[pdf('Договор.pdf', 182000), pdf('Акт сверки.pdf', 64000)], [pdf('Счёт № 45.pdf', 41000)], null]],
-    [{key: 'photo', label: 'Фотография', propertyType: 'file', variant: 'image', accept: 'image/*'},
-      [picture('Холмы.svg', 'place-01-3x2.svg'), picture('Город.svg', 'place-02-3x2.svg'), null]],
-    [{key: 'cover', label: 'Обложка', propertyType: 'file', variant: 'image-card', accept: 'image/*'},
-      [picture('Обложка.svg', 'cover-01-16x9.svg'), picture('Ваза.svg', 'product-01-4x3.svg'), null]],
-    [{key: 'gallery', label: 'Галерея', propertyType: 'file', variant: 'image-list', multiple: true, accept: 'image/*', width: 'full'},
-      [[picture('Озеро.svg', 'place-03-3x2.svg'), picture('Лес.svg', 'place-04-3x2.svg')], [picture('Долина.svg', 'place-05-3x2.svg'), picture('Чашка.svg', 'product-02-4x3.svg')], null]],
-  ]},
-  color: {family: 'color', fields: [
-    [{key: 'tag', label: 'Цвет метки', propertyType: 'color', swatches: SWATCHES}, ['#0f766e', '#be123c', null]],
-    [{key: 'brand', label: 'Цвет бренда', propertyType: 'color'}, ['#1d4ed8', '#6d28d9', null]],
-  ]},
-  items: {family: 'composite', fields: [
-    [{key: 'lines', label: 'Позиции', propertyType: 'items', width: 'full', minRows: 1, maxRows: 20, columns: ITEM_COLUMNS},
-      [[{name: 'Ручка', qty: '3', price: rub('33.33'), sum: rub('99.99')}, {name: 'Блокнот', qty: '2', price: rub('150'), sum: rub('300.00')}],
-        [{name: 'Папка', qty: '10', price: rub('45.50'), sum: rub('455.00')}], null]],
-  ]},
-  compound: {family: 'composite', fields: [
-    [{key: 'address', label: 'Адрес', propertyType: 'compound', width: 'full', parts: ADDRESS_PARTS},
-      [{city: 'Казань', street: 'ул. Баумана, 1', zip: '420111'}, {city: 'Самара', street: 'ул. Ленинградская, 24'}, null]],
-  ]},
-  'ru.requisites': {family: 'composite', fields: [
-    [{key: 'requisites', label: 'Реквизиты', propertyType: 'ru.requisites', width: 'full'},
-      [{inn: '7707083893', kpp: '773601001', ogrn: '1027700132195', account: '40702810938000000001', ...BANK},
-        {inn: '500100732259', account: '40802810938000000008', ...BANK}, null]],
-  ]},
+// and the engine below it; edit those.
+const TYPE = "relation";
+const TYPE_DATA = {
+ "family": "links",
+ "short": true,
+ "field": {
+  "key": "client",
+  "label": "Клиент",
+  "propertyType": "relation",
+  "placeholder": "Выберите клиента",
+  "searchPlaceholder": "Название клиента"
+ },
+ "samples": [
+  [
+   "Обычное",
+   {
+    "value": "k-1",
+    "label": "ООО «Северный ветер»"
+   }
+  ],
+  [
+   "Длинное",
+   {
+    "value": "k-2",
+    "label": "Акционерное общество «Научно-производственное объединение „Техносфера“»"
+   }
+  ],
+  [
+   "Пусто",
+   null
+  ]
+ ],
+ "error": "У клиента нет действующего договора",
+ "templates": [
+  {
+   "id": "reference_picker",
+   "name": "Поиск записи",
+   "changes": []
+  }
+ ],
+ "server": [
+  [
+   "Значение",
+   "`{value, label, href}`"
+  ],
+  [
+   "Пустое",
+   "`null`"
+  ],
+  [
+   "Из правки",
+   "выбранный `{value, label}` или `null`"
+  ],
+  [
+   "Из фильтра",
+   "`{operator: \"in\", values: […]}` — любой из выбранных"
+  ]
+ ],
+ "settings": [
+  [
+   "`placeholder`",
+   "нет",
+   "Правка",
+   "подсказка пустого поля"
+  ],
+  [
+   "`searchPlaceholder`",
+   "нет",
+   "Правка",
+   "подсказка поиска; кандидатов даёт приложение запросом `field.options`"
+  ],
+  [
+   "`required`",
+   "нет",
+   "Правка",
+   "обязательное поле: отметка у подписи, пустое не сохраняется"
+  ],
+  [
+   "`readonly`",
+   "нет",
+   "Правка",
+   "поле только для чтения: значение видно, изменить нельзя"
+  ]
+ ],
+ "storage": [
+  "`relation@1`",
+  "свойство «Привязка к элементу»"
+ ]
 };
+const OPTIONS_OF = {"client":[{"value":"k-1","label":"ООО «Северный ветер»"},{"value":"k-2","label":"Акционерное общество «Научно-производственное объединение „Техносфера“»"},{"value":"k-3","label":"ИП Кузнецова С. А."}]};
 
 // The live example of a «Свойства» page (examples/properties/<type>/index.js,
-// written by scripts/build-properties.mjs with `const TYPE = '<type>';` and
-// scripts/property-catalogue.js before this text). It shows the type's fields
-// in the set's real components, as C290 (3) and (4) ask:
+// written by scripts/build-properties.mjs: `const TYPE`, `const TYPE_DATA` --
+// the type's entry of scripts/property-catalogue.js -- and `const OPTIONS_OF`
+// before this text). One template for every type (owner decisions C300 and
+// C302): four sections in order, each drawn by the SIMAI Framework field
+// renderers (SF.fieldRenderers) on one sample field; the page is the host,
+// holds the value and shows what a server would receive.
 //
-//   - a table cell and a filter field: an sf-view-table inside an sf-view
-//     (simai.dataview-port query.change), the type's first field offered as
-//     the table's filter field;
-//   - shown and edited: an sf-view-properties card to read and one to edit,
-//     talking to a small host (simai.property-view-port: record.load,
-//     record.save, field.options, field.upload); what the host received on
-//     save is written under the cards;
-//   - the states: empty (the third record), error (a message under the
-//     field), read-only (the host marks every field readonly) and phone (the
-//     table and the card in a box as wide as a phone).
+//   Показ    the three sample values: normal, long, empty (renderViewField);
+//   Кратко   the compact form inside any view: the same three records in a
+//            table column and on cards (renderCellField); a short field opens
+//            a small edit window at its value (C296), and saving updates both;
+//   Правка   the interactive field with «Сервер получит», then empty and
+//            required, a real error (invalid and error-message on the
+//            control) and read only (renderEditField);
+//   Фильтр   the open filter control with «В запрос уйдёт» (renderFilterField).
 //
-// TYPE 'all' is the section's overview: the first field of every type, the
-// table and the two cards, without the states.
+// A type with more than one template gets a template switch over the four
+// sections; a template only draws, so the record's value and the server lines
+// stay as they are when it changes, and the sections it changes are marked.
+// The template is read from the Framework's registry (`templates` of the type,
+// C302) and named with `template`; a Framework whose registry has no templates
+// yet draws the same template under its former `variant` name, and a type it
+// does not have yet (phone, password) with `drawnAs`.
+//
+// The types the set view draws itself (money, percent, items, compound,
+// ru.requisites) are drawn by the Framework where it has a renderer for them;
+// where it has none, Показ and Правка are the set's own sf-view-properties
+// card (no head, one group), and Кратко and Фильтр stay the Framework's.
 
-const ALL = TYPE === 'all';
-const fieldsOf = () => {
-  if (!ALL) return CATALOGUE[TYPE].fields;
-  return Object.values(CATALOGUE).map((entry) => entry.fields[0]);
-};
-const FIELDS = fieldsOf();
-const NAMES = ['Первая запись', 'Вторая запись', 'Пустые значения'];
-const records = NAMES.map((name, index) => ({
-  id: `r-${index + 1}`,
-  name,
-  revision: 1,
-  values: Object.fromEntries(FIELDS.map(([field, values]) => [field.key, structuredClone(values[index] ?? null)])),
-}));
-
-const columns = () => [
-  {key: 'name', label: 'Запись', role: 'title'},
-  ...FIELDS.map(([field]) => {
-    const {width, placeholder, searchPlaceholder, uploadText, uploadHint, required, ...column} = field;
-    return column;
-  }),
+const D = TYPE_DATA;
+const PLACES = {view: 'Показ', compact: 'Кратко', edit: 'Правка', filter: 'Фильтр'};
+const RECORDS = [
+  {id: 'r-1', name: '№ 2041', client: 'ООО «Вектор»'},
+  {id: 'r-2', name: '№ 2042', client: 'ИП Сорокин'},
+  {id: 'r-3', name: '№ 2043', client: 'АО «Северный порт»'},
 ];
-const rows = () => records.map((record) => ({id: record.id, name: record.name, ...record.values}));
-const TITLE = ALL ? 'Все типы' : 'Свойства';
+const OPERATORS = {
+  contains: 'Содержит', eq: 'Равно', neq: 'Не равно', gt: 'Больше', gte: 'Не меньше', lt: 'Меньше', lte: 'Не больше',
+  between: 'Между', in: 'Любой из', any: 'Любой', startsWith: 'Начинается с', today: 'Сегодня', week: 'Эта неделя', month: 'Этот месяц',
+};
+const DATED = {eq: 'Точная дата', gt: 'Позже', gte: 'Не раньше', lt: 'Раньше', lte: 'Не позже'};
+const FILTER_OPERATORS = {
+  integer: ['between', 'eq', 'gte', 'lte'], number: ['between', 'eq', 'gte', 'lte'], money: ['between', 'eq', 'gte', 'lte'],
+  percent: ['between', 'eq', 'gte', 'lte'], items: ['between', 'eq', 'gte', 'lte'],
+  date: ['between', 'eq', 'gte', 'lte'], datetime: ['between', 'eq', 'gte', 'lte'],
+};
 
-const cardOf = (record, {readonly = false} = {}) => ({
-  record_id: record.id,
-  collection: 'demo.properties',
-  revision: String(record.revision),
-  label: record.name,
-  actions: readonly ? [] : ['record.edit'],
-  sections: [{key: 'main', label: TITLE, groups: [{
-    key: 'fields', label: TITLE, columns: 2,
-    fields: FIELDS.map(([field]) => ({width: 'half', ...field, ...(readonly ? {readonly: true} : {}), value: record.values[field.key]})),
-  }]}],
-});
+const shown = (value) => JSON.stringify(value, (key, item) => (typeof item === 'string' && item.startsWith('data:') ? 'data:…' : item));
+const clone = (value) => (value === undefined ? undefined : structuredClone(value));
 
-// Numbers in Russian style with the field's precision; the unit is the
-// renderer's and follows.
+// Numbers in Russian style with the field's precision, as an application's
+// host formats them (formatFieldValue); scale and meter draw the number itself.
 const formatFieldValue = (field, value) => {
-  const type = field?.propertyType ?? field?.property_type ?? field?.type;
+  const type = field?.propertyType ?? field?.type;
   if (value == null || value === '') return undefined;
-  if ((type === 'number' || type === 'integer') && typeof value === 'number' && !['scale', 'meter'].includes(field?.variant)) {
+  if ((type === 'number' || type === 'integer') && typeof value === 'number' && !['scale', 'meter'].includes(field?.template ?? field?.variant)) {
     const digits = type === 'integer' ? 0 : field?.precision;
     return new Intl.NumberFormat('ru-RU', digits == null ? {} : {minimumFractionDigits: digits, maximumFractionDigits: digits}).format(value);
   }
   return undefined;
 };
 
-const shown = (value) => JSON.stringify(value, (key, item) => (typeof item === 'string' && item.startsWith('data:') ? 'data:…' : item));
+const state = {
+  set: null,
+  entry: null,
+  template: null,
+  value: clone(D.samples[0][1]),
+  records: RECORDS.map((record, index) => ({...record, value: clone(D.samples[index][1])})),
+  filter: {},
+  search: {},
+  editOut: '',
+  compactOut: '',
+};
 
-const viewHost = () => ({
-  version: '1.12.0',
-  capabilities: [],
-  async raise(intent, payload) {
-    if (intent !== 'query.change') return {answer: 'unavailable', reason: 'capability-not-provided'};
-    const {query} = payload;
-    return {answer: 'applied', sequence: payload.sequence, data: {
-      columns: columns(), records: rows(), total: records.length,
-      echo: {filters_chosen: query.filters, filters: query.filters, filters_rejected: [], search: query.search, sort: query.sort, page: query.page, per_page: query.per_page},
-    }};
+// The registry entry of the type, the one the Framework has for it now.
+const registryEntry = (type) => (state.set.registry ?? []).find((entry) => entry.type === type) ?? null;
+const ownType = () => Boolean(registryEntry(D.field.propertyType));
+const hasTemplates = () => Array.isArray(registryEntry(ownType() ? D.field.propertyType : (D.drawnAs?.propertyType ?? D.field.propertyType))?.templates);
+
+// The templates this Framework draws: by id when its registry lists
+// templates, else the default and those it knows under their former variant.
+const templates = () => D.templates.filter((template, index) => {
+  if (index === 0) return true;
+  const entry = registryEntry(D.field.propertyType) ?? registryEntry(D.drawnAs?.propertyType);
+  if (Array.isArray(entry?.templates)) return entry.templates.some((one) => one.id === template.id);
+  return Boolean(template.variant) && (entry?.variants ?? []).some((one) => one.id === template.variant);
+});
+
+// The field as the Framework of this page reads it: the type it has (or the
+// one it draws the type with) and the chosen template.
+const fieldOf = (extra = {}) => {
+  let field = {...clone(D.field)};
+  if (!ownType() && D.drawnAs) field = {...field, ...D.drawnAs};
+  const template = state.template;
+  if (template && template !== D.templates[0]) {
+    if (hasTemplates()) field.template = template.id;
+    else if (template.variant) field.variant = template.variant;
+  }
+  return {...field, ...extra};
+};
+
+const el = (root, name) => root.querySelector(`[data-slot="${name}"]`);
+const render = (template, node) => window.SF.render(template ?? window.SF.nothing, node);
+const empty = (node, text = '—') => {
+  if (!node.textContent.trim() && !node.querySelector('*')) {
+    node.innerHTML = '';
+    const muted = document.createElement('span');
+    muted.className = 'property-muted';
+    muted.textContent = text;
+    node.append(muted);
+  }
+};
+
+// The host the edit and the compact window write through.
+const editHost = (onValue, onError) => ({
+  setFieldValue: (field, value) => onValue(value),
+  setFieldError: (field, message) => onError?.(message),
+  getFieldOptionsPage: (field) => state.search[field.key]?.page ?? null,
+  getFieldOptionSearch: (field) => state.search[field.key]?.text ?? '',
+  setFieldOptionSearch: (field, text) => { state.search[field.key] = {...(state.search[field.key] ?? {}), text}; },
+  loadFieldOptions: async (field, {search = ''} = {}) => {
+    const all = OPTIONS_OF[D.field.key] ?? D.field.options ?? [];
+    const items = all.filter((item) => String(item.label).toLowerCase().includes(String(search).toLowerCase()));
+    state.search[field.key] = {text: search, page: {status: 'ready', items, nextCursor: null}};
   },
   formatFieldValue,
 });
 
-const cardHost = ({log, onSaved, readonly = false}) => ({
-  version: '1.17.0',
-  capabilities: readonly ? [] : ['field-options', 'field-upload'],
-  async raise(intent, payload) {
-    const record = records.find((item) => item.id === payload?.record_id) ?? records[0];
-    if (intent === 'record.load') return {answer: 'applied', record: cardOf(record, {readonly})};
-    if (!readonly && (intent === 'record.save' || intent === 'group.save')) {
-      Object.assign(record.values, payload.values);
-      record.revision += 1;
-      if (log) log.textContent = `Хост получил: ${shown(payload.values)}`;
-      onSaved?.();
-      return {answer: 'applied', record: cardOf(record), revision: String(record.revision)};
-    }
-    if (intent === 'field.options') {
-      const search = String(payload.search ?? '').toLowerCase();
-      const items = (OPTIONS_OF[payload.field] ?? []).filter((item) => item.label.toLowerCase().includes(search));
-      return {answer: 'applied', options_page: {items, next_cursor: null, total: items.length}};
-    }
-    if (intent === 'field.upload') {
-      const file = payload.file;
-      return {answer: 'applied', file: {label: file?.name ?? 'Файл', mime: file?.type ?? '', size: file?.size ?? 0,
-        href: file instanceof Blob ? URL.createObjectURL(file) : '#file'}};
-    }
-    if (intent === 'record.open') {
-      if (log) log.textContent = `Открыть: ${payload.value?.label ?? ''}`;
-      return {answer: 'applied'};
-    }
-    return {answer: 'unavailable', reason: 'capability-not-provided'};
+// The filter's host: the state of the open control, the words of its
+// conditions, the options of a list (the field's own, the host's for people
+// and records, «Да» and «Нет» for a yes-or-no field).
+const filterOptions = () => {
+  if (D.field.propertyType === 'boolean') return [{value: true, label: D.field.trueText ?? 'Да'}, {value: false, label: D.field.falseText ?? 'Нет'}];
+  return D.field.options ?? OPTIONS_OF[D.field.key] ?? null;
+};
+const filterField = () => {
+  const field = fieldOf();
+  const options = filterOptions();
+  const operators = D.field.filter?.operators ?? FILTER_OPERATORS[D.field.propertyType];
+  return {...field, filter: {...(field.filter ?? {}), ...(operators ? {operators, defaultOperator: operators[0]} : {}), ...(options ? {options, defaultOperator: field.filter?.defaultOperator ?? 'in'} : {})}};
+};
+const filterHost = (redraw) => ({
+  size: '1/2',
+  getFilterControlValue: (key) => state.filter[key] ?? {},
+  patchTempFilterValue: (key, patch) => { state.filter[key] = {...(state.filter[key] ?? {}), ...patch}; redraw(); },
+  getFilterOperatorLabel: (operator) => ((D.field.propertyType === 'date' || D.field.propertyType === 'datetime') && DATED[operator]) || OPERATORS[operator] || operator,
+  getFilterOptionSearch: (key) => state.filter[`${key}:search`] ?? '',
+  patchTempFilterOptionSearch: (key, text) => { state.filter[`${key}:search`] = text; redraw(); },
+  getVisibleFilterOptions: (field) => {
+    const search = String(state.filter[`${field.key}:search`] ?? '').toLowerCase();
+    return (field.filter?.options ?? []).filter((option) => !search || String(option.label).toLowerCase().includes(search));
   },
-  formatFieldValue,
+  getEndpointFilterPage: () => null,
+  loadEndpointFilterPage: () => {},
+  renderFilterOption: (field, option, selected) => {
+    const {html} = window.SF;
+    const value = option.value;
+    return html`<div class="flex items-cross-center gap-1/2 content-main-between">
+      <span class="flex items-cross-center gap-1/2 min-w-0">${field.filter?.optionRenderer === 'swatch' && option.color
+        ? html`<span class="property-swatch" aria-hidden="true" style=${`background-color: ${option.color}`}></span>` : ''}<span class="sf-text-1 truncate">${option.label}</span></span>
+      <sf-checkbox size="1/2" position="end" ?checked=${selected.has(value)} @change=${(event) => {
+        const next = new Set(selected);
+        if (event.target?.checked) next.add(value); else next.delete(value);
+        state.filter[field.key] = {...(state.filter[field.key] ?? {}), values: [...next], operator: field.filter?.defaultOperator || 'in'};
+        redraw();
+      }}></sf-checkbox></div>`;
+  },
 });
+
+// ---- set fields (money, percent, items, compound, ru.requisites) ----------
+// Drawn by the Framework when it has a renderer for the type, else by the
+// set's card: one group, no head.
+const frameworkDraws = (place) => {
+  const {set} = state;
+  const field = fieldOf();
+  if (place === 'view') return Boolean(set.renderViewField(field, D.samples[0][1], {formatFieldValue}));
+  if (place === 'edit') return Boolean(set.renderEditField(field, D.samples[0][1], {setFieldValue() {}}, {size: '1/2'}));
+  return true;
+};
+const cardOf = (fields, record = 'r-0') => ({
+  record_id: record, collection: 'demo.property', revision: '1', label: '', actions: ['record.edit'],
+  sections: [{key: 'main', label: '', groups: [{key: 'fields', label: '', columns: 1, fields}]}],
+});
+const setCard = (node, mode, fields, onSave) => {
+  node.innerHTML = '';
+  const card = document.createElement('sf-view-properties');
+  card.setAttribute('mode', mode);
+  card.setAttribute('aria-label', D.field.label);
+  card.classList.add('property-card');
+  node.append(card);
+  customElements.whenDefined('sf-view-properties').then(() => {
+    card.setHostPort({
+      version: '1.17.0', capabilities: [],
+      async raise(intent, payload) {
+        if (intent === 'record.load') return {answer: 'applied', record: cardOf(fields)};
+        if (intent === 'record.save' || intent === 'group.save') {
+          onSave?.(payload.values);
+          return {answer: 'applied', record: cardOf(fields.map((field) => (field.key in (payload.values ?? {}) ? {...field, value: payload.values[field.key]} : field))), revision: '2'};
+        }
+        return {answer: 'unavailable', reason: 'capability-not-provided'};
+      },
+      formatFieldValue,
+    });
+    card.setAttribute('record-id', 'r-0');
+  });
+  return card;
+};
+
+// ---- the four places -------------------------------------------------------
+const drawView = (root) => {
+  const rows = el(root, 'view');
+  rows.innerHTML = '';
+  if (!frameworkDraws('view')) {
+    const cell = document.createElement('div');
+    cell.className = 'property-span';
+    rows.append(cell);
+    setCard(cell, 'view', D.samples.map(([label, value], index) => ({...fieldOf(), key: `${D.field.key}_${index}`, label, value: clone(value)})));
+    return;
+  }
+  for (const [label, value] of D.samples) {
+    const name = document.createElement('span');
+    name.className = 'property-label';
+    name.textContent = label;
+    const cell = document.createElement('div');
+    cell.className = 'property-value';
+    rows.append(name, cell);
+    render(state.set.renderViewField(fieldOf(), clone(value), {formatFieldValue}), cell);
+    empty(cell, 'не заполнено');
+  }
+};
+
+const isTemplate = (value) => value && typeof value === 'object' && ('_$litType$' in value || 'strings' in value);
+// A cell is text, a template, or what a table draws: {component: {type,
+// props}} (an element of the Framework by its short name, SF.create), or a
+// list of those on one line.
+const cellPiece = (item) => {
+  if (item == null || item === '') return null;
+  if (isTemplate(item)) { const box = document.createElement('span'); render(item, box); return box; }
+  if (item.component?.type) return window.SF.create(item.component.type, item.component.props ?? {});
+  return document.createTextNode(typeof item === 'object' ? String(item.text ?? item.label ?? '') : String(item));
+};
+const fillCompact = (node, value) => {
+  const field = fieldOf();
+  let cell = state.set.renderCellField(field, clone(value), {formatFieldValue});
+  // A file list is a file a piece, as the table draws it.
+  if (cell == null && Array.isArray(value)) cell = value.map((one) => state.set.renderCellField(field, one, {formatFieldValue})).filter(Boolean);
+  if (cell == null && value != null && typeof value !== 'object') cell = String(value);
+  node.textContent = '';
+  const pieces = (Array.isArray(cell) ? cell : [cell]).map(cellPiece).filter(Boolean);
+  if (pieces.length > 1) node.classList.add('property-pieces');
+  node.append(...pieces);
+  empty(node);
+};
+const canEditShort = () => D.short && frameworkDraws('edit');
+const compactValue = (record, index, root) => {
+  const box = document.createElement('span');
+  box.className = 'property-cv';
+  if (!canEditShort()) { fillCompact(box, record.value); return box; }
+  const popover = document.createElement('sf-popover');
+  popover.setAttribute('placement', 'bottom-start');
+  popover.setAttribute('width', '18rem');
+  popover.setAttribute('label', `${D.field.label}, ${record.name}`);
+  const trigger = document.createElement('button');
+  trigger.type = 'button';
+  trigger.slot = 'trigger';
+  trigger.className = 'property-cv-button';
+  trigger.setAttribute('aria-label', `${D.field.label}, ${record.name}: изменить`);
+  fillCompact(trigger, record.value);
+  const body = document.createElement('div');
+  body.slot = 'content';
+  body.className = 'property-pop';
+  body.innerHTML = '<span class="property-label"></span><div data-pop-field></div><div class="flex flex-wrap gap-1/3"><sf-button size="1/2" text="Сохранить" data-save></sf-button><sf-button size="1/2" appearance="outline" scheme="on-surface" text="Отмена" data-cancel></sf-button></div>';
+  body.querySelector('.property-label').textContent = D.field.label;
+  popover.append(trigger, body);
+  let draft = record.value;
+  popover.addEventListener('sf-popover-open', () => {
+    draft = clone(record.value);
+    const slot = body.querySelector('[data-pop-field]');
+    render(window.SF.nothing, slot);
+    render(state.set.renderEditField(fieldOf({key: `${D.field.key}_c${index}`}), clone(record.value), editHost((value) => { draft = value; }), {size: '1/2'}), slot);
+  });
+  body.querySelector('[data-cancel]').addEventListener('click', () => popover.close?.());
+  body.querySelector('[data-save]').addEventListener('click', () => {
+    popover.close?.();
+    record.value = draft === undefined ? record.value : clone(draft);
+    state.compactOut = `Сервер получит: ${shown({record: record.id, values: {[D.field.key]: record.value ?? null}})} — таблица и карточки показывают новое значение.`;
+    setTimeout(() => drawCompact(root), 30);
+  });
+  box.append(popover);
+  return box;
+};
+const drawCompact = (root) => {
+  const body = el(root, 'compact-rows');
+  body.innerHTML = '';
+  const cards = el(root, 'compact-cards');
+  cards.innerHTML = '';
+  state.records.forEach((record, index) => {
+    const row = document.createElement('tr');
+    const name = document.createElement('td');
+    name.textContent = record.name;
+    const cell = document.createElement('td');
+    cell.append(compactValue(record, index, root));
+    const client = document.createElement('td');
+    client.textContent = record.client;
+    row.append(name, cell, client);
+    body.append(row);
+    const card = document.createElement('div');
+    card.className = 'property-mini';
+    const title = document.createElement('b');
+    title.textContent = record.name;
+    card.append(title, compactValue(record, index, root));
+    cards.append(card);
+  });
+  const out = el(root, 'compact-out');
+  out.textContent = state.compactOut || (canEditShort() ? 'Нажмите на значение — у него откроется окошко правки.' : `${D.field.label} правится в карточке записи: окошко у значения — только у коротких полей.`);
+};
+
+// The error state: the control's own invalid look and message (PP-5), on the
+// first Framework control of the field that takes them.
+const markError = (node) => {
+  const takes = (element) => {
+    const name = element.localName;
+    if (!name.startsWith('sf-')) return false;
+    const attributes = customElements.get(name)?.observedAttributes ?? [];
+    return attributes.includes('invalid') || attributes.includes('error-message');
+  };
+  const control = [...node.querySelectorAll('*')].find(takes);
+  if (control) {
+    control.setAttribute('invalid', '');
+    control.setAttribute('error-message', D.error);
+    return;
+  }
+  const line = document.createElement('span');
+  line.className = 'property-error';
+  line.textContent = D.error;
+  node.append(line);
+};
+
+const drawEdit = (root) => {
+  const out = el(root, 'edit-out');
+  const write = () => { out.textContent = state.editOut || 'Измените поле — здесь будет то, что получит сервер.'; };
+  const main = el(root, 'edit');
+  const states = {empty: el(root, 'state-empty'), error: el(root, 'state-error'), readonly: el(root, 'state-readonly')};
+  if (!frameworkDraws('edit')) {
+    // The set's card: the field to change, then the three states as fields of
+    // the same group (empty and required, refused with a message, read only).
+    el(root, 'edit-label').hidden = true;
+    root.querySelector('.property-states').hidden = true;
+    const card = setCard(main, 'edit', [
+      {...fieldOf(), value: clone(state.value)},
+      {...fieldOf(), key: `${D.field.key}_empty`, label: 'Пусто, обязательное', required: true, value: null},
+      {...fieldOf(), key: `${D.field.key}_error`, label: 'Ошибка', value: clone(D.samples[0][1])},
+      {...fieldOf(), key: `${D.field.key}_readonly`, label: 'Только чтение', readonly: true, value: clone(D.samples[0][1])},
+    ], (values) => {
+      if (D.field.key in (values ?? {})) state.value = clone(values[D.field.key]);
+      state.editOut = `Сервер получит: ${shown({[D.field.key]: values?.[D.field.key] ?? state.value ?? null})}`;
+      write();
+    });
+    card.addEventListener('sf-view-properties-state', (event) => {
+      if (event.detail?.state === 'loading') return;
+      card.reportFieldError?.({key: `${D.field.key}_error`}, D.error);
+    });
+    write();
+    return;
+  }
+  render(state.set.renderEditField(fieldOf(), clone(state.value), editHost((value) => {
+    state.value = value === undefined ? null : clone(value);
+    state.editOut = `Сервер получит: ${shown({[D.field.key]: state.value})}`;
+    write();
+  }, (message) => { if (message) out.textContent = message; }), {size: '1'}), main);
+  const quiet = {setFieldValue() {}, ...editHost(() => {})};
+  render(state.set.renderEditField(fieldOf({key: `${D.field.key}_empty`, required: true}), null, quiet, {size: '1/2'}), states.empty);
+  render(state.set.renderEditField(fieldOf({key: `${D.field.key}_error`}), clone(D.samples[0][1]), quiet, {size: '1/2'}), states.error);
+  render(state.set.renderEditField(fieldOf({key: `${D.field.key}_readonly`, readonly: true}), clone(D.samples[0][1]), quiet, {size: '1/2'}), states.readonly);
+  requestAnimationFrame(() => setTimeout(() => markError(states.error), 0));
+  write();
+};
+
+const drawFilter = (root) => {
+  const field = filterField();
+  const redraw = () => drawFilter(root);
+  render(state.set.renderFilterField(field, filterHost(redraw)), el(root, 'filter'));
+  const value = state.filter[field.key];
+  const set = value && ((value.value !== undefined && value.value !== '' && value.value !== null) || (Array.isArray(value.values) && value.values.length));
+  el(root, 'filter-out').textContent = set ? `В запрос уйдёт: ${shown({[D.field.key]: value})}` : 'Задайте условие — здесь будет то, что уйдёт в запрос.';
+};
+
+// The template switch and the marks on the sections a template changes.
+const drawTemplates = (root) => {
+  const list = templates();
+  const box = root.querySelector('[data-template-switch]');
+  if (list.length < 2) { box.hidden = true; return; }
+  box.hidden = false;
+  const segmented = box.querySelector('sf-segmented');
+  segmented.setAttribute('items', JSON.stringify(list.map((template) => ({value: template.id, label: template.name}))));
+  segmented.setAttribute('value', state.template.id);
+  segmented.addEventListener('change', (event) => {
+    const id = event.detail?.value ?? event.detail?.values?.[0] ?? segmented.value;
+    const next = list.find((template) => template.id === id);
+    if (!next || next === state.template) return;
+    state.template = next;
+    drawAll(root);
+  });
+};
+const markPlaces = (root) => {
+  const changes = state.template === D.templates[0] ? [] : state.template.changes;
+  for (const section of root.querySelectorAll('[data-place]')) {
+    const changed = changes.includes(section.dataset.place);
+    section.toggleAttribute('data-changed', changed);
+    section.querySelector('.property-changed').hidden = !changed;
+  }
+  const note = root.querySelector('[data-template-note]');
+  if (note) {
+    note.textContent = changes.length
+      ? `Шаблон «${state.template.name}» меняет: ${changes.map((place) => PLACES[place]).join(', ')}. Значение записи и строки сервера те же.`
+      : 'Шаблон по умолчанию. Другой шаблон меняет только рисунок — не данные.';
+  }
+};
+
+const drawAll = (root) => {
+  markPlaces(root);
+  drawView(root);
+  drawCompact(root);
+  drawEdit(root);
+  drawFilter(root);
+  root.dataset.template = state.template.id;
+};
 
 const start = async () => {
-  const root = document.querySelector('[data-properties]');
+  const root = document.querySelector('[data-property]');
   if (!root || root.dataset.exampleReady === 'true') return;
   root.dataset.exampleReady = 'true';
-  await Promise.all(['sf-view', 'sf-view-table', 'sf-view-properties'].map((tag) => customElements.whenDefined(tag)));
-  const log = root.querySelector('[data-log]');
-  const views = [...root.querySelectorAll('sf-view')];
-  for (const view of views) view.setHostPort(viewHost());
-  // The type's first field as the table's filter field: its chip stands over
-  // the table and opens the Framework's filter control for the type.
-  if (!ALL) {
-    const [first] = FIELDS[0];
-    for (const table of root.querySelectorAll('sf-view-table')) table.setFilterFields?.([{...first}]);
-  }
-  const refresh = () => {
-    for (const view of views) view.refresh();
-    for (const card of root.querySelectorAll('sf-view-properties[mode="view"]')) card.refresh?.();
-  };
-  const following = [...root.querySelectorAll('sf-view-properties[data-follows]')];
-  for (const card of root.querySelectorAll('sf-view-properties')) {
-    const readonly = card.dataset.state === 'readonly';
-    card.setHostPort(cardHost({log: card.dataset.follows !== undefined ? log : null, onSaved: refresh, readonly}));
-    card.setAttribute('record-id', card.dataset.record ?? 'r-1');
-  }
-  // The error state: a message under the type's first field, as the host's
-  // refusal or the field's own check puts it.
-  const failing = root.querySelector('sf-view-properties[data-state="error"]');
-  if (failing) {
-    const [first] = FIELDS[0];
-    // Once the record is drawn (the card's state leaves loading).
-    failing.addEventListener('sf-view-properties-state', (event) => {
-      if (event.detail?.state === 'loading') return;
-      failing.reportFieldError?.({key: first.key}, 'Проверьте значение: приложение его не приняло');
-    });
-  }
-  root.querySelector('[data-record-switch]')?.addEventListener('click', (event) => {
-    const button = event.target.closest('[data-record]');
-    if (!button) return;
-    for (const item of root.querySelectorAll('[data-record]')) {
-      item.classList.toggle('active', item === button);
-      item.setAttribute('aria-pressed', String(item === button));
-    }
-    for (const card of following) card.setAttribute('record-id', button.dataset.record);
-  });
+  for (let wait = 0; !window.SF?.whenFieldRenderers && wait < 200; wait += 1) await new Promise((done) => setTimeout(done, 25));
+  state.set = await window.SF.whenFieldRenderers();
+  await window.SF.smartBaseReady;
+  state.template = D.templates[0];
+  drawTemplates(root);
+  drawAll(root);
+  root.dataset.ready = 'true';
 };
 
 start();

@@ -24,12 +24,15 @@ scheme the owner agreed on 2026-11-05 (ui-control
   a section of its own, no longer inside the guide).
 - **Свойства** (`/ru/properties/`): a page per property type of the
   Framework's `SF.fieldRenderers.registry` (23 types, 5 of them the set's
-  own), each showing the type in the set's real components: a table cell, a
-  filter field, a card to read and to edit, and the states empty, error,
-  read-only and phone. `scripts/build-properties.mjs` writes the pages' tops,
+  own) and phone and password (C302 (1)), one template for every type (C300,
+  C302): what it stores and its templates, the live example of four sections
+  «Показ», «Кратко», «Правка», «Фильтр» drawn by the Framework renderers with
+  a template switch, then «Значение и сервер», «Настройки», «Где хранится»
+  and the neighbours. `scripts/build-properties.mjs` writes the pages whole,
   the examples and the overview's table from `config/properties.json`,
-  `scripts/property-catalogue.js` (the data) and `scripts/property-demo.js`
-  (the example engine); notes under a page's example are hand-written.
+  `scripts/property-catalogue.js` (the data), `scripts/property-demo.js`
+  (a type page's example engine) and `scripts/property-overview.js` (the
+  overview's table and cards).
 
 ```bash
 sh package/scripts/gates.sh <workspace>     # build and check the set
