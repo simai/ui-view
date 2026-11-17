@@ -2554,7 +2554,8 @@ class SfPropertyView extends PropertyViewElement {
         for (const [key, message] of errors) if (!this.errors.has(key) && !this.inputErrors.has(key)) this.errors.set(key, message);
         this._focusErrorsAfterRender = true;
         this.requestComponentUpdate("errors");
-        return {answer: "refused", reason: "invalid", errors: Object.fromEntries(new Map([...this.inputErrors, ...errors]))};
+        return {answer: "refused", reason: this.inputErrors.size ? "input_invalid" : "required",
+            errors: Object.fromEntries(new Map([...this.inputErrors, ...errors]))};
     }
 
     // The errors of the surface in the order their fields stand.

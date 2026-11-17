@@ -1082,6 +1082,15 @@
     container-type: normal;
   }
 
+  /* The fields of a group read as a list are the list's own rows: a subgrid
+     of the group, not the card's one- or two-column grid of fields with its
+     gaps (that rule names the same part and won, so the label column of the
+     whole list was 0 px wide and every row stacked, 60 px instead of 40). */
+  .sf-property-view-group.sf-property-view-group--list > .sf-property-view-group-fields {
+    grid-template-columns: subgrid;
+    gap: 0;
+  }
+
   .sf-property-view-group--list > .sf-property-view-group-header {
     padding-block-end: 0;
     border-block-end: 0;

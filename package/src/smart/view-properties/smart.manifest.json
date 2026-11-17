@@ -34,6 +34,7 @@
     "uses": [
       "component.accordion",
       "component.icons",
+      "component.skeleton",
       "smart.avatar",
       "smart.badge",
       "smart.button",
@@ -1726,7 +1727,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-properties/index.js",
-        "sha256": "0b72efcf8adfe0e3176a77623fc486e122c1844267f13b2a146f2cc093e35a8c"
+        "sha256": "e0fd47cb4367805f6ccde6a083342b2e82297d3db609814b4130d5b0a8650e6b"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.js",
@@ -1734,7 +1735,7 @@
       },
       {
         "path": "src/smart/view-properties/js/templates/default.css",
-        "sha256": "cabcfeb517176d73296cba7291f75d5314302d1465d906339465aee82c98dd7d"
+        "sha256": "201211da0eac6efa357081e3aae5d4ad22e569fd865be27dde3433c235aabae7"
       },
       {
         "path": "src/smart/view-properties/js/conditions.js",
@@ -1770,7 +1771,7 @@
       },
       {
         "path": "src/smart/view-properties/rule.js",
-        "sha256": "27479b6eb209fff8bdec300d2fef56490e93b37e3cd9eb8af51f0dd6b564196a"
+        "sha256": "791cd7abb8467c2e55b6bb48a4bb1df4e271ab2d0dff7093a67d1198249450eb"
       },
       {
         "path": "src/core/contracts/ports/simai.property-view-port/1.4.0/port.json",

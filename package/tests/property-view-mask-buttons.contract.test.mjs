@@ -61,7 +61,7 @@ test('an incomplete entry a control reports is held per field, and only that con
 test('both saves stop while an entry is not a value, and Save is never disabled', () => {
   assert.match(view, /async saveGroup\(\{confirm = null\} = \{\}\) \{\n\s+if \(this\.openAll\) return this\.saveAll\(\{confirm\}\);\n\s+if \(!this\.editing\) return null;\n\s+const missing = this\._missingRequired\(\);\n\s+if \(this\.inputErrors\.size \|\| missing\.size\) return this\._refuseWithErrors\(missing\);/u);
   assert.match(view, /async saveAll\(\{confirm = null\} = \{\}\) \{\n\s+const missing = this\._missingRequired\(\);\n\s+if \(this\.inputErrors\.size \|\| missing\.size\) return this\._refuseWithErrors\(missing\);/u);
-  assert.match(body(view, '    _refuseWithErrors(errors) {'), /answer: "refused", reason: "invalid"/u);
+  assert.match(body(view, '    _refuseWithErrors(errors) {'), /answer: "refused", reason: this\.inputErrors\.size \? "input_invalid" : "required"/u);
   const saves = template.match(/<sf-button[^>]*?data-action="save"[\s\S]*?><\/sf-button>/gu) ?? [];
   assert.ok(saves.length >= 1, 'Save is drawn');
   for (const save of saves) assert.doesNotMatch(save, /\?disabled=/u, 'Save is never disabled');

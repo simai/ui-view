@@ -97,6 +97,11 @@ SF.RuleLoader['cl-view-properties'] = {
     { name: 'cl-list-description' },
     // The phone's list of sections is sf-list rows (C289 (5)).
     { name: 'cl-list' },
+    // The loading skeleton's bars (.sf-skeleton) come with the panel: found
+    // by the Loader's class scan after the first paint, they grew the
+    // skeleton groups from 95 to 175 px some 550 ms in (CLS 0.074 at 390,
+    // C289 (8)).
+    { name: 'skeleton' },
     // A host's confirmation of a save is asked in place with sf-confirm
     // (C289 (7), C182).
     { name: 'cl-confirm' },
