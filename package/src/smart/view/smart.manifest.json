@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view",
-  "version": "1.13.5",
+  "version": "1.14.0",
   "title": "Data view",
   "summary": "Host-driven data view that composes toolbar, content and pagination around a separate data port.",
   "kind": "composite",
@@ -1728,6 +1728,13 @@
         "changes": [
           "Over SIMAI Framework ui-24d64b7f6eb7: its icon buttons and buttons ask for the look ghost where they asked for link, ghost's former name (component.icon-buttons 1.14.0, sf-button-icon 1.13.3, sf-button 1.16.3, RG-IB-1..3, C213); the printed row menu wrote sf-icon-button--link, which the pair answers with a console warning. The same look; nothing to change for a host."
         ]
+      },
+      {
+        "from": "1.13.5",
+        "to": "1.14.0",
+        "changes": [
+          "View round 1 (D4, D5, VW-2): the shadow root draws no control of its own (the fallback search, view select and save/delete buttons are gone; the toolbar part shows only an author's slotted toolbar); the default sf-view-table and sf-pagination are light DOM, where the page's sheets reach them, so the table's search gap is the Framework's; the move dialog chooses through sf-input-choice in its list look."
+        ]
       }
     ]
   },
@@ -1737,7 +1744,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view/index.js",
-        "sha256": "de2884a6082563f8111de4ba393e07b820b7eed5876dc219fc0cf8f5c42e4588"
+        "sha256": "153826eb6a70939e6be516642151bee6a815a351030697e365e4981699e8032f"
       },
       {
         "path": "src/core/contracts/ports/simai.dataview-port/1.5.0/port.json",

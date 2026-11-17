@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-table",
-  "version": "1.22.0",
+  "version": "1.23.0",
   "title": "Table",
   "summary": "Complete server-backed collection view with search, filters, table preferences, row and bulk actions, and pagination.",
   "kind": "composite",
@@ -2872,6 +2872,13 @@
         "changes": [
           "C106: the gear's window is SIMAI Framework sf-settings look=\"panel\" (sf-settings 1.6.3), not sf-menu-context tabs with rows drawn by the table. «Поля» is its fields list -- a column shown or not (the theme's light fill and a check at the end), its order (the handle at the start, a drag or Alt+arrows, the position said), pinned on top (the Framework pin button), the panel's search -- and «Вид» its density choice (the fill alone) and switches (lines, one line, the held head, «Для всех моих таблиц» after a line). Every change applies at once as before (save {kind: columns} with reason column-visibility, column-pin or column-order; view-change); «Сбросить» puts the fields back as the window opened with them or the view to its defaults, by the tab it stands on; the window reopens on the tab it was closed on. The panel takes the gear's density (C22): the hand-set 1/2 handles and pins are gone, a size is passed only when the host wrote one; on a phone it is the bottom sheet (C106 (8), C157 (5)). The host labels column-move-label, pin-column-label, unpin-column-label, column-search-placeholder and column-search-empty-text are no longer read by the gear: sf-settings speaks its own words in the page language. The filter window keeps its tabs (its templates need what sf-settings does not offer)."
         ]
+      },
+      {
+        "from": "1.22.0",
+        "to": "1.23.0",
+        "changes": [
+          "View round 1 (D1, D3, D5-D8, PD-9): the create, view-actions, list-sort and saved-view menus open the SIMAI Framework's shared menu (SF.menu.open); the panel footers put the main action first; the toolbar's button groups are roving.js groups; every toolbar word is in lang/; the filter count is sf-button-icon badge-count; the Create row is one scheme; dates are the field renderers' reading in a time element with its machine value (format-value.js is gone); the link cell is sf-reference-link; date operators of a chip read Позже, Не раньше, Раньше, Не позже."
+        ]
       }
     ]
   },
@@ -2881,15 +2888,15 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-table/index.js",
-        "sha256": "ad880d23c9eb7756be708f46cc29c159a869591afe798b7c8fbb06909105f46b"
+        "sha256": "fa271fc18ea6df7c61addec41ffb1bed5d07aa4eeaea0db572045fc02b9d2722"
       },
       {
         "path": "src/smart/view-table/js/templates/default.js",
-        "sha256": "3e4a3e320eac7712f2e6f1d14dc698cbdc0919cac55e49567085d410cc5b8d97"
+        "sha256": "c73bda4b8f45a3f3b0ccc2de8e54e31560448c56ae89052eaf3c9947ff930de9"
       },
       {
         "path": "src/smart/view-table/js/templates/default.css",
-        "sha256": "ad8c06600f78de17b722c1ea337d9af6c171025b611ed72c83078504089144e6"
+        "sha256": "f0eb9f7e25eb0c621d8274af4f1310cc257e461ff907683fb9651f23c919afd5"
       },
       {
         "path": "src/smart/helpers/option-badge.js",

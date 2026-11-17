@@ -54,7 +54,8 @@ test('an amount reads with its currency\'s minor units and sign', () => {
   assert.deepEqual(moneyParts({amount: '10', currency: 'EUR'}), {amount: '10', currency: 'EUR'});
   assert.deepEqual(moneyParts('10', 'RUB'), {amount: '10', currency: 'RUB'}, 'a field that fixes the currency takes a bare amount');
   assert.equal(percentText('12.5', 'ru'), '12,5 %');
-  assert.equal(percentText('12.5', 'en'), '12.5%');
+  // The renderer's spelling in every language (C203 (3)).
+  assert.equal(percentText('12.5', 'en'), '12.5 %');
 });
 
 const columns = columnsOf({columns: [

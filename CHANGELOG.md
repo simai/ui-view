@@ -38,6 +38,32 @@ up). Each component.json says the same under `x-decisions`
   for `link`, its former name (component.icon-buttons 1.14.0, RG-IB-1..3,
   C213): the printed row menu's `sf-icon-button--link` raised a console
   warning over the pair. The same look.
+- `sf-view-table` 1.23.0 (view round 1 D1, D3, D5-D8, PD-9): create, the
+  view's actions, the list's sort and a saved view's «⋯» open the SIMAI
+  Framework's shared menu (`SF.menu.open`), not windows of the table; the
+  filter, save-template and chip windows put «Применить» first and
+  «Сбросить» after it; the toolbar's button groups walk by arrows
+  (`roving.js`); every toolbar word is in `lang/`; the filter count is
+  `sf-button-icon` `badge-count`; the Create row is one scheme; a date is
+  the field renderers' reading in `<time datetime>` (the set's
+  `format-value.js` is gone); a link cell is `sf-reference-link`; a date
+  chip says «Позже», «Не раньше», «Раньше», «Не позже». The filter window
+  keeps its menu and its two tabs, and the save-template, filter and chip
+  windows still place themselves, until `sf-settings` has the parts (new
+  order) and the Framework's filter window comes (FO-5).
+- `sf-view` 1.14.0 (D4, D5): nothing of its own in the shadow root (the
+  fallback search, view select and save and delete buttons are gone; the
+  toolbar part shows only a toolbar the page slots); the default table and
+  page row are light DOM, where the page's styles reach them (the table's
+  search text stood 6 px from the icon there instead of the Framework's 8);
+  the move dialog chooses through `sf-input-choice`. A page that slotted an
+  empty `<span slot="toolbar">` to hide the fallback toolbar no longer needs
+  it.
+- `sf-view-flow` 1.1.5 (D10): «Отправить» first, «Отмена» after it, the
+  status line after both (C159 (4)); dates are the field renderers'.
+- `sf-view-properties` 1.17.1: dates are the host's or the field renderers'
+  reading; a percent is the Framework's `formatPercent`, «12,5 %» and
+  «12.5 %» (C203 (3)).
 - `sf-view-properties` 1.16.4 (VP-5, VP-8) and 1.16.5: the page buttons in
   the drawer head beside the close are size 1/3, 8 apart (C205 (2)); the
   filled head of a phone panel clears them (taken back from ui-pro f29d4bf).

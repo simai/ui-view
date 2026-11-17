@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-flow",
-  "version": "1.1.4",
+  "version": "1.1.5",
   "title": "Flow block",
   "summary": "A few properties as a block in a flow (a chat message, a feed, any stream): shows a record's fields, or asks for a few and sends them, then keeps the answer read-only. Fields are sf-view-properties' descriptors drawn by the Framework field renderers; a press is an event, the host answers with settle.",
   "kind": "smart",
@@ -466,6 +466,13 @@
         "changes": [
           "#172: the utility classes its templates write are its relations, asked for with the component; fetched after the first paint they moved the drawn parts (the bulk band 0 -> 8 gap, 8 px down)"
         ]
+      },
+      {
+        "from": "1.1.4",
+        "to": "1.1.5",
+        "changes": [
+          "View round 1 (D10, VF-10): the footer puts Отправить first and Отмена after it, the status line after both (C159 (4)); dates are the field renderers' reading, the set's own date parsing is gone."
+        ]
       }
     ]
   },
@@ -475,7 +482,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-flow/index.js",
-        "sha256": "8a519d3bb7a6bda52339aa2a74ad905bce8d898022bc5c9c6d819e2b4663366b"
+        "sha256": "f0adf66f71fc8f1d69379a9810d564ebf01b820e87d414a24281b6884607ef3a"
       },
       {
         "path": "src/smart/view-flow/js/answer.js",
@@ -483,11 +490,11 @@
       },
       {
         "path": "src/smart/view-flow/js/templates/default.js",
-        "sha256": "dff4ddc80b56d3fb07b1481441ca6ec0248678e9513b95319e05f0f471c8d504"
+        "sha256": "2b047f617c5213802084904bc97419e6d6cea20ac564f9a0e0ca9a302ba1235d"
       },
       {
         "path": "src/smart/view-flow/js/templates/default.css",
-        "sha256": "3be8da12912851c8759e9e5f1523152f6302078093c426631778e5cc4141e074"
+        "sha256": "abcfc89095d445723f28af9a02939f053d25130cedb68831a6ec8e74a8b3c7d3"
       },
       {
         "path": "src/smart/view-properties/js/field-value.js",
