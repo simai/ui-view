@@ -7,7 +7,11 @@
 #   2. extracts the release's distr from ui's git objects into .framework/
 #      (ignored) for Docara's page composition runtime (DOCARA_SIMAI_UI_ROOT),
 #      which Docara 3.14.1 cannot project for this release itself;
-#   3. runs docara build production and verify-static.
+#   3. checks that every generated part of the content is current
+#      (build-pages, build-properties, and build-reference against the
+#      workspace's receipt), so a page never drifts from the set it documents;
+#   4. runs docara build production and verify-static, then the site lint
+#      (scripts/site-lint.mjs) over the content and the built pages.
 # <set build workspace> is the one package/scripts/gates.sh wrote (it holds
 # build/package-receipt.json and build/wave-1/output/package/view). Serve the
 # result with node scripts/serve.mjs.
@@ -28,5 +32,9 @@ if [ "$(cat .framework/COMMIT 2>/dev/null || true)" != "$commit" ]; then
   git -C "$ui" archive --format=tar "$commit" distr | tar -x -C .framework
   echo "$commit" > .framework/COMMIT
 fi
+node scripts/build-pages.mjs --check
+node scripts/build-properties.mjs --check
+node scripts/build-reference.mjs --check --receipt "$workspace/build/package-receipt.json"
 DOCARA_SIMAI_UI_ROOT="$site/.framework" php -d memory_limit=2G vendor/bin/docara build production
 php -d memory_limit=2G vendor/bin/docara verify-static build_production
+node scripts/site-lint.mjs

@@ -1,4 +1,4 @@
 .tinted-table {
-  --sf-table-head--background-color: var(--sf-primary-container);
+  --sf-table-head--background-color: var(--sf-surface-2);
   --sf-table--cell-spacing: var(--sf-space-2);
 }

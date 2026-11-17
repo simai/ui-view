@@ -16,7 +16,12 @@
 // A page holds the generated part between its "## Параметры" heading and its
 // "## См. также" heading; everything above is written by hand.
 //
-// Usage: node site/scripts/build-reference.mjs [--check | --missing]
+// --receipt FILE reads another build's receipt instead: a candidate build's
+// (package/scripts/gates.sh writes <workspace>/build/package-receipt.json), so
+// a site built over the candidate shows the candidate's reference and names
+// it as one.
+//
+// Usage: node site/scripts/build-reference.mjs [--check | --missing] [--receipt FILE]
 
 import {execFileSync} from 'node:child_process';
 import {readFileSync, writeFileSync} from 'node:fs';
@@ -25,7 +30,9 @@ import {fileURLToPath} from 'node:url';
 
 const site = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const repository = resolve(site, '..');
-const args = new Set(process.argv.slice(2));
+const argv = process.argv.slice(2);
+const args = new Set(argv);
+const receiptAt = argv.includes('--receipt') ? resolve(argv[argv.indexOf('--receipt') + 1] ?? '') : null;
 const checkOnly = args.has('--check');
 const listMissing = args.has('--missing');
 
@@ -38,8 +45,11 @@ const PAGES = {
 const START = '## Параметры';
 const END = '## См. также';
 
-const receipt = JSON.parse(readFileSync(join(repository, 'package/dist/package-receipt.json'), 'utf8'));
+const receipt = JSON.parse(readFileSync(receiptAt ?? join(repository, 'package/dist/package-receipt.json'), 'utf8'));
 const revision = receipt.package_source.revision;
+const from = receiptAt
+  ? `в сборке-кандидате набора (\`simai/ui-view@${revision.slice(0, 12)}\`) и обновляется вместе с выпуском`
+  : `в выпуске набора \`view-${revision.slice(0, 12)}\` и обновляется вместе с выпуском`;
 const show = (path) => execFileSync('git', ['-C', repository, 'show', `${revision}:${path}`], {encoding: 'utf8', maxBuffer: 64 << 20});
 const dictionary = JSON.parse(readFileSync(join(site, 'config/reference.ru.json'), 'utf8')).strings;
 
@@ -79,7 +89,7 @@ const shape = (manifest, payload) => {
   return code(`{ ${keys.join(', ')} }`);
 };
 const LIFECYCLE = {experimental: 'экспериментальный: API может меняться между выпусками', stable: 'стабильный'};
-const NAME_RULE = {required: 'обязательно', optional: 'необязательно'};
+const NAME_RULE = {required: 'обязательно', optional: 'необязательно', internal: 'даёт сам компонент'};
 
 const render = (folder) => {
   const manifest = JSON.parse(show(`package/src/smart/${folder}/smart.manifest.json`));
@@ -87,7 +97,7 @@ const render = (folder) => {
   const tag = manifest.custom_element;
   const lines = [START, ''];
   lines.push(
-    `Справочник собран из манифеста компонента в выпуске набора \`view-${revision.slice(0, 12)}\` и обновляется вместе с выпуском. Каждому атрибуту соответствует свойство элемента с тем же именем в camelCase: \`search-placeholder\` — \`searchPlaceholder\`.`,
+    `Справочник собран из манифеста компонента ${from}. Каждому атрибуту соответствует свойство элемента с тем же именем в camelCase: \`search-placeholder\` — \`searchPlaceholder\`.`,
     '',
     '| | |',
     '|:---|:---|',

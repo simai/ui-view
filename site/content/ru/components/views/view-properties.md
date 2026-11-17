@@ -56,13 +56,13 @@ profile: reference
 
 ## Параметры
 
-Справочник собран из манифеста компонента в выпуске набора `view-4d7070623fe1` и обновляется вместе с выпуском. Каждому атрибуту соответствует свойство элемента с тем же именем в camelCase: `search-placeholder` — `searchPlaceholder`.
+Справочник собран из манифеста компонента в сборке-кандидате набора (`simai/ui-view@c9f9de09b399`) и обновляется вместе с выпуском. Каждому атрибуту соответствует свойство элемента с тем же именем в camelCase: `search-placeholder` — `searchPlaceholder`.
 
 | | |
 |:---|:---|
 | Тег | `<sf-view-properties>` |
 | Назначение | Поля одного объекта по разделам, группам и полям; каждое поле рисует набор рендереров своего типа, данные идут через отдельный порт хоста. Группа редактируется и сохраняется одной ревизией по кнопке, а значение ссылочного поля выбирается из кандидатов элемента постранично. Парный компонент к представлению данных: то показывает набор записей, этот — один объект. |
-| Контракт | `smart.view-properties`, версия `1.10.0` |
+| Контракт | `smart.view-properties`, версия `1.16.10` |
 | Жизненный цикл | экспериментальный: API может меняться между выпусками |
 
 ### Атрибуты
@@ -154,12 +154,12 @@ profile: reference
 
 События приходят на сам элемент и всплывают.
 
-- `sf-view-properties-close` — `detail`: `{ reason, record_id, unsaved_fields: array }`. Панель просит закрыть её (крестиком, Esc или «Отменить») и передаёт, сколько полей будет потеряно: изменённых и не сохранённых или введённых, но ещё не ставших значением.
+- `sf-view-properties-close` — `detail`: `{ reason, record_id, unsaved_fields: array }`. Панель просит закрыть её (своей кнопкой закрытия, Esc, нажатием на затемнённую страницу или «Отмена») и сообщает, сколько полей потеряется: изменённых и не сохранённых или введённых и ещё не ставших значением.
 - `sf-view-properties-open-full` — `detail`: `{ id, address: string, record_id }`. Пользователь запросил этот объект на полной странице по адресу, который передал хост.
 - `sf-view-properties-saved` — `detail`: `{ id, revision?: string }`. Факт после применённого сохранения (`group.save` или `record.save`): `{id, revision}`.
 - `sf-view-properties-failed` — `detail`: `{ reason: string, message?: string }`. Факт после записи, которую не удалось прочитать, `{reason, message}`: код хоста (`record-unknown` для устаревшей ссылки) и его фраза.
-- `sf-view-properties-open` — `detail`: `{ field: string, value: object, answer: string }`. Попросили открыть запись по ссылке, `open: {field, value, answer}`. Прежнее `sf-property-view-open-record` приходит следом до 2026-12-01.
-- `sf-view-properties-delete` — `detail`: `{ collection: string, revision: string, answer: string, record_id }`. Удаление записи запрошено и получен ответ, `delete: {record_id, collection, revision, answer}`. Прежнее `sf-property-view-delete-record` приходит следом до 2026-12-01.
+- `sf-view-properties-open` — `detail`: `{ field: string, value: object, answer: string }`. Запрошено открытие связанной записи, словарь §5 open: `{field, value, answer}`. Прежнее `sf-property-view-open-record` приходит следом до 2027-01-01.
+- `sf-view-properties-delete` — `detail`: `{ collection: string, revision: string, answer: string, record_id }`. Запрошено и получило ответ удаление записи, словарь §5 delete: `{record_id, collection, revision, answer}`. Прежнее `sf-property-view-delete-record` приходит следом до 2027-01-01.
 - `sf-view-properties-created` — `detail`: `{ collection: string|null, record_id }`. Форма создания создала объект; хост может перейти к его собственному месту. Компонент показывает новый объект в режиме auto.
 - `sf-view-properties-cancel` — `detail`: `{ mode, scope?, section?: string, group?: string }`. Правка отменена; то, что человек набрал, отброшено. Поверхность, открытая целиком (правка, создание), не передаёт `scope`, и хост решает, куда это ведёт (панель закрывается); отмена одной группы (с 1.7.0) передаёт `scope: group` с разделом и группой, чтобы хост, следящий за несохранённым, знал, что ввод отброшен.
 - `sf-view-properties-state` — `detail`: `{ state: string, message: string }`.
@@ -174,12 +174,12 @@ profile: reference
 ## Методы
 
 - `refresh()` — возвращает `object`.
-- `load(reason: string)` — возвращает `object`. Повторно читает объект через порт.
-- `editGroup(section: string, group: string)` — возвращает `object`. Открывает одну группу для редактирования.
+- `load(args?: object|string)` — возвращает `object`. Повторно читает объект через порт.
+- `editGroup(args: object)` — возвращает `object`. Открывает одну группу для редактирования.
 - `cancelEdit()` — возвращает `object`. Закрывает открытую группу, отбрасывая введённое. Ничего не записывает.
-- `saveGroup(options: object)` — возвращает `object`. Сохраняет изменённые поля открытой группы одной ревизией.
-- `selectSection(key: string)` — возвращает `object`. Открывает один раздел.
-- `closePanel(reason: string)` — возвращает `object`. Сообщает, что панель следует закрыть. Решение о закрытии принимает хост.
+- `saveGroup(args?: object)` — возвращает `object`. Сохраняет изменённые поля открытой группы одной ревизией.
+- `selectSection(args: object|string)` — возвращает `object`. Открывает один раздел.
+- `closePanel(args?: object|string)` — возвращает `object`. Сообщает, что панель следует закрыть. Решение о закрытии принимает хост.
 - `copyAddress()` — возвращает `object`. Копирует адрес, переданный хостом, и сообщает, разрешил ли это браузер.
 - `openFullPage()` — возвращает `object`. Сообщает, что этот объект следует открыть на отдельной странице.
 - `confirmSave()` — возвращает `object`. Повторить сохранение, которое хост попросил подтвердить, с выданным им отпечатком (порт 1.14.0).
@@ -217,7 +217,7 @@ profile: reference
 
 ## Источник
 
-- `simai/ui-view@4d7070623fe1:package/src/smart/view-properties`
+- `simai/ui-view@c9f9de09b399:package/src/smart/view-properties`
 
 ## См. также
 

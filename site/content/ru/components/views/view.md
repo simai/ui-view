@@ -51,13 +51,13 @@ profile: reference
 
 ## Параметры
 
-Справочник собран из манифеста компонента в выпуске набора `view-4d7070623fe1` и обновляется вместе с выпуском. Каждому атрибуту соответствует свойство элемента с тем же именем в camelCase: `search-placeholder` — `searchPlaceholder`.
+Справочник собран из манифеста компонента в сборке-кандидате набора (`simai/ui-view@c9f9de09b399`) и обновляется вместе с выпуском. Каждому атрибуту соответствует свойство элемента с тем же именем в camelCase: `search-placeholder` — `searchPlaceholder`.
 
 | | |
 |:---|:---|
 | Тег | `<sf-view>` |
 | Назначение | Представление данных под управлением элемента: панель инструментов, содержимое и пагинация вокруг отдельного порта данных. |
-| Контракт | `smart.view`, версия `1.8.1` |
+| Контракт | `smart.view`, версия `1.13.4` |
 | Жизненный цикл | экспериментальный: API может меняться между выпусками |
 
 ### Атрибуты
@@ -72,6 +72,12 @@ profile: reference
 - `port-record` — `string`, по умолчанию пусто. Запись, которую показывает встраивающий составной компонент; передаётся с запросом к порту хоста.
 - `port-group` — `string`, по умолчанию пусто. Группа внутри составного компонента, которую представляет этот список; передаётся с запросом к порту хоста.
 - `size` — `string`, по умолчанию `1`, значения: `1/2`, `1`. Ступень лестницы размеров для элементов управления представления; её получают таблица, строка страниц и полоса выбора: 1 или плотная 1/2, как в админке.
+- `layout` — `string`, по умолчанию `auto`, значения: `auto`, `table`, `list`. Как рисовать записи, передаётся таблице (решение владельца C31): `auto` — таблица, где хватает места, и список уже `list-below`; `table`; `list`. Таблица, которой хост сам задал раскладку, сохраняет её. Встроенное представление (без панели) без этого атрибута — таблица, как раньше.
+- `layout-switch` — `boolean`, по умолчанию `false`. Переключатель «список или таблица» на панели (`layout-switch` у `sf-view-table`, C31): выбор человека хранится под `preferences-key` и в настройках сохранённого вида (`settings.layout`), и открытый сохранённый вид его возвращает. Уже `list-below` есть только список и переключателя нет; у представления без панели его тоже нет.
+- `list-below` — `number`, по умолчанию `600`. Ширина контейнера таблицы в пикселях, уже которой `auto` рисует список (`list-below` у `sf-view-table`); передаётся, когда задана.
+- `quick-actions` — `string`, по умолчанию пусто. Действия строки, которые строка списка показывает кнопками-значками: идентификаторы, не больше трёх (`quick-actions` у `sf-view-table`, C31); остальные — в её меню «ещё». Идентификаторы — действия строки хоста; значок берётся из записи `row_actions`.
+- `row-open` — `string`, по умолчанию `title`, значения: `title`, `row`. `row`: нажатие в любом месте строки, кроме её элементов управления, открывает запись через `record.open`, как ссылка заголовка (`row-open` у `sf-view-table`, C31).
+- `list-roles` — `string`, по умолчанию пусто. Места колонок в строке списка — пары `ключ:роль` через запятую: `state:status`, `name:title`, `domain:supporting`, `kind:supporting`, `ssl:fact`. Датированный псевдоним `columns[].list` порта `simai.dataview-port` 1.15.0 до 2027-01-01 (отмечается в `SF.deprecations`): хост на 1.15.0 передаёт роль вместе с колонкой, и колонка, которой хост дал роль в списке, сохраняет свою.
 - `column-search-placeholder` — `string`, по умолчанию пусто. Передаётся как column-search-placeholder в таблицу, которую рисует представление; без него действует собственная подпись таблицы на языке страницы.
 - `column-search-empty-text` — `string`, по умолчанию пусто. Передаётся как column-search-empty-text в таблицу, которую рисует представление; без него действует собственная подпись таблицы на языке страницы.
 - `column-move-label` — `string`, по умолчанию пусто. Передаётся как column-move-label в таблицу, которую рисует представление; без него действует собственная подпись таблицы на языке страницы.
@@ -108,17 +114,17 @@ profile: reference
 - `sf-view-deleted` — `detail`: `{ ids: array }`. Факт после применённого удаления: `{ids}`.
 - `sf-view-answer` — `detail`: `{ intent: string, answer: string, reason?: string, message?: string, data?: object, sequence?: integer, effects?: array, instance_id: string }`. Приходит после каждого ответа порта, по которому действует представление, включая ответы, которые оно даёт само (порт не подключён, возможности нет, действие не разрешено), — страница может следить за исходами, не оборачивая порт. Объект ответа хоста передаётся целиком со всеми полями.
 - `sf-view-state` — `detail`: `{ state: string, message: string, instance_id: string }`. Приходит при каждой смене состояния данных представления (loading, populated, empty, error) вместе со строкой, которую оно объявляет в своей живой области; для страницы, которая показывает состояние где-то ещё.
-- `sf-view-tree` — `detail`: `{ intent: string, payload?: object }`. Намерения порта для дерева, `{intent, payload}`; прежнее `sf-table-tree-intent` приходит следом до 2026-12-01.
+- `sf-view-tree` — `detail`: `{ intent: string, payload?: object }`. Намерения порта для дерева, `{intent, payload}`; прежнее `sf-table-tree-intent` приходит следом до 2027-01-01.
 - `sf-view-files-drop` — `detail`: `{ files: array }`. На представление с accept-files отпустили файлы с компьютера. Представление ничего не загружает, и файлы не идут через порт; их загружает хост.
 - `sf-pagination-count` — `detail`: `{ component: object, tagName: string, template: string, reason: string, current: integer, pageSize: integer }`. Отправляет пагинация представления, когда человек просит общее число, последнюю страницу или действие над фильтром, пока число неизвестно. Представление отвечает на него намерением query.count; хосту слушать его не нужно.
-- `sf-view-saved-view-intent` — `detail`: `{ key: string, label: string, revision?: string|integer, roles?: object }`. Событие, которое страница отправляет на представление, чтобы сохранить общее сохранённое представление (порт 1.1.0 и новее): представление отправляет view.save_shared с key и label из detail.
+- `sf-view-save` — `detail`: `{ kind?, key: string, label: string, revision?: string|integer, roles?: object }`. Страница поднимает его на представлении, чтобы сохранить общий сохранённый вид (словарь 1.1.5 §9 save, kind view; порт 1.1.0 и новее): представление отправляет `view.save_shared` с ключом и подписью из `detail`. `detail` другого вида представлению не адресован и не трогается. Прежнее имя `sf-view-saved-view-intent` (и `sf-data-view-saved-view-intent`) ещё слышно до 2027-01-01 и отмечается в `SF.deprecations`.
 - `sf-table-action-intent` — `detail`: `{ action_id: string, record_ids: array }`. Событие таблицы, которое слушает представление: в его таблице выбрано действие над строкой или групповое действие. Представление проверяет, что строка его разрешает, и отправляет record.open (view), record.mutate (одна строка) или bulk.apply_selected с ревизиями записей; перенос и создание в дереве открывают окно переноса или view.create_record.
 - `sf-table-column-settings-change` — `detail`: `{ reason: string, columnSettings: object, tableSettingsKey: string, target?: string, base_revision?: string|number }`. Событие таблицы, которое слушает представление: человек изменил ширину колонки, переставил, закрепил или скрыл её. Представление записывает это в личный слой человека (settings.save_personal): выбора слоя таблица не предлагает, и таблица, которую оно рисует, не передаёт target. Общий слой записывает код страницы через saveColumnSettings(settings, {shared: true}).
 - `sf-table-column-settings-reset` — `detail`: `{ target: string, tableSettingsKey: string|null }`. Событие таблицы, которое слушает представление: человек попросил вернуть колонки по умолчанию. Представление вызывает resetColumnSettings — пустой личный слой, записанный против его ревизии; значения по умолчанию даёт хост.
 - `sf-table-create-intent` — `detail`: `{ item: string|null }`. Событие таблицы, которое слушает представление: нажата кнопка создания или пункт её меню. Представление отправляет view.create_record с detail в том виде, в каком он пришёл.
 - `sf-table-query-intent` — `detail`: `{ reason, context: object, sequence: integer }`. Событие таблицы, которое слушает представление: изменился входной порт контекста его таблицы. Представление не берёт номер последовательности таблицы и перечитывает список своим query.change.
 - `sf-table-template-delete` — `detail`: `{ key: string }`. Событие таблицы, которое слушает представление: на вкладке «Шаблоны» удалён сохранённый шаблон, по одному событию на шаблон. Представление отправляет view.delete с ключом.
-- `sf-table-template-save` — `detail` не описан. Событие таблицы, которое слушает представление: сохранён шаблон фильтра. Представление превращает его в saveView (view.save) с key, label, revision, level, roles, layout и settings; массив в detail сохраняется по одному шаблону, каждый своим view.save, записи без key пропускаются.
+- `sf-table-template-save` — `detail`: `{ templates: array }`. Событие таблицы, которое слушает представление: шаблоны фильтра сохранены (`detail {templates}`). Представление превращает каждый шаблон в `saveView` (`view.save`) с ключом, подписью, ревизией, уровнем, ролями, раскладкой и настройками — каждый своим `view.save`; записи без ключа пропускаются.
 - `sf-table-template-select` — `detail`: `{ key: string }`. Событие таблицы, которое слушает представление: на вкладке «Шаблоны» применён другой сохранённый шаблон. Представление отправляет view.open с ключом и восстанавливает поля фильтра, с которыми представление было сохранено.
 - `sf-host-port-request` — `detail`: `{ component?: object, context?: object }`. Запрашивает у страницы порт хоста — один раз за подключение и только пока у элемента его нет. Общее соглашение для всех компонентов, принимающих `setHostPort`: потребителю, встраивающему такой компонент в другой, не нужно искать элемент и вызывать у него метод. Ответ — вызов `setHostPort` на цели события, сразу или позже.
 - `sf-view-list-open` — `detail`: `{ reason, query: object }`. Пользователь запросил весь список, часть которого показана из-за ограничения числа строк. Передаёт запрос, чтобы хост открыл полное представление с теми же записями; компонент не строит собственный адрес.
@@ -127,19 +133,19 @@ profile: reference
 
 Прежние имена событий приходят следом с тем же `detail` и отмечаются в `SF.deprecations`:
 
-`sf-table-tree-intent` → `sf-view-tree`, `sf-data-view-open` → `sf-view-open`, `sf-data-view-deleted` → `sf-view-deleted`, `sf-data-view-answer` → `sf-view-answer`, `sf-data-view-state` → `sf-view-state`, `sf-data-view-tree` → `sf-view-tree`, `sf-data-view-files-drop` → `sf-view-files-drop`, `sf-data-view-saved-view-intent` → `sf-view-saved-view-intent`, `sf-data-view-list-open` → `sf-view-list-open`.
+`sf-table-tree-intent` → `sf-view-tree`, `sf-data-view-open` → `sf-view-open`, `sf-data-view-deleted` → `sf-view-deleted`, `sf-data-view-answer` → `sf-view-answer`, `sf-data-view-state` → `sf-view-state`, `sf-data-view-tree` → `sf-view-tree`, `sf-data-view-files-drop` → `sf-view-files-drop`, `sf-data-view-saved-view-intent` → `sf-view-save`, `sf-view-saved-view-intent` → `sf-view-save`, `sf-data-view-list-open` → `sf-view-list-open`.
 
 ## Методы
 
-- `refresh(reason: string)` — возвращает `object`. Запрашивает текущую выборку с новым номером последовательности.
-- `changeQuery(patch: object, reason: string)` — возвращает `object`. Изменяет поиск, фильтры, сортировку или окно.
-- `openView(key: string)` — возвращает `object`. Открывает сохранённое представление.
-- `saveView(view: object)` — возвращает `object`. Сохраняет личное или общее представление: view.save или view.save_shared на порте 1.1.0 и новее. Бросает TypeError без key и label или для другого уровня.
-- `deleteView(key: string)` — возвращает `object`. Удаляет сохранённое представление.
-- `applyUnderFilter(actionId: string, confirmedTotal: number)` — возвращает `object`. Выполняет подтверждённое действие над всем фильтром (bulk.apply_under_filter) по текущим фильтрам. Бросает TypeError, если confirmedTotal не равен текущему общему числу.
+- `refresh(args?: object|string)` — возвращает `object`. Запрашивает текущую выборку с новым номером последовательности.
+- `changeQuery(args: object)` — возвращает `object`. Изменяет поиск, фильтры, сортировку или окно.
+- `openView(args: object|string)` — возвращает `object`. Открывает сохранённое представление.
+- `saveView(args: object)` — возвращает `object`. Сохраняет личное или общее представление: view.save или view.save_shared на порте 1.1.0 и новее. Бросает TypeError без key и label или для другого уровня.
+- `deleteView(args: object|string)` — возвращает `object`. Удаляет сохранённое представление.
+- `applyUnderFilter(args: object)` — возвращает `object`. Выполняет подтверждённое действие над всем фильтром (bulk.apply_under_filter) по текущим фильтрам. Бросает TypeError, если confirmedTotal не равен текущему общему числу.
 - `resetColumnSettings()` — возвращает `object`. Сбрасывает раскладку колонок человека: пустой личный слой, записанный против его ревизии, — это сброс по порту (запись, а не удаление). Значения по умолчанию даёт хост.
 - `clearSelection()` — возвращает `object`.
-- `notify(text: string, options: object)` — возвращает `object`. Показывает одно уведомление поверх карточки или убирает его при пустом тексте. Отказ, конфликт и недоступность хоста выводят его сами.
+- `notify(args: object)` — возвращает `object`. Показывает одно уведомление поверх карточки или убирает его при пустом тексте. Отказ, конфликт и недоступность хоста выводят его сами.
 - `applyProjection(data: object)` — возвращает `null`. Отображает ответ хоста во всех трёх слотах.
 - `saveColumnSettings(columnSettings: object, options?: object)` — возвращает `object`. Записывает слой настроек колонок, личный или общий, против его ревизии: settings.save_personal или settings.save_shared. Базовая ревизия — переданная, иначе ревизия слоя, иначе ревизия цели порта. После конфликта представление берёт current_revision (и колонки слоя), которые ответ несёт рядом с answer, как требует simai.dataview-port 1.12.0; data.current_revision и data.column_settings оно тоже читает — для хоста, который следовал словам версии 1.10.0, — а если конфликт не называет ревизию, перечитывает список.
 - `setHostPort(host: object)` — возвращает `object`. Привязывает конкретный адаптер хоста.
@@ -170,7 +176,7 @@ profile: reference
 
 ## Источник
 
-- `simai/ui-view@4d7070623fe1:package/src/smart/view`
+- `simai/ui-view@c9f9de09b399:package/src/smart/view`
 
 ## См. также
 

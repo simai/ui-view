@@ -11,6 +11,17 @@ profile: explanation
 ними называется **портом**: это объект, который страница отдаёт компоненту
 методом `setHostPort()`.
 
+:::diagram {title="Намерение и ответ" label="Человек действует; компонент отправляет приложению намерение через порт; приложение отвечает одним объектом; компонент рисует ответ"}
+sequenceDiagram
+  participant person as Человек
+  participant view as Компонент
+  participant app as Приложение
+  person->>view: ищет, сортирует, сохраняет
+  view->>app: raise(намерение, данные)
+  app-->>view: ответ: applied, conflict, refused или unavailable
+  view-->>person: новые записи или сообщение
+:::
+
 ## Как это устроено
 
 ### Порт
