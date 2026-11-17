@@ -28,11 +28,12 @@ test('sf-view: the footer is its own row, the page row in the field appearance (
   const start = source.slice(source.indexOf('    get footerStart() {'), source.indexOf('    // The page row\'s attributes are its state'));
   assert.match(start, /<span class="sf-view-footer-range" role="status">/);
   assert.match(start, /<sf-button class="sf-view-footer-size" appearance="ghost" scheme="on-surface" icon-end="arrow_drop_down" aria-haspopup="menu">/);
-  assert.match(start, /<sf-menu-context class="sf-view-footer-size-menu" popup>/);
+  const menu = source.slice(source.indexOf('    _pageSizeMenu() {'), source.indexOf('    _togglePageSizeMenu('));
+  assert.match(menu, /document\.createElement\("sf-menu-context"\);\n\s*menu\.className = "sf-view-footer-size-menu";\n\s*menu\.setAttribute\("popup", ""\);/);
   // Kept by reference: a Smart button moves its host's data-* onto its <button>.
   assert.match(start, /this\._footerParts = parts;/);
   // The words are the page row's (one language file for the row).
-  const draw = source.slice(source.indexOf('    _drawFooter() {'), source.indexOf('    _togglePageSizeMenu('));
+  const draw = source.slice(source.indexOf('    _drawFooter() {'), source.indexOf('    _pageSizeMenu() {'));
   assert.match(draw, /pagination\.rangeText/);
   assert.match(draw, /pagination\.sfWord\?\.\("page-size-text", \{vars: \{size: pageSize\}\}\)/);
   // A size chosen reads the list from its first page and is kept.
@@ -61,8 +62,9 @@ test('sf-view-table: Enter on a head opens «Изменить ширину · П
   assert.match(menu, /\{id: "resize", text: this\.text\("columnWidthChangeText"\)\},\n\s*\{id: "fit", text: this\.text\("columnWidthFitText"\)\},\n\s*\{id: "default", text: this\.text\("columnWidthDefaultText"\)\},/);
   // The head's keys run before the grid's, so Enter on a sort button opens the menu.
   assert.match(source, /this\.bindHeadMenu\(table, signal\);\n\s*table\.addEventListener\("keydown", \(event\) => this\.handleGridKeydown\(event, table\), \{signal\}\);/);
-  // The width is still the Framework's gesture; a double click on the edge fits the content.
-  assert.match(source, /reset: \(\) => \{\n\s*clear\(\);\n\s*this\.fitColumnToContent\(key\);/);
+  // The width is still the Framework's gesture; a double click on the edge
+  // forgets the width, as before (remark of 2026-10-14); «По содержимому» fits.
+  assert.match(source, /reset: \(\) => \{\n\s*clear\(\);\n\s*this\.resetColumnWidth\(key\);/);
   assert.match(source, /text: \(share\) => this\.text\('columnWidthValue'\)\.replace\('\{n\}', String\(share\)\),/);
   // A head with an edge and nothing to press is a stop of its own.
   assert.match(source, /return cell\.querySelector\("\.sf-table-sort-button"\) \?\? cell;/);

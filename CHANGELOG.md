@@ -53,8 +53,8 @@ in brackets. The site page «Изменения» says the same in Russian.
   ширину · По содержимому · По умолчанию». «Изменить ширину» takes the focus
   to the edge, whose arrows are SIMAI Framework's `SF.Resizer.attach`
   (`sf-resizer` 1.3.0); Enter or Escape go back to the head. «По содержимому»
-  and a double click on the edge fit the column to its content; «По
-  умолчанию» drops the person's width. The edge says its share («16 %») and
+  fits the column to its content; «По умолчанию» drops the person's width,
+  as a double click on the edge still does. The edge says its share («16 %») and
   its name from the language files (it was Russian in the template). Space on
   a sort button still sorts; Enter there opens the menu.
 

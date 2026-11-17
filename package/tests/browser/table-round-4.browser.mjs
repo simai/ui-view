@@ -222,7 +222,9 @@ try {
 
   // 3. The footer in one row.
   const footer = await page.evaluate(() => {
-    const main = document.querySelector('#p .sf-pagination-main');
+    // sf-view 1.13.0 (C97 (5)): the page row is the field appearance, its
+    // <nav> the row itself; the range and the page size are the view's.
+    const main = document.querySelector('#p > nav.sf-pagination--field');
     const text = main?.textContent?.replace(/\s+/gu, ' ').trim() ?? '';
     const field = main?.querySelector('.sf-pagination-page-input');
     const list = main?.querySelector('.sf-pagination-list');
@@ -234,17 +236,18 @@ try {
       ofN: /из \d/u.test(text),
       fieldBetweenArrows: Boolean(list?.querySelector('.sf-pagination-item-field .sf-pagination-page-input')),
       numbersLeft: numbers.filter((item) => /^\d+$/u.test(item.textContent.trim())).length,
-      showMoreRow: Boolean(document.querySelector('#p .sf-pagination-top .sf-pagination-more-button')),
-      showMoreInFooter: Boolean(main?.querySelector('.sf-pagination-more-button')),
+      showMore: Boolean(document.querySelector('#p .sf-pagination-more-button')),
+      range: document.querySelector('.sf-view-footer-range')?.textContent ?? null,
       hasField: Boolean(field),
     };
   });
   // Owner decision C97 (sf-pagination 1.5.0, pair ui-141822273efe): the field
-  // reads «‹ [3] из 12 ›» for an exact count, and Show more is never in one row
-  // with the arrows -- the compatible footer draws it on a line above.
+  // reads «‹ [3] из 12 ›» for an exact count. C97 (5) (sf-view 1.13.0): the
+  // view draws its own row «41–60 из 240 · По 20 ▾ · ‹ [3] из 12 ›» over the
+  // field appearance; Show more is not part of it (C97 (1)).
   if (footer.marked || !footer.ofN || !footer.fieldBetweenArrows || footer.numbersLeft > 0
-      || !footer.showMoreRow || footer.showMoreInFooter) {
-    note({case: 'footer', got: footer, expected: 'one row: no marked count, the field between the arrows with «из N», Show more on its own line above (C97)'});
+      || footer.showMore || !/из/u.test(footer.range ?? '')) {
+    note({case: 'footer', got: footer, expected: 'one row: no marked count, the field between the arrows with «из N», the range at the start, no Show more (C97 (5))'});
   }
 
   // 4. The menus stay under their buttons.

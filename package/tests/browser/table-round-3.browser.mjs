@@ -205,6 +205,9 @@ try {
   //    Owner decision C97 (2026-11-12, sf-pagination 1.5.0 in the pair
   //    ui-141822273efe) turned it back: Show more is never in one row with the
   //    arrows; the compatible footer draws it on a line of its own above.
+  //    C97 (5) (sf-view 1.13.0): the view's page row is the field appearance,
+  //    navigation only; Show more is not part of the footer (C97 (1)), so it
+  //    is nowhere in the row, and never on the arrows' line.
   const spacing = await page.evaluate(async () => {
     const pagination = document.getElementById('p');
     pagination.setState?.({hasNextPage: true});
@@ -233,8 +236,8 @@ try {
   if (spacing.panels !== 0) {
     note({case: 'spacing', got: spacing, expected: 'no demo panel in the table'});
   }
-  if (!spacing.ownRow || !spacing.more || spacing.sharedLine !== false) {
-    note({case: 'show more', got: spacing, expected: 'Show more on a line of its own above the footer, not with the arrows (C97)'});
+  if (spacing.ownRow || spacing.more || spacing.sharedLine === true) {
+    note({case: 'show more', got: spacing, expected: 'no Show more in the view footer, never beside the arrows (C97 (5))'});
   }
 
   // 8. The page field is as wide as its number and grows as it is typed -- and

@@ -632,21 +632,16 @@ class SfDataView extends DataViewElement {
             + '<span class="sf-view-footer-range" role="status"></span>'
             + '<sf-button class="sf-view-footer-count" appearance="ghost" scheme="primary" hidden></sf-button>'
             + '<sf-spinner class="sf-view-footer-counting" hidden></sf-spinner></span>'
-            + '<sf-button class="sf-view-footer-size" appearance="ghost" scheme="on-surface" icon-end="arrow_drop_down" aria-haspopup="menu"></sf-button>'
-            + '<sf-menu-context class="sf-view-footer-size-menu" popup></sf-menu-context>';
+            + '<sf-button class="sf-view-footer-size" appearance="ghost" scheme="on-surface" icon-end="arrow_drop_down" aria-haspopup="menu"></sf-button>';
         const parts = {
             range: start.querySelector(".sf-view-footer-range"),
             count: start.querySelector(".sf-view-footer-count"),
             counting: start.querySelector(".sf-view-footer-counting"),
             size: start.querySelector(".sf-view-footer-size"),
-            menu: start.querySelector(".sf-view-footer-size-menu"),
+            menu: null,
         };
         parts.count?.addEventListener("click", () => this.pagination?.requestCount?.("total"));
         parts.size?.addEventListener("click", () => this._togglePageSizeMenu(parts.size));
-        parts.menu?.addEventListener("sf-menu-context-select", (event) => {
-            event.currentTarget?.close?.();
-            this._setPageSize(event.detail?.id ?? event.detail?.entry?.id);
-        });
         if (!start.isConnected) this.append(start);
         this._footerStart = start;
         this._footerParts = parts;
@@ -663,6 +658,13 @@ class SfDataView extends DataViewElement {
         this._watchedPagination = pagination;
         this._paginationObserver = new MutationObserver(() => this._queueFooter());
         this._paginationObserver.observe(pagination, {attributes: true});
+        // Its words change without an attribute (a language chosen on the
+        // page): it says so with sf-updated, once per draw of its own.
+        this._paginationUpdates?.abort();
+        this._paginationUpdates = new AbortController();
+        pagination.addEventListener("sf-updated", (event) => {
+            if (event.target === pagination) this._queueFooter();
+        }, {signal: this._paginationUpdates.signal});
         if (!globalThis.customElements?.get?.("sf-pagination")) {
             globalThis.customElements?.whenDefined?.("sf-pagination")?.then?.(() => this._queueFooter());
         }
@@ -724,9 +726,28 @@ class SfDataView extends DataViewElement {
         write(menu, "aria-label", pagination.pageSizeLabel ?? "");
     }
 
+    // The menu of page sizes is made when it is first opened: a list nobody
+    // opens carries no menu element.
+    _pageSizeMenu() {
+        const parts = this.footerStart && this._footerParts;
+        if (!parts) return null;
+        if (parts.menu?.isConnected) return parts.menu;
+        const menu = document.createElement("sf-menu-context");
+        menu.className = "sf-view-footer-size-menu";
+        menu.setAttribute("popup", "");
+        menu.addEventListener("sf-menu-context-select", (event) => {
+            event.currentTarget?.close?.();
+            this._setPageSize(event.detail?.id ?? event.detail?.entry?.id);
+        });
+        this._footerStart.append(menu);
+        parts.menu = menu;
+        this._drawFooter();
+        return menu;
+    }
+
     _togglePageSizeMenu(button) {
         const pagination = this.pagination;
-        const menu = this.footerStart && this._footerParts?.menu;
+        const menu = pagination ? this._pageSizeMenu() : null;
         if (!pagination || !menu) return;
         const sizes = Array.isArray(pagination.pageSizes) ? pagination.pageSizes : [];
         menu.entries = sizes.map((size) => ({

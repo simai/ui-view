@@ -5600,7 +5600,7 @@ class SfTable extends TableElement {
             // by itself (resetColumnWidth).
             reset: () => {
                 clear();
-                this.fitColumnToContent(key);
+                this.resetColumnWidth(key);
             },
         };
     }

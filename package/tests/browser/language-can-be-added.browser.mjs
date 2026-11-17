@@ -81,7 +81,9 @@ try {
 
   const read = () => page.evaluate(() => ({
     toolbar: document.querySelector('.sf-table-toolbar')?.textContent.replace(/\s+/gu, ' ').trim() ?? '',
-    pageRow: document.querySelector('sf-pagination')?.textContent.replace(/\s+/gu, ' ').trim() ?? '',
+    // sf-view 1.13.0 (C97 (5)): the range is the view's footer, read from
+    // the page row's words; the row is the navigation.
+    pageRow: `${document.querySelector('.sf-view-footer-start')?.textContent ?? ''} ${document.querySelector('sf-pagination')?.textContent ?? ''}`.replace(/\s+/gu, ' ').trim(),
   }));
 
   const published = await page.evaluate(() => ({

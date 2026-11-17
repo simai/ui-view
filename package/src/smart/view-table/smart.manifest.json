@@ -2834,7 +2834,7 @@
         "from": "1.20.3",
         "to": "1.21.0",
         "changes": [
-          "C158 (5): a column's width from the keyboard -- the table stays one Tab stop, the arrows walk the heads (a head with an edge and no sort button is a stop itself), Enter, Shift+F10, the menu key or the right button on a head with an edge opens «Изменить ширину · По содержимому · По умолчанию»; «Изменить ширину» takes the focus to the edge, whose arrows set the width through SIMAI Framework SF.Resizer.attach (sf-resizer 1.3.0), Enter or Escape go back to the head; «По содержимому» (and a double click on the edge) fits the column to its head and values on one line, kept as the person's width; «По умолчанию» drops it. The edge's name and value («27 %») are words of the language files. Space on a sort button still sorts."
+          "C158 (5): a column's width from the keyboard -- the table stays one Tab stop, the arrows walk the heads (a head with an edge and no sort button is a stop itself), Enter, Shift+F10, the menu key or the right button on a head with an edge opens «Изменить ширину · По содержимому · По умолчанию»; «Изменить ширину» takes the focus to the edge, whose arrows set the width through SIMAI Framework SF.Resizer.attach (sf-resizer 1.3.0), Enter or Escape go back to the head; «По содержимому» fits the column to its head and values on one line, kept as the person's width; «По умолчанию» drops it, as a double click on the edge still does. The edge's name and value («27 %») are words of the language files. Space on a sort button still sorts."
         ]
       }
     ]
@@ -2845,7 +2845,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-table/index.js",
-        "sha256": "d4966f5015b09a9cb27c5abbf13d61fa21683ca4cc9f8474ebc6619450857b49"
+        "sha256": "aef5d693c26eceff1f9b65b3237b1f57212d16e6fef3ac03b0f172d3868950a6"
       },
       {
         "path": "src/smart/view-table/js/templates/default.js",
