@@ -1484,14 +1484,18 @@ class SfPropertyView extends PropertyViewElement {
             if (this._focusFieldAfterRender && this.editing) {
                 const key = this._focusFieldAfterRender;
                 this._focusFieldAfterRender = null;
-                // sf-form may draw before or after this hook: wait (a few frames
-                // at most) until its control of the field is there.
+                // sf-form may draw before or after this hook, and its control is
+                // defined lazily: wait (60 frames at most) until the control has
+                // something to focus.
                 const formed = Boolean(this.formEdit);
+                const FOCUSABLE = "input:not([type=hidden]), textarea, select, button, [tabindex]:not([tabindex='-1'])";
                 let frames = 0;
                 const give = () => {
                     const form = formed ? this._formOf(this.editing?.group) : null;
-                    const ready = !formed || (form?.focusField && form.controlOf?.(key));
-                    if (!ready && frames++ < 30) return requestAnimationFrame(give);
+                    const control = form?.controlOf?.(key);
+                    const ready = !formed || Boolean(control && (!control.localName.includes("-") || customElements.get(control.localName))
+                        && (control.focusDelegate?.() || control.querySelector?.(FOCUSABLE)));
+                    if (!ready && frames++ < 60) return requestAnimationFrame(give);
                     if (form?.focusField) form.focusField(key);
                     else this.focusField(key);
                 };
@@ -2677,7 +2681,7 @@ class SfPropertyView extends PropertyViewElement {
         }
         // A cancelable request (vocabulary §5 close, standard 1.3.8 §19.3): the
         // page decides whether it closes; a listener may refuse it.
-        const allowed = this.sfEmit("close", {reason, record_id: this.recordId || null, unsaved_fields: unsaved}, {cancelable: true});
+        const allowed = this.sfEmit("close", {reason, record_id: this.recordId || null, unsaved_fields: unsaved, asked: Boolean(asked)}, {cancelable: true});
         return allowed ? {outcome: "applied"} : {outcome: "refused", reason: "prevented"};
     }
 

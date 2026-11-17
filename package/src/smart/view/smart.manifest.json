@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view",
-  "version": "1.14.0",
+  "version": "1.16.0",
   "title": "Data view",
   "summary": "Host-driven data view that composes toolbar, content and pagination around a separate data port.",
   "kind": "composite",
@@ -1734,6 +1734,13 @@
         "to": "1.14.0",
         "changes": [
           "View round 1 (D4, D5, VW-2): the shadow root draws no control of its own (the fallback search, view select and save/delete buttons are gone; the toolbar part shows only an author's slotted toolbar); the default sf-view-table and sf-pagination are light DOM, where the page's sheets reach them, so the table's search gap is the Framework's; the move dialog chooses through sf-input-choice in its list look."
+        ]
+      },
+      {
+        "from": "1.14.0",
+        "to": "1.16.0",
+        "changes": [
+          "Record card round 2 (C305 (4), RC-5): recordBeside(id, direction) answers the next or the previous record id in the order the view shows (null at the ends or for an id it does not show), so a page that opened a record card from the view steps it with Alt+Down / Alt+Up. Nothing to change for a host."
         ]
       }
     ]

@@ -566,10 +566,13 @@
         },
         "unsaved_fields": {
           "type": "list"
+        },
+        "asked": {
+          "type": "boolean"
         }
       },
       "cancelable": true,
-      "summary": "The panel asks to be closed (by its close control, Esc, a press on the dimmed page or Cancel), carrying how many fields would be lost: changed and not saved, or entered and not yet a value."
+      "summary": "The panel asks to be closed (by its close control, Esc, a press on the dimmed page or Cancel), carrying how many fields would be lost: changed and not saved, or entered and not yet a value. Since 1.18.0 (C159 (6)) the card asks the person first over unsaved entries; asked is true when the person already chose «Закрыть без сохранения», so the host does not ask again."
     },
     "open-full": {
       "carries": {
@@ -2236,6 +2239,19 @@
           "changes": [
             "View round 1 (VF-10, msg-e78f2e51): the host's formatFieldValue or the field renderers read a date, the set's own date parsing is gone; a percent is the SIMAI Framework's formatPercent, 12,5 % and 12.5 % in every language (C203 (3)).",
             "Merge of view round 1: the card group's 1.17.0 and the table group's change (numbered 1.17.1 on round/view-r1-table, not a set version) as one version above both."
+          ]
+        },
+        {
+          "from": "1.17.2",
+          "to": "1.18.0",
+          "changes": [
+            "C305 (1), RC-1: edit = group | group+quick | none (group+quick where the host allows editing). A group edits in sf-form (label above in the panel, beside in the full screen; Save first, a quiet Cancel); a group with a field sf-form 1.3 cannot edit (pickers, uploads, sets) keeps the card's own form. A short field (choice, date, time, yes/no, number) edits in a window at its value and saves one value through group.save. «Изменить всё» in the menu; a press on a long field's value opens its group with the focus on it (VP-19, VP-21); edited fields take the group's width (VP-27).",
+            "C305 (2), RC-3: history = auto | off. «История изменений» in the menu opens a level of the same panel (C289 head: back line, title, menu, close) with sf-list-timeline by day, newest first, before and after drawn by the field's template, «Показать ещё», «Только изменения полей» / «Все события» in its menu. New port intent record.history {record_id, collection, cursor, kinds, limit} for a host that announces record-history; SfPropertyView.historyFromRevisions builds the answer from stored revisions.",
+            "C305 (3), RC-4: the full screen keeps the section column (sf-menu until sf-tabs vertical places its box, VP-26), fields in two columns, the history as a 24rem column from 80rem (VP-22).",
+            "C305 (4), RC-5: from 64rem the panel docks beside a list marked data-sf-drawer-dock-host (no scrim, the list usable); modal=\"true\" keeps the scrim (VP-23). Alt+Down / Alt+Up ask for the next or the previous record (sf-view-properties-step); the focus stays in the panel.",
+            "C159 (6): closing, stepping or opening another record over unsaved entries asks in the card first (sf-confirm: «Закрыть без сохранения» / «Вернуться к правке»).",
+            "RC-6: seven public variables --sf-view-properties-label-width, -row-gap, -group-gap, -sections-width, -side-width, -current-background-color, -saved-background-color; --sf-property-view--sections-width is a former name until 2027-01-01. Every new word is in the language files (C282).",
+            "RC-7, VP-29: the quick windows draw nothing before sf-popover is defined (no shift at the first paint)."
           ]
         }
       ]
