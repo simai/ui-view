@@ -40,7 +40,8 @@ test('VR2-4: the head windows carry their own roles and the phone sheet opens', 
 });
 
 test('VR2-5: a page table under layout="board" is parked with one warning', () => {
-  assert.match(view, /!this\._answered && !this\._parkedWarned && want === "sf-view-board"/u);
+  // round/view-r4: any layout that is not the table parks the page's table the same way.
+  assert.match(view, /!this\._answered && !this\._parkedWarned && want !== "sf-view-table"/u);
 });
 
 test('VR2-8: the table inside the view gets total and row-offset', () => {

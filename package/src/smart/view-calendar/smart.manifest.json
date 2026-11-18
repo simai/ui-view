@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-calendar",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "title": "Calendar",
   "summary": "The calendar layout of the view set: month, week, day and list; records on the days of their date field, a move or a stretch is a change of the date fields the host settles. sf-view layout=\"calendar\" draws it over the date window.",
   "kind": "smart",
@@ -170,12 +170,12 @@
       "options": {
         "type": "object",
         "default": {},
-        "description": "layouts.calendar of simai.view-config/1: date_field, end_field, all_day_field, mode, modes, color_field, event_fields (up to three), per_day (3), hours ([\"08:00\", \"20:00\"]), slot (30), weekends show|hide, undated button|panel|none."
+        "description": "layouts.calendar of simai.view-config/1: date_field, end_field, all_day_field, mode, modes, color_field, event_fields (up to three), per_day (3), hours ([\"08:00\", \"20:00\"]), slot (30), weekends show|hide, undated button|panel|none, span_days (31, up to 366: how far back the host looks for an event that started before the days on screen), rules (the move rules, as the rules setting)."
       },
       "rules": {
         "type": "array",
         "default": [],
-        "description": "The host's rules of the date field (describe().rules): [{code: past|weekdays|sunday..saturday|min|max|dates, reason, days?, date?, dates?}]; a refused day dims with the reason while an event is held. Other codes are the server's."
+        "description": "The host's move rules (describe().rules of the date field, and layouts.calendar.rules of simai.view-config/1): [{code, reason}] with past; weekdays {days: the ISO days 1..7 a start may fall on}; locked {field, in} (a record whose field holds one of the values does not move); ability {ability} (answered per record in can {update, code, reason}); and sunday..saturday, min {date}, max {date}, dates {dates}. A refused day dims with the reason while an event is held; a rule without a reason, and a host refusal coded storage_calendar_update_* (past, weekday, locked, denied, end_before_start, too_long, patch_invalid), is said in the pack's words. Other codes are the server's."
       },
       "actions": {
         "type": "array",
@@ -196,10 +196,10 @@
       "const": "{range: [from, to), date_field, end_field?} with context {timeZone, weekStart, locale}"
     },
     "rules": {
-      "const": "[{code, reason, days?, date?, dates?}]"
+      "const": "[{code: past|weekdays|locked|ability|sunday..saturday|min|max|dates, reason, days?, field?, in?, ability?, date?, dates?}]"
     },
     "update": {
-      "const": "record.set {record_id, key, value, patch, revision} -> applied {records} | refused {reason, message}"
+      "const": "record.set {record_id, key, value, patch, revision} -> applied {records} | refused {reason (storage_calendar_update_* or the host's code), message}"
     }
   },
   "methods": {
@@ -571,6 +571,13 @@
         "changes": [
           "New: the calendar layout (owner decision C307): month, week, day and list modes over the host's date window in the request's time zone and week start; all-day and multi-day bars and timed events in their option's colour; «+N» opens the day list; moves and stretches by mouse, touch and keys as a change of the date fields the host settles (settleMove), refused days dim with the reason; «Без даты N» column; «+» on a day; the phone month with dots; selection in the list mode; one Tab stop with the W3C date grid keys."
         ]
+      },
+      {
+        "from": "1.0.0",
+        "to": "1.1.0",
+        "changes": [
+          "view-config/1 keys from the Larena backend (msg-75b451e2): calendarOptions reads span_days (31, clamped to 366; how far back the host looks for an event that started before the days on screen) and rules from layouts.calendar; the move rules in force are the rules setting and layouts.calendar.rules. moveCheck: weekdays {days} are the ISO days 1..7 a start may fall on (the host's reading; the round's own 0..6 refused days are gone), locked {field, in} holds a record whose field has one of the values (also with no day), ability is the host's and comes per record in can {update: false, code, reason}; sunday..saturday, min, max and dates are still read. A refusal carries its code; with no reason of its own a rule or a host refusal (storage_calendar_update_past, _weekday, _locked, _denied, _end_before_start, _too_long, _patch_invalid) is said in the pack's words (refuse-past, refuse-weekday, refuse-locked, refuse-denied, refuse-end-before-start, refuse-too-long, refuse-patch-invalid; en and ru); a machine code is never shown to a person."
+        ]
       }
     ]
   },
@@ -580,11 +587,11 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-calendar/index.js",
-        "sha256": "0e86dde86100a7f07c3251e366f87baed47222759cb9fe1b6483aea82815a194"
+        "sha256": "827d180a866da6b4cd04ab10c5dabb5c0cfa3427b0e2a7671fc94ca70c243eb4"
       },
       {
         "path": "src/smart/view-calendar/js/calendar.js",
-        "sha256": "440a50fc42106928a7f6cdb4654ec2d83b717f589ce9aa6387b017894e8d8fa6"
+        "sha256": "99acc2d623261f307134587f436df71386cdafa821342c57cc6e0b29d9c8b1cc"
       },
       {
         "path": "src/smart/view-calendar/js/templates/default.js",
@@ -604,7 +611,7 @@
       },
       {
         "path": "src/smart/view-calendar/docs.md",
-        "sha256": "b9632c5a950e83c5bbfdc5524dd0a2ffada7761750832fc0c969a0f7b58bb474"
+        "sha256": "502628db3cc26b44ee3b3667ed72a8c928210004598a6bb52370609c1daaa364"
       }
     ],
     "generated_runtime": []

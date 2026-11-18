@@ -25,7 +25,7 @@ import {applied, elementFromManifest, refused} from "../../core/js/element-manif
 import {renderCellField} from "../field-renderers/index.js";
 import {renderViewCalendarTemplate} from "./js/templates/default.js";
 import {
-    MODES, RECORDS_MAX, addDays, addMonths, calendarOptions, clockOf, eventsOf, moveCheck, movePatch,
+    MODES, RECORDS_MAX, addDays, addMonths, calendarOptions, clockOf, eventsOf, moveCheck, movePatch, refusalWord,
     onDay, personZone, rangeOf, readValue, stepPeriod, validZone, wallIn, weekStartFor, weekendFor, weekday,
 } from "./js/calendar.js";
 import manifest from "./component.json";
@@ -388,11 +388,28 @@ class SfViewCalendar extends CalendarElement {
         return `${this.format(first, {day: "numeric", month: "long"})} – ${this.format(last, {day: "numeric", month: "long", year: "numeric"})}`;
     }
 
+    // The rules in force: the host's rules of the date field and those of
+    // layouts.calendar (view-config/1).
+    get moveRules() {
+        return [...(this.rules ?? []), ...(this.calendarOptions.rules ?? [])];
+    }
+
+    // The words of a refusal: the host's reason, else the pack's word for
+    // its code (a rule's, or storage_calendar_update_*), else «Сюда нельзя».
+    refusalText(reason = "", code = "") {
+        const said = String(reason ?? "").trim();
+        // A machine code (storage_record_revision_stale) is not words for a person.
+        const saidIsCode = /^[a-z][a-z0-9]*(?:[_.:-][a-z0-9]+)+$/u.test(said);
+        const fromCode = refusalWord(code) ?? (saidIsCode ? refusalWord(said) : null);
+        if (said && !saidIsCode) return said;
+        return fromCode ? this.word(fromCode) : this.word("refuse-default");
+    }
+
     // Whether a record may go to a day: its right, then the host's rules.
     check(record, day) {
         if (this.getProp("movable") === false) return {ok: false, reason: this.word("no-right-text")};
-        const result = moveCheck({record, day, rules: this.rules, today: this.today, noRight: this.word("no-right-text")});
-        return result.ok ? result : {ok: false, reason: result.reason || this.word("refuse-default")};
+        const result = moveCheck({record, day, rules: this.moveRules, today: this.today, noRight: ""});
+        return result.ok ? result : {ok: false, code: result.code, reason: this.refusalText(result.reason, result.code)};
     }
 
     readOnly(record) {
@@ -962,7 +979,7 @@ class SfViewCalendar extends CalendarElement {
             title: list.length === 1 ? this.recordTitle(first.record) : this.word("selected-text", {count: list.length}),
             day: first.event?.first ?? this.today,
             top: box && root ? Math.max(0, box.bottom - root.top) : 0,
-            minDate: (this.rules ?? []).some((rule) => rule?.code === "past") ? this.today : "",
+            minDate: this.moveRules.some((rule) => rule?.code === "past") ? this.today : "",
         };
         this.requestComponentUpdate("pick");
         globalThis.customElements?.get?.("sf-input-date") || globalThis.SF?.Loader?.ensure?.(["sf-input-date"]);
@@ -1102,7 +1119,7 @@ class SfViewCalendar extends CalendarElement {
             this._say(this._movedText(key, move));
         } else {
             this._write(key, move.before);
-            const reason = String(result.message ?? result.reason ?? "") || this.word("refuse-default");
+            const reason = this.refusalText(result.message || result.reason || "", result.code ?? result.reason ?? "");
             this._refuse(this.word("not-moved-text", {title: move.title, reason}));
         }
         this.requestComponentUpdate("settled");

@@ -16,6 +16,41 @@ same numbers with other content); every next set version is above them
 up). Each component.json says the same under `x-decisions`
 `pro-copy-versions`.
 
+## Unreleased (round/view-r4, the four layouts together)
+
+Round/view-cards and round/view-calendar merged onto round/view-returns;
+Larena's view-config/1 keys (msg-75b451e2); C311 (5); the list head's filter
+window (C310); DEV's round 3 returns VR3-1..VR3-4.
+
+- `sf-view` 1.21.0 and 1.22.0: the cards and the calendar layouts numbered
+  above round/view-returns' 1.20.0; the registry and the `layout` values hold
+  table, board, cards and calendar.
+- `sf-view` 1.23.0: one layout switch for every layout. The selection and
+  the docked card are carried between table, board, cards and calendar;
+  cards ask their own `per_page` (24 by default) and the list's is given back
+  on leaving them. A layout not in the running set is hidden in the head, not
+  shown disabled (VR3-1, DEV's decision); the head's menus pass separators as
+  `{type: "separator"}`, the key sf-menu-context reads (VR3-2). The head's
+  filter field opens the Framework's filter window
+  (`SF.fieldRenderers.filterWindow.open/summary`) when the running Framework
+  has it, behind a feature check; otherwise the head's own popover stays. The
+  button is coloured while the filter is active, shows a count above 0 and
+  says the condition in its tooltip.
+- `sf-view-calendar` 1.1.0: view-config/1 `layouts.calendar.span_days`
+  (31 by default, up to 366) and `rules[]` -- `past`, `weekdays {days}` (ISO
+  1..7 allowed), `locked {field, in}`, `ability {ability}` and per-record
+  `can.update`. Refusals `storage_calendar_update_*` are said in words from
+  the language packs, never as the code.
+- `sf-view-properties` 1.20.0: the «⋯ → Вид» submenu is gone for everyone
+  (C311 (5)); a reader who cannot arrange the card chooses a view in a
+  select-only sf-profile-picker above the fields. The views list and the
+  naming row of the former submenu are removed.
+- `sf-view-table` 1.25.1: the column head menu's separators draw as
+  separators (VR3-2).
+- Tests: the STATUS test reads only the branches the candidate carries
+  (`SET_LIVE_BRANCHES=1` reads live origin, VR3-3). Site: the view-table
+  example of former tags uses `sf-view-table` (VR3-4).
+
 ## Unreleased (round/view-returns, record card settings)
 
 Owner decision C311 on the levels of C298 (RC-1..RC-4, RC-6..RC-10, TB-1;

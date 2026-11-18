@@ -7,38 +7,28 @@ import test from 'node:test';
 const source = readFileSync(new URL('../src/smart/view-properties/index.js', import.meta.url), 'utf8');
 const template = readFileSync(new URL('../src/smart/view-properties/js/templates/default.js', import.meta.url), 'utf8');
 
-test('the add-a-view button opens the naming row and writes nothing', () => {
-  const button = template.slice(template.indexOf('data-action="add-profile"'), template.indexOf('</section>', template.indexOf('data-action="add-profile"')));
-  assert.match(button, /@click=\$\{\(\) => context\.component\.startNamingView\(\)\}/u);
-  assert.doesNotMatch(button, /createViewProfile/u);
+// The views are made in sf-profile-picker only (C163 (1), C311 (5)): the
+// arranging mode's own list with «Add a view» and its naming row are gone
+// (round/view-r4), so the name is asked in the picker before anything is written.
+test('the card draws no views list of its own and no naming row', () => {
+  for (const gone of ['function renderViewProfiles(', 'function renderNewViewName(', 'data-action="add-profile"', 'startNamingView', 'cancelNamingView']) {
+    assert.ok(!template.includes(gone) && !source.includes(gone), gone);
+  }
 });
 
-test('the naming row creates on confirm and leaves on Escape or close', () => {
-  const row = template.slice(template.indexOf('function renderNewViewName('), template.indexOf('function renderArrangementAdditions('));
-  assert.match(row, /context\.component\.createViewProfile\(input\?\.value \?\? ''\)/u);
-  assert.match(row, /event\.key === 'Enter'\) commit\(event\)/u);
-  // Escape leaves the row and keeps the press: the layer stack passes over a
-  // press a control took, so the panel under the row is not also asked to close.
-  assert.match(row, /event\.key === 'Escape'\) \{\s*(?:\/\/[^\n]*\s*)*event\.preventDefault\(\);\s*context\.component\.cancelNamingView\(\)/u);
-  assert.match(row, /data-action="new-profile-cancel"[\s\S]*cancelNamingView\(\)/u);
-});
-
-test('an empty name makes nothing and keeps the row; a name makes the view and closes it', () => {
+test('an empty name makes nothing; a name makes the view', () => {
   const start = source.indexOf('    createViewProfile(label');
   const body = source.slice(start, source.indexOf('\n    }\n', start) + 7);
   const createViewProfile = new Function(`return function ${body.trim()}`)();
   const calls = [];
   const view = {
-    namingView: true,
     layerDraft: {fields: {}},
     requestComponentUpdate() {},
     _viewProfileIntent(intent, payload) { calls.push([intent, payload]); return 'raised'; },
   };
   assert.equal(createViewProfile.call(view, '   '), null);
-  assert.equal(view.namingView, true);
   assert.equal(calls.length, 0);
   assert.equal(createViewProfile.call(view, ' Договоры '), 'raised');
-  assert.equal(view.namingView, false);
   assert.deepEqual(calls[0][0], 'view.create');
   assert.equal(calls[0][1].label, 'Договоры');
 });

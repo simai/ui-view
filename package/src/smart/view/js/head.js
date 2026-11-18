@@ -173,10 +173,12 @@ export class ListHead {
         return this.view.table ?? this.view.querySelector?.(":scope > sf-view-table[data-sf-view-parked]") ?? null;
     }
 
-    // The display kinds the host enables (describe().layouts), table first.
+    // The display kinds the host enables (describe().layouts), table first;
+    // a kind whose layout is not in the running set is hidden, not shown
+    // disabled (VR3-1, DEV's decision).
     get kinds() {
         const asked = Array.isArray(this.description?.layouts) ? this.description.layouts.map(String) : [];
-        const kinds = asked.filter((kind) => Object.hasOwn(KINDS, kind));
+        const kinds = asked.filter((kind) => Object.hasOwn(KINDS, kind) && this.drawable(kind));
         return kinds.length ? kinds : ["table"];
     }
 
@@ -189,15 +191,13 @@ export class ListHead {
         return this.kinds.includes(drawn) ? drawn : this.kinds[0];
     }
 
-    // A kind the view cannot draw yet (no layout of the set holds it): shown
-    // disabled, its name and the reason as the segment's name.
+    // Whether the view draws a kind in this page (its layout in the running set).
     drawable(kind) {
         return typeof this.view.canDrawLayout !== "function" || this.view.canDrawLayout(kind);
     }
 
     kindLabel(kind) {
-        const name = this.text(`headKind${kind[0].toUpperCase()}${kind.slice(1)}`);
-        return this.drawable(kind) ? name : this.text("headKindUnavailable").replace("{name}", name);
+        return this.text(`headKind${kind[0].toUpperCase()}${kind.slice(1)}`);
     }
 
     get savedFilters() { return Array.isArray(this.view.savedFilters) ? this.view.savedFilters : []; }
@@ -220,7 +220,46 @@ export class ListHead {
 
     get filters() { return this.query.filters ?? {}; }
 
-    get anyCondition() { return this.chosen.some((key) => conditionActive(this.filters[key])); }
+    get anyCondition() { return this.chosen.some((key) => this._active(key, this.filters[key])); }
+
+    // The Framework's filter window (C310, FO-5): SF.fieldRenderers.filterWindow
+    // {open, summary} where the pair carries it; without it the head's own
+    // window (the filter template in a popover) as before.
+    get filterWindow() {
+        const api = globalThis.SF?.fieldRenderers?.filterWindow;
+        return typeof api?.open === "function" && typeof api?.summary === "function" ? api : null;
+    }
+
+    // A field as the filter window reads it: a list's options in filter.options.
+    _windowField(field) {
+        return LIST_TYPES.has(fieldType(field)) && !field.filter?.options && !field.options && !field.filter?.optionsSource?.items
+            ? {...field, filter: {...(field.filter ?? {}), options: this._options(field)}} : field;
+    }
+
+    // What a filter field button shows (C300, C310): the window's summary where
+    // the pair has it -- colour while active, the number only above 0, the
+    // words in the tooltip -- else the head's own count and words.
+    _summary(key, entry) {
+        const field = this.field(key);
+        const api = this.filterWindow;
+        if (api && field) {
+            try {
+                const answer = api.summary(this._windowField(field), entry ?? {});
+                if (answer && typeof answer === "object") {
+                    const count = Number.isSafeInteger(answer.count) && answer.count > 0 ? answer.count : 0;
+                    return {active: answer.active === true, count, words: String(answer.words ?? "")};
+                }
+            } catch {
+                // the summary is the pair's; the head's own words follow
+            }
+        }
+        const count = conditionCount(entry);
+        return {active: count > 0, count, words: count ? this._conditionWords(field, entry) : ""};
+    }
+
+    _active(key, entry) {
+        return this.filterWindow ? this._summary(key, entry).active : conditionActive(entry);
+    }
 
     // The open saved filter's conditions differ from what is on screen.
     get changed() {
@@ -346,8 +385,7 @@ export class ListHead {
         set(views, "title", this.text("headViews"));
         const kinds = one("[data-kinds]");
         if (kinds) {
-            const items = this.kinds.map((kind) => ({id: kind, value: kind, label: this.text(`headKind${kind[0].toUpperCase()}${kind.slice(1)}`), icon: KINDS[kind],
-                ...(this.drawable(kind) ? {} : {disabled: true, ariaLabel: this.kindLabel(kind)})}));
+            const items = this.kinds.map((kind) => ({id: kind, value: kind, label: this.kindLabel(kind), icon: KINDS[kind]}));
             set(kinds, "hidden", items.length > 1 ? null : "");
             set(kinds, "items", JSON.stringify(items));
             set(kinds, "value", this.kind);
@@ -413,7 +451,16 @@ export class ListHead {
         const size = esc(this.size);
         const open = this.openFilter;
         const filterName = open && String(open.id) !== this.defaultFilterId ? String(open.name ?? "") : "";
-        const key = JSON.stringify([this.chosen, this.chosen.map((name) => this.filters[name] ?? null), filterName, this.changed, this.mode, this.text("headClear")]);
+        const api = this.filterWindow;
+        // The Framework's filter window comes with the field renderers, which
+        // may load after the head: the fields are drawn again once they are in.
+        if (!api && !this._renderersAsked && typeof globalThis.SF?.whenFieldRenderers === "function") {
+            this._renderersAsked = true;
+            Promise.resolve(globalThis.SF.whenFieldRenderers()).then(() => {
+                if (this.filterWindow && this.root?.isConnected) this._renderFields();
+            }).catch(() => {});
+        }
+        const key = JSON.stringify([Boolean(api), this.chosen, this.chosen.map((name) => this.filters[name] ?? null), filterName, this.changed, this.mode, this.text("headClear")]);
         if (key === this._fieldsKey) return;
         // A field's window that is open stays open: it is redrawn when it closes.
         if (this.open?.kind?.startsWith("value:") && !phone) {
@@ -429,14 +476,15 @@ export class ListHead {
         }
         for (const name of this.chosen) {
             const field = this.field(name);
-            const entry = this.filters[name];
-            const count = conditionCount(entry);
-            const look = `appearance="tonal" scheme="${count ? "primary" : "on-surface"}"`;
-            const words = count ? this._conditionWords(field, entry) : "";
-            const title = words ? `${field.label}: ${words}` : "";
-            const button = `<sf-button ${phone ? "" : 'slot="trigger" '}data-field="${esc(name)}" size="${size}" segment="start" ${look} text="${esc(count ? `${field.label} ${count}` : field.label)}"${title ? ` title="${esc(title)}"` : ""}></sf-button>`;
+            const {active, count, words} = this._summary(name, this.filters[name]);
+            const look = `appearance="tonal" scheme="${active ? "primary" : "on-surface"}"`;
+            const title = active && words ? `${field.label}: ${words}` : "";
+            // With the Framework's window the button opens it itself (on the
+            // body, a bottom sheet on a phone); else the head's own popover.
+            const own = phone || api;
+            const button = `<sf-button ${own ? "" : 'slot="trigger" '}data-field="${esc(name)}" size="${size}" segment="start" ${look} text="${esc(count ? `${field.label} ${count}` : field.label)}"${title ? ` title="${esc(title)}"` : ""}${api ? ' aria-haspopup="dialog"' : ""}></sf-button>`;
             const remove = `<sf-button-icon data-unchoose="${esc(name)}" size="${size}" segment="end" icon="close" ${look} aria-label="${esc(this.text("headRemoveField").replace("{name}", field.label))}"></sf-button-icon>`;
-            parts.push(`<div class="sf-view-head-join">${phone ? button : `<sf-popover data-pop="value:${esc(name)}" placement="bottom-start" width="20rem" offset="var(--sf-space-1\\/4)">${button}<div slot="content" data-body></div></sf-popover>`}${remove}</div>`);
+            parts.push(`<div class="sf-view-head-join">${own ? button : `<sf-popover data-pop="value:${esc(name)}" placement="bottom-start" width="20rem" offset="var(--sf-space-1\\/4)">${button}<div slot="content" data-body></div></sf-popover>`}${remove}</div>`);
         }
         if (this.anyCondition) parts.push(`<sf-button data-clear size="${size}" appearance="outline" scheme="on-surface" text="${esc(this.text("headClear"))}"></sf-button>`);
         if (phone && this.chosen.length) parts.push(`<sf-button-icon data-head-open="save" size="${size}" icon="bookmark_add" appearance="outline" scheme="on-surface" aria-label="${esc(this.text("headSaveFilter"))}"></sf-button-icon>`);
@@ -726,6 +774,30 @@ export class ListHead {
         return merged;
     }
 
+    // A field's window from the Framework (C310, FO-5): it picks its width,
+    // its conditions, its bottom sheet under 600 px and «Применить (N)», and
+    // settles {action: apply | reset, value} or null (closed without either).
+    // The window composition («Выбрано» line, footer) is the Framework's and
+    // waits the owner's answer; the head only opens it and takes the answer.
+    async _openWindow(key, anchor) {
+        const api = this.filterWindow;
+        const field = this.field(key);
+        if (!api || !field || !anchor) return null;
+        let answer = null;
+        try {
+            answer = await api.open({anchor, field: this._windowField(field), value: copy(this.filters[key] ?? {}), size: this.size});
+        } catch {
+            answer = null;
+        }
+        if (!answer || (answer.action !== "apply" && answer.action !== "reset")) return answer;
+        const filters = {...this.filters};
+        if (answer.action === "apply" && answer.value && typeof answer.value === "object" && this._active(key, answer.value)) filters[key] = copy(answer.value);
+        else delete filters[key];
+        if (same(filters, this.filters)) return answer;
+        this._query({filters});
+        return answer;
+    }
+
     // A field's window: the Framework's filter template for the field's type,
     // over a pending copy of its condition, with Apply and Reset.
     async _renderValue(key, body) {
@@ -797,7 +869,7 @@ export class ListHead {
         if (mine && (item.may_share || this.permissions.share_filters)) entries.push({id: "share", text: item.shared ? this.text("headUnshare") : this.text("headShare"), icon: item.shared ? "lock" : "group"});
         if (!mine && item.kind !== "system") entries.push({id: "copy", text: this.text("headCopy"), icon: "content_copy"});
         if (mine) {
-            entries.push({kind: "separator"});
+            entries.push({type: "separator"});
             entries.push({id: "delete", text: this.text("headDelete"), icon: "delete", status: "danger"});
         }
         return entries;
@@ -829,6 +901,10 @@ export class ListHead {
             return;
         }
         const field = target.closest("[data-field]");
+        if (field && this.filterWindow) {
+            this._openWindow(field.getAttribute("data-field"), field);
+            return;
+        }
         if (field && this.mode === "phone") {
             this._openKind(`value:${field.getAttribute("data-field")}`);
             return;
@@ -879,14 +955,13 @@ export class ListHead {
         const entries = [];
         if (phone) {
             for (const kind of this.kinds) {
-                entries.push({id: `kind:${kind}`, text: this.text(`headKind${kind[0].toUpperCase()}${kind.slice(1)}`), icon: kind === this.kind ? "check" : KINDS[kind],
-                    ...(this.drawable(kind) ? {} : {disabled: true, caption: this.kindLabel(kind)})});
+                entries.push({id: `kind:${kind}`, text: this.kindLabel(kind), icon: kind === this.kind ? "check" : KINDS[kind]});
             }
-            if (this.savedViews.length) entries.push({kind: "separator"});
+            if (this.savedViews.length) entries.push({type: "separator"});
         }
         for (const view of this.savedViews) entries.push({id: `view:${view.key}`, text: String(view.label ?? view.name ?? view.key), icon: view === current ? "check" : "bookmarks"});
         if (this.view.hostOffers("saved-views")) {
-            if (entries.length) entries.push({kind: "separator"});
+            if (entries.length) entries.push({type: "separator"});
             entries.push({id: "view:new", text: this.text("headViewNew"), icon: "add"});
         }
         if (!entries.length) return;
@@ -1130,7 +1205,7 @@ export class ListHead {
     }
 
     _activeFilters() {
-        return Object.fromEntries(this.chosen.filter((key) => conditionActive(this.filters[key])).map((key) => [key, copy(this.filters[key])]));
+        return Object.fromEntries(this.chosen.filter((key) => this._active(key, this.filters[key])).map((key) => [key, copy(this.filters[key])]));
     }
 
     // Opening a saved filter puts its fields and conditions on screen; it

@@ -1,7 +1,8 @@
-// The former tag sf-table is a dated alias of sf-view-table until 2027-01-01:
-// old markup keeps working, and SF.deprecations notes each use.
+// The former tags are dated aliases until 2027-01-01: old markup keeps
+// working, and SF.deprecations notes each use. The example itself is drawn
+// with the new tag, so it adds no deprecation warning of its own (VR3-4).
 const initializeFormerTag = async () => {
-  await customElements.whenDefined('sf-table');
+  await customElements.whenDefined('sf-view-table');
   const table = document.querySelector('#former-tag-table');
   if (!table || table.dataset.exampleReady === 'true') return;
   table.dataset.exampleReady = 'true';

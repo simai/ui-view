@@ -36,6 +36,12 @@ test('STATUS: what is done with its evidence, the consumers in three columns, th
   assert.match(section('## Open branches'), /^\| Branch \| Release that takes it \|$/mu);
 });
 
+// The unit gate reads the candidate, not the live remote (VR3-3): it checks
+// the remote branches the candidate itself carries (an ancestor of HEAD and
+// ahead of main), so a branch pushed later does not turn an old round's gate
+// red. SET_LIVE_BRANCHES=1 checks every remote branch ahead of main, as a
+// release check outside the unit gate.
+const LIVE_BRANCHES = process.env.SET_LIVE_BRANCHES === '1';
 test('STATUS names every remote branch ahead of main', {skip}, (t) => {
   let refs;
   try {
@@ -51,7 +57,15 @@ test('STATUS names every remote branch ahead of main', {skip}, (t) => {
   for (const ref of refs) {
     if (ref === 'origin' || ref === 'origin/HEAD' || ref === 'origin/main') continue;
     const ahead = Number(execFileSync('git', ['-C', repository, 'rev-list', '--count', `origin/main..${ref}`], {encoding: 'utf8'}).trim());
-    if (ahead > 0 && !named(ref.replace(/^origin\//u, ''))) missing.push(ref);
+    if (!ahead) continue;
+    if (!LIVE_BRANCHES) {
+      try {
+        execFileSync('git', ['-C', repository, 'merge-base', '--is-ancestor', ref, 'HEAD'], {stdio: 'ignore'});
+      } catch {
+        continue;
+      }
+    }
+    if (!named(ref.replace(/^origin\//u, ''))) missing.push(ref);
   }
   assert.deepEqual(missing, [], 'every branch ahead of main has a row in «Open branches»');
 });

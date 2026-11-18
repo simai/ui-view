@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-properties",
-  "version": "1.19.0",
+  "version": "1.20.0",
   "title": "Property view",
   "summary": "One object's fields shown as sections, groups and fields, each drawn by the per-type field renderer set, behind a separate host port. A group is edited and saved as one revision by the button, and a reference field is picked from the host's own candidates a page at a time. The pair to the data view: that one is a set of records, this one is a single object.",
   "kind": "composite",
@@ -1950,6 +1950,13 @@
         "changes": [
           "Record card settings (owner decision C311 on the levels of C298; RC-1..RC-4, RC-6..RC-10, TB-1): own edits go to the personal layer at once; «Сохранить для всех» (view.publish, merged and cleared by the host, a conflict redraws with «Вид изменился»); «Вернуть как у всех» in the profile picker (resettable) resets the personal layer only; «Сохранить как моё» (view.create shared false) in the head «⋯» while arranging; per-setting locks (view.locked, view.lock from a field or tab «⋯» for those who may write the shared layer; a lock mark «Закрыто администратором»); a required profile (profiles[].required) disables the picker and writes nothing; the head line under the title -- the stage as a tonal badge and up to two fields (view.head; «Показать в шапке», «Стадией в шапке»); the arranging mode: the picker and a one-line hint over the fields, the foot «Готово», «Сохранить для всех», «Отменить» (C157 (3)); «Вкладки» with handles and a «⋯» per tab (name, icon, up, down, hide, delete -- its fields to «Скрытые поля» --, lock); «+ Вкладка» with a «Поля» area; a field moves to another tab from its «⋯ → На вкладку …» at every width; one way to hide a field: the eye and «Скрытые поля» (open in the mode); the field template (variant) is no longer offered (C302 (2)), a layer that holds one is read until 2027-01-01; «Новое поле…» emits sf-view-properties-structure for the host's field editor; outside the mode «Профиль: <name>» enters it with the picker open (the «Вид» submenu stays only for a person who cannot arrange)."
         ]
+      },
+      {
+        "from": "1.19.0",
+        "to": "1.20.0",
+        "changes": [
+          "C311 (5), the dispatcher's call on RC-6 (round/view-r4): the «⋯» menu has no views submenu for anyone; the person who may arrange keeps the one entry «Вид: <name>» that enters the arranging mode with the picker open; a person who cannot arrange (no view settings from the host, no writable layer, or a view-only surface) and has more than one view gets sf-profile-picker in select-only mode above the fields (profiles not editable, nothing created, no reset; a choice raises view.profile). Removed as dead: renderViewProfiles and renderNewViewName in the template (with their CSS), viewProfileEntries, openViewProfileMenu, the view-profile: menu ids, namingView, startNamingView and cancelNamingView."
+        ]
       }
     ]
   },
@@ -1959,15 +1966,15 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-properties/index.js",
-        "sha256": "06254eeaabe0f9c3548fbcae74458b1e596c5ca3af3bf3374050ce87d46ed526"
+        "sha256": "891e85b6d77b785d24d3eeac1fdaad2a78428cc1fd990231421671e92ca01d38"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.js",
-        "sha256": "95a3d8e37a9b990947751ff4d012acd3ac98dbdcc58f481e7698ad025384628b"
+        "sha256": "20a936322767c54a56d551d7043dea208bc877f28eb90241fc4730b6c402d5fa"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.css",
-        "sha256": "5379d365d66490048341736b0d7ce146e97a76228297b24038bfc241336eee4b"
+        "sha256": "32864a531bd6467d16a2209e59e51a42da7f1900b60057bd96309432e3b18b47"
       },
       {
         "path": "src/smart/view-properties/js/conditions.js",

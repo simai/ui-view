@@ -1013,14 +1013,6 @@
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  /* The views' list heading is an h3 with no look of its own, so it took the
-     heading-3 role, which the content heading ladder moves two rungs down
-     (R022). It keeps rung 4 and the heading's own space, as before. */
-  .sf-property-view-profiles-title {
-    margin-block: var(--sf-heading--space-top) var(--sf-heading--space-bottom);
-    font-size: var(--sf-text--size-4);
-    line-height: var(--sf-title--height-4);
-  }
   /* Beside the panel, not in it: the strip goes into the drawer's own edge area,
      which is a sibling of the panel and is not clipped by it. How the controls
      stack is said with utilities on the element; this only rounds them, because

@@ -331,9 +331,6 @@ class SfPropertyView extends PropertyViewElement {
         // written until it is confirmed, so an area keeps its name while a
         // person is still deciding on another.
         this.renaming = null;
-        // Whether a new view's name is being typed. A view is a host record, so
-        // it is made only once it has a name, never as a placeholder to rename.
-        this.namingView = false;
         // What the arrangement was when the mode was entered, and whether a
         // reset has been asked for and is waiting to be confirmed.
         this.arrangementEntered = null;
@@ -1239,16 +1236,6 @@ class SfPropertyView extends PropertyViewElement {
         return menu.openFor(anchor, {align});
     }
 
-    // The views as radio rows: which one is in use, and whose it is.
-    viewProfileEntries() {
-        const current = this.viewProfile;
-        return this.viewProfiles.map((profile) => ({
-            id: `view-profile:${profile.id}`, text: profile.label, kind: "radio", checked: profile.id === current,
-            icon: profile.shared ? "group" : "person",
-            caption: profile.shared ? this.sharedLayerText : this.personalLayerText,
-        }));
-    }
-
     openPanelMenu(anchor) {
         // The history level's «⋯»: which events it shows.
         if (this.historyOpen && !this.historySide) {
@@ -1264,18 +1251,14 @@ class SfPropertyView extends PropertyViewElement {
         }
         const entries = [];
         const profiles = this.viewProfiles;
-        // The view is chosen from the menu as the admin menu's profile is: a
-        // submenu of the views, beside what can be done to the view (owner,
-        // 2026-10-12). While arranging, the bar at the foot carries the choice.
         // The profile is chosen in sf-profile-picker only (C163 (1), C311 (5),
-        // RC-6): outside the mode one row «Профиль: <name>» enters it with the
-        // picker open. A person who cannot arrange the view keeps the rows of
-        // the views to choose from, as before.
-        if (profiles.length > 1 && !this.configuring) {
+        // RC-6): outside the mode one row «Вид: <name>» enters it with the
+        // picker open. A person who cannot arrange the view chooses in the
+        // select-only picker above the fields; the menu has no views submenu
+        // for anyone (the dispatcher's call on C311 (5)).
+        if (profiles.length > 1 && !this.configuring && this.canConfigureView) {
             const current = profiles.find((profile) => profile.id === this.viewProfile);
-            entries.push(this.canConfigureView
-                ? {id: "view-profile-picker", text: `${this.viewProfileLabel}: ${current?.label ?? ""}`, icon: "view_sidebar"}
-                : {id: "view-profile", text: this.viewProfileLabel, icon: "view_sidebar", value: current?.label ?? "", submenu: this.viewProfileEntries()});
+            entries.push({id: "view-profile-picker", text: `${this.viewProfileLabel}: ${current?.label ?? ""}`, icon: "view_sidebar"});
         }
         // «Сохранить как моё» in the head «⋯» while arranging (C311 (5)).
         if (this.canSaveAsMine) {
@@ -1297,13 +1280,6 @@ class SfPropertyView extends PropertyViewElement {
         if (!entries.length) return null;
         return this.openStandardMenu(anchor, {
             label: this.menuLabel, entries,
-            select: (id) => this._chooseStandardEntry(id),
-        });
-    }
-
-    openViewProfileMenu(anchor) {
-        return this.openStandardMenu(anchor, {
-            label: this.viewProfileLabel, entries: this.viewProfileEntries(), align: "start",
             select: (id) => this._chooseStandardEntry(id),
         });
     }
@@ -1340,7 +1316,6 @@ class SfPropertyView extends PropertyViewElement {
             if (!control?.matches?.("a[href]")) control?.click?.();
             return true;
         }
-        if (value.startsWith("view-profile:")) return this.selectViewProfile(value.slice("view-profile:".length));
         if (value.startsWith("history-kinds:")) {
             const kinds = value.slice("history-kinds:".length);
             return this.setHistoryKinds(kinds === "all" ? null : [kinds]);
@@ -2237,7 +2212,6 @@ class SfPropertyView extends PropertyViewElement {
             newGroupTitle: this.newGroupTitle,
             newSectionTitle: this.newSectionTitle,
             renaming: this.renaming,
-            namingView: this.namingView,
             noMatchText: this.noMatchText,
             unplacedHintText: this.unplacedHintText,
             panelMenuItems: this.panelMenuItems,
@@ -3460,29 +3434,11 @@ class SfPropertyView extends PropertyViewElement {
     createViewProfile(label, {shared = false} = {}) {
         const name = String(label ?? "").trim();
         if (!name) return null;
-        if (this.namingView) {
-            this.namingView = false;
-            this.requestComponentUpdate("view-naming");
-        }
         return this._viewProfileIntent("view.create", {
             label: name,
             shared: Boolean(shared),
             view: this.layerDraft ?? this._layerCopy(this.viewTarget),
         });
-    }
-
-    // «Add a view» asks for the name first. Making «New view» at once wrote a
-    // view nobody had named, switched to it, and left a placeholder behind
-    // when the person did not rename it (simai.main QA, 2026-10-27).
-    startNamingView() {
-        this.namingView = true;
-        this.requestComponentUpdate("view-naming");
-        return true;
-    }
-
-    cancelNamingView() {
-        this.namingView = false;
-        this.requestComponentUpdate("view-naming");
     }
 
     // A rename changes the label. The id is permanent, so anything pointing at

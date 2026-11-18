@@ -5,6 +5,15 @@
   "entries": [
     {
       "unit": "smart.view",
+      "version": "1.23.0",
+      "recorded_on": "2026-11-18",
+      "change": "minor",
+      "consumer": "Nothing to change for a host. New: the list head's display kind switches live between all four layouts of the set (table, board, cards, calendar; switchLayout keeps the marked records and the record card beside, the cards' page size of 24 gives the list's back on leaving them); cards and calendar are no longer shown disabled. Where the pair carries SF.fieldRenderers.filterWindow (C310, FO-5), a filter field of the list head opens the Framework's filter window and draws its summary (colour while active, the number only above 0, the words in the tooltip); without it the head's own window as before. The calendar's view-config/1 keys (span_days, rules) and the host's refusal codes storage_calendar_update_* are read (sf-view-calendar 1.1.0). DEV's round 3 returns: a display kind whose layout is not in the running set (its element neither defined nor a rule the Loader can fetch) is hidden in the head, not shown disabled (VR3-1); the head's menu separators draw as separators (VR3-2).",
+      "summary": "View round 4 (round/view-r4, the dispatcher's merge of round/view-returns, round/view-cards and round/view-calendar): switchLayout(kind) works over every layout of the registry -- the content element is the layout's own (table, board, cards, calendar), a page's own element of another layout is parked with one console warning, the marked records go over to the new layout (sf-view-board, sf-view-cards and sf-view-calendar take selected) at once and again over the switch's own answer, the board's lanes become the list's records for the others, the calendar draws the known records on their days at once, the cards' per_page (24) gives the list's page size back when another layout is chosen and the window of the left layout is dropped from the query; selection reads the layout on screen. The list head therefore offers cards and calendar enabled when the host lists them. A filter field of the list head (C300, C310): with SF.fieldRenderers.filterWindow {open, summary} in the pair it opens filterWindow.open({anchor, field, value, size}) and applies {action: apply, value} or resets on {action: reset}; null changes nothing; the button reads filterWindow.summary(field, value) {active, count, words}; without it (the pair ui-1ed6b6c9a040) the head's own window as before; a head drawn before the field renderers loaded draws its fields again once they are in. The calendar's move refusal carries the host's code to sf-view-calendar. DEV's round 3 returns: canDrawLayout(kind) answers true for a layout element only when it is in the running set -- defined, or its cl- rule known to the Loader; the head's kinds leave out what the view cannot draw (the disabled segment, its reason caption and the word head-kind-unavailable are gone, VR3-1, DEV's decision). The head's menus pass separators as {type: \"separator\"}, the key sf-menu-context reads; {kind: \"separator\"} drew an empty focusable item (VR3-2).",
+      "evidence": "control/evidence/2026-11-18-view-r4/README.md"
+    },
+    {
+      "unit": "smart.view",
       "version": "1.22.0",
       "recorded_on": "2026-11-18",
       "change": "minor",
@@ -140,6 +149,15 @@
     },
     {
       "unit": "smart.view-table",
+      "version": "1.25.1",
+      "recorded_on": "2026-11-18",
+      "change": "patch",
+      "consumer": "Nothing to change. The column head menu's separators draw as separators: they are passed as {type: \"separator\"}, the key sf-menu-context reads ({kind: \"separator\"} drew an empty focusable item, VR3-2).",
+      "summary": "DEV's round 3 return VR3-2 (round/view-r4): the column head menu (columnMenuEntries) passes its separators as {type: \"separator\"}, the key sf-menu-context reads; {kind: \"separator\"} drew each as an empty focusable menu item.",
+      "evidence": "control/evidence/2026-11-18-view-r4/README.md"
+    },
+    {
+      "unit": "smart.view-table",
       "version": "1.25.0",
       "recorded_on": "2026-11-18",
       "change": "minor",
@@ -272,6 +290,15 @@
       "consumer": "Nothing to change for a host: only the SIMAI Framework file it builds in moved with the repin.",
       "summary": "Over SIMAI Framework ui-078a4b4c6f6e (ui-source 10145e63b9dc) the Framework file it builds in, src/smart/pagination/index.js (sf-pagination 1.7: «Show more» within reach, C167; a deleting action listed last, C116), moved; the provenance and the version follow. Nothing of its own; nothing to change for a host. 1.19.7 and 1.19.8 are ui-pro's own patched copies, never this set's.",
       "evidence": "https://github.com/simai/ui-view/commit/e214dd608fdcf39cea527676fc522afd718922d4"
+    },
+    {
+      "unit": "smart.view-properties",
+      "version": "1.20.0",
+      "recorded_on": "2026-11-18",
+      "change": "minor",
+      "consumer": "Nothing to change for a host. A person who cannot arrange the card no longer chooses the view in a «⋯ → Вид» submenu: the views are a select-only sf-profile-picker above the fields (C311 (5), the dispatcher's call on RC-6). The dead views list of the arranging mode (renderViewProfiles, renderNewViewName, startNamingView, cancelNamingView) is removed.",
+      "summary": "C311 (5), the dispatcher's call on RC-6 (round/view-r4): the «⋯» menu has no views submenu for anyone; the person who may arrange keeps the one entry «Вид: <name>» that enters the arranging mode with the picker open; a person who cannot arrange (no view settings from the host, no writable layer, or a view-only surface) and has more than one view gets sf-profile-picker in select-only mode above the fields (profiles not editable, nothing created, no reset; a choice raises view.profile). Removed as dead: renderViewProfiles and renderNewViewName in the template (with their CSS), viewProfileEntries, openViewProfileMenu, the view-profile: menu ids, namingView, startNamingView and cancelNamingView.",
+      "evidence": "control/evidence/2026-11-18-view-r4/README.md"
     },
     {
       "unit": "smart.view-properties",
@@ -470,6 +497,15 @@
       "consumer": "New: sf-view layout=\"cards\" draws it, where the author turned cards on (C297); a host answers the window {page, per_page: 24} with {records, total, has_next}.",
       "summary": "New: the cards layout (owner decisions C297, C306): records as .sf-card in a grid whose columns follow its width (sizes S, M, L), a cover in a frame of one ratio drawn by the layout (cover or contain, lazy), the title in two lines and up to four fields in the «Кратко» place, «Показать ещё» over the window {page, per_page: 24}, one Tab stop with the arrows by rows, a selection for sf-bulk-actions, empty states by sf-empty-state.",
       "evidence": "control/evidence/2026-11-18-view-cards"
+    },
+    {
+      "unit": "smart.view-calendar",
+      "version": "1.1.0",
+      "recorded_on": "2026-11-18",
+      "change": "minor",
+      "consumer": "Nothing to change. New: layouts.calendar.span_days (31 by default, up to 366) and layouts.calendar.rules of view-config/1 (Larena backend msg-75b451e2): past, weekdays {days: the ISO days 1..7 a start may fall on}, locked {field, in}, ability {ability} (answered per record in can {update, code, reason}); a rule without a reason and a host refusal coded storage_calendar_update_* are said in the language pack's words. weekdays {days} now names the days allowed (ISO 1..7), as the Larena host checks it, not days refused (0..6).",
+      "summary": "view-config/1 keys from the Larena backend (msg-75b451e2): calendarOptions reads span_days (31, clamped to 366; how far back the host looks for an event that started before the days on screen) and rules from layouts.calendar; the move rules in force are the rules setting and layouts.calendar.rules. moveCheck: weekdays {days} are the ISO days 1..7 a start may fall on (the host's reading; the round's own 0..6 refused days are gone), locked {field, in} holds a record whose field has one of the values (also with no day), ability is the host's and comes per record in can {update: false, code, reason}; sunday..saturday, min, max and dates are still read. A refusal carries its code; with no reason of its own a rule or a host refusal (storage_calendar_update_past, _weekday, _locked, _denied, _end_before_start, _too_long, _patch_invalid) is said in the pack's words (refuse-past, refuse-weekday, refuse-locked, refuse-denied, refuse-end-before-start, refuse-too-long, refuse-patch-invalid; en and ru); a machine code is never shown to a person.",
+      "evidence": "control/evidence/2026-11-18-view-r4/README.md"
     },
     {
       "unit": "smart.view-calendar",

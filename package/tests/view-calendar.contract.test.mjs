@@ -134,7 +134,7 @@ test('C293: the list head offers no week start; the colour setting is color_fiel
 
 test('the calendar is declared and its words are in every language pack', () => {
   const component = json('src/smart/view-calendar/component.json');
-  assert.equal(component.version, '1.0.0');
+  assert.ok(component['x-history'].some((entry) => entry.version === '1.0.0'), 'the calendar came as 1.0.0');
   const en = json('src/smart/view-calendar/lang/en.json');
   const ru = json('src/smart/view-calendar/lang/ru.json');
   const keys = (pack) => Object.keys(pack.runtime ?? pack).sort();

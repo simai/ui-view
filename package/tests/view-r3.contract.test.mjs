@@ -16,7 +16,8 @@ const head = read('src/smart/view/js/head.js');
 const card = read('src/smart/view-properties/js/templates/default.js');
 
 test('sf-view switches its layout live and swaps the content element', () => {
-  assert.match(view, /\n {4}canDrawLayout\(kind\) \{\n {8}return LAYOUTS\.has\(layoutName\(kind\)\);/u);
+  // round/view-r4 (VR3-1): a layout draws only when its element is in the running set.
+  assert.match(view, /\n {4}canDrawLayout\(kind\) \{\n {8}const tag = LAYOUTS\.get\(layoutName\(kind\)\);/u);
   assert.match(view, /\n {4}switchLayout\(kind, \{refresh = true\} = \{\}\) \{/u);
   assert.match(view, /if \(!LAYOUTS\.has\(name\)\) return \{outcome: "refused", reason: "layout-unavailable"\};/u);
   // A layout written after the view drew swaps the content element.
@@ -31,11 +32,12 @@ test('the marks carried over a switch survive the switch\'s own answer', () => {
   assert.match(view, /board\.lanes = this\.boardLanes \?\? \[\];\n {12}this\._applyCarriedSelection\(\);/u);
 });
 
-test('the head switches through the view and shows the kinds it cannot draw as unavailable', () => {
+test('the head switches through the view and hides the kinds it cannot draw (VR3-1)', () => {
   assert.match(head, /this\.view\.switchLayout\(kind\);/u);
-  assert.match(head, /\.\.\.\(this\.drawable\(kind\) \? \{\} : \{disabled: true, ariaLabel: this\.kindLabel\(kind\)\}\)/u);
+  assert.match(head, /const kinds = asked\.filter\(\(kind\) => Object\.hasOwn\(KINDS, kind\) && this\.drawable\(kind\)\);/u);
+  assert.doesNotMatch(head, /disabled: true, (ariaLabel|caption): this\.kindLabel\(kind\)/u);
   assert.match(head, /if \(!this\.drawable\(kind\)\) return this\.render\(\);/u);
-  for (const locale of ['ru', 'en']) assert.match(json(`src/smart/view/lang/${locale}.json`).runtime['head-kind-unavailable'], /^\{name\}: /u);
+  for (const locale of ['ru', 'en']) assert.equal(json(`src/smart/view/lang/${locale}.json`).runtime['head-kind-unavailable'], undefined);
 });
 
 test('a group named \'\' draws no head unless it has an action', () => {

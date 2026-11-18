@@ -69,6 +69,28 @@ function renderConfigureTop(context) {
     `;
 }
 
+// A person who cannot arrange the card chooses between the views in the same
+// picker, select-only, above the fields (C311 (5), the dispatcher's call on
+// RC-6): no «⋯ → Вид» submenu for anyone. Nothing is made, renamed, removed
+// or reset here; one view, no picker.
+function renderViewChooser(context) {
+    const profiles = context.viewProfiles ?? [];
+    if (context.canConfigureView || context.configuring || profiles.length < 2) return nothing;
+    return html`
+        <div class="sf-property-view-configure-top flex items-cross-center gap-1/3 flex-wrap" data-chooser="true">
+            <sf-profile-picker
+                    size=${context.controlSize ?? nothing}
+                    data-action="view-profile"
+                    label=${context.viewProfileLabel}
+                    current=${context.viewProfile ?? ''}
+                    .profiles=${profiles.map((profile) => ({id: profile.id, label: profile.label, shared: Boolean(profile.shared), editable: false}))}
+                    .rights=${{create: {personal: false, shared: false}}}
+                    @sf-profile-picker-select=${(event) => context.component.selectViewProfile(event.detail.id)}
+            ></sf-profile-picker>
+        </div>
+    `;
+}
+
 function renderConfigureBar(context) {
     if (!context.canConfigureView || !context.configuring) return nothing;
     const required = context.viewRequired;
@@ -1528,117 +1550,6 @@ function renderSectionIcon(context, section) {
 // «Add an area» takes the ladder's size 1, the size the panel's own controls
 // use; «add a section» stays a step below it, which is where it sits in the
 // rail (owner, 2026-10-09).
-// Keeping the list of named views, under the arrangement they belong to --
-// the same place a new area and a new section are made, because making a box is
-// one act whatever the box is (owner, 2026-10-09).
-//
-// A view is named the moment it is made, like an area and a section: a view
-// called «Новый вид» among four real ones is one nobody can tell from the
-// others. Removing is offered per view and not at all for the last shared one:
-// a scope with no shared view has nothing for a person who has made none of
-// their own, and the host refuses it anyway.
-function renderViewProfiles(context) {
-    const profiles = context.viewProfiles ?? [];
-    if (!profiles.length) return nothing;
-
-    return html`
-        <section class="sf-property-view-profiles flex flex-col gap-1/3">
-            <h3 class="sf-property-view-profiles-title">${context.viewProfileLabel}</h3>
-            ${profiles.map((profile) => html`
-                <div class="sf-property-view-profile flex items-cross-center gap-1/3" data-profile=${profile.id}>
-                    <sf-input
-                            size="1/2"
-                            appearance="bordered"
-                            class="flex-auto min-w-0"
-                            value=${profile.label}
-                            aria-label=${profile.label}
-                            data-action="rename-profile"
-                            @change=${(event) => context.component.renameViewProfile(
-                                    profile.id, event.detail?.value ?? event.target?.value ?? '')}
-                    ></sf-input>
-                    <span class="sf-property-view-profile-scope color-on-surface-variant">
-                        ${profile.shared ? context.sharedLayerText : context.personalLayerText}
-                    </span>
-                    <sf-button-icon
-                            size="1/2"
-                            appearance="ghost"
-                            scheme="on-surface-variant"
-                            icon="close"
-                            data-action="delete-profile"
-                            ?disabled=${!context.canDeleteViewProfile(profile.id)}
-                            title=${context.canDeleteViewProfile(profile.id)
-                                    ? context.deleteViewText
-                                    : context.lastSharedViewText}
-                            aria-label=${context.deleteViewText}
-                            @click=${() => context.component.deleteViewProfile(profile.id)}
-                    ></sf-button-icon>
-                </div>
-            `)}
-            ${context.namingView ? renderNewViewName(context) : html`
-                <sf-button
-                        appearance="outline"
-                        scheme="on-surface"
-                        size="1/2"
-                        text=${context.addViewText}
-                        data-action="add-profile"
-                        @click=${() => context.component.startNamingView()}
-                ></sf-button>`}
-        </section>
-    `;
-}
-
-// The name of a view about to be made, in the row the rename of an area uses.
-// Nothing is written until it is confirmed with a name.
-function renderNewViewName(context) {
-    const commit = (event) => {
-        const input = event.target?.closest?.('.sf-property-view-rename')?.querySelector('sf-input');
-        context.component.createViewProfile(input?.value ?? '');
-    };
-
-    return html`
-        <span class="sf-property-view-rename flex items-cross-center gap-1/4 min-w-0" data-action="new-profile">
-            <sf-input
-                    size="1/2"
-                    appearance="bordered"
-                    autofocus
-                    root-class="flex-auto min-w-0"
-                    data-action="new-profile-input"
-                    aria-label=${context.addViewText}
-                    placeholder=${context.newViewText}
-                    @keydown=${(event) => {
-                        if (event.key === 'Enter') commit(event);
-                        // Escape here leaves the naming row and nothing else: the
-                        // layer stack passes over a press a control took.
-                        if (event.key === 'Escape') {
-                            event.preventDefault();
-                            context.component.cancelNamingView();
-                        }
-                    }}
-            ></sf-input>
-            <sf-button-icon
-                    size="1/2"
-                    appearance="ghost"
-                    scheme="on-surface"
-                    icon="check"
-                    data-action="new-profile-save"
-                    title=${context.saveNameText}
-                    aria-label=${context.saveNameText}
-                    @click=${commit}
-            ></sf-button-icon>
-            <sf-button-icon
-                    size="1/2"
-                    appearance="ghost"
-                    scheme="on-surface"
-                    icon="close"
-                    data-action="new-profile-cancel"
-                    title=${context.cancelNameText}
-                    aria-label=${context.cancelNameText}
-                    @click=${() => context.component.cancelNamingView()}
-            ></sf-button-icon>
-        </span>
-    `;
-}
-
 function renderArrangementAdditions(context, section) {
     return html`
         <div class="sf-property-view-additions flex flex-col items-cross-stretch gap-1">
@@ -1859,6 +1770,7 @@ function renderBody(context, railOutside = false, withActions = true) {
                         </div>`
                     : html`
                         <div class="sf-property-view-body flex-auto min-w-0 flex flex-col gap-4">
+                            ${renderViewChooser(context)}
                             ${renderErrorSummary(context)}
                             <div class="sf-list-description sf-list-description--size-${context.size === '1/2' ? 'half' : '1'} sf-list-description--layout-auto sf-list-description--sections sf-property-view-list">
                                 <div class="sf-list-description-list">${context.visible(current?.groups).map((group) => renderGroup(context, current, group))}</div>

@@ -63,13 +63,30 @@ language says (ru: Monday). They are never stored in the view.
 
 ## Rules and rights
 
-`rules` are the host's rules of the date field (`describe().rules`): `past`,
-`weekdays {days}` and `sunday` … `saturday`, `min {date}`, `max {date}`,
-`dates {dates}`, each with its `reason`. While an event is held, a day a rule
-refuses dims and names the reason; the menu's items are disabled with it. A
-record with `can: {update: false, reason}` cannot be moved or stretched. Any
-other rule is the server's: a refusal of the move puts the event back and the
-host's reason is said in a toast and in the live region.
+`rules` are the host's move rules: the date field's (`describe().rules`) and
+`layouts.calendar.rules` of `simai.view-config/1`, each with its `reason`:
+
+- `past`: no start before today;
+- `weekdays {days}`: the ISO days (1 Monday … 7 Sunday) a start may fall on;
+- `locked {field, in}`: a record whose field holds one of the values does not
+  move (a sent order);
+- `ability {ability}`: what a person needs to move a record; the host answers
+  it per record as `can: {update: false, code, reason}`;
+- also `sunday` … `saturday` (that day refused), `min {date}`, `max {date}`,
+  `dates {dates}`.
+
+While an event is held, a day a rule refuses dims and names the reason; the
+menu's items are disabled with it. A record with `can: {update: false,
+reason}` cannot be moved or stretched. Any other rule is the server's: a
+refusal of the move puts the event back and the host's reason is said in a
+toast and in the live region. A rule without a reason, and a refusal coded
+`storage_calendar_update_*` (`past`, `weekday`, `locked`, `denied`,
+`end_before_start`, `too_long`, `patch_invalid`) without words of its own, is
+said in the language pack's words.
+
+`span_days` (31, up to 366) is how far back the host looks for an event that
+started before the days on screen; the host also refuses an event longer than
+that (`too_long`).
 
 ## Values and zones
 

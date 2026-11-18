@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-table",
-  "version": "1.25.0",
+  "version": "1.25.1",
   "title": "Table",
   "summary": "Complete server-backed collection view with search, filters, table preferences, row and bulk actions, and pagination.",
   "kind": "composite",
@@ -2965,6 +2965,13 @@
         "changes": [
           "View returns: row-offset {number, 0}: with total, every row's aria-rowindex is its place in the list (VT-4, VR2-8); the grid's open record row (aria-current) takes --sf-primary-container (12 % light, 24 % dark) as the phone list does (C305 (4), VR2-3); the grid keys ignore Alt+Down / Alt+Up; under a data view's list head (data-sf-view-columns=\"head\") the column head menu keeps pin, hide and «Все колонки…», which opens the view's «Настроить вид» (C296, VR2-1)."
         ]
+      },
+      {
+        "from": "1.25.0",
+        "to": "1.25.1",
+        "changes": [
+          "DEV's round 3 return VR3-2 (round/view-r4): the column head menu (columnMenuEntries) passes its separators as {type: \"separator\"}, the key sf-menu-context reads; {kind: \"separator\"} drew each as an empty focusable menu item."
+        ]
       }
     ]
   },
@@ -2974,7 +2981,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-table/index.js",
-        "sha256": "a59183dc6e284a06ab4a32f867708b86d475550e008dc12f9b55b218d2b94791"
+        "sha256": "97032fff6ba5f1aa158dd1e10889f0b90bf2565d580b1e0f188a8c2bc3d10429"
       },
       {
         "path": "src/smart/view-table/js/templates/default.js",

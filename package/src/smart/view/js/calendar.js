@@ -174,7 +174,7 @@ export async function onCalendarEvent(view, event) {
         const message = answer?.message ?? answer?.data?.message ?? "";
         calendar.settleMove(detail.id, answer?.answer === "applied"
             ? {answer: "applied", ...(record ? {record} : {})}
-            : {answer: answer?.answer ?? "refused", reason: answer?.reason ?? "", message: typeof message === "string" ? message : ""});
+            : {answer: answer?.answer ?? "refused", reason: answer?.reason ?? "", code: answer?.code ?? answer?.data?.code ?? answer?.reason ?? "", message: typeof message === "string" ? message : ""});
         return;
     }
     if (event.type === "sf-view-calendar-range") {

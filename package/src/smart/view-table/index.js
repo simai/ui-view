@@ -8541,11 +8541,11 @@ class SfTable extends TableElement {
             // The title stays: it is the record's name and its link (C146 (5)).
             const shown = this.getColumnItems().filter((item) => item?.key && !item.system && this.isColumnVisible(item));
             if (column.role !== "title" && shown.length > 1) group.push({id: "hide", text: this.text("columnHide"), icon: "visibility_off"});
-            if (entries.length) entries.push({kind: "separator"});
+            if (entries.length) entries.push({type: "separator"});
             entries.push(...group, {id: "all", text: this.text("columnAll"), icon: "view_column"});
         }
         if (cell?.querySelector?.("[data-sf-column-resizer]")) {
-            if (entries.length) entries.push({kind: "separator"});
+            if (entries.length) entries.push({type: "separator"});
             entries.push(
                 {id: "resize", text: this.text("columnWidthChangeText")},
                 {id: "fit", text: this.text("columnWidthFitText")},

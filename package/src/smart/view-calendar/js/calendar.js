@@ -18,6 +18,33 @@ export const EVENT_FIELDS_MAX = 3;
 export const RECORDS_MAX = 1000;
 export const MONTH_DAYS = 42;
 export const PHONE_DAYS = 3;
+// layouts.calendar.span_days of view-config/1 (Larena backend, msg-75b451e2):
+// how far back the host looks for an event that started before the days on
+// screen, and the longest event it accepts; 31 by default, up to 366.
+export const SPAN_DAYS = 31;
+export const SPAN_DAYS_MAX = 366;
+// The move rules of view-config/1 (layouts.calendar.rules): past, weekdays
+// {days: ISO 1..7 a start may fall on}, locked {field, in}, ability {ability}.
+export const RULE_CODES = Object.freeze(["past", "weekdays", "locked", "ability"]);
+// The host's refusal codes of a move (storage_calendar_update_*) and the
+// language pack's word for each, said when the host gives no reason of its own.
+export const REFUSAL_WORDS = Object.freeze({
+    past: "refuse-past",
+    weekday: "refuse-weekday",
+    weekdays: "refuse-weekday",
+    locked: "refuse-locked",
+    denied: "refuse-denied",
+    ability: "refuse-denied",
+    end_before_start: "refuse-end-before-start",
+    too_long: "refuse-too-long",
+    patch_invalid: "refuse-patch-invalid",
+});
+
+/** The pack word for a refusal code (a rule's code or storage_calendar_update_<code>), else null. */
+export function refusalWord(code) {
+    const name = String(code ?? "").trim().replace(/^storage_calendar_update_/u, "").replace(/-/gu, "_");
+    return Object.hasOwn(REFUSAL_WORDS, name) ? REFUSAL_WORDS[name] : null;
+}
 const DATE_TYPES = new Set(["date", "datetime"]);
 const COLOUR_TYPES = new Set(["status", "choice", "select", "enum"]);
 const ROLES = new Set(["primary", "secondary", "tertiary", "info", "success", "warning", "error", "neutral"]);
@@ -69,8 +96,10 @@ export function calendarOptions(options = {}, fields = []) {
     const to = minutesOf(Array.isArray(given.hours) ? given.hours[1] : null);
     const hours = from !== null && to !== null && from < to ? [from, to] : [...HOURS];
     const slot = Number.isSafeInteger(given.slot) && given.slot >= 5 && given.slot <= 120 ? given.slot : SLOT;
+    const spanDays = Number.isSafeInteger(given.span_days) && given.span_days > 0 ? Math.min(given.span_days, SPAN_DAYS_MAX) : SPAN_DAYS;
+    const rules = Array.isArray(given.rules) ? given.rules.filter((rule) => rule && typeof rule === "object" && typeof rule.code === "string") : [];
     return {
-        dateField, endField, allDayField, mode, modes, colorField, eventFields, perDay, hours, slot,
+        dateField, endField, allDayField, mode, modes, colorField, eventFields, perDay, hours, slot, spanDays, rules,
         weekends: given.weekends === "hide" ? "hide" : "show",
         undated: ["button", "panel", "none"].includes(given.undated) ? given.undated : "button",
     };
@@ -357,24 +386,38 @@ export function placeTimed(events, day) {
 // ── rules ────────────────────────────────────────────────────────────────
 
 /**
- * Whether a record may go to a day by the host's rules (describe().rules of
- * the date field, study 5) and its right (records[].can.update + reason, CL-7).
- * Known rule codes: past (before today), weekdays {days: [0..6]} and its
- * shorthands sunday .. saturday, min {date}, max {date}, dates {dates: [...]}.
- * A code the calendar does not know is the server's to check on save.
+ * Whether a record may go to a day by the host's rules and its right
+ * (records[].can.update + code + reason, CL-7).
+ * The rules of view-config/1 (layouts.calendar.rules, the Larena host):
+ * past (no start before today), weekdays {days: the ISO days 1..7 a start may
+ * fall on}, locked {field, in: values} (a record whose field holds one of them
+ * does not move), ability {ability} (the host answers it per record in can).
+ * Also read: sunday .. saturday (that day refused), min {date}, max {date},
+ * dates {dates: [...]}. A code the calendar does not know is the server's to
+ * check on save. A refusal carries its code; a rule without a reason is said
+ * with the pack's word for the code (refusalWord).
  */
 export function moveCheck({record, day, rules = [], today, noRight = ""} = {}) {
     const can = record?.can ?? record?._can;
-    if (can && can.update === false) return {ok: false, reason: String(can.reason ?? can.update_reason ?? noRight)};
+    if (can && can.update === false) return {ok: false, reason: String(can.reason ?? can.update_reason ?? noRight ?? ""), code: String(can.code ?? "denied")};
+    const list = Array.isArray(rules) ? rules : [];
+    for (const rule of list) {
+        if (rule?.code !== "locked" || !record || !rule.field || !Array.isArray(rule.in)) continue;
+        if (rule.in.some((value) => value === record[rule.field] || (typeof value !== "boolean" && String(value) === String(record[rule.field] ?? "")))) {
+            return {ok: false, reason: String(rule.reason ?? ""), code: "locked"};
+        }
+    }
     if (day === null || day === undefined) return {ok: true};
     const names = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
-    for (const rule of Array.isArray(rules) ? rules : []) {
+    for (const rule of list) {
         if (!rule || typeof rule !== "object") continue;
         const code = String(rule.code ?? "");
         const reason = String(rule.reason ?? "");
         if (code === "past" && today && day < today) return {ok: false, reason, code};
         if (names.includes(code) && weekday(day) === names.indexOf(code)) return {ok: false, reason, code};
-        if ((code === "weekdays" || code === "weekday") && Array.isArray(rule.days) && rule.days.map((value) => Number(value) % 7).includes(weekday(day))) return {ok: false, reason, code};
+        // ISO days: 1 Monday .. 7 Sunday; the days a start may fall on.
+        if ((code === "weekdays" || code === "weekday") && Array.isArray(rule.days) && rule.days.length
+            && !rule.days.map((value) => Number(value)).includes(weekday(day) || 7)) return {ok: false, reason, code: "weekday"};
         if (code === "min" && rule.date && day < String(rule.date).slice(0, 10)) return {ok: false, reason, code};
         if (code === "max" && rule.date && day > String(rule.date).slice(0, 10)) return {ok: false, reason, code};
         if (code === "dates" && Array.isArray(rule.dates) && rule.dates.map((value) => String(value).slice(0, 10)).includes(day)) return {ok: false, reason, code};

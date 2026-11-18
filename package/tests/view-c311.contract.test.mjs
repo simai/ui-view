@@ -74,7 +74,7 @@ test('port 1.19.0 is accepted; the new intents only for a 1.19.0 host', () => {
   assert.match(card, /const SUPPORTED_PORT_VERSIONS = \[[^\]]*"1\.18\.0", "1\.19\.0"\];/u);
   assert.ok(json('src/smart/view-properties/smart.manifest.json').composition.declarative.host_port.supported_versions.includes('1.19.0'));
   assert.match(card, /return this\.editableLayers\.includes\("shared"\) && this\.hostSpeaksCardSettings;/u);
-  assert.equal(json('src/smart/view-properties/component.json').version, '1.19.0');
+  assert.ok(json('src/smart/view-properties/component.json')['x-history'].some((entry) => entry.version === '1.19.0'));
   // sf-view took 1.20.0 here; later rounds number above it (round/view-r4).
   assert.ok(json('src/smart/view/component.json')['x-history'].some((entry) => entry.version === '1.20.0'));
 });

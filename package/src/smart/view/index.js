@@ -56,6 +56,11 @@ const layoutName = (value) => {
     return LAYOUT_ALIASES[name] ?? name;
 };
 const layoutsOfBoard = (value) => LAYOUTS.get(layoutName(value)) === "sf-view-board";
+// The display kind of each layout element; every other element (the table) is
+// named by the layout attribute itself (auto, table, list).
+const LAYOUT_KINDS = Object.freeze({"sf-view-board": "board", "sf-view-cards": "cards", "sf-view-calendar": "calendar"});
+// A layout of the table (auto, table, list): the page's own value kept over a switch.
+const tableLayout = (value) => value !== null && value !== undefined && (LAYOUTS.get(layoutName(value)) ?? "sf-view-table") === "sf-view-table";
 // The board's first paint: lanes of a head and cards (BD-2).
 const FIRST_PAINT_LANES = 4;
 const FIRST_PAINT_CARDS = 3;
@@ -609,7 +614,7 @@ class SfDataView extends DataViewElement {
         if (pagination.getAttribute("actions") !== markup) pagination.setAttribute("actions", markup);
     }
 
-    get selection() { return this.table?.selection ?? []; }
+    get selection() { return this._layoutTag() === "sf-view-table" ? (this.table?.selection ?? []) : this._layoutSelection(); }
 
     // The list and its page row when the author slots none: drawn in the light
     // DOM, assigned to the layout's slots, so the Framework's styles reach them
@@ -664,7 +669,7 @@ class SfDataView extends DataViewElement {
         const written = this.getAttribute?.("layout");
         if (written === null || written === undefined || written === "") return "table";
         const name = layoutName(written);
-        if (LAYOUTS.has(name)) return {"sf-view-board": "board", "sf-view-calendar": "calendar"}[LAYOUTS.get(name)] ?? name;
+        if (LAYOUTS.has(name)) return LAYOUT_KINDS[LAYOUTS.get(name)] ?? name;
         this._layoutWarned ??= new Set();
         if (!this._layoutWarned.has(name)) {
             this._layoutWarned.add(name);
@@ -682,13 +687,17 @@ class SfDataView extends DataViewElement {
         return Object.fromEntries(LAYOUTS);
     }
 
-    // Whether the view draws a display kind itself (the layout registry):
-    // table, list and auto are the table's, board is sf-view-board, and a
-    // layout a product registers (registerLayout) is its element's. A kind
-    // the registry does not hold -- cards, calendar, tree until their layouts
-    // exist -- is not drawn here; the list head shows it unavailable.
+    // Whether the view draws a display kind in this page (the layout
+    // registry): table, list and auto are the table's; board, cards and
+    // calendar are their elements', and a layout a product registers
+    // (registerLayout) is its element's -- each only when that element is in
+    // the running set: defined, or a rule the Loader can fetch (cl-<name>). A
+    // kind that is not is hidden by the list head (VR3-1, DEV's decision).
     canDrawLayout(kind) {
-        return LAYOUTS.has(layoutName(kind));
+        const tag = LAYOUTS.get(layoutName(kind));
+        if (!tag) return false;
+        if (tag === "sf-view-table") return true;
+        return Boolean(globalThis.customElements?.get?.(tag) || globalThis.SF?.RuleLoader?.[tag.replace(/^sf-/u, "cl-")]);
     }
 
     // The display kind switched live (the list head's Таблица / Доска, or a
@@ -700,25 +709,51 @@ class SfDataView extends DataViewElement {
     switchLayout(kind, {refresh = true} = {}) {
         const name = layoutName(kind);
         if (!LAYOUTS.has(name)) return {outcome: "refused", reason: "layout-unavailable"};
-        const fromBoard = this.layoutKind === "board";
-        const toBoard = LAYOUTS.get(name) === "sf-view-board";
+        const fromTag = this._layoutTag();
+        const toTag = LAYOUTS.get(name);
         // The table's own layout (auto, list or table) as the page wrote it
         // before the first switch, given back when «Таблица» is chosen.
-        if (this._tableLayout === undefined) this._tableLayout = fromBoard ? null : this.getAttribute("layout");
-        const marked = (fromBoard ? this.board?.selected : this.table?.selection) ?? [];
+        if (this._tableLayout === undefined) this._tableLayout = fromTag === "sf-view-table" ? this.getAttribute("layout") : null;
+        const marked = this._layoutSelection();
         // Back to the table: the layout the page wrote for it (auto, list or
         // table), or none -- the table's own default, as before the board.
-        const own = this._tableLayout && !layoutsOfBoard(this._tableLayout) ? this._tableLayout : null;
-        const written = toBoard ? "board" : (name === "table" ? own : name);
-        if (fromBoard !== toBoard) {
+        const own = tableLayout(this._tableLayout) ? this._tableLayout : null;
+        const written = toTag === "sf-view-table" ? (name === "table" ? own : name) : (LAYOUT_KINDS[toTag] ?? name);
+        if (fromTag !== toTag) {
             this._carrySelection = marked.map(String);
             this._carrySequence = this.sequence;
+            // The cards ask their own page size (24, C306); the list's comes
+            // back when another layout is chosen.
+            if (toTag === "sf-view-cards") this._perPageOfList ??= {value: this.query?.per_page};
+            else if (fromTag === "sf-view-cards" && this._perPageOfList) {
+                if (this._perPageOfList.value === undefined) delete this.query.per_page;
+                else this.query.per_page = this._perPageOfList.value;
+                this._perPageOfList = null;
+            }
+            if (this.query && typeof this.query === "object") delete this.query.window;
         }
+        this._drawnTag ??= fromTag;
         if (written === null) this.removeAttribute("layout");
         else this.setAttribute("layout", written);
         // refresh: false is for a caller that asks the host itself next.
         if (refresh && this.isConnected) this.refresh("layout-change");
         return {outcome: "applied", layout: this.layoutKind};
+    }
+
+    // The element the current layout draws with: sf-view-table for auto,
+    // table and list, else the registry's element.
+    _layoutTag() {
+        return LAYOUTS.get(this.layoutKind) ?? "sf-view-table";
+    }
+
+    // The marked records of the layout on screen (table, board, cards or
+    // calendar), as ids.
+    _layoutSelection() {
+        const tag = this._layoutTag();
+        if (tag === "sf-view-board") return this.board?.selected ?? [];
+        if (tag === "sf-view-cards") return this.cards?.selected ?? [];
+        if (tag === "sf-view-calendar") return calendarOf(this)?.selected ?? [];
+        return this.table?.selection ?? [];
     }
 
     // The content element the layout draws with. A view-made table or board
@@ -728,7 +763,7 @@ class SfDataView extends DataViewElement {
     // nothing -- and comes back when its layout does. What is known is drawn
     // into the new element at once.
     _swapContent() {
-        const want = this.layoutKind === "board" ? "sf-view-board" : "sf-view-table";
+        const want = this._layoutTag();
         const children = [...(this.children ?? [])];
         for (const child of children) {
             if (child.getAttribute?.("slot") !== "content" || isTag(child, want)) continue;
@@ -740,9 +775,9 @@ class SfDataView extends DataViewElement {
                 // (the markup a host with the list head writes) is told once
                 // that the board draws and the table waits for «Таблица»
                 // (VR2-5); a switch made by a person parks it silently.
-                if (!this._answered && !this._parkedWarned && want === "sf-view-board") {
+                if (!this._answered && !this._parkedWarned && want !== "sf-view-table") {
                     this._parkedWarned = true;
-                    console.warn('sf-view: layout="board" draws sf-view-board; the page\'s sf-view-table in slot "content" is kept for the table layout and shows when the table is chosen');
+                    console.warn(`sf-view: layout="${LAYOUT_KINDS[want] ?? this.layoutKind}" draws ${want}; the page's ${child.localName} in slot "content" is kept for its layout and shows when that layout is chosen`);
                 }
             }
         }
@@ -752,14 +787,28 @@ class SfDataView extends DataViewElement {
                 child.setAttribute("slot", "content");
             }
         }
+        // What the board knew becomes the list's records for the other layouts.
+        if (this._drawnTag === "sf-view-board" && want !== "sf-view-board" && this.boardLanes?.length) {
+            this.records = this.boardLanes.flatMap((lane) => lane.records ?? []);
+        }
+        this._drawnTag = want;
         this._lightDefaults();
         if (want === "sf-view-board") {
             this._askForParts(["sf-view-board"]);
             // The lanes of the last answer, if the host sent any, draw now.
             this._boardFresh = Array.isArray(this.boardLanes) && this.boardLanes.length > 0;
+        } else if (want === "sf-view-cards") {
+            this._askForParts(["sf-view-cards"]);
+        } else if (want === "sf-view-calendar") {
+            this._askForParts(["sf-view-calendar"]);
+            // The records known draw on their days at once; the host's answer
+            // for the days on screen replaces them.
+            if (this._answered && Array.isArray(this.records)) {
+                this._calendarRecords = copy(this.records);
+                this._calendarFresh = true;
+            }
         } else {
             this._askForParts(["sf-view-table", "sf-pagination"]);
-            if (this.boardLanes?.length) this.records = this.boardLanes.flatMap((lane) => lane.records ?? []);
         }
     }
 
@@ -770,11 +819,19 @@ class SfDataView extends DataViewElement {
         const ids = this._carrySelection;
         if (!ids?.length) return;
         const answered = this.pending === null && this.sequence > (this._carrySequence ?? 0);
-        if (this.layoutKind === "board") {
+        const tag = this._layoutTag();
+        if (tag === "sf-view-board") {
             const board = this.board;
             if (!board || !this.boardLanes?.length) return;
             const shown = new Set(this.boardLanes.flatMap((lane) => lane.records ?? []).map((record) => String(record?.id)));
             board.selected = ids.filter((id) => shown.has(id));
+        } else if (tag === "sf-view-cards" || tag === "sf-view-calendar") {
+            const element = tag === "sf-view-cards" ? this.cards : calendarOf(this);
+            const records = tag === "sf-view-cards" ? this.records : this._calendarRecords;
+            if (!element || !Array.isArray(records) || !records.length) return;
+            const shown = new Set(records.map((record) => String(record?.id)));
+            element.selected = ids.filter((id) => shown.has(id));
+            if (tag === "sf-view-cards") this._cardsSelection = element.selected;
         } else {
             const table = this.table;
             if (typeof table?.applyRowSelection !== "function" || !this.cappedRecords?.length) return;
@@ -2764,6 +2821,8 @@ class SfDataView extends DataViewElement {
         this._syncBoard();
         if (this.layoutKind === "cards") syncCards(this);
         syncCalendar(this);
+        // The marks a switch carried, on the cards or the calendar as they draw.
+        if (this.layoutKind === "cards" || this.layoutKind === "calendar") this._applyCarriedSelection();
         const table = this.table;
         if (table) {
             // The two chrome columns. Written as attributes rather than left to the
