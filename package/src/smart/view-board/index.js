@@ -231,6 +231,24 @@ class SfViewBoard extends BoardElement {
         return laneSums(chosen, this.closest?.("[lang]")?.getAttribute("lang") || globalThis.document?.documentElement?.lang);
     }
 
+    // The sums come in a request after the cards (sums-pending, set by
+    // sf-view): their line is held so the head does not grow when they come.
+    get sumsAwaited() {
+        return this.getProp("sumsPending") === true
+            && this.boardOptions.totals.some((entry) => entry && typeof entry === "object" && entry.sum);
+    }
+
+    /** The lanes' totals the host answered after the cards: [{value, totals}] (sums per currency). */
+    setLaneTotals(list) {
+        if (!Array.isArray(list)) return refused("not-a-list");
+        for (const entry of list) {
+            const lane = this.lanes.find((known) => String(known.value) === String(entry?.value));
+            if (lane && entry.totals && typeof entry.totals === "object") lane.totals = {...(lane.totals ?? {}), ...copy(entry.totals)};
+        }
+        this.requestComponentUpdate("totals");
+        return applied();
+    }
+
     templateContext() {
         const options = this.boardOptions;
         const lanes = this.boardLanes;

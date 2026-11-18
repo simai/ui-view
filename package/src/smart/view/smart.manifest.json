@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view",
-  "version": "1.15.1",
+  "version": "1.17.0",
   "title": "Data view",
   "summary": "Host-driven data view that composes toolbar, content and pagination around a separate data port.",
   "kind": "composite",
@@ -97,6 +97,7 @@
         "accept-files",
         "collection",
         "current",
+        "record-card",
         "aria-label"
       ],
       "data": {},
@@ -418,6 +419,11 @@
         "type": "string",
         "default": "",
         "description": "The id of the record the page has open: its row carries aria-current. Writing it sends nothing (component.json settings.current)."
+      },
+      "record-card": {
+        "type": "string",
+        "default": "",
+        "description": "The id of an sf-view-properties panel on the page (C305 (4)): a record opened from the list or the board opens in it beside the list, its steps follow the view's order (recordBeside), its close gives the focus back; empty: the host's record.open as before."
       },
       "aria-label": {
         "type": "string",
@@ -1812,9 +1818,13 @@
       },
       {
         "from": "1.14.0",
-        "to": "1.15.1",
+        "to": "1.17.0",
         "changes": [
-          "View round 2 (C296, VT-2): the first paint of a selectable view on a phone holds the page box sf-view-table 1.24.0 draws over its list of records."
+          "View round 2 (C296, VT-2): the first paint of a selectable view on a phone holds the page box sf-view-table 1.24.0 draws over its list of records. (round/view-r2-table, was 1.15.1)",
+          "List head (head=\"list\"; owner decisions C297, C299, C300, C301; view round 2 LH-1..LH-10): a title row (name and count, views, display kind on sf-segmented, «Настроить вид», list menu by describe().permissions) and a head row (Фильтр + bookmark, filter fields as joined sf-button + sf-button-icon, Очистить, search up to 20rem, Создать split) drawn by the view from SIMAI Framework parts; windows are sf-popover on a desktop and an sf-drawer bottom sheet on a phone; the field window is the pair's filter template (SF.fieldRenderers.renderFilterField). The table draws no toolbar and no head gear under it. Draft intents of the list head study (section 7) through the same port. Without head=\"list\" nothing changes. (round/view-r2-head, was 1.15.0)",
+          "The layout registry (owner decision C298, BD-1): layout=\"board\" (alias kanban) draws sf-view-board in the content slot, with no page row; a name outside the registry warns once (it drew the table silently) and still draws the table. The board's first paint holds lanes of a head and cards, not a table (BD-2). A board's query carries window {lanes, per_lane} (BD-4); the answer's lanes, board.moves and board.order_field go to the board; a move is record.set of the lane field, «Показать ещё» a query.change with window.lane. (round/view-r2-board, was 1.16.0)",
+          "Record card round 2 (C305 (4), RC-5): recordBeside(id, direction) answers the next or the previous record id in the order the view shows (null at the ends or for an id it does not show), so a page that opened a record card from the view steps it with Alt+Down / Alt+Up. Nothing to change for a host. (round/view-r2-card, was 1.16.0)",
+          "View round 2 merge: record-card names an sf-view-properties panel of the page; a record opened from the table, the list or the board then opens in it beside the list (the view marks itself data-sf-drawer-dock-host when the page marked nothing), its steps go to recordBeside (the board's order is its lanes'), its close gives the focus back to the row; without record-card the host's record.open as before. The board's lane window asks totals [\"count\"] with the cards; the money sums are a second query.change (reason lane-sums, per_lane 0, totals of layouts.board) after the board is drawn, their line held meanwhile (sf-view-board sums-pending, setLaneTotals)."
         ]
       }
     ]
@@ -1825,7 +1835,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view/index.js",
-        "sha256": "6d7554d6088517680fa8a2dc9fcc1ed58f8b19e27ec7e350ee7e5f5da27c58b1"
+        "sha256": "d6553991e0c51c47631157985d175ca8f577b6fbaf8fe05cc09a870245510efd"
       },
       {
         "path": "src/core/contracts/ports/simai.dataview-port/1.5.0/port.json",
@@ -1833,7 +1843,7 @@
       },
       {
         "path": "src/smart/view/docs.md",
-        "sha256": "0f87a9c3692c58daee1ec5960f4246bb5ffad60de767d4bb45e0a9028e6da1bf"
+        "sha256": "19c09cf20fc185fc2d858bfb5e3e5c37e4fa85177bba77090a0de0314f4561a2"
       },
       {
         "path": "tests/fixtures/data-view-composite-lab.html",
@@ -1845,7 +1855,7 @@
       },
       {
         "path": "src/smart/view/js/first-paint.css",
-        "sha256": "6fbdb9595fa7a756627dab70c5fd7236242d5aebc9e6ed360c1e23d65980fdc1"
+        "sha256": "1399c2e9d14fdf0d74a77ff532cb28a5041ca77d34e6cfceb3195704c46571ed"
       }
     ],
     "generated_runtime": []

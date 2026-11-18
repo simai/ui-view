@@ -2,8 +2,15 @@
   "$comment": "sf-view-board, standard simai.smart-component 1.4 (vocabulary 1.1.5): the board layout of the view set (kanban; owner decisions C298, C304). Study: ui-control control/research/2026-11-17-board-view. Drag and keys are sf-sortable's, the card is .sf-card, the card fields the Framework field renderers' cell output, menus SF.menu.open, the selection bar sf-bulk-actions where the pair has it.",
   "id": "smart.view-board",
   "tag": "sf-view-board",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "x-history": [
+    {
+      "version": "1.1.0",
+      "kind": "minor",
+      "recorded_on": "2026-11-18",
+      "consumer": "New: sums-pending holds the lane heads' sum line while the sums come in a request after the cards; setLaneTotals([{value, totals}]) takes them. Nothing to change for a host that answers sums with the cards.",
+      "evidence": "control/evidence/2026-11-18-view-r2-merge/README.md"
+    },
     {
       "version": "1.0.0",
       "kind": "minor",
@@ -127,6 +134,11 @@
       "type": "list",
       "default": [],
       "summary": "The ids marked."
+    },
+    "sums-pending": {
+      "type": "boolean",
+      "default": false,
+      "summary": "The lanes' sums are asked in a request after the cards (sf-view sets it): the sum line of each lane head is held empty until setLaneTotals brings them."
     }
   },
   "values": {},
@@ -231,6 +243,20 @@
         "refused"
       ],
       "summary": "The host's next records of one lane (the answer to more).",
+      "x-returns": {
+        "type": "object",
+        "description": "{outcome: applied} or {outcome: refused, reason}"
+      }
+    },
+    "set-lane-totals": {
+      "with": {
+        "lanes": "list"
+      },
+      "x-outcomes": [
+        "applied",
+        "refused"
+      ],
+      "summary": "The lanes' totals the host answered after the cards ([{value, totals}], sums per currency); cards and cursors stay.",
       "x-returns": {
         "type": "object",
         "description": "{outcome: applied} or {outcome: refused, reason}"
@@ -549,6 +575,13 @@
           "to": "1.0.0",
           "changes": [
             "New: the board layout (owner decisions C298, C304): lanes by one field from the host's lane window, cards with up to four fields in the «Кратко» place, moves as a change of the lane field the host settles (settleMove), «Показать ещё» per lane (appendLane), soft limits, folded and hidden lanes, one lane per screen on a phone, one Tab stop with the arrows inside."
+          ]
+        },
+        {
+          "from": "1.0.0",
+          "to": "1.1.0",
+          "changes": [
+            "Lane sums after the cards (view round 2 merge, agreed with Larena): sums-pending (set by sf-view while it asks the sums in a second request) holds the sum line of every lane head, so nothing grows when they come; setLaneTotals([{value, totals}]) merges the answered totals into the lanes without touching their cards or cursors."
           ]
         }
       ]

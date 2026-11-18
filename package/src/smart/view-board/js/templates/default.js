@@ -89,7 +89,8 @@ function renderLane(context, lane, index) {
                             data-lanemenu=${lane.value} aria-label=${component.word("lane-menu-text", {lane: lane.label})}
                             tooltip=${component.word("lane-short-text")}></sf-button-icon>
                 </div>
-                ${sums.length ? html`<div class="sf-view-board__sum">${sums.join(" · ")}</div>` : nothing}
+                ${sums.length ? html`<div class="sf-view-board__sum">${sums.join(" · ")}</div>`
+                    : component.sumsAwaited ? html`<div class="sf-view-board__sum" data-pending aria-hidden="true">\u00a0</div>` : nothing}
             </div>
             <div class="sf-view-board__note" aria-hidden=${refusal ? "false" : "true"}>${refusal ? component.word("refuse-text", {reason: refusal}) : ""}</div>
             <div class="sf-view-board__body">

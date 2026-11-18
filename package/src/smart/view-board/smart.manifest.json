@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-board",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "title": "Board",
   "summary": "The board layout of the view set: lanes by one field, cards with up to four fields in the «Кратко» place, a move is a change of that field the host settles. sf-view layout=\"board\" draws it over the lane window.",
   "kind": "smart",
@@ -86,6 +86,11 @@
         "type": "boolean",
         "default": false,
         "description": "A sort is on in the view: manual reorder inside a lane is off (C304 (2))."
+      },
+      "sums-pending": {
+        "type": "boolean",
+        "default": false,
+        "description": "The lanes' sums are asked in a request after the cards (sf-view sets it): the sum line of each lane head is held empty until setLaneTotals brings them."
       },
       "selectable": {
         "type": "boolean",
@@ -208,6 +213,23 @@
               "cursor",
               "total"
             ]
+          }
+        }
+      ],
+      "returns": {
+        "type": "object",
+        "description": "{outcome: applied} or {outcome: refused, reason}"
+      }
+    },
+    "setLaneTotals": {
+      "summary": "The lanes' totals the host answered after the cards ([{value, totals}], sums per currency); cards and cursors stay.",
+      "arguments": [
+        {
+          "name": "lanes",
+          "type": "array",
+          "required": true,
+          "schema": {
+            "type": "array"
           }
         }
       ],
@@ -484,6 +506,13 @@
         "changes": [
           "New: the board layout (owner decisions C298, C304): lanes by one field from the host's lane window, cards with up to four fields in the «Кратко» place, moves as a change of the lane field the host settles (settleMove), «Показать ещё» per lane (appendLane), soft limits, folded and hidden lanes, one lane per screen on a phone, one Tab stop with the arrows inside."
         ]
+      },
+      {
+        "from": "1.0.0",
+        "to": "1.1.0",
+        "changes": [
+          "Lane sums after the cards (view round 2 merge, agreed with Larena): sums-pending (set by sf-view while it asks the sums in a second request) holds the sum line of every lane head, so nothing grows when they come; setLaneTotals([{value, totals}]) merges the answered totals into the lanes without touching their cards or cursors."
+        ]
       }
     ]
   },
@@ -493,7 +522,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-board/index.js",
-        "sha256": "186934757ba02de3628d1aef954d35ea72432e1debad9285c7568de8043a3cdc"
+        "sha256": "c435d8d663f22b6ec149179882b5a8d1db740c70b096c0ba2c73884f91fa1f27"
       },
       {
         "path": "src/smart/view-board/js/board.js",
@@ -501,7 +530,7 @@
       },
       {
         "path": "src/smart/view-board/js/templates/default.js",
-        "sha256": "f5d51d15c40552fa012bd507e1c8840e204d0434b455f8b5abc91675a363c9d6"
+        "sha256": "0b7679cef18470e755b04df36b808c146b19e7a3d55fe42223005efa3d542c15"
       },
       {
         "path": "src/smart/view-board/js/templates/default.css",
@@ -517,7 +546,7 @@
       },
       {
         "path": "src/smart/view-board/docs.md",
-        "sha256": "154e8c3b1875f11db09747a8e19c7d6969c0918bc92ed1ac8de5fea7923279fd"
+        "sha256": "12302ae30b4a363d98883f03d969d0386c763e198614a1fe233ab5fdaf700204"
       }
     ],
     "generated_runtime": []

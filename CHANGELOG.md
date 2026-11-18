@@ -16,7 +16,7 @@ same numbers with other content); every next set version is above them
 up). Each component.json says the same under `x-decisions`
 `pro-copy-versions`.
 
-## Unreleased (round/view-r2-table)
+## Unreleased (round/view-r2)
 
 - `sf-view-table` 1.24.0 (owner decision C296, view round 2, VT-1..VT-18):
   the table draws columns and rows. A column head's menu (right press,
@@ -44,63 +44,50 @@ up). Each component.json says the same under `x-decisions`
   standing alone. Behind feature checks (parts not yet in a released
   pair): `sf-bulk-actions` after the rows of a table standing alone, and
   `SF.fieldRenderers.dateFilter` for date filters (C293 DF-1, DF-4, DF-6).
-- `sf-view` 1.15.1 (with `sf-view-table` 1.24.0, VT-2): the skeleton of a
-  selectable view on a phone holds the list's page box over its records,
-  so the first paint does not grow when the records come. Above 1.15.0 of
-  round/view-r2-head; the merge takes the higher number.
-
-## Unreleased (round/view-r2-board)
-
-- `sf-view-board` 1.0.0 (preview), the board layout (owner decisions C298,
-  C304): lanes by one field from the host's lane window (the first
-  `per_lane` records of every lane and the totals of all lanes in one query),
+- `sf-view` 1.17.0, one number above the round's branches (1.15.0 head,
+  1.15.1 table, 1.16.0 board, 1.16.0 card), carrying all four:
+  - the list head, `head="list"` (C297 head part, C299, C300, C301; study
+    2026-11-17-list-head-filters): a title row (name and count, the views
+    menu, the display kind as `sf-segmented`, «Настроить вид», «⋯» by right)
+    and a head row («Фильтр» with its bookmark, joined filter field buttons,
+    «Очистить», the search up to 20rem, «Создать» the only filled button with
+    its split menu); no gear in the table. A phone gets one icon row, a
+    sideways row of fields and bottom sheets (`sf-drawer`); a desktop gets
+    `sf-popover` windows. «Настроить вид» by kind with the C298 levels;
+    record field settings in a side drawer. Intents `filter.*`,
+    `settings.save`, `entity.fields.save`, `view.create_record`; the port's
+    `describe()`; events `display-change` and `settings-open`. Without
+    `head` nothing changes. Long saved filter names are cut only when
+    `sf-button` has `overflow="truncate"` (feature check);
+  - the layout registry; `layout="board"` (Larena's `kanban`) draws
+    `sf-view-board`, an unknown layout warns once and draws the table; the
+    board's first paint holds lanes, not a table, and stays until the board
+    has drawn them (and the lane switcher's row on a phone), so nothing
+    jumps;
+  - `recordBeside(id, direction)` gives the next or the previous record id in
+    the order the view shows (a board's: its lanes'), for a card that steps;
+  - the skeleton of a selectable view on a phone holds the list's page box
+    over its records (with `sf-view-table` 1.24.0, VT-2);
+  - and, at the merge, `record-card="<id>"`: a record opened from the table,
+    the list or the board opens in that `sf-view-properties` panel beside the
+    list (docked from 64rem; the view marks itself
+    `data-sf-drawer-dock-host` when the page marked nothing), Alt+Down /
+    Alt+Up step through the view's order, closing gives the focus back to the
+    row; without it the host's `record.open` as before. The board asks its
+    lanes' counts with the cards (`window.totals: ["count"]`) and the money
+    sums in a second `query.change` (reason `lane-sums`, `per_lane: 0`) once
+    the board is drawn: count at once, sum when it arrives (agreed with
+    Larena).
+- `sf-view-board` 1.1.0: `sums-pending` holds each lane head's sum line
+  while the sums come after the cards; `setLaneTotals([{value, totals}])`
+  takes them without touching the cards or the cursors. 1.0.0 (preview, on
+  `round/view-r2-board`) is the board layout (owner decisions C298, C304):
+  lanes by one field from the host's lane window (the first `per_lane`
+  records of every lane in one query; the sums, since the merge, in a second),
   cards with up to four fields in the «Кратко» place, a move as a change of the
   lane field the host settles, soft limits, folded and hidden lanes, one lane
   per screen on a phone, one Tab stop with the arrows inside. Options under
   `layouts.board` of `simai.view-config/1`.
-- `sf-view` 1.16.0: the layout registry; `layout="board"` (Larena's `kanban`)
-  draws `sf-view-board`, an unknown layout warns once and draws the table;
-  the board's first paint holds lanes, not a table, and stays until the
-  board has drawn them (and the lane switcher's row on a phone), so nothing
-  jumps.
-
-## Unreleased (round/view-r1, for 1.9.0)
-
-- `sf-view` 1.15.0, the list head (C297 head part, C299, C300, C301;
-  study 2026-11-17-list-head-filters): `head="list"` draws a title row (name
-  and count, the views menu, the display kind as `sf-segmented`, «Настроить
-  вид», «⋯» by right) and a head row («Фильтр» with its bookmark, joined
-  filter field buttons, «Очистить», the search up to 20rem, «Создать» the
-  only filled button with its split menu); no gear in the table. A phone
-  gets one icon row, a sideways row of fields and bottom sheets
-  (`sf-drawer`); a desktop gets `sf-popover` windows. «Настроить вид» by
-  kind with the C298 levels; record field settings in a side drawer.
-  Intents `filter.*`, `settings.save`, `entity.fields.save`,
-  `view.create_record`; the port's `describe()`; events `display-change` and
-  `settings-open`. Without `head` nothing changes. Long saved filter names
-  are cut only when `sf-button` has `overflow="truncate"` (feature check).
-- Over the SIMAI Framework pair `ui-1ed6b6c9a040` (npm 5.20261117.1612,
-  ui-source `acc113415d98`, core.runtime 1.60.0; the round's helpers built
-  over `ui-24d64b7f6eb7`, npm 5.20261117.1311); the site on Docara 3.17.0
-  (was 3.14.1). Former names keep ending on 2027-01-01.
-- Site, «Свойства» (owner decisions C300 and C302, round 2 page helper): one
-  page template for every type, written whole by
-  `site/scripts/build-properties.mjs` -- what the type stores and its
-  templates (id, default, which of the four places each changes), one live
-  example of four sections «Показ», «Кратко», «Правка», «Фильтр» (three
-  samples; the compact form in a table column and on cards with a small edit
-  window for short fields; the edit with «Сервер получит», then empty and
-  required, a real error and read only; the open filter with «В запрос
-  уйдёт»), a template switch that keeps the value and the server lines, then
-  «Значение и сервер» with the field description, «Настройки», «Где
-  хранится» (Larena, Bitrix) and the neighbours. Gone: the «Телефон» block,
-  the three state cards, pagination, search, «Запись», «Свойства» and
-  «Сохранить» in the examples, the HTML/CSS/JS tabs with the whole catalogue,
-  variants as bottom text. Phone and password have pages of their own
-  (C302 (1)); this pair draws them as string variants. The example reads the
-  templates from the Framework registry (`templates`, `template`) and falls
-  back to the former `variant` names.
-
 - `sf-view-properties` 1.18.0, the record card by C305 (round 2, RC-1..RC-7):
   `edit` = `group` | `group+quick` | `none`. A group edits in SIMAI Framework
   `sf-form` (label above in the panel, beside in the full screen; Save
@@ -119,8 +106,30 @@ up). Each component.json says the same under `x-decisions`
   step through the list (`sf-view-properties-step`), closing over unsaved
   entries asks first. Seven public `--sf-view-properties-*` variables;
   `--sf-property-view--sections-width` is a former name until 2027-01-01.
-- `sf-view` 1.16.0: `recordBeside(id, direction)` gives the next or the
-  previous record id in the order the view shows, for a card that steps.
+- Site, «Свойства» (owner decisions C300 and C302, round 2 page helper): one
+  page template for every type, written whole by
+  `site/scripts/build-properties.mjs` -- what the type stores and its
+  templates (id, default, which of the four places each changes), one live
+  example of four sections «Показ», «Кратко», «Правка», «Фильтр» (three
+  samples; the compact form in a table column and on cards with a small edit
+  window for short fields; the edit with «Сервер получит», then empty and
+  required, a real error and read only; the open filter with «В запрос
+  уйдёт»), a template switch that keeps the value and the server lines, then
+  «Значение и сервер» with the field description, «Настройки», «Где
+  хранится» (Larena, Bitrix) and the neighbours. Gone: the «Телефон» block,
+  the three state cards, pagination, search, «Запись», «Свойства» and
+  «Сохранить» in the examples, the HTML/CSS/JS tabs with the whole catalogue,
+  variants as bottom text. Phone and password have pages of their own
+  (C302 (1)); this pair draws them as string variants. The example reads the
+  templates from the Framework registry (`templates`, `template`) and falls
+  back to the former `variant` names.
+
+## Unreleased (round/view-r1, for 1.9.0)
+
+- Over the SIMAI Framework pair `ui-1ed6b6c9a040` (npm 5.20261117.1612,
+  ui-source `acc113415d98`, core.runtime 1.60.0; the round's helpers built
+  over `ui-24d64b7f6eb7`, npm 5.20261117.1311); the site on Docara 3.17.0
+  (was 3.14.1). Former names keep ending on 2027-01-01.
 - `sf-view-table` 1.23.1 and `sf-view-flow` 1.1.6 follow the Framework files
   of the pair `ui-1ed6b6c9a040` they build in (`src/smart/pagination/index.js`
   takes its words from its language module, C282;

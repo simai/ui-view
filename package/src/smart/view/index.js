@@ -450,11 +450,87 @@ class SfDataView extends DataViewElement {
     // and the page asks this, so the card never reads the list. Null at an end
     // or for a record the view does not show.
     recordBeside(id, direction = "next") {
-        const rows = this.cappedRecords ?? [];
+        // A board's order is its lanes', left to right, top to bottom.
+        const rows = this.layoutKind === "board"
+            ? (this.board?.boardLanes ?? this.boardLanes ?? []).filter((lane) => !lane.hidden).flatMap((lane) => lane.records ?? [])
+            : (this.cappedRecords ?? []);
         const at = rows.findIndex((record) => String(record?.id) === String(id));
         if (at < 0) return null;
         const next = rows[at + (direction === "previous" ? -1 : 1)];
         return next ? String(next.id) : null;
+    }
+
+    // The record card beside the list (C305 (4), view round 2): record-card
+    // names an sf-view-properties panel of the page by id. A record opened
+    // from the table, the list or the board (sf-view-open, unless a listener
+    // refused it) then opens in that card -- docked beside the list from 64rem
+    // (the view marks itself data-sf-drawer-dock-host when the page marked
+    // nothing), the row marked current -- instead of the host's record.open;
+    // the card's steps (Alt+Down / Alt+Up) go to recordBeside, and its close
+    // gives the focus back to the row. Without record-card nothing changes.
+    get recordCard() {
+        const id = this.getAttribute?.("record-card");
+        if (!id) return null;
+        const root = this.getRootNode?.();
+        const card = root?.getElementById?.(id) ?? globalThis.document?.getElementById?.(id) ?? null;
+        return isTag(card, "sf-view-properties") ? card : null;
+    }
+
+    // One way a record of the list opens (vocabulary §5 open {id}).
+    _openRecord(id, detail) {
+        const allowed = this.sfEmit("open", {id}, {cancelable: true});
+        if (!allowed) return null;
+        const card = this.recordCard;
+        if (!card) return this._raise("record.open", detail);
+        return this._openBeside(card, String(id));
+    }
+
+    _openBeside(card, id) {
+        if (!globalThis.document?.querySelector?.("[data-sf-drawer-dock-host]")) this.setAttribute("data-sf-drawer-dock-host", "");
+        this._wireCard(card);
+        this._cardOpen = id;
+        this.current = id;
+        card.setAttribute("record-id", id);
+        card.removeAttribute("hidden");
+        card.setAttribute("open", "true");
+        return {answer: "applied", record_id: id};
+    }
+
+    _wireCard(card) {
+        if (this._wiredCard === card) return;
+        if (this._wiredCard) {
+            this._wiredCard.removeEventListener("sf-view-properties-step", this._onCardStep);
+            this._wiredCard.removeEventListener("sf-view-properties-close", this._onCardClose);
+        }
+        this._wiredCard = card;
+        this._onCardStep ??= (event) => {
+            if (event.defaultPrevented || event.currentTarget !== this._wiredCard) return;
+            const detail = event.detail ?? {};
+            const from = String(detail.record_id ?? this._cardOpen ?? "");
+            // A host that names the neighbour (record-neighbours) gave it: the
+            // card opens it itself. Otherwise the view's order gives it.
+            const next = detail.next_record_id ? String(detail.next_record_id) : this.recordBeside(from, detail.direction);
+            if (!next) return;
+            this._cardOpen = next;
+            this.current = next;
+            if (!detail.next_record_id) event.currentTarget.setAttribute("record-id", next);
+        };
+        this._onCardClose ??= (event) => {
+            if (event.defaultPrevented || event.currentTarget !== this._wiredCard) return;
+            const id = this._cardOpen;
+            this._cardOpen = null;
+            this.current = "";
+            if (!id) return;
+            // The focus goes back to the record it was opened from.
+            globalThis.setTimeout?.(() => {
+                const board = this.layoutKind === "board" ? this.board : null;
+                const cardOf = board?.querySelector?.(`.sf-view-board__card[data-id="${globalThis.CSS?.escape ? CSS.escape(id) : id}"]`);
+                if (cardOf) cardOf.focus?.({preventScroll: true});
+                else this.table?.focusRow?.(id, {focus: true});
+            }, 0);
+        };
+        card.addEventListener("sf-view-properties-step", this._onCardStep);
+        card.addEventListener("sf-view-properties-close", this._onCardClose);
     }
 
     // The actions offered for the marked rows, [{id, label}] (component.json
@@ -2925,10 +3001,7 @@ class SfDataView extends DataViewElement {
         // Opening a record is a request a page or an assembly takes
         // (vocabulary §5 open {id}): sf-data-view-open, then the host's
         // record.open unless a listener refused it (preventDefault).
-        if (!selectedBulk && ids.length === 1 && detail.action_id === "view") {
-            const allowed = this.sfEmit("open", {id: ids[0]}, {cancelable: true});
-            return allowed ? this._raise("record.open", detail) : null;
-        }
+        if (!selectedBulk && ids.length === 1 && detail.action_id === "view") return this._openRecord(ids[0], detail);
         const revisions = Object.fromEntries(chosen.map((record) => [String(record.id), record.revision]));
         const written = this._raise(selectedBulk || ids.length > 1 ? "bulk.apply_selected" : "record.mutate", {...detail, revisions});
         // The fact a screen closes a deleted record on (vocabulary §4: a
@@ -2966,8 +3039,50 @@ class SfDataView extends DataViewElement {
         const query = copy(this.query);
         if (this.layoutKind !== "board") return query;
         const options = this._boardOptions();
-        query.window = {lanes: options.lane_field ?? null, per_lane: options.per_lane ?? 20, ...(extra ?? {})};
+        // The lanes' counts come with the cards; their money sums are a
+        // request of their own once the board is drawn (agreed with Larena,
+        // 2026-11-18: a sum over a large lane is slower than its first cards).
+        query.window = {lanes: options.lane_field ?? null, per_lane: options.per_lane ?? 20, totals: ["count"], ...(extra ?? {})};
         return query;
+    }
+
+    // The fields whose sums the board shows (layouts.board totals: {sum}).
+    _boardSumTotals() {
+        const totals = this._boardOptions().totals;
+        return Array.isArray(totals) ? totals.filter((entry) => entry && typeof entry === "object" && entry.sum) : [];
+    }
+
+    // The second request (count at once, sum when it arrives): the lanes'
+    // sums of the same query, per_lane 0; the answer's lanes[].totals go into
+    // the lane heads, nothing else of it is read. A newer query, a refusal or
+    // a failure leaves the sums out; the counts stay.
+    async _askLaneSums(sequence, board) {
+        const totals = this._boardSumTotals();
+        const done = () => { if (board === this.board) board?.removeAttribute?.("sums-pending"); };
+        if (!totals.length || !this.hostPort) return done();
+        // After the board has drawn its lanes with their counts.
+        await globalThis.customElements?.whenDefined?.("sf-view-board");
+        await board?.whenRendered?.();
+        await new Promise((next) => (globalThis.requestAnimationFrame ?? globalThis.setTimeout)(() => next()));
+        if (!this.isConnected || sequence !== this.sequence || board !== this.board) return;
+        let answer = null;
+        try {
+            answer = await this.hostPort.raise("query.change", copy({
+                sequence, reason: "lane-sums", query: this._layoutQuery({per_lane: 0, totals}),
+            }), {signal: this._controller?.signal});
+        } catch {
+            answer = null;
+        }
+        if (!this.isConnected || sequence !== this.sequence || board !== this.board) return;
+        const lanes = answer?.answer === "applied" && Array.isArray(answer.data?.lanes) ? answer.data.lanes : [];
+        const sums = lanes.filter((lane) => lane && lane.totals && typeof lane.totals === "object")
+            .map((lane) => ({value: lane.value, totals: copy(lane.totals)}));
+        for (const lane of this.boardLanes ?? []) {
+            const given = sums.find((entry) => String(entry.value) === String(lane.value));
+            if (given) lane.totals = {...(lane.totals ?? {}), ...given.totals};
+        }
+        board.setLaneTotals?.(sums);
+        done();
     }
 
     // layouts.board as the host's view answers it (view_config), else as the
@@ -3001,6 +3116,9 @@ class SfDataView extends DataViewElement {
         } else {
             this.boardLanes = copy(data.lanes);
             this._boardFresh = true;
+            // Sums the board shows and the answer did not bring: asked after.
+            const keys = this._boardSumTotals().map((entry) => String(entry.sum));
+            this._laneSumsWanted = keys.length > 0 && !data.lanes.some((lane) => keys.some((key) => lane?.totals && Object.hasOwn(lane.totals, key)));
         }
         // The records on screen are the lanes' records: a write's answer
         // patches them as it patches a table's rows.
@@ -3015,7 +3133,12 @@ class SfDataView extends DataViewElement {
         board.moves = this._boardMoves ?? {};
         if (this._boardFresh) {
             this._boardFresh = false;
+            board.toggleAttribute("sums-pending", this._laneSumsWanted === true);
             board.lanes = this.boardLanes ?? [];
+            if (this._laneSumsWanted) {
+                this._laneSumsWanted = false;
+                this._askLaneSums(this.sequence, board);
+            }
         }
         const refused = this._queryRefused === true;
         board.setAttribute("order-field", this._boardOrderField ?? "");
@@ -3055,8 +3178,7 @@ class SfDataView extends DataViewElement {
             return;
         }
         if (event.type === "sf-view-board-open") {
-            const allowed = this.sfEmit("open", {id: detail.id}, {cancelable: true});
-            if (allowed) await this._raise("record.open", {action_id: "view", record_ids: [detail.id], record_id: detail.id});
+            await this._openRecord(detail.id, {action_id: "view", record_ids: [detail.id], record_id: detail.id});
             return;
         }
         if (event.type === "sf-view-board-create") {
