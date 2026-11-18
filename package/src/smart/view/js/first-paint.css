@@ -253,6 +253,18 @@
     inline-size: 1lh;
   }
 
+  /* The page box over a list of records (sf-view-table 1.24.0, VT-2): its
+     box and its words, a line with half the record's air. */
+  .sf-data-view-skeleton-list > div[data-list-head] {
+    display: flex;
+    align-items: center;
+    padding-block: var(--sf-a4);
+  }
+
+  .sf-data-view-skeleton-list > div[data-list-head] > .sf-skeleton-text:last-child {
+    inline-size: 30%;
+  }
+
   .sf-data-view-skeleton-list > div > div {
     display: flex;
     flex-direction: column;

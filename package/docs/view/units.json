@@ -5,6 +5,15 @@
   "entries": [
     {
       "unit": "smart.view",
+      "version": "1.15.1",
+      "recorded_on": "2026-11-18",
+      "change": "patch",
+      "consumer": "Nothing to change for a host: the first paint of a selectable view on a phone holds the list's page box that sf-view-table 1.24.0 draws over its records.",
+      "summary": "View round 2 (C296, VT-2): the first paint of a selectable view on a phone holds the page box sf-view-table 1.24.0 draws over its list of records.",
+      "evidence": "control/evidence/2026-11-18-view-r2-table/README.md"
+    },
+    {
+      "unit": "smart.view",
       "version": "1.14.0",
       "recorded_on": "2026-11-17",
       "change": "minor",

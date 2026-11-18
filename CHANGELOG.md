@@ -44,6 +44,10 @@ up). Each component.json says the same under `x-decisions`
   standing alone. Behind feature checks (parts not yet in a released
   pair): `sf-bulk-actions` after the rows of a table standing alone, and
   `SF.fieldRenderers.dateFilter` for date filters (C293 DF-1, DF-4, DF-6).
+- `sf-view` 1.15.1 (with `sf-view-table` 1.24.0, VT-2): the skeleton of a
+  selectable view on a phone holds the list's page box over its records,
+  so the first paint does not grow when the records come. Above 1.15.0 of
+  round/view-r2-head; the merge takes the higher number.
 
 ## Unreleased (round/view-r1, for 1.9.0)
 
