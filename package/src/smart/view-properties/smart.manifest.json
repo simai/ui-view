@@ -1956,7 +1956,7 @@
         "from": "1.19.0",
         "to": "1.20.0",
         "changes": [
-          "C311 (5), the dispatcher's call on RC-6 (round/view-r4): the «⋯» menu has no views submenu for anyone; the person who may arrange keeps the one entry «Вид: <name>» that enters the arranging mode with the picker open; a person who cannot arrange (no view settings from the host, no writable layer, or a view-only surface) and has more than one view gets sf-profile-picker in select-only mode above the fields (profiles not editable, nothing created, no reset; a choice raises view.profile). Removed as dead: renderViewProfiles and renderNewViewName in the template (with their CSS), viewProfileEntries, openViewProfileMenu, the view-profile: menu ids, namingView, startNamingView and cancelNamingView. Port range 1.0.0..1.20.0 (SUPPORTED_PORT_VERSIONS, host_port.supported_versions, the passport's list): the C311 edition is port 1.20.0 (the dispatcher's renumbering; GB12 holds 1.19.0, money C294), and hostSpeaksCardSettings asks for 1.20.0 or later."
+          "C311 (5), the dispatcher's call on RC-6 (round/view-r4): the «⋯» menu has no views submenu for anyone; the person who may arrange keeps the one entry «Вид: <name>» that enters the arranging mode with the picker open; a person who cannot arrange (no view settings from the host, no writable layer, or a view-only surface) and has more than one view gets sf-profile-picker in select-only mode above the fields (profiles not editable, nothing created, no reset; a choice raises view.profile). Removed as dead: renderViewProfiles and renderNewViewName in the template (with their CSS), viewProfileEntries, openViewProfileMenu, the view-profile: menu ids, namingView, startNamingView and cancelNamingView. Port range 1.0.0..1.20.0 (SUPPORTED_PORT_VERSIONS, host_port.supported_versions, the passport's list): the C311 edition is port 1.20.0 (the dispatcher's renumbering; GB12 holds 1.19.0, money C294), and hostSpeaksCardSettings asks for 1.20.0 or later. On a phone the card opens on its tab list, and the chooser stands above that list too."
         ]
       }
     ]
@@ -1971,7 +1971,7 @@
       },
       {
         "path": "src/smart/view-properties/js/templates/default.js",
-        "sha256": "20a936322767c54a56d551d7043dea208bc877f28eb90241fc4730b6c402d5fa"
+        "sha256": "c34c84d15bb50da280cf33a0a91a1bed46df355cdc9bd3d62178d1de3b61a40a"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.css",

@@ -105,6 +105,8 @@ test('C311 (5): no views submenu; a person who cannot arrange chooses in a selec
   assert.match(chooser, /\.rights=\$\{\{create: \{personal: false, shared: false\}\}\}/u);
   assert.doesNotMatch(chooser, /resettable|sf-profile-picker-(create|rename|delete|reset)/u);
   assert.match(template, /\$\{renderViewChooser\(context\)\}\s*\$\{renderErrorSummary\(context\)\}/u);
+  // On a phone the card opens on its tab list: the chooser stands above it there.
+  assert.match(template, /\$\{onPhoneSectionList\(context, sections\) \? renderViewChooser\(context\) : nothing\}/u);
   assert.doesNotMatch(template, /function renderViewProfiles\(|function renderNewViewName\(/u);
 });
 
