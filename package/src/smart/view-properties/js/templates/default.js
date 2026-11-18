@@ -45,7 +45,6 @@ function renderConfigureTop(context) {
     return html`
         <div class="sf-property-view-configure-top flex items-cross-center gap-1/3 flex-wrap"
              data-configuring="true" role="group" aria-label=${context.configureText}>
-            ${(context.viewProfiles ?? []).length ? html`
             <sf-profile-picker
                     size=${context.controlSize ?? nothing}
                     data-action="view-profile"
@@ -64,7 +63,7 @@ function renderConfigureTop(context) {
                     @sf-profile-picker-rename=${(event) => context.component.renameViewProfile(event.detail.id, event.detail.label)}
                     @sf-profile-picker-delete=${(event) => context.component.deleteViewProfile(event.detail.id)}
                     @sf-profile-picker-reset=${() => context.component.resetView()}
-            ></sf-profile-picker>` : nothing}
+            ></sf-profile-picker>
             <span class="sf-property-view-configure-hint color-on-surface-variant min-w-0">${configureHint(context)}</span>
         </div>
     `;

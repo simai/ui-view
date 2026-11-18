@@ -3683,7 +3683,7 @@ class SfPropertyView extends PropertyViewElement {
         this.requestComponentUpdate("configuring");
         // Arranging shows every group; those not read yet are read now.
         this._readShownGroups("started");
-        this._focusAfterRender(['.sf-property-view-configure-bar [data-action="view-profile"]', ".sf-property-view-configure-bar"]);
+        this._focusAfterRender(['.sf-property-view-configure-top [data-action="view-profile"]', ".sf-property-view-configure-bar"]);
         return true;
     }
 

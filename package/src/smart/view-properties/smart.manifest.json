@@ -1959,11 +1959,11 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-properties/index.js",
-        "sha256": "ecfdbc1d99f1d4ddc746ef522876a0b5c6e50172e391689540d6d7ac1b8147d9"
+        "sha256": "06254eeaabe0f9c3548fbcae74458b1e596c5ca3af3bf3374050ce87d46ed526"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.js",
-        "sha256": "1fa08d309af96171312cfe7788e9abee89876702f9bce95f619b747d4f9c11dd"
+        "sha256": "dccd5cd929fb3c7319b9c4d657e74d06ec97e4cae7330685981d1f740556ee55"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.css",

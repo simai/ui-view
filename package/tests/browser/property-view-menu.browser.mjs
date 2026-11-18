@@ -141,31 +141,35 @@ try {
     };
   });
   if (!menu.top || menu.popover) note({case: 'the «⋯» is the standard menu', got: menu});
-  if (menu.labels[0] !== 'Вид' || menu.value !== 'Обычный') note({case: 'the views are a submenu that names the current one', got: menu});
+  // The view is chosen in the profile picker only (C163, C311 (5), RC-6): the
+  // «⋯» names the current view in one entry, without a submenu, and the entry
+  // opens the arranging mode with the picker open.
+  if (menu.labels[0] !== 'Вид: Обычный' || menu.value !== null) note({case: 'the «⋯» names the current view and has no views submenu', got: menu});
   if (!menu.labels.includes('Настроить вид')) note({case: 'what belongs to the view is still in the menu', got: menu.labels});
 
-  await press('sf-menu-context[data-sf-property-view-menu] [aria-haspopup="menu"]');
-  await page.waitForTimeout(300);
-  const views = await page.evaluate(() => [...document.querySelectorAll('sf-menu-context:not([data-sf-property-view-menu]) .sf-context-menu-item')]
-    .map((row) => ({
-      label: row.querySelector('.sf-context-menu-item-label')?.textContent.trim(),
-      caption: row.querySelector('.sf-context-menu-item-caption')?.textContent.trim(),
-      checked: row.getAttribute('aria-checked'),
-      role: row.getAttribute('role'),
-    })));
-  const expected = 'Обычный|Для всех|true|menuitemradio,Мой|Персональный|false|menuitemradio';
-  const seen = views.map((row) => `${row.label}|${row.caption}|${row.checked}|${row.role}`).join(',');
-  if (seen !== expected) note({case: 'each view is a radio row that says whose it is', got: views});
-  await press('sf-menu-context:not([data-sf-property-view-menu]) .sf-context-menu-item');
-  await page.waitForTimeout(400);
+  await page.evaluate(() => {
+    const row = [...document.querySelectorAll('sf-menu-context[data-sf-property-view-menu] .sf-context-menu-item')]
+      .find((item) => item.textContent.includes('Вид: Обычный'));
+    row?.click();
+  });
+  await page.waitForTimeout(700);
+  const views = await page.evaluate(() => ({
+    configuring: document.getElementById('view').configuring,
+    rows: [...document.querySelectorAll('sf-profile-picker[data-action="view-profile"] .sf-profile-picker-row[data-id]')]
+      .map((row) => `${row.querySelector('.sf-profile-picker-label')?.textContent.trim()}:${row.getAttribute('aria-checked')}`),
+  }));
+  if (!views.configuring || views.rows.join() !== 'Обычный:true,Мой:false') note({case: 'the «⋯» entry opens the mode with the picker open', got: views});
+  await page.evaluate(() => [...document.querySelectorAll('sf-profile-picker[data-action="view-profile"] .sf-profile-picker-row[data-id="mine"]')].pop()?.click());
+  await page.waitForTimeout(500);
   const chosen = await page.evaluate(() => ({
     raised: window.raised.filter((one) => one.intent === 'view.profile'),
     current: document.getElementById('view').viewProfile,
-    open: document.querySelector('sf-menu-context[data-sf-property-view-menu]')?.isOpen,
   }));
-  if (chosen.raised.length !== 1 || chosen.raised[0].profile !== 'mine' || chosen.current !== 'mine' || chosen.open) {
-    note({case: 'choosing a view raises view.profile and closes the menu', got: chosen});
+  if (chosen.raised.length !== 1 || chosen.raised[0].profile !== 'mine' || chosen.current !== 'mine') {
+    note({case: 'choosing a view in the picker raises view.profile', got: chosen});
   }
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(200);
 
   // While arranging, the chooser in the bar opens the same rows.
   await page.evaluate(() => document.getElementById('view').startConfiguringView());
@@ -234,7 +238,7 @@ try {
     document.activeElement?.blur?.();
     view.startConfiguringView?.();
     await wait(500);
-    const entered = Boolean(document.activeElement?.closest?.('.sf-property-view-configure-bar [data-action="view-profile"]'));
+    const entered = Boolean(document.activeElement?.closest?.('.sf-property-view-configure-top [data-action="view-profile"]'));
     const done = root().querySelector('[data-action="done-configuring"] button, [data-action="done-configuring"]');
     done?.focus?.();
     done?.click?.();

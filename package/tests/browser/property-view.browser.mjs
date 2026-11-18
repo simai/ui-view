@@ -553,7 +553,9 @@ try {
     // the same one: a field the shared layer hid cannot be taken out of the view
     // from a personal layer, because showing it again would be beyond that
     // layer's reach.
-    const hideC = configView.querySelector('[data-field="c"] [data-action="remove-field"]');
+    // One eye (C311 (5), RC-7): on a field shown it hides, on one hidden it
+    // shows -- data-action show-field.
+    const hideC = configView.querySelector('[data-field="c"] :is([data-action="remove-field"], [data-action="show-field"])');
     const configuringShape = {
       // The lists must be sf-sortable and not a div dressed as one: an undefined
       // element is inert to a pointer and looks exactly like a feature that
@@ -594,6 +596,8 @@ try {
       await new Promise((done) => setTimeout(done, 200));
       return found;
     };
+    // The template is chosen once in the field (C302 (2), C311 (6), RC-9): the
+    // card's settings offer no variant, even for a field with variantOptions.
     configuringShape.variantOffered = await openSettings('b');
     configuringShape.variantAbsentWithoutOptions = !(await openSettings('a'));
 
@@ -1739,10 +1743,10 @@ try {
         got: {fields: set.fieldLists, groups: set.groupList},
         expected: 'field:g1 and field:g2, and group:s1'});
     }
-    if (!set.variantOffered || !set.variantAbsentWithoutOptions) {
-      note({case: 'the variant chooser appears only for a field the host offers variants for',
+    if (set.variantOffered || !set.variantAbsentWithoutOptions) {
+      note({case: 'the card view offers no field template (C302 (2), C311 (6))',
         got: {offered: set.variantOffered, absentOtherwise: set.variantAbsentWithoutOptions},
-        expected: 'present on the field with variantOptions and absent on the field without -- a variant the host cannot render would be a broken view'});
+        expected: 'absent on every field -- the template is chosen once in the field, not per view'});
     }
     if (set.saveTarget?.kind !== 'personal' || set.saveTarget?.revision !== 'p1') {
       note({case: 'a save is against the layer being edited and its revision',

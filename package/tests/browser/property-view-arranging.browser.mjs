@@ -216,7 +216,10 @@ try {
         // the picker's own reset, not a button of the foot.
         layers: Boolean(content?.querySelector('.sf-property-view-configure-top [data-action="view-profile"]')) && !band?.querySelector('[data-action="layer"]'),
         reset: !band?.querySelector('[data-action="reset-view"]'),
-        done: band?.querySelector('sf-button')?.getAttribute('data-action') === 'done-configuring',
+        // sf-button hands its data-action to the button inside: the first
+        // button of the foot is «Готово».
+        done: Boolean(band?.querySelector('sf-button:first-of-type [data-action="done-configuring"], sf-button:first-of-type[data-action="done-configuring"]'))
+          && band?.querySelector('sf-button') === band?.querySelector('[data-action="done-configuring"]')?.closest('sf-button'),
         tinted: band ? getComputedStyle(band).backgroundColor : null,
       },
       field: {
