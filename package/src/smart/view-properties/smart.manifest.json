@@ -1386,6 +1386,38 @@
         "additionalProperties": true
       }
     },
+    "sf-view-properties-structure": {
+      "summary": "«Новое поле…» in the arranging mode (C311 (1)): adding a field is structure, not view, and opens the data owner's field editor. The card names the collection and where; the host opens its editor.",
+      "payload": {
+        "type": "object",
+        "required": [
+          "collection",
+          "section",
+          "group"
+        ],
+        "properties": {
+          "collection": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "section": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "group": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "additionalProperties": true
+      }
+    },
     "sf-property-view-delete-record": {
       "summary": "The person asked for the record to be deleted; the host decides whether to ask first and whether to delete at all.",
       "payload": {
@@ -1491,24 +1523,6 @@
         "type": "object"
       },
       "alias_of": "sf-view-properties-favourite"
-    },
-    "sf-view-properties-structure": {
-      "summary": "«Новое поле…» in the arranging mode (C311 (1)): opens the data owner's field editor; the card names the collection, the open tab and the area.",
-      "payload": {
-        "type": "object",
-        "required": [
-          "collection",
-          "section",
-          "group"
-        ],
-        "properties": {
-          "collection": {},
-          "section": {},
-          "group": {}
-        },
-        "additionalProperties": true
-      },
-      "canonical": true
     }
   },
   "state": {
