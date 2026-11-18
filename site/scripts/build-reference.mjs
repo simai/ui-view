@@ -39,6 +39,7 @@ const listMissing = args.has('--missing');
 const PAGES = {
   view: 'content/ru/components/views/view.md',
   'view-table': 'content/ru/components/views/view-table.md',
+  'view-cards': 'content/ru/components/views/view-cards.md',
   'view-properties': 'content/ru/components/views/view-properties.md',
   'view-flow': 'content/ru/components/views/view-flow.md',
 };
