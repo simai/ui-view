@@ -29,7 +29,7 @@
       "covers": "keyboard, events.select",
       "steps": [
         {
-          "script": "window.__s=[];document.querySelector('#c').addEventListener('sf-view-cards-select',(e)=>window.__s.push(e.detail.ids.length));const card=document.querySelector('#c .sf-view-cards__card');card.focus();card.dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowRight',bubbles:true}));document.activeElement.dispatchEvent(new KeyboardEvent('keydown',{key:' ',bubbles:true}));document.activeElement.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));",
+          "script": "(() => { window.__s=[];document.querySelector('#c').addEventListener('sf-view-cards-select',(e)=>window.__s.push(e.detail.ids.length));const card=document.querySelector('#c .sf-view-cards__card');card.focus();card.dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowRight',bubbles:true}));document.activeElement.dispatchEvent(new KeyboardEvent('keydown',{key:' ',bubbles:true}));document.activeElement.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true})); return true; })()",
           "wait": 300,
           "check": "document.activeElement?.dataset?.id === 'p2' && JSON.stringify(window.__s) === '[1,0]'"
         }
@@ -41,7 +41,7 @@
       "covers": "events.open",
       "steps": [
         {
-          "script": "window.__o=null;document.querySelector('#c').addEventListener('sf-view-cards-open',(e)=>window.__o=e.detail);const card=document.querySelector('#c [data-id=p3]');card.focus();card.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true}));",
+          "script": "(() => { window.__o=null;document.querySelector('#c').addEventListener('sf-view-cards-open',(e)=>window.__o=e.detail);const card=document.querySelector('#c [data-id=p3]');card.focus();card.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true})); return true; })()",
           "wait": 200,
           "check": "window.__o && window.__o.id === 'p3' && window.__o.trigger === 'keyboard'"
         }
@@ -53,7 +53,7 @@
       "covers": "events.more, actions.append-records",
       "steps": [
         {
-          "script": "window.__m=null;const c=document.querySelector('#c');c.addEventListener('sf-view-cards-more',(e)=>{window.__m=e.detail;c.appendRecords([{id:'p9',title:'Ещё'}],{total:40});});c.showMore();",
+          "script": "(() => { window.__m=null;const c=document.querySelector('#c');c.addEventListener('sf-view-cards-more',(e)=>{window.__m=e.detail;c.appendRecords([{id:'p9',title:'Ещё'}],{total:40});});c.showMore(); return true; })()",
           "wait": 300,
           "check": "window.__m && window.__m.page === 2 && document.querySelectorAll('#c .sf-view-cards__card').length === 5"
         }
