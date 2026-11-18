@@ -5,9 +5,9 @@ import test from 'node:test';
 import {fileURLToPath} from 'node:url';
 
 // Record card settings (owner decision C311 on the levels of C298;
-// sf-view-properties 1.19.0, sf-view 1.20.0; simai.property-view-port 1.20.0
+// sf-view-properties 1.19.0, sf-view 1.20.0; simai.property-view-port 1.22.0
 // -- called 1.19.0 on ui-source round/property-view-port-1.19 until group
-// build 12 took that number, round/view-r4). The browser probe is in
+// build 12 took that number, 1.20.0 in round/view-r4, 1.22.0 in group build 13). The browser probe is in
 // ui-control control/evidence/2026-11-18-record-card-settings/probe/.
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const read = (path) => readFileSync(resolve(root, path), 'utf8');
@@ -71,12 +71,12 @@ test('tabs: a list with handles and a «⋯» each; a new tab has «Поля»; 
   assert.match(card, /id: `to-tab:\$\{String\(section\.key\)\}`/u);
 });
 
-test('ports 1.19.0 (GB12) and 1.20.0 (C311) are accepted; the new intents only for a 1.20.0 host', () => {
-  assert.match(card, /const SUPPORTED_PORT_VERSIONS = \[[^\]]*"1\.18\.0", "1\.19\.0", "1\.20\.0"\];/u);
-  for (const version of ['1.19.0', '1.20.0']) {
+test('ports 1.19.0 (GB12), 1.20.0, 1.21.0 and 1.22.0 (GB13; C311) are accepted; the new intents only for a 1.22.0 host', () => {
+  assert.match(card, /const SUPPORTED_PORT_VERSIONS = \[[^\]]*"1\.18\.0", "1\.19\.0", "1\.20\.0", "1\.21\.0", "1\.22\.0"\];/u);
+  for (const version of ['1.19.0', '1.20.0', '1.21.0', '1.22.0']) {
     assert.ok(json('src/smart/view-properties/smart.manifest.json').composition.declarative.host_port.supported_versions.includes(version));
   }
-  assert.match(card, /return major > 1 \|\| \(major === 1 && minor >= 20\);/u);
+  assert.match(card, /return major > 1 \|\| \(major === 1 && minor >= 22\);/u);
   assert.match(card, /return this\.editableLayers\.includes\("shared"\) && this\.hostSpeaksCardSettings;/u);
   assert.ok(json('src/smart/view-properties/component.json')['x-history'].some((entry) => entry.version === '1.19.0'));
   // sf-view took 1.20.0 here; later rounds number above it (round/view-r4).

@@ -359,12 +359,13 @@ receives.
   `-current-background-color`, `-saved-background-color`;
   `--sf-property-view--sections-width` is a former name until 2027-01-01.
 
-## Record card settings (since 1.19.0, C311, port 1.20.0)
+## Record card settings (since 1.19.0, C311, port 1.22.0)
 
-The settings below are offered to a host of simai.property-view-port 1.20.0
-or later. The C311 edition was called 1.19.0 on its ui-source branch; group
-build 12 holds 1.19.0 (money C294), so a 1.19.0 host is read as that edition
-and is offered no card settings.
+The settings below are offered to a host of simai.property-view-port 1.22.0
+or later. The C311 edition was called 1.19.0 on its ui-source branch and
+1.20.0 in this round; group build 12 holds 1.19.0 (money C294) and group
+build 13 numbers it 1.22.0 after 1.20.0 (type templates) and 1.21.0 (form
+fields), so a host up to 1.21.0 is offered no card settings.
 
 The card is arranged in the card itself («⋯ → Настроить вид»; the list head's
 «Настройки полей записи» opens the first record straight in this mode). One

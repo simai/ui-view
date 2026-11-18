@@ -1,5 +1,5 @@
 // Record card settings (owner decision C311 on the levels of C298), answered
-// by a host that lives on this page: simai.property-view-port 1.20.0.
+// by a host that lives on this page: simai.property-view-port 1.22.0.
 //
 // The host keeps, per settings profile, a shared layer and this person's
 // personal layer, and resolves the card from the package arrangement below
@@ -224,7 +224,7 @@ const initializeSettingsCard = async () => {
   const card = document.querySelector('#deal-card');
   if (!card || card.dataset.exampleReady === 'true') return;
   card.dataset.exampleReady = 'true';
-  card.setHostPort({version: '1.20.0', capabilities: ['view-settings'], raise});
+  card.setHostPort({version: '1.22.0', capabilities: ['view-settings'], raise});
   // «Добавить поле» is the data owner's structure editor (C311 (1)).
   card.addEventListener('sf-view-properties-structure', (event) => log(`структура: открыть редактор полей ${event.detail?.collection ?? ''}`));
   const page = card.closest('.page-settings');

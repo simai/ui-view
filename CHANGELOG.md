@@ -50,6 +50,9 @@ window (C310); DEV's round 3 returns VR3-1..VR3-4.
   settings of C311 are port 1.20.0 (called 1.19.0 on ui-source
   `round/property-view-port-1.19`; group build 12 holds 1.19.0, money C294),
   so «Сохранить для всех» and the locks are offered to a 1.20.0 host only.
+  Group build 13 numbers that edition 1.22.0 (1.20.0 type templates and
+  1.21.0 form fields came first): the card accepts 1.0.0..1.22.0 and offers
+  the card settings to a 1.22.0 host only.
 - `sf-view-table` 1.25.1: the column head menu's separators draw as
   separators (VR3-2).
 - DEV's acceptance of the cards and the calendar: `sf-view-calendar` 1.1.0

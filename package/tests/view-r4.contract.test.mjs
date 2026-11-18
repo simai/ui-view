@@ -195,7 +195,7 @@ test('phone month (C307 (3), (4)): + on the chosen day heading, «Без дат�
   }
 });
 
-test('Larena C311 contract (c311-reply, port 1.20.0): refusal codes in words, conflict layers kept, lock answers required, a required view disables the chooser', () => {
+test('Larena C311 contract (c311-reply, port 1.22.0): refusal codes in words, conflict layers kept, lock answers required, a required view disables the chooser', () => {
   const card = read('src/smart/view-properties/index.js');
   const template = read('src/smart/view-properties/js/templates/default.js');
   for (const code of ['view_invalid', 'admin_record_view_changed', 'admin_record_layout_shared_denied', 'admin_record_view_own', 'admin_record_view_unknown', 'admin_record_view_required', 'admin_record_layout_lock_invalid', 'admin_record_layout_head_invalid', 'admin_record_layout_icon_invalid']) {
