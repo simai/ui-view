@@ -213,7 +213,7 @@ function renderColumn(context, day, from, to, now) {
             const start = Math.max(from, top);
             const end = Math.min(to, top + length);
             const tall = end - start >= 60;
-            return html`<button type="button" class="sf-view-calendar__block" data-ev=${event.id} tabindex="-1" style=${`${tone(event)}; inset-block-start: ${position(start)}; block-size: calc(${Math.max(context.options.slot, end - start) / 60} * var(--sf-view-calendar-hour)); inset-inline-start: calc(${(column / columns) * 100}% + var(--sf-px)); inline-size: calc(${100 / columns}% - 2 * var(--sf-px))`}
+            return html`<button type="button" class="sf-view-calendar__block" data-ev=${event.id} tabindex="-1" style=${`${tone(event)}; inset-block-start: ${position(start)}; block-size: calc(${Math.max(context.options.slot, end - start) / 60} * var(--sf-view-calendar-hour)); inset-inline-start: calc(${(column / columns) * 100}% + var(--sf-space-1\\/4)); inline-size: calc(${100 / columns}% - 2 * var(--sf-space-1\\/4))`}
                     ?data-pending=${state.pending} ?data-open=${state.open} ?data-ro=${state.readOnly}
                     aria-label=${component.eventLabel(event)} title=${component.eventTip(event)}>
                 <span class="sf-view-calendar__name">${event.title}</span>
