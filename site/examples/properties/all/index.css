@@ -2,3 +2,10 @@
 @media (min-width: 960px) {
   .property-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
 }
+/* reserve: written by scripts/record-example-heights.mjs */
+/* The height this example has drawn, held from its first frame: Docara sizes the frame by its body before the
+   SIMAI Framework parts inside have drawn, and the page below moved when they did. */
+body:has(:is(sf-view, sf-view-table, sf-table, sf-view-properties, sf-view-board, sf-view-flow):not(:defined)) { visibility: hidden; }
+body { min-block-size: 4346px; }
+@media (max-width: 640px) { body { min-block-size: 6531px; } }
+/* reserve: end */

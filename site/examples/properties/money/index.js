@@ -554,7 +554,23 @@ const start = async () => {
   const root = document.querySelector('[data-property]');
   if (!root || root.dataset.exampleReady === 'true') return;
   root.dataset.exampleReady = 'true';
-  for (let wait = 0; !window.SF?.whenFieldRenderers && wait < 200; wait += 1) await new Promise((done) => setTimeout(done, 25));
+  // The Loader's names exist once it has started: wait for its own event
+  // (sf-loader-init), never a timer (VR2-6: a 5 s poll then called it anyway
+  // and failed in 3 loads of 60 on a busy machine). Until it comes the
+  // example says it is loading; it draws whenever the Loader arrives.
+  if (!window.SF?.whenFieldRenderers) {
+    let waiting = null;
+    const note = setTimeout(() => {
+      waiting = document.createElement('p');
+      waiting.setAttribute('role', 'status');
+      waiting.style.visibility = 'visible';
+      waiting.textContent = 'Пример ещё загружается…';
+      root.prepend(waiting);
+    }, 8000);
+    await new Promise((done) => window.addEventListener('sf-loader-init', done, {once: true}));
+    clearTimeout(note);
+    waiting?.remove();
+  }
   state.set = await window.SF.whenFieldRenderers();
   await window.SF.smartBaseReady;
   state.template = D.templates[0];

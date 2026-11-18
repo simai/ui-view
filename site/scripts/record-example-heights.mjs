@@ -25,7 +25,7 @@
 //   - --apply writes the reserve of every other example into its own
 //     index.css, between the markers below (the file is made if missing).
 //
-// Usage: node site/scripts/record-example-heights.mjs --base http://127.0.0.1:PORT [--apply] [--pages /ru/a/,/ru/b/]
+// Usage: node site/scripts/record-example-heights.mjs --base http://127.0.0.1:PORT [--apply] [--pages /ru/a/,/ru/b/] [--built <folder served>]
 //        node site/scripts/record-example-heights.mjs --apply   (writes the CSS from the JSON only)
 // Needs playwright-core (or playwright) resolvable from the working folder or NODE_PATH, and Chrome.
 
@@ -75,7 +75,7 @@ async function record() {
   const require = createRequire(join(process.cwd(), 'noop.js'));
   let chromium;
   try { ({chromium} = require('playwright-core')); } catch { ({chromium} = require('playwright')); }
-  const built = join(site, 'build_production');
+  const built = resolve(option('--built') ?? join(site, 'build_production'));
   const pages = option('--pages')?.split(',') ?? (() => {
     const found = [];
     const walk = (dir) => {

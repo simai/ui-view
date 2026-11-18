@@ -1,3 +1,11 @@
 .flow-chat { display: flex; flex-direction: column; block-size: 30rem; overflow: hidden; }
 .flow-chat > sf-list-feed { flex: 1; min-block-size: 0; display: flex; flex-direction: column; }
 .flow-chat .sf-view-flow { max-inline-size: 34rem; }
+
+/* reserve: written by scripts/record-example-heights.mjs */
+/* The height this example has drawn, held from its first frame: Docara sizes the frame by its body before the
+   SIMAI Framework parts inside have drawn, and the page below moved when they did. */
+body:has(:is(sf-view, sf-view-table, sf-table, sf-view-properties, sf-view-board, sf-view-flow):not(:defined)) { visibility: hidden; }
+body { min-block-size: 526px; }
+@media (max-width: 640px) { body { min-block-size: 518px; } }
+/* reserve: end */
