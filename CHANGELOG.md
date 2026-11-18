@@ -3,6 +3,26 @@
 The set `view`, by its npm version `@simai-studio/view`; component versions
 in brackets. The site page «Изменения» says the same in Russian.
 
+## 1.8.3 — 2026-11-18
+
+- Over the same SIMAI Framework pair `ui-141822273efe`.
+- `sf-view-properties` 1.20.2: the panel accepts a host that declares
+  `simai.property-view-port` 1.20.0, 1.21.0 or 1.22.0 (SIMAI Framework group
+  build 13). The three versions only add: field settings `template`,
+  `templateParams`, `decimals`, `holder` and new type names (1.20.0), the
+  record history and neighbours behind their own capabilities and the
+  refusal `revision_moved` (1.21.0), publishing and locking a view and the
+  view's head, locks and required profiles (1.22.0); 1.19.0's conformance
+  cases are unchanged. Nothing the panel reads or writes changes: it asks for
+  none of the new things, a field sent with `template` alone is drawn with
+  its type's default, a type name it does not know is not offered for
+  editing and nothing is written for it, and `revision_moved` is shown as a
+  refusal with nothing written. A 1.22.0 host reads this panel's shared view
+  saves and a layer's `variant` until 2027-01-01. Without this, a page on the
+  SIMAI Framework pair that carries 1.22.0 would refuse the panel's host.
+  (1.20.0 is a version on an unreleased branch and 1.20.1 ui-pro's own copy;
+  neither is in this set.)
+
 ## 1.8.2 — 2026-11-18
 
 - Over the same SIMAI Framework pair `ui-141822273efe`.
