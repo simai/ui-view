@@ -641,7 +641,9 @@ class SfViewCalendar extends CalendarElement {
 
     // The items inside a day: its events (not the continuation of a bar), «+N» and «+».
     _inner(cell) {
-        return [...cell.querySelectorAll("[data-ev]:not([aria-hidden=true]), sf-button[data-more], sf-button-icon[data-add]")]
+        // sf-button and sf-button-icon carry their data- attributes on their inner button.
+        return ["[data-ev]:not([aria-hidden=true])", "[data-more]", "[data-add]"]
+            .flatMap((selector) => [...cell.querySelectorAll(selector)])
             .filter((node) => node.closest("[data-day][role=gridcell]") === cell);
     }
 
@@ -655,7 +657,7 @@ class SfViewCalendar extends CalendarElement {
             return;
         }
         if (!event.target.closest?.(".sf-view-calendar__main")) return;
-        const item = event.target.closest?.("[data-ev], sf-button[data-more], sf-button-icon[data-add], .sf-view-calendar__row");
+        const item = event.target.closest?.("[data-ev], [data-more], [data-add], .sf-view-calendar__row");
         const cell = event.target.closest?.("[data-day][role=gridcell]");
         const rtl = globalThis.getComputedStyle?.(this)?.direction === "rtl";
         const horizontal = (key) => (key === "ArrowRight" ? (rtl ? -1 : 1) : key === "ArrowLeft" ? (rtl ? 1 : -1) : 0);
@@ -683,8 +685,8 @@ class SfViewCalendar extends CalendarElement {
             }
             if (event.key === "Enter") {
                 event.preventDefault();
-                if (item.matches("sf-button[data-more]")) this.openDayList(item.dataset.more, item);
-                else if (item.matches("sf-button-icon[data-add]")) this.createOn(item.dataset.add);
+                if (item.matches("[data-more]")) this.openDayList(item.dataset.more, item);
+                else if (item.matches("[data-add]")) this.createOn(item.dataset.add, item.dataset.time ? Number(item.dataset.time) : null);
                 else if (id) this.openRecord(id);
                 return;
             }
@@ -710,10 +712,13 @@ class SfViewCalendar extends CalendarElement {
                 event.preventDefault();
                 const rows = this._cells();
                 this._go(event.key === "Home" ? rows[0] : rows[rows.length - 1]);
+                return;
             }
-            return;
-        }
-        if (!cell || event.target !== cell) return;
+            // From an event of a day, the day keys still go from its day:
+            // ←→ the next day, Home/End the week, PageUp/PageDown the period.
+            const dayKey = horizontal(event.key) || ["Home", "End", "PageDown", "PageUp"].includes(event.key);
+            if (!cell || !dayKey || event.ctrlKey || event.altKey || event.metaKey) return;
+        } else if (!cell || event.target !== cell) return;
         const day = cell.dataset.day;
         const month = this.mode === "month";
         const shift = (dow) => (weekday(day) - this.weekStart + 7) % 7 + dow;
@@ -766,11 +771,11 @@ class SfViewCalendar extends CalendarElement {
             event.stopPropagation();
             return;
         }
-        const target = event.target.closest?.("[data-page], [data-today], [data-undtoggle], [data-undclose], [data-add], [data-more], [data-menu], [data-box], [data-ev], [data-pickclose], [data-bulk], [data-clear], [data-day]");
+        const target = event.target.closest?.("[data-page], [data-gotoday], [data-undtoggle], [data-undclose], [data-add], [data-more], [data-menu], [data-box], [data-ev], [data-pickclose], [data-bulk], [data-clear], [data-day]");
         if (!target || !this.contains(target)) return;
         const data = target.dataset;
         if (data.page) this.step(Number(data.page));
-        else if (target.hasAttribute("data-today")) {
+        else if (target.hasAttribute("data-gotoday")) {
             this.goTo(this.today);
             this._say(this.word("today-said-text", {day: this.dayName(this.today)}));
         } else if (target.hasAttribute("data-undtoggle")) this.toggleUndated();

@@ -580,7 +580,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-calendar/index.js",
-        "sha256": "36cfdc48ae68dd91edef797549c54ddcfd641786cd62688dd4f7e91169cf45f0"
+        "sha256": "ca4d59cda8f69e1889728de57b0610eacb198ddc95fe788724145eb980af5b79"
       },
       {
         "path": "src/smart/view-calendar/js/calendar.js",
@@ -588,7 +588,7 @@
       },
       {
         "path": "src/smart/view-calendar/js/templates/default.js",
-        "sha256": "951f06b32ab247da65c160b9e1f7fbd971a09712fee170576d209a118ebedb68"
+        "sha256": "3ed11ac5f3d337d31b6000a3a59ad77e3e8d3a2e966522b010a3364ea1bdab3e"
       },
       {
         "path": "src/smart/view-calendar/js/templates/default.css",

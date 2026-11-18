@@ -19,7 +19,7 @@
         {
           "script": "true",
           "wait": 500,
-          "check": "document.querySelectorAll('#c .sf-view-calendar__day[role=gridcell]').length === 42 && document.querySelector('#c .sf-view-calendar__day').dataset.day === '2026-10-26' && document.querySelector('#c [data-day=\"2026-11-18\"]').hasAttribute('data-today') && document.querySelectorAll('#c [data-day=\"2026-11-18\"] .sf-view-calendar__ev').length === 2 && document.querySelector('#c [data-day=\"2026-11-18\"] sf-button[data-more]') !== null"
+          "check": "document.querySelectorAll('#c .sf-view-calendar__day[role=gridcell]').length === 42 && document.querySelector('#c .sf-view-calendar__day').dataset.day === '2026-10-26' && document.querySelector('#c [data-day=\"2026-11-18\"]').hasAttribute('data-today') && document.querySelectorAll('#c [data-day=\"2026-11-18\"] .sf-view-calendar__ev').length === 2 && document.querySelector('#c [data-day=\"2026-11-18\"] [data-more]') !== null"
         }
       ]
     },

@@ -331,7 +331,7 @@ function renderBar_(context) {
         <sf-button-icon size=${context.size} appearance="ghost" scheme="on-surface-variant" icon="chevron_right" data-page="1"
                         aria-label=${component.word("next-text")} tooltip=${component.word("next-text")}></sf-button-icon>
         <span class="sf-view-calendar__title" aria-live="polite">${component.periodTitle}</span>
-        <sf-button size=${context.size} appearance="outline" scheme="on-surface" text=${component.word("today-text")} data-today></sf-button>
+        <sf-button size=${context.size} appearance="outline" scheme="on-surface" text=${component.word("today-text")} data-gotoday></sf-button>
         ${modes.length > 1 ? html`<sf-segmented class="sf-view-calendar__modes" size=${context.size} aria-label=${component.word("modes-label")}
                 items=${JSON.stringify(modes)} value=${context.mode}></sf-segmented>` : nothing}
         ${undated ? html`<sf-button size=${context.size} appearance="ghost" scheme="on-surface" icon="event_busy" data-undtoggle
