@@ -47,10 +47,10 @@ test('the board asks counts with the cards and the sums after it is drawn', () =
 });
 
 test('one sf-view number above the round branches', () => {
+  // Round 3 (sf-view 1.18.0) builds on it: the 1.17.0 entry and its migration stay.
   const component = json('src/smart/view/component.json');
-  assert.equal(component.version, '1.17.0');
-  assert.equal(component['x-history'][0].version, '1.17.0');
-  const migration = component['x-registry'].compatibility.migrations.at(-1);
+  assert.ok(component['x-history'].some((entry) => entry.version === '1.17.0'));
+  const migration = component['x-registry'].compatibility.migrations.find((entry) => entry.to === '1.17.0');
   assert.deepEqual([migration.from, migration.to], ['1.14.0', '1.17.0']);
   for (const branch of ['table', 'head', 'board', 'card']) assert.ok(migration.changes.some((change) => change.includes(`round/view-r2-${branch}`)), branch);
 });
