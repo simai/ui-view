@@ -206,7 +206,10 @@ class SfViewCalendar extends CalendarElement {
 
     /** The week's first day: the request's (week-start), else the language's (ru Monday). */
     get weekStart() {
-        const given = this.getProp("weekStart");
+        // An absent week-start reads as the number setting's 0 (Sunday): only a
+        // written one is the request's.
+        const written = this.getAttribute?.("week-start");
+        const given = written === null || written === undefined || written === "" ? null : this.getProp("weekStart");
         return Number.isInteger(given) && given >= 0 && given <= 7 ? given % 7 : weekStartFor(this.locale);
     }
 
@@ -420,7 +423,8 @@ class SfViewCalendar extends CalendarElement {
             selected: this._selected,
             current: this._current,
             undated: this.undated,
-            undatedTotal: Number.isSafeInteger(this.getProp("undatedTotal")) ? this.getProp("undatedTotal") : this.undated.length,
+            // An absent undated-total reads as 0: only a written one is the host's count.
+            undatedTotal: this.hasAttribute?.("undated-total") && Number.isSafeInteger(this.getProp("undatedTotal")) ? this.getProp("undatedTotal") : this.undated.length,
             undatedOpen: this.undatedOpen && !this._phone,
             dragging: Boolean(this._drag?.active),
             truncated: this.getProp("truncated") === true || this.records.length > RECORDS_MAX,
@@ -1073,7 +1077,7 @@ class SfViewCalendar extends CalendarElement {
             this.undated.unshift(record);
             this._undatedShift = (this._undatedShift ?? 0) + 1;
         }
-        const total = this.getProp("undatedTotal");
+        const total = this.hasAttribute?.("undated-total") ? this.getProp("undatedTotal") : null;
         if (Number.isSafeInteger(total) && this._undatedShift) {
             this.setAttribute("undated-total", String(Math.max(0, total + this._undatedShift)));
             this._undatedShift = 0;

@@ -580,7 +580,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-calendar/index.js",
-        "sha256": "ca4d59cda8f69e1889728de57b0610eacb198ddc95fe788724145eb980af5b79"
+        "sha256": "0e86dde86100a7f07c3251e366f87baed47222759cb9fe1b6483aea82815a194"
       },
       {
         "path": "src/smart/view-calendar/js/calendar.js",
