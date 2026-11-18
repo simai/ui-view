@@ -660,15 +660,29 @@ class SfDataView extends DataViewElement {
         return {outcome: "applied", layout: this.layoutKind};
     }
 
-    // The content element the layout draws with: a view-made table or board of
-    // the other layout is replaced by the layout's own (the page's own content
-    // element is the page's and stays). What is known is drawn into it at once.
+    // The content element the layout draws with. A view-made table or board
+    // of the other layout is replaced by the layout's own; the page's own
+    // element of the other layout (a table it slotted with its filter fields
+    // and create items) is parked -- kept, out of every slot, so it draws
+    // nothing -- and comes back when its layout does. What is known is drawn
+    // into the new element at once.
     _swapContent() {
         const want = this.layoutKind === "board" ? "sf-view-board" : "sf-view-table";
-        const content = [...(this.children ?? [])].filter((child) => child.getAttribute?.("slot") === "content");
-        const made = content.filter((child) => child.hasAttribute?.("data-sf-view-default") || child.hasAttribute?.("data-sf-view-made"));
-        if (content.length > made.length || made.some((child) => isTag(child, want))) return;
-        made.forEach((child) => child.remove());
+        const children = [...(this.children ?? [])];
+        for (const child of children) {
+            if (child.getAttribute?.("slot") !== "content" || isTag(child, want)) continue;
+            if (child.hasAttribute?.("data-sf-view-default") || child.hasAttribute?.("data-sf-view-made")) child.remove();
+            else {
+                child.setAttribute("slot", "sf-view-parked");
+                child.toggleAttribute("data-sf-view-parked", true);
+            }
+        }
+        for (const child of children) {
+            if (child.hasAttribute?.("data-sf-view-parked") && isTag(child, want)) {
+                child.removeAttribute("data-sf-view-parked");
+                child.setAttribute("slot", "content");
+            }
+        }
         this._lightDefaults();
         if (want === "sf-view-board") {
             this._askForParts(["sf-view-board"]);
@@ -676,7 +690,7 @@ class SfDataView extends DataViewElement {
             this._boardFresh = Array.isArray(this.boardLanes) && this.boardLanes.length > 0;
         } else {
             this._askForParts(["sf-view-table", "sf-pagination"]);
-            this.records = this.boardLanes?.length ? this.boardLanes.flatMap((lane) => lane.records ?? []) : (this.records ?? []);
+            if (this.boardLanes?.length) this.records = this.boardLanes.flatMap((lane) => lane.records ?? []);
         }
     }
 

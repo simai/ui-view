@@ -160,12 +160,19 @@ export class ListHead {
     // host gave its table (sf-view-table filterFields), else nothing.
     get fields() {
         const described = Array.isArray(this.description?.fields) ? this.description.fields : null;
-        const list = described ?? (this.view.table?.filterFields ?? []);
+        const list = described ?? (this.table?.filterFields ?? []);
         return list.filter((field) => field && field.key && field.filter !== false && field.filter?.enabled !== false)
             .map((field) => ({...field, label: field.label ?? field.name ?? field.key}));
     }
 
     field(key) { return this.fields.find((field) => field.key === key) ?? null; }
+
+    // The list's table: the one the view draws, or the page's own while a
+    // board is drawn instead (sf-view parks it with its filter fields and
+    // create items).
+    get table() {
+        return this.view.table ?? this.view.querySelector?.(":scope > sf-view-table[data-sf-view-parked]") ?? null;
+    }
 
     // The display kinds the host enables (describe().layouts), table first.
     get kinds() {
@@ -230,7 +237,7 @@ export class ListHead {
     }
 
     get createItems() {
-        const items = this.view.table?.createItems;
+        const items = this.table?.createItems;
         return Array.isArray(items) ? items : [];
     }
 
@@ -464,7 +471,7 @@ export class ListHead {
 
     // The operator words are the table's (its lang: Позже, Не раньше...).
     _operator(operator, field) {
-        return this.view.table?.getFilterOperatorLabel?.(operator, field) ?? String(operator);
+        return this.table?.getFilterOperatorLabel?.(operator, field) ?? String(operator);
     }
 
     _options(field) {
@@ -941,7 +948,11 @@ export class ListHead {
         }
         const key = id.slice(5);
         const view = this.savedViews.find((item) => String(item.key) === key);
-        this.view.query = {...this.view.query, view: {id: key, type: view?.settings?.layout && this.kinds.includes(view.settings.layout) ? view.settings.layout : this.kind}};
+        const type = view?.settings?.layout && this.kinds.includes(view.settings.layout) && this.drawable(view.settings.layout) ? view.settings.layout : this.kind;
+        // A view saved as a board opens as one (and a table view as a table):
+        // the layout's own query first, then the view.
+        if (type !== this.view.layoutKind && this.drawable(type)) this.view.switchLayout?.(type);
+        this.view.query = {...this.view.query, view: {id: key, type}};
         this.view.openView?.(key);
     }
 
