@@ -58,6 +58,9 @@ const layoutName = (value) => {
 const layoutsOfBoard = (value) => LAYOUTS.get(layoutName(value)) === "sf-view-board";
 // The display kind of each layout element; every other element (the table) is
 // named by the layout attribute itself (auto, table, list).
+// The layouts that ask their own window instead of the list's page (cards:
+// page and per_page 24; calendar: days).
+const OWN_PAGING = new Set(["sf-view-cards", "sf-view-calendar"]);
 const LAYOUT_KINDS = Object.freeze({"sf-view-board": "board", "sf-view-cards": "cards", "sf-view-calendar": "calendar"});
 // A layout of the table (auto, table, list): the page's own value kept over a switch.
 const tableLayout = (value) => value !== null && value !== undefined && (LAYOUTS.get(layoutName(value)) ?? "sf-view-table") === "sf-view-table";
@@ -722,12 +725,16 @@ class SfDataView extends DataViewElement {
         if (fromTag !== toTag) {
             this._carrySelection = marked.map(String);
             this._carrySequence = this.sequence;
-            // The cards ask their own page size (24, C306); the list's comes
-            // back when another layout is chosen.
-            if (toTag === "sf-view-cards") this._perPageOfList ??= {value: this.query?.per_page};
-            else if (fromTag === "sf-view-cards" && this._perPageOfList) {
+            // The cards ask their own page size (24, C306) and the calendar
+            // asks days, not pages: the list's page size is kept while either
+            // is on screen and comes back with the table or the board (the
+            // calendar's query has none, and the page row's own default was
+            // asked after it).
+            if (OWN_PAGING.has(toTag)) this._perPageOfList ??= {value: this.query?.per_page};
+            else if (this._perPageOfList) {
                 if (this._perPageOfList.value === undefined) delete this.query.per_page;
                 else this.query.per_page = this._perPageOfList.value;
+                this.query.page = 1;
                 this._perPageOfList = null;
             }
             if (this.query && typeof this.query === "object") delete this.query.window;

@@ -30,7 +30,10 @@ test('the switch works over every layout and carries the marks', () => {
   const body = view.slice(view.indexOf('    switchLayout(kind, {refresh = true} = {}) {'), view.indexOf('    // The content element the layout draws with.'));
   assert.match(body, /const fromTag = this\._layoutTag\(\);/u);
   assert.match(body, /const marked = this\._layoutSelection\(\);/u);
-  assert.match(body, /if \(toTag === "sf-view-cards"\) this\._perPageOfList \?\?= \{value: this\.query\?\.per_page\};/u);
+  // The list's page size is kept over the cards and the calendar and given back with the table or the board.
+  assert.match(view, /const OWN_PAGING = new Set\(\["sf-view-cards", "sf-view-calendar"\]\);/u);
+  assert.match(body, /if \(OWN_PAGING\.has\(toTag\)\) this\._perPageOfList \?\?= \{value: this\.query\?\.per_page\};/u);
+  assert.match(body, /else this\.query\.per_page = this\._perPageOfList\.value;\n\s+this\.query\.page = 1;/u);
   assert.match(body, /delete this\.query\.window;/u);
   for (const tag of ['sf-view-board', 'sf-view-cards', 'sf-view-calendar']) assert.ok(body.includes(`tag === "${tag}"`), tag);
   const swap = view.slice(view.indexOf('    _swapContent() {'), view.indexOf('    get board() {'));

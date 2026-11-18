@@ -35,7 +35,8 @@ window (C310); DEV's round 3 returns VR3-1..VR3-4.
   (`SF.fieldRenderers.filterWindow.open/summary`) when the running Framework
   has it, behind a feature check; otherwise the head's own popover stays. The
   button is coloured while the filter is active, shows a count above 0 and
-  says the condition in its tooltip.
+  says the condition in its tooltip. The list's page size is kept over the cards and the
+  calendar and given back with the table or the board.
 - `sf-view-calendar` 1.1.0: view-config/1 `layouts.calendar.span_days`
   (31 by default, up to 366) and `rules[]` -- `past`, `weekdays {days}` (ISO
   1..7 allowed), `locked {field, in}`, `ability {ability}` and per-record
