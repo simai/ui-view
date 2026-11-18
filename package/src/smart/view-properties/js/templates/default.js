@@ -1747,8 +1747,8 @@ function renderBody(context, railOutside = false, withActions = true) {
             ${!context.panel && !context.wide && !context.configuring && sections.length > 1 && context.phoneSection !== null
                     ? renderPhoneSectionHead(context)
                     : nothing}
-            ${sectionsStacked(context) ? renderConfigureTop(context) : nothing}
             ${onPhoneSectionList(context, sections) ? renderViewChooser(context) : nothing}
+            ${sectionsStacked(context) ? renderConfigureTop(context) : nothing}
             ${(sidebarDrawn(context) && !railOutside) || sectionsStacked(context) ? renderSectionList(context, sections) : nothing}
             ${context.isEmptyRecord && !context.configuring
                     ? html`<p class="sf-property-view-empty-record color-on-surface-variant"
