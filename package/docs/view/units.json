@@ -5,6 +5,15 @@
   "entries": [
     {
       "unit": "smart.view",
+      "version": "1.21.0",
+      "recorded_on": "2026-11-18",
+      "change": "minor",
+      "consumer": "New: layout=\"cards\" draws sf-view-cards over the window {page, per_page: 24} (records, total, has_next); a press on a card opens the record card beside the list. Nothing changes for a table or a board. (round/view-cards said 1.19.0; renumbered above round/view-returns' 1.20.0 when the branches met in round/view-r4.)",
+      "summary": "The cards layout (owner decisions C297, C306, CD-1..CD-8, round/view-cards, which said 1.19.0 over round/view-r2): the layout registry holds cards -> sf-view-cards, drawn in the content slot with no page row (its «Показать ещё» is under the grid); the query carries window {page, per_page: 24}; «Показать ещё» (sf-view-cards-more) continues the list as Show more does; a card's open goes the way a row's does (the record card beside the list, C305, its card marked current and focused again on close); the selection and the host's bulk actions go to the cards' bar; the data state and why a list is empty go to the cards (sf-empty-state); the first paint holds a grid of cards. The layout setting lists cards. The wiring is view/js/cards.js.",
+      "evidence": "control/evidence/2026-11-18-view-cards/README.md"
+    },
+    {
+      "unit": "smart.view",
       "version": "1.20.0",
       "recorded_on": "2026-11-18",
       "change": "minor",

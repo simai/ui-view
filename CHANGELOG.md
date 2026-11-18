@@ -100,7 +100,7 @@ DEV's returns of round 2 (VR2-1..VR2-9) and C306.
   more look; one Tab stop with the arrows by rows, Enter opens, Space marks,
   Shift+F10 the card menu, Escape clears; the marks go to `sf-bulk-actions`
   where the pair has it; empty lists are `sf-empty-state`.
-- `sf-view` 1.19.0: `layout="cards"` draws `sf-view-cards` (the layout
+- `sf-view` 1.21.0 (said 1.19.0 on its branch): `layout="cards"` draws `sf-view-cards` (the layout
   registry), only where the author turned it on (C297); the query carries
   `window {page, per_page: 24}`, «Показать ещё» continues the list; a press
   on a card opens the record card beside the list (C305) and the grid

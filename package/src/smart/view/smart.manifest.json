@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view",
-  "version": "1.20.0",
+  "version": "1.21.0",
   "title": "Data view",
   "summary": "Host-driven data view that composes toolbar, content and pagination around a separate data port.",
   "kind": "composite",
@@ -264,12 +264,13 @@
       "layout": {
         "type": "string",
         "default": "auto",
-        "description": "How the records are drawn (owner decisions C31, C298): auto, a table where there is room and the list below list-below; table; list (these three pass to the table); board, the lanes of sf-view-board (kanban reads as board). A table the host wrote a layout on keeps it. An embedded view (no toolbar) without this attribute is a table, as before.",
+        "description": "How the records are drawn (owner decisions C31, C298): auto, a table where there is room and the list below list-below; table; list (these three pass to the table); board, the lanes of sf-view-board (kanban reads as board). cards, a grid of sf-view-cards (C297). A table the host wrote a layout on keeps it. An embedded view (no toolbar) without this attribute is a table, as before.",
         "enum": [
           "auto",
           "table",
           "list",
-          "board"
+          "board",
+          "cards"
         ]
       },
       "layout-switch": {
@@ -1848,6 +1849,13 @@
         "changes": [
           "Record card settings (C311 (1), (3); RC-4): «⋯ → Настройки полей записи» opens the first record of the list in the record card straight in the arranging mode (openRecordSettings()): one card arrangement per entity for every layout. The head's own record fields drawer (head-record), its panel and entity.fields.save are gone; the words head-add-field, head-fields-default, head-hidden, head-hide-field, head-show-field, head-no-record-fields and head-record-note with them."
         ]
+      },
+      {
+        "from": "1.20.0",
+        "to": "1.21.0",
+        "changes": [
+          "The cards layout (owner decisions C297, C306, CD-1..CD-8, round/view-cards, which said 1.19.0 over round/view-r2): the layout registry holds cards -> sf-view-cards, drawn in the content slot with no page row (its «Показать ещё» is under the grid); the query carries window {page, per_page: 24}; «Показать ещё» (sf-view-cards-more) continues the list as Show more does; a card's open goes the way a row's does (the record card beside the list, C305, its card marked current and focused again on close); the selection and the host's bulk actions go to the cards' bar; the data state and why a list is empty go to the cards (sf-empty-state); the first paint holds a grid of cards. The layout setting lists cards. The wiring is view/js/cards.js."
+        ]
       }
     ]
   },
@@ -1857,7 +1865,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view/index.js",
-        "sha256": "0c5b8bb93f91d9aaf46bd376575ff00a934536f49b4b69ff8379f04c97c74df7"
+        "sha256": "6e790d7fc8995114eae7dd95c82f5c8dcf723be66bf6316d0b9c15eaf8d6faab"
       },
       {
         "path": "src/core/contracts/ports/simai.dataview-port/1.5.0/port.json",
