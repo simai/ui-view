@@ -4356,15 +4356,15 @@
             "schema_version": 2,
             "package": "view",
             "requires": "ui-1ed6b6c9a040",
-            "mount": "_docara/framework-packages/view/39e1a1f714f698a7b6d0f305f4d2c5b0b3c72b9b",
+            "mount": "_docara/framework-packages/view/8f47635b85039dda20d24707cefed029908a816e",
             "receipt": {
                 "schema": "simai.framework.product-package-receipt",
                 "schema_version": 1,
                 "package_source": {
                     "repository": "simai/ui-view",
-                    "revision": "39e1a1f714f698a7b6d0f305f4d2c5b0b3c72b9b",
+                    "revision": "8f47635b85039dda20d24707cefed029908a816e",
                     "path": "package",
-                    "tree": "59250f557e5d061b1ec3adef00887fd8df22d8d7"
+                    "tree": "77fa796fccb59e0efb1bfb2f3aaaba9db6577b0c"
                 },
                 "framework_source": {
                     "repository": "simai/ui-source",
@@ -4374,8 +4374,8 @@
                     "repository": "simai/ui-builder",
                     "revision": "ba79e739d1f9e2568d27e030606e8f95ce91b380"
                 },
-                "manifest_sha256": "2b145932b2da61fb1262939abc29de6dc30be90c69c5e81e1a8af41da3130af5",
-                "archive_sha256": "7a6febc0e381bc97b14c2f41ad9dfc93287e822430794d1511478bbe3a58271d"
+                "manifest_sha256": "72c7b807e1931641c7b9d95106eb9c9cfdc333f4c2fb3464bffde61ae1c6559d",
+                "archive_sha256": "742541e40b2339dab8514e1ead1a1f431ce436d06dbfffa64e2024a63ad94341"
             },
             "files": {
                 "set.json": {
@@ -4397,16 +4397,16 @@
                     "sha256": "91ad3c4088967bdac9b692603255fdc65a0c3337f915bb77a305d1e2c412f31d"
                 },
                 "smart/view-calendar/css/view-calendar.css": {
-                    "sha256": "1ae96754894362a067d94fe7fab1108725fc3a3d2237a21eebe7905b4740ea08"
+                    "sha256": "999e4393e798e24917d5265691e671b9ba37b805433ae6792e6beacaee30d5bf"
                 },
                 "smart/view-calendar/css/view-calendar.min.css": {
-                    "sha256": "f7b56ba80f14b36db55201a67c8f6ebc0c8e43a523181bd455a1b121a783edd6"
+                    "sha256": "1f847454530494abc0ee157a9d7b5349d052f13c768cdc14acb2d49fb13d6241"
                 },
                 "smart/view-calendar/js/view-calendar.js": {
-                    "sha256": "82b9768d024d7ef553bd15c20852af94ef62d5a12634554d192dea6e4c0179fd"
+                    "sha256": "49e66cac7fc8c1504cecc2a4afdb8e2d042269eb37435f2fa41cc74f4b4b28e1"
                 },
                 "smart/view-calendar/js/view-calendar.min.js": {
-                    "sha256": "e39cd71c49d024b2b5c381187679e83bfabc5f55ebcc00e89e73fad2a8f6b0ab"
+                    "sha256": "2f270cceee53fc8671861b429e2d956cf2ad6598925634780dd353b30cb989b2"
                 },
                 "smart/view-cards/css/view-cards.css": {
                     "sha256": "b7978e7bccf8c9b0a5952d1bc388fd7a621f165b3b55efcc8106aa14aadecda0"
