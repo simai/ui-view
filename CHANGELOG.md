@@ -49,6 +49,21 @@ up). Each component.json says the same under `x-decisions`
   so the first paint does not grow when the records come. Above 1.15.0 of
   round/view-r2-head; the merge takes the higher number.
 
+## Unreleased (round/view-r2-board)
+
+- `sf-view-board` 1.0.0 (preview), the board layout (owner decisions C298,
+  C304): lanes by one field from the host's lane window (the first
+  `per_lane` records of every lane and the totals of all lanes in one query),
+  cards with up to four fields in the «Кратко» place, a move as a change of the
+  lane field the host settles, soft limits, folded and hidden lanes, one lane
+  per screen on a phone, one Tab stop with the arrows inside. Options under
+  `layouts.board` of `simai.view-config/1`.
+- `sf-view` 1.16.0: the layout registry; `layout="board"` (Larena's `kanban`)
+  draws `sf-view-board`, an unknown layout warns once and draws the table;
+  the board's first paint holds lanes, not a table, and stays until the
+  board has drawn them (and the lane switcher's row on a phone), so nothing
+  jumps.
+
 ## Unreleased (round/view-r1, for 1.9.0)
 
 - `sf-view` 1.15.0, the list head (C297 head part, C299, C300, C301;

@@ -11,6 +11,7 @@ component sets (`simai.component-set` 1.0.0).
 | `sf-view-table` | the smart table: typed cells, columns, row actions, filters, pages |
 | `sf-view-properties` | the record card: a record's properties in groups and sections, read and edited |
 | `sf-view-flow` | the flow block (preview): a record's properties as a block in a flow (a chat, a feed), shown or answered |
+| `sf-view-board` | the board (preview): lanes by one field, cards moved between them; `sf-view layout="board"` draws it |
 
 Further views (kanban, calendar, gantt) join this set (owner decision
 2026-11-03, point 12). A plain list and a plain table stay in the free SIMAI

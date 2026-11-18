@@ -112,6 +112,9 @@ test('the passport lists every component of the set and only them', {skip: !setR
 // registry agrees, so it is removed then.
 const STATUS_PENDING = {
   'sf-view-flow': {set: 'preview', registry: 'released', order: 'registry status correction, ordered from SIMAI Framework through the dispatcher (view round 1, 2026-11-17)'},
+  // sf-view-board (view round 2, board helper): the name is new; the registry
+  // takes it with the next Framework group build (order through the dispatcher).
+  'sf-view-board': {set: 'preview', registry: undefined, order: 'register sf-view-board / cl-view-board in contracts/registry/names.json (view round 2 board, 2026-11-18)'},
 };
 
 test('each component has the status the registry gives it', {skip: !setRoot && 'SET_ROOT is not given'}, () => {

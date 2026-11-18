@@ -1,0 +1,417 @@
+{
+  "examples": [
+    {
+      "name": "reference",
+      "title": "Заказы по статусу",
+      "settings": {
+        "aria-label": "Заказы",
+        "fields": [
+          {
+            "key": "title",
+            "label": "Заказ",
+            "propertyType": "string"
+          },
+          {
+            "key": "status",
+            "label": "Статус",
+            "propertyType": "choice",
+            "options": [
+              {
+                "value": "new",
+                "label": "Новый",
+                "scheme": "primary"
+              },
+              {
+                "value": "paid",
+                "label": "Оплачен",
+                "status": "success"
+              },
+              {
+                "value": "sent",
+                "label": "Отправлен",
+                "status": "info"
+              }
+            ]
+          },
+          {
+            "key": "client",
+            "label": "Клиент",
+            "propertyType": "string"
+          },
+          {
+            "key": "amount",
+            "label": "Сумма",
+            "propertyType": "money",
+            "currency": "RUB"
+          }
+        ],
+        "lanes": [
+          {
+            "value": "new",
+            "total": 3,
+            "totals": {
+              "amount": {
+                "RUB": "423070.00"
+              }
+            },
+            "records": [
+              {
+                "id": "o1001",
+                "title": "Заказ № 1001",
+                "status": "new",
+                "client": "ООО «Северный склад»",
+                "amount": "418000.00",
+                "revision": 1
+              },
+              {
+                "id": "o1002",
+                "title": "Заказ № 1002",
+                "status": "new",
+                "client": "Кафе «Лето»",
+                "amount": "5070.00",
+                "revision": 1
+              }
+            ],
+            "cursor": "c-new"
+          },
+          {
+            "value": "paid",
+            "total": 2,
+            "totals": {
+              "amount": {
+                "RUB": "204490.50"
+              }
+            },
+            "records": [
+              {
+                "id": "o1004",
+                "title": "Заказ № 1004",
+                "status": "paid",
+                "client": "ИП Смирнова",
+                "amount": "129990.50",
+                "revision": 1
+              },
+              {
+                "id": "o1005",
+                "title": "Заказ № 1005",
+                "status": "paid",
+                "client": "Типография «Оттиск»",
+                "amount": "74500.00",
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "value": "sent",
+            "total": 0,
+            "totals": {},
+            "records": []
+          }
+        ],
+        "options": {
+          "lane_field": "status",
+          "card_fields": [
+            "client",
+            "amount"
+          ],
+          "totals": [
+            "count",
+            {
+              "sum": "amount"
+            }
+          ],
+          "limits": {
+            "paid": 1
+          },
+          "per_lane": 2
+        },
+        "moves": {
+          "sent": {
+            "from": [
+              "paid"
+            ],
+            "reason": "В «Отправлен» — только из «Оплачен»"
+          }
+        }
+      },
+      "expect": {
+        "name": "Заказы"
+      },
+      "parent": "<div style=\"inline-size: 60rem; max-inline-size: 100%\"></div>",
+      "x-first-paint": "A page's width: three lanes of 18rem.",
+      "first-paint": {
+        "max-bytes": 20480,
+        "why": "A board at rest: every lane head (badge, count, add and menu buttons, sums) and every card (selection box, title, menu, up to four fields), each control a printed Smart element with its own markup. Nothing closed is printed; the lanes themselves are the first paint."
+      }
+    },
+    {
+      "name": "phone",
+      "title": "На телефоне: одна колонка на экран",
+      "settings": {
+        "aria-label": "Заказы",
+        "fields": [
+          {
+            "key": "title",
+            "label": "Заказ",
+            "propertyType": "string"
+          },
+          {
+            "key": "status",
+            "label": "Статус",
+            "propertyType": "choice",
+            "options": [
+              {
+                "value": "new",
+                "label": "Новый",
+                "scheme": "primary"
+              },
+              {
+                "value": "paid",
+                "label": "Оплачен",
+                "status": "success"
+              },
+              {
+                "value": "sent",
+                "label": "Отправлен",
+                "status": "info"
+              }
+            ]
+          },
+          {
+            "key": "client",
+            "label": "Клиент",
+            "propertyType": "string"
+          },
+          {
+            "key": "amount",
+            "label": "Сумма",
+            "propertyType": "money",
+            "currency": "RUB"
+          }
+        ],
+        "lanes": [
+          {
+            "value": "new",
+            "total": 3,
+            "totals": {
+              "amount": {
+                "RUB": "423070.00"
+              }
+            },
+            "records": [
+              {
+                "id": "o1001",
+                "title": "Заказ № 1001",
+                "status": "new",
+                "client": "ООО «Северный склад»",
+                "amount": "418000.00",
+                "revision": 1
+              },
+              {
+                "id": "o1002",
+                "title": "Заказ № 1002",
+                "status": "new",
+                "client": "Кафе «Лето»",
+                "amount": "5070.00",
+                "revision": 1
+              }
+            ],
+            "cursor": "c-new"
+          },
+          {
+            "value": "paid",
+            "total": 2,
+            "totals": {
+              "amount": {
+                "RUB": "204490.50"
+              }
+            },
+            "records": [
+              {
+                "id": "o1004",
+                "title": "Заказ № 1004",
+                "status": "paid",
+                "client": "ИП Смирнова",
+                "amount": "129990.50",
+                "revision": 1
+              },
+              {
+                "id": "o1005",
+                "title": "Заказ № 1005",
+                "status": "paid",
+                "client": "Типография «Оттиск»",
+                "amount": "74500.00",
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "value": "sent",
+            "total": 0,
+            "totals": {},
+            "records": []
+          }
+        ],
+        "options": {
+          "lane_field": "status",
+          "card_fields": [
+            "client",
+            "amount"
+          ],
+          "totals": [
+            "count",
+            {
+              "sum": "amount"
+            }
+          ],
+          "limits": {
+            "paid": 1
+          },
+          "per_lane": 2
+        },
+        "moves": {
+          "sent": {
+            "from": [
+              "paid"
+            ],
+            "reason": "В «Отправлен» — только из «Оплачен»"
+          }
+        }
+      },
+      "expect": {
+        "name": "Заказы"
+      },
+      "parent": "<div style=\"inline-size: 22rem; max-inline-size: 100%\"></div>",
+      "first-paint": {
+        "max-bytes": 24576,
+        "why": "A board on a phone: the lane switcher (sf-tabs with a count per lane) above the lanes, then every lane head and card as on a wide screen, each control a printed Smart element with its own markup. Nothing closed is printed."
+      }
+    }
+  ],
+  "pages": [
+    {
+      "name": "conformance",
+      "title": "sf-view-board against component.json (standard simai.smart-component 1.4 §12, gate 20)",
+      "format": "stands/15-scenarios (A4 modal: a page, probes in steps); the runner is ui-source tests/browser/manifest-probes.browser.mjs, run for the package by scripts/run-manifest-probes.mjs",
+      "page": {
+        "lang": "ru",
+        "body": [
+          "<main>",
+          "  <sf-view-board id=\"b\" aria-label=\"Заказы\" fields='[{\"key\": \"title\", \"label\": \"Заказ\", \"propertyType\": \"string\"}, {\"key\": \"status\", \"label\": \"Статус\", \"propertyType\": \"choice\", \"options\": [{\"value\": \"new\", \"label\": \"Новый\", \"scheme\": \"primary\"}, {\"value\": \"paid\", \"label\": \"Оплачен\", \"status\": \"success\"}, {\"value\": \"sent\", \"label\": \"Отправлен\", \"status\": \"info\"}]}, {\"key\": \"client\", \"label\": \"Клиент\", \"propertyType\": \"string\"}, {\"key\": \"amount\", \"label\": \"Сумма\", \"propertyType\": \"money\", \"currency\": \"RUB\"}]' lanes='[{\"value\": \"new\", \"total\": 3, \"totals\": {\"amount\": {\"RUB\": \"423070.00\"}}, \"records\": [{\"id\": \"o1001\", \"title\": \"Заказ № 1001\", \"status\": \"new\", \"client\": \"ООО «Северный склад»\", \"amount\": \"418000.00\", \"revision\": 1}, {\"id\": \"o1002\", \"title\": \"Заказ № 1002\", \"status\": \"new\", \"client\": \"Кафе «Лето»\", \"amount\": \"5070.00\", \"revision\": 1}], \"cursor\": \"c-new\"}, {\"value\": \"paid\", \"total\": 2, \"totals\": {\"amount\": {\"RUB\": \"204490.50\"}}, \"records\": [{\"id\": \"o1004\", \"title\": \"Заказ № 1004\", \"status\": \"paid\", \"client\": \"ИП Смирнова\", \"amount\": \"129990.50\", \"revision\": 1}, {\"id\": \"o1005\", \"title\": \"Заказ № 1005\", \"status\": \"paid\", \"client\": \"Типография «Оттиск»\", \"amount\": \"74500.00\", \"revision\": 1}]}, {\"value\": \"sent\", \"total\": 0, \"totals\": {}, \"records\": []}]' options='{\"lane_field\": \"status\", \"card_fields\": [\"client\", \"amount\"], \"totals\": [\"count\", {\"sum\": \"amount\"}], \"limits\": {\"paid\": 1}, \"per_lane\": 2}' moves='{\"sent\": {\"from\": [\"paid\"], \"reason\": \"В «Отправлен» — только из «Оплачен»\"}}'></sf-view-board>",
+          "</main>"
+        ]
+      },
+      "checks": [
+        {
+          "id": "p1-lanes",
+          "title": "Three lanes in the field's option order; the soft limit reads «2 / 1» highlighted; sums per currency; the empty lane says «Пусто»",
+          "covers": "settings.lanes, settings.options, accessibility.name",
+          "steps": [
+            {
+              "script": "true",
+              "wait": 400,
+              "check": "document.querySelectorAll('#b .sf-view-board__lane').length === 3 && document.querySelector('#b [data-lane=paid] .sf-view-board__count').textContent.trim() === '2 / 1' && document.querySelector('#b [data-lane=paid]').hasAttribute('data-over') && document.querySelector('#b [data-lane=sent] .sf-view-board__empty') !== null"
+            }
+          ]
+        },
+        {
+          "id": "p2-refused-by-rule",
+          "title": "«Новый» → «Отправлен» is refused by the host's rule: nothing moves, no move event",
+          "covers": "settings.moves, events.move",
+          "steps": [
+            {
+              "script": "(document.querySelector('#b').moveRecord('o1001', 'sent'), true)",
+              "wait": 200,
+              "expect": {
+                "events": [
+                  {
+                    "name": "sf-view-board-move",
+                    "count": 0
+                  }
+                ]
+              },
+              "check": "document.querySelector('#b [data-lane=new] [data-id=o1001]') !== null"
+            }
+          ]
+        },
+        {
+          "id": "p3-move-settled",
+          "title": "«Новый» → «Оплачен» shows at once, pale, sends move; settle-move applied keeps it",
+          "covers": "events.move, actions.settle-move",
+          "steps": [
+            {
+              "script": "(document.querySelector('#b').moveRecord('o1002', 'paid'), true)",
+              "wait": 200,
+              "expect": {
+                "events": [
+                  {
+                    "name": "sf-view-board-move",
+                    "count": 1,
+                    "detail": {
+                      "id": "o1002",
+                      "field": "status",
+                      "from": "new",
+                      "to": "paid"
+                    }
+                  }
+                ]
+              },
+              "check": "document.querySelector('#b [data-lane=paid] [data-id=o1002]')?.hasAttribute('data-pending') === true"
+            },
+            {
+              "action": {
+                "name": "settle-move",
+                "with": {
+                  "id": "o1002",
+                  "result": {
+                    "answer": "applied"
+                  }
+                }
+              },
+              "target": "#b",
+              "wait": 200,
+              "expect": {
+                "returns": {
+                  "outcome": "applied"
+                }
+              },
+              "check": "!document.querySelector('#b [data-id=o1002]').hasAttribute('data-pending') && document.querySelector('#b [data-lane=paid] .sf-view-board__count').textContent.trim() === '3 / 1'"
+            }
+          ]
+        },
+        {
+          "id": "p4-move-refused",
+          "title": "A move the host refuses goes back with the host's reason in the live region",
+          "covers": "actions.settle-move refused",
+          "steps": [
+            {
+              "script": "(document.querySelector('#b').moveRecord('o1004', 'new'), true)",
+              "wait": 200,
+              "check": "document.querySelector('#b [data-lane=new] [data-id=o1004]') !== null"
+            },
+            {
+              "action": {
+                "name": "settle-move",
+                "with": {
+                  "id": "o1004",
+                  "result": {
+                    "answer": "refused",
+                    "reason": "Заказ правит другой менеджер"
+                  }
+                }
+              },
+              "target": "#b",
+              "wait": 200,
+              "expect": {
+                "returns": {
+                  "outcome": "applied"
+                }
+              },
+              "check": "document.querySelector('#b [data-lane=paid] [data-id=o1004]') !== null && document.querySelector('#b .sf-view-board__live').textContent.includes('Заказ правит другой менеджер')"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

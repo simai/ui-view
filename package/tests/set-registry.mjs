@@ -1,6 +1,13 @@
 // The shared name registry's view of one set (standard simai.component-set
 // 1.0.0, family-has-one-owner, names-start-with-owned-family), shared by
 // tests/set-passport.contract.test.mjs and scripts/check-registry.mjs.
+//
+// A new name waits its registration by name here: sf-view-board (view round 2,
+// owner decisions C298, C304) is registered with the next SIMAI Framework group
+// build (order through the dispatcher, 2026-11-18). The entry goes when the
+// registry has the name.
+export const REGISTRATION_PENDING = new Set(['sf-view-board']);
+
 export function registryProblems(registry, passport) {
   const problems = [];
   const owner = registry.owners.find((entry) => entry.id === passport.id);
@@ -16,7 +23,7 @@ export function registryProblems(registry, passport) {
   }
   const names = new Set((owner.names ?? []).map((entry) => entry.element));
   for (const component of passport.components) {
-    if (!names.has(component.element)) problems.push(`${component.element} is not a registered name of ${passport.id}`);
+    if (!names.has(component.element) && !REGISTRATION_PENDING.has(component.element)) problems.push(`${component.element} is not a registered name of ${passport.id}`);
   }
   return problems;
 }
