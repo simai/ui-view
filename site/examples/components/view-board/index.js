@@ -18,7 +18,7 @@ const COLUMNS = [
   {key: 'status', label: 'Состояние', property_type: 'choice', options: STATUS},
   {key: 'client', label: 'Клиент'},
   {key: 'manager', label: 'Менеджер'},
-  {key: 'amount', label: 'Сумма', property_type: 'number'},
+  {key: 'amount', label: 'Сумма', property_type: 'money', currency: 'RUB'},
 ];
 const CLIENTS = ['ООО «Ромашка»', 'ИП Сидоров', 'АО «Вектор»', 'ООО «Север»'];
 const MANAGERS = ['Анна Белова', 'Илья Орлов', 'Мария Котова'];
@@ -36,6 +36,22 @@ const BOARD = {
   per_lane: 3,
 };
 const MOVES = {sent: {from: ['paid'], reason: 'В «Отправлен» — только из «Оплачен»'}};
+
+// The example shows when the first answer has drawn and its height holds, so
+// nothing moves under the reader's eyes while the parts draw (frame CLS).
+const frame = () => new Promise((done) => requestAnimationFrame(() => done()));
+const reveal = async (root, answered) => {
+  const limit = Date.now() + 4000;
+  await Promise.race([document.fonts?.ready ?? Promise.resolve(), new Promise((done) => setTimeout(done, 1500))]);
+  let last = -1; let still = 0;
+  while (still < 5 && Date.now() < limit) {
+    await frame();
+    const height = root.getBoundingClientRect().height;
+    still = height === last && answered() ? still + 1 : 0;
+    last = height;
+  }
+  root.style.removeProperty('visibility');
+};
 
 const initializeBoard = async () => {
   const root = document.querySelector('[data-board-demo]');
@@ -55,6 +71,7 @@ const initializeBoard = async () => {
   };
   const sums = (value) => ({amount: {RUB: String(orders.filter((order) => order.status === value).reduce((sum, order) => sum + order.amount, 0))}});
 
+  let first = false;
   view.setHostPort({
     version: '1.12.0',
     capabilities: ['row-actions', 'inline-edit'],
@@ -70,6 +87,7 @@ const initializeBoard = async () => {
         if (window.lane) {
           return {answer: 'applied', sequence: payload.sequence, data: {lanes: [lane(window.lane, Number(window.cursor ?? 0))], total: orders.length}};
         }
+        first = true;
         return {answer: 'applied', sequence: payload.sequence, data: {
           columns: COLUMNS, total: orders.length,
           lanes: STATUS.map(({value}) => lane(value)),
@@ -95,6 +113,7 @@ const initializeBoard = async () => {
       return {answer: 'unavailable', reason: 'capability-not-provided'};
     },
   });
+  reveal(root, () => first);
 };
 
 initializeBoard();

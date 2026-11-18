@@ -19,9 +19,25 @@ const COLUMNS = [
   {key: 'status', label: 'Состояние', property_type: 'choice', options: STATUS},
   {key: 'client', label: 'Клиент'},
   {key: 'manager', label: 'Менеджер'},
-  {key: 'amount', label: 'Сумма', property_type: 'number', sortable: true},
+  {key: 'amount', label: 'Сумма', property_type: 'money', currency: 'RUB', sortable: true},
 ];
 const BOARD = {lane_field: 'status', lanes: {order: STATUS.map((lane) => lane.value)}, empty_lanes: 'show', card_fields: ['client', 'amount'], totals: ['count'], per_lane: 4};
+
+// The example shows when the first answer has drawn and its height holds, so
+// nothing moves under the reader's eyes while the parts draw (frame CLS).
+const frame = () => new Promise((done) => requestAnimationFrame(() => done()));
+const reveal = async (root, answered) => {
+  const limit = Date.now() + 4000;
+  await Promise.race([document.fonts?.ready ?? Promise.resolve(), new Promise((done) => setTimeout(done, 1500))]);
+  let last = -1; let still = 0;
+  while (still < 5 && Date.now() < limit) {
+    await frame();
+    const height = root.getBoundingClientRect().height;
+    still = height === last && answered() ? still + 1 : 0;
+    last = height;
+  }
+  root.style.removeProperty('visibility');
+};
 
 const initializeHead = async () => {
   const root = document.querySelector('[data-head-demo]');
@@ -52,6 +68,7 @@ const initializeHead = async () => {
 
   table.setFilterFields?.(FIELDS);
   table.setCreateItems?.([{id: 'order', name: 'Заказ'}]);
+  let first = false;
   view.setHostPort({
     version: '1.15.0',
     capabilities: ['row-actions', 'create-record'],
@@ -86,9 +103,11 @@ const initializeHead = async () => {
         const start = ((query.page ?? 1) - 1) * (query.per_page ?? 8);
         data.records = found.slice(start, start + (query.per_page ?? 8));
       }
+      first = true;
       return {answer: 'applied', sequence: payload.sequence, data};
     },
   });
+  reveal(root, () => first);
 };
 
 initializeHead();
