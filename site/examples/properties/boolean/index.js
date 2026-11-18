@@ -519,6 +519,26 @@ const drawAll = (root) => {
   root.dataset.template = state.template.id;
 };
 
+// The example shows when it has drawn: every SIMAI Framework part in it
+// defined, the text face loaded and its height still for three frames (a
+// card answers its port, a renderer comes later); three seconds at most.
+const frame = () => new Promise((done) => requestAnimationFrame(() => done()));
+const settled = async (root) => {
+  const limit = Date.now() + 3000;
+  const names = () => [...new Set([...root.querySelectorAll('*')].map((node) => node.localName).filter((name) => name.startsWith('sf-')))];
+  await Promise.race([Promise.all(names().map((name) => customElements.whenDefined(name))), new Promise((done) => setTimeout(done, 3000))]);
+  await Promise.race([document.fonts?.ready ?? Promise.resolve(), new Promise((done) => setTimeout(done, 1000))]);
+  let last = -1;
+  let still = 0;
+  while (still < 3 && Date.now() < limit) {
+    await frame();
+    const height = root.getBoundingClientRect().height;
+    const waiting = names().some((name) => !customElements.get(name));
+    still = height === last && !waiting ? still + 1 : 0;
+    last = height;
+  }
+};
+
 const start = async () => {
   const root = document.querySelector('[data-property]');
   if (!root || root.dataset.exampleReady === 'true') return;
@@ -529,6 +549,7 @@ const start = async () => {
   state.template = D.templates[0];
   drawTemplates(root);
   drawAll(root);
+  await settled(root);
   root.dataset.ready = 'true';
 };
 

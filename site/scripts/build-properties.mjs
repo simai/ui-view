@@ -92,6 +92,11 @@ ${place('filter', 'Панель фильтра над списком. Задай
 // Spacing, sizes and colours are SIMAI Framework tokens (C18); the states
 // stand three in a row on a wide page, one under another on a phone.
 const typeCss = `.property { display: flex; flex-direction: column; gap: var(--sf-space-1); }
+/* The four sections show at once, when every part in them has drawn: a
+   section that grew as its renderer came in moved the ones below it (frame
+   CLS up to 1.2). Hidden, they keep their place, so the frame's height is
+   known before they show. */
+.property:not([data-ready]) { visibility: hidden; }
 .property-templates { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sf-space-1\\/3) var(--sf-space-1\\/2); }
 .property-templates .property-note { flex-basis: 100%; }
 .property-place { display: flex; flex-direction: column; gap: var(--sf-space-1\\/3); min-inline-size: 0; padding-block-start: var(--sf-space-1\\/2); border-block-start: var(--sf-px) solid var(--sf-outline-variant); }
