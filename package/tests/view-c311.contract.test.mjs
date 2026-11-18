@@ -57,7 +57,10 @@ test('the foot: Готово, Сохранить для всех, Отменит
   const bar = template.slice(template.indexOf('function renderConfigureBar(context) {'), template.indexOf('// Width, template variant and hint'));
   const order = ['data-action="done-configuring"', 'data-action="publish-view"', 'data-action="cancel-configuring"'].map((mark) => bar.indexOf(mark));
   assert.ok(order.every((at) => at > 0) && order[0] < order[1] && order[1] < order[2], `foot order ${order}`);
-  assert.match(template, /\$\{renderConfigureTop\(context\)\}\n\s+\$\{renderSectionBar\(context, current, sections\.length\)\}/u);
+  // Over the fields: first in the body beside a column of tabs, and before
+  // «Вкладки» where they stand over the fields (a narrow card, tabs).
+  assert.match(template, /\$\{sectionsStacked\(context\) \? nothing : renderConfigureTop\(context\)\}\n\s+\$\{renderSectionBar\(context, current, sections\.length\)\}/u);
+  assert.match(template, /\$\{sectionsStacked\(context\) \? renderConfigureTop\(context\) : nothing\}\n\s+\$\{\(sidebarDrawn\(context\) && !railOutside\) \|\| sectionsStacked\(context\) \? renderSectionList/u);
 });
 
 test('tabs: a list with handles and a «⋯» each; a new tab has «Поля»; a field to another tab (TB-1)', () => {

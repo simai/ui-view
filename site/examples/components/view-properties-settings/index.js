@@ -27,7 +27,7 @@ const base = () => ({
       {key: 'main', label: 'Основное', columns: 2, fields: [
         {key: 'name', label: 'Название', propertyType: 'string', value: 'Поставка кофемашин', width: 'full'},
         {key: 'company', label: 'Компания', propertyType: 'string', value: 'ООО «Северный ветер»', width: 'half'},
-        {key: 'sum', label: 'Сумма, ₽', propertyType: 'number', value: 480000, width: 'half'},
+        {key: 'sum', label: 'Сумма', propertyType: 'money', value: {amount: '480000.00', currency: 'RUB'}, width: 'half'},
         {key: 'stage', label: 'Стадия', propertyType: 'choice', value: 'offer', width: 'half', options: STAGES},
         {key: 'pay', label: 'Условия оплаты', propertyType: 'text', value: '50 % предоплата, остаток после поставки', width: 'full'},
       ]},
