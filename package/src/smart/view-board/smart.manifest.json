@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-board",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "title": "Board",
   "summary": "The board layout of the view set: lanes by one field, cards with up to four fields in the «Кратко» place, a move is a change of that field the host settles. sf-view layout=\"board\" draws it over the lane window.",
   "kind": "smart",
@@ -90,7 +90,7 @@
       "sums-pending": {
         "type": "boolean",
         "default": false,
-        "description": "The lanes' sums are asked in a request after the cards (sf-view sets it): the sum line of each lane head is held empty until setLaneTotals brings them."
+        "description": "The sum line of each lane head is held empty until setLaneTotals brings the sums: for a page that computes them after the cards. sf-view does not set it: the sums come with the cards (C304)."
       },
       "selectable": {
         "type": "boolean",
@@ -513,6 +513,13 @@
         "changes": [
           "Lane sums after the cards (view round 2 merge, agreed with Larena): sums-pending (set by sf-view while it asks the sums in a second request) holds the sum line of every lane head, so nothing grows when they come; setLaneTotals([{value, totals}]) merges the answered totals into the lanes without touching their cards or cursors."
         ]
+      },
+      {
+        "from": "1.1.0",
+        "to": "1.1.1",
+        "changes": [
+          "The sums-pending description: sf-view asks the lane totals with the cards in one request (C304, VR2-9) and no longer sets it; the attribute and setLaneTotals stay for a page that computes the sums later."
+        ]
       }
     ]
   },
@@ -546,7 +553,7 @@
       },
       {
         "path": "src/smart/view-board/docs.md",
-        "sha256": "12302ae30b4a363d98883f03d969d0386c763e198614a1fe233ab5fdaf700204"
+        "sha256": "bacbeab2c9eb489d649d148d26a504d34b6d8dbc175581833e4e72debae45887"
       }
     ],
     "generated_runtime": []

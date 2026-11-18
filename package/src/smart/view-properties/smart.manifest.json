@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-properties",
-  "version": "1.18.1",
+  "version": "1.18.2",
   "title": "Property view",
   "summary": "One object's fields shown as sections, groups and fields, each drawn by the per-type field renderer set, behind a separate host port. A group is edited and saved as one revision by the button, and a reference field is picked from the host's own candidates a page at a time. The pair to the data view: that one is a set of records, this one is a single object.",
   "kind": "composite",
@@ -1902,6 +1902,13 @@
         "changes": [
           "A group whose label is '' draws no group head: read (the description list head, 36 px), edited in sf-form and edited in the card (29 px) the heading row was empty and named nothing to a screen reader; the head stays when the group has «Изменить», the rare mark or the arranging tools."
         ]
+      },
+      {
+        "from": "1.18.1",
+        "to": "1.18.2",
+        "changes": [
+          "Alt+Down / Alt+Up step the record when the key is pressed anywhere in the card's own drawer, the panel included: the drawer gives its panel the focus when the card covers the list, and the keys went nowhere (VR2-3)."
+        ]
       }
     ]
   },
@@ -1911,7 +1918,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-properties/index.js",
-        "sha256": "9fdf5f11e8f19d1c8062c87ea6c36e6cb6e7b7919445f4e2fb184ae631f8244f"
+        "sha256": "307de54c21a377af4b400b0335e1c5b2cc48d7f283f77be2ff6e885e16d8d86f"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.js",

@@ -42,9 +42,10 @@ and a lane folded or hidden are events; the host answers a move with
 - `card_fields`: up to four fields under the title, drawn in the «Кратко»
   place by the Framework field renderers (C300 (2)).
 - `totals`: the count under the filter, and money sums per currency (C294);
-  the host computes them. Inside `sf-view` the counts come with the cards and
-  the sums in a second request once the board is drawn (`sums-pending` holds
-  the sum line meanwhile; `setLaneTotals([{value, totals}])` takes them).
+  the host computes them. Inside `sf-view` the counts and the sums come with
+  the cards in one answer (C304). A page that computes the sums later sets
+  `sums-pending` (the sum line is held meanwhile) and gives them with
+  `setLaneTotals([{value, totals}])`.
 - `limits`: soft (C304 (3)): the head reads «5 / 4» highlighted, the move is
   allowed.
 - `order`: `sort` follows the view's sort; `manual` orders by hand only when

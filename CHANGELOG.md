@@ -16,6 +16,35 @@ same numbers with other content); every next set version is above them
 up). Each component.json says the same under `x-decisions`
 `pro-copy-versions`.
 
+## Unreleased (round/view-returns)
+
+DEV's returns of round 2 (VR2-1..VR2-9) and C306.
+
+- `sf-view` 1.19.0: under the list head the table keeps its column head menu
+  (sort, «Закрепить», «Скрыть колонку», «Все колонки…» and the width, C296);
+  «Все колонки…» opens «Настроить вид» (`openCustomize()`). The record card
+  beside the list closes on × and Escape (the view answers its close request
+  with `open="false"`). Alt+Down / Alt+Up from the list step the card and move
+  the list's place with it. The head's windows carry roles (`head-sheet`,
+  `head-record`): their path ids no longer collide with the record card's
+  drawer, which drew them inside the head; the phone sheet opens. The table
+  inside gets `total` and `row-offset`. The board asks the cards and every
+  lane total in one request (C304; no `lane-sums` query). A page table under
+  `layout="board"` is parked with one console warning. Cards size S / M / L,
+  M by default (C306); the layout values list names `board`.
+- `sf-view-table` 1.25.0: `row-offset` (with `total`, every row's
+  `aria-rowindex` is its place in the list); the grid's open record row takes
+  the primary 12 % fill (24 % dark); the grid ignores Alt+Down / Alt+Up.
+- `sf-view-properties` 1.18.2: Alt+Down / Alt+Up step the record while the
+  focus is on the card's panel itself (the phone).
+- `sf-view-board` 1.1.1: `sums-pending` is for a page that computes the sums
+  after the cards; `sf-view` does not set it.
+- Site: property examples wait for the loader's `sf-loader-init` event
+  instead of a timer (VR2-6); every example holds its recorded drawn height
+  from its first frame (`scripts/record-example-heights.mjs`,
+  `config/example-heights.json`, VR2-7); the board example answers the lane
+  totals with the cards.
+
 ## Unreleased (round/view-r3)
 
 - `sf-view` 1.18.0 (view round 3, item 2): the list head's «Таблица» /

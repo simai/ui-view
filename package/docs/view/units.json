@@ -5,6 +5,15 @@
   "entries": [
     {
       "unit": "smart.view",
+      "version": "1.19.0",
+      "recorded_on": "2026-11-18",
+      "change": "minor",
+      "consumer": "A host with a board answers the lane totals (the count and the sums its layouts.board totals name) with the first cards of every lane: sf-view no longer asks the sums in a second query.change (reason lane-sums, C304, VR2-9). Nothing else to change. New: openCustomize(); the column head menu under the list head keeps pin, hide and «Все колонки…»; the record card beside the list closes on × and Escape; Alt+Down / Alt+Up step it from the list; the table inside the view gets total and row-offset.",
+      "summary": "View returns (DEV acceptance of round 2, VR2-1..VR2-9): under head=\"list\" the table keeps its column head menu (sort, Закрепить, Скрыть колонку, Все колонки… and the width, C296) -- data-sf-view-columns=\"head\" on the table where the host keeps personal column settings -- and «Все колонки…» opens «Настроить вид» (openCustomize()); the record card beside the list is closed by the view on its close request (open=\"false\"; it gave the focus back and stayed open); Alt+Down / Alt+Up from the list step the card and move the list's place with it; the list head's windows carry roles (data-sf-role head-sheet, head-record): their path ids are the view's, not sf-drawer-1 of the record card's drawer, with which they shared a portal and drew inside the head; the phone sheet opens (sf-drawer open is a method and was read as the open state); the table inside gets total and row-offset (aria-rowcount total + 1, aria-rowindex of later pages); the board asks the cards and every lane total in one request (window.totals count and the known sums; no lane-sums query, C304); a page table under layout=\"board\" is parked with one console warning; cards size S / M / L, M by default (C306); the layout values list board.",
+      "evidence": "control/evidence/2026-11-18-view-returns/README.md"
+    },
+    {
+      "unit": "smart.view",
       "version": "1.18.0",
       "recorded_on": "2026-11-18",
       "change": "minor",
@@ -101,6 +110,15 @@
       "consumer": "Nothing to change for a host: the compact list toolbar keeps its spacing when the list comes.",
       "summary": "C144: the skeleton's compact list toolbar holds the field, filter and Создать --sf-space-1 apart, as sf-view-table 1.20.1 draws them (the field no longer moves 8 when the list comes)",
       "evidence": "https://github.com/simai/ui-view/commit/961bdae11e2749f69ac7fbb744b197b74e8c4a23"
+    },
+    {
+      "unit": "smart.view-table",
+      "version": "1.25.0",
+      "recorded_on": "2026-11-18",
+      "change": "minor",
+      "consumer": "Nothing to change. New: row-offset (with total, aria-rowindex of a later page); the open record (aria-current) has the primary 12 % fill in the grid as in the list; Alt+Down / Alt+Up are left to a data view.",
+      "summary": "View returns: row-offset {number, 0}: with total, every row's aria-rowindex is its place in the list (VT-4, VR2-8); the grid's open record row (aria-current) takes --sf-primary-container (12 % light, 24 % dark) as the phone list does (C305 (4), VR2-3); the grid keys ignore Alt+Down / Alt+Up; under a data view's list head (data-sf-view-columns=\"head\") the column head menu keeps pin, hide and «Все колонки…», which opens the view's «Настроить вид» (C296, VR2-1).",
+      "evidence": "control/evidence/2026-11-18-view-returns/README.md"
     },
     {
       "unit": "smart.view-table",
@@ -227,6 +245,15 @@
       "consumer": "Nothing to change for a host: only the SIMAI Framework file it builds in moved with the repin.",
       "summary": "Over SIMAI Framework ui-078a4b4c6f6e (ui-source 10145e63b9dc) the Framework file it builds in, src/smart/pagination/index.js (sf-pagination 1.7: «Show more» within reach, C167; a deleting action listed last, C116), moved; the provenance and the version follow. Nothing of its own; nothing to change for a host. 1.19.7 and 1.19.8 are ui-pro's own patched copies, never this set's.",
       "evidence": "https://github.com/simai/ui-view/commit/e214dd608fdcf39cea527676fc522afd718922d4"
+    },
+    {
+      "unit": "smart.view-properties",
+      "version": "1.18.2",
+      "recorded_on": "2026-11-18",
+      "change": "patch",
+      "consumer": "Nothing to change: Alt+Down / Alt+Up step the card also while the focus is on the panel itself (the phone, where the card covers the list).",
+      "summary": "Alt+Down / Alt+Up step the record when the key is pressed anywhere in the card's own drawer, the panel included: the drawer gives its panel the focus when the card covers the list, and the keys went nowhere (VR2-3).",
+      "evidence": "control/evidence/2026-11-18-view-returns/README.md"
     },
     {
       "unit": "smart.view-properties",
@@ -371,6 +398,15 @@
       "consumer": "Nothing to change for a host: only the SIMAI Framework file it builds in moved with the repin.",
       "summary": "Over SIMAI Framework ui-078a4b4c6f6e (ui-source 10145e63b9dc) the Framework file it builds in, src/smart/helpers/confirm-surface.js, moved; the provenance and the version follow. Nothing of its own; nothing to change for a host.",
       "evidence": "https://github.com/simai/ui-view/commit/e214dd608fdcf39cea527676fc522afd718922d4"
+    },
+    {
+      "unit": "smart.view-board",
+      "version": "1.1.1",
+      "recorded_on": "2026-11-18",
+      "change": "patch",
+      "consumer": "Nothing to change: sums-pending is now for a page that computes the sums after the cards; sf-view does not set it (the sums come with the cards, C304).",
+      "summary": "The sums-pending description: sf-view asks the lane totals with the cards in one request (C304, VR2-9) and no longer sets it; the attribute and setLaneTotals stay for a page that computes the sums later.",
+      "evidence": "control/evidence/2026-11-18-view-returns/README.md"
     },
     {
       "unit": "smart.view-board",

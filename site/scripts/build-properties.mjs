@@ -21,10 +21,14 @@
 // ru-requisites). --check fails when a written file differs from what this
 // would write, or a file it once wrote is left over.
 //
+// Each example's index.css ends with the height it has drawn
+// (config/example-heights.json), held from its first frame.
+//
 // Usage: node site/scripts/build-properties.mjs [--check]
 import {existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync} from 'node:fs';
 import {dirname, join, resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {readHeights, reserveCss} from './record-example-heights.mjs';
 
 const site = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const checkOnly = process.argv.includes('--check');
@@ -35,6 +39,13 @@ const overview = readFileSync(join(site, 'scripts/property-overview.js'), 'utf8'
 // eslint-disable-next-line no-new-func
 const {CATALOGUE, FAMILIES, OPTIONS_OF} = new Function(`${catalogueText}\nreturn {CATALOGUE, FAMILIES, OPTIONS_OF};`)();
 const slug = (type) => type.replace(/\./gu, '-');
+// Each example's drawn height (config/example-heights.json, recorded by
+// scripts/record-example-heights.mjs), held from its first frame (VR2-7).
+const HEIGHTS = readHeights();
+const withReserve = (folder, css) => {
+  const block = reserveCss(HEIGHTS[folder.replace(/^examples\//u, '')]);
+  return block ? `${css}${block}` : css;
+};
 const PLACES = {view: 'Показ', compact: 'Кратко', edit: 'Правка', filter: 'Фильтр'};
 
 const files = new Map();
@@ -193,7 +204,7 @@ const typeExample = (type) => {
   pictures(folder, data);
   const options = OPTIONS_OF[data.field.key] ? {[data.field.key]: OPTIONS_OF[data.field.key]} : {};
   put(`${folder}/index.html`, typeHtml(type));
-  put(`${folder}/index.css`, typeCss);
+  put(`${folder}/index.css`, withReserve(folder, typeCss));
   put(`${folder}/index.js`, `${HEADER}const TYPE = ${JSON.stringify(type)};\nconst TYPE_DATA = ${JSON.stringify(data, null, 1)};\nconst OPTIONS_OF = ${JSON.stringify(options)};\n\n${engine}`);
 };
 const overviewExample = () => {
@@ -202,7 +213,7 @@ const overviewExample = () => {
   const fields = Object.values(CATALOGUE).map((entry) => [{...entry.field, ...(entry.drawnAs ?? {})}, entry.samples.map(([, value]) => value)]);
   pictures(folder, fields);
   put(`${folder}/index.html`, overviewHtml);
-  put(`${folder}/index.css`, overviewCss);
+  put(`${folder}/index.css`, withReserve(folder, overviewCss));
   put(`${folder}/index.js`, `${HEADER}const FIELDS = ${JSON.stringify(fields)};\nconst OPTIONS_OF = ${JSON.stringify(OPTIONS_OF)};\n\n${overview}`);
 };
 

@@ -2,8 +2,15 @@
   "$comment": "sf-view-board, standard simai.smart-component 1.4 (vocabulary 1.1.5): the board layout of the view set (kanban; owner decisions C298, C304). Study: ui-control control/research/2026-11-17-board-view. Drag and keys are sf-sortable's, the card is .sf-card, the card fields the Framework field renderers' cell output, menus SF.menu.open, the selection bar sf-bulk-actions where the pair has it.",
   "id": "smart.view-board",
   "tag": "sf-view-board",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "x-history": [
+    {
+      "version": "1.1.1",
+      "kind": "patch",
+      "recorded_on": "2026-11-18",
+      "consumer": "Nothing to change: sums-pending is now for a page that computes the sums after the cards; sf-view does not set it (the sums come with the cards, C304).",
+      "evidence": "control/evidence/2026-11-18-view-returns/README.md"
+    },
     {
       "version": "1.1.0",
       "kind": "minor",
@@ -138,7 +145,7 @@
     "sums-pending": {
       "type": "boolean",
       "default": false,
-      "summary": "The lanes' sums are asked in a request after the cards (sf-view sets it): the sum line of each lane head is held empty until setLaneTotals brings them."
+      "summary": "The sum line of each lane head is held empty until setLaneTotals brings the sums: for a page that computes them after the cards. sf-view does not set it: the sums come with the cards (C304)."
     }
   },
   "values": {},
@@ -582,6 +589,13 @@
           "to": "1.1.0",
           "changes": [
             "Lane sums after the cards (view round 2 merge, agreed with Larena): sums-pending (set by sf-view while it asks the sums in a second request) holds the sum line of every lane head, so nothing grows when they come; setLaneTotals([{value, totals}]) merges the answered totals into the lanes without touching their cards or cursors."
+          ]
+        },
+        {
+          "from": "1.1.0",
+          "to": "1.1.1",
+          "changes": [
+            "The sums-pending description: sf-view asks the lane totals with the cards in one request (C304, VR2-9) and no longer sets it; the attribute and setLaneTotals stay for a page that computes the sums later."
           ]
         }
       ]

@@ -2,8 +2,15 @@
   "$comment": "sf-data-view from its component.json (standard simai.smart-component 1.3.8, vocabulary 1.1.5), migrated from ui-control control/smart-architecture/migration/out/data-view; every x-todo decided in x-decisions.",
   "id": "smart.view",
   "tag": "sf-view",
-  "version": "1.18.0",
+  "version": "1.19.0",
   "x-history": [
+    {
+      "version": "1.19.0",
+      "kind": "minor",
+      "recorded_on": "2026-11-18",
+      "consumer": "A host with a board answers the lane totals (the count and the sums its layouts.board totals name) with the first cards of every lane: sf-view no longer asks the sums in a second query.change (reason lane-sums, C304, VR2-9). Nothing else to change. New: openCustomize(); the column head menu under the list head keeps pin, hide and «Все колонки…»; the record card beside the list closes on × and Escape; Alt+Down / Alt+Up step it from the list; the table inside the view gets total and row-offset.",
+      "evidence": "control/evidence/2026-11-18-view-returns/README.md"
+    },
     {
       "version": "1.18.0",
       "kind": "minor",
@@ -1832,6 +1839,13 @@
           "to": "1.18.0",
           "changes": [
             "View round 3: the list head's display kind (Таблица / Доска) switches the layout live. switchLayout(kind) swaps the view-made table or board for the layout's own, parks the page's own sf-view-table (out of every slot, with its filter fields and create items) while a board draws and brings it back with the table, keeps the marked records (a table's marks become the board's and back, also over the switch's own answer) and the record card beside, draws what is already known at once and asks the host once with the new layout's query (a board's lane window). A layout attribute written after the view drew swaps the same way. canDrawLayout(kind) says whether a layout of the set (or one registered) draws a kind; the head shows the others (cards, calendar, tree) disabled with their reason (head-kind-unavailable). A saved view saved as a board opens as a board."
+          ]
+        },
+        {
+          "from": "1.18.0",
+          "to": "1.19.0",
+          "changes": [
+            "View returns (DEV acceptance of round 2, VR2-1..VR2-9): under head=\"list\" the table keeps its column head menu (sort, Закрепить, Скрыть колонку, Все колонки… and the width, C296) -- data-sf-view-columns=\"head\" on the table where the host keeps personal column settings -- and «Все колонки…» opens «Настроить вид» (openCustomize()); the record card beside the list is closed by the view on its close request (open=\"false\"; it gave the focus back and stayed open); Alt+Down / Alt+Up from the list step the card and move the list's place with it; the list head's windows carry roles (data-sf-role head-sheet, head-record): their path ids are the view's, not sf-drawer-1 of the record card's drawer, with which they shared a portal and drew inside the head; the phone sheet opens (sf-drawer open is a method and was read as the open state); the table inside gets total and row-offset (aria-rowcount total + 1, aria-rowindex of later pages); the board asks the cards and every lane total in one request (window.totals count and the known sums; no lane-sums query, C304); a page table under layout=\"board\" is parked with one console warning; cards size S / M / L, M by default (C306); the layout values list board."
           ]
         }
       ]
