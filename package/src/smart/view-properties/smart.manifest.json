@@ -1901,7 +1901,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-properties/index.js",
-        "sha256": "32d9c484a0d73ebda074c4042e59f85db677ebbb7231b28e2142b267ee998db9"
+        "sha256": "6c5efadcef5b2edd224ce07d31e7ec96defad93f3f4ba31afc225aa34f751ce8"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.js",

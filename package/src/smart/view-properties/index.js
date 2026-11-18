@@ -716,8 +716,11 @@ class SfPropertyView extends PropertyViewElement {
         return EDIT_MODES.includes(value) ? value : "group+quick";
     }
 
+    // The window at a value is SIMAI Framework sf-popover: where the page has
+    // not defined it yet, a short field goes through its group as before.
     get quickEdit() {
-        return this.editMode === "group+quick" && this.mayEdit && !this.openAll && !this.configuring;
+        return this.editMode === "group+quick" && this.mayEdit && !this.openAll && !this.configuring
+            && Boolean(globalThis.customElements?.get?.("sf-popover"));
     }
 
     // A short field: one control at its value, by its type. A list of several,
@@ -1179,8 +1182,10 @@ class SfPropertyView extends PropertyViewElement {
     // apart, deleting it. A reading panel has no foot for one delete.
     get recordMenuItems() {
         const items = [];
-        // «Изменить всё» (C305 (1)): every group open at once, one Save.
-        if (this.mayEdit && !this.openAll && !this.configuring && this.mode !== "create"
+        // «Изменить всё» (C305 (1)): every group open at once, one Save -- in
+        // the panel's head; an inline view has its groups' «Изменить» and no
+        // row of its own for it (the skeleton keeps the first group in place).
+        if (this.panel && this.mayEdit && !this.openAll && !this.configuring && this.mode !== "create"
             && (this.sections ?? []).some((section) => (section.groups ?? []).some((group) => group.kind !== "related" && group.editable !== false))) {
             items.push({id: "edit-all", name: pageText(PROPERTY_VIEW_TEXT, "editAllText", this), icon: "edit"});
         }
@@ -1893,7 +1898,8 @@ class SfPropertyView extends PropertyViewElement {
     // sf-form draws a group's edit (C182) when it draws every field of it.
     formDraws(group) {
         const fields = this.visible(group?.fields, {conditions: false});
-        if (!fields.length || typeof globalThis.customElements?.get !== "function") return false;
+        // sf-form where the page has it defined; else the card's own form, as before.
+        if (!fields.length || !globalThis.customElements?.get?.("sf-form")) return false;
         return fields.every((field) => {
             const type = String(field.propertyType || field.type || "");
             if (field.when || drawsSetField(field) || FORMLESS_TYPES.has(type)) return false;
@@ -2241,7 +2247,10 @@ class SfPropertyView extends PropertyViewElement {
             history: this.historyFeed,
             docked: this.docked,
             dockBreakpoint: DOCK_BREAKPOINT,
-            sectionColumnTabs: typeof globalThis.customElements?.get?.("sf-tabs")?.prototype?.placeBox === "function",
+            // VP-26: sf-tabs vertical once it places its box by its own column;
+            // until then sf-menu, and sf-tabs where sf-menu is not defined.
+            sectionColumnTabs: typeof globalThis.customElements?.get?.("sf-tabs")?.prototype?.placeBox === "function"
+                || !globalThis.customElements?.get?.("sf-menu"),
             word: (key) => pageText(PROPERTY_VIEW_TEXT, key, this),
         });
     }

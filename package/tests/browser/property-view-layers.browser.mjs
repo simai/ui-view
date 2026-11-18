@@ -9,13 +9,13 @@
 //   - nested panels: the one opened later is above, the one below is under its
 //     overlay, with no dim of its own;
 //   - Escape closes the top window only;
-//   - the unsaved check: a close the host refuses keeps the panel open and what
-//     was typed in it;
+//   - the unsaved check: a close over unsaved work is asked in the card first
+//     (1.18.0, C159 (6)) and keeps the panel open and what was typed in it;
 //   - focus goes back where it was when the top window closes;
 //   - an sf-modal opened from a panel takes Escape first, and a panel opened
 //     over an sf-modal is drawn above it and takes Escape first;
-//   - a press on the dimmed page asks the host (reason outside) and closes
-//     nothing by itself;
+//   - from 64rem the first panel is docked (no dimmed page, C305 (4)); a press
+//     on a dimmed page over unsaved work is asked in the card and closes nothing;
 //   - the console stays clean.
 import {createServer} from 'node:http';
 import {existsSync, readFileSync, statSync} from 'node:fs';
@@ -180,11 +180,17 @@ const scenario = async () => {
   closes.length = 0;
   escape();
   await wait(400);
+  // 1.18.0 (C159 (6), C305): over unsaved work the card asks first, in the
+  // panel («Закрыть без сохранения» / «Вернуться к правке»), and raises the
+  // close only after the person's yes; «Вернуться к правке» keeps everything.
   result.refused = {
     closes: closes.slice(),
     lowerOpen: drawerOpen(lower),
     kept: lower.changed.get('name') ?? null,
+    asked: lower.leaveAsk?.kind ?? null,
   };
+  lower.answerLeave?.(false);
+  await wait(200);
 
   // 4. An sf-modal opened from the lower panel takes Escape; the panel is not asked.
   closes.length = 0;
@@ -213,7 +219,12 @@ const scenario = async () => {
   lowerOverlay?.dispatchEvent(new PointerEvent('pointerdown', {bubbles: true, composed: true}));
   lowerOverlay?.click();
   await wait(400);
-  result.outside = {closes: closes.slice(), lowerOpen: drawerOpen(lower)};
+  // From 64rem the first panel is docked beside the page (C305 (4), VP-23):
+  // no dimmed page to press. Where there is one, unsaved work is asked about
+  // in the card first, as for Escape.
+  const overlayShown = Boolean(lowerOverlay && lowerOverlay.getBoundingClientRect().width > 0 && getComputedStyle(lowerOverlay).visibility !== 'hidden' && !lowerOverlay.hidden);
+  result.outside = {closes: closes.slice(), lowerOpen: drawerOpen(lower), overlay: overlayShown, asked: lower.leaveAsk?.kind ?? null};
+  lower.answerLeave?.(false);
   lower.remove();
   await wait(300);
 
@@ -299,17 +310,17 @@ for (const {theme, load, measured: m, consoleErrors} of runs) {
   }
   if (!e.focusBack) note({at, case: 'the focus goes back to the control of the lower panel it left', got: e.focusBack});
   const r = m.refused ?? {};
-  if (r.closes?.length !== 1 || r.closes[0][1] !== 'escape' || !(r.closes[0][2] > 0) || !r.lowerOpen
+  if (r.closes?.length !== 0 || r.asked !== 'close' || !r.lowerOpen
       || r.kept !== 'Набрано и не сохранено') {
-    note({at, case: 'a close the host refuses over unsaved work keeps the panel and what was typed', got: r});
+    note({at, case: 'a close over unsaved work is asked in the card first and keeps the panel and what was typed', got: r});
   }
   const mp = m.modalOverPanel ?? {};
   if (!mp.modalAbove || mp.lowerTop !== false || mp.closes?.length !== 0 || mp.modalOpen || !mp.lowerOpen || !mp.lowerTopAgain) {
     note({at, case: 'an sf-modal opened from a panel is above it and takes Escape; the panel is not asked', got: mp});
   }
   const o = m.outside ?? {};
-  if (o.closes?.length !== 1 || o.closes[0][1] !== 'outside' || !o.lowerOpen) {
-    note({at, case: 'a press on the dimmed page asks the host (outside) and closes nothing by itself', got: o});
+  if (o.closes?.length !== 0 || !o.lowerOpen || (o.overlay && o.asked !== 'close')) {
+    note({at, case: 'a docked panel has no dimmed page; a press on one over unsaved work is asked in the card and closes nothing', got: o});
   }
   const pm = m.panelOverModal ?? {};
   if (!pm.panelAbove || !pm.panelTop || pm.closes?.length !== 1 || pm.closes[0][0] !== 'over-modal'
