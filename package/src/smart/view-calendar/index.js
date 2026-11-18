@@ -88,6 +88,7 @@ class SfViewCalendar extends CalendarElement {
         this._focus = null;
         this._picked = null;
         this._undatedOpen = null;
+        this._phoneUndated = false;
         this._message = "";
         this._phone = false;
         this._drag = null;
@@ -445,6 +446,8 @@ class SfViewCalendar extends CalendarElement {
             // An absent undated-total reads as 0: only a written one is the host's count.
             undatedTotal: this.hasAttribute?.("undated-total") && Number.isSafeInteger(this.getProp("undatedTotal")) ? this.getProp("undatedTotal") : this.undated.length,
             undatedOpen: this.undatedOpen && !this._phone,
+            // The phone's month: «Без даты N» under the month swaps the chosen day's list for the records without a date.
+            phoneUndated: this.phoneUndated,
             dragging: Boolean(this._drag?.active),
             truncated: this.getProp("truncated") === true || this.records.length > RECORDS_MAX,
             message: this._message,
@@ -491,6 +494,7 @@ class SfViewCalendar extends CalendarElement {
 
     onDisconnected() {
         super.onDisconnected?.();
+        this._endRowHold();
         this._listening?.abort();
         this._listening = null;
         this._resize?.disconnect();
@@ -585,8 +589,19 @@ class SfViewCalendar extends CalendarElement {
         this.sfEmit("save", {mode: this.mode, undated_open: this.undatedOpen});
     }
 
-    toggleUndated(open = !this.undatedOpen) {
+    /** The phone's month shows the records without a date in place of the chosen day's list. */
+    get phoneUndated() {
+        return this._phone && this.mode === "month" && this.calendarOptions.undated !== "none" && this._phoneUndated;
+    }
+
+    toggleUndated(open = this._phone && this.mode === "month" ? !this._phoneUndated : !this.undatedOpen) {
         if (this.calendarOptions.undated === "none") return false;
+        if (this._phone && this.mode === "month") {
+            this._phoneUndated = Boolean(open);
+            this.requestComponentUpdate("undated");
+            this._say(this.word(open ? "undated-list-opened-text" : "undated-list-closed-text"));
+            return true;
+        }
         this._undatedOpen = Boolean(open);
         this.requestComponentUpdate("undated");
         this._say(this.word(open ? "undated-opened-text" : "undated-closed-text"));
@@ -788,8 +803,9 @@ class SfViewCalendar extends CalendarElement {
     // ── clicks and menus ───────────────────────────────────────────────────
 
     _onClick(event) {
-        if (this._dragged) {
+        if (this._dragged || this._rowHeld) {
             this._dragged = false;
+            this._rowHeld = false;
             event.preventDefault();
             event.stopPropagation();
             return;
@@ -821,6 +837,9 @@ class SfViewCalendar extends CalendarElement {
         const item = event.target.closest?.("[data-ev]");
         if (!item || !this.contains(item)) return;
         event.preventDefault();
+        // A held row already opened its menu; a held touch on Android also sends this.
+        this._endRowHold();
+        if (this._rowHeld) return;
         this.openEventMenu(item.dataset.ev, null, [event.clientX, event.clientY]);
     }
 
@@ -840,6 +859,7 @@ class SfViewCalendar extends CalendarElement {
     /** The phone's month: a day chosen shows its events as a list under the month. */
     pickDay(day, {quiet = false} = {}) {
         this._picked = day;
+        this._phoneUndated = false;
         this._focus = day;
         this.requestComponentUpdate("picked");
         if (!quiet) this._say(`${this.cap(this.dayName(day))}: ${this.eventsCount(this.events.filter((event) => onDay(event, day)).length)}`);
@@ -1146,7 +1166,16 @@ class SfViewCalendar extends CalendarElement {
     // ── pointer moves and stretches (mouse and touch) ──────────────────────
 
     _onPointerDown(event) {
-        if (event.button !== 0 || this.getProp("movable") === false) return;
+        if (event.button !== 0) return;
+        this._rowHeld = false;
+        // A list row (the phone's day list, its «Без даты» list) does not drag:
+        // a held touch opens the event menu, where «Перенести на…» sets the date.
+        const row = event.pointerType === "touch" ? event.target.closest?.(".sf-view-calendar__row[data-ev]") : null;
+        if (row && this.contains(row) && !event.target.closest?.("sf-checkbox, [data-menu]")) {
+            this._startRowHold(event, row);
+            return;
+        }
+        if (this.getProp("movable") === false) return;
         const handle = event.target.closest?.("[data-rs]");
         const item = handle ? null : event.target.closest?.("[data-ev]");
         if (!handle && !item) return;
@@ -1173,6 +1202,34 @@ class SfViewCalendar extends CalendarElement {
         } else if (handle) {
             this._beginDrag();
         }
+    }
+
+    _startRowHold(event, row) {
+        this._endRowHold();
+        const start = [event.clientX, event.clientY];
+        const pointer = event.pointerId;
+        const signal = this._listening?.signal;
+        const stop = () => this._endRowHold();
+        const move = (moving) => { if (moving.pointerId === pointer && Math.hypot(moving.clientX - start[0], moving.clientY - start[1]) > 8) stop(); };
+        globalThis.addEventListener?.("pointermove", move, {signal});
+        globalThis.addEventListener?.("pointerup", stop, {signal});
+        globalThis.addEventListener?.("pointercancel", stop, {signal});
+        const timer = globalThis.setTimeout?.(() => {
+            stop();
+            this._rowHeld = true;
+            this.openEventMenu(row.dataset.ev, row);
+        }, TOUCH_HOLD * 2);
+        this._rowHold = {timer, move, stop};
+    }
+
+    _endRowHold() {
+        const hold = this._rowHold;
+        if (!hold) return;
+        this._rowHold = null;
+        globalThis.clearTimeout?.(hold.timer);
+        globalThis.removeEventListener?.("pointermove", hold.move);
+        globalThis.removeEventListener?.("pointerup", hold.stop);
+        globalThis.removeEventListener?.("pointercancel", hold.stop);
     }
 
     _beginDrag() {

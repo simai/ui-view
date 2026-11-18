@@ -173,3 +173,22 @@ test('VC-1: a number in the first «Кратко» column stays at its start; th
   assert.equal(fieldAlign({propertyType: 'string'}, 1), 'start');
   assert.match(read('src/smart/view-cards/js/templates/default.js'), /context\.cardFields\.map\(\(field, index\) => renderField\(context, field, record, index\)\)/u);
 });
+
+test('phone month (C307 (3), (4)): + on the chosen day heading, «Без даты N» swaps the list, a held row opens the event menu', () => {
+  const template = read('src/smart/view-calendar/js/templates/default.js');
+  const sheet = read('src/smart/view-calendar/js/templates/default.css');
+  const calendar = read('src/smart/view-calendar/index.js');
+  assert.equal((template.match(/\$\{renderPhoneList\(context\)\}/gu) ?? []).length, 2, 'both phone month branches');
+  assert.match(template, /\$\{always \? renderAdd\(context, day\) : nothing\}/u);
+  assert.match(template, /data-undtoggle\s+text=\$\{component\.word\("undated-text", \{count: context\.undatedTotal\}\)\} aria-pressed=\$\{context\.phoneUndated/u);
+  assert.match(template, /context\.phoneUndated \? renderUndatedList\(context\) : renderDayList\(context, context\.picked, true\)/u);
+  assert.match(sheet, /\.sf-view-calendar__lday-h\[data-picked\] \.sf-view-calendar__add \{ opacity: 1; \}/u);
+  assert.match(calendar, /return this\._phone && this\.mode === "month" && this\.calendarOptions\.undated !== "none" && this\._phoneUndated;/u);
+  assert.match(calendar, /this\._picked = day;\n\s+this\._phoneUndated = false;/u);
+  assert.match(calendar, /this\._rowHeld = true;\n\s+this\.openEventMenu\(row\.dataset\.ev, row\);/u);
+  assert.match(calendar, /\{id: "pick", text: this\.word\("pick-text"\)/u);
+  for (const lang of ['en', 'ru']) {
+    const words = json(`src/smart/view-calendar/lang/${lang}.json`).runtime;
+    for (const key of ['undated-text', 'undated-hint-phone', 'undated-list-opened-text', 'undated-list-closed-text', 'add-short-text', 'pick-text']) assert.ok(words[key], `${lang} ${key}`);
+  }
+});

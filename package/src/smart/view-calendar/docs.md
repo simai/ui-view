@@ -124,3 +124,10 @@ Below 600 px of its own width: the month with dots on event days and the
 chosen day's events as a list under it (C307 (1)). The dots are the
 calendar's own grid until `sf-input-date` carries day marks (CL-6); a feature
 check picks the Framework part then.
+
+The chosen day's heading carries + (always shown on the phone), creating a
+record on that day when `creatable` is on (C307 (3)). «Без даты N» under the
+month shows the records without a date in place of the day's list; choosing a
+day shows the day again (C307 (4)). A list row does not drag: holding it with
+a finger, Shift+F10 or the context menu opens the event menu, and «Перенести
+на…» sets the date.

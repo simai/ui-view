@@ -95,7 +95,7 @@ function renderMonth(context) {
         return html`<div class="sf-view-calendar__month-wrap">
             <sf-input-date class="sf-view-calendar__phone-month" input="false" size=${context.size} date=${context.picked}
                            week-start=${String(component.weekStart)} locale=${component.locale} .dayMarks=${marks}></sf-input-date>
-            <div class="sf-view-calendar__list" data-picked-list>${renderDayList(context, context.picked, true)}</div>
+            ${renderPhoneList(context)}
         </div>`;
     }
     return html`
@@ -112,7 +112,7 @@ function renderMonth(context) {
                     </div>`;
                 })}
             </div>
-            ${compact ? html`<div class="sf-view-calendar__list" data-picked-list>${renderDayList(context, context.picked, true)}</div>` : nothing}
+            ${compact ? html`${renderPhoneList(context)}` : nothing}
         </div>`;
 }
 
@@ -247,7 +247,10 @@ function renderDayList(context, day, always = false) {
     const list = context.events.filter((event) => onDay(event, day));
     if (!list.length && !always) return nothing;
     return html`<div class="sf-view-calendar__lday" role="list" aria-label=${component.cap(component.dayName(day))}>
-        <div class="sf-view-calendar__lday-h" ?data-today=${day === context.today}>${component.cap(component.dayName(day))}${day === context.today ? ` · ${component.word("today-mark")}` : ""}</div>
+        <div class="sf-view-calendar__lday-h" ?data-today=${day === context.today} ?data-picked=${always}>
+            <span>${component.cap(component.dayName(day))}${day === context.today ? ` · ${component.word("today-mark")}` : ""}</span>
+            ${always ? renderAdd(context, day) : nothing}
+        </div>
         ${list.length ? list.map((event) => renderRow(context, event)) : html`<div class="sf-view-calendar__note">${component.word("day-empty-text")}</div>`}
     </div>`;
 }
@@ -257,6 +260,43 @@ function renderList(context) {
     const days = context.range.days.filter((day) => context.events.some((event) => onDay(event, day)));
     return html`<div class="sf-view-calendar__list" aria-label=${`${context.label}, ${component.monthTitle(component.anchor).toLocaleLowerCase(component.locale)}`}>
         ${days.length ? days.map((day) => renderDayList(context, day)) : html`<div class="sf-view-calendar__empty">${component.word("empty-text")}</div>`}
+    </div>`;
+}
+
+// The phone's month: under the month «Без даты N», then the chosen day's
+// list (its heading carries +) or, while «Без даты» is pressed, the records
+// without a date; the event menu (a held row, Shift+F10) sets their date.
+function renderPhoneList(context) {
+    const component = context.component;
+    const undatable = context.options.undated !== "none";
+    return html`
+        ${undatable ? html`<div class="sf-view-calendar__phone-und">
+            <sf-button size=${context.size} appearance="ghost" scheme=${context.phoneUndated ? "primary" : "on-surface"} icon="event_busy" data-undtoggle
+                       text=${component.word("undated-text", {count: context.undatedTotal})} aria-pressed=${context.phoneUndated ? "true" : "false"}></sf-button>
+        </div>` : nothing}
+        <div class="sf-view-calendar__list" data-picked-list>${context.phoneUndated ? renderUndatedList(context) : renderDayList(context, context.picked, true)}</div>`;
+}
+
+function renderUndatedList(context) {
+    const component = context.component;
+    return html`<div class="sf-view-calendar__lday" role="list" aria-label=${component.word("undated-label")} data-und-list>
+        <div class="sf-view-calendar__lday-h" data-picked>
+            <span>${component.word("undated-head-text", {count: context.undatedTotal})}</span>
+            <sf-button-icon size=${context.size} appearance="ghost" scheme="on-surface-variant" icon="close" data-undclose
+                            aria-label=${component.word("undated-close-text")} tooltip=${component.word("close-text")}></sf-button-icon>
+        </div>
+        <div class="sf-view-calendar__note">${component.word(context.undated.length ? "undated-hint-phone" : "undated-empty-text")}</div>
+        ${context.undated.map((record) => {
+            const id = String(record.id);
+            const readOnly = component.readOnly(record);
+            return html`<div class="sf-view-calendar__row" data-id=${id} data-ev=${id} tabindex="-1" role="listitem"
+                    ?data-pending=${context.pending.has(id)} ?data-ro=${Boolean(readOnly)}
+                    aria-label=${`${component.recordTitle(record)}, ${component.word("undated-label").toLocaleLowerCase(component.locale)}`}>
+                <span class="sf-view-calendar__time"><span class="sf-view-calendar__dot" aria-hidden="true"></span></span>
+                <span class="sf-view-calendar__name">${component.recordTitle(record)}</span>
+                ${component.eventFieldList.map((field) => html`<span class="sf-view-calendar__field" data-key=${String(field.key)} data-align=${component.fieldAlign(field)}>${renderShape(component.cellShape(field, record), component)}</span>`)}
+            </div>`;
+        })}
     </div>`;
 }
 

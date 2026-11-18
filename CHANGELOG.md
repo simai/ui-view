@@ -60,6 +60,11 @@ window (C310); DEV's round 3 returns VR3-1..VR3-4.
   never sends a calendar range with `date_field: null` (VCL-2).
   `sf-view-cards` 1.0.1: a number in the first «Кратко» column stays at its
   start (VC-1).
+- The phone's month (C307 (3), (4)): `sf-view-calendar` 1.1.0 puts + on the
+  chosen day's heading under the month (always shown there) and a «Без даты N»
+  item that shows the records without a date in place of the day's list; a
+  held row, Shift+F10 or the context menu opens the event menu, where
+  «Перенести на…» sets the date.
 - Tests: the STATUS test reads only the branches the candidate carries
   (`SET_LIVE_BRANCHES=1` reads live origin, VR3-3). Site: the view-table
   example of former tags uses `sf-view-table` (VR3-4).

@@ -67,7 +67,10 @@
     "undated-empty-text": "Записей без даты нет",
     "undated-head-text": "Без даты · {count}",
     "undated-hint": "Перетащите на день, чтобы назначить дату",
+    "undated-hint-phone": "Удерживайте запись (или нажмите Shift+F10) и выберите «Перенести на…», чтобы назначить дату",
     "undated-label": "Без даты",
+    "undated-list-closed-text": "Показаны записи выбранного дня",
+    "undated-list-opened-text": "Показаны записи без даты",
     "undated-moved-text": "{title} — дата убрана, запись в «Без даты»",
     "undated-opened-text": "Открыта колонка «Без даты»",
     "undated-text": "Без даты {count}"
