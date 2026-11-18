@@ -4448,6 +4448,8 @@ class SfPropertyView extends PropertyViewElement {
         // A 1.18.0 layer holds sections, groups and fields only.
         if (!this.configuring || !this.layerDraft || !this.hostSpeaksCardSettings || this.lockedForMe("head")) return false;
         this.layerDraft.head = {subtitle: next.subtitle.slice(0, 2), status: next.status ?? null};
+        // Drawn after the mode too, before the next read brings the host's.
+        if (this.view) this.view.head = copy(this.layerDraft.head);
         this.requestComponentUpdate("view-head");
         return this.saveView();
     }

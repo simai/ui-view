@@ -16,6 +16,32 @@ same numbers with other content); every next set version is above them
 up). Each component.json says the same under `x-decisions`
 `pro-copy-versions`.
 
+## Unreleased (round/view-returns, record card settings)
+
+Owner decision C311 on the levels of C298 (RC-1..RC-4, RC-6..RC-10, TB-1;
+RC-5 is Larena's).
+
+- `sf-view-properties` 1.19.0: the card is arranged in the card itself. Own
+  edits are written to the personal layer at once; «Сохранить для всех»
+  (`view.publish`), «Вернуть как у всех» in the profile picker (the personal
+  layer only), «Сохранить как моё» (`view.create` shared false), locks per
+  setting (`view.locked`, `view.lock`) and a required profile
+  (`profiles[].required`). The head line: the stage as a tonal badge and up
+  to two fields (`view.head`). The mode: the picker and a hint over the
+  fields, «Вкладки» with handles and a «⋯» per tab, «+ Вкладка» with a
+  «Поля» area, a field to another tab from its «⋯» at every width, one way
+  to hide (the eye and «Скрытые поля»), no template per view (C302 (2)),
+  «Новое поле…» for the host's field editor
+  (`sf-view-properties-structure`); the foot «Готово», «Сохранить для всех»,
+  «Отменить». Port 1.19.0 (ui-source `round/property-view-port-1.19`) is
+  accepted; the declared contract stays 1.18.0 until a pair carries 1.19.0,
+  and the new intents go only to a 1.19.0 host.
+- `sf-view` 1.20.0: «Настройки полей записи» opens the first record in the
+  card's arranging mode (`openRecordSettings()`); the head's own record
+  fields drawer and `entity.fields.save` are gone.
+- Site: the card page's «Настройка карточки» with a host of port 1.19.0 and
+  its request log.
+
 ## Unreleased (round/view-returns)
 
 DEV's returns of round 2 (VR2-1..VR2-9) and C306.
