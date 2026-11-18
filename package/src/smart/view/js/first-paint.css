@@ -445,8 +445,54 @@
     background: var(--sf-surface-card);
     min-block-size: calc(var(--sf-space-1\/3) * 2 + var(--sf-text-height-1\/2) * 3 + var(--sf-space-1\/4) * 2);
   }
+  /* The calendar's first paint (sf-view-calendar, CL-2): its bar of controls
+     and the month of six weeks, each day the calendar's own fixed height (the
+     number row, three rows, the «+N» control), so the days do not move when
+     the events come. */
+  .sf-data-view-skeleton-calendar {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sf-space-1\/3);
+    min-inline-size: 0;
+  }
+  .sf-data-view-skeleton-calendar [data-part="bar"] {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--sf-space-1\/3);
+    min-block-size: var(--sf-ui-1\/2--control-height);
+  }
+  .sf-data-view-skeleton-calendar [data-part="bar"] > .sf-skeleton-text:not([data-control]) { flex: 0 1 var(--sf-f6); margin-inline-end: auto; }
+  .sf-data-view-skeleton-calendar [data-part="weekdays"],
+  .sf-data-view-skeleton-calendar [data-part="month"] > div {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+  }
+  .sf-data-view-skeleton-calendar [data-part="weekdays"] > span {
+    padding: 0 var(--sf-space-1\/4) var(--sf-space-1\/4);
+    min-block-size: var(--sf-text-height-1\/2);
+  }
+  .sf-data-view-skeleton-calendar [data-part="month"] {
+    border-block-start: var(--sf-px) solid var(--sf-outline-variant);
+    border-inline-start: var(--sf-px) solid var(--sf-outline-variant);
+  }
+  .sf-data-view-skeleton-calendar [data-part="month"] span {
+    box-sizing: border-box;
+    block-size: calc(2 * var(--sf-space-1\/4) + var(--sf-px) + 2 * var(--sf-ui-1\/2--control-height)
+      + 2 * var(--sf-text-height-1\/2) + 3 * var(--sf-space-1\/4));
+    padding: var(--sf-space-1\/4);
+    border-inline-end: var(--sf-px) solid var(--sf-outline-variant);
+    border-block-end: var(--sf-px) solid var(--sf-outline-variant);
+  }
+  .sf-data-view-skeleton-calendar [data-part="month"] .sf-skeleton-text { inline-size: var(--sf-space-1); }
   .sf-data-view-skeleton-switch { display: none; }
   @container (max-width: 600px) {
+    /* The phone month (C307 (1)): the number and a row of dots; the modes
+       take a row of their own under the bar, as the calendar draws them. */
+    .sf-data-view-skeleton-calendar [data-part="month"] span {
+      block-size: calc(3 * var(--sf-space-1\/4) + var(--sf-ui-1\/2--control-height) + var(--sf-space-1\/3) + var(--sf-px));
+    }
+    .sf-data-view-skeleton-calendar [data-part="bar"] > [data-control]:last-child { flex: 1 1 100%; }
     .sf-data-view-skeleton-board > div {
       flex: 0 0 100%;
       inline-size: 100%;

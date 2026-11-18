@@ -1,0 +1,7 @@
+<div class="flex flex-col gap-2" data-calendar-demo>
+  <sf-view id="deliveries-calendar" layout="calendar" aria-label="Доставки">
+    <sf-view-calendar slot="content" aria-label="Доставки" time-zone="Europe/Moscow"
+      options='{"date_field":"start","end_field":"end","color_field":"status","event_fields":["client","amount"],"per_day":3,"hours":["08:00","20:00"],"slot":30}'></sf-view-calendar>
+  </sf-view>
+  <p class="m-0 color-on-surface-variant" role="status" data-calendar-log></p>
+</div>

@@ -117,6 +117,8 @@ const STATUS_PENDING = {
   'sf-view-board': {set: 'preview', registry: undefined, order: 'register sf-view-board / cl-view-board in contracts/registry/names.json (view round 2 board, 2026-11-18)'},
   // sf-view-cards (view-cards helper): registered with the next Framework group build as well.
   'sf-view-cards': {set: 'preview', registry: undefined, order: 'register sf-view-cards / cl-view-cards in contracts/registry/names.json (view-cards, 2026-11-18)'},
+  // sf-view-calendar (view-calendar, C307): new as the board was.
+  'sf-view-calendar': {set: 'preview', registry: undefined, order: 'register sf-view-calendar / cl-view-calendar in contracts/registry/names.json (view-calendar, 2026-11-18)'},
 };
 
 test('each component has the status the registry gives it', {skip: !setRoot && 'SET_ROOT is not given'}, () => {

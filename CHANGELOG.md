@@ -107,6 +107,29 @@ DEV's returns of round 2 (VR2-1..VR2-9) and C306.
   narrows; the first paint holds a grid of cards. The wiring lives in
   `view/js/cards.js`; `index.js` only calls it at its hook points.
 
+## Unreleased (round/view-calendar)
+
+- `sf-view-calendar` 1.0.0 (owner decision C307, CA-1..CA-10; study
+  ui-control `control/research/2026-11-18-calendar-view`): a new layout of
+  the set, preview. Records sit on the days of their date field in a month
+  of six weeks, a week or a day of hours, or a list; a record is moved and
+  stretched by mouse, touch and keys (Ctrl+Shift+arrows), shown at once and
+  pale until the host answers; a refusal puts it back and says why. Days a
+  rule of the date field refuses dim with the reason while a record is held.
+  Past `per_day` a day says «+N», which opens its list in place; «Без даты N»
+  opens a column of undated records, dragged to a day and back; «+» on a day
+  creates a record with its date. On a phone the month has dots and the
+  chosen day's list under it. One Tab stop for the grid (the W3C date grid),
+  PageUp/PageDown the period, Shift+F10 the event menu with disabled items
+  and their reasons. Week start and time zone are the request's, never the
+  view's.
+- `sf-view` 1.22.0 (said 1.18.0 on its branch): `layout="calendar"` draws it. The query carries window
+  `{range: [from, to), date_field, end_field}` and context `{timeZone,
+  weekStart, locale}`; the undated records are a second `query.change`
+  (reason `undated`); a move is `record.set {record_id, key, value, patch,
+  revision}`; the first paint holds the month grid. The list head's calendar
+  settings write `color_field` and offer no week start.
+
 ## Unreleased (round/view-r2)
 
 - `sf-view-table` 1.24.0 (owner decision C296, view round 2, VT-1..VT-18):

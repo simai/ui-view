@@ -23,7 +23,8 @@ is not re-read yet). Evidence is `package/src/smart/<folder>/…` at `4317b84` u
 | sf-view-flow | 6 | 2 | 3 | 1 | 0 |
 | sf-view-board | 9 | 8 | 0 | 0 | 1 |
 | sf-view-cards | 9 | 8 | 0 | 0 | 1 |
-| all | 106 | 52 | 28 | 7 | 19 |
+| sf-view-calendar | 10 | 8 | 1 | 0 | 1 |
+| all | 116 | 60 | 29 | 7 | 20 |
 
 ## Framework orders
 
@@ -37,6 +38,7 @@ is not re-read yet). Evidence is `package/src/smart/<folder>/…` at `4317b84` u
 | FO-6 | sf-pagination's selection band placeable in a host slot (after BQ-1) | V-06 |
 | FO-7 | `money` and `percent` property types (after BQ-2) | P-17 |
 | FO-8 | sf-form answer mode over the confirm surface (after BQ-3) | F-03, F-04, F-06 |
+| FO-9 | sf-input-date day marks (`dayMarks`, CL-6 of the calendar study) | K-09 |
 
 ## sf-view
 
@@ -179,3 +181,22 @@ Evidence is `package/src/smart/view-cards/…` on `round/view-cards`.
 | K-07 | card menu | SF.menu.open | `fw` | uses the Framework | view-cards/index.js openCardMenu |
 | K-08 | selection bar | sf-bulk-actions (C295) behind a feature check; before it a strip of sf-button | `fw` | uses the Framework where the pair has it | view-cards/js/templates/default.js renderBulk |
 | K-09 | grid by width, cover frame, window, grid keys | none: the cards layout itself | `set` | the set's own | view-cards/js/cards.js, index.js, js/templates/default.css |
+
+## sf-view-calendar
+
+Added in view-calendar (owner decision C307), read over pair `ui-1ed6b6c9a040`.
+Evidence is `package/src/smart/view-calendar/…` on `round/view-calendar`.
+
+| Id | Part | Framework part | Verdict | State | Evidence |
+|---|---|---|---|---|---|
+| K-01 | bar: ‹ ›, «Сегодня», «Без даты N» | sf-button-icon, sf-button | `fw` | uses the Framework | view-calendar/js/templates/default.js renderBar_ |
+| K-02 | modes month, week, day, list | sf-segmented | `fw` | uses the Framework | view-calendar/js/templates/default.js renderBar_ |
+| K-03 | «Перенести на дату» picker | sf-input-date | `fw` | uses the Framework | view-calendar/index.js openPick |
+| K-04 | event fields («Кратко») | field-renderers renderCellField (C300 (2)) | `fw` | uses the Framework | view-calendar/index.js cellShape |
+| K-05 | event colour | option colour role (C140) | `fw` | uses the Framework's colour roles | view-calendar/js/calendar.js toneOf |
+| K-06 | event menu with disabled items and reasons | SF.menu.open | `fw` | uses the Framework | view-calendar/index.js openEventMenu |
+| K-07 | refusal message | sf-toast | `fw` | uses the Framework | view-calendar/index.js _refuse |
+| K-08 | selection bar (list mode) | sf-bulk-actions (C295) behind a feature check; before it sf-checkbox and a strip of sf-button | `fw` | uses the Framework where the pair has it | view-calendar/js/templates/default.js renderBulk |
+| K-09 | phone month with dots | sf-input-date dayMarks (CL-6) behind a feature check; before it the calendar's own grid | `copy` | kept, waits FO-9 | view-calendar/index.js inputDateMarks, js/templates/default.js |
+| K-10 | month and time grids, window, moves, rules, date grid keys | none: the calendar layout itself | `set` | the set's own | view-calendar/js/calendar.js, index.js |
+

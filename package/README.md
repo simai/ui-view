@@ -13,6 +13,7 @@ their tests and the scripts that test, probe and stage them.
 | `src/smart/view-flow` | `sf-view-flow` | — | the flow block, preview: a record's properties as a block in a flow (a chat, a feed), shown or answered |
 | `src/smart/view-board` | `sf-view-board` | — | the board, preview: lanes by one field, cards moved between them; `sf-view layout="board"` draws it |
 | `src/smart/view-cards` | `sf-view-cards` | — | the cards, preview: records as cards in a grid, a cover, a title and up to four fields; `sf-view layout="cards"` draws it |
+| `src/smart/view-calendar` | `sf-view-calendar` | — | the calendar, preview: records on the days of their date field (month, week, day, list), moved and stretched; `sf-view layout="calendar"` draws it |
 
 The components came from `simai/ui-pro` `components/src/smart/` at
 `c2a3b48d140f` (the `pro` bundle keeps shipping them until it is rebuilt from

@@ -7,7 +7,7 @@
   },
   "id": "view",
   "title": "SIMAI View",
-  "summary": "Data views for SIMAI Framework pages: the data view sf-view over a host's data port, the smart table sf-view-table (search, filters, sorting, pages, columns, row actions), the record card sf-view-properties, the flow block sf-view-flow for a flow (a chat, a feed), the board sf-view-board (lanes by one field, cards moved between them) and the cards sf-view-cards (records as cards in a grid).",
+  "summary": "Data views for SIMAI Framework pages: the data view sf-view over a host's data port, the smart table sf-view-table (search, filters, sorting, pages, columns, row actions), the record card sf-view-properties, the flow block sf-view-flow for a flow (a chat, a feed), the board sf-view-board (lanes by one field, cards moved between them), the cards sf-view-cards (records as cards in a grid) and the calendar sf-view-calendar (records on the days of their date field, moved between days).",
   "repository": "simai/ui-view",
   "licence": {
     "class": "simai-pro",
@@ -228,6 +228,27 @@
         "cl-reference-link",
         "cl-skeleton",
         "cl-tag"
+      ]
+    },
+    {
+      "element": "sf-view-calendar",
+      "rule": "cl-view-calendar",
+      "folder": "view-calendar",
+      "status": "preview",
+      "requires": [
+        "cl-avatar",
+        "cl-badge",
+        "cl-button",
+        "cl-button-icon",
+        "cl-checkbox",
+        "cl-icon",
+        "cl-input-date",
+        "cl-menu-context",
+        "cl-progress-scale",
+        "cl-reference-link",
+        "cl-segmented",
+        "cl-tag",
+        "cl-toast"
       ]
     }
   ]

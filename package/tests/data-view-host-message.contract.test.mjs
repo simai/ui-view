@@ -7,6 +7,8 @@ import vm from 'node:vm';
 import * as treeModel from '../src/smart/view/js/tree.js';
 // The cards layout's wiring (sf-view 1.21.0, view/js/cards.js).
 import * as cardsWiring from '../src/smart/view/js/cards.js';
+// The calendar layout's side of the view (view/js/calendar.js), supplied the same way.
+import * as calendarAdapter from '../src/smart/view/js/calendar.js';
 import {answerActions, settingSetters} from '../src/smart/view-table/js/manifest-actions.js';
 
 // What index.js imports since it is made from its component.json (standard
@@ -136,6 +138,7 @@ vm.runInNewContext(source, {
   // The tree model is a module of plain functions, supplied the same way.
   ...treeModel,
   ...cardsWiring,
+  ...calendarAdapter,
   document: {createElement: (tag) => new FakeChild(tag)},
 });
 const DataView = elements.get('sf-view');

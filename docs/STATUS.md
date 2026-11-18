@@ -35,6 +35,7 @@ Framework-first record in [FRAMEWORK-FIRST](FRAMEWORK-FIRST.md).
 | Site evidence 8.11/8.12 (E11) | measured; first paint and the hero effect red, waiting Docara orders | `docs/evidence/2026-11-17-view-r1-site/` |
 | Passport docs URL empty until the site answers (E12) | waits a Framework order (component-set schema) | [DECISIONS](DECISIONS.md) D3 |
 | Record card per C289 (C1-C10), table defects (D1-D10, D2 from `fix/view-c106-settings`) | merged into `round/view-r1` | ui-control `control/evidence/2026-11-17-view-r1-card/`, `…-view-r1-table/`, `…-view-r1-merge/` |
+| Calendar layout per C307 (CA-1..CA-10): `sf-view-calendar` 1.0.0, `sf-view` 1.18.0 | on `round/view-calendar`, merged after r3 and cards | ui-control `control/evidence/2026-11-18-view-calendar/` |
 
 ## Consumers
 
@@ -56,15 +57,13 @@ Every remote branch ahead of `main`, with the release that takes it.
 | Branch | Release that takes it |
 |---|---|
 | `round/view-r1` | view 1.9.0 (the round) |
+| `round/view-r4` | view round 4: the dispatcher's merge of `round/view-returns` 50f0639, `round/view-cards` ae80702 and `round/view-calendar` 454f86e, with view-config/1 calendar and cards keys, C311 (5) and the list head filter window (C310); the next view release |
 | `round/view-returns` | view returns of round 2 (VR2-1..VR2-9, from `round/view-r3` 3d5ddf8; sf-view 1.19.0, sf-view-table 1.25.0, sf-view-properties 1.18.2, sf-view-board 1.1.1) and the record card settings (C311; sf-view-properties 1.19.0, sf-view 1.20.0); merged after `round/view-cards` and `round/view-calendar`; for the dispatcher's acceptance |
-| `round/view-calendar` | view calendar layout (C307, from `round/view-r2` 42442ee), a helper's branch; merged by the dispatcher after `round/view-cards` and before `round/view-returns` |
-| `round/view-cards` | view cards layout (C306, from `round/view-r2` 42442ee), a helper's branch; merged by the dispatcher before `round/view-calendar` and `round/view-returns` |
+| `round/view-calendar` | view calendar layout sf-view-calendar 1.0.0 (C307, from `round/view-r2` 42442ee), a helper's branch; merged by the dispatcher into `round/view-r4` after `round/view-cards` (sf-view 1.22.0 there) |
+| `round/view-cards` | view cards layout sf-view-cards 1.0.0 (C297, C306, from `round/view-r2` 42442ee), a helper's branch; merged by the dispatcher into `round/view-r4` (sf-view 1.21.0 there) |
 | `round/view-r3` | view round 3 (from `round/view-r2` 42442ee): the head's display kind switches the layout live (sf-view 1.18.0), no empty group head (sf-view-properties 1.18.1), property-page layout shift, money page size, the board and list head pages; for the dispatcher's acceptance |
 | `round/view-r2` | view round 2: the dispatcher's merge of the five `round/view-r2-*` branches (sf-view 1.17.0); `round/view-r3` builds on it; to close after the release |
 | `round/view-r2-*` | view round 2 (C296-C305): the helpers' branches (table, head, page, board, card) cut from `round/view-r1` 6062713, merged by the dispatcher into `round/view-r2` (table, head, page, board, card); to close after the release |
-| `round/view-r2` | view round 2 merge (42442ee): the base of `round/view-r3`, `round/view-cards`, `round/view-calendar`; to close after the release |
-| `round/view-r3` | view round 3 (from `round/view-r2` 42442ee): the head's display kind switches the layout live (sf-view 1.18.0) and the board and list head pages; merges before `round/view-cards` |
-| `round/view-cards` | the cards layout sf-view-cards (C297, C306, CD-1..CD-8), cut from `round/view-r2` 42442ee; to merge after `round/view-r3` |
 | `round/view-r1-site` | view 1.9.0: merged into `round/view-r1` (the round's merge); to close after the release |
 | `round/view-r1-card` | view 1.9.0: merged into `round/view-r1` (the round's merge); to close after the release |
 | `round/view-r1-table` | view 1.9.0: merged into `round/view-r1` (the round's merge); to close after the release |
