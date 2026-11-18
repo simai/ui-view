@@ -477,6 +477,37 @@ class SfDataView extends DataViewElement {
         return isTag(card, "sf-view-properties") ? card : null;
     }
 
+    // «Настройки полей записи» of the list head (C301) opens the first record
+    // in its card, straight in the arranging mode (C311 (1), RC-4): one place
+    // for the card's arrangement, one per entity whatever the layout (C311
+    // (3)). It drew a fields panel of its own with entity.fields.save. A page
+    // without a record card beside the list hears settings-open.
+    async openRecordSettings() {
+        const card = this.recordCard;
+        const rows = this.layoutKind === "board"
+            ? (this.board?.boardLanes ?? this.boardLanes ?? []).filter((lane) => !lane.hidden).flatMap((lane) => lane.records ?? [])
+            : (this.cappedRecords ?? []);
+        const first = this._cardOpen ?? (rows[0]?.id != null ? String(rows[0].id) : null);
+        if (!card || !first) {
+            this.sfEmit("settings-open", {id: "record-fields"});
+            return null;
+        }
+        const ready = () => card.getAttribute("record-id") === first && card.getAttribute("data-state") === "ready" && card.record;
+        const shown = ready()
+            ? Promise.resolve()
+            : new Promise((done) => {
+                const heard = (event) => {
+                    if (event.detail?.state !== "ready" || card.getAttribute("record-id") !== first) return;
+                    card.removeEventListener("sf-view-properties-state", heard);
+                    done();
+                };
+                card.addEventListener("sf-view-properties-state", heard);
+            });
+        if (this._cardOpen !== first) this._openRecord(first, {action_id: "view", record_ids: [first], record_id: first});
+        await shown;
+        return card.configuring ? true : card.startConfiguringView?.() ?? false;
+    }
+
     // One way a record of the list opens (vocabulary §5 open {id}).
     _openRecord(id, detail) {
         const allowed = this.sfEmit("open", {id}, {cancelable: true});

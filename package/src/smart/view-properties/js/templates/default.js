@@ -27,91 +27,80 @@ function listed(context, entries) {
 // 2026-10-08), where saving, cancelling and deleting live when a group is being
 // edited: the foot is where a mode's own answers belong, and a band of them
 // under the head pushed the record down by a row it did not need.
-function renderConfigureBar(context) {
-    if (!context.canConfigureView) return nothing;
-    // Not configuring: nothing is drawn. Entering is the «⋯» menu's, as the mockup
-    // has it -- a standalone «Настроить вид» link stood as its own band under the
-    // head and was one of the two empty-looking rows the owner saw.
-    if (!context.configuring) return nothing;
+// The arranging mode (C311 (1), (5), RC-10): over the fields a bar with the
+// profile picker (C163; «Вернуть как у всех» at its foot, resettable) and one
+// line that says where an edit goes; at the foot the mode's answers in the
+// C157 (3) order -- «Готово» first, «Сохранить для всех» for those who may
+// write the shared layer when there is something of their own to publish,
+// «Отменить». The picker stood in the foot, last of four, before.
+function configureHint(context) {
+    if (context.viewRequired) return context.word('configureRequiredHintText');
+    return context.canWriteShared ? context.word('configureAdminHintText') : context.word('configurePersonalHintText');
+}
 
-    // One row of controls and nothing else: the view being arranged and the
-    // way out. Whose copy is written follows from the view itself -- a view
-    // for everyone is written for everyone, a personal one for its person --
-    // so the «Персональный / Для всех» toggle that stood beside the chooser
-    // said the same thing twice and is gone (owner, 2026-10-14).
-
-    // Which named view is being arranged, chosen, made, renamed and removed in
-    // the Framework's profile picker (owner, 2026-10-14) -- the one the admin
-    // menu's profiles use.
+function renderConfigureTop(context) {
+    if (!context.canConfigureView || !context.configuring) return nothing;
     const writable = context.editableLayers ?? [];
-    const chooser = html`
-        <sf-profile-picker
-                size=${context.controlSize ?? nothing}
-                data-action="view-profile"
-                label=${context.viewProfileLabel}
-                current=${context.viewProfile ?? ''}
-                .profiles=${(context.viewProfiles ?? []).map((profile) => ({
-                    id: profile.id, label: profile.label, shared: Boolean(profile.shared),
-                    editable: writable.includes(profile.shared ? 'shared' : 'personal')
-                        && (!profile.shared || context.canDeleteViewProfile(profile.id)),
-                }))}
-                .rights=${{create: {personal: writable.includes('personal'), shared: writable.includes('shared')}}}
-                @sf-profile-picker-select=${(event) => context.component.selectViewProfile(event.detail.id)}
-                @sf-profile-picker-create=${(event) => context.component.createViewProfile(event.detail.label, {shared: event.detail.shared})}
-                @sf-profile-picker-rename=${(event) => context.component.renameViewProfile(event.detail.id, event.detail.label)}
-                @sf-profile-picker-delete=${(event) => context.component.deleteViewProfile(event.detail.id)}
-        ></sf-profile-picker>`;
+    const required = context.viewRequired;
+    return html`
+        <div class="sf-property-view-configure-top flex items-cross-center gap-1/3 flex-wrap"
+             data-configuring="true" role="group" aria-label=${context.configureText}>
+            ${(context.viewProfiles ?? []).length ? html`
+            <sf-profile-picker
+                    size=${context.controlSize ?? nothing}
+                    data-action="view-profile"
+                    label=${context.viewProfileLabel}
+                    current=${context.viewProfile ?? ''}
+                    ?disabled=${required}
+                    ?resettable=${!required && writable.includes('personal')}
+                    .profiles=${(context.viewProfiles ?? []).map((profile) => ({
+                        id: profile.id, label: profile.label, shared: Boolean(profile.shared),
+                        editable: writable.includes(profile.shared ? 'shared' : 'personal')
+                            && (!profile.shared || context.canDeleteViewProfile(profile.id)),
+                    }))}
+                    .rights=${{create: {personal: !required && writable.includes('personal'), shared: !required && writable.includes('shared')}}}
+                    @sf-profile-picker-select=${(event) => context.component.selectViewProfile(event.detail.id)}
+                    @sf-profile-picker-create=${(event) => context.component.createViewProfile(event.detail.label, {shared: event.detail.shared})}
+                    @sf-profile-picker-rename=${(event) => context.component.renameViewProfile(event.detail.id, event.detail.label)}
+                    @sf-profile-picker-delete=${(event) => context.component.deleteViewProfile(event.detail.id)}
+                    @sf-profile-picker-reset=${() => context.component.resetView()}
+            ></sf-profile-picker>` : nothing}
+            <span class="sf-property-view-configure-hint color-on-surface-variant min-w-0">${configureHint(context)}</span>
+        </div>
+    `;
+}
 
+function renderConfigureBar(context) {
+    if (!context.canConfigureView || !context.configuring) return nothing;
+    const required = context.viewRequired;
+    const publish = context.canWriteShared && !required && context.hasPersonalEdits;
     return html`
         <div class="sf-property-view-actions sf-property-view-configure-bar flex items-cross-center gap-1/3 flex-wrap"
              data-configuring="true" role="group"
              aria-label=${context.configureText}>
-            ${chooser}
-            <span class="grow"></span>
-            ${context.resetAsked
-                    ? html`
-                        <span class="sf-property-view-reset-ask color-error">${context.resetViewAskText}</span>
-                        <sf-button
-                                appearance="ghost"
-                                size=${context.controlSize ?? nothing}
-                                status="danger"
-                                text=${context.resetViewText}
-                                data-action="reset-view-confirm"
-                                @click=${() => context.component.resetView()}
-                        ></sf-button>
-                        <sf-button
-                                appearance="outline"
-                                size=${context.controlSize ?? nothing}
-                                text=${context.cancelConfiguringText}
-                                data-action="reset-view-cancel"
-                                @click=${() => context.component.cancelReset()}
-                        ></sf-button>`
-                    : html`
-                        <!-- Reset, cancel, done: the further a control reaches, the
-                             quieter it is drawn. Reset takes the whole layer away
-                             and asks first; cancel puts back the arrangement this
-                             mode was entered with; done keeps what is there. -->
-                        <sf-button
-                                appearance="ghost"
-                                size=${context.controlSize ?? nothing}
-                                text=${context.resetViewText}
-                                data-action="reset-view"
-                                @click=${() => context.component.askReset()}
-                        ></sf-button>
-                        <sf-button
-                                appearance="outline"
-                                size=${context.controlSize ?? nothing}
-                                text=${context.cancelConfiguringText}
-                                data-action="cancel-configuring"
-                                @click=${() => context.component.cancelConfiguringView()}
-                        ></sf-button>
-                        <sf-button
-                                appearance="default"
-                                size=${context.controlSize ?? nothing}
-                                text=${context.doneConfiguringText}
-                                data-action="done-configuring"
-                                @click=${() => context.component.stopConfiguringView()}
-                        ></sf-button>`}
+            <sf-button
+                    appearance="default"
+                    size=${context.controlSize ?? nothing}
+                    text=${context.doneConfiguringText}
+                    data-action="done-configuring"
+                    @click=${() => context.component.stopConfiguringView()}
+            ></sf-button>
+            ${publish ? html`<sf-button
+                    appearance="outline"
+                    scheme="primary"
+                    size=${context.controlSize ?? nothing}
+                    text=${context.word('publishViewText')}
+                    data-action="publish-view"
+                    @click=${() => context.component.publishView()}
+            ></sf-button>` : nothing}
+            <sf-button
+                    appearance="ghost"
+                    scheme="on-surface"
+                    size=${context.controlSize ?? nothing}
+                    text=${required && context.requiredEdits ? context.word('undoMineText') : context.cancelConfiguringText}
+                    data-action="cancel-configuring"
+                    @click=${() => context.component.cancelConfiguringView()}
+            ></sf-button>
         </div>
     `;
 }
@@ -121,7 +110,8 @@ function renderConfigureBar(context) {
 // per row, so a group of eight fields was thirty-two controls and the
 // arrangement -- the thing being edited -- could no longer be read.
 function renderFieldSettings(context, field, key) {
-    const variants = Array.isArray(field.variantOptions) ? field.variantOptions : [];
+    // The template (variant) is chosen once in the field (C302 (2), C311 (6),
+    // RC-9): the card view no longer offers it.
 
     return html`
         <sf-popover placement="bottom-end" width="16rem" label=${context.fieldSettingsText}
@@ -163,28 +153,6 @@ function renderFieldSettings(context, field, key) {
                             @change=${(event) => context.component.setFieldView(key, {hint: event.target?.value ?? ''})}
                     ></sf-input>
                 </label>
-                ${variants.length
-                        ? html`
-                            <label class="sf-property-view-settings-row flex items-cross-center justify-between gap-1">
-                                <span class="sf-property-view-settings-label color-on-surface-variant">${context.variantText}</span>
-                                <sf-dropdown
-                                        size="1/2"
-                                        appearance="bordered"
-                                        mode="select"
-                                        search="false"
-                                        data-action="variant"
-                                        aria-label=${context.variantText}
-                                        value=${String(field.variant ?? '')}
-                                        .options=${variants.map((variant) => ({
-                                            type: 'text',
-                                            text: variant.label ?? variant.text ?? String(variant.value ?? variant),
-                                            value: String(variant.value ?? variant),
-                                            selected: String(field.variant ?? '') === String(variant.value ?? variant),
-                                        }))}
-                                        @change=${(event) => context.component.setFieldView(key, {variant: event.detail?.value ?? null})}
-                                ></sf-dropdown>
-                            </label>`
-                        : nothing}
                 <label class="sf-property-view-settings-row flex items-cross-center justify-between gap-1">
                     <span class="sf-property-view-settings-label color-on-surface-variant">${context.widthText}</span>
                     <sf-switch
@@ -215,23 +183,41 @@ function renderFieldSettings(context, field, key) {
 // visible and undoable in the same place. Hiding is still what the port carries
 // and what a shared layer does to a field for everyone -- a field hidden above
 // this layer is drawn with its reason and cannot be taken out from here.
-function renderFieldActions(context, field, key) {
+function renderFieldActions(context, field, key, {hidden = false} = {}) {
     const locked = !context.canChangeVisibility(field);
+    const name = String(field.label ?? key);
+    const marked = context.isLocked(`fields.${key}.hidden`);
+    const menu = context.fieldMenuEntries(key).length > 0;
 
+    // One way to not show a field (C106 (1), C311 (5), RC-7): the eye moves it
+    // to «Скрытые поля» and back. It was a cross «Убрать из области».
     return html`
         <div class="sf-property-view-field-actions flex items-cross-center gap-1/4">
+            ${marked ? html`<i class="sf-icon sf-property-view-lock color-on-surface-variant" role="img"
+                    data-lock=${`fields.${key}.hidden`}
+                    aria-label=${context.word('lockedText')} title=${context.word('lockedText')}>lock</i>` : nothing}
             <sf-button-icon
                     size="1/2"
                     appearance="ghost"
                     scheme="on-surface-variant"
-                    icon=${field.hidden ? 'visibility_off' : 'close'}
-                    data-action="remove-field"
+                    icon=${hidden ? 'visibility_off' : 'visibility'}
+                    data-action=${hidden ? 'show-field' : 'remove-field'}
                     ?disabled=${locked}
-                    title=${locked ? (context.layerDenied('shared') || context.hiddenText) : context.removeFieldText}
-                    aria-label=${context.removeFieldText}
-                    @click=${() => context.component.moveFieldToUnplaced(key)}
+                    title=${locked ? (marked ? context.word('lockedText') : (context.layerDenied('shared') || context.hiddenText)) : context.word(hidden ? 'showFieldText' : 'hideFieldText').replace('{name}', name)}
+                    aria-label=${context.word(hidden ? 'showFieldText' : 'hideFieldText').replace('{name}', name)}
+                    @click=${() => hidden ? context.component.showHiddenField(key) : context.component.moveFieldToUnplaced(key)}
             ></sf-button-icon>
             ${renderFieldSettings(context, field, key)}
+            ${menu ? html`<sf-button-icon
+                    size="1/2"
+                    appearance="ghost"
+                    scheme="on-surface-variant"
+                    icon="more_horiz"
+                    data-action="field-menu"
+                    aria-haspopup="menu"
+                    aria-label=${context.word('fieldMenuText').replace('{name}', name)}
+                    @click=${(event) => context.component.openFieldMenu(event.currentTarget.querySelector('button') ?? event.currentTarget, key)}
+            ></sf-button-icon>` : nothing}
         </div>
     `;
 }
@@ -942,29 +928,59 @@ function renderSectionMenu(context, sections) {
 // the tabs are rows of this component's own, which is also what lets a tab carry
 // a handle.
 function renderSectionTabsArranged(context, sections) {
+    // «Вкладки» (C311 (4), TB-1): the tabs as a list with handles over the
+    // fields (a column beside them on the full screen); each row selects its
+    // tab, says when it is hidden or locked, and has one «⋯» with the name,
+    // the icon, up and down, hide, delete and the admin's lock.
     return html`
+        <div class="sf-property-view-tabs-head flex flex-col">
+            <span class="sf-property-view-tabs-title">${context.word('tabsTitle')}</span>
+            <span class="sf-property-view-tabs-hint color-on-surface-variant">${context.word('tabsHintText')}</span>
+        </div>
         <sf-sortable
                 class="sf-property-view-section-tabs flex flex-col"
                 group="section"
                 accepts="section"
                 id="section:all"
-                label=${context.sectionsLabel}
+                label=${context.word('tabsTitle')}
         >
-            ${sections.map((section) => html`
-                <button
-                        type="button"
-                        class="sf-property-view-section-tab flex items-cross-center gap-1/3 min-w-0 text-start cursor-pointer"
-                        data-section-tab=${String(section.key)}
-                        data-sf-sortable-item=${String(section.key)}
-                        aria-current=${String(section.key) === context.selectedSection ? 'true' : nothing}
-                        @click=${() => context.component.selectSection(String(section.key))}
-                >
+            ${sections.map((section) => {
+                const key = String(section.key);
+                const locked = context.isLocked(`sections.${key}`);
+                const mine = !context.lockedForMe(`sections.${key}`);
+                return html`
+                <div class="sf-property-view-section-tab flex items-cross-center gap-1/3 min-w-0"
+                     data-section-tab=${key}
+                     data-sf-sortable-item=${key}
+                     data-hidden=${section.hidden ? 'true' : 'false'}
+                     aria-current=${key === context.selectedSection ? 'true' : nothing}>
                     <i class="sf-icon sf-property-view-section-grip color-on-surface-variant" data-sf-sortable-handle
                        aria-hidden="true">drag_indicator</i>
-                    ${section.icon ? html`<i class="sf-icon" aria-hidden="true">${String(section.icon)}</i>` : nothing}
-                    <span class="sf-property-view-section-tab-label flex-auto min-w-0">${sectionName(context, section)}</span>
-                </button>
-            `)}
+                    <button type="button"
+                            class="sf-property-view-section-tab-select flex items-cross-center gap-1/3 flex-auto min-w-0 text-start cursor-pointer"
+                            data-action="select-tab"
+                            aria-pressed=${key === context.selectedSection ? 'true' : 'false'}
+                            @click=${() => context.component.selectSection(key)}>
+                        ${section.icon ? html`<i class="sf-icon" aria-hidden="true">${String(section.icon)}</i>` : nothing}
+                        <span class="sf-property-view-section-tab-label flex-auto min-w-0">${sectionName(context, section)}</span>
+                    </button>
+                    ${locked ? html`<i class="sf-icon sf-property-view-lock color-on-surface-variant" role="img" data-lock=${`sections.${key}`}
+                            aria-label=${context.word('lockedText')} title=${context.word('lockedText')}>lock</i>` : nothing}
+                    ${section.hidden ? html`<i class="sf-icon color-on-surface-variant" role="img"
+                            aria-label=${context.word('tabHiddenText')} title=${context.word('tabHiddenText')}>visibility_off</i>` : nothing}
+                    <sf-button-icon
+                            size="1/2"
+                            appearance="ghost"
+                            scheme="on-surface-variant"
+                            icon="more_horiz"
+                            data-action="tab-menu"
+                            aria-haspopup="menu"
+                            ?disabled=${!mine && !context.canWriteShared}
+                            aria-label=${context.word('tabMenuText').replace('{name}', String(section.label ?? key))}
+                            @click=${(event) => context.component.openTabMenu(event.currentTarget.querySelector('button') ?? event.currentTarget, key)}
+                    ></sf-button-icon>
+                </div>`;
+            })}
         </sf-sortable>
     `;
 }
@@ -1179,8 +1195,9 @@ function renderUnplacedField(context, field) {
              data-arranging="true">
             <i class="sf-icon sf-property-view-grip items-cross-center" data-sf-sortable-handle aria-hidden="true">drag_indicator</i>
             <div class="sf-property-view-field-label flex items-cross-center gap-1/3 color-on-surface-variant">
-                ${String(field.label ?? key)}
+                <span class="flex-auto min-w-0">${String(field.label ?? key)}</span>
                 ${field.rare ? html`<span class="sf-property-view-rare color-on-surface-variant">${context.rareText}</span>` : nothing}
+                ${renderFieldActions(context, field, key, {hidden: true})}
             </div>
         </div>
     `;
@@ -1220,7 +1237,7 @@ function renderUnplaced(context) {
                         type="button"
                         class="sf-accordion-trigger"
                         data-action="toggle-unplaced"
-                        aria-expanded="false"
+                        aria-expanded="true"
                 >
                     <span class="sf-accordion-title flex items-cross-center gap-1/3">
                         ${context.unplacedTitle}
@@ -1234,7 +1251,7 @@ function renderUnplaced(context) {
                     <sf-icon icon="chevron_right" size="1/2"></sf-icon>
                 </button>
             </h3>
-            <div class="sf-accordion-content" role="region" hidden>
+            <div class="sf-accordion-content" role="region">
                 <sf-sortable
                         class="sf-property-view-group-fields sf-property-view-unplaced"
                         group="field"
@@ -1378,7 +1395,24 @@ function renderPanelHead(context) {
                         @click=${() => context.component.closePanel('close')}
                 ></sf-button-close>
             </div>
+            ${history || level ? nothing : renderHeadLine(context)}
         </header>
+    `;
+}
+
+// The line under the title (C289 (6), C311 (2)): the stage as a tonal badge,
+// then up to two fields' values joined by « · ». Nothing when the head names
+// none: the title alone, as before.
+function renderHeadLine(context) {
+    const line = context.headLine;
+    if (!line || (!line.status && !line.subtitle.length)) return nothing;
+    return html`
+        <div class="sf-property-view-head-line flex items-cross-center gap-1/3 min-w-0" data-head-line>
+            ${line.status ? html`<sf-badge size="1/2" appearance="tonal" scheme=${line.status.scheme}
+                    text=${line.status.text} data-head-status=${line.status.key}></sf-badge>` : nothing}
+            ${line.subtitle.length ? html`<span class="sf-property-view-head-subtitle color-on-surface-variant min-w-0 overflow-hidden"
+                    data-head-subtitle>${line.subtitle.map((item) => item.text).join(' · ')}</span>` : nothing}
+        </div>
     `;
 }
 
@@ -1611,8 +1645,15 @@ function renderArrangementAdditions(context, section) {
                     data-action="add-group"
                     @click=${() => context.component.addGroup(section ? String(section.key) : '')}
             ></sf-button>
-            ${sidebarDrawn(context) ? nothing : renderAddSection(context)}
-            ${renderViewProfiles(context)}
+            <sf-button
+                    appearance="outline"
+                    scheme="on-surface"
+                    size=${context.controlSize ?? nothing}
+                    icon-start="add"
+                    text=${context.word('newFieldText')}
+                    data-action="new-field"
+                    @click=${() => context.component.openStructureEditor()}
+            ></sf-button>
         </div>
     `;
 }
@@ -1621,12 +1662,14 @@ function renderArrangementAdditions(context, section) {
 // where a person looks for one: under the list of them. Without a rail there is
 // no list to put it under, so it stands beside «add an area» as before.
 function renderAddSection(context) {
+    // «+ Вкладка» makes a tab with a «Поля» area (C311 (4)).
     return html`
         <sf-button
                 appearance="outline"
                 scheme="on-surface"
                 size="1/2"
-                text=${context.addSectionText}
+                icon-start="add"
+                text=${context.word('addTabText')}
                 data-action="add-section"
                 @click=${() => context.component.addSection()}
         ></sf-button>
@@ -1775,6 +1818,7 @@ function renderBody(context, railOutside = false, withActions = true) {
                         ${renderMenuControl(context)}
                     </div>`
                 : nothing}
+        ${context.panel ? nothing : renderHeadLine(context)}
         ${onPhoneSectionList(context, sections) ? renderPhoneSectionList(context, sections) : nothing}
         ${lineTabsDrawn(context, sections) ? renderSectionTabs(context, sections) : nothing}
         <div class="sf-property-view-layout"
@@ -1792,6 +1836,7 @@ function renderBody(context, railOutside = false, withActions = true) {
             ${onPhoneSectionList(context, sections) ? nothing : context.configuring
                     ? html`
                         <div class="sf-property-view-body flex-auto min-w-0 flex flex-col gap-4">
+                            ${renderConfigureTop(context)}
                             ${renderSectionBar(context, current, sections.length)}
                             <sf-sortable
                                     class="sf-property-view-groups flex flex-col gap-4"

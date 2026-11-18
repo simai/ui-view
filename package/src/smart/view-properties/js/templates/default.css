@@ -292,6 +292,61 @@
     overflow-wrap: anywhere;
   }
 
+  /* C311 (4), TB-1: a tab row is a handle, the button that selects the tab,
+     its marks and one «⋯». The select button takes the row's words. */
+  .sf-property-view-section-tab-select {
+    padding: 0;
+    border: 0;
+    background-color: transparent;
+    color: inherit;
+    font: inherit;
+  }
+
+  .sf-property-view-section-tab[data-hidden='true'] .sf-property-view-section-tab-select {
+    opacity: .55;
+  }
+
+  /* «Вкладки» over the list: the name on the text ladder's title rung, the
+     hint a step below, as the prototype's list head. */
+  .sf-property-view-tabs-head {
+    gap: var(--sf-space-1\/4);
+    padding-inline: var(--sf-space-1\/4);
+    padding-block-end: var(--sf-space-1\/3);
+  }
+
+  .sf-property-view-tabs-title {
+    font-size: var(--sf-text--size-1);
+    line-height: var(--sf-title--height-1);
+    font-weight: 600;
+  }
+
+  .sf-property-view-tabs-hint,
+  .sf-property-view-configure-hint {
+    font-size: var(--sf-text--size-1\/2);
+    line-height: var(--sf-text--height-1\/2);
+  }
+
+  .sf-property-view-lock {
+    font-size: var(--sf-text--height-1\/2);
+  }
+
+  /* The line under the title (C311 (2)): the stage badge, then the subtitle
+     fields; one line, the words end in an ellipsis. */
+  .sf-property-view-head-line {
+    display: flex;
+    align-items: center;
+    gap: var(--sf-space-1\/3);
+    min-inline-size: 0;
+    padding-block-end: var(--sf-space-1\/3);
+  }
+
+  .sf-property-view-head-subtitle {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: var(--sf-text--size-1\/2);
+    line-height: var(--sf-text--height-1\/2);
+  }
+
   .sf-property-view-section-grip {
     cursor: grab;
   }

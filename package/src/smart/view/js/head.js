@@ -27,7 +27,7 @@
 // host's echo is what the head shows next. The writes are the study's server
 // objects (section 7) raised through the view's port -- filter.save,
 // filter.update, filter.rename, filter.share, filter.default, filter.delete,
-// settings.save, entity.fields.save -- a draft until the joint view-config/1
+// settings.save -- a draft until the joint view-config/1
 // contract settles the wire format (ui-control research
 // 2026-11-17-views-architecture/view-config-1-draft.md).
 import {menuOpen} from "../../../core/js/menu-open.js";
@@ -83,8 +83,7 @@ export class ListHead {
         this.open = null;
         this.temp = {};
         this.optionSearch = {};
-        this.tab = {filter: "saved", record: null};
-        this.recordGroups = null;
+        this.tab = {filter: "saved"};
         this.root = null;
         this._onResize = () => this._measure();
     }
@@ -278,8 +277,7 @@ export class ListHead {
                  <sf-button-icon class="sf-view-head-create" data-create size="${size}" icon="add" aria-haspopup="menu" hidden></sf-button-icon>
                </div>
                <div class="sf-view-head-fields" data-fields hidden></div>
-               <sf-drawer data-sheet data-sf-role="head-sheet" placement="bottom"><div slot="content" data-body></div></sf-drawer>
-               <sf-drawer data-record data-sf-role="head-record" placement="bottom"><div slot="content" data-body></div></sf-drawer>`
+               <sf-drawer data-sheet data-sf-role="head-sheet" placement="bottom"><div slot="content" data-body></div></sf-drawer>`
             : `<div class="sf-view-head-title" data-title>
                  <h2 class="sf-view-head-name"><span data-name></span><sf-badge data-count size="1/2" appearance="tonal" scheme="primary" hidden></sf-badge></h2>
                  <div class="sf-view-head-title-end">
@@ -301,10 +299,9 @@ export class ListHead {
                    <div class="sf-view-head-search"><sf-input data-search appearance="filled" size="${size}" icon-start="search" input-type="search" clearable></sf-input></div>
                    <sf-button class="sf-view-head-create" size="${size}" icon-start="add" hidden></sf-button>
                  </div>
-               </div>
-               <sf-drawer data-record data-sf-role="head-record" placement="inline-end" size="2"><div slot="content" data-body></div></sf-drawer>`;
+               </div>`;
         // The windows' drawers carry a role (data-sf-role): their path ids are
-        // then sf-view's own (…/head-sheet, …/head-record). Counted among the
+        // then sf-view's own (…/head-sheet). Counted among the
         // page's drawers by document order, the head's first drawer took the
         // id sf-drawer-1 that the record card's drawer already had, and the two
         // shared a portal -- with a record card on the page every head window
@@ -314,7 +311,6 @@ export class ListHead {
         for (const body of this.root.querySelectorAll("[data-body]")) this._bindBody(body);
         // sf-drawer renders its content into a portal: keep the bodies now.
         this._sheetBody = this.root.querySelector("sf-drawer[data-sheet] [data-body]");
-        this._recordBody = this.root.querySelector("sf-drawer[data-record] [data-body]");
         this._fieldsKey = null;
         this.render();
     }
@@ -509,11 +505,9 @@ export class ListHead {
         }
     }
 
-    _drawers() { return [this._sheet, this._recordDrawer].filter(Boolean); }
+    _drawers() { return [this._sheet].filter(Boolean); }
 
     get _sheet() { return this._sheetNode?.isConnected ? this._sheetNode : (this._sheetNode = this.root?.querySelector("sf-drawer[data-sheet]") ?? this._sheetNode); }
-
-    get _recordDrawer() { return this._recordNode?.isConnected ? this._recordNode : (this._recordNode = this.root?.querySelector("sf-drawer[data-record]") ?? this._recordNode); }
 
     _bindBody(body) {
         if (body.__sfViewHead) return;
@@ -541,18 +535,8 @@ export class ListHead {
     }
 
     // A window by kind: on the phone the bottom sheet, on a desktop the
-    // popover of the button that opened it (or the record drawer).
+    // popover of the button that opened it.
     async _openKind(kind) {
-        if (kind === "record-fields") {
-            const drawer = this._recordDrawer;
-            if (!drawer) return;
-            await this.view._ensureElements?.(["sf-drawer", "sf-tabs", "sf-button-icon", "sf-icon"]);
-            drawer.setAttribute("heading", this._title(kind));
-            this._show(kind, drawer, drawer.querySelector("[data-body]") ?? this._recordBody);
-            this._recordBody = drawer.querySelector("[data-body]") ?? this._recordBody;
-            drawer.open?.();
-            return;
-        }
         if (this.mode === "phone") {
             const sheet = this._sheet;
             if (!sheet) return;
@@ -599,7 +583,6 @@ export class ListHead {
         if (kind === "filter") return this.text("headFilter");
         if (kind === "save") return this.text("headSaveFilter");
         if (kind === "view") return this.text("headCustomize");
-        if (kind === "record-fields") return this.text("headRecordFields");
         if (kind.startsWith("rename:")) return this.text("headRename");
         if (kind.startsWith("saved:")) return String(this.savedFilter(kind.slice(6))?.name ?? "");
         if (kind.startsWith("value:")) return this.field(kind.slice(6))?.label ?? "";
@@ -673,7 +656,6 @@ export class ListHead {
             return `<div class="sf-view-head-actions">${this._savedMenu(item).filter((entry) => !entry.kind).map((entry) => `<sf-button data-saved-act="${esc(entry.id)}" data-saved-id="${esc(item.id)}" size="${size}" appearance="ghost" scheme="${entry.status === "danger" ? "primary" : "on-surface"}"${entry.status === "danger" ? ' status="danger"' : ""} icon-start="${esc(entry.icon)}" text="${esc(entry.text)}"></sf-button>`).join("")}</div>`;
         }
         if (kind === "view") return this._viewPanel();
-        if (kind === "record-fields") return this._recordPanel();
         return "";
     }
 
@@ -742,48 +724,6 @@ export class ListHead {
         if (kind === "calendar") merged.week_start ??= "mon";
         for (const key of ["columns", "row_actions", "card_fields"]) if (Array.isArray(merged[key])) merged[key] = merged[key].map(String);
         return merged;
-    }
-
-    // Record field settings (LH-8): the owner's «Настройки полей» in a right
-    // drawer -- groups as tabs, shown and hidden fields, «Add field», «Restore
-    // default fields»; only with the right (permissions.record_fields; Larena
-    // decides, C299).
-    _recordPanel() {
-        const size = esc(this.size);
-        const groups = this._recordGroups();
-        const ids = Object.keys(groups);
-        if (!ids.length) return this._note(this.text("headNoRecordFields"));
-        const tab = ids.includes(this.tab.record) ? this.tab.record : ids[0];
-        this.tab.record = tab;
-        const labels = this.description?.record_fields?.labels ?? {};
-        const names = Object.fromEntries((Array.isArray(this.description?.fields) ? this.description.fields : this.fields).map((field) => [field.key, field.label ?? field.key]));
-        const row = (key, shown) => {
-            const label = names[key] ?? key;
-            return `<div class="sf-view-head-record-row"><sf-icon icon="drag_indicator" size="1/2" aria-hidden="true"></sf-icon><span>${esc(label)}</span>`
-                + `<sf-button-icon data-record-move="${esc(key)}" size="${size}" appearance="ghost" scheme="on-surface" icon="${shown ? "visibility" : "visibility_off"}" aria-label="${esc(this.text(shown ? "headHideField" : "headShowField").replace("{name}", label))}"></sf-button-icon></div>`;
-        };
-        const items = ids.map((id) => ({id, label: labels[id] ?? groups[id].label ?? id}));
-        const group = groups[tab];
-        return this._note(this.text("headRecordNote"))
-            + (ids.length > 1 ? `<sf-tabs data-tabs="record" type="underline" size="${size}" fit="always" active-index="${ids.indexOf(tab)}" items="${esc(JSON.stringify(items))}"></sf-tabs>` : "")
-            + `<div class="sf-view-head-list" data-unbound>${group.shown.map((key) => row(key, true)).join("")}<div class="sf-view-head-divider">${esc(this.text("headHidden"))}</div>${group.hidden.map((key) => row(key, false)).join("")}</div>`
-            + `<div class="sf-view-head-buttons"><sf-button data-act="record-add" size="${size}" appearance="ghost" scheme="primary" icon-start="add" text="${esc(this.text("headAddField"))}"></sf-button>`
-            + `<sf-button data-act="record-default" size="${size}" appearance="ghost" scheme="on-surface" icon-start="restart_alt" text="${esc(this.text("headFieldsDefault"))}"></sf-button></div>`
-            + this._foot(["record-apply", this.text("headApply")], ["record-reset", this.text("headReset")]);
-    }
-
-    // The groups as the host describes them, in the shape the save takes
-    // (study section 7: {groups: {<id>: {shown, hidden}}}).
-    _recordGroups() {
-        if (!this.recordGroups) {
-            const groups = this.description?.record_fields?.groups;
-            this.recordGroups = groups && typeof groups === "object" ? copy(groups) : {};
-            for (const group of Object.values(this.recordGroups)) {
-                group.shown = Array.isArray(group.shown) ? group.shown.map(String) : [];
-                group.hidden = Array.isArray(group.hidden) ? group.hidden.map(String) : [];
-            }
-        }
-        return this.recordGroups;
     }
 
     // A field's window: the Framework's filter template for the field's type,
@@ -970,7 +910,8 @@ export class ListHead {
     async _listMenu(anchor) {
         const id = await this._menu(anchor, this.text("headListMenu"), this.listMenu);
         if (!id) return;
-        if (id === "record-fields") return this._openKind("record-fields");
+        // The card's own arranging mode (C311 (1), RC-4).
+        if (id === "record-fields") return this.view.openRecordSettings?.();
         // Rights and export are the host's pages: the view says which was asked.
         this.view.sfEmit?.("settings-open", {id});
     }
@@ -1034,12 +975,6 @@ export class ListHead {
             this.tab.filter = id;
             const target = body.querySelector("[data-tab-body]");
             if (target) target.innerHTML = this._panel(`filter:${id}`);
-        } else if (name === "record") {
-            const ids = Object.keys(this._recordGroups());
-            if (typeof id === "number" || /^\d+$/u.test(String(id))) id = ids[Number(id)];
-            if (!id) return;
-            this.tab.record = id;
-            this._renderOpen();
         }
     }
 
@@ -1112,22 +1047,6 @@ export class ListHead {
         const savedAct = target.closest("[data-saved-act]");
         if (savedAct) {
             this._savedAction(savedAct.getAttribute("data-saved-act"), this.savedFilter(savedAct.getAttribute("data-saved-id")));
-            return;
-        }
-        const move = target.closest("[data-record-move]");
-        if (move) {
-            const group = this._recordGroups()[this.tab.record];
-            const key = move.getAttribute("data-record-move");
-            if (!group) return;
-            const at = group.shown.indexOf(key);
-            if (at >= 0) {
-                group.shown.splice(at, 1);
-                group.hidden.unshift(key);
-            } else {
-                group.hidden.splice(group.hidden.indexOf(key), 1);
-                group.shown.push(key);
-            }
-            this._renderOpen();
             return;
         }
         const action = target.closest("[data-act]");
@@ -1204,18 +1123,6 @@ export class ListHead {
             return;
         case "view-share":
             this._saveSettings("shared", this._kindSettings(this.kind));
-            this._closeOpen();
-            return;
-        case "record-default":
-        case "record-reset":
-            this.recordGroups = null;
-            this._renderOpen();
-            return;
-        case "record-add":
-            this.view.sfEmit?.("settings-open", {id: "record-field-add"});
-            return;
-        case "record-apply":
-            this.raise("entity.fields.save", {groups: copy(this._recordGroups())});
             this._closeOpen();
             return;
         default:

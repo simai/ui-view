@@ -359,6 +359,47 @@ receives.
   `-current-background-color`, `-saved-background-color`;
   `--sf-property-view--sections-width` is a former name until 2027-01-01.
 
+## Record card settings (since 1.19.0, C311, port 1.19.0)
+
+The card is arranged in the card itself («⋯ → Настроить вид»; the list head's
+«Настройки полей записи» opens the first record straight in this mode). One
+arrangement per entity serves the table, the board, the cards, the calendar
+and the record page.
+
+- Levels (C298): a person's own edits are written to the personal layer at
+  once (`view.save` with `target.kind: personal`). «Сохранить для всех» is a
+  separate button, for those who may write the shared layer and only when the
+  personal layer holds something: `view.publish {collection, profile,
+  personal_revision, shared_revision}`; the host merges and clears in one
+  write, and a conflict answers the newer shared layer (the card says «Вид
+  изменился»). «Вернуть как у всех» is the profile picker's reset
+  (`resettable`): `view.reset` of the personal layer only.
+- Locks: `view.locked` lists paths the lower layers cannot change
+  (`fields.<key>.hidden`, `fields.<key>.group`, `sections.<key>`,
+  `sections.order`, `head`). Others see a lock «Закрыто администратором» and
+  no control that would change it; an admin locks and unlocks from the
+  field's or the tab's «⋯» (`view.lock`).
+- A required profile (`profiles[].required`): the picker is disabled, edits
+  live until the page is left and are never written, «Отменить мои правки»
+  reads them again; «Сохранить как моё» is not offered. Elsewhere «Сохранить
+  как моё» in the head «⋯» makes a personal profile from what is on screen
+  (`view.create` with `shared: false`).
+- The head: under the title the stage (a choice field) as a tonal badge and up
+  to two fields joined by « · » (`view.head {subtitle[], status}`, written in
+  the layer's `head`). An admin picks them from a field's «⋯»: «Показать в
+  шапке», «Стадией в шапке».
+- The mode: over the fields the profile picker and one line that says where an
+  edit goes; «Вкладки» with handles, each with a «⋯» (name, icon, up, down,
+  hide, delete -- its fields go to «Скрытые поля» --, lock); «+ Вкладка»
+  makes a tab with a «Поля» area. A field moves to another tab from its «⋯ →
+  На вкладку …» at every width. One way to not show a field: the eye, which
+  moves it to «Скрытые поля» (open in the mode) and back. The foot: «Готово»,
+  «Сохранить для всех», «Отменить» (C157 (3)).
+- The field template (`variant`) is the field's own (C302 (2)): the mode no
+  longer offers it; a layer that holds one is read until 2027-01-01.
+- «Новое поле…» emits `sf-view-properties-structure {collection, section,
+  group}`: adding a field is structure, and the data owner's editor opens it.
+
 ## Conditional fields
 
 A field's `when` says when it is shown, required and enabled (port 1.14.0):

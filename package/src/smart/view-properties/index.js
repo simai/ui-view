@@ -35,7 +35,7 @@ import {renderPropertyViewTemplate} from "./js/templates/default";
 import {fieldConditions} from "./js/conditions.js";
 import {drawsSetField} from "./js/set-fields.js";
 import {propertyModes} from "../field-renderers/index.js";
-import {historyFromRevisions, timelineItems} from "./js/history.js";
+import {historyFromRevisions, timelineItems, valueText} from "./js/history.js";
 
 // Every port version this composite accepts, in one place, the way sf-view
 // keeps its list -- a guard naming a narrower set than the published versions is
@@ -507,8 +507,10 @@ class SfPropertyView extends PropertyViewElement {
     // Taking a field out of every group, and putting one back. A field out of
     // the arrangement is the layer saying its group is nothing, which is what
     // the port means by a null group.
-    moveFieldToUnplaced(fieldKey, index) {
+    moveFieldToUnplaced(fieldKey, index, {save = true} = {}) {
         if (!this.configuring || !this.layerDraft) return false;
+        // «Стадия» the admin locked stays shown (port 1.19.0 view.locked).
+        if (this.lockedForMe(`fields.${String(fieldKey)}.hidden`)) return false;
         let moved = null;
         let fromGroup = null;
         for (const section of this.sections) {
@@ -529,7 +531,7 @@ class SfPropertyView extends PropertyViewElement {
         this._writeOrder(this.layerDraft.fields, into, {group: null});
         if (fromGroup) this._writeOrder(this.layerDraft.fields, fromGroup.fields ?? [], {group: String(fromGroup.key)});
         this.requestComponentUpdate("view-move");
-        return this.saveView();
+        return save ? this.saveView() : true;
     }
 
     get recordActions() {
@@ -1265,12 +1267,19 @@ class SfPropertyView extends PropertyViewElement {
         // The view is chosen from the menu as the admin menu's profile is: a
         // submenu of the views, beside what can be done to the view (owner,
         // 2026-10-12). While arranging, the bar at the foot carries the choice.
+        // The profile is chosen in sf-profile-picker only (C163 (1), C311 (5),
+        // RC-6): outside the mode one row «Профиль: <name>» enters it with the
+        // picker open. A person who cannot arrange the view keeps the rows of
+        // the views to choose from, as before.
         if (profiles.length > 1 && !this.configuring) {
             const current = profiles.find((profile) => profile.id === this.viewProfile);
-            entries.push({
-                id: "view-profile", text: this.viewProfileLabel, icon: "view_sidebar",
-                value: current?.label ?? "", submenu: this.viewProfileEntries(),
-            });
+            entries.push(this.canConfigureView
+                ? {id: "view-profile-picker", text: `${this.viewProfileLabel}: ${current?.label ?? ""}`, icon: "view_sidebar"}
+                : {id: "view-profile", text: this.viewProfileLabel, icon: "view_sidebar", value: current?.label ?? "", submenu: this.viewProfileEntries()});
+        }
+        // «Сохранить как моё» in the head «⋯» while arranging (C311 (5)).
+        if (this.canSaveAsMine) {
+            entries.push({id: "save-as-mine", text: pageText(PROPERTY_VIEW_TEXT, "saveAsMineText", this), icon: "person"});
         }
         const record = this.recordMenuItems;
         if (entries.length && record.length) entries.push({type: "separator"});
@@ -1341,6 +1350,15 @@ class SfPropertyView extends PropertyViewElement {
 
     chooseMenuItem(id) {
         if (id === "configure") return this.startConfiguringView();
+        if (id === "save-as-mine") return this.saveAsMine();
+        if (id === "view-profile-picker") {
+            if (!this.configuring && !this.startConfiguringView()) return false;
+            this.whenRendered?.(() => requestAnimationFrame(() => {
+                const picker = (this.panelContent?.() ?? this).querySelector?.('sf-profile-picker[data-action="view-profile"]');
+                (picker?.querySelector?.("button") ?? picker)?.click?.();
+            }), {next: true});
+            return true;
+        }
         if (id === "reset") return this.resetView();
         if (id === "show-rare") return this.toggleShowRare();
         if (id === "copy-link") return this.copyAddress();
@@ -2274,6 +2292,15 @@ class SfPropertyView extends PropertyViewElement {
             sectionColumnTabs: typeof globalThis.customElements?.get?.("sf-tabs")?.prototype?.placeBox === "function"
                 || !globalThis.customElements?.get?.("sf-menu"),
             word: (key) => pageText(PROPERTY_VIEW_TEXT, key, this),
+            // C311: levels, locks, the head, the tabs' and fields' menus.
+            canWriteShared: this.canWriteShared,
+            viewRequired: this.viewRequired,
+            requiredEdits: Boolean(this.requiredEdits),
+            hasPersonalEdits: this.hasPersonalEdits,
+            isLocked: (path) => this.isLocked(path),
+            lockedForMe: (path) => this.lockedForMe(path),
+            headLine: this.headLine,
+            fieldMenuEntries: (key) => (this.configuring ? this.fieldMenuEntries(key) : []),
         });
     }
 
@@ -3572,13 +3599,59 @@ class SfPropertyView extends PropertyViewElement {
             || (section?.groups ?? []).some((group) => anyRare(group?.fields)));
     }
 
-    // The layer a view is written to is the view's own: a shared view is the
-    // shared layer, a personal one the personal layer, when this person may
-    // write it.
+    // The layer a person's own edits are written to: the personal layer of the
+    // chosen profile, at once, whatever the profile is (C298, C311 (5)). «For
+    // everyone» is a separate act, view.publish, offered to those who may
+    // write the shared layer (RC-1: a shared profile was written for everyone
+    // on every move). A host that offers no personal layer keeps the 1.18.0
+    // way: the shared layer of a shared profile.
     _layerOfProfile() {
+        if (this.editableLayers.includes("personal")) return "personal";
         const profile = this.viewProfiles.find((item) => item.id === this.viewProfile);
         const wanted = profile?.shared ? "shared" : "personal";
         return this.editableLayers.includes(wanted) ? wanted : this.viewTarget;
+    }
+
+    // Whether this person may write the shared layer: «Сохранить для всех»,
+    // the locks and the head's fields are theirs (C298, C311 (2), (5)).
+    get canWriteShared() {
+        return this.editableLayers.includes("shared");
+    }
+
+    // A required profile (port 1.19.0 profiles[].required): it cannot be
+    // changed, and edits live until the page is left -- nothing is written
+    // (C298, RC-2).
+    get viewRequired() {
+        const profile = this.viewProfiles.find((item) => item.id === this.viewProfile);
+        return profile?.required === true;
+    }
+
+    // The paths the lower layers cannot change (port 1.19.0 view.locked):
+    // fields.<key>.hidden, fields.<key>.group, sections.<key>, sections.order,
+    // head. A person who may write the shared layer is the one who locked
+    // them and may still change them.
+    get viewLocked() {
+        const locked = this.view?.locked;
+        return new Set(Array.isArray(locked) ? locked.map(String) : []);
+    }
+
+    isLocked(path) {
+        return this.viewLocked.has(String(path));
+    }
+
+    lockedForMe(path) {
+        return this.isLocked(path) && !this.canWriteShared;
+    }
+
+    // Whether the personal layer of the chosen profile holds anything: what
+    // «Сохранить для всех» would publish. The required profile's edits are
+    // the page's only (requiredEdits).
+    get hasPersonalEdits() {
+        const layer = this.view?.layers?.personal;
+        const view = layer?.view;
+        if (!view) return false;
+        return ["sections", "groups", "fields"].some((bucket) => Object.keys(view[bucket] ?? {}).length > 0)
+            || Boolean(view.head);
     }
 
     startConfiguringView() {
@@ -3594,6 +3667,7 @@ class SfPropertyView extends PropertyViewElement {
             view: this._layerCopy(this.viewTarget),
         };
         this.resetAsked = false;
+        this.requiredEdits = false;
         this.layerDraft = this._layerCopy(this.viewTarget);
         this._bindSectionDropTarget();
         this.entryErrors = new Map();
@@ -3667,6 +3741,14 @@ class SfPropertyView extends PropertyViewElement {
     // shared revision and a history entry (simai.main QA, 2026-10-28).
     async cancelConfiguringView() {
         if (!this.configuring) return false;
+        // A required view wrote nothing: what was drawn is read again.
+        if (this.viewRequired) {
+            const edited = this.requiredEdits;
+            this.requiredEdits = false;
+            if (edited) await this.load("view-cancel");
+            this.stopConfiguringView();
+            return true;
+        }
         const entered = this.arrangementEntered;
         if (!entered || entered.kind !== this.viewTarget) {
             this.stopConfiguringView();
@@ -3719,6 +3801,9 @@ class SfPropertyView extends PropertyViewElement {
     // cannot reveal what was hidden for everyone -- and the component is told
     // which layer decided rather than working it out.
     canChangeVisibility(entry) {
+        // A setting the admin locked (port 1.19.0 view.locked).
+        const key = entry?.key != null ? String(entry.key) : null;
+        if (key && (this.lockedForMe(`fields.${key}.hidden`) || this.lockedForMe(`sections.${key}`))) return false;
         const hiddenBy = entry?.hiddenBy ?? null;
         if (!hiddenBy) return true;
         if (hiddenBy === "package") return false;
@@ -3843,6 +3928,7 @@ class SfPropertyView extends PropertyViewElement {
 
     moveField(fieldKey, toGroupKey, index) {
         if (!this.configuring || !this.layerDraft) return false;
+        if (this.lockedForMe(`fields.${String(fieldKey)}.group`)) return false;
         const target = this._locateGroup(toGroupKey);
         if (!target) return false;
         let moved = null;
@@ -3918,7 +4004,10 @@ class SfPropertyView extends PropertyViewElement {
         // `label` is this view's name for the field, the same way a section and
         // an area carry one: the collection keeps its own, and resetting the
         // layer gives it back.
-        const allowed = ["width", "variant", "hint", "label"];
+        // The template (variant) is the field's own, chosen once in the field
+        // (C302 (2), C311 (6), RC-9): the card view writes none. A layer that
+        // holds one is still read until 2027-01-01.
+        const allowed = ["width", "hint", "label"];
         const change = Object.fromEntries(Object.entries(patch).filter(([key]) => allowed.includes(key)));
         if (!Object.keys(change).length) return false;
         const key = String(fieldKey);
@@ -4024,9 +4113,10 @@ class SfPropertyView extends PropertyViewElement {
         return this.saveView();
     }
 
-    // A section is removed the same way, and every area it held goes with it:
-    // the areas are kept, moved to the section that remains, so an arrangement
-    // is not thrown away by removing the tab it sat behind.
+    // A tab is removed and its fields go to «Скрытые поля» (C311 (4)), where
+    // the eye or a drag brings each back: one way to not show a field (C106
+    // (1)). Its areas are hidden with it. It moved the areas to the tab that
+    // remained before.
     removeSection(sectionKey) {
         if (!this.configuring || !this.layerDraft) return false;
         const name = String(sectionKey);
@@ -4035,7 +4125,12 @@ class SfPropertyView extends PropertyViewElement {
         if (this.sections.length < 2) return false;
         const into = this.sections.find((part) => part !== section);
         for (const group of [...(section.groups ?? [])]) {
-            this.moveGroup(String(group.key), String(into.key), Number.MAX_SAFE_INTEGER);
+            if (group.kind !== "related") {
+                for (const field of [...(group.fields ?? [])]) this.moveFieldToUnplaced(String(field.key), undefined, {save: false});
+            }
+            const groupName = String(group.key);
+            this.layerDraft.groups[groupName] = {...(this.layerDraft.groups[groupName] ?? {}), hidden: true};
+            group.hidden = true;
         }
         this.layerDraft.sections[name] = {...(this.layerDraft.sections[name] ?? {}), hidden: true};
         section.hidden = true;
@@ -4050,6 +4145,7 @@ class SfPropertyView extends PropertyViewElement {
     // once and nobody since.
     moveSection(sectionKey, index) {
         if (!this.configuring || !this.layerDraft) return false;
+        if (this.lockedForMe("sections.order")) return false;
         const name = String(sectionKey);
         const at = this.sections.findIndex((part) => String(part.key) === name);
         if (at < 0) return false;
@@ -4099,10 +4195,16 @@ class SfPropertyView extends PropertyViewElement {
         return this.saveView();
     }
 
+    // A new tab comes with a «Поля» area (C311 (4)), so a field can be moved to
+    // it at once from its «⋯ → На вкладку …».
     addSection() {
         if (!this.configuring || !this.layerDraft) return false;
         const key = this._newEntryKey("section");
-        const section = {key, label: this.newSectionTitle, groups: [], hidden: false, rare: false};
+        const groupKey = this._newEntryKey("group");
+        const fieldsTitle = pageText(PROPERTY_VIEW_TEXT, "newTabGroupTitle", this);
+        const group = {key: groupKey, label: fieldsTitle, columns: 1, fields: [], hidden: false, rare: false, editable: true};
+        const section = {key, label: this.newSectionTitle, groups: [group], hidden: false, rare: false};
+        this.layerDraft.groups[groupKey] = {label: fieldsTitle, section: key, columns: 1, hidden: false, order: 1};
         this.sections = [...this.sections, section];
         this._writeOrder(this.layerDraft.sections, this.sections, {});
         this.layerDraft.sections[key] = {
@@ -4179,6 +4281,13 @@ class SfPropertyView extends PropertyViewElement {
 
     async _saveViewNow() {
         if (!this.canConfigureView || !this.layerDraft) return null;
+        // A required view: the edit is drawn and kept until the page is left,
+        // and never written (C298).
+        if (this.viewRequired) {
+            this.requiredEdits = true;
+            this.requestComponentUpdate("view-required");
+            return {answer: "applied", local: true};
+        }
         const kind = this.viewTarget;
         const epoch = ++this.viewEpoch;
         const answer = await this._raise("view.save", {
@@ -4220,6 +4329,277 @@ class SfPropertyView extends PropertyViewElement {
         return answer;
     }
 
+    // «Сохранить для всех» (port 1.19.0 view.publish; C298, C311 (5), RC-1):
+    // the host merges the personal layer into the profile's shared layer and
+    // clears the personal one, in one write. A conflict carries the newer
+    // shared layer: the card redraws and says «Вид изменился».
+    async publishView() {
+        if (!this.configuring || !this.canWriteShared || this.viewRequired) return null;
+        await (this._viewWriting ?? Promise.resolve());
+        const epoch = ++this.viewEpoch;
+        const answer = await this._raise("view.publish", {
+            record_id: null,
+            collection: this.collection || null,
+            profile: this.viewProfile,
+            personal_revision: this._layerRevision("personal"),
+            shared_revision: this._layerRevision("shared"),
+        }, {stale: () => epoch !== this.viewEpoch});
+        if (!answer) return null;
+        if (answer.answer === "applied" || answer.answer === "conflict") {
+            const shared = answer.shared ?? null;
+            if (shared) this._storeLayer("shared", shared.revision ?? null, shared.view ?? null);
+            if (answer.answer === "applied") {
+                this._storeLayer("personal", answer.personal?.revision ?? null, null);
+                this.message = pageText(PROPERTY_VIEW_TEXT, "viewPublishedText", this);
+            } else {
+                this.message = answer.message || pageText(PROPERTY_VIEW_TEXT, "viewChangedText", this);
+            }
+            this.layerDraft = this._layerCopy(this.viewTarget);
+            // What «Отменить» puts back is now what everyone has.
+            this.arrangementEntered = {kind: this.viewTarget, revision: this._layerRevision(this.viewTarget), view: this._layerCopy(this.viewTarget)};
+            await this.load(answer.answer === "applied" ? "view-published" : "view-conflict");
+            return answer;
+        }
+        this._setState("error", answer.message || pageText(PROPERTY_VIEW_TEXT, "viewSaveFailedText", this));
+        return answer;
+    }
+
+    // «Закрыть для изменений» (port 1.19.0 view.lock; C298, RC-2): one setting
+    // the lower layers cannot change, for a person who may write the shared
+    // layer. The host answers the locked list and the shared revision.
+    async lockViewPath(path, locked = !this.isLocked(path)) {
+        if (!this.configuring || !this.canWriteShared) return null;
+        const epoch = ++this.viewEpoch;
+        const answer = await this._raise("view.lock", {
+            record_id: null,
+            collection: this.collection || null,
+            profile: this.viewProfile,
+            path: String(path),
+            locked: Boolean(locked),
+            revision: this._layerRevision("shared"),
+        }, {stale: () => epoch !== this.viewEpoch});
+        if (!answer) return null;
+        if ((answer.answer === "applied" || answer.answer === "conflict") && this.view) {
+            if (Array.isArray(answer.locked)) this.view.locked = answer.locked.map(String);
+            const shared = this.view.layers?.shared;
+            if (shared && answer.revision) this.view.layers = {...this.view.layers, shared: {...shared, revision: String(answer.revision)}};
+            if (answer.answer === "conflict") this.message = answer.message || pageText(PROPERTY_VIEW_TEXT, "viewChangedText", this);
+            this.requestComponentUpdate("view-lock");
+            return answer;
+        }
+        this._setState("error", answer.message || pageText(PROPERTY_VIEW_TEXT, "viewSaveFailedText", this));
+        return answer;
+    }
+
+    // «Сохранить как моё» (C311 (5), RC-3): a personal profile from what is on
+    // screen, for a view whose settings are locked. Not in a required view.
+    get canSaveAsMine() {
+        return this.configuring && !this.viewRequired && this.editableLayers.includes("personal");
+    }
+
+    saveAsMine() {
+        if (!this.canSaveAsMine) return null;
+        const current = this.viewProfiles.find((profile) => profile.id === this.viewProfile);
+        const label = pageText(PROPERTY_VIEW_TEXT, "saveAsMineLabelText", this).replace("{name}", current?.label ?? "");
+        return this.createViewProfile(label, {shared: false});
+    }
+
+    // The card head (port 1.19.0 view.head; C289 (6), C311 (2)): the title,
+    // under it up to two fields, and the stage as a tonal badge. What the
+    // draft layer says wins over what the host resolved.
+    get viewHead() {
+        const layered = this.configuring ? this.layerDraft?.head : null;
+        const head = layered ?? this.view?.head ?? null;
+        if (!head || typeof head !== "object") return {subtitle: [], status: null};
+        const subtitle = Array.isArray(head.subtitle) ? head.subtitle.map(String).filter(Boolean).slice(0, 2) : [];
+        return {subtitle, status: typeof head.status === "string" && head.status ? head.status : null};
+    }
+
+    // What the head draws under the title: the subtitle fields' values, and
+    // the stage's option with its scheme for the tonal badge.
+    get headLine() {
+        const head = this.viewHead;
+        const subtitle = head.subtitle.map((key) => {
+            const field = this.headField(key);
+            const value = this.changed?.has?.(key) ? this.changed.get(key) : field?.value;
+            const text = field ? valueText(field, value, this.viewHost) : "";
+            return text ? {key, text} : null;
+        }).filter(Boolean);
+        let status = null;
+        const stage = head.status ? this.headField(head.status) : null;
+        if (stage) {
+            const value = stage.value && typeof stage.value === "object" ? stage.value.value ?? stage.value.id : stage.value;
+            const option = (stage.options ?? []).find((item) => String(item?.value ?? item?.id ?? item) === String(value ?? ""));
+            const text = option ? String(option.label ?? option.text ?? option.value ?? "") : valueText(stage, stage.value, this.viewHost);
+            if (text) status = {key: String(stage.key), text, scheme: option?.scheme ?? option?.color ?? "secondary"};
+        }
+        return {subtitle, status};
+    }
+
+    _writeHead(next) {
+        if (!this.configuring || !this.layerDraft || this.lockedForMe("head")) return false;
+        this.layerDraft.head = {subtitle: next.subtitle.slice(0, 2), status: next.status ?? null};
+        this.requestComponentUpdate("view-head");
+        return this.saveView();
+    }
+
+    toggleHeadSubtitle(fieldKey) {
+        const head = this.viewHead;
+        const key = String(fieldKey);
+        const subtitle = head.subtitle.includes(key)
+            ? head.subtitle.filter((item) => item !== key)
+            : [...head.subtitle, key].slice(-2);
+        return this._writeHead({...head, subtitle});
+    }
+
+    setHeadStatus(fieldKey) {
+        const head = this.viewHead;
+        const key = fieldKey == null ? null : String(fieldKey);
+        return this._writeHead({...head, status: head.status === key ? null : key});
+    }
+
+    // The field the head names, wherever it stands (hidden ones too).
+    headField(key) {
+        const name = String(key);
+        for (const section of this.sections ?? []) {
+            for (const group of section.groups ?? []) {
+                for (const field of group.fields ?? []) if (String(field.key) === name) return field;
+            }
+        }
+        return (this.unplaced ?? []).find((field) => String(field.key) === name) ?? null;
+    }
+
+    // «Добавить поле» is structure, not view (C311 (1)): it opens the data
+    // owner's field editor. The card says which collection and where; the
+    // host opens its editor.
+    openStructureEditor(groupKey = null) {
+        const located = groupKey ? this._locateGroup(groupKey) : null;
+        return this.sfEmit?.("structure", {
+            collection: this.collection || null,
+            section: located ? String(located.section.key) : (this.selectedSection || null),
+            group: groupKey ? String(groupKey) : null,
+        }, {cancelable: true}) ?? null;
+    }
+
+    // The eye of a field in «Скрытые поля» (C311 (5)): back into the open
+    // tab's first area that takes fields.
+    showHiddenField(fieldKey) {
+        if (!this.configuring) return false;
+        const sections = this.sections ?? [];
+        const section = sections.find((part) => String(part.key) === this.selectedSection) ?? sections[0];
+        const group = (section?.groups ?? []).find((candidate) => candidate.kind !== "related" && !candidate.hidden);
+        if (!group) return false;
+        return this.moveField(String(fieldKey), String(group.key), (group.fields ?? []).length);
+    }
+
+    // A tab's «⋯» (C311 (4), TB-1): name, icon, up, down, hide, delete, and
+    // the lock for those who may write the shared layer.
+    tabMenuEntries(sectionKey) {
+        const at = this.sections.findIndex((section) => String(section.key) === String(sectionKey));
+        const section = this.sections[at];
+        if (!section) return [];
+        const word = (key) => pageText(PROPERTY_VIEW_TEXT, key, this);
+        const path = `sections.${String(section.key)}`;
+        const mine = !this.lockedForMe(path);
+        const entries = [
+            {id: "tab-rename", text: word("tabRenameText"), icon: "edit", disabled: !mine},
+            {id: "tab-icon", text: word("tabIconText"), icon: "category", disabled: !mine},
+            {id: "tab-up", text: word("tabUpText"), icon: "arrow_upward", disabled: at === 0 || this.lockedForMe("sections.order")},
+            {id: "tab-down", text: word("tabDownText"), icon: "arrow_downward", disabled: at === this.sections.length - 1 || this.lockedForMe("sections.order")},
+            {type: "separator"},
+            {id: "tab-hide", text: word(section.hidden ? "tabShowText" : "tabHideText"), icon: section.hidden ? "visibility" : "visibility_off", disabled: !mine},
+            {id: "tab-delete", text: word("tabDeleteText"), icon: "delete", danger: true, disabled: !mine || this.sections.length < 2},
+        ];
+        if (this.canWriteShared) {
+            entries.push({type: "separator"});
+            entries.push(this.isLocked(path)
+                ? {id: "tab-lock", text: word("unlockText"), icon: "lock_open"}
+                : {id: "tab-lock", text: word("lockText"), icon: "lock"});
+        }
+        return entries;
+    }
+
+    openTabMenu(anchor, sectionKey) {
+        const key = String(sectionKey);
+        return this.openStandardMenu(anchor, {
+            label: pageText(PROPERTY_VIEW_TEXT, "tabMenuText", this).replace("{name}", String(this.sections.find((section) => String(section.key) === key)?.label ?? key)),
+            entries: this.tabMenuEntries(key),
+            select: (id) => this.chooseTabEntry(key, id),
+        });
+    }
+
+    chooseTabEntry(sectionKey, id) {
+        const key = String(sectionKey);
+        const at = this.sections.findIndex((section) => String(section.key) === key);
+        if (at < 0) return false;
+        if (id === "tab-rename") return this.startRenaming("section", key);
+        if (id === "tab-icon") {
+            this.selectSection(key);
+            this.whenRendered?.(() => (this.panelContent?.() ?? this).querySelector?.(`[data-icon-for="${CSS.escape(key)}"] [data-action="section-icon"] button, [data-icon-for="${CSS.escape(key)}"] [data-action="section-icon"]`)?.click?.(), {next: true});
+            return true;
+        }
+        if (id === "tab-up") return this.moveSection(key, at - 1);
+        if (id === "tab-down") return this.moveSection(key, at + 1);
+        if (id === "tab-hide") return this.toggleEntryHidden("section", key);
+        if (id === "tab-delete") return this.removeSection(key);
+        if (id === "tab-lock") return this.lockViewPath(`sections.${key}`);
+        return false;
+    }
+
+    // A field's «⋯» in the arranging mode (C311 (2), (4)): the head's fields
+    // and stage for the admin, «На вкладку …» at every width, the lock.
+    fieldMenuEntries(fieldKey) {
+        const key = String(fieldKey);
+        const field = this.headField(key);
+        const word = (name) => pageText(PROPERTY_VIEW_TEXT, name, this);
+        const entries = [];
+        const head = this.viewHead;
+        if (this.canWriteShared && !this.lockedForMe("head")) {
+            entries.push({id: "head-subtitle", text: word(head.subtitle.includes(key) ? "headSubtitleOffText" : "headSubtitleOnText"), icon: "title"});
+            if (Array.isArray(field?.options) && field.options.length) {
+                entries.push({id: "head-status", text: word(head.status === key ? "headStatusOffText" : "headStatusOnText"), icon: "label"});
+            }
+        }
+        const here = this.sections.find((section) => (section.groups ?? []).some((group) => (group.fields ?? []).some((item) => String(item.key) === key)));
+        const others = this.sections.filter((section) => section !== here
+            && (section.groups ?? []).some((group) => group.kind !== "related"));
+        if (others.length && !this.lockedForMe(`fields.${key}.group`)) {
+            if (entries.length) entries.push({type: "separator"});
+            for (const section of others) {
+                entries.push({id: `to-tab:${String(section.key)}`, text: word("toTabText").replace("{name}", String(section.label ?? section.key)), icon: "drive_file_move"});
+            }
+        }
+        if (this.canWriteShared) {
+            if (entries.length) entries.push({type: "separator"});
+            const path = `fields.${key}.hidden`;
+            entries.push(this.isLocked(path)
+                ? {id: "field-lock", text: word("unlockText"), icon: "lock_open"}
+                : {id: "field-lock", text: word("lockText"), icon: "lock"});
+        }
+        return entries;
+    }
+
+    openFieldMenu(anchor, fieldKey) {
+        const key = String(fieldKey);
+        const entries = this.fieldMenuEntries(key);
+        if (!entries.length) return null;
+        return this.openStandardMenu(anchor, {
+            label: pageText(PROPERTY_VIEW_TEXT, "fieldMenuText", this).replace("{name}", String(this.headField(key)?.label ?? key)),
+            entries,
+            select: (id) => this.chooseFieldEntry(key, id),
+        });
+    }
+
+    chooseFieldEntry(fieldKey, id) {
+        const key = String(fieldKey);
+        const value = String(id ?? "");
+        if (value === "head-subtitle") return this.toggleHeadSubtitle(key);
+        if (value === "head-status") return this.setHeadStatus(key);
+        if (value === "field-lock") return this.lockViewPath(`fields.${key}.hidden`);
+        if (value.startsWith("to-tab:")) return this.moveFieldToSection(key, value.slice("to-tab:".length));
+        return false;
+    }
+
     _storeLayer(kind, revision, view) {
         if (!this.view) return;
         this.view.layers = {...(this.view.layers ?? {})};
@@ -4236,7 +4616,10 @@ class SfPropertyView extends PropertyViewElement {
         // Behind the same queue as a save: a reset racing a save in flight would
         // clear a layer and then store the save's revision over the cleared one.
         await (this._viewWriting ?? Promise.resolve());
-        const kind = this.viewTarget;
+        // «Вернуть как у всех» clears the person's own layer and nothing else
+        // (C311 (5), RC-3): it cleared the layer of the profile, the shared one
+        // included. A shared reset is the picker row's, for the admin.
+        const kind = this.editableLayers.includes("personal") ? "personal" : this.viewTarget;
         const epoch = ++this.viewEpoch;
         const answer = await this._raise("view.reset", {
             record_id: null,

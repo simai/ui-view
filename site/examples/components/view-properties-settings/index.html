@@ -1,0 +1,18 @@
+<div class="page-settings">
+  <div class="page-roles" role="group" aria-label="Кто настраивает">
+    <sf-button size="1/2" appearance="tonal" scheme="primary" text="Администратор" data-role="admin" aria-pressed="true"></sf-button>
+    <sf-button size="1/2" appearance="ghost" scheme="on-surface" text="Сотрудник" data-role="user" aria-pressed="false"></sf-button>
+    <sf-button size="1/2" appearance="ghost" scheme="on-surface" text="Обязательный вид" data-role="required" aria-pressed="false"></sf-button>
+    <sf-button size="1/2" appearance="outline" scheme="on-surface" icon-start="tune" text="Настроить вид" data-configure></sf-button>
+  </div>
+  <sf-view-properties
+    id="deal-card"
+    record-id="deal-15"
+    collection="crm.deals"
+    aria-label="Сделка № 15">
+  </sf-view-properties>
+  <section class="page-log" aria-label="Запросы к хосту">
+    <h3>Запросы к хосту</h3>
+    <ol data-log></ol>
+  </section>
+</div>

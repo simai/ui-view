@@ -226,13 +226,20 @@ payload}`, стандарт §4.9), или из `capabilities` рядом с о�
   видов), «Настроить вид» и «⋯»; ниже «Фильтр», поиск и «+»; поля фильтра —
   одна строка с прокруткой; каждое окно — нижняя панель `sf-drawer`. На
   компьютере окна — `sf-popover`.
-- Хост отвечает `describe()` на порте (`fields`, `layouts`, `permissions`,
-  `record_fields`) и отдаёт в данных `saved_filters`, `view_config`, `locked`.
+- Хост отвечает `describe()` на порте (`fields`, `layouts`, `permissions`)
+  и отдаёт в данных `saved_filters`, `view_config`, `locked`.
 - Намерения: `filter.save`, `filter.update`, `filter.rename`, `filter.share`,
   `filter.default`, `filter.delete`; `settings.save {layer, view, type, patch,
   base_revision}` (личное — сразу, общее — только при `shared_settings`);
-  `entity.fields.save {groups}`; `view.create_record {item}`. Состояние шапки —
+  `view.create_record {item}`. Состояние шапки —
   `query`: `filters_chosen`, `filters`, `saved_filter`, `search`, `view`.
+- «⋯ → Настройки полей записи» (право `permissions.record_fields`, C301)
+  открывает первую запись списка в карточке сразу в режиме настройки
+  (`openRecordSettings()`, C311 (1)): одна раскладка карточки на сущность
+  для таблицы, доски, карточек, календаря и страницы записи (C311 (3)).
+  Отдельной панели полей и запроса `entity.fields.save` больше нет (с версии
+  1.20.0). Без карточки рядом со списком страница слышит `settings-open`
+  `{id: "record-fields"}`.
 - Меню заголовка колонки под шапкой (с версии 1.19.0): сортировка, «Закрепить»,
   «Скрыть колонку», «Все колонки…» и ширина, как у таблицы без шапки (C296);
   «Все колонки…» открывает «Настроить вид». Страница открывает его сама через
