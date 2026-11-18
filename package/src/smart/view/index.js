@@ -28,6 +28,7 @@ import tableRu from "../view-table/lang/ru.json";
 import BundledPreferences from "../../core/js/preferences.js";
 import {acceptLevel, collapse, createTree, expandKnown, hasLevel, knownRecords, markLoading, visibleRows} from "./js/tree.js";
 import {ListHead} from "./js/head.js";
+import {CARDS_EVENTS, acceptCards, cardsDrawn, cardsOf, cardsQuery, cardsSkeleton, onCardsEvent, syncCards, syncCardsState} from "./js/cards.js";
 const LISTENED = Object.freeze([
     "sf-view-table-search-change", "sf-view-table-filter-change", "sf-view-table-sort-change", "sf-view-table-save",
     "sf-view-table-apply", "sf-view-table-refresh", "sf-view-table-select", "sf-view-table-column-settings-reset",
@@ -38,12 +39,14 @@ const LISTENED = Object.freeze([
     // The board's (sf-view-board, layout="board"; owner decisions C298, C304).
     "sf-view-board-move", "sf-view-board-more", "sf-view-board-open", "sf-view-board-create",
     "sf-view-board-select", "sf-view-board-apply",
+    // The cards' (sf-view-cards, layout="cards"; owner decisions C297, C306).
+    ...CARDS_EVENTS,
 ]);
 // The layout registry (owner decision C298, BD-1): a layout name and the
 // element that draws it. auto, table and list are the table's; board is
 // sf-view-board. Larena's word kanban reads as board. A name the registry does
 // not hold warns once and draws the table, as before.
-const LAYOUTS = new Map([["auto", "sf-view-table"], ["table", "sf-view-table"], ["list", "sf-view-table"], ["board", "sf-view-board"]]);
+const LAYOUTS = new Map([["auto", "sf-view-table"], ["table", "sf-view-table"], ["list", "sf-view-table"], ["board", "sf-view-board"], ["cards", "sf-view-cards"]]);
 const LAYOUT_ALIASES = Object.freeze({kanban: "board"});
 const layoutName = (value) => {
     const name = String(value ?? "").trim().toLowerCase();
@@ -441,6 +444,7 @@ class SfDataView extends DataViewElement {
     set current(id) {
         this._current = id === null || id === undefined ? "" : String(id);
         if (this.table) this.table.current = this._current;
+        if (this.layoutKind === "cards" && this.cards) this.cards.current = this._current;
     }
 
     get selected() { return this._current || undefined; }
@@ -525,7 +529,8 @@ class SfDataView extends DataViewElement {
             globalThis.setTimeout?.(() => {
                 const board = this.layoutKind === "board" ? this.board : null;
                 const cardOf = board?.querySelector?.(`.sf-view-board__card[data-id="${globalThis.CSS?.escape ? CSS.escape(id) : id}"]`);
-                if (cardOf) cardOf.focus?.({preventScroll: true});
+                const cardsCard = this.layoutKind === "cards" ? this.cards?.querySelector?.(`.sf-view-cards__card[data-id="${globalThis.CSS?.escape ? CSS.escape(id) : id}"]`) : null;
+                if (cardOf ?? cardsCard) (cardOf ?? cardsCard).focus?.({preventScroll: true});
                 else this.table?.focusRow?.(id, {focus: true});
             }, 0);
         };
@@ -564,12 +569,13 @@ class SfDataView extends DataViewElement {
     _lightDefaults() {
         // A board (layout="board", BD-1) is its content and has no page row:
         // each lane has its own «Показать ещё» (C304).
-        const board = this.layoutKind === "board";
+        // Cards (layout="cards") too: «Показать ещё» is under their grid (C306).
+        const board = this.layoutKind === "board" || this.layoutKind === "cards";
         const defaults = [
             ["content", "sf-view-table", {}],
             ["pagination", "sf-pagination", {appearance: "field", top: "false", bottom: "false"}],
         ];
-        if (board) defaults[0][1] = "sf-view-board";
+        if (board) defaults[0][1] = this.layoutKind === "cards" ? "sf-view-cards" : "sf-view-board";
         for (const [slot, tag, attributes] of defaults) {
             // A part the view does not draw (chrome without pagination, an
             // embedded list) gets no default element: it would print a page
@@ -606,7 +612,7 @@ class SfDataView extends DataViewElement {
         const written = this.getAttribute?.("layout");
         if (written === null || written === undefined || written === "") return "table";
         const name = layoutName(written);
-        if (LAYOUTS.has(name)) return LAYOUTS.get(name) === "sf-view-board" ? "board" : name;
+        if (LAYOUTS.has(name)) return LAYOUTS.get(name) === "sf-view-board" ? "board" : LAYOUTS.get(name) === "sf-view-cards" ? "cards" : name;
         this._layoutWarned ??= new Set();
         if (!this._layoutWarned.has(name)) {
             this._layoutWarned.add(name);
@@ -628,6 +634,10 @@ class SfDataView extends DataViewElement {
         const slot = this.shadowRoot?.querySelector('slot[name="content"]');
         return slot?.assignedElements?.().find((element) => isTag(element, "sf-view-board"))
             ?? this.querySelector?.(':scope > sf-view-board[slot="content"]') ?? null;
+    }
+
+    get cards() {
+        return cardsOf(this);
     }
 
     get table() {
@@ -996,14 +1006,15 @@ class SfDataView extends DataViewElement {
     _ownParts() {
         // A board (layout="board"): sf-view-board in the content slot, and no
         // page row -- each lane has its own «Показать ещё» (C304).
-        if (this.layoutKind === "board") {
+        if (this.layoutKind === "board" || this.layoutKind === "cards") {
+            const tag = this.layoutKind === "cards" ? "sf-view-cards" : "sf-view-board";
             if (!this.querySelector(':scope > [slot="content"]')) {
-                const board = document.createElement("sf-view-board");
+                const board = document.createElement(tag);
                 board.slot = "content";
                 board.toggleAttribute("data-sf-view-made", true);
                 this.append(board);
             }
-            globalThis.SF?.Loader?.ensure?.(["sf-view-board"]);
+            globalThis.SF?.Loader?.ensure?.([tag]);
             this._applyBulkActions();
             this._applyForAll();
             return;
@@ -1279,6 +1290,7 @@ class SfDataView extends DataViewElement {
     // (auto), as the table resolves it.
     _firstPaintLayout(table) {
         if (this.layoutKind === "board") return "board";
+        if (this.layoutKind === "cards") return "cards";
         const written = table?.getAttribute?.("data-sf-host-layout") || table?.getAttribute?.("layout") || this.getAttribute?.("layout");
         const own = ["auto", "table", "list"].includes(written) ? written : (this.renders("toolbar") ? "auto" : "table");
         const value = this.getAttribute?.("layout-switch");
@@ -1345,7 +1357,9 @@ class SfDataView extends DataViewElement {
             + "</div>";
         if (layoutSwitch) skeleton.setAttribute("data-layout-switch", "");
         else skeleton.removeAttribute?.("data-layout-switch");
-        skeleton.setAttribute("data-layout", ["auto", "table", "list", "board"].includes(layout) ? layout : "table");
+        skeleton.setAttribute("data-layout", ["auto", "table", "list", "board", "cards"].includes(layout) ? layout : "table");
+        // The cards' shape (CD-2): a grid of cards, no table and no page row.
+        if (layout === "cards") return cardsSkeleton(this, bar);
         // The board's shape (BD-2): lanes of a head and cards, no table and no
         // page row, so nothing flashes a table before the lanes come.
         if (layout === "board") {
@@ -1400,6 +1414,7 @@ class SfDataView extends DataViewElement {
             for (const node of this._firstPaintNodes()) node.remove?.();
         };
         const registry = globalThis.customElements;
+        if (this.layoutKind === "cards" && typeof registry?.whenDefined === "function") return this._dropCardsFirstPaint(drop);
         if (this.layoutKind !== "board" || typeof registry?.whenDefined !== "function") return drop();
         if (registry.get("sf-view-board") && this.board?.querySelector?.(".sf-view-board__lanes > *")) return drop();
         if (this._firstPaintWait) return;
@@ -1417,6 +1432,28 @@ class SfDataView extends DataViewElement {
             this._firstPaintWait = null;
             drop();
         });
+    }
+
+    // The cards' skeleton stays until sf-view-cards is defined and has drawn
+    // its grid (CD-2), as the board's does.
+    _dropCardsFirstPaint(drop) {
+        if (cardsDrawn(this)) return drop();
+        if (this._firstPaintWait) return undefined;
+        const frame = () => new Promise((done) => (globalThis.requestAnimationFrame ?? globalThis.setTimeout)(() => done()));
+        const wait = globalThis.customElements.whenDefined("sf-view-cards").then(async () => {
+            syncCards(this);
+            for (let tries = 0; tries < 120 && !cardsDrawn(this); tries += 1) {
+                await this.cards?.whenRendered?.();
+                if (cardsDrawn(this)) return;
+                await frame();
+            }
+        });
+        const late = new Promise((done) => globalThis.setTimeout(done, 3000));
+        this._firstPaintWait = Promise.race([wait, late]).catch(() => {}).then(() => {
+            this._firstPaintWait = null;
+            drop();
+        });
+        return undefined;
     }
 
     _firstPaintNodes() {
@@ -1659,6 +1696,7 @@ class SfDataView extends DataViewElement {
                 ...(this._queryMessage ? {message: this._queryMessage} : {})};
         }
         this.table?.setDataState?.(state);
+        if (this.layoutKind === "cards") syncCardsState(this, state);
         // A failed or refused list has nothing to count: the page row goes with
         // it until a list comes back (docs trial 4: «Всего: 10» over an error).
         const pageRow = this.shadowRoot.querySelector('slot[name="pagination"]');
@@ -2010,6 +2048,7 @@ class SfDataView extends DataViewElement {
         }
         if (Number.isSafeInteger(data.total)) this.totalExact = data.total_exact !== false;
         this._acceptBoard(data);
+        acceptCards(this, data);
         this._answered = true;
         if (Array.isArray(data.saved_views)) this.savedViews = copy(data.saved_views);
         if (Array.isArray(data.saved_filters)) this.savedFilters = copy(data.saved_filters);
@@ -2523,6 +2562,7 @@ class SfDataView extends DataViewElement {
         else this.pagination?.removeAttribute?.("size");
         this._forwardLabels();
         this._syncBoard();
+        if (this.layoutKind === "cards") syncCards(this);
         const table = this.table;
         if (table) {
             // The two chrome columns. Written as attributes rather than left to the
@@ -2740,7 +2780,7 @@ class SfDataView extends DataViewElement {
         // said «Всего: 10» over a loading, failed or refused list (docs trial 4).
         // A board has none either: each lane has its own «Показать ещё» (C304).
         const nothingToCount = !this._answered || this._queryRefused || ["error", "no-access"].includes(this.getAttribute("data-state"));
-        if (pageRow) pageRow.hidden = !this.renders("pagination") || this.treeMode === "tree" || this.layoutKind === "board" || nothingToCount;
+        if (pageRow) pageRow.hidden = !this.renders("pagination") || this.treeMode === "tree" || this.layoutKind === "board" || this.layoutKind === "cards" || nothingToCount;
         if (!this.capHidesRows) {
             if (this._showAll?.isConnected) this._showAll.remove();
             this._showAll = null;
@@ -3037,6 +3077,7 @@ class SfDataView extends DataViewElement {
     // one request (BD-4; draft view-config/1, open point 1).
     _layoutQuery(extra = null) {
         const query = copy(this.query);
+        if (this.layoutKind === "cards") return cardsQuery(this, query);
         if (this.layoutKind !== "board") return query;
         const options = this._boardOptions();
         // The lanes' counts come with the cards; their money sums are a
@@ -3194,6 +3235,7 @@ class SfDataView extends DataViewElement {
         if (this._seenEvents.has(event)) return;
         this._seenEvents.add(event);
         if (event.type.startsWith("sf-view-board-")) return this._onBoardEvent(event);
+        if (event.type.startsWith("sf-view-cards-")) return onCardsEvent(this, event);
         // The port's event for a shared saved view (view.save_shared): a page
         // raises save {kind: "view", key, label} on the view itself (vocabulary
         // 1.1.5 §9; sf-view 1.12.0), so it is taken before the rule that

@@ -115,6 +115,8 @@ const STATUS_PENDING = {
   // sf-view-board (view round 2, board helper): the name is new; the registry
   // takes it with the next Framework group build (order through the dispatcher).
   'sf-view-board': {set: 'preview', registry: undefined, order: 'register sf-view-board / cl-view-board in contracts/registry/names.json (view round 2 board, 2026-11-18)'},
+  // sf-view-cards (view-cards helper): registered with the next Framework group build as well.
+  'sf-view-cards': {set: 'preview', registry: undefined, order: 'register sf-view-cards / cl-view-cards in contracts/registry/names.json (view-cards, 2026-11-18)'},
 };
 
 test('each component has the status the registry gives it', {skip: !setRoot && 'SET_ROOT is not given'}, () => {

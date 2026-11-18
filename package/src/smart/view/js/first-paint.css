@@ -458,4 +458,43 @@
       margin-block-end: var(--sf-space-1\/3);
     }
   }
+
+  /* The cards' first paint (sf-view-cards, CD-2): the grid of the cards' own
+     lengths -- columns by the least card width of the size (S --sf-f2, M
+     --sf-f5, L --sf-g0), a card of .sf-card at the 1/2 rung with a cover frame
+     of 4:3 edge to edge, a title line and two field lines; on a phone (the
+     grid below 600 px) S two columns, M and L one, as the cards draw them. */
+  .sf-data-view-skeleton[data-layout="cards"] .sf-data-view-skeleton-cards {
+    --sf-data-view-skeleton--card-min: var(--sf-f5);
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--sf-data-view-skeleton--card-min)), 1fr));
+    gap: var(--sf-space-1\/2);
+    min-inline-size: 0;
+  }
+  .sf-data-view-skeleton-cards[data-card-size="s"] { --sf-data-view-skeleton--card-min: var(--sf-f2); }
+  .sf-data-view-skeleton-cards[data-card-size="l"] { --sf-data-view-skeleton--card-min: var(--sf-g0); }
+  .sf-data-view-skeleton-cards > div {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sf-space-1\/4);
+    padding: var(--sf-space-1\/3) var(--sf-space-1\/2);
+    border: var(--sf-px) solid var(--sf-outline-variant);
+    border-radius: var(--sf-radius--surface);
+    background: var(--sf-surface-card);
+    overflow: hidden;
+    min-inline-size: 0;
+  }
+  .sf-data-view-skeleton-cards > div > i { block-size: var(--sf-text-height-1\/2); }
+  .sf-data-view-skeleton-cards [data-part="cover"] {
+    display: block;
+    margin: calc(-1 * var(--sf-space-1\/3)) calc(-1 * var(--sf-space-1\/2)) 0;
+    aspect-ratio: 4 / 3;
+    background: var(--sf-surface-container);
+  }
+  @container (max-width: 599.98px) {
+    .sf-data-view-skeleton[data-layout="cards"] .sf-data-view-skeleton-cards { grid-template-columns: minmax(0, 1fr); }
+    .sf-data-view-skeleton[data-layout="cards"] .sf-data-view-skeleton-cards[data-card-size="s"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .sf-data-view-skeleton-cards > div { padding-inline: var(--sf-space-1\/3); }
+    .sf-data-view-skeleton-cards [data-part="cover"] { margin-inline: calc(-1 * var(--sf-space-1\/3)); }
+  }
 }

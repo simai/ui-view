@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view",
-  "version": "1.17.0",
+  "version": "1.19.0",
   "title": "Data view",
   "summary": "Host-driven data view that composes toolbar, content and pagination around a separate data port.",
   "kind": "composite",
@@ -1826,6 +1826,13 @@
           "Record card round 2 (C305 (4), RC-5): recordBeside(id, direction) answers the next or the previous record id in the order the view shows (null at the ends or for an id it does not show), so a page that opened a record card from the view steps it with Alt+Down / Alt+Up. Nothing to change for a host. (round/view-r2-card, was 1.16.0)",
           "View round 2 merge: record-card names an sf-view-properties panel of the page; a record opened from the table, the list or the board then opens in it beside the list (the view marks itself data-sf-drawer-dock-host when the page marked nothing), its steps go to recordBeside (the board's order is its lanes'), its close gives the focus back to the row; without record-card the host's record.open as before. The board's lane window asks totals [\"count\"] with the cards; the money sums are a second query.change (reason lane-sums, per_lane 0, totals of layouts.board) after the board is drawn, their line held meanwhile (sf-view-board sums-pending, setLaneTotals)."
         ]
+      },
+      {
+        "from": "1.17.0",
+        "to": "1.19.0",
+        "changes": [
+          "The cards layout (owner decisions C297, C306, CD-1..CD-8, round/view-cards; 1.18.0 is round/view-r3's): the layout registry holds cards -> sf-view-cards, drawn in the content slot with no page row (its «Показать ещё» is under the grid); the query carries window {page, per_page: 24}; «Показать ещё» (sf-view-cards-more) continues the list as Show more does; a card's open goes the way a row's does (the record card beside the list, C305, its card marked current and focused again on close); the selection and the host's bulk actions go to the cards' bar; the data state and why a list is empty go to the cards (sf-empty-state); the first paint holds a grid of cards. The wiring is view/js/cards.js."
+        ]
       }
     ]
   },
@@ -1835,7 +1842,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view/index.js",
-        "sha256": "d6553991e0c51c47631157985d175ca8f577b6fbaf8fe05cc09a870245510efd"
+        "sha256": "a32ee0d7b08643e47315d15c26cb270da83a8480680e7d17b326b432b72df567"
       },
       {
         "path": "src/core/contracts/ports/simai.dataview-port/1.5.0/port.json",
@@ -1855,7 +1862,11 @@
       },
       {
         "path": "src/smart/view/js/first-paint.css",
-        "sha256": "1399c2e9d14fdf0d74a77ff532cb28a5041ca77d34e6cfceb3195704c46571ed"
+        "sha256": "ce2bbcb1986b3b9e76a4a6d179de4e013f81c46ea611210b46f83ed7fc223015"
+      },
+      {
+        "path": "src/smart/view/js/cards.js",
+        "sha256": "ebf2faa1ff6a36c0d12778c551c14910bef09c7bdad4cda32beb1e1c54f0d9b9"
       }
     ],
     "generated_runtime": []

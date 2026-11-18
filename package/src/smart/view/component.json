@@ -2,8 +2,15 @@
   "$comment": "sf-data-view from its component.json (standard simai.smart-component 1.3.8, vocabulary 1.1.5), migrated from ui-control control/smart-architecture/migration/out/data-view; every x-todo decided in x-decisions.",
   "id": "smart.view",
   "tag": "sf-view",
-  "version": "1.17.0",
+  "version": "1.19.0",
   "x-history": [
+    {
+      "version": "1.19.0",
+      "kind": "minor",
+      "recorded_on": "2026-11-18",
+      "consumer": "New: layout=\"cards\" draws sf-view-cards over the window {page, per_page: 24} (records, total, has_next); a press on a card opens the record card beside the list. Nothing changes for a table or a board.",
+      "evidence": "control/evidence/2026-11-18-view-cards"
+    },
     {
       "version": "1.17.0",
       "kind": "minor",
@@ -1817,6 +1824,13 @@
             "The layout registry (owner decision C298, BD-1): layout=\"board\" (alias kanban) draws sf-view-board in the content slot, with no page row; a name outside the registry warns once (it drew the table silently) and still draws the table. The board's first paint holds lanes of a head and cards, not a table (BD-2). A board's query carries window {lanes, per_lane} (BD-4); the answer's lanes, board.moves and board.order_field go to the board; a move is record.set of the lane field, «Показать ещё» a query.change with window.lane. (round/view-r2-board, was 1.16.0)",
             "Record card round 2 (C305 (4), RC-5): recordBeside(id, direction) answers the next or the previous record id in the order the view shows (null at the ends or for an id it does not show), so a page that opened a record card from the view steps it with Alt+Down / Alt+Up. Nothing to change for a host. (round/view-r2-card, was 1.16.0)",
             "View round 2 merge: record-card names an sf-view-properties panel of the page; a record opened from the table, the list or the board then opens in it beside the list (the view marks itself data-sf-drawer-dock-host when the page marked nothing), its steps go to recordBeside (the board's order is its lanes'), its close gives the focus back to the row; without record-card the host's record.open as before. The board's lane window asks totals [\"count\"] with the cards; the money sums are a second query.change (reason lane-sums, per_lane 0, totals of layouts.board) after the board is drawn, their line held meanwhile (sf-view-board sums-pending, setLaneTotals)."
+          ]
+        },
+        {
+          "from": "1.17.0",
+          "to": "1.19.0",
+          "changes": [
+            "The cards layout (owner decisions C297, C306, CD-1..CD-8, round/view-cards; 1.18.0 is round/view-r3's): the layout registry holds cards -> sf-view-cards, drawn in the content slot with no page row (its «Показать ещё» is under the grid); the query carries window {page, per_page: 24}; «Показать ещё» (sf-view-cards-more) continues the list as Show more does; a card's open goes the way a row's does (the record card beside the list, C305, its card marked current and focused again on close); the selection and the host's bulk actions go to the cards' bar; the data state and why a list is empty go to the cards (sf-empty-state); the first paint holds a grid of cards. The wiring is view/js/cards.js."
           ]
         }
       ]

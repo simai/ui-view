@@ -16,6 +16,25 @@ same numbers with other content); every next set version is above them
 up). Each component.json says the same under `x-decisions`
 `pro-copy-versions`.
 
+## Unreleased (round/view-cards)
+
+- `sf-view-cards` 1.0.0, new (owner decisions C297, C306, CD-1..CD-8): the
+  cards layout. Records as `.sf-card` in a grid whose columns follow its
+  width (sizes S, M, L: least width 12, 15, 20rem; on a phone S two columns,
+  M and L one), a cover the layout draws in a frame of one ratio (cover crops,
+  contain shows it whole on a tint; lazy pictures, no jump), the title in two
+  lines and up to four fields in the «Кратко» place by the Framework field
+  renderers; «Показать ещё» and «Показано N из M» are `sf-pagination` in its
+  more look; one Tab stop with the arrows by rows, Enter opens, Space marks,
+  Shift+F10 the card menu, Escape clears; the marks go to `sf-bulk-actions`
+  where the pair has it; empty lists are `sf-empty-state`.
+- `sf-view` 1.19.0: `layout="cards"` draws `sf-view-cards` (the layout
+  registry), only where the author turned it on (C297); the query carries
+  `window {page, per_page: 24}`, «Показать ещё» continues the list; a press
+  on a card opens the record card beside the list (C305) and the grid
+  narrows; the first paint holds a grid of cards. The wiring lives in
+  `view/js/cards.js`; `index.js` only calls it at its hook points.
+
 ## Unreleased (round/view-r2)
 
 - `sf-view-table` 1.24.0 (owner decision C296, view round 2, VT-1..VT-18):
