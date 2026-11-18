@@ -55,6 +55,7 @@
     "history-fields-text": "Только изменения полей",
     "history-publish-text": "публикация записи",
     "history-restore-text": "восстановление записи",
+    "history-sealed-text": "Значение скрыто: {fields}",
     "history-text": "История изменений",
     "in-this-group-text": "В этой области",
     "inherited-text": "по умолчанию",

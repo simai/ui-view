@@ -11,13 +11,22 @@
 //               read as update)
 //     changes   [{field, label, before, after}] -- field is the field's key, so
 //               the card draws before and after by that field's template; the
-//               label is the host's when the field is not in the arrangement
+//               label is the host's when the field is not in the arrangement.
+//               A field the person may not read (encrypted, closed by rights)
+//               comes as {field, label, sealed: true} with no values: the card
+//               says the value is hidden and draws no before or after
 //   has_more  whether «Показать ещё» asks for another page
 //   cursor    what the next ask carries (the oldest event's revision); absent,
 //             the last event's id is sent
 //
 // kinds narrows the events: ["update"] is «Только изменения полей», null is
-// every event. The host pages; the card never asks for the whole history.
+// every event. The host pages (20 by default, 50 at most); the card never asks
+// for the whole history.
+//
+// Larena (storage 4915505, Root ee49efc9) answers this shape: newest first,
+// pages of 20 (max 50), cursor = revision, labels from the version schema,
+// actor a resolved name, time ISO 8601 with its zone, sealed fields as above;
+// publications are not in its record versions yet (a publish filter is empty).
 //
 // This module holds no imports so a host (and the unit tests) can load it
 // alone; js/history.js draws the values by the field templates.
@@ -33,20 +42,26 @@ export const HISTORY_KINDS = ['create', 'update', 'delete', 'restore', 'publish'
 
 const same = (a, b) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
 
+// The largest page a host gives (Larena: 50).
+export const HISTORY_PAGE_MAX = 50;
+
 /**
  * The port's answer to record.history from stored revisions. `revisions` are
  * [{revision, operation, created_by, created_at, values}] in any order; `fields`
  * the record's field descriptors (their order and labels); `cursor` the revision
  * the next page starts below (null: the newest); `kinds` null or a list of the
- * kinds to keep; `limit` the page size.
+ * kinds to keep; `limit` the page size (50 at most); `sealed` the keys of the
+ * fields the reader may not see.
  */
-export function historyFromRevisions(revisions, {fields = [], cursor = null, kinds = null, limit = 20} = {}) {
+export function historyFromRevisions(revisions, {fields = [], cursor = null, kinds = null, limit = 20, sealed = []} = {}) {
     const list = (Array.isArray(revisions) ? revisions : [])
         .filter((one) => one && one.revision !== undefined && one.revision !== null)
         .slice()
         .sort((a, b) => Number(a.revision) - Number(b.revision));
     const order = fields.map((field) => String(field.key ?? '')).filter(Boolean);
     const labels = new Map(fields.map((field) => [String(field.key ?? ''), String(field.label ?? field.key ?? '')]));
+    // Fields the reader may not see: their change is said, never their values.
+    const closed = new Set((Array.isArray(sealed) ? sealed : []).map(String));
     const events = [];
     for (let at = list.length - 1; at >= 0; at -= 1) {
         const one = list[at];
@@ -56,7 +71,9 @@ export function historyFromRevisions(revisions, {fields = [], cursor = null, kin
         const keys = [...new Set([...order, ...Object.keys(after), ...Object.keys(before)])];
         const changes = kind === 'update'
             ? keys.filter((key) => !same(before[key], after[key]))
-                .map((key) => ({field: key, label: labels.get(key) ?? key, before: before[key] ?? null, after: after[key] ?? null}))
+                .map((key) => (closed.has(key)
+                    ? {field: key, label: labels.get(key) ?? key, sealed: true}
+                    : {field: key, label: labels.get(key) ?? key, before: before[key] ?? null, after: after[key] ?? null}))
             : [];
         if (kind === 'update' && !changes.length) continue;
         events.push({id: `revision-${one.revision}`, revision: one.revision, time: one.created_at ?? null,
@@ -65,7 +82,7 @@ export function historyFromRevisions(revisions, {fields = [], cursor = null, kin
     const below = cursor === null || cursor === undefined || cursor === '' ? Infinity : Number(cursor);
     const wanted = Array.isArray(kinds) && kinds.length ? new Set(kinds) : null;
     const left = events.filter((event) => Number(event.revision) < below && (!wanted || wanted.has(event.kind)));
-    const page = left.slice(0, Math.max(1, limit));
+    const page = left.slice(0, Math.min(HISTORY_PAGE_MAX, Math.max(1, Number(limit) || 20)));
     const more = left.length > page.length;
     return {
         answer: 'applied',

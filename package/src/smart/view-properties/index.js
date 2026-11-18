@@ -1988,9 +1988,25 @@ class SfPropertyView extends PropertyViewElement {
         return this._emitStep(dir);
     }
 
-    _emitStep(direction) {
-        const allowed = this.sfEmit("step", {direction, record_id: this.recordId || null}, {cancelable: true});
-        return allowed ? {outcome: "applied"} : {outcome: "refused", reason: "prevented"};
+    // The next record: a host that announces record-neighbours names it over
+    // its current view (filters, search, sort; Larena: {listed, previous:
+    // {record_id}, next: {record_id}}), and the card opens it in the same panel
+    // unless the page takes the step (preventDefault). Without it the page
+    // finds the neighbour itself (sf-view recordBeside) and sets record-id.
+    async _emitStep(direction) {
+        let next = null;
+        if (this.hostPort?.capabilities?.includes?.("record-neighbours") && this.recordId) {
+            const answer = await this._raise("record.neighbours", {record_id: this.recordId, collection: this.collection || null});
+            if (answer?.answer === "applied") {
+                const id = answer[direction]?.record_id;
+                if (id === undefined || id === null || id === "") return {outcome: "refused", reason: "no-neighbour"};
+                next = String(id);
+            }
+        }
+        const allowed = this.sfEmit("step", {direction, record_id: this.recordId || null, ...(next ? {next_record_id: next} : {})}, {cancelable: true});
+        if (!allowed) return {outcome: "refused", reason: "prevented"};
+        if (next) this.setAttribute("record-id", next);
+        return {outcome: "applied"};
     }
 
     // RC-3, RC-6 openHistory(): the history as a level of the same panel, the
@@ -2069,6 +2085,7 @@ class SfPropertyView extends PropertyViewElement {
             historyCreate: word("historyCreateText"), historyDelete: word("historyDeleteText"),
             historyRestore: word("historyRestoreText"), historyPublish: word("historyPublishText"),
             historyChangedOne: word("historyChangedOneText"), historyChangedMany: word("historyChangedManyText"),
+            historySealed: word("historySealedText"),
         };
     }
 
@@ -2307,6 +2324,10 @@ class SfPropertyView extends PropertyViewElement {
             if (answer.answer === "applied" && Array.isArray(answer.effects) && answer.effects.length) {
                 globalThis.SF?.Composition?.publishEffects?.(answer.effects, {origin: this});
             }
+            // A save over a revision that moved (Larena: refused revision_moved,
+            // with the current revision, nothing written) is a conflict: the
+            // card says so, keeps what was typed and reads the record again.
+            if (answer.answer === "refused" && answer.reason === "revision_moved") return {...answer, answer: "conflict"};
             return answer;
         } catch (error) {
             if (!this.isConnected || stale()) return null;

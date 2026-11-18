@@ -28,7 +28,11 @@ export function valueText(field, value, host) {
 export function timelineItems(events, {words, fieldOf, host}) {
     return (Array.isArray(events) ? events : []).filter((event) => event && event.id !== undefined).map((event) => {
         const kind = HISTORY_KINDS.includes(event.kind) ? event.kind : 'update';
-        const changes = (Array.isArray(event.changes) ? event.changes : []).map((change) => {
+        const all = Array.isArray(event.changes) ? event.changes : [];
+        // A sealed field (encrypted, closed by rights) is named, never drawn.
+        const sealed = all.filter((change) => change && change.sealed === true)
+            .map((change) => String(change.label ?? fieldOf(String(change.field ?? ''))?.label ?? change.field ?? ''));
+        const changes = all.filter((change) => change && change.sealed !== true).map((change) => {
             const field = fieldOf(String(change.field ?? ''));
             return {
                 label: String(change.label ?? field?.label ?? change.field ?? ''),
@@ -37,8 +41,9 @@ export function timelineItems(events, {words, fieldOf, host}) {
             };
         });
         const actor = event.actor && typeof event.actor === 'object' ? event.actor : event.actor ? {name: String(event.actor)} : null;
+        const count = changes.length + sealed.length;
         const title = kind === 'update'
-            ? (changes.length === 1 ? words.historyChangedOne.replace('{field}', changes[0].label) : words.historyChangedMany.replace('{n}', String(changes.length)))
+            ? (count === 1 ? words.historyChangedOne.replace('{field}', changes[0]?.label ?? sealed[0]) : words.historyChangedMany.replace('{n}', String(count)))
             : words[`history${kind[0].toUpperCase()}${kind.slice(1)}`];
         return {
             id: String(event.id),
@@ -47,6 +52,7 @@ export function timelineItems(events, {words, fieldOf, host}) {
             title,
             ...(kind === 'delete' ? {status: 'error'} : kind === 'publish' || kind === 'restore' ? {status: 'success'} : {}),
             ...(changes.length === 1 ? {change: changes[0]} : changes.length > 1 ? {changes} : {}),
+            ...(sealed.length ? {text: words.historySealed.replace('{fields}', sealed.join(', '))} : {}),
         };
     });
 }

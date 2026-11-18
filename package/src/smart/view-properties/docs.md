@@ -318,8 +318,15 @@ receives.
   `{record_id, collection, cursor, kinds, limit}` and the host answers
   `{answer: "applied", events, has_more, cursor}`, each event
   `{id, time, actor, kind, changes: [{field, label, before, after}]}`, kind
-  one of `create`, `update`, `delete`, `restore`, `publish`. A host that keeps
-  a full snapshot per revision answers with the card's adapter:
+  one of `create`, `update`, `delete`, `restore`, `publish`; pages of 20, 50 at
+  most; `cursor` is the revision the next page starts below. A field the reader
+  may not see (encrypted, closed by rights) comes as
+  `{field, label, sealed: true}` with no values: the card says «Значение скрыто:
+  <поле>» and draws no before or after. Larena answers this shape (storage
+  4915505): actor a resolved name, time ISO 8601 with its zone, labels from the
+  version schema; publications are not in its versions yet. A host that keeps
+  a full snapshot per revision answers with the card's adapter (`sealed`: the
+  keys the reader may not see):
 
   ```js
   const Card = customElements.get("sf-view-properties");
@@ -332,8 +339,16 @@ receives.
   `data-sf-drawer-dock-host` — no scrim, the list stays usable, a press on
   another row, board card or calendar event opens that record in the same
   panel. `modal="true"` keeps the scrim. Alt+↓ / Alt+↑ raise
-  `sf-view-properties-step {direction}`; the page opens the neighbour
-  (`sf-view`'s `recordBeside(id, direction)` gives its id in the order shown).
+  `sf-view-properties-step {direction}`. A host that announces
+  `record-neighbours` names the neighbour over its current view (filters,
+  search, sort): `record.neighbours {record_id, collection}` answered
+  `{listed, previous: {record_id}, next: {record_id}}`; the event carries it as
+  `next_record_id` and the card opens it unless the page prevents the event.
+  Otherwise the page opens the neighbour (`sf-view`'s
+  `recordBeside(id, direction)` gives its id in the order shown).
+- **A moved revision**: a save the host refuses with `revision_moved` (the
+  revision moved, nothing written; Larena) is a conflict: the card says so,
+  keeps what was typed and reads the record again at the current revision.
   The page marks the open row `aria-current` and takes the focus back to it on
   close.
 - **Methods**: `openHistory()`, `editGroup(section, group)`, `editField(key)`,

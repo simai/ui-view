@@ -1350,12 +1350,13 @@
       "canonical": true
     },
     "sf-view-properties-step": {
-      "summary": "Alt+↓ / Alt+↑ (or step()) asks for the next or the previous record of the view the panel was opened from (C305 (4)). The card never reads the list: the page opens the neighbour (sf-view recordBeside) in the same panel by its record-id. Asked over unsaved entries, the card asks first (C159 (6)).",
+      "summary": "Alt+↓ / Alt+↑ (or step()) asks for the next or the previous record of the view the panel was opened from (C305 (4)). A host that announces record-neighbours names the neighbour over its current view (record.neighbours {record_id, collection} answered {listed, previous: {record_id}, next: {record_id}}): the event carries it as next_record_id and the card opens it unless the page prevents the event. Otherwise the page opens the neighbour (sf-view recordBeside) in the same panel by its record-id. Asked over unsaved entries, the card asks first (C159 (6)).",
       "payload": {
         "type": "object",
         "required": [
           "direction",
-          "record_id"
+          "record_id",
+          "next_record_id"
         ],
         "properties": {
           "direction": {
@@ -1364,7 +1365,8 @@
               "previous"
             ]
           },
-          "record_id": {}
+          "record_id": {},
+          "next_record_id": {}
         },
         "additionalProperties": true
       }
@@ -1885,7 +1887,8 @@
         "to": "1.18.0",
         "changes": [
           "C305 (1), RC-1: edit = group | group+quick | none (group+quick where the host allows editing). A group edits in sf-form (label above in the panel, beside in the full screen; Save first, a quiet Cancel); a group with a field sf-form 1.3 cannot edit (pickers, uploads, sets) keeps the card's own form. A short field (choice, date, time, yes/no, number) edits in a window at its value and saves one value through group.save. «Изменить всё» in the menu; a press on a long field's value opens its group with the focus on it (VP-19, VP-21); edited fields take the group's width (VP-27).",
-          "C305 (2), RC-3: history = auto | off. «История изменений» in the menu opens a level of the same panel (C289 head: back line, title, menu, close) with sf-list-timeline by day, newest first, before and after drawn by the field's template, «Показать ещё», «Только изменения полей» / «Все события» in its menu. New port intent record.history {record_id, collection, cursor, kinds, limit} for a host that announces record-history; SfPropertyView.historyFromRevisions builds the answer from stored revisions.",
+          "C305 (2), RC-3: history = auto | off. «История изменений» in the menu opens a level of the same panel (C289 head: back line, title, menu, close) with sf-list-timeline by day, newest first, before and after drawn by the field's template, «Показать ещё», «Только изменения полей» / «Все события» in its menu. New port intent record.history {record_id, collection, cursor, kinds, limit} for a host that announces record-history (pages of 20, 50 at most); a field the reader may not see comes as {field, label, sealed: true} and is said as «Значение скрыто», never drawn; SfPropertyView.historyFromRevisions builds the answer from stored revisions.",
+          "C305 (4): a host that announces record-neighbours names the next and the previous record over its current view (record.neighbours, answered {listed, previous: {record_id}, next: {record_id}}); the step carries it as next_record_id and the card opens it. A save the host refuses with revision_moved (the revision moved, nothing written) is a conflict: the card says so, keeps what was typed and reads the record again.",
           "C305 (3), RC-4: the full screen keeps the section column (sf-menu until sf-tabs vertical places its box, VP-26), fields in two columns, the history as a 24rem column from 80rem (VP-22).",
           "C305 (4), RC-5: from 64rem the panel docks beside a list marked data-sf-drawer-dock-host (no scrim, the list usable); modal=\"true\" keeps the scrim (VP-23). Alt+Down / Alt+Up ask for the next or the previous record (sf-view-properties-step); the focus stays in the panel.",
           "C159 (6): closing, stepping or opening another record over unsaved entries asks in the card first (sf-confirm: «Закрыть без сохранения» / «Вернуться к правке»).",
@@ -1901,7 +1904,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-properties/index.js",
-        "sha256": "6c5efadcef5b2edd224ce07d31e7ec96defad93f3f4ba31afc225aa34f751ce8"
+        "sha256": "9fdf5f11e8f19d1c8062c87ea6c36e6cb6e7b7919445f4e2fb184ae631f8244f"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.js",
@@ -1921,11 +1924,11 @@
       },
       {
         "path": "src/smart/view-properties/js/history.js",
-        "sha256": "799e601403e311e0aca6adf504e6b14e370e3453a6173b9630afc3472afd30fa"
+        "sha256": "7b6fe4d1c1bd88686edb70e31a2b13e508f6f075d7116d5e7da36af2489a359b"
       },
       {
         "path": "src/smart/view-properties/js/history-port.js",
-        "sha256": "a6c6021431295a4a1313eb1b7aa5de0a94c51e321134c120d84c5131f63091b5"
+        "sha256": "80ca9f19329b667600b63432d9971fcc3275c58f33063c06b8f58d4ef46ca2fc"
       },
       {
         "path": "src/smart/view-properties/js/requisites.js",
@@ -1961,7 +1964,7 @@
       },
       {
         "path": "src/smart/view-properties/docs.md",
-        "sha256": "f935856d783bdcf0be5b8dc59f005f3d2ed75ef271f22095401d1a38d45ea03a"
+        "sha256": "090e0ac133464fd411c4b5abd302173c99c157d13c3454a15556d90953a147e8"
       }
     ],
     "generated_runtime": []

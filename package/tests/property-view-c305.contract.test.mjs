@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import test from 'node:test';
-import {HISTORY_KINDS, cellText, historyFromRevisions} from '../src/smart/view-properties/js/history-port.js';
+import {HISTORY_KINDS, HISTORY_PAGE_MAX, cellText, historyFromRevisions} from '../src/smart/view-properties/js/history-port.js';
 
 // sf-view-properties 1.18.0: the record card by owner decision C305 (on top of
 // C289), RC-1..RC-7. The geometry and the flows are measured on the built bytes
@@ -105,4 +105,19 @@ test('cellText reads the compact template shapes', () => {
   assert.equal(cellText([{component: {type: 'avatar', props: {text: 'АЗ', heading: 'Анна Захарова'}}}, 'Анна Захарова']), 'Анна Захарова');
   assert.equal(cellText({href: '/u/1', text: 'Анна'}), 'Анна');
   assert.equal(cellText(null), '');
+});
+
+test('historyFromRevisions: a sealed field is named without its values; a page is 50 at most', () => {
+  const page = historyFromRevisions(revisions, {fields, sealed: ['sum']});
+  assert.deepEqual(page.events[0].changes[2], {field: 'sum', label: 'Сумма', sealed: true});
+  const many = Array.from({length: 80}, (_, at) => ({revision: at + 1, operation: 'update', created_by: 'A', created_at: '2026-11-01T10:00:00+03:00', values: {title: `t${at}`}}));
+  assert.equal(HISTORY_PAGE_MAX, 50);
+  assert.equal(historyFromRevisions(many, {fields, limit: 500}).events.length, 50);
+});
+
+test('Larena answers: revision_moved reads as a conflict; record.neighbours steps the panel', () => {
+  assert.match(source, /answer\.reason === "revision_moved"\) return \{\.\.\.answer, answer: "conflict"\}/u);
+  assert.match(source, /_raise\("record\.neighbours", \{record_id: this\.recordId, collection: this\.collection \|\| null\}\)/u);
+  assert.ok(manifest.events.step.carries.next_record_id);
+  assert.ok(ru['history-sealed-text'] && en['history-sealed-text']);
 });

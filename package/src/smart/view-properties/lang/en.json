@@ -55,6 +55,7 @@
     "history-fields-text": "Field changes only",
     "history-publish-text": "published the record",
     "history-restore-text": "restored the record",
+    "history-sealed-text": "Value hidden: {fields}",
     "history-text": "Change history",
     "in-this-group-text": "In this area",
     "inherited-text": "by default",
