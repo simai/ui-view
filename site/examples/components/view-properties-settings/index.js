@@ -122,7 +122,8 @@ function resolve(profile) {
   }
   record.unplaced = [];
   for (const place of [...fields.values()].sort(byOrder)) {
-    const holder = place.group ? groups.get(place.group)?.group : null;
+    // One way to not show a field (C311 (5)): a hidden one stands in «Скрытые поля».
+    const holder = place.group && !place.field.hidden ? groups.get(place.group)?.group : null;
     if (holder) holder.fields.push(place.field);
     else record.unplaced.push(place.field);
   }

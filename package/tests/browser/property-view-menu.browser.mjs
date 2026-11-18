@@ -187,34 +187,23 @@ try {
     .map((row) => `${row.querySelector('.sf-profile-picker-label')?.textContent.trim()}:${row.getAttribute('aria-checked')}`));
   if (barMenu.join() !== 'Обычный:false,Мой:true') note({case: 'the bar opens the views as radio rows', got: barMenu});
 
-  // «Add a view» asks for the name before anything is written (simai.main QA,
-  // 2026-10-27): it made «New view» at once, a host record nobody had named.
+  // The views are made, renamed and removed in the profile picker only (C163
+  // (1), C311 (5), RC-6): the arranging mode no longer draws a list of its own
+  // with «Add a view».
   const naming = await page.evaluate(async () => {
     const view = document.getElementById('view');
     const wait = (ms) => new Promise((done) => setTimeout(done, ms));
     view.startConfiguringView?.();
     await wait(300);
     const root = () => view.panelContent?.() ?? view;
-    const created = () => window.raised.filter((entry) => entry.intent === 'view.create');
-    const add = root().querySelector('[data-action="add-profile"]');
-    (add?.querySelector('button') ?? add)?.click();
-    await wait(300);
-    const row = root().querySelector('[data-action="new-profile"]');
-    const result = {button: Boolean(add), row: Boolean(row), createdOnPress: created().length};
-    const input = row?.querySelector('sf-input');
-    const field = input?.querySelector('input');
-    if (field) { field.value = 'Договоры'; field.dispatchEvent(new Event('input', {bubbles: true})); }
-    field?.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', bubbles: true, composed: true}));
-    await wait(400);
-    result.created = created().map((entry) => entry.label);
-    result.rowAfter = Boolean(root().querySelector('[data-action="new-profile"]'));
+    const result = {list: Boolean(root().querySelector('[data-action="add-profile"], .sf-property-view-profiles')),
+      picker: Boolean(root().querySelector('.sf-property-view-configure-top sf-profile-picker[data-action="view-profile"]'))};
     view.cancelConfiguringView?.();
     return result;
   });
-  if (!naming.button || !naming.row || naming.createdOnPress !== 0
-    || naming.created.join() !== 'Договоры' || naming.rowAfter) {
-    note({case: '«Add a view» asks for the name before it makes the view', got: naming,
-      expected: 'the press opens a naming row and raises nothing; Enter raises view.create once with the typed name and closes the row'});
+  if (naming.list || !naming.picker) {
+    note({case: 'the views are chosen and made in the profile picker only', got: naming,
+      expected: 'no list of views in the mode; the picker over the fields'});
   }
 
   // Cancelling an arrangement nobody changed writes nothing: it raised an

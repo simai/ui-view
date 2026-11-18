@@ -1945,11 +1945,11 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-properties/index.js",
-        "sha256": "3cf37e36a87dce1ed8fe9a4b3af8432d7b5909d0934bf3eb9509c09aae470d2b"
+        "sha256": "ecfdbc1d99f1d4ddc746ef522876a0b5c6e50172e391689540d6d7ac1b8147d9"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.js",
-        "sha256": "bddc559994da8ea05f69fa84b5601cf2442c71f76970a1db4fd4bf3831c10c4b"
+        "sha256": "1fa08d309af96171312cfe7788e9abee89876702f9bce95f619b747d4f9c11dd"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.css",

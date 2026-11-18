@@ -4500,7 +4500,12 @@ class SfPropertyView extends PropertyViewElement {
         const section = sections.find((part) => String(part.key) === this.selectedSection) ?? sections[0];
         const group = (section?.groups ?? []).find((candidate) => candidate.kind !== "related" && !candidate.hidden);
         if (!group) return false;
-        return this.moveField(String(fieldKey), String(group.key), (group.fields ?? []).length);
+        // A field a layer hid comes back shown, not only placed.
+        const key = String(fieldKey);
+        if (this.layerDraft) this.layerDraft.fields[key] = {...(this.layerDraft.fields[key] ?? {}), hidden: false};
+        const waiting = (this.record?.unplaced ?? []).find((field) => String(field.key) === key);
+        if (waiting) waiting.hidden = false;
+        return this.moveField(key, String(group.key), (group.fields ?? []).length);
     }
 
     // A tab's «⋯» (C311 (4), TB-1): name, icon, up, down, hide, delete, and

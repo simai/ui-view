@@ -211,11 +211,12 @@ try {
       add,
       band: {
         present: Boolean(band),
-        // The layer is the chosen view's own (owner, 2026-10-14): a shared view
-        // is written for everyone, a personal one for its person -- no toggle.
-        layers: Boolean(band?.querySelector('[data-action="view-profile"]')) && !band?.querySelector('[data-action="layer"]'),
-        reset: Boolean(band?.querySelector('[data-action="reset-view"]')),
-        done: Boolean(band?.querySelector('[data-action="done-configuring"]')),
+        // C311 (RC-10): the picker stands over the fields with its hint, the
+        // foot holds «Готово» first and «Отменить»; «Вернуть как у всех» is
+        // the picker's own reset, not a button of the foot.
+        layers: Boolean(content?.querySelector('.sf-property-view-configure-top [data-action="view-profile"]')) && !band?.querySelector('[data-action="layer"]'),
+        reset: !band?.querySelector('[data-action="reset-view"]'),
+        done: band?.querySelector('sf-button')?.getAttribute('data-action') === 'done-configuring',
         tinted: band ? getComputedStyle(band).backgroundColor : null,
       },
       field: {
@@ -236,7 +237,7 @@ try {
     || /rgba\(0, 0, 0, 0\)|^transparent$/u.test(String(measured.band.tinted))) {
     note({case: 'arranging the view is drawn as a mode: a painted band of controls and nothing else',
       got: measured.band,
-      expected: 'a painted band carrying one segmented chooser, reset and done'});
+      expected: 'a painted band whose first button is done; the picker over the fields; no reset button in the foot'});
   }
   if (!measured.field.grip || !measured.field.eye || !measured.field.gear
     || measured.field.permanentInputs !== 0) {

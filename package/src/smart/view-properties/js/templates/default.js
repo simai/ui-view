@@ -188,6 +188,10 @@ function renderFieldActions(context, field, key, {hidden = false} = {}) {
     const name = String(field.label ?? key);
     const marked = context.isLocked(`fields.${key}.hidden`);
     const menu = context.fieldMenuEntries(key).length > 0;
+    // A field a layer hid in its area (hidden: true) is shown again by the
+    // same eye; one in «Скрытые поля» goes back to the open tab.
+    const off = hidden || field.hidden === true;
+    const show = () => (hidden ? context.component.showHiddenField(key) : context.component.toggleEntryHidden('field', key));
 
     // One way to not show a field (C106 (1), C311 (5), RC-7): the eye moves it
     // to «Скрытые поля» and back. It was a cross «Убрать из области».
@@ -200,12 +204,12 @@ function renderFieldActions(context, field, key, {hidden = false} = {}) {
                     size="1/2"
                     appearance="ghost"
                     scheme="on-surface-variant"
-                    icon=${hidden ? 'visibility_off' : 'visibility'}
-                    data-action=${hidden ? 'show-field' : 'remove-field'}
+                    icon=${off ? 'visibility_off' : 'visibility'}
+                    data-action=${off ? 'show-field' : 'remove-field'}
                     ?disabled=${locked}
-                    title=${locked ? (marked ? context.word('lockedText') : (context.layerDenied('shared') || context.hiddenText)) : context.word(hidden ? 'showFieldText' : 'hideFieldText').replace('{name}', name)}
-                    aria-label=${context.word(hidden ? 'showFieldText' : 'hideFieldText').replace('{name}', name)}
-                    @click=${() => hidden ? context.component.showHiddenField(key) : context.component.moveFieldToUnplaced(key)}
+                    title=${locked ? (marked ? context.word('lockedText') : (context.layerDenied('shared') || context.hiddenText)) : context.word(off ? 'showFieldText' : 'hideFieldText').replace('{name}', name)}
+                    aria-label=${context.word(off ? 'showFieldText' : 'hideFieldText').replace('{name}', name)}
+                    @click=${() => (off ? show() : context.component.moveFieldToUnplaced(key))}
             ></sf-button-icon>
             ${renderFieldSettings(context, field, key)}
             ${menu ? html`<sf-button-icon

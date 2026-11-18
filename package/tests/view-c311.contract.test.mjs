@@ -40,7 +40,7 @@ test('one place for the card arrangement: the list head opens the card mode (RC-
 
 test('the profile in the picker only (RC-6); one way to hide (RC-7); no template per view (RC-9)', () => {
   assert.match(card, /id: "view-profile-picker"/u);
-  assert.match(template, /data-action=\$\{hidden \? 'show-field' : 'remove-field'\}/u);
+  assert.match(template, /data-action=\$\{off \? 'show-field' : 'remove-field'\}/u);
   assert.doesNotMatch(template, /data-action="variant"/u);
   assert.match(card, /const allowed = \["width", "hint", "label"\];/u);
   assert.match(read('src/smart/view-properties/lang/ru.json'), /"unplaced-title": "Скрытые поля"/u);
