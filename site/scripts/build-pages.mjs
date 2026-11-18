@@ -51,14 +51,20 @@ for (const [groupIndex, group] of config.groups.entries()) {
   put(`content/ru/components/${group.id}/section.json`, JSON.stringify({schema: 'docara.section.v1', title: group.title, navigation: {order: (groupIndex + 1) * 10}}, null, 2));
   overview.push(`## ${group.title}`, '', '| Компонент | Элемент | Что делает |', '|:---|:---|:---|');
   for (const [index, component] of group.components.entries()) {
-    const {folder, title, description, what, intro} = component;
-    const manifest = JSON.parse(readFileSync(join(smart, folder, 'component.json'), 'utf8'));
-    const entry = passport.components.find((one) => one.folder === folder);
-    if (!entry) throw new Error(`${folder}: not in package/set.json`);
+    // A page about a part of a component (part_of: the list head of sf-view,
+    // head="list") takes that component's tag, version and status, and names
+    // the attribute that turns the part on.
+    const {folder, title, description, what, intro, part_of: partOf, attribute: switchedOn} = component;
+    const source = partOf ?? folder;
+    const manifest = JSON.parse(readFileSync(join(smart, source, 'component.json'), 'utf8'));
+    const entry = passport.components.find((one) => one.folder === source);
+    if (!entry) throw new Error(`${source}: not in package/set.json`);
     if (/^`?sf-/u.test(intro[0])) throw new Error(`${folder}: the introduction starts with the tag (D12)`);
     known.set(folder, {group, component, tag: manifest.tag});
+    const element = switchedOn ? `${manifest.tag} ${switchedOn}` : manifest.tag;
     const badges = [
       `:badge[${manifest.tag}]{variant=main scheme=on-surface size=1}`,
+      ...(switchedOn ? [`:badge[${switchedOn}]{variant=tonal scheme=on-surface size=1}`] : []),
       `:badge[Версия ${manifest.version}]{variant=tonal scheme=neutral size=1}`,
       ...(entry.status === 'preview' ? [':badge[Предварительная версия]{variant=tonal scheme=warning size=1}'] : []),
     ].join(' ');
@@ -68,7 +74,7 @@ for (const [groupIndex, group] of config.groups.entries()) {
     if (!old || old.search(/^## /mu) < 0) throw new Error(`${path}: no hand-written part (a «##» heading) to keep`);
     put(path, ['---', `description: ${description}`, 'profile: reference', '---', '', `# ${title}`, '', badges, '', intro.join('\n\n'), '', rest].join('\n'));
     put(`content/ru/components/${group.id}/${folder}.page.json`, JSON.stringify({schema: 'docara.page.v1', title, navigation: {order: (index + 1) * 10}}));
-    overview.push(`| [${title}](${group.id}/${folder}/) | \`${manifest.tag}\` | ${what}${entry.status === 'preview' ? '; предварительная версия' : ''} |`);
+    overview.push(`| [${title}](${group.id}/${folder}/) | \`${element}\` | ${what}${entry.status === 'preview' ? '; предварительная версия' : ''} |`);
   }
   overview.push('');
 }
