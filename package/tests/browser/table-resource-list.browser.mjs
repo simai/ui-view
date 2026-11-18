@@ -102,7 +102,7 @@ const read = () => {
         dotTip: dot?.parentElement?.querySelector('.sf-tooltip-text')?.textContent.trim() ?? null,
         dotSize: dot ? Math.round(dot.querySelector('.sf-dot-item').getBoundingClientRect().width) : null,
         title: item.querySelector('.sf-table-resource-title')?.textContent.trim() ?? null,
-        titleLink: Boolean(item.querySelector('.sf-table-resource-title a.sf-table-title-link')),
+        titleLink: Boolean(item.querySelector('.sf-table-resource-title .sf-table-title-link')),
         supporting: item.querySelector('.sf-table-resource-supporting')?.textContent.replace(/\s+/gu, ' ').trim() ?? null,
         facts: facts.map((fact) => {
           const badge = fact.querySelector('sf-badge');

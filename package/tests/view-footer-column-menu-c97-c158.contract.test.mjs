@@ -56,14 +56,16 @@ test('sf-view: the menu and the wait it draws are its relations', async () => {
   assert.ok(major === 1 && minor >= 13, component.version);
 });
 
-test('sf-view-table: Enter on a head opens «Изменить ширину · По содержимому · По умолчанию» (C158 (5))', async () => {
+test('sf-view-table: Enter on a head opens the column menu, its width entries «Изменить ширину · По содержимому · По умолчанию» last (C158 (5), C296)', async () => {
   const source = await read('src/smart/view-table/index.js');
   const keys = source.slice(source.indexOf('    handleHeadKeydown(event, table) {'), source.indexOf('    focusHeadStop(stop) {'));
   // On the edge, Enter and Escape go back to the head (the Framework leaves them to the table).
   assert.match(keys, /if \(event\.key !== "Enter" && event\.key !== "Escape"\) return;/);
   // On a head: Enter, the menu key and Shift+F10 open the width menu.
   assert.match(keys, /event\.key === "Enter" \|\| event\.key === "ContextMenu" \|\| \(event\.shiftKey && event\.key === "F10"\)/);
-  const menu = source.slice(source.indexOf('    async openColumnMenu('), source.indexOf('    columnMenu() {'));
+  // C296: the column menu is sort, pin, hide and «Все колонки», then the width entries (columnMenuEntries).
+  const menu = source.slice(source.indexOf('    columnMenuEntries(column, cell) {'), source.indexOf('    columnMenu() {'));
+  for (const id of ['sort-asc', 'sort-desc', 'pin', 'hide', 'all']) assert.match(menu, new RegExp(`id: "${id}"`), id);
   assert.match(menu, /\{id: "resize", text: this\.text\("columnWidthChangeText"\)\},\n\s*\{id: "fit", text: this\.text\("columnWidthFitText"\)\},\n\s*\{id: "default", text: this\.text\("columnWidthDefaultText"\)\},/);
   // The head's keys run before the grid's, so Enter on a sort button opens the menu.
   assert.match(source, /this\.bindHeadMenu\(table, signal\);\n\s*table\.addEventListener\("keydown", \(event\) => this\.handleGridKeydown\(event, table\), \{signal\}\);/);

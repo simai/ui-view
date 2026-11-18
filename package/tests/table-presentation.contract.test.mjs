@@ -69,11 +69,12 @@ test('a row says whether it is selected, and the look follows from that', async 
   // core mix sf-place-fill (C43 D3, D4): the base is the underlay a tonal badge
   // lays its tone over, the tint the fill an anchored badge's ring takes.
   const fill = (tint) => String.raw`\{\s*--sf-surface-underlay: var\(--sf-table-row--background-color, var\(--sf-surface-page\)\);\s*--sf-surface-place-fill: var\(--sf-${tint}\);\s*background-image: linear-gradient\(\s*var\(--sf-${tint}\),`;
+  // The hover is the 8 % state (C185 (3), C296 VT-7), not the 16 % container hover.
   for (const [selector, tint] of [
-    [String.raw`tbody tr:hover `, 'surface-container-hover'],
+    [String.raw`tbody tr:hover `, 'surface-state-select'],
     [String.raw`tbody tr\[data-selected\] `, 'primary-container'],
     [String.raw`tbody tr\[data-selected\]:hover `, 'primary-container-hover'],
-    [String.raw`\.sf-table-list-item:hover `, 'surface-container-hover'],
+    [String.raw`\.sf-table-list-item:hover `, 'surface-state-select'],
     [String.raw`\.sf-table-list-item\[data-selected\] `, 'primary-container'],
     [String.raw`\.sf-table-list-item\[data-selected\]:hover `, 'primary-container-hover'],
     [String.raw`\.sf-table-list-item\[aria-current="true"\] `, 'primary-container'],

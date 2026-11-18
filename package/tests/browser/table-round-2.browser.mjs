@@ -82,8 +82,8 @@ try {
     };
   });
   if (handle.icons !== 0 || handle.tag !== 'BUTTON' || handle.cursor !== 'col-resize'
-      || handle.width < 8 || handle.width > 12 || Math.abs(handle.offEdge) > 1) {
-    note({case: 'handle', got: handle, expected: 'no handle; a strip of 8-12px astride the edge'});
+      || handle.width < 22 || handle.width > 26 || Math.abs(handle.offEdge) > 1) {
+    note({case: 'handle', got: handle, expected: 'no handle; a 24px zone astride the edge (C158 (1), C296 VT-10)'});
   }
   const guideOnLabel = await table.evaluate(async () => {
     const cell = document.querySelector('#t thead th[data-key="city"]');

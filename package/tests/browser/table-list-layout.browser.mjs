@@ -101,8 +101,8 @@ try {
     const table = document.getElementById('t');
     const intents = [];
     table.addEventListener('sf-table-action-intent', (event) => intents.push(event.detail?.action_id));
-    const links = [...table.querySelectorAll('.sf-table-list-title a.sf-table-title-link')].map((link) => link.textContent.trim());
-    table.querySelector('.sf-table-list-title a.sf-table-title-link')?.click();
+    const links = [...table.querySelectorAll('.sf-table-list-title .sf-table-title-link')].map((link) => link.textContent.trim());
+    table.querySelector('.sf-table-list-title .sf-table-title-link')?.click();
     await new Promise((settle) => setTimeout(settle, 100));
     return {links, intents};
   });

@@ -56,6 +56,7 @@ Every remote branch ahead of `main`, with the release that takes it.
 | Branch | Release that takes it |
 |---|---|
 | `round/view-r1` | view 1.9.0 (the round) |
+| `round/view-r2-*` | the next view release: view round 2 (`round/view-r2-table` C296, `round/view-r2-head`, `round/view-r2-page`), merged by the dispatcher in the order table, head, page |
 | `round/view-r1-site` | view 1.9.0: merged into `round/view-r1` (the round's merge); to close after the release |
 | `round/view-r1-card` | view 1.9.0: merged into `round/view-r1` (the round's merge); to close after the release |
 | `round/view-r1-table` | view 1.9.0: merged into `round/view-r1` (the round's merge); to close after the release |

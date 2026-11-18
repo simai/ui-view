@@ -114,7 +114,8 @@ try {
           toolbar: buttons(section.querySelector(`#t-${id} .sf-table-toolbar`), 'button'),
           rowMenus: buttons(section.querySelector(`#t-${id} tbody`), 'button'),
           headControls: buttons(section.querySelector(`#t-${id} thead`), 'button'),
-          listActions: buttons(section.querySelector(`#l-${id} .sf-table-list`), 'button'),
+          // A title without an address is a text button (C296 VT-9), not a control of the ladder.
+          listActions: buttons(section.querySelector(`#l-${id} .sf-table-list`), 'button:not(.sf-table-title-link)'),
           listToolbar: buttons(section.querySelector(`#l-${id} .sf-table-toolbar`), 'button'),
           viewToolbar: buttons(section.querySelector(`#v-${id}`), '.sf-table-toolbar button'),
           // The layout switch: the group is the button of its size (its segments sit a rung inside).

@@ -1204,7 +1204,8 @@ class SfDataView extends DataViewElement {
             '<div class="sf-data-view-skeleton-records">',
             toolbar ? toolbarMarkup : "",
             `<div class="sf-data-view-skeleton-table">${row()}${Array.from({length: rows}, () => row()).join("")}</div>`,
-            `<div class="sf-data-view-skeleton-list">${record.repeat(rows)}</div>`,
+            // The list's page box over its records (sf-view-table 1.24.0, VT-2).
+            `<div class="sf-data-view-skeleton-list">${select ? `<div data-list-head>${bar}${bar}</div>` : ""}${record.repeat(rows)}</div>`,
             "</div>",
             this.renders("pagination") ? pageRow : "",
         ].join("");
