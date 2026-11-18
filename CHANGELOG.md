@@ -100,6 +100,27 @@ up). Each component.json says the same under `x-decisions`
   (C302 (1)); this pair draws them as string variants. The example reads the
   templates from the Framework registry (`templates`, `template`) and falls
   back to the former `variant` names.
+
+- `sf-view-properties` 1.18.0, the record card by C305 (round 2, RC-1..RC-7):
+  `edit` = `group` | `group+quick` | `none`. A group edits in SIMAI Framework
+  `sf-form` (label above in the panel, beside in the full screen; Save
+  first); a group with a picker, an upload or a set keeps the card's own form
+  until `sf-form` takes them. A short field (choice, date, time, yes/no,
+  number) edits in a window at its value and saves one value through
+  `group.save`; «Изменить всё» is in the menu; a press on a long value opens
+  its group with the focus there. `history` = `auto` | `off`: «История
+  изменений» is a level of the same panel on `sf-list-timeline` (by day,
+  before and after by the field's template, «Показать ещё», a filter in its
+  menu), asked through the new port intent `record.history` (capability
+  `record-history`); `SfPropertyView.historyFromRevisions` answers it from
+  stored revisions. From 64rem the panel docks beside a list marked
+  `data-sf-drawer-dock-host` (no scrim; `modal="true"` keeps it), the full
+  screen shows the history as a 24rem column from 80rem, Alt+Down / Alt+Up
+  step through the list (`sf-view-properties-step`), closing over unsaved
+  entries asks first. Seven public `--sf-view-properties-*` variables;
+  `--sf-property-view--sections-width` is a former name until 2027-01-01.
+- `sf-view` 1.16.0: `recordBeside(id, direction)` gives the next or the
+  previous record id in the order the view shows, for a card that steps.
 - `sf-view-table` 1.23.1 and `sf-view-flow` 1.1.6 follow the Framework files
   of the pair `ui-1ed6b6c9a040` they build in (`src/smart/pagination/index.js`
   takes its words from its language module, C282;

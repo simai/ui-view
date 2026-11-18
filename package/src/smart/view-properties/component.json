@@ -2,8 +2,15 @@
   "$comment": "sf-property-view from its component.json (standard simai.smart-component 1.3.8, vocabulary 1.1.5), migrated from ui-control control/smart-architecture/migration/out/property-view; every x-todo decided in x-decisions.",
   "id": "smart.view-properties",
   "tag": "sf-view-properties",
-  "version": "1.17.2",
+  "version": "1.18.0",
   "x-history": [
+    {
+      "version": "1.18.0",
+      "kind": "minor",
+      "recorded_on": "2026-11-18",
+      "consumer": "New settings edit, history, modal; events step, history; methods openHistory, editField, step; port intents record.history (capability record-history; sealed fields said, not drawn) with the adapter SfPropertyView.historyFromRevisions and record.neighbours (capability record-neighbours); a save refused revision_moved reads as a conflict; a panel docks beside a list marked data-sf-drawer-dock-host from 64rem (modal=\"true\" keeps the scrim); closing over unsaved entries asks in the card first; seven public --sf-view-properties-* variables, --sf-property-view--sections-width a former name until 2027-01-01.",
+      "evidence": "control/evidence/2026-11-18-view-r2-card/README.md"
+    },
     {
       "version": "1.17.2",
       "kind": "patch",
@@ -499,6 +506,34 @@
       "default": true,
       "x-shape": "a panel shows while open and not hidden; open=false or hidden closes it, and the same brings it back",
       "summary": "A panel shows while open and not hidden; open=false or hidden closes its drawer and takes it off the stack, and the same brings it back (component.json settings.open, simai/ui-pro#4)."
+    },
+    "edit": {
+      "type": "enum",
+      "values": [
+        "group",
+        "group+quick",
+        "none"
+      ],
+      "default": "group+quick",
+      "summary": "How the record is edited (owner decision C305 (1)): group -- a group at a time with its Save; group+quick (the default where the record may be edited) -- and a short field (one choice, a date, a time, a yes/no, a person, a number; a field says so itself with quick) in a window at its value, as the table's cell (C296), saved as group.save with that one value, the same revision and confirmation; none -- read only. «Изменить всё» in «⋯» opens every group at once."
+    },
+    "history": {
+      "type": "enum",
+      "values": [
+        "auto",
+        "off"
+      ],
+      "default": "auto",
+      "summary": "The record's change history (C305 (2)): auto -- offered where the host answers record.history (capability record-history): «⋯ → История изменений» opens it as a level of the same panel, the full screen from 80rem keeps it in a column of its own; off -- never offered."
+    },
+    "modal": {
+      "type": "enum",
+      "values": [
+        "auto",
+        "true"
+      ],
+      "default": "auto",
+      "summary": "Where a panel stands (C305 (4)): auto -- from 64rem a column beside the list (sf-drawer docked; the page marks the list data-sf-drawer-dock-host), the list stays usable and another record opens in the same panel; narrower, and on a phone, over a scrim. true -- always over a scrim. A full-screen panel is always over the page."
     }
   },
   "values": {
@@ -531,10 +566,13 @@
         },
         "unsaved_fields": {
           "type": "list"
+        },
+        "asked": {
+          "type": "boolean"
         }
       },
       "cancelable": true,
-      "summary": "The panel asks to be closed (by its close control, Esc, a press on the dimmed page or Cancel), carrying how many fields would be lost: changed and not saved, or entered and not yet a value."
+      "summary": "The panel asks to be closed (by its close control, Esc, a press on the dimmed page or Cancel), carrying how many fields would be lost: changed and not saved, or entered and not yet a value. Since 1.18.0 (C159 (6)) the card asks the person first over unsaved entries; asked is true when the person already chose «Закрыть без сохранения», so the host does not ask again."
     },
     "open-full": {
       "carries": {
@@ -655,6 +693,38 @@
       },
       "own-verb": true,
       "summary": "The star was pressed. Carries the record, the collection and the state being asked for; the component changes nothing until the host sets favourite back."
+    },
+    "step": {
+      "carries": {
+        "direction": {
+          "type": "enum",
+          "values": [
+            "next",
+            "previous"
+          ]
+        },
+        "record_id": {
+          "type": "id",
+          "nullable": true
+        },
+        "next_record_id": {
+          "type": "id",
+          "nullable": true
+        }
+      },
+      "cancelable": true,
+      "own-verb": true,
+      "summary": "Alt+↓ / Alt+↑ (or step()) asks for the next or the previous record of the view the panel was opened from (C305 (4)). A host that announces record-neighbours names the neighbour over its current view (record.neighbours {record_id, collection} answered {listed, previous: {record_id}, next: {record_id}}): the event carries it as next_record_id and the card opens it unless the page prevents the event. Otherwise the page opens the neighbour (sf-view recordBeside) in the same panel by its record-id. Asked over unsaved entries, the card asks first (C159 (6))."
+    },
+    "history": {
+      "carries": {
+        "record_id": {
+          "type": "id",
+          "nullable": true
+        }
+      },
+      "own-verb": true,
+      "summary": "The history level was opened (C305 (2)); the card reads it through the port (record.history), the event only tells the page."
     }
   },
   "actions": {
@@ -675,7 +745,12 @@
     "edit-group": {
       "with": {
         "section": "string",
-        "group": "string"
+        "group": "string",
+        "options": {
+          "type": "object",
+          "optional": true,
+          "summary": "{focus}: the key of the field the focus goes to once the group is open (C305 (1))."
+        }
       },
       "summary": "Open one group for editing.",
       "x-returns": {
@@ -755,6 +830,39 @@
         "type": "object",
         "description": "The element, for chaining."
       }
+    },
+    "open-history": {
+      "summary": "Open the record's history as a level of the panel (C305 (2)); refused unavailable when the host does not answer record.history.",
+      "x-returns": {
+        "type": "object",
+        "description": "The outcome: applied, or refused {reason: unavailable}."
+      }
+    },
+    "edit-field": {
+      "with": {
+        "key": "string"
+      },
+      "summary": "Edit one field: a short field opens its window at the value, any other its group with the focus on it (C305 (1)).",
+      "x-returns": {
+        "type": "object",
+        "description": "The outcome: applied, or refused when the field is not there or may not be edited."
+      }
+    },
+    "step": {
+      "with": {
+        "direction": {
+          "type": "enum",
+          "values": [
+            "next",
+            "previous"
+          ]
+        }
+      },
+      "summary": "Ask for the next or the previous record of the view (sf-view-properties-step); over unsaved entries the card asks first.",
+      "x-returns": {
+        "type": "object",
+        "description": "The outcome: applied, refused {reason: unsaved} while the question stands, or refused {reason: prevented}."
+      }
     }
   },
   "side-effects": [
@@ -764,7 +872,9 @@
   "keyboard": {
     "host": {
       "Tab": "reach",
-      "Escape": "close"
+      "Escape": "close",
+      "Alt+ArrowDown": "step:next",
+      "Alt+ArrowUp": "step:previous"
     }
   },
   "port": {
@@ -1005,6 +1115,26 @@
       ]
     },
     {
+      "name": "cl-menu",
+      "$comment": [
+        "The full screen's sections column is sf-menu until sf-tabs 1.4.4 (VP-26, C305 (3))."
+      ]
+    },
+    {
+      "name": "cl-list-timeline",
+      "lazy": true,
+      "$comment": [
+        "The record's history is sf-list-timeline (C305 (2))."
+      ]
+    },
+    {
+      "name": "cl-form",
+      "lazy": true,
+      "$comment": [
+        "A group is edited in sf-form when it draws every field of it (C182, C305 (1))."
+      ]
+    },
+    {
       "name": "align-items/default",
       "$comment": [
         "The utility classes its templates write, asked for with the component (SIMAI Framework loader: a Framework component gets them from template-utilities.generated.json, a package component names them here); fetched after the first paint, they moved the drawn parts -- the bulk band's gap came 0 -> 8 and the band 8 px down some 150 ms in (View 1.8.1 acceptance, queue #172). The list is scripts/generate-template-utilities.mjs run over the overlay."
@@ -1105,29 +1235,77 @@
     }
   },
   "css-variables": {
+    "--sf-view-properties-label-width": {
+      "type": "length",
+      "state": "default",
+      "x-default": "10rem",
+      "x-summary": "The labels' column of a record read, beside the value from a 22rem list."
+    },
+    "--sf-view-properties-row-gap": {
+      "type": "length",
+      "state": "default",
+      "x-default": "8px (--sf-space-1/3)",
+      "x-summary": "Between two fields of a group read."
+    },
+    "--sf-view-properties-group-gap": {
+      "type": "length",
+      "state": "default",
+      "x-default": "24px (--sf-space-1)",
+      "x-summary": "Between two groups read."
+    },
+    "--sf-view-properties-sections-width": {
+      "type": "length",
+      "state": "default",
+      "x-default": "12rem",
+      "x-summary": "The sections column of the full screen and of the record in place."
+    },
+    "--sf-view-properties-side-width": {
+      "type": "length",
+      "state": "default",
+      "x-default": "24rem",
+      "x-summary": "The history column of the full screen, from 80rem."
+    },
+    "--sf-view-properties-current-background-color": {
+      "type": "color",
+      "state": "default",
+      "x-default": "--sf-surface-container",
+      "x-summary": "The value of the field being edited in its window."
+    },
+    "--sf-view-properties-saved-background-color": {
+      "type": "color",
+      "state": "default",
+      "x-default": "--sf-success-container",
+      "x-summary": "The values a save just wrote, for a moment."
+    },
     "--sf-property-view--sections-width": {
       "type": "length",
-      "state": "default"
+      "state": "default",
+      "x-summary": "Former name until 2027-01-01 (C305 (6)); the --sf-view-properties-* variables are the public ones."
     },
     "--sf-property-view--title-size": {
       "type": "length",
-      "state": "default"
+      "state": "default",
+      "x-summary": "Former name until 2027-01-01 (C305 (6)); the --sf-view-properties-* variables are the public ones."
     },
     "--sf-property-view--label-size": {
       "type": "length",
-      "state": "default"
+      "state": "default",
+      "x-summary": "Former name until 2027-01-01 (C305 (6)); the --sf-view-properties-* variables are the public ones."
     },
     "--sf-property-view--value-size": {
       "type": "length",
-      "state": "default"
+      "state": "default",
+      "x-summary": "Former name until 2027-01-01 (C305 (6)); the --sf-view-properties-* variables are the public ones."
     },
     "--sf-property-view--group-size": {
       "type": "length",
-      "state": "default"
+      "state": "default",
+      "x-summary": "Former name until 2027-01-01 (C305 (6)); the --sf-view-properties-* variables are the public ones."
     },
     "--sf-property-view--edge-room": {
       "type": "length",
-      "state": "open"
+      "state": "open",
+      "x-summary": "Former name until 2027-01-01 (C305 (6)); the --sf-view-properties-* variables are the public ones."
     }
   },
   "host-states": {
@@ -1296,6 +1474,16 @@
         "mode": "host-attribute",
         "section": "C289 (2), C157 (2)",
         "note": "read by the view itself: a length is mapped to the nearest drawer step (1/2, 1, 2) when panel-size is not set, with a console notice; no shim; use panel-size"
+      },
+      {
+        "from": "--sf-property-view--sections-width",
+        "to": "--sf-view-properties-sections-width",
+        "kind": "css-variable",
+        "since": "2026-11-18",
+        "remove_after": "2027-01-01",
+        "since-version": "1.18.0",
+        "section": "C305 (6)",
+        "note": "read under the new name until the date"
       }
     ]
   },
@@ -2055,6 +2243,20 @@
           "changes": [
             "View round 1 (VF-10, msg-e78f2e51): the host's formatFieldValue or the field renderers read a date, the set's own date parsing is gone; a percent is the SIMAI Framework's formatPercent, 12,5 % and 12.5 % in every language (C203 (3)).",
             "Merge of view round 1: the card group's 1.17.0 and the table group's change (numbered 1.17.1 on round/view-r1-table, not a set version) as one version above both."
+          ]
+        },
+        {
+          "from": "1.17.2",
+          "to": "1.18.0",
+          "changes": [
+            "C305 (1), RC-1: edit = group | group+quick | none (group+quick where the host allows editing). A group edits in sf-form (label above in the panel, beside in the full screen; Save first, a quiet Cancel); a group with a field sf-form 1.3 cannot edit (pickers, uploads, sets) keeps the card's own form. A short field (choice, date, time, yes/no, number) edits in a window at its value and saves one value through group.save. «Изменить всё» in the menu; a press on a long field's value opens its group with the focus on it (VP-19, VP-21); edited fields take the group's width (VP-27).",
+            "C305 (2), RC-3: history = auto | off. «История изменений» in the menu opens a level of the same panel (C289 head: back line, title, menu, close) with sf-list-timeline by day, newest first, before and after drawn by the field's template, «Показать ещё», «Только изменения полей» / «Все события» in its menu. New port intent record.history {record_id, collection, cursor, kinds, limit} for a host that announces record-history (pages of 20, 50 at most); a field the reader may not see comes as {field, label, sealed: true} and is said as «Значение скрыто», never drawn; SfPropertyView.historyFromRevisions builds the answer from stored revisions.",
+            "C305 (4): a host that announces record-neighbours names the next and the previous record over its current view (record.neighbours, answered {listed, previous: {record_id}, next: {record_id}}); the step carries it as next_record_id and the card opens it. A save the host refuses with revision_moved (the revision moved, nothing written) is a conflict: the card says so, keeps what was typed and reads the record again.",
+            "C305 (3), RC-4: the full screen keeps the section column (sf-menu until sf-tabs vertical places its box, VP-26), fields in two columns, the history as a 24rem column from 80rem (VP-22).",
+            "C305 (4), RC-5: from 64rem the panel docks beside a list marked data-sf-drawer-dock-host (no scrim, the list usable); modal=\"true\" keeps the scrim (VP-23). Alt+Down / Alt+Up ask for the next or the previous record (sf-view-properties-step); the focus stays in the panel.",
+            "C159 (6): closing, stepping or opening another record over unsaved entries asks in the card first (sf-confirm: «Закрыть без сохранения» / «Вернуться к правке»).",
+            "RC-6: seven public variables --sf-view-properties-label-width, -row-gap, -group-gap, -sections-width, -side-width, -current-background-color, -saved-background-color; --sf-property-view--sections-width is a former name until 2027-01-01. Every new word is in the language files (C282).",
+            "RC-7, VP-29: the quick windows draw nothing before sf-popover is defined (no shift at the first paint)."
           ]
         }
       ]

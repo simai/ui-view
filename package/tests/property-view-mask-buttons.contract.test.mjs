@@ -59,7 +59,9 @@ test('an incomplete entry a control reports is held per field, and only that con
 // is refused with the errors listed (under each field, and a summary with a
 // link per field when there are two or more) and focus taken to them.
 test('both saves stop while an entry is not a value, and Save is never disabled', () => {
-  assert.match(view, /async saveGroup\(\{confirm = null\} = \{\}\) \{\n\s+if \(this\.openAll\) return this\.saveAll\(\{confirm\}\);\n\s+if \(!this\.editing\) return null;\n\s+const missing = this\._missingRequired\(\);\n\s+if \(this\.inputErrors\.size \|\| missing\.size\) return this\._refuseWithErrors\(missing\);/u);
+  // 1.18.0 (C305 (1)): a short field's window saves through the same Save,
+  // with its one value; a window holds one field, so nothing else is required.
+  assert.match(view, /async saveGroup\(\{confirm = null\} = \{\}\) \{\n\s+if \(this\.openAll\) return this\.saveAll\(\{confirm\}\);\n(?:\s+\/\/[^\n]*\n)*\s+const target = this\.editing \?\? this\.quick;\n\s+if \(!target\) return null;\n\s+const missing = this\.quick \? new Set\(\) : this\._missingRequired\(\);\n\s+if \(this\.inputErrors\.size \|\| missing\.size\) return this\._refuseWithErrors\(missing\);/u);
   assert.match(view, /async saveAll\(\{confirm = null\} = \{\}\) \{\n\s+const missing = this\._missingRequired\(\);\n\s+if \(this\.inputErrors\.size \|\| missing\.size\) return this\._refuseWithErrors\(missing\);/u);
   assert.match(body(view, '    _refuseWithErrors(errors) {'), /answer: "refused", reason: this\.inputErrors\.size \? "input_invalid" : "required"/u);
   const saves = template.match(/<sf-button[^>]*?data-action="save"[\s\S]*?><\/sf-button>/gu) ?? [];

@@ -105,6 +105,12 @@ SF.RuleLoader['cl-view-properties'] = {
     // A host's confirmation of a save is asked in place with sf-confirm
     // (C289 (7), C182).
     { name: 'cl-confirm' },
+    // The full screen's sections column is sf-menu until sf-tabs 1.4.4 (VP-26, C305 (3)).
+    { name: 'cl-menu' },
+    // The record's history is sf-list-timeline (C305 (2)).
+    { name: 'cl-list-timeline', lazy: true },
+    // A group is edited in sf-form when it draws every field of it (C182, C305 (1)).
+    { name: 'cl-form', lazy: true },
     // The utility classes its templates write, asked for with the component (SIMAI Framework loader: a Framework component gets them from template-utilities.generated.json, a package component names them here); fetched after the first paint, they moved the drawn parts -- the bulk band's gap came 0 -> 8 and the band 8 px down some 150 ms in (View 1.8.1 acceptance, queue #172). The list is scripts/generate-template-utilities.mjs run over the overlay.
     { name: 'align-items/default' },
     { name: 'align-self/default' },

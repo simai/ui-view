@@ -61,6 +61,11 @@ const fields = [
   {key: 'title', label: 'Название', propertyType: 'string', required: true, value: 'Поставка кресел'},
   {key: 'stage', label: 'Стадия', propertyType: 'string', required: true, value: 'Переговоры'},
   {key: 'note', label: 'Комментарий', propertyType: 'string', value: ''},
+  // A field sf-form 1.3 cannot draw (a file upload): the group stays in the
+  // card's own form, whose rules this probe holds (sf-view-properties 1.18.0
+  // edits a group of plain fields in SIMAI Framework sf-form, C305 (1), whose
+  // required and summary rules are the Framework's own).
+  {key: 'scan', label: 'Скан', propertyType: 'file', value: null},
 ];
 const record = {record_id: 'deal-15', collection: 'crm.deals', revision: '3', title: 'Сделка № 15', actions: ['record.edit'],
   sections: [{key: 'main', label: 'Основное', groups: [{key: 'deal', label: 'Сделка', fields}]}]};

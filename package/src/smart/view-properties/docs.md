@@ -295,6 +295,70 @@ receives.
 - The view asks the Loader for every tag it draws: a page that defines nothing
   of its own (no `defineFieldsOf`) gets the whole card.
 
+## The record card, round 2 (since 1.18.0, C305)
+
+- **Editing** (`edit`): `group` — a group at a time; `group+quick` (the
+  default where the record may be edited) — and a short field (a choice, a
+  date, a time, yes/no, a number) edits in a window at its value, saved as a
+  `group.save` with that one value against the same revision; `none` — read
+  only. A group edits in SIMAI Framework `sf-form`: the label above the field
+  in a panel, beside it in the full screen, «Сохранить» first and a quiet
+  «Отмена». A group holding a field `sf-form` cannot edit yet (a picker, an
+  upload, a set) keeps the card's own form. «Изменить всё» is in «⋯»; a press
+  on a long value opens its group with the focus on that field.
+- **History** (`history`, `auto` | `off`): offered when the port announces
+  `record-history`. «⋯ → История изменений» opens a level of the same panel —
+  «← <запись>», the title, «⋯», the close — with `sf-list-timeline` by day,
+  newest first: who, when, and every change as before → after drawn by the
+  field's template. «Показать ещё» asks for the next page; the level's «⋯»
+  switches «Только изменения полей» / «Все события». From 80rem a full-screen
+  card shows the history as a column of its own (24rem).
+
+  The port: the card raises `record.history`
+  `{record_id, collection, cursor, kinds, limit}` and the host answers
+  `{answer: "applied", events, has_more, cursor}`, each event
+  `{id, time, actor, kind, changes: [{field, label, before, after}]}`, kind
+  one of `create`, `update`, `delete`, `restore`, `publish`; pages of 20, 50 at
+  most; `cursor` is the revision the next page starts below. A field the reader
+  may not see (encrypted, closed by rights) comes as
+  `{field, label, sealed: true}` with no values: the card says «Значение скрыто:
+  <поле>» and draws no before or after. Larena answers this shape (storage
+  4915505): actor a resolved name, time ISO 8601 with its zone, labels from the
+  version schema; publications are not in its versions yet. A host that keeps
+  a full snapshot per revision answers with the card's adapter (`sealed`: the
+  keys the reader may not see):
+
+  ```js
+  const Card = customElements.get("sf-view-properties");
+  // revisions: [{revision, operation, created_by, created_at, values}]
+  port.raise = (intent, payload) => intent === "record.history"
+      ? Card.historyFromRevisions(revisions, {fields, cursor: payload.cursor, kinds: payload.kinds, limit: payload.limit})
+      : /* ... */;
+  ```
+- **Beside the list**: from 64rem a panel docks beside an element marked
+  `data-sf-drawer-dock-host` — no scrim, the list stays usable, a press on
+  another row, board card or calendar event opens that record in the same
+  panel. `modal="true"` keeps the scrim. Alt+↓ / Alt+↑ raise
+  `sf-view-properties-step {direction}`. A host that announces
+  `record-neighbours` names the neighbour over its current view (filters,
+  search, sort): `record.neighbours {record_id, collection}` answered
+  `{listed, previous: {record_id}, next: {record_id}}`; the event carries it as
+  `next_record_id` and the card opens it unless the page prevents the event.
+  Otherwise the page opens the neighbour (`sf-view`'s
+  `recordBeside(id, direction)` gives its id in the order shown).
+- **A moved revision**: a save the host refuses with `revision_moved` (the
+  revision moved, nothing written; Larena) is a conflict: the card says so,
+  keeps what was typed and reads the record again at the current revision.
+  The page marks the open row `aria-current` and takes the focus back to it on
+  close.
+- **Methods**: `openHistory()`, `editGroup(section, group)`, `editField(key)`,
+  `step(direction)`; events `sf-view-properties-step` and
+  `sf-view-properties-history {record_id}`.
+- **Public variables**: `--sf-view-properties-label-width`, `-row-gap`,
+  `-group-gap`, `-sections-width`, `-side-width`,
+  `-current-background-color`, `-saved-background-color`;
+  `--sf-property-view--sections-width` is a former name until 2027-01-01.
+
 ## Conditional fields
 
 A field's `when` says when it is shown, required and enabled (port 1.14.0):
@@ -327,8 +391,12 @@ While the view is arranged every field is listed, whatever its condition.
 
 A panel never closes itself: the cross, Esc, a press on the dimmed page and
 «Отменить» each raise `sf-view-properties-close` (`reason` `close`, `escape`,
-`outside` or `cancelled`) with `unsaved_fields`, and whether to ask «Закрыть?
-Введённое не будет сохранено.» is the host's decision. Esc reaches the panel
+`outside` or `cancelled`) with `unsaved_fields`. Since 1.18.0 (C159 (6)) the
+card asks first over unsaved entries — «Есть несохранённые изменения» with
+«Закрыть без сохранения» and «Вернуться к правке» in the panel — and raises the
+event only after «Закрыть без сохранения», with `asked: true`: a host that
+asked itself before does not ask again. Stepping to another record asks the
+same way. Esc reaches the panel
 through SIMAI Framework's layer stack, which hands it to the top layer only: a
 menu, a list or an sf-modal opened over the panel takes it first, and of two
 stacked panels only the upper one asks to close. The count is the same on every way out: the changed

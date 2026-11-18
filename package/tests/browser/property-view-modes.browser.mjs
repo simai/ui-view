@@ -136,10 +136,15 @@ try {
   const opened = await page.evaluate(async () => {
     const view = document.getElementById('view');
     view.querySelector('[data-action="edit"]').querySelector('button')?.click() ?? view.querySelector('[data-action="edit"]').click();
-    await new Promise((done) => setTimeout(done, 200));
-    return {footer: Boolean(view.querySelector('.sf-property-view-actions')), save: Boolean(view.querySelector('[data-action="save"]'))};
+    // 1.18.0 (C305 (1), C182): a group of fields sf-form draws is edited in
+    // sf-form, whose own footer carries Save; the card's footer is for a group
+    // sf-form cannot draw yet. sf-form is defined lazily: wait for it.
+    const seen = () => ({footer: Boolean(view.querySelector('.sf-property-view-actions, sf-form .sf-form-footer')),
+      save: Boolean(view.querySelector('[data-action="save"], sf-form .sf-form-footer button[type="submit"]'))});
+    for (let at = 0; at < 30 && !(seen().footer && seen().save); at += 1) await new Promise((done) => setTimeout(done, 100));
+    return seen();
   });
-  if (!opened.footer || !opened.save) note({case: 'an editor, a group open', got: opened, expected: 'a footer with save'});
+  if (!opened.footer || !opened.save) note({case: 'an editor, a group open', got: opened, expected: 'a footer with save, the card one or the sf-form one'});
 
   const lifecycle = await make({mode: null, actions: ['record.edit', 'record.delete'], version: '1.12.0', capabilities: []});
   // Since 1.17.0 (C289 (3)) a record to read has no foot for one delete:

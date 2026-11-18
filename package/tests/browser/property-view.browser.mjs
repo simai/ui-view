@@ -1097,7 +1097,7 @@ try {
     // Framework's component stylesheets reach the field controls.
     const root = view;
     const read = () => ({
-      sectionItems: root.querySelectorAll('.sf-property-view-sections [role="tab"]').length,
+      sectionItems: root.querySelectorAll('.sf-property-view-sections [role="tab"], .sf-property-view-sections [data-sf-menu-link]').length,
       groups: [...root.querySelectorAll('.sf-property-view-group')].map((node) => node.dataset.group),
       fields: [...root.querySelectorAll('.sf-property-view-field')].map((node) => node.dataset.field),
       // Which element drew each value: the renderer set's choice, not the host's.
@@ -1133,9 +1133,23 @@ try {
     // (sf-tabs type="vertical", decision C96 point 5, TR-13; it was an sf-tree
     // until sf-view-properties 1.14.0): a named tablist, one tab selected, the
     // section's own icon on its tab and no folder for a section without one.
+    // 1.18.0 (C305 (3)): until sf-tabs vertical judges its fold by its place
+    // (VP-26, sf-tabs 1.4.4 unreleased) the column is SIMAI Framework sf-menu,
+    // a named vertical navigation list with the open section current; the card
+    // takes sf-tabs back by a feature check once the pair carries it.
+    const menu = root.querySelector('.sf-property-view-sections sf-menu');
     const tablist = root.querySelector('.sf-property-view-sections [role="tablist"]');
-    const tabs = [...root.querySelectorAll('.sf-property-view-sections [role="tab"]')];
-    const sectionList = {
+    const tabs = [...root.querySelectorAll('.sf-property-view-sections [role="tab"], .sf-property-view-sections [data-sf-menu-link]')];
+    const sectionList = menu ? {
+      vertical: menu.querySelector('nav')?.getAttribute('data-orientation') ?? null,
+      orientation: null,
+      place: null,
+      named: menu.getAttribute('label') ?? null,
+      selected: tabs.filter((tab) => tab.getAttribute('aria-current') === 'page').length,
+      tree: Boolean(root.querySelector('.sf-property-view-sections sf-tree, .sf-property-view-sections .sf-tree')),
+      landmark: root.querySelector('.sf-property-view-sections')?.tagName?.toLowerCase() ?? null,
+      glyphs: tabs.map((tab) => [...tab.querySelectorAll('.sf-icon')].map((icon) => icon.textContent.trim()).join(' ')),
+    } : {
       vertical: root.querySelector('.sf-property-view-sections sf-tabs')?.getAttribute('type') ?? null,
       orientation: tablist?.getAttribute('aria-orientation') ?? null,
       // sf-tabs 1.4.0 (C181 (2), pair ui-24d64b7f6eb7): vertical tabs fold to
@@ -1157,7 +1171,7 @@ try {
     pressed?.dispatchEvent(new MouseEvent('click', {bubbles: true, composed: true}));
     await new Promise((done) => setTimeout(done, 400));
     const switched = {
-      asked: (view.sections ?? [])[Number(pressed?.closest('[data-sf-tab-index]')?.getAttribute('data-sf-tab-index')
+      asked: pressed?.dataset?.sfMenuLink ?? (view.sections ?? [])[Number(pressed?.closest('[data-sf-tab-index]')?.getAttribute('data-sf-tab-index')
         ?? pressed?.getAttribute('data-sf-tab-index') ?? -1)]?.key ?? null,
       showing: view.selectedSection ?? null,
       groups: [...root.querySelectorAll('.sf-property-view-group')].map((node) => node.dataset.group),
@@ -2054,15 +2068,20 @@ try {
     };
     view.editGroup('extra', 'g2');
     await new Promise((done) => setTimeout(done, 400));
-    const bar = view.querySelector('.sf-property-view-actions');
+    // 1.18.0 (C305 (1)): a group sf-form draws carries Save in sf-form's own
+    // footer, made sticky on a phone (footer="sticky"); the card's bar is for a
+    // group sf-form cannot draw yet.
+    for (let at = 0; at < 20 && !view.querySelector('.sf-property-view-actions, sf-form .sf-form-footer'); at += 1) await new Promise((done) => setTimeout(done, 100));
+    const formBar = view.querySelector('sf-form .sf-form-footer');
+    const bar = view.querySelector('.sf-property-view-actions') ?? formBar;
     const barStyle = bar ? getComputedStyle(bar) : null;
     const barSeen = {
       present: Boolean(bar),
       // The bar is the last row of a column that does not scroll, so it keeps
       // the floor without being positioned. What it must not be is the last
       // thing in a scroller, which is where it used to be.
-      lastRow: bar?.parentElement?.lastElementChild === bar,
-      inScroller: Boolean(bar?.closest('.sf-property-view-scroll')),
+      lastRow: bar === formBar ? bar?.getAttribute('data-sticky') === '' && barStyle?.position === 'sticky' : bar?.parentElement?.lastElementChild === bar,
+      inScroller: bar === formBar ? false : Boolean(bar?.closest('.sf-property-view-scroll')),
       // A bar with no background of its own lets the rows pass through the only
       // control that saves them.
       background: barStyle?.backgroundColor ?? null,

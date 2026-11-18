@@ -33,6 +33,9 @@ import {renderPropertyViewTemplate} from "./js/templates/default";
 // The day-and-time reading is the field renderers' (A-14): this view kept a
 // copy from before it was lifted into the Framework.
 import {fieldConditions} from "./js/conditions.js";
+import {drawsSetField} from "./js/set-fields.js";
+import {propertyModes} from "../field-renderers/index.js";
+import {historyFromRevisions, timelineItems} from "./js/history.js";
 
 // Every port version this composite accepts, in one place, the way sf-view
 // keeps its list -- a guard naming a narrower set than the published versions is
@@ -106,7 +109,25 @@ const DRAWER_CLOSE_REASONS = {escape: "escape", outside: "outside", close: "api"
 // property declared on the element never reaches it. The stylesheet reads this
 // through `--sf-property-view--sections-width`, which the component passes to
 // the panel and sets on the layout it draws in place.
-const SECTIONS_WIDTH = "14rem";
+const SECTIONS_WIDTH = "var(--sf-view-properties-sections-width, 12rem)";
+
+// How the record is edited (C305 (1), RC-1): a group with its Save, plus the
+// short fields in a window at their value (the table's cell edit, C296), or
+// nothing. A short field is one choice, a date, a time, a yes/no, a person or
+// a number: one control, nothing to read around it.
+const EDIT_MODES = ["group", "group+quick", "none"];
+const QUICK_TYPES = new Set(["choice", "enum", "select", "dropdown", "date", "datetime", "time", "boolean", "user", "number", "integer"]);
+// The types sf-form cannot draw for the card (C182): the set's own (money,
+// percent, rows, compound), a file or an image that uploads through the host,
+// and a reference picked from the host's pages. A group holding one keeps the
+// card's own form until sf-form takes a host for them (order FO-C305-1).
+const FORMLESS_TYPES = new Set(["file", "files", "image", "images", "record", "relation", "lookup", "user"]);
+// From 80rem the full screen keeps the history in a column of its own (C305 (3)).
+const SIDE_MEDIA_QUERY = "(min-width: 80rem)";
+// From 64rem a panel is a docked column beside the list (C305 (4)); narrower
+// it floats over a scrim.
+const DOCK_BREAKPOINT = "64rem";
+const HISTORY_PAGE = 20;
 
 // The panel's widths are sf-drawer's ladder and nothing else (C157 (2), C289
 // (2)): 20, 24 and 30rem and the whole screen. `panel-width` is the dated
@@ -133,6 +154,7 @@ const nearestPanelStep = (width) => {
 const DRAWN_TAGS = [
     "sf-drawer", "sf-button", "sf-button-icon", "sf-button-close", "sf-tabs", "sf-list", "sf-list-description",
     "sf-help-mark", "sf-empty-state", "sf-confirm", "sf-menu-context", "sf-badge", "sf-icon",
+    "sf-popover", "sf-form", "sf-list-timeline", "sf-menu",
 ];
 
 // How long the copy control shows its tick. The Framework's own clipboard holds
@@ -186,6 +208,12 @@ const SECTION_ICONS = ICON_CHOICES;
 const PropertyViewElement = elementFromManifest(manifest, {base: SfBaseElement, lang: {en, ru}, source: "ru", aliases});
 
 class SfPropertyView extends PropertyViewElement {
+    // The history adapter for a host that stores a snapshot per revision
+    // (js/history.js): record.history answered from neighbouring revisions.
+    static historyFromRevisions(revisions, options) {
+        return historyFromRevisions(revisions, options);
+    }
+
     static get props() {
         return {
             templateName: {attribute: "template", default: "default"},
@@ -281,6 +309,11 @@ class SfPropertyView extends PropertyViewElement {
             favouriteLabel: {attribute: "favourite-label", default: "Favourite"},
             menuLabel: {attribute: "menu-label", default: "More"},
             inheritedText: {attribute: "inherited-text", default: "by default"},
+            // C305 (1)-(4): how the record is edited, whether it shows its
+            // history, and whether a panel is a column beside the list.
+            edit: {default: "group+quick", values: EDIT_MODES},
+            history: {default: "auto", values: ["auto", "off"]},
+            modal: {default: "auto", values: ["auto", "true"]},
         };
     }
 
@@ -380,6 +413,28 @@ class SfPropertyView extends PropertyViewElement {
         // On a phone the sections are a list and a section is the next screen.
         // Null is the list; a key is that section's screen.
         this.phoneSection = null;
+        // A short field edited in a window at its value (C305 (1)):
+        // {section, group, key} while it is open. Its entry is held in
+        // `changed` as a group's is, and saved as group.save with that one value.
+        this.quick = null;
+        // The field the last save wrote, marked for a moment (the saved colour).
+        this.savedKeys = new Set();
+        // The whole record opened from «⋯ → Изменить всё» (mode edit for a while).
+        this.editAll = false;
+        // A close (or a step to the next record) asked over unsaved entries
+        // (C159 (6)): {kind: close|step, reason|direction} until answered.
+        this.leaveAsk = null;
+        // The record's history (C305 (2)): open as a level of the panel, or in
+        // the full screen's side column; its events as the port answered them.
+        this.historyOpen = false;
+        this.historyFeed = null;
+        this.historyEpoch = 0;
+        this.sideWide = false;
+        this.sideMedia = null;
+        // The group drawn by sf-form while it is edited: its fields and saved
+        // value, kept for the edit so a render never resets the form.
+        this.formEdit = null;
+        this._focusFieldAfterRender = null;
     }
 
     // Declaring a prop does not create an accessor for it: `static get props()`
@@ -642,7 +697,7 @@ class SfPropertyView extends PropertyViewElement {
     // record's actions, and a reader is sent none. A host on an earlier port
     // never sent it, and for it a group is editable unless it says otherwise.
     get mayEdit() {
-        if (this.mode === "view") return false;
+        if (this.mode === "view" || this.editMode === "none") return false;
         if (this.mode === "create") return true;
         if (!versionAtLeast(this.hostPort?.version, "1.12.0")) return true;
         return this.recordActions.includes("record.edit");
@@ -650,7 +705,62 @@ class SfPropertyView extends PropertyViewElement {
 
     // Every group open at once: a full edit page, or a create.
     get openAll() {
-        return this.mode === "create" || (this.mode === "edit" && this.mayEdit);
+        return this.mode === "create" || ((this.mode === "edit" || this.editAll) && this.mayEdit);
+    }
+
+    // C305 (1): group | group+quick | none; group+quick by default wherever
+    // the record may be edited, the same short fields the table edits at the
+    // cell (C296).
+    get editMode() {
+        const value = this.getAttribute("edit");
+        return EDIT_MODES.includes(value) ? value : "group+quick";
+    }
+
+    // The window at a value is SIMAI Framework sf-popover: where the page has
+    // not defined it yet, a short field goes through its group as before.
+    get quickEdit() {
+        return this.editMode === "group+quick" && this.mayEdit && !this.openAll && !this.configuring
+            && Boolean(globalThis.customElements?.get?.("sf-popover"));
+    }
+
+    // A short field: one control at its value, by its type. A list of several,
+    // a set type, a condition and a read-only field go through the group. (A
+    // field's own say -- a port field key -- is ordered with the port edition.)
+    isQuickField(field) {
+        if (!field || field.readonly === true || field.when || field.multiple === true) return false;
+        const type = String(field.propertyType || field.type || "");
+        if (!QUICK_TYPES.has(type) || drawsSetField(field)) return false;
+        // A person picked from the host's pages needs the picker's host.
+        if (type === "user" && !this.canPickRecords) return false;
+        return true;
+    }
+
+    // C305 (2): the history is offered where the host answers record.history
+    // (capability record-history) and the page did not turn it off.
+    get historyOffered() {
+        return this.getAttribute("history") !== "off" && this.mode !== "create" && Boolean(this.recordId)
+            && Boolean(this.hostPort?.capabilities?.includes?.("record-history"));
+    }
+
+    // C305 (3): the full screen keeps the history in a column of its own
+    // from 80rem; narrower it is a level of the panel, as in a panel.
+    get historySide() {
+        return this.historyOffered && this.sideWide && this.sectionsLayout === "column" && !this.configuring
+            && (this.drawerStep === "full" || !this.panel);
+    }
+
+    // C305 (4): a panel narrower than the screen is a column beside the list
+    // from 64rem (sf-drawer docked), the list usable; below it, and with
+    // modal="true", it floats over a scrim.
+    // A panel opened over another card's panel (a related record, C289 (6))
+    // stays a window over the one below, which the Framework's overlay dims.
+    get docked() {
+        if (!this.panel || this.getAttribute("modal") === "true" || this.drawerStep === "full") return false;
+        // Only a panel below counts: the one under a related record stays docked.
+        const own = this._ownDrawer();
+        const cards = openLayers("panel").filter((owner) => owner?.parentElement?.localName === this.localName);
+        const at = cards.indexOf(own);
+        return at === -1 ? cards.length === 0 : at === 0;
     }
 
     // What the drawer is told to be. `size` is a ladder and its widest step short
@@ -1072,6 +1182,18 @@ class SfPropertyView extends PropertyViewElement {
     // apart, deleting it. A reading panel has no foot for one delete.
     get recordMenuItems() {
         const items = [];
+        // «Изменить всё» (C305 (1)): every group open at once, one Save -- in
+        // the panel's head; an inline view has its groups' «Изменить» and no
+        // row of its own for it (the skeleton keeps the first group in place).
+        if (this.panel && this.mayEdit && !this.openAll && !this.configuring && this.mode !== "create"
+            && (this.sections ?? []).some((section) => (section.groups ?? []).some((group) => group.kind !== "related" && group.editable !== false))) {
+            items.push({id: "edit-all", name: pageText(PROPERTY_VIEW_TEXT, "editAllText", this), icon: "edit"});
+        }
+        // «История изменений» (C305 (2)): a level of the panel; the full
+        // screen from 80rem shows it in its own column instead.
+        if (this.historyOffered && !this.historySide) {
+            items.push({id: "history", name: pageText(PROPERTY_VIEW_TEXT, "historyText", this), icon: "history"});
+        }
         if (this.address) items.push({id: "copy-link", name: this.copyLinkLabel, icon: "link"});
         if (this.canOpenFullPage) items.push({id: "open-full", name: this.openFullLabel, icon: "open_in_full"});
         return items;
@@ -1126,6 +1248,18 @@ class SfPropertyView extends PropertyViewElement {
     }
 
     openPanelMenu(anchor) {
+        // The history level's «⋯»: which events it shows.
+        if (this.historyOpen && !this.historySide) {
+            const fieldsOnly = JSON.stringify(this.historyFeed?.kinds ?? null) === JSON.stringify(["update"]);
+            return this.openStandardMenu(anchor, {
+                label: this.menuLabel,
+                entries: [
+                    {id: "history-kinds:update", text: pageText(PROPERTY_VIEW_TEXT, "historyFieldsText", this), kind: "radio", checked: fieldsOnly, icon: "edit_note"},
+                    {id: "history-kinds:all", text: pageText(PROPERTY_VIEW_TEXT, "historyAllText", this), kind: "radio", checked: !fieldsOnly, icon: "list"},
+                ],
+                select: (id) => this._chooseStandardEntry(id),
+            });
+        }
         const entries = [];
         const profiles = this.viewProfiles;
         // The view is chosen from the menu as the admin menu's profile is: a
@@ -1198,6 +1332,10 @@ class SfPropertyView extends PropertyViewElement {
             return true;
         }
         if (value.startsWith("view-profile:")) return this.selectViewProfile(value.slice("view-profile:".length));
+        if (value.startsWith("history-kinds:")) {
+            const kinds = value.slice("history-kinds:".length);
+            return this.setHistoryKinds(kinds === "all" ? null : [kinds]);
+        }
         return this.chooseMenuItem(value);
     }
 
@@ -1208,6 +1346,15 @@ class SfPropertyView extends PropertyViewElement {
         if (id === "copy-link") return this.copyAddress();
         if (id === "open-full") return this.openFullPage();
         if (id === "delete") return this.deleteRecord();
+        if (id === "history") return this.openHistory();
+        if (id === "edit-all") {
+            this.quick = null;
+            this.editing = null;
+            this.formEdit = null;
+            this.editAll = true;
+            this.requestComponentUpdate("editing");
+            return true;
+        }
         return false;
     }
 
@@ -1343,6 +1490,42 @@ class SfPropertyView extends PropertyViewElement {
                 this._focusErrorsAfterRender = false;
                 requestAnimationFrame(() => this._focusErrors());
             }
+            // A long field's value pressed: its group opens with the focus on
+            // it (VP-21); sf-form gives it once its controls are drawn.
+            if (this._focusFieldAfterRender && this.editing) {
+                const key = this._focusFieldAfterRender;
+                this._focusFieldAfterRender = null;
+                // sf-form may draw before or after this hook, and its control is
+                // defined lazily: wait (60 frames at most) until the control has
+                // something to focus.
+                const formed = Boolean(this.formEdit);
+                const FOCUSABLE = "input:not([type=hidden]), textarea, select, button, [tabindex]:not([tabindex='-1'])";
+                let frames = 0;
+                const give = () => {
+                    const form = formed ? this._formOf(this.editing?.group) : null;
+                    const control = form?.controlOf?.(key);
+                    const ready = !formed || Boolean(control && (!control.localName.includes("-") || customElements.get(control.localName))
+                        && (control.focusDelegate?.() || control.querySelector?.(FOCUSABLE)));
+                    if (!ready && frames++ < 60) return requestAnimationFrame(give);
+                    if (form?.focusField) form.focusField(key);
+                    else this.focusField(key);
+                };
+                requestAnimationFrame(give);
+            }
+            if (this._focusAfterStep && this.record && this.getAttribute("data-state") !== "loading") {
+                this._focusAfterStep = false;
+                requestAnimationFrame(() => {
+                    const root = this.panel ? this.panelContent?.() : this;
+                    const active = document.activeElement;
+                    if (root && active && root.contains(active) && active !== document.body) return;
+                    root?.querySelector?.(".sf-property-view-title")?.focus?.({preventScroll: true});
+                });
+            }
+            // The full screen's history column reads its first page itself.
+            if (this.historySide && (!this.historyFeed || this.historyFeed.record !== this.recordId) && this.record && !this._sideAsked) {
+                this._sideAsked = true;
+                Promise.resolve().then(() => this.loadHistory()).finally(() => { this._sideAsked = false; });
+            }
             this._askForUndefinedTags();
             // The panel's level for a related record (C289 (6)): whether this
             // panel's drawer is drawn inside another one is known once it is open.
@@ -1422,6 +1605,28 @@ class SfPropertyView extends PropertyViewElement {
             this.requestComponentUpdate("viewport");
         };
         this.wideMedia?.addEventListener?.("change", this._onWideChange);
+        this.sideMedia = typeof globalThis.matchMedia === "function" ? globalThis.matchMedia(SIDE_MEDIA_QUERY) : null;
+        this.sideWide = Boolean(this.sideMedia?.matches);
+        this._onSideChange = (event) => {
+            this.sideWide = event.matches;
+            this.requestComponentUpdate("viewport");
+        };
+        this.sideMedia?.addEventListener?.("change", this._onSideChange);
+        // Alt+↓ / Alt+↑: the next or the previous record of the view (C305 (4)).
+        // The panel is portalled out of the element, so the keys are read on
+        // the document for a press inside this card's panel.
+        this._onStepKey = (event) => {
+            if (!event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+            if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+            const root = this.panel ? this.panelContent() : this;
+            if (!root || !event.composedPath?.().includes(root) || (this.panel && !this.isTopPanel)) return;
+            event.preventDefault();
+            // The next record redraws the panel: the focus comes back to its
+            // title so the keys go on stepping.
+            this._focusAfterStep = true;
+            this.step(event.key === "ArrowDown" ? "next" : "previous");
+        };
+        document.addEventListener("keydown", this._onStepKey);
         // A view placed before it is told its record (an assembly binds
         // record-id after it places the part) asks the host nothing yet: the
         // record-id it is given reads it (attributeChangedCallback).
@@ -1479,6 +1684,12 @@ class SfPropertyView extends PropertyViewElement {
         }
         this._onDocumentSortableIntent = null;
         if (this._onWideChange) this.wideMedia?.removeEventListener?.("change", this._onWideChange);
+        if (this._onSideChange) this.sideMedia?.removeEventListener?.("change", this._onSideChange);
+        this._onSideChange = null;
+        this.sideMedia = null;
+        if (this._onStepKey) document.removeEventListener("keydown", this._onStepKey);
+        this._onStepKey = null;
+        clearTimeout(this._savedTimer);
         this._onWideChange = null;
         this.wideMedia = null;
         super.onDisconnected?.();
@@ -1595,6 +1806,287 @@ class SfPropertyView extends PropertyViewElement {
         });
         this._viewHost = {host, view};
         return view;
+    }
+
+
+    // ─── C305: quick edit, a field's group, the history, the next record ─────
+
+    // Where a field stands: its section, its group and its descriptor.
+    fieldAt(key) {
+        const wanted = String(key ?? "");
+        for (const section of this.sections ?? []) {
+            for (const group of section.groups ?? []) {
+                const field = (group.fields ?? []).find((one) => String(one.key ?? "") === wanted);
+                if (field) return {section: String(section.key ?? ""), group: String(group.key ?? ""), field};
+            }
+        }
+        return null;
+    }
+
+    // A short field opened in its window (C305 (1), C296): the entry is held
+    // as a group's is, nothing is written until Save.
+    startQuick(section, group, key) {
+        if (!this.quickEdit || this.editing) return false;
+        this.quick = {section: String(section), group: String(group), key: String(key)};
+        this.changed.clear();
+        this._clearInputs();
+        this.errors.clear();
+        this.conflict = null;
+        this.confirmation = null;
+        this.requestComponentUpdate("quick");
+        return true;
+    }
+
+    endQuick(key = null) {
+        if (!this.quick || (key !== null && this.quick.key !== key)) return false;
+        this.quick = null;
+        this.changed.clear();
+        this._clearInputs();
+        this.errors.clear();
+        this.conflict = null;
+        this.confirmation = null;
+        this.requestComponentUpdate("quick");
+        return true;
+    }
+
+    _quickPopover(key) {
+        const root = this.panel ? this.panelContent() : this;
+        return root?.querySelector?.(`sf-popover[data-quick-pop="${CSS.escape(String(key))}"]`) ?? null;
+    }
+
+    // One value per save: group.save of the field's group with that value,
+    // the same revision and the same confirmation as a group's save.
+    async saveQuick({confirm = null} = {}) {
+        const quick = this.quick;
+        if (!quick) return null;
+        if (!this.changed.has(quick.key) && !this.inputErrors.size) {
+            this._quickPopover(quick.key)?.close?.();
+            this.endQuick();
+            return null;
+        }
+        return this.saveGroup({confirm});
+    }
+
+    // The saved fields are marked for a moment (--sf-view-properties-saved-background-color).
+    markSaved(keys) {
+        this.savedKeys = new Set([...keys].map(String));
+        this.requestComponentUpdate("saved-mark");
+        clearTimeout(this._savedTimer);
+        this._savedTimer = setTimeout(() => {
+            this.savedKeys = new Set();
+            this.requestComponentUpdate("saved-mark");
+        }, 1600);
+    }
+
+    // RC-6 editField(key): a short field opens its window, any other its
+    // group with the focus on it (VP-19, VP-21).
+    editField(key) {
+        const at = this.fieldAt(key);
+        if (!at || !this.mayEdit) return false;
+        if (this.isQuickField(at.field) && this.quickEdit) {
+            const pop = this._quickPopover(at.field.key);
+            if (pop?.show) {
+                pop.show();
+                return true;
+            }
+        }
+        if (this.selectedSection !== at.section) this.selectSection(at.section);
+        this.editGroup(at.section, at.group, {focus: at.field.key});
+        return true;
+    }
+
+    // sf-form draws a group's edit (C182) when it draws every field of it.
+    formDraws(group) {
+        const fields = this.visible(group?.fields, {conditions: false});
+        // sf-form where the page has it defined; else the card's own form, as before.
+        if (!fields.length || !globalThis.customElements?.get?.("sf-form")) return false;
+        return fields.every((field) => {
+            const type = String(field.propertyType || field.type || "");
+            if (field.when || drawsSetField(field) || FORMLESS_TYPES.has(type)) return false;
+            const modes = propertyModes(type);
+            return Boolean(modes?.edit || (field.readonly === true && modes?.view));
+        });
+    }
+
+    // The fields and the saved value an sf-form gets for one group's edit.
+    _formEditOf(section, group) {
+        const current = this.sections.find((entry) => String(entry.key) === String(section));
+        const found = this.visible(current?.groups).find((entry) => String(entry.key) === String(group));
+        if (!found || !this.formDraws(found)) return null;
+        const fields = this.visible(found.fields, {conditions: false}).map((field) => {
+            const {value, width, ...rest} = field;
+            return {...rest, key: String(field.key ?? "")};
+        });
+        const value = Object.fromEntries(this.visible(found.fields, {conditions: false})
+            .filter((field) => field.value !== undefined && field.value !== null)
+            .map((field) => [String(field.key ?? ""), field.value]));
+        return {section: String(section), group: String(group), fields, value};
+    }
+
+    // sf-form's Save: what differs from the record is the save; the form waits
+    // for the host's answer (the submit is cancelled) and takes its errors.
+    submitForm(event) {
+        event?.preventDefault?.();
+        if (!this.formEdit || !this.editing) return null;
+        const value = event?.detail?.value ?? {};
+        for (const field of this.formEdit.fields) {
+            const at = this.fieldAt(field.key);
+            if (!at) continue;
+            const next = value[field.key];
+            const same = JSON.stringify(next ?? null) === JSON.stringify(at.field.value ?? null);
+            if (same || next === undefined) this.changed.delete(field.key);
+            else this.changed.set(field.key, next);
+        }
+        return this.saveGroup();
+    }
+
+    _formOf(groupKey) {
+        const root = this.panel ? this.panelContent() : this;
+        return root?.querySelector?.(`[data-group="${CSS.escape(String(groupKey))}"] sf-form`) ?? null;
+    }
+
+    // The way out of unsaved entries asks first (C159 (6)): a close, or a step
+    // to the next record, waits for «Закрыть без сохранения».
+    answerLeave(accepted) {
+        const ask = this.leaveAsk;
+        this.leaveAsk = null;
+        if (!ask) return null;
+        if (!accepted) {
+            this.requestComponentUpdate("leave");
+            return null;
+        }
+        this._dropEntries();
+        if (ask.kind === "step") return this._emitStep(ask.direction);
+        return this.closePanel(ask.reason, {asked: true});
+    }
+
+    _dropEntries() {
+        this.editing = null;
+        this.quick = null;
+        this.editAll = false;
+        this.formEdit = null;
+        this.changed.clear();
+        this._clearInputs();
+        this.errors.clear();
+        this.conflict = null;
+        this.confirmation = null;
+        this.requestComponentUpdate("editing");
+    }
+
+    // RC-5, RC-6 step(direction): the next or the previous record in the
+    // order of the view the panel was opened from. The card never reads the
+    // list: it asks (sf-view-properties-step {direction}) and the page opens the
+    // neighbour in the same panel (sf-view recordBeside gives it).
+    step(direction) {
+        const dir = direction === "previous" || direction === -1 ? "previous" : "next";
+        this._commitFocusedEntry();
+        if (this.unsavedFields) {
+            this.leaveAsk = {kind: "step", direction: dir};
+            this.requestComponentUpdate("leave");
+            return {outcome: "refused", reason: "unsaved"};
+        }
+        return this._emitStep(dir);
+    }
+
+    // The next record: a host that announces record-neighbours names it over
+    // its current view (filters, search, sort; Larena: {listed, previous:
+    // {record_id}, next: {record_id}}), and the card opens it in the same panel
+    // unless the page takes the step (preventDefault). Without it the page
+    // finds the neighbour itself (sf-view recordBeside) and sets record-id.
+    async _emitStep(direction) {
+        let next = null;
+        if (this.hostPort?.capabilities?.includes?.("record-neighbours") && this.recordId) {
+            const answer = await this._raise("record.neighbours", {record_id: this.recordId, collection: this.collection || null});
+            if (answer?.answer === "applied") {
+                const id = answer[direction]?.record_id;
+                if (id === undefined || id === null || id === "") return {outcome: "refused", reason: "no-neighbour"};
+                next = String(id);
+            }
+        }
+        const allowed = this.sfEmit("step", {direction, record_id: this.recordId || null, ...(next ? {next_record_id: next} : {})}, {cancelable: true});
+        if (!allowed) return {outcome: "refused", reason: "prevented"};
+        if (next) this.setAttribute("record-id", next);
+        return {outcome: "applied"};
+    }
+
+    // RC-3, RC-6 openHistory(): the history as a level of the same panel, the
+    // C289 head over it («← <запись>», the title, «⋯», the close).
+    openHistory() {
+        if (!this.historyOffered) return {outcome: "refused", reason: "unavailable"};
+        this.historyOpen = true;
+        this.phoneSection = null;
+        this.sfEmit("history", {record_id: this.recordId || null});
+        this.requestComponentUpdate("history");
+        if (!this.historyFeed || this.historyFeed.record !== this.recordId) this.loadHistory();
+        return {outcome: "applied"};
+    }
+
+    closeHistory() {
+        if (!this.historyOpen) return false;
+        this.historyOpen = false;
+        this.requestComponentUpdate("history");
+        return true;
+    }
+
+    // «Только изменения полей» / «Все события» (the history's «⋯»).
+    setHistoryKinds(kinds) {
+        const next = Array.isArray(kinds) && kinds.length ? kinds.map(String) : null;
+        if (JSON.stringify(next) === JSON.stringify(this.historyFeed?.kinds ?? null) && this.historyFeed) return false;
+        this.historyFeed = {record: this.recordId, kinds: next, events: [], items: [], cursor: null, hasMore: false, loading: false, failed: false};
+        this.loadHistory();
+        return true;
+    }
+
+    // One page of record.history; «Показать ещё» asks for the next one with
+    // the cursor the host gave.
+    async loadHistory({more = false} = {}) {
+        if (!this.historyOffered) return null;
+        const kinds = this.historyFeed?.kinds ?? null;
+        if (!more || !this.historyFeed || this.historyFeed.record !== this.recordId) {
+            this.historyFeed = {record: this.recordId, kinds, events: [], items: [], cursor: null, hasMore: false, loading: true, failed: false};
+        } else {
+            this.historyFeed = {...this.historyFeed, loading: true};
+        }
+        this.requestComponentUpdate("history");
+        const epoch = ++this.historyEpoch;
+        const last = this.historyFeed.events.at(-1);
+        const answer = await this._raise("record.history", {
+            record_id: this.recordId || null,
+            collection: this.collection || null,
+            cursor: more ? (this.historyFeed.cursor ?? (last ? String(last.id) : null)) : null,
+            kinds,
+            limit: HISTORY_PAGE,
+        }, {stale: () => epoch !== this.historyEpoch});
+        if (!answer) return null;
+        if (answer.answer !== "applied") {
+            this.historyFeed = {...this.historyFeed, loading: false, failed: true, hasMore: false};
+            // A refused history is no state of the record: the record stays ready.
+            if (this.getAttribute("data-state") === "error" && this.record) this._setState("ready");
+            this.requestComponentUpdate("history");
+            return answer;
+        }
+        const events = [...this.historyFeed.events, ...(Array.isArray(answer.events) ? answer.events : [])];
+        this.historyFeed = {
+            ...this.historyFeed, events, loading: false, failed: false,
+            hasMore: answer.has_more === true, cursor: answer.cursor ?? null,
+            items: timelineItems(events, {
+                words: this.historyWords,
+                fieldOf: (key) => this.fieldAt(key)?.field ?? null,
+                host: this.viewHost,
+            }),
+        };
+        this.requestComponentUpdate("history");
+        return answer;
+    }
+
+    get historyWords() {
+        const word = (key) => pageText(PROPERTY_VIEW_TEXT, key, this);
+        return {
+            historyCreate: word("historyCreateText"), historyDelete: word("historyDeleteText"),
+            historyRestore: word("historyRestoreText"), historyPublish: word("historyPublishText"),
+            historyChangedOne: word("historyChangedOneText"), historyChangedMany: word("historyChangedManyText"),
+            historySealed: word("historySealedText"),
+        };
     }
 
     templateContext() {
@@ -1758,6 +2250,25 @@ class SfPropertyView extends PropertyViewElement {
             recordMenuItems: this.recordMenuItems,
             errorList: this.errorList,
             requiredErrorText: this.requiredErrorText,
+            // C305
+            quickEdit: this.quickEdit,
+            quick: this.quick,
+            isQuickField: (field) => this.isQuickField(field),
+            savedKeys: this.savedKeys,
+            editAll: this.editAll,
+            leaveAsk: this.leaveAsk,
+            formEdit: this.formEdit,
+            historyOffered: this.historyOffered,
+            historyOpen: this.historyOpen && !this.historySide,
+            historySide: this.historySide,
+            history: this.historyFeed,
+            docked: this.docked,
+            dockBreakpoint: DOCK_BREAKPOINT,
+            // VP-26: sf-tabs vertical once it places its box by its own column;
+            // until then sf-menu, and sf-tabs where sf-menu is not defined.
+            sectionColumnTabs: typeof globalThis.customElements?.get?.("sf-tabs")?.prototype?.placeBox === "function"
+                || !globalThis.customElements?.get?.("sf-menu"),
+            word: (key) => pageText(PROPERTY_VIEW_TEXT, key, this),
         });
     }
 
@@ -1813,6 +2324,10 @@ class SfPropertyView extends PropertyViewElement {
             if (answer.answer === "applied" && Array.isArray(answer.effects) && answer.effects.length) {
                 globalThis.SF?.Composition?.publishEffects?.(answer.effects, {origin: this});
             }
+            // A save over a revision that moved (Larena: refused revision_moved,
+            // with the current revision, nothing written) is a conflict: the
+            // card says so, keeps what was typed and reads the record again.
+            if (answer.answer === "refused" && answer.reason === "revision_moved") return {...answer, answer: "conflict"};
             return answer;
         } catch (error) {
             if (!this.isConnected || stale()) return null;
@@ -1830,6 +2345,15 @@ class SfPropertyView extends PropertyViewElement {
     }
 
     async load(reason = "requested") {
+        // Another record in the same panel (C305 (4)): what was open for the
+        // last one is not this one's.
+        if (reason === "record-id-changed") {
+            this._dropEntries();
+            this.leaveAsk = null;
+            this.historyFeed = null;
+            this.historyOpen = false;
+            this.phoneSection = null;
+        }
         this._setState("loading", pageText(PROPERTY_VIEW_TEXT, "stateLoading", this));
         this.loadFailure = null;
         const epoch = ++this.epoch;
@@ -2181,12 +2705,19 @@ class SfPropertyView extends PropertyViewElement {
     // announced rather than carried out here. The component closes itself, says
     // what was copied, and says what should be opened; where a window goes, and
     // whether it may close over unsaved edits, belongs to whoever placed it.
-    closePanel(reason = "close") {
+    closePanel(reason = "close", {asked = false} = {}) {
         this._commitFocusedEntry();
         const unsaved = this.unsavedFields;
+        // Unsaved entries are asked about first (C159 (6)); a delete and a
+        // cancel of a create surface are the host's to decide.
+        if (unsaved && !asked && reason !== "deleted" && !(this.openAll && !this.editAll)) {
+            this.leaveAsk = {kind: "close", reason};
+            this.requestComponentUpdate("leave");
+            return {outcome: "refused", reason: "unsaved"};
+        }
         // A cancelable request (vocabulary §5 close, standard 1.3.8 §19.3): the
         // page decides whether it closes; a listener may refuse it.
-        const allowed = this.sfEmit("close", {reason, record_id: this.recordId || null, unsaved_fields: unsaved}, {cancelable: true});
+        const allowed = this.sfEmit("close", {reason, record_id: this.recordId || null, unsaved_fields: unsaved, asked: Boolean(asked)}, {cancelable: true});
         return allowed ? {outcome: "applied"} : {outcome: "refused", reason: "prevented"};
     }
 
@@ -2465,9 +2996,14 @@ class SfPropertyView extends PropertyViewElement {
                 && Array.isArray(field.options) && field.options.length > 0));
     }
 
-    editGroup(section, group) {
+    editGroup(section, group, {focus = null} = {}) {
         if (!this.mayEdit) return this;
+        this.quick = null;
         this.editing = {section: String(section), group: String(group)};
+        // sf-form draws the group when it draws every field (C182, VP-19);
+        // its fields and saved value are kept for the whole edit.
+        this.formEdit = this._formEditOf(section, group);
+        this._focusFieldAfterRender = focus === null || focus === undefined ? null : String(focus);
         this.changed.clear();
         this._clearInputs();
         this.errors.clear();
@@ -2489,6 +3025,16 @@ class SfPropertyView extends PropertyViewElement {
     }
 
     cancelEdit() {
+        if (this.quick) {
+            this._quickPopover(this.quick.key)?.close?.();
+            return this.endQuick() && this;
+        }
+        // «Изменить всё» opened from the menu goes back to reading.
+        if (this.editAll) {
+            this._dropEntries();
+            this.dispatchEvent(new CustomEvent("sf-view-properties-cancel", {bubbles: true, composed: true, detail: {mode: "edit", scope: "record"}}));
+            return this;
+        }
         // Cancel drops what was typed and writes nothing. Data is saved by the
         // button alone, so there is nothing to undo. On a surface open all at
         // once the host decides where cancelling leads (a panel closes).
@@ -2518,6 +3064,7 @@ class SfPropertyView extends PropertyViewElement {
         // the whole-object cancel, with the group it was for.
         const group = this.editing;
         this.editing = null;
+        this.formEdit = null;
         this.changed.clear();
         this._clearInputs();
         this.errors.clear();
@@ -2632,12 +3179,16 @@ class SfPropertyView extends PropertyViewElement {
 
     async saveGroup({confirm = null} = {}) {
         if (this.openAll) return this.saveAll({confirm});
-        if (!this.editing) return null;
-        const missing = this._missingRequired();
+        // A short field's window saves as its group does, with its one value.
+        const target = this.editing ?? this.quick;
+        if (!target) return null;
+        const missing = this.quick ? new Set() : this._missingRequired();
         if (this.inputErrors.size || missing.size) return this._refuseWithErrors(missing);
         // Nothing changed: Save leaves the group as it is (Save is never
         // disabled, C182 (7)).
         if (this.changed.size === 0) {
+            if (this.quick) return this.saveQuick();
+            this.formEdit = null;
             this.editing = null;
             this.errors.clear();
             this.conflict = null;
@@ -2651,8 +3202,8 @@ class SfPropertyView extends PropertyViewElement {
         const answer = await this._raise("group.save", {
             record_id: this.recordId || null,
             collection: this.collection || null,
-            section: this.editing.section,
-            group: this.editing.group,
+            section: target.section,
+            group: target.group,
             values,
             revision: this.record?.revision ?? null,
             ...(confirm ? {confirm} : {}),
@@ -2663,13 +3214,21 @@ class SfPropertyView extends PropertyViewElement {
             this.record = answer.record ? {...answer.record, revision: answer.revision ?? answer.record.revision}
                 : {...this.record, revision: answer.revision ?? this.record?.revision ?? null};
             this._takeSections(this.record);
+            const written = Object.keys(values);
+            if (this.quick) this._quickPopover(this.quick.key)?.close?.();
             this.editing = null;
+            this.quick = null;
+            this.formEdit = null;
             this.changed.clear();
-        this._clearInputs();
+            this._clearInputs();
             this.errors.clear();
             this.conflict = null;
             this._setState("ready");
+            this.markSaved(written);
             this.announceSaved(answer);
+            // The history the panel holds is older than this save.
+            if (this.historyFeed) this.historyFeed = {...this.historyFeed, record: null};
+            if (this.historySide) this.loadHistory();
             return answer;
         }
         if (answer.answer === "conflict") {
@@ -2688,7 +3247,11 @@ class SfPropertyView extends PropertyViewElement {
         }
         if (answer.answer === "refused") {
             this.errors = new Map(Object.entries(answer.errors ?? {}).map(([key, value]) => [key, String(value)]));
-            this._focusErrorsAfterRender = this.errors.size > 0;
+            // An sf-form edit shows the host's errors at its fields and in its
+            // summary (set-errors); the card's own form focuses them itself.
+            const form = this.formEdit ? this._formOf(target.group) : null;
+            if (form?.setErrors) form.setErrors({errors: Object.fromEntries(this.errors)});
+            else this._focusErrorsAfterRender = this.errors.size > 0;
             this.requestComponentUpdate("errors");
             return answer;
         }
@@ -2724,10 +3287,15 @@ class SfPropertyView extends PropertyViewElement {
         // A create is not confirmed: record.create carries no digest.
         if (!creating && this._askedToConfirm(answer)) return answer;
         if (answer.answer === "applied") {
+            const written = Object.keys(values);
             this.changed.clear();
-        this._clearInputs();
+            this._clearInputs();
             this.errors.clear();
             this.conflict = null;
+            if (this.editAll) {
+                this.editAll = false;
+                this.markSaved(written);
+            }
             if (creating) {
                 const id = answer.record_id ?? answer.record?.record_id ?? null;
                 this.dispatchEvent(new CustomEvent("sf-view-properties-created", {
