@@ -548,6 +548,7 @@ class SfDataView extends DataViewElement {
     set bulkActions(list) {
         this._bulkActions = Array.isArray(list) ? list.filter((item) => item && (item.id ?? item.value)) : [];
         this._applyBulkActions();
+        if (this.layoutKind === "cards") syncCards(this);
     }
 
     _applyBulkActions() {
