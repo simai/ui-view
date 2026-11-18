@@ -4356,15 +4356,15 @@
             "schema_version": 2,
             "package": "view",
             "requires": "ui-1ed6b6c9a040",
-            "mount": "_docara/framework-packages/view/a8b4b7e3233e7a39a638873e1fcd570c6bc2a71b",
+            "mount": "_docara/framework-packages/view/075ec041392f7edf78651f89ec68a5016a4736b9",
             "receipt": {
                 "schema": "simai.framework.product-package-receipt",
                 "schema_version": 1,
                 "package_source": {
                     "repository": "simai/ui-view",
-                    "revision": "a8b4b7e3233e7a39a638873e1fcd570c6bc2a71b",
+                    "revision": "075ec041392f7edf78651f89ec68a5016a4736b9",
                     "path": "package",
-                    "tree": "5979cf403c45cd7f761e8fb4d2df8da097314b7b"
+                    "tree": "03605c99231fdc7740f5813888ef9512a09eb7e2"
                 },
                 "framework_source": {
                     "repository": "simai/ui-source",
@@ -4374,15 +4374,27 @@
                     "repository": "simai/ui-builder",
                     "revision": "ba79e739d1f9e2568d27e030606e8f95ce91b380"
                 },
-                "manifest_sha256": "76dc20636e09e3d58973c2b3f0f7a01b973e4efa1b78e08cb4d116db85b183af",
-                "archive_sha256": "ed20c53d99fc9711d85fc02d401d4d2454083d7ed740f2ebecf1dc91366b55e7"
+                "manifest_sha256": "e1efda90136b381ef7b23640dfae47dd1442cbb83621ba978167c78d3e44f9bd",
+                "archive_sha256": "2c4c4af956f695b23a1c0f524f79af08757f3201066663b84047c4eeadad7791"
             },
             "files": {
                 "set.json": {
-                    "sha256": "3b23bda5fd2047dd0fad05a201cfa8319a068624afde9695a69801ac3b8b79dc"
+                    "sha256": "64dcd378cac93225fbcd7d49b3d675270e84bb1d239e24a337fc1fbdd46df92c"
                 },
                 "smart/rule.js": {
-                    "sha256": "4b9a066eb1e29ea2ec7c36621651d054aebad36bef759d66467671f834cdd0f0"
+                    "sha256": "70ec8042e1e0fb4d4e1d7116e85267f5431ba0061af971b35a030fa3af3e9277"
+                },
+                "smart/view-board/css/view-board.css": {
+                    "sha256": "06870742d352b0a054d582f565de0ce3531c2dba3771fbb31a570e3de9525078"
+                },
+                "smart/view-board/css/view-board.min.css": {
+                    "sha256": "a7819939680984beeefec8e8959632ba66c8fa26bdd10792e2ffb292ce7dddb3"
+                },
+                "smart/view-board/js/view-board.js": {
+                    "sha256": "1cb649234a414e21b33fe003b2e1c6ebb50600ac122c3bc0af3691504649ab97"
+                },
+                "smart/view-board/js/view-board.min.js": {
+                    "sha256": "01a6f1f740e9a3ea13ab47759d79cef337157033bf04239be8353339d7ccbc5a"
                 },
                 "smart/view-flow/css/view-flow.css": {
                     "sha256": "c43ab80ab39ed90d4f36539c4214e9aca050daedce329411f88395f67e4db2fc"
@@ -4397,40 +4409,40 @@
                     "sha256": "e9367a3a8d3888cdb5d47b9aa40aa9dc0d5543efdae7e11e56bbb30ba45b287e"
                 },
                 "smart/view-properties/css/view-properties.css": {
-                    "sha256": "3eb9e5e0d6e02544cac3555426c16a7887d8b23705084d83fbc8257906762271"
+                    "sha256": "a10fc8564e97e8cec371da3f371f6a035df40a11fa2101eaddbc7e741ecaed14"
                 },
                 "smart/view-properties/css/view-properties.min.css": {
-                    "sha256": "49c6884cfd0f2c496e31f9533c52d504780f75f3c9f43325a945dfa04a5e396e"
+                    "sha256": "e196622160eba2cf2ce45fb18180fadbbd55aaa4c0310cc99cc8f22f5699d95a"
                 },
                 "smart/view-properties/js/view-properties.js": {
-                    "sha256": "95cc11eae5f15549cb5a87962c669cc797332e42e8589d1b70d96c9fe62349bf"
+                    "sha256": "677e2724146f26c8cc4c9906f495ae1af3c44e52dfb002cbc85a5bd40eedb51b"
                 },
                 "smart/view-properties/js/view-properties.min.js": {
-                    "sha256": "5aa58cf54a574a9f3a56493618bbf3a5a07106219f693cf8704b78191f42d718"
+                    "sha256": "5377a277ae61bfc289b2eb485da5d6c581e6edfe799128a22c0c721fe8ed7880"
                 },
                 "smart/view-table/css/view-table.css": {
-                    "sha256": "ade49af9de9f9851b8a784f2f794c8f9c9d42df6d9af2b4d9125de5acfc468b7"
+                    "sha256": "3aae888da64f072ebb9051f970fb4c2dcfc63e19aba3d99ab10696b199db82d1"
                 },
                 "smart/view-table/css/view-table.min.css": {
-                    "sha256": "62962996470dde925ddca7dbe03c28cb37394189e13eac451d5c52eb49b7a757"
+                    "sha256": "7872ed8c339ef041b4389b002684449949e0f08a309f33fa1e7cf86b9c36d6b7"
                 },
                 "smart/view-table/js/view-table.js": {
-                    "sha256": "f610447fbf968fed179b43a0c70d6e034451b8cee7e3abfc5009454094917fcf"
+                    "sha256": "a87afc1da48de059eb24e7fc1958dcd593b34a1a12eee3104924727aeec20a86"
                 },
                 "smart/view-table/js/view-table.min.js": {
-                    "sha256": "5746abfa8c9df0bd9620bed09e96447913494064084e527466f5684deedc86bd"
+                    "sha256": "9fafc427776192063e6a6e35a020d1be285bdce078f6db3b39c460cdd6aca6f3"
                 },
                 "smart/view/css/view.css": {
-                    "sha256": "5a1178675577df07f494c762e4d648ef98b1ba76639e01dc6adb118e5bc71dcd"
+                    "sha256": "d6d7386bba8338b6b9b4d7a0280629153cb8562c38b1144e557245c8f88e0dc4"
                 },
                 "smart/view/css/view.min.css": {
-                    "sha256": "1a080b119c05f30e5695a01b4a9663f7f1bda456ebc8c3dfbbdd7807e12db0f3"
+                    "sha256": "d2a7d5b34221c5347f43d4af3f52ac6085a45a7455271096d4981b1343e40f8c"
                 },
                 "smart/view/js/view.js": {
-                    "sha256": "fc73080b5ce62b0981e92ba18d27c4bc796b9c50d8beb48430bee6edf263236e"
+                    "sha256": "3795e0979ee37725459896b51594e93f282e648a6a0f7ca692ec1f7b53e9c7e7"
                 },
                 "smart/view/js/view.min.js": {
-                    "sha256": "29b79ef9e66fd2f69f73cd732d6965304a91bf0d09ba7c635f828572da63b267"
+                    "sha256": "3cdcf32247533f1e239068b1441d3079f0512f08409465bf0a311bf6567e246b"
                 }
             }
         }
