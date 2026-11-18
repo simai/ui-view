@@ -64,6 +64,7 @@
     "head-kind-list": "Список",
     "head-kind-table": "Таблица",
     "head-kind-tree": "Дерево",
+    "head-kind-unavailable": "{name}: этого способа показа пока нет в наборе",
     "head-lane-field": "Колонки доски — по полю",
     "head-list-menu": "Ещё: настройки списка",
     "head-locked": "Закрыл администратор",

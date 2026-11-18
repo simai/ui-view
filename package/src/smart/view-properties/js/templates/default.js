@@ -650,6 +650,13 @@ function renderGroup(context, section, group) {
         ? Number.isInteger(group.field_count) && group.field_count > 0 ? group.field_count : 0
         : 0;
     const reading = waiting > 0 || Boolean(context.component.isGroupReading?.(groupKey));
+    // A group the host names '' has no head of its own (a record of one group,
+    // a property shown alone): an empty heading took a row (36 px read, 29 px
+    // edited) and named nothing to a screen reader. Its «Изменить», the rare
+    // mark and the arranging tools still bring the head back.
+    const titled = String(group.label ?? groupKey) !== '' || Boolean(group.rare);
+    const readEdit = context.mayEdit && !context.openAll && group.editable !== false;
+    const cardEdit = !configuring && !editing && context.mayEdit && !context.openAll && group.kind !== 'related' && group.editable !== false;
     // Read, the group is a section of the record's description list: its name
     // a list section heading with «Изменить» as its action, its fields rows of
     // the list (C289 (4)). Edited, arranged or holding related records it stays
@@ -660,10 +667,10 @@ function renderGroup(context, section, group) {
             : html`${fields.map((field) => renderReadRow(context, field, String(section.key ?? ''), groupKey))}`;
         return html`
             <section class="sf-property-view-group sf-property-view-group--list" data-group=${groupKey} aria-busy=${reading ? 'true' : nothing}>
-                <div class="sf-list-description-head sf-property-view-group-header">
+                ${titled || readEdit ? html`<div class="sf-list-description-head sf-property-view-group-header">
                     <div class="sf-list-description-title sf-property-view-group-title" role="heading" aria-level="3">${String(group.label ?? groupKey)}${group.rare
                             ? html` <span class="sf-property-view-rare color-on-surface-variant">${context.rareText}</span>` : nothing}</div>
-                    ${context.mayEdit && !context.openAll && group.editable !== false
+                    ${readEdit
                             ? html`<span class="sf-list-description-action"><sf-button
                                     appearance="ghost"
                                     size=${context.controlSize ?? nothing}
@@ -672,7 +679,7 @@ function renderGroup(context, section, group) {
                                     @click=${() => context.component.editGroup(String(section.key ?? ''), groupKey)}
                             ></sf-button></span>`
                             : nothing}
-                </div>
+                </div>` : nothing}
                 ${fields.length || waiting ? html`<dl class="sf-list-description-part sf-property-view-group-fields" aria-label=${String(group.label ?? groupKey)}>${readRows}</dl>` : nothing}
             </section>
         `;
@@ -685,9 +692,9 @@ function renderGroup(context, section, group) {
     if (editing && !configuring && form && form.group === groupKey && form.section === String(section.key ?? '')) {
         return html`
             <section class="sf-property-view-group sf-property-view-group--editing sf-property-view-group--form" data-group=${groupKey}>
-                <header class="sf-property-view-group-header flex items-cross-center justify-between gap-2">
+                ${titled ? html`<header class="sf-property-view-group-header flex items-cross-center justify-between gap-2">
                     <div class="sf-property-view-group-title" role="heading" aria-level="3">${String(group.label ?? groupKey)}</div>
-                </header>
+                </header>` : nothing}
                 <sf-form class="sf-property-view-form"
                          label=${String(group.label ?? groupKey)}
                          labels=${context.sectionsLayout === 'column' ? 'start' : 'top'}
@@ -715,7 +722,7 @@ function renderGroup(context, section, group) {
                  data-sf-sortable-item=${configuring ? groupKey : nothing}
                  data-hidden=${configuring && group.hidden ? 'true' : nothing}
                  data-columns=${group.columns === 2 ? '2' : '1'}>
-            <header class="sf-property-view-group-header flex items-cross-center justify-between gap-2">
+            ${titled || configuring || cardEdit ? html`<header class="sf-property-view-group-header flex items-cross-center justify-between gap-2">
                 ${configuring
                         ? html`<i class="sf-icon sf-property-view-grip items-cross-center" data-sf-sortable-handle
                                   aria-hidden="true">drag_indicator</i>`
@@ -762,7 +769,7 @@ function renderGroup(context, section, group) {
                             ></sf-button-icon>
                             </span>`
                         : nothing}
-                ${!configuring && !editing && context.mayEdit && !context.openAll && group.kind !== 'related' && group.editable !== false
+                ${cardEdit
                         ? html`
                             <sf-button
                                     appearance="ghost"
@@ -772,7 +779,7 @@ function renderGroup(context, section, group) {
                                     @click=${() => context.component.editGroup(String(section.key ?? ''), groupKey)}
                             ></sf-button>`
                         : nothing}
-            </header>
+            </header>` : nothing}
             ${groupError
                     ? html`<div class="sf-property-view-group-error" role="alert">${groupError}</div>`
                     : nothing}

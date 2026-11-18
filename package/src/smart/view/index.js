@@ -49,6 +49,7 @@ const layoutName = (value) => {
     const name = String(value ?? "").trim().toLowerCase();
     return LAYOUT_ALIASES[name] ?? name;
 };
+const layoutsOfBoard = (value) => LAYOUTS.get(layoutName(value)) === "sf-view-board";
 // The board's first paint: lanes of a head and cards (BD-2).
 const FIRST_PAINT_LANES = 4;
 const FIRST_PAINT_CARDS = 3;
@@ -622,6 +623,80 @@ class SfDataView extends DataViewElement {
 
     static get layouts() {
         return Object.fromEntries(LAYOUTS);
+    }
+
+    // Whether the view draws a display kind itself (the layout registry):
+    // table, list and auto are the table's, board is sf-view-board, and a
+    // layout a product registers (registerLayout) is its element's. A kind
+    // the registry does not hold -- cards, calendar, tree until their layouts
+    // exist -- is not drawn here; the list head shows it unavailable.
+    canDrawLayout(kind) {
+        return LAYOUTS.has(layoutName(kind));
+    }
+
+    // The display kind switched live (the list head's Таблица / Доска, or a
+    // page): the content element is swapped for the layout's own, the marked
+    // records and the open record card stay, what is already known is drawn at
+    // once and the host is asked again with the new layout's query (a board's
+    // lane window). Answers an outcome; a kind the registry does not hold is
+    // refused and nothing changes.
+    switchLayout(kind, {refresh = true} = {}) {
+        const name = layoutName(kind);
+        if (!LAYOUTS.has(name)) return {outcome: "refused", reason: "layout-unavailable"};
+        const fromBoard = this.layoutKind === "board";
+        const toBoard = LAYOUTS.get(name) === "sf-view-board";
+        // The table's own layout (auto, list or table) as the page wrote it
+        // before the first switch, given back when «Таблица» is chosen.
+        if (this._tableLayout === undefined) this._tableLayout = fromBoard ? null : this.getAttribute("layout");
+        const marked = (fromBoard ? this.board?.selected : this.table?.selection) ?? [];
+        // Back to the table: the layout the page wrote for it (auto, list or
+        // table), or none -- the table's own default, as before the board.
+        const own = this._tableLayout && !layoutsOfBoard(this._tableLayout) ? this._tableLayout : null;
+        const written = toBoard ? "board" : (name === "table" ? own : name);
+        if (fromBoard !== toBoard) this._carrySelection = marked.map(String);
+        if (written === null) this.removeAttribute("layout");
+        else this.setAttribute("layout", written);
+        if (refresh && fromBoard !== toBoard && this.isConnected) this.refresh("layout-change");
+        return {outcome: "applied", layout: this.layoutKind};
+    }
+
+    // The content element the layout draws with: a view-made table or board of
+    // the other layout is replaced by the layout's own (the page's own content
+    // element is the page's and stays). What is known is drawn into it at once.
+    _swapContent() {
+        const want = this.layoutKind === "board" ? "sf-view-board" : "sf-view-table";
+        const content = [...(this.children ?? [])].filter((child) => child.getAttribute?.("slot") === "content");
+        const made = content.filter((child) => child.hasAttribute?.("data-sf-view-default") || child.hasAttribute?.("data-sf-view-made"));
+        if (content.length > made.length || made.some((child) => isTag(child, want))) return;
+        made.forEach((child) => child.remove());
+        this._lightDefaults();
+        if (want === "sf-view-board") {
+            this._askForParts(["sf-view-board"]);
+            // The lanes of the last answer, if the host sent any, draw now.
+            this._boardFresh = Array.isArray(this.boardLanes) && this.boardLanes.length > 0;
+        } else {
+            this._askForParts(["sf-view-table", "sf-pagination"]);
+            this.records = this.boardLanes?.length ? this.boardLanes.flatMap((lane) => lane.records ?? []) : (this.records ?? []);
+        }
+    }
+
+    // The marks carried over a switch, given to the new element once it shows
+    // the records they name.
+    _applyCarriedSelection() {
+        const ids = this._carrySelection;
+        if (!ids?.length) return;
+        if (this.layoutKind === "board") {
+            const board = this.board;
+            if (!board || !this.boardLanes?.length) return;
+            const shown = new Set(this.boardLanes.flatMap((lane) => lane.records ?? []).map((record) => String(record?.id)));
+            board.selected = ids.filter((id) => shown.has(id));
+        } else {
+            const table = this.table;
+            if (typeof table?.applyRowSelection !== "function" || !this.cappedRecords?.length) return;
+            const shown = new Set(this.cappedRecords.map((record) => String(record?.id)));
+            for (const id of ids) if (shown.has(id)) table.applyRowSelection(id, true);
+        }
+        this._carrySelection = null;
     }
 
     get board() {
@@ -1576,6 +1651,9 @@ class SfDataView extends DataViewElement {
         if (previous === next || !this.isConnected) return;
         if (name === "preferences-key") this._applyPreferences();
         if (name === "chrome") this._lightDefaults();
+        // A layout written after the view drew (switchLayout, or a page):
+        // the content element becomes the layout's own.
+        if (name === "layout") this._swapContent();
         this._renderProjection();
     }
 
@@ -2687,6 +2765,7 @@ class SfDataView extends DataViewElement {
             } else {
                 table.setRows?.(this.cappedRecords, this._newResult ? "result" : "rows");
                 this._newResult = false;
+                this._applyCarriedSelection();
             }
             const first = this.query.sort[0];
             table.setSort?.(first?.key ?? null, first?.direction ?? null);
@@ -3135,6 +3214,7 @@ class SfDataView extends DataViewElement {
             this._boardFresh = false;
             board.toggleAttribute("sums-pending", this._laneSumsWanted === true);
             board.lanes = this.boardLanes ?? [];
+            this._applyCarriedSelection();
             if (this._laneSumsWanted) {
                 this._laneSumsWanted = false;
                 this._askLaneSums(this.sequence, board);

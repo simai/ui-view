@@ -176,7 +176,22 @@ export class ListHead {
 
     get kind() {
         const asked = this.query.view?.type;
-        return this.kinds.includes(asked) ? asked : this.kinds[0];
+        if (this.kinds.includes(asked)) return asked;
+        // Without a view in the query, the layout the view draws (a page that
+        // wrote layout="board").
+        const drawn = this.view.layoutKind;
+        return this.kinds.includes(drawn) ? drawn : this.kinds[0];
+    }
+
+    // A kind the view cannot draw yet (no layout of the set holds it): shown
+    // disabled, its name and the reason as the segment's name.
+    drawable(kind) {
+        return typeof this.view.canDrawLayout !== "function" || this.view.canDrawLayout(kind);
+    }
+
+    kindLabel(kind) {
+        const name = this.text(`headKind${kind[0].toUpperCase()}${kind.slice(1)}`);
+        return this.drawable(kind) ? name : this.text("headKindUnavailable").replace("{name}", name);
     }
 
     get savedFilters() { return Array.isArray(this.view.savedFilters) ? this.view.savedFilters : []; }
@@ -322,7 +337,8 @@ export class ListHead {
         set(views, "title", this.text("headViews"));
         const kinds = one("[data-kinds]");
         if (kinds) {
-            const items = this.kinds.map((kind) => ({id: kind, value: kind, label: this.text(`headKind${kind[0].toUpperCase()}${kind.slice(1)}`), icon: KINDS[kind]}));
+            const items = this.kinds.map((kind) => ({id: kind, value: kind, label: this.text(`headKind${kind[0].toUpperCase()}${kind.slice(1)}`), icon: KINDS[kind],
+                ...(this.drawable(kind) ? {} : {disabled: true, ariaLabel: this.kindLabel(kind)})}));
             set(kinds, "hidden", items.length > 1 ? null : "");
             set(kinds, "items", JSON.stringify(items));
             set(kinds, "value", this.kind);
@@ -904,7 +920,10 @@ export class ListHead {
         const current = this.currentView;
         const entries = [];
         if (phone) {
-            for (const kind of this.kinds) entries.push({id: `kind:${kind}`, text: this.text(`headKind${kind[0].toUpperCase()}${kind.slice(1)}`), icon: kind === this.kind ? "check" : KINDS[kind]});
+            for (const kind of this.kinds) {
+                entries.push({id: `kind:${kind}`, text: this.text(`headKind${kind[0].toUpperCase()}${kind.slice(1)}`), icon: kind === this.kind ? "check" : KINDS[kind],
+                    ...(this.drawable(kind) ? {} : {disabled: true, caption: this.kindLabel(kind)})});
+            }
             if (this.savedViews.length) entries.push({kind: "separator"});
         }
         for (const view of this.savedViews) entries.push({id: `view:${view.key}`, text: String(view.label ?? view.name ?? view.key), icon: view === current ? "check" : "bookmarks"});
@@ -934,11 +953,16 @@ export class ListHead {
         this.view.sfEmit?.("settings-open", {id});
     }
 
+    // The display kind: the view swaps its layout live (table <-> board,
+    // keeping the marks and the record card beside), then asks the host with
+    // the new layout's query. A kind the view cannot draw is not offered.
     _setKind(kind) {
         if (!this.kinds.includes(kind) || kind === this.kind) return;
+        if (!this.drawable(kind)) return this.render();
         const allowed = this.view.sfEmit?.("display-change", {kind, previous: this.kind}, {cancelable: true});
         if (allowed === false) return this.render();
         this.view.setAttribute("data-display", kind);
+        this.view.switchLayout?.(kind, {refresh: false});
         this._query({view: {id: this.currentView?.key ?? null, type: kind}});
     }
 
