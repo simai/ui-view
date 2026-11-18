@@ -25,10 +25,10 @@ test("the package composites are generated into the searchable registry beside t
   // (sf-input-choice, sf-list-description, sf-list-timeline): 85. At 8c13bf45
   // (pair ui-7fb26d395af2) it holds 83 (sf-change, sf-time): 87. In
   // ui-078a4b4c6f6e sf-display-settings, sf-form and sf-tag-group join it:
-  // 86 free and the set's 4 make 90; sf-view-board (view round 2) makes 91.
-  assert.equal(registry.entries.length, 91);
+  // 86 free and the set's 4 make 90; sf-view-board (view round 2) makes 91, sf-view-calendar 92.
+  assert.equal(registry.entries.length, 92);
   assert.ok(registry.entries.some((entry) => entry.id === "smart.confirm-change"), "sf-confirm-change, the Framework's");
-  for (const id of ["smart.view-table", "smart.view", "smart.view-properties", "smart.view-flow", "smart.view-board"]) {
+  for (const id of ["smart.view-table", "smart.view", "smart.view-properties", "smart.view-flow", "smart.view-board", "smart.view-calendar"]) {
     assert.ok(registry.entries.some((entry) => entry.id === id), id);
   }
   assert.ok(registry.entries.find(({id}) => id === "smart.view-table").capabilities.includes("data-view"));

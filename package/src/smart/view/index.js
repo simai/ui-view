@@ -28,6 +28,7 @@ import tableRu from "../view-table/lang/ru.json";
 import BundledPreferences from "../../core/js/preferences.js";
 import {acceptLevel, collapse, createTree, expandKnown, hasLevel, knownRecords, markLoading, visibleRows} from "./js/tree.js";
 import {ListHead} from "./js/head.js";
+import {CALENDAR_EVENTS, acceptCalendar, calendarOf, calendarOrder, calendarQuery, calendarSkeleton, onCalendarEvent, syncCalendar} from "./js/calendar.js";
 const LISTENED = Object.freeze([
     "sf-view-table-search-change", "sf-view-table-filter-change", "sf-view-table-sort-change", "sf-view-table-save",
     "sf-view-table-apply", "sf-view-table-refresh", "sf-view-table-select", "sf-view-table-column-settings-reset",
@@ -38,12 +39,14 @@ const LISTENED = Object.freeze([
     // The board's (sf-view-board, layout="board"; owner decisions C298, C304).
     "sf-view-board-move", "sf-view-board-more", "sf-view-board-open", "sf-view-board-create",
     "sf-view-board-select", "sf-view-board-apply",
+    // The calendar's (sf-view-calendar, layout="calendar"; owner decision C307).
+    ...CALENDAR_EVENTS,
 ]);
 // The layout registry (owner decision C298, BD-1): a layout name and the
 // element that draws it. auto, table and list are the table's; board is
-// sf-view-board. Larena's word kanban reads as board. A name the registry does
+// sf-view-board, calendar is sf-view-calendar. Larena's word kanban reads as board. A name the registry does
 // not hold warns once and draws the table, as before.
-const LAYOUTS = new Map([["auto", "sf-view-table"], ["table", "sf-view-table"], ["list", "sf-view-table"], ["board", "sf-view-board"]]);
+const LAYOUTS = new Map([["auto", "sf-view-table"], ["table", "sf-view-table"], ["list", "sf-view-table"], ["board", "sf-view-board"], ["calendar", "sf-view-calendar"]]);
 const LAYOUT_ALIASES = Object.freeze({kanban: "board"});
 const layoutName = (value) => {
     const name = String(value ?? "").trim().toLowerCase();
@@ -441,6 +444,8 @@ class SfDataView extends DataViewElement {
     set current(id) {
         this._current = id === null || id === undefined ? "" : String(id);
         if (this.table) this.table.current = this._current;
+        const calendar = this.layoutKind === "calendar" ? calendarOf(this) : null;
+        if (calendar) calendar.current = this._current;
     }
 
     get selected() { return this._current || undefined; }
@@ -453,7 +458,7 @@ class SfDataView extends DataViewElement {
         // A board's order is its lanes', left to right, top to bottom.
         const rows = this.layoutKind === "board"
             ? (this.board?.boardLanes ?? this.boardLanes ?? []).filter((lane) => !lane.hidden).flatMap((lane) => lane.records ?? [])
-            : (this.cappedRecords ?? []);
+            : this.layoutKind === "calendar" ? calendarOrder(this) : (this.cappedRecords ?? []);
         const at = rows.findIndex((record) => String(record?.id) === String(id));
         if (at < 0) return null;
         const next = rows[at + (direction === "previous" ? -1 : 1)];
@@ -525,7 +530,9 @@ class SfDataView extends DataViewElement {
             globalThis.setTimeout?.(() => {
                 const board = this.layoutKind === "board" ? this.board : null;
                 const cardOf = board?.querySelector?.(`.sf-view-board__card[data-id="${globalThis.CSS?.escape ? CSS.escape(id) : id}"]`);
+                const calendar = this.layoutKind === "calendar" ? calendarOf(this) : null;
                 if (cardOf) cardOf.focus?.({preventScroll: true});
+                else if (calendar) calendar.focusRecord?.(id);
                 else this.table?.focusRow?.(id, {focus: true});
             }, 0);
         };
@@ -564,12 +571,12 @@ class SfDataView extends DataViewElement {
     _lightDefaults() {
         // A board (layout="board", BD-1) is its content and has no page row:
         // each lane has its own «Показать ещё» (C304).
-        const board = this.layoutKind === "board";
+        const board = this.layoutKind === "board" || this.layoutKind === "calendar";
         const defaults = [
             ["content", "sf-view-table", {}],
             ["pagination", "sf-pagination", {appearance: "field", top: "false", bottom: "false"}],
         ];
-        if (board) defaults[0][1] = "sf-view-board";
+        if (board) defaults[0][1] = LAYOUTS.get(this.layoutKind);
         for (const [slot, tag, attributes] of defaults) {
             // A part the view does not draw (chrome without pagination, an
             // embedded list) gets no default element: it would print a page
@@ -606,7 +613,7 @@ class SfDataView extends DataViewElement {
         const written = this.getAttribute?.("layout");
         if (written === null || written === undefined || written === "") return "table";
         const name = layoutName(written);
-        if (LAYOUTS.has(name)) return LAYOUTS.get(name) === "sf-view-board" ? "board" : name;
+        if (LAYOUTS.has(name)) return {"sf-view-board": "board", "sf-view-calendar": "calendar"}[LAYOUTS.get(name)] ?? name;
         this._layoutWarned ??= new Set();
         if (!this._layoutWarned.has(name)) {
             this._layoutWarned.add(name);
@@ -996,14 +1003,15 @@ class SfDataView extends DataViewElement {
     _ownParts() {
         // A board (layout="board"): sf-view-board in the content slot, and no
         // page row -- each lane has its own «Показать ещё» (C304).
-        if (this.layoutKind === "board") {
+        if (this.layoutKind === "board" || this.layoutKind === "calendar") {
+            const tag = LAYOUTS.get(this.layoutKind);
             if (!this.querySelector(':scope > [slot="content"]')) {
-                const board = document.createElement("sf-view-board");
+                const board = document.createElement(tag);
                 board.slot = "content";
                 board.toggleAttribute("data-sf-view-made", true);
                 this.append(board);
             }
-            globalThis.SF?.Loader?.ensure?.(["sf-view-board"]);
+            globalThis.SF?.Loader?.ensure?.([tag]);
             this._applyBulkActions();
             this._applyForAll();
             return;
@@ -1279,6 +1287,7 @@ class SfDataView extends DataViewElement {
     // (auto), as the table resolves it.
     _firstPaintLayout(table) {
         if (this.layoutKind === "board") return "board";
+        if (this.layoutKind === "calendar") return "calendar";
         const written = table?.getAttribute?.("data-sf-host-layout") || table?.getAttribute?.("layout") || this.getAttribute?.("layout");
         const own = ["auto", "table", "list"].includes(written) ? written : (this.renders("toolbar") ? "auto" : "table");
         const value = this.getAttribute?.("layout-switch");
@@ -1345,9 +1354,11 @@ class SfDataView extends DataViewElement {
             + "</div>";
         if (layoutSwitch) skeleton.setAttribute("data-layout-switch", "");
         else skeleton.removeAttribute?.("data-layout-switch");
-        skeleton.setAttribute("data-layout", ["auto", "table", "list", "board"].includes(layout) ? layout : "table");
+        skeleton.setAttribute("data-layout", ["auto", "table", "list", "board", "calendar"].includes(layout) ? layout : "table");
         // The board's shape (BD-2): lanes of a head and cards, no table and no
         // page row, so nothing flashes a table before the lanes come.
+        // The calendar's (CL-2): its bar and the month grid of six weeks.
+        if (layout === "calendar") return calendarSkeleton();
         if (layout === "board") {
             const lane = `<div><div data-part="head">${bar}</div>${'<div data-part="card"><i class="sf-skeleton-text"></i><i class="sf-skeleton-text"></i></div>'.repeat(FIRST_PAINT_CARDS)}</div>`;
             // On a phone the lane switcher's row stands above (the sheet shows it).
@@ -1400,6 +1411,20 @@ class SfDataView extends DataViewElement {
             for (const node of this._firstPaintNodes()) node.remove?.();
         };
         const registry = globalThis.customElements;
+        if (this.layoutKind === "calendar" && typeof registry?.whenDefined === "function") {
+            // The calendar draws its days at once from its first render.
+            if (registry.get("sf-view-calendar") && calendarOf(this)?.querySelector?.(".sf-view-calendar__main")) return drop();
+            if (this._firstPaintWait) return;
+            const wait = registry.whenDefined("sf-view-calendar").then(async () => {
+                syncCalendar(this);
+                await calendarOf(this)?.whenRendered?.();
+            });
+            this._firstPaintWait = Promise.race([wait, new Promise((done) => globalThis.setTimeout(done, 3000))]).catch(() => {}).then(() => {
+                this._firstPaintWait = null;
+                drop();
+            });
+            return;
+        }
         if (this.layoutKind !== "board" || typeof registry?.whenDefined !== "function") return drop();
         if (registry.get("sf-view-board") && this.board?.querySelector?.(".sf-view-board__lanes > *")) return drop();
         if (this._firstPaintWait) return;
@@ -2010,6 +2035,7 @@ class SfDataView extends DataViewElement {
         }
         if (Number.isSafeInteger(data.total)) this.totalExact = data.total_exact !== false;
         this._acceptBoard(data);
+        acceptCalendar(this, data);
         this._answered = true;
         if (Array.isArray(data.saved_views)) this.savedViews = copy(data.saved_views);
         if (Array.isArray(data.saved_filters)) this.savedFilters = copy(data.saved_filters);
@@ -2523,6 +2549,7 @@ class SfDataView extends DataViewElement {
         else this.pagination?.removeAttribute?.("size");
         this._forwardLabels();
         this._syncBoard();
+        syncCalendar(this);
         const table = this.table;
         if (table) {
             // The two chrome columns. Written as attributes rather than left to the
@@ -2740,7 +2767,7 @@ class SfDataView extends DataViewElement {
         // said «Всего: 10» over a loading, failed or refused list (docs trial 4).
         // A board has none either: each lane has its own «Показать ещё» (C304).
         const nothingToCount = !this._answered || this._queryRefused || ["error", "no-access"].includes(this.getAttribute("data-state"));
-        if (pageRow) pageRow.hidden = !this.renders("pagination") || this.treeMode === "tree" || this.layoutKind === "board" || nothingToCount;
+        if (pageRow) pageRow.hidden = !this.renders("pagination") || this.treeMode === "tree" || this.layoutKind === "board" || this.layoutKind === "calendar" || nothingToCount;
         if (!this.capHidesRows) {
             if (this._showAll?.isConnected) this._showAll.remove();
             this._showAll = null;
@@ -3037,6 +3064,7 @@ class SfDataView extends DataViewElement {
     // one request (BD-4; draft view-config/1, open point 1).
     _layoutQuery(extra = null) {
         const query = copy(this.query);
+        if (this.layoutKind === "calendar") return calendarQuery(this, query, extra);
         if (this.layoutKind !== "board") return query;
         const options = this._boardOptions();
         // The lanes' counts come with the cards; their money sums are a
@@ -3194,6 +3222,7 @@ class SfDataView extends DataViewElement {
         if (this._seenEvents.has(event)) return;
         this._seenEvents.add(event);
         if (event.type.startsWith("sf-view-board-")) return this._onBoardEvent(event);
+        if (event.type.startsWith("sf-view-calendar-")) return onCalendarEvent(this, event);
         // The port's event for a shared saved view (view.save_shared): a page
         // raises save {kind: "view", key, label} on the view itself (vocabulary
         // 1.1.5 §9; sf-view 1.12.0), so it is taken before the rule that

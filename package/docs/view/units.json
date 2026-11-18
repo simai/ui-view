@@ -5,6 +5,15 @@
   "entries": [
     {
       "unit": "smart.view",
+      "version": "1.18.0",
+      "recorded_on": "2026-11-18",
+      "change": "minor",
+      "consumer": "Nothing changes for a host that writes no layout=\"calendar\". New: layout=\"calendar\" (sf-view-calendar, C307): the query carries window {range, date_field, end_field} and context {timeZone, weekStart, locale}, the undated records are a second query.change with reason undated and window {undated, page, per_page}, a move is record.set {record_id, key, value, patch, revision}; the first paint holds the month grid (CL-2). The list head's calendar settings no longer offer a week start (it is the request's, C293) and write color_field.",
+      "summary": "The layout registry takes calendar (owner decision C307, CA-1): layout=\"calendar\" draws sf-view-calendar in the content slot, with no page row; its first paint holds the calendar's bar and the month of six weeks at the day's own height (CL-2). The query carries window {range: [from, to), date_field, end_field} and context {timeZone, weekStart, locale} (C293); the undated records are a second query.change (reason undated, window {undated, page, per_page}); a move or a stretch is record.set {record_id, key, value, patch, revision} and the answer settles it on the calendar; a + on a day is view.create_record with the date filled; an opened event goes to the record card (C305). The list head's calendar settings write color_field and no week start. (round/view-calendar)",
+      "evidence": "control/evidence/2026-11-18-view-calendar/README.md"
+    },
+    {
+      "unit": "smart.view",
       "version": "1.17.0",
       "recorded_on": "2026-11-18",
       "change": "minor",
@@ -371,6 +380,15 @@
       "consumer": "New: sf-view layout=\"board\" (or Larena's kanban) draws it; a host answers the lane window (lanes, per_lane) and settles moves.",
       "summary": "New: the board layout (owner decisions C298, C304): lanes by one field from the host's lane window, cards with up to four fields in the «Кратко» place, moves as a change of the lane field the host settles (settleMove), «Показать ещё» per lane (appendLane), soft limits, folded and hidden lanes, one lane per screen on a phone, one Tab stop with the arrows inside.",
       "evidence": "control/evidence/2026-11-18-view-r2-board"
+    },
+    {
+      "unit": "smart.view-calendar",
+      "version": "1.0.0",
+      "recorded_on": "2026-11-18",
+      "change": "minor",
+      "consumer": "New: sf-view layout=\"calendar\" draws it; a host answers the date window {range, date_field, end_field} with context {timeZone, weekStart}, a query {window: {undated}} for the «Без даты» column, and record.set with patch for a move.",
+      "summary": "New: the calendar layout (owner decision C307): month, week, day and list modes over the host's date window in the request's time zone and week start; all-day and multi-day bars and timed events in their option's colour; «+N» opens the day list; moves and stretches by mouse, touch and keys as a change of the date fields the host settles (settleMove), refused days dim with the reason; «Без даты N» column; «+» on a day; the phone month with dots; selection in the list mode; one Tab stop with the W3C date grid keys.",
+      "evidence": "control/evidence/2026-11-18-view-calendar"
     }
   ]
 }

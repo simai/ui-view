@@ -22,7 +22,8 @@ is not re-read yet). Evidence is `package/src/smart/<folder>/…` at `4317b84` u
 | sf-view-properties | 29 | 12 | 8 | 2 | 7 |
 | sf-view-flow | 6 | 2 | 3 | 1 | 0 |
 | sf-view-board | 9 | 8 | 0 | 0 | 1 |
-| all | 97 | 44 | 28 | 7 | 18 |
+| sf-view-calendar | 10 | 8 | 1 | 0 | 1 |
+| all | 107 | 52 | 29 | 7 | 19 |
 
 ## Framework orders
 
@@ -161,4 +162,22 @@ Evidence is `package/src/smart/view-board/…` on `round/view-r2-board`.
 | B-07 | phone lane switcher | sf-tabs (pills, counts) | `fw` | uses the Framework | view-board/js/templates/default.js |
 | B-08 | refusal message | sf-toast | `fw` | uses the Framework | view-board/index.js _refuse |
 | B-09 | lanes, window, moves, limits, order, board grid keys | none: the board layout itself | `set` | the set's own | view-board/js/board.js, index.js |
+
+## sf-view-calendar
+
+Added in view-calendar (owner decision C307), read over pair `ui-1ed6b6c9a040`.
+Evidence is `package/src/smart/view-calendar/…` on `round/view-calendar`.
+
+| Id | Part | Framework part | Verdict | State | Evidence |
+|---|---|---|---|---|---|
+| K-01 | bar: ‹ ›, «Сегодня», «Без даты N» | sf-button-icon, sf-button | `fw` | uses the Framework | view-calendar/js/templates/default.js renderBar_ |
+| K-02 | modes month, week, day, list | sf-segmented | `fw` | uses the Framework | view-calendar/js/templates/default.js renderBar_ |
+| K-03 | «Перенести на дату» picker | sf-input-date | `fw` | uses the Framework | view-calendar/index.js openPick |
+| K-04 | event fields («Кратко») | field-renderers renderCellField (C300 (2)) | `fw` | uses the Framework | view-calendar/index.js cellShape |
+| K-05 | event colour | option colour role (C140) | `fw` | uses the Framework's colour roles | view-calendar/js/calendar.js toneOf |
+| K-06 | event menu with disabled items and reasons | SF.menu.open | `fw` | uses the Framework | view-calendar/index.js openEventMenu |
+| K-07 | refusal message | sf-toast | `fw` | uses the Framework | view-calendar/index.js _refuse |
+| K-08 | selection bar (list mode) | sf-bulk-actions (C295) behind a feature check; before it sf-checkbox and a strip of sf-button | `fw` | uses the Framework where the pair has it | view-calendar/js/templates/default.js renderBulk |
+| K-09 | phone month with dots | sf-input-date dayMarks (CL-6) behind a feature check; before it the calendar's own grid | `copy` | kept until the pair's sf-input-date has day marks | view-calendar/index.js inputDateMarks, js/templates/default.js |
+| K-10 | month and time grids, window, moves, rules, date grid keys | none: the calendar layout itself | `set` | the set's own | view-calendar/js/calendar.js, index.js |
 

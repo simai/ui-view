@@ -675,8 +675,8 @@ export class ListHead {
                 + title("card_fields", this.text("headCardFields")) + checks("card_fields", all, settings.card_fields);
         } else if (kind === "calendar") {
             body = title("date_field", this.text("headDateField")) + radios("date_field", fieldsOf((type) => DATE_TYPES.has(type)), settings.date_field)
-                + title("week_start", this.text("headWeekStart")) + radios("week_start", [["mon", this.text("headWeekMon")], ["sun", this.text("headWeekSun")]], settings.week_start)
-                + title("colour_field", this.text("headColourField")) + radios("colour_field", [...fieldsOf((type) => LIST_TYPES.has(type)), ["", this.text("headColourNone")]], settings.colour_field ?? "");
+                // The week start and the time zone are the request's (C293), never the view's.
+                + title("color_field", this.text("headColourField")) + radios("color_field", [...fieldsOf((type) => LIST_TYPES.has(type)), ["", this.text("headColourNone")]], settings.color_field ?? "");
         }
         const viewName = this.currentView?.label ?? this.currentView?.name ?? "";
         const kindName = this.text(`headKind${kind[0].toUpperCase()}${kind.slice(1)}`);
@@ -705,7 +705,6 @@ export class ListHead {
         }
         if (kind === "board") { merged.card_fields ??= []; merged.empty_lanes ??= true; }
         if (kind === "cards") { merged.size ??= "s"; merged.card_fields ??= []; }
-        if (kind === "calendar") merged.week_start ??= "mon";
         for (const key of ["columns", "row_actions", "card_fields"]) if (Array.isArray(merged[key])) merged[key] = merged[key].map(String);
         return merged;
     }

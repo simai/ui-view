@@ -35,6 +35,7 @@ Framework-first record in [FRAMEWORK-FIRST](FRAMEWORK-FIRST.md).
 | Site evidence 8.11/8.12 (E11) | measured; first paint and the hero effect red, waiting Docara orders | `docs/evidence/2026-11-17-view-r1-site/` |
 | Passport docs URL empty until the site answers (E12) | waits a Framework order (component-set schema) | [DECISIONS](DECISIONS.md) D3 |
 | Record card per C289 (C1-C10), table defects (D1-D10, D2 from `fix/view-c106-settings`) | merged into `round/view-r1` | ui-control `control/evidence/2026-11-17-view-r1-card/`, `…-view-r1-table/`, `…-view-r1-merge/` |
+| Calendar layout per C307 (CA-1..CA-10): `sf-view-calendar` 1.0.0, `sf-view` 1.18.0 | on `round/view-calendar`, merged after r3 and cards | ui-control `control/evidence/2026-11-18-view-calendar/` |
 
 ## Consumers
 
@@ -57,6 +58,7 @@ Every remote branch ahead of `main`, with the release that takes it.
 |---|---|
 | `round/view-r1` | view 1.9.0 (the round) |
 | `round/view-r2-*` | view round 2 (C296-C305): the helpers' branches (table, head, page, board, card) cut from `round/view-r1` 6062713, merged by the dispatcher into `round/view-r2` (table, head, page, board, card); to close after the release |
+| `round/view-calendar` | the calendar layout (C307), cut from `round/view-r2` 42442ee; merged by the dispatcher after `round/view-r3` and `round/view-cards` |
 | `round/view-r1-site` | view 1.9.0: merged into `round/view-r1` (the round's merge); to close after the release |
 | `round/view-r1-card` | view 1.9.0: merged into `round/view-r1` (the round's merge); to close after the release |
 | `round/view-r1-table` | view 1.9.0: merged into `round/view-r1` (the round's merge); to close after the release |

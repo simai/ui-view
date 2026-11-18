@@ -41,6 +41,7 @@ const PAGES = {
   'view-table': 'content/ru/components/views/view-table.md',
   'view-properties': 'content/ru/components/views/view-properties.md',
   'view-flow': 'content/ru/components/views/view-flow.md',
+  'view-calendar': 'content/ru/components/views/view-calendar.md',
 };
 const START = '## Параметры';
 const END = '## См. также';
