@@ -229,17 +229,20 @@ const initializeSettingsCard = async () => {
   card.addEventListener('sf-view-properties-structure', (event) => log(`структура: открыть редактор полей ${event.detail?.collection ?? ''}`));
   const page = card.closest('.page-settings');
   page.querySelector('[data-configure]')?.addEventListener('click', () => card.startConfiguringView());
+  // sf-button hands data-role to the button it draws: the role is read where
+  // it is, the look is set on the sf-button around it.
+  const host = (node) => node.closest('sf-button') ?? node;
   for (const button of page.querySelectorAll('[data-role]')) {
     button.addEventListener('click', async () => {
       reset(button.dataset.role);
       for (const other of page.querySelectorAll('[data-role]')) {
         const on = other === button;
-        other.setAttribute('aria-pressed', String(on));
-        other.setAttribute('appearance', on ? 'tonal' : 'ghost');
-        other.setAttribute('scheme', on ? 'primary' : 'on-surface');
+        host(other).setAttribute('aria-pressed', String(on));
+        host(other).setAttribute('appearance', on ? 'tonal' : 'ghost');
+        host(other).setAttribute('scheme', on ? 'primary' : 'on-surface');
       }
       if (card.configuring) card.stopConfiguringView();
-      log(`вход: ${button.getAttribute('text')}`);
+      log(`вход: ${host(button).getAttribute('text')}`);
       await card.load('role');
     });
   }
