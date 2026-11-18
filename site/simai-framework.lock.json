@@ -4356,15 +4356,15 @@
             "schema_version": 2,
             "package": "view",
             "requires": "ui-1ed6b6c9a040",
-            "mount": "_docara/framework-packages/view/8f47635b85039dda20d24707cefed029908a816e",
+            "mount": "_docara/framework-packages/view/01eeb21c70460d45b979e9057424f93f5f62f6d3",
             "receipt": {
                 "schema": "simai.framework.product-package-receipt",
                 "schema_version": 1,
                 "package_source": {
                     "repository": "simai/ui-view",
-                    "revision": "8f47635b85039dda20d24707cefed029908a816e",
+                    "revision": "01eeb21c70460d45b979e9057424f93f5f62f6d3",
                     "path": "package",
-                    "tree": "77fa796fccb59e0efb1bfb2f3aaaba9db6577b0c"
+                    "tree": "5dc070d4c78df964d3718a34be4d9daebc1b2b7b"
                 },
                 "framework_source": {
                     "repository": "simai/ui-source",
@@ -4374,8 +4374,8 @@
                     "repository": "simai/ui-builder",
                     "revision": "ba79e739d1f9e2568d27e030606e8f95ce91b380"
                 },
-                "manifest_sha256": "72c7b807e1931641c7b9d95106eb9c9cfdc333f4c2fb3464bffde61ae1c6559d",
-                "archive_sha256": "742541e40b2339dab8514e1ead1a1f431ce436d06dbfffa64e2024a63ad94341"
+                "manifest_sha256": "fcfe609e053c757b596dcb908904df82c577478452a656cf2a2a2070da0b6c60",
+                "archive_sha256": "4c7d639ad9aaea3f15ec0ffdebbd90fa3d7c7185406436ed1bca13f2d9b81e53"
             },
             "files": {
                 "set.json": {
@@ -4397,10 +4397,10 @@
                     "sha256": "91ad3c4088967bdac9b692603255fdc65a0c3337f915bb77a305d1e2c412f31d"
                 },
                 "smart/view-calendar/css/view-calendar.css": {
-                    "sha256": "999e4393e798e24917d5265691e671b9ba37b805433ae6792e6beacaee30d5bf"
+                    "sha256": "bad56788c705446e9fd4fd8881c5b35898a6fd4f129fde324a95be7f6246884e"
                 },
                 "smart/view-calendar/css/view-calendar.min.css": {
-                    "sha256": "1f847454530494abc0ee157a9d7b5349d052f13c768cdc14acb2d49fb13d6241"
+                    "sha256": "48460c0b99131f7c3a8b198743e8ebe5b050f013aa2bdb677133f35d8dd62f64"
                 },
                 "smart/view-calendar/js/view-calendar.js": {
                     "sha256": "49e66cac7fc8c1504cecc2a4afdb8e2d042269eb37435f2fa41cc74f4b4b28e1"
