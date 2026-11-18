@@ -581,25 +581,7 @@ class SfDataView extends DataViewElement {
             ["content", "sf-view-table", {}],
             ["pagination", "sf-pagination", {appearance: "field", top: "false", bottom: "false"}],
         ];
-        if (board) {
-            defaults[0][1] = "sf-view-board";
-            // A page that slotted its own sf-view-table under layout="board"
-            // (the markup a host with the list head writes) kept the table in
-            // the slot: no board was made and the skeleton stayed for ever
-            // (VR2-5). The table is parked, as a switch to the board parks it
-            // (it comes back with «Таблица»), the board draws, and the page is
-            // told once.
-            const tables = [...(this.children ?? [])].filter((child) => child.getAttribute?.("slot") === "content"
-                && isTag(child, "sf-view-table") && !child.hasAttribute?.("data-sf-view-default") && !child.hasAttribute?.("data-sf-view-made"));
-            for (const table of tables) {
-                table.setAttribute("slot", "sf-view-parked");
-                table.toggleAttribute("data-sf-view-parked", true);
-            }
-            if (tables.length && !this._parkedWarned) {
-                this._parkedWarned = true;
-                console.warn('sf-view: layout="board" draws sf-view-board; the page\'s sf-view-table in slot "content" is kept for the table layout and shows when the table is chosen');
-            }
-        }
+        if (board) defaults[0][1] = "sf-view-board";
         for (const [slot, tag, attributes] of defaults) {
             // A part the view does not draw (chrome without pagination, an
             // embedded list) gets no default element: it would print a page
@@ -708,6 +690,14 @@ class SfDataView extends DataViewElement {
             else {
                 child.setAttribute("slot", "sf-view-parked");
                 child.toggleAttribute("data-sf-view-parked", true);
+                // A page that wrote layout="board" over its own sf-view-table
+                // (the markup a host with the list head writes) is told once
+                // that the board draws and the table waits for «Таблица»
+                // (VR2-5); a switch made by a person parks it silently.
+                if (!this._answered && !this._parkedWarned && want === "sf-view-board") {
+                    this._parkedWarned = true;
+                    console.warn('sf-view: layout="board" draws sf-view-board; the page\'s sf-view-table in slot "content" is kept for the table layout and shows when the table is chosen');
+                }
             }
         }
         for (const child of children) {

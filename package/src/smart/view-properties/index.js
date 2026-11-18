@@ -1619,7 +1619,12 @@ class SfPropertyView extends PropertyViewElement {
             if (!event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
             if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
             const root = this.panel ? this.panelContent() : this;
-            if (!root || !event.composedPath?.().includes(root) || (this.panel && !this.isTopPanel)) return;
+            // A press on the panel itself counts: the drawer gives its panel
+            // the focus when the card covers the list (phone), and the keys
+            // went nowhere from there (VR2-3).
+            const path = event.composedPath?.() ?? [];
+            const own = this.panel ? this._ownDrawerRoot() : null;
+            if (!root || !(path.includes(root) || (own && path.includes(own))) || (this.panel && !this.isTopPanel)) return;
             event.preventDefault();
             // The next record redraws the panel: the focus comes back to its
             // title so the keys go on stepping.

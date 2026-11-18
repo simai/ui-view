@@ -8878,6 +8878,9 @@ class SfTable extends TableElement {
 
     handleGridKeydown(event, table) {
         if (event.defaultPrevented || !this.isGrid) return;
+        // Alt+Down / Alt+Up are not the grid's: a data view steps the record
+        // card open beside the list with them (C305 (4), VR2-3).
+        if (event.altKey && (event.key === "ArrowDown" || event.key === "ArrowUp")) return;
         const target = event.target instanceof Element ? event.target : null;
         if (!target) return;
         // F2 edits the short cell under the focus, or the row's first one.
