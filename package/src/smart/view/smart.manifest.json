@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view",
-  "version": "1.17.0",
+  "version": "1.18.0",
   "title": "Data view",
   "summary": "Host-driven data view that composes toolbar, content and pagination around a separate data port.",
   "kind": "composite",
@@ -1401,7 +1401,7 @@
       }
     },
     "sf-view-display-change": {
-      "summary": "The person chose another display kind in the list head (head=\"list\"); cancelable. Not refused, the view writes data-display and asks the host again with query.view {id, type}; a kind other than table is the host's content until its layout comes (C298).",
+      "summary": "The person chose another display kind in the list head (head=\"list\"); cancelable. Not refused, the view writes data-display, switches its layout (switchLayout: table <-> board, the marks and the record card kept) and asks the host once with the layout's query and query.view {id, type}; a kind no layout of the set holds is shown disabled and not offered.",
       "payload": {
         "type": "object",
         "required": [
@@ -1826,6 +1826,13 @@
           "Record card round 2 (C305 (4), RC-5): recordBeside(id, direction) answers the next or the previous record id in the order the view shows (null at the ends or for an id it does not show), so a page that opened a record card from the view steps it with Alt+Down / Alt+Up. Nothing to change for a host. (round/view-r2-card, was 1.16.0)",
           "View round 2 merge: record-card names an sf-view-properties panel of the page; a record opened from the table, the list or the board then opens in it beside the list (the view marks itself data-sf-drawer-dock-host when the page marked nothing), its steps go to recordBeside (the board's order is its lanes'), its close gives the focus back to the row; without record-card the host's record.open as before. The board's lane window asks totals [\"count\"] with the cards; the money sums are a second query.change (reason lane-sums, per_lane 0, totals of layouts.board) after the board is drawn, their line held meanwhile (sf-view-board sums-pending, setLaneTotals)."
         ]
+      },
+      {
+        "from": "1.17.0",
+        "to": "1.18.0",
+        "changes": [
+          "View round 3: the list head's display kind (Таблица / Доска) switches the layout live. switchLayout(kind) swaps the view-made table or board for the layout's own, parks the page's own sf-view-table (out of every slot, with its filter fields and create items) while a board draws and brings it back with the table, keeps the marked records (a table's marks become the board's and back, also over the switch's own answer) and the record card beside, draws what is already known at once and asks the host once with the new layout's query (a board's lane window). A layout attribute written after the view drew swaps the same way. canDrawLayout(kind) says whether a layout of the set (or one registered) draws a kind; the head shows the others (cards, calendar, tree) disabled with their reason (head-kind-unavailable). A saved view saved as a board opens as a board."
+        ]
       }
     ]
   },
@@ -1835,7 +1842,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view/index.js",
-        "sha256": "d6553991e0c51c47631157985d175ca8f577b6fbaf8fe05cc09a870245510efd"
+        "sha256": "6b9fa6f47cf84942fe540ed39f2d979e901646a48b5f25669bd0ebff716bca41"
       },
       {
         "path": "src/core/contracts/ports/simai.dataview-port/1.5.0/port.json",
@@ -1843,7 +1850,7 @@
       },
       {
         "path": "src/smart/view/docs.md",
-        "sha256": "19c09cf20fc185fc2d858bfb5e3e5c37e4fa85177bba77090a0de0314f4561a2"
+        "sha256": "1f0c1b6cd9d17605b22af6fcc473fbdd994994849103190d9fac71cc521d7302"
       },
       {
         "path": "tests/fixtures/data-view-composite-lab.html",

@@ -16,6 +16,23 @@ same numbers with other content); every next set version is above them
 up). Each component.json says the same under `x-decisions`
 `pro-copy-versions`.
 
+## Unreleased (round/view-r3)
+
+- `sf-view` 1.18.0 (view round 3, item 2): the list head's «Таблица» /
+  «Доска» switches the layout live. `switchLayout(kind)` swaps the view-made
+  table or board, parks the page's own `sf-view-table` while a board draws
+  and brings it back, keeps the marked records and the record card beside,
+  draws what is known at once and asks the host once with the new layout's
+  query; a `layout` attribute written later does the same. `canDrawLayout`
+  says which kinds the set draws; the head shows cards, calendar and tree
+  disabled with their reason. A view saved as a board opens as one.
+- `sf-view-properties` 1.18.1: a group named `''` draws no empty head row
+  (read 36 px, edited 29 px); its «Изменить», rare mark and arranging tools
+  still bring the head back.
+- Site: the property examples show their four sections at once, when every
+  part in them has drawn (frame layout shift 0.55-1.22 -> 0.01-0.03); pages
+  «Доска» and «Шапка списка» in «Компоненты».
+
 ## Unreleased (round/view-r2)
 
 - `sf-view-table` 1.24.0 (owner decision C296, view round 2, VT-1..VT-18):

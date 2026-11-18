@@ -2,8 +2,15 @@
   "$comment": "sf-data-view from its component.json (standard simai.smart-component 1.3.8, vocabulary 1.1.5), migrated from ui-control control/smart-architecture/migration/out/data-view; every x-todo decided in x-decisions.",
   "id": "smart.view",
   "tag": "sf-view",
-  "version": "1.17.0",
+  "version": "1.18.0",
   "x-history": [
+    {
+      "version": "1.18.0",
+      "kind": "minor",
+      "recorded_on": "2026-11-18",
+      "consumer": "Nothing to change for a host. New: the list head's display kind switches the layout live (table <-> board) through switchLayout(kind); canDrawLayout(kind); a kind no layout of the set holds (cards, calendar, tree) is shown disabled with its reason.",
+      "evidence": "control/evidence/2026-11-18-view-r3/README.md"
+    },
     {
       "version": "1.17.0",
       "kind": "minor",
@@ -863,7 +870,7 @@
         }
       },
       "cancelable": true,
-      "summary": "The person chose another display kind in the list head (head=\"list\"); cancelable. Not refused, the view writes data-display and asks the host again with query.view {id, type}; a kind other than table is the host's content until its layout comes (C298)."
+      "summary": "The person chose another display kind in the list head (head=\"list\"); cancelable. Not refused, the view writes data-display, switches its layout (switchLayout: table <-> board, the marks and the record card kept) and asks the host once with the layout's query and query.view {id, type}; a kind no layout of the set holds is shown disabled and not offered."
     },
     "settings-open": {
       "carries": {
@@ -1817,6 +1824,13 @@
             "The layout registry (owner decision C298, BD-1): layout=\"board\" (alias kanban) draws sf-view-board in the content slot, with no page row; a name outside the registry warns once (it drew the table silently) and still draws the table. The board's first paint holds lanes of a head and cards, not a table (BD-2). A board's query carries window {lanes, per_lane} (BD-4); the answer's lanes, board.moves and board.order_field go to the board; a move is record.set of the lane field, «Показать ещё» a query.change with window.lane. (round/view-r2-board, was 1.16.0)",
             "Record card round 2 (C305 (4), RC-5): recordBeside(id, direction) answers the next or the previous record id in the order the view shows (null at the ends or for an id it does not show), so a page that opened a record card from the view steps it with Alt+Down / Alt+Up. Nothing to change for a host. (round/view-r2-card, was 1.16.0)",
             "View round 2 merge: record-card names an sf-view-properties panel of the page; a record opened from the table, the list or the board then opens in it beside the list (the view marks itself data-sf-drawer-dock-host when the page marked nothing), its steps go to recordBeside (the board's order is its lanes'), its close gives the focus back to the row; without record-card the host's record.open as before. The board's lane window asks totals [\"count\"] with the cards; the money sums are a second query.change (reason lane-sums, per_lane 0, totals of layouts.board) after the board is drawn, their line held meanwhile (sf-view-board sums-pending, setLaneTotals)."
+          ]
+        },
+        {
+          "from": "1.17.0",
+          "to": "1.18.0",
+          "changes": [
+            "View round 3: the list head's display kind (Таблица / Доска) switches the layout live. switchLayout(kind) swaps the view-made table or board for the layout's own, parks the page's own sf-view-table (out of every slot, with its filter fields and create items) while a board draws and brings it back with the table, keeps the marked records (a table's marks become the board's and back, also over the switch's own answer) and the record card beside, draws what is already known at once and asks the host once with the new layout's query (a board's lane window). A layout attribute written after the view drew swaps the same way. canDrawLayout(kind) says whether a layout of the set (or one registered) draws a kind; the head shows the others (cards, calendar, tree) disabled with their reason (head-kind-unavailable). A saved view saved as a board opens as a board."
           ]
         }
       ]

@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-properties",
-  "version": "1.18.0",
+  "version": "1.18.1",
   "title": "Property view",
   "summary": "One object's fields shown as sections, groups and fields, each drawn by the per-type field renderer set, behind a separate host port. A group is edited and saved as one revision by the button, and a reference field is picked from the host's own candidates a page at a time. The pair to the data view: that one is a set of records, this one is a single object.",
   "kind": "composite",
@@ -1895,6 +1895,13 @@
           "RC-6: seven public variables --sf-view-properties-label-width, -row-gap, -group-gap, -sections-width, -side-width, -current-background-color, -saved-background-color; --sf-property-view--sections-width is a former name until 2027-01-01. Every new word is in the language files (C282).",
           "RC-7, VP-29: the quick windows draw nothing before sf-popover is defined (no shift at the first paint)."
         ]
+      },
+      {
+        "from": "1.18.0",
+        "to": "1.18.1",
+        "changes": [
+          "A group whose label is '' draws no group head: read (the description list head, 36 px), edited in sf-form and edited in the card (29 px) the heading row was empty and named nothing to a screen reader; the head stays when the group has «Изменить», the rare mark or the arranging tools."
+        ]
       }
     ]
   },
@@ -1908,7 +1915,7 @@
       },
       {
         "path": "src/smart/view-properties/js/templates/default.js",
-        "sha256": "7c7dc2e0133ec00b74fbd91d3524b05a791380482546ba2f9cc4458782a3a335"
+        "sha256": "07057e90752392b1f24edd44675a201bfb17bdf2b20ae0081a22ffffc80ddb0d"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.css",
