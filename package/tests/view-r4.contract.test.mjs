@@ -183,6 +183,7 @@ test('phone month (C307 (3), (4)): + on the chosen day heading, «Без дат�
   assert.match(template, /data-undtoggle\s+text=\$\{component\.word\("undated-text", \{count: context\.undatedTotal\}\)\} aria-pressed=\$\{context\.phoneUndated/u);
   assert.match(template, /context\.phoneUndated \? renderUndatedList\(context\) : renderDayList\(context, context\.picked, true\)/u);
   assert.match(sheet, /\.sf-view-calendar__lday-h\[data-picked\] \.sf-view-calendar__add \{ opacity: 1; \}/u);
+  assert.match(sheet, /\.sf-view-calendar__lday-h\[data-picked\] > span:first-child \{ flex: 1 1 auto;/u, 'the title takes the line, + stays at its end');
   assert.match(calendar, /return this\._phone && this\.mode === "month" && this\.calendarOptions\.undated !== "none" && this\._phoneUndated;/u);
   assert.match(calendar, /this\._picked = day;\n\s+this\._phoneUndated = false;/u);
   assert.match(calendar, /this\._rowHeld = true;\n\s+this\.openEventMenu\(row\.dataset\.ev, row\);/u);

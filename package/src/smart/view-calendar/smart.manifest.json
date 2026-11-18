@@ -599,7 +599,7 @@
       },
       {
         "path": "src/smart/view-calendar/js/templates/default.css",
-        "sha256": "c077d99d5af2eb290afed51c9f319830b0768cf14a2d4afbabd06f78378cc6c8"
+        "sha256": "2287c4a6aa0db7d25cb124198fd85edb5f8594b0282c3011fb68d3b5d427ec39"
       },
       {
         "path": "src/smart/field-renderers/index.js",

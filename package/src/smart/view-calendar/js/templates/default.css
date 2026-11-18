@@ -458,7 +458,7 @@
     min-block-size: var(--sf-view-calendar-control);
   }
 
-  .sf-view-calendar__lday-h[data-picked] > span { flex: 1 1 auto; min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sf-view-calendar__lday-h[data-picked] > span:first-child { flex: 1 1 auto; min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .sf-view-calendar__lday-h[data-picked] .sf-view-calendar__add { opacity: 1; }
   .sf-view-calendar__phone-und { display: flex; margin-block-start: var(--sf-space-1\/2); }
   /* A record without a date has no time: the title, the fields as on a day row. */
