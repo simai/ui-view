@@ -294,7 +294,7 @@ class SfViewCards extends CardsElement {
         this.addEventListener("sf-empty-state-action", (event) => this._onEmptyAction(event), {signal});
         this.addEventListener("sf-bulk-actions-action", (event) => this._onBulkAction(event), {signal});
         this.addEventListener("sf-bulk-actions-clear", () => this.clearSelection(), {signal});
-        const tags = ["sf-checkbox", "sf-button", "sf-button-icon", "sf-icon", "sf-pagination", "sf-empty-state", "sf-skeleton"];
+        const tags = ["sf-checkbox", "sf-button", "sf-button-icon", "sf-icon", "sf-pagination", "sf-empty-state", "sf-skeleton", "sf-menu-context"];
         if (bulkActionsAvailable()) tags.push("sf-bulk-actions");
         globalThis.SF?.Loader?.ensure?.(tags);
         // The inner controls of a card take no Tab stop of their own (CD-6):
