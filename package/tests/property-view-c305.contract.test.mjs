@@ -57,7 +57,7 @@ test('RC-4: the section column stays sf-menu until sf-tabs vertical places its b
 });
 
 test('VP-29: the quick window never draws before sf-popover is defined', () => {
-  assert.match(css, /\.sf-property-view-quick:not\(:defined\) > \[slot="content"\] \{\s*display: none;/u);
+  assert.match(css, /\.sf-property-view-quick:not\(\[data-open="true"\]\) > \[slot="content"\] \{\s*display: none;/u);
 });
 
 test('Framework parts by their released tags only: no import of an unreleased module', () => {

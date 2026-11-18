@@ -1245,9 +1245,10 @@
     min-inline-size: 0;
   }
 
-  /* Before sf-popover is defined its window would draw in the row and shift
-     the panel at the first paint (VP-29). */
-  .sf-property-view-quick:not(:defined) > [slot="content"] {
+  /* The window draws only while sf-popover says it is open: before the
+     element is defined, and before its own sheet arrives, the content would
+     stand in the row and shift the panel at the first paint (VP-29). */
+  .sf-property-view-quick:not([data-open="true"]) > [slot="content"] {
     display: none;
   }
 
@@ -1287,6 +1288,14 @@
   .sf-property-view-group--editing .sf-property-view-field-value > :is(sf-input, sf-input-textarea, sf-dropdown, sf-input-date, sf-input-lookup, sf-input-choice) {
     flex: 1 1 auto;
     inline-size: 100%;
+    min-inline-size: 0;
+  }
+
+  /* The controls' hosts are display: contents; their drawn box is the child. */
+  .sf-property-view-group--editing .sf-property-view-field-value > :is(sf-input, sf-input-textarea, sf-dropdown, sf-input-date, sf-input-lookup, sf-input-choice) > :not(input, template, style) {
+    flex: 1 1 auto;
+    inline-size: 100%;
+    max-inline-size: none;
     min-inline-size: 0;
   }
 
