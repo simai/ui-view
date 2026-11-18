@@ -278,8 +278,8 @@ export class ListHead {
                  <sf-button-icon class="sf-view-head-create" data-create size="${size}" icon="add" aria-haspopup="menu" hidden></sf-button-icon>
                </div>
                <div class="sf-view-head-fields" data-fields hidden></div>
-               <sf-drawer data-sheet placement="bottom"><div slot="content" data-body></div></sf-drawer>
-               <sf-drawer data-record placement="bottom"><div slot="content" data-body></div></sf-drawer>`
+               <sf-drawer data-sheet data-sf-role="head-sheet" placement="bottom"><div slot="content" data-body></div></sf-drawer>
+               <sf-drawer data-record data-sf-role="head-record" placement="bottom"><div slot="content" data-body></div></sf-drawer>`
             : `<div class="sf-view-head-title" data-title>
                  <h2 class="sf-view-head-name"><span data-name></span><sf-badge data-count size="1/2" appearance="tonal" scheme="primary" hidden></sf-badge></h2>
                  <div class="sf-view-head-title-end">
@@ -302,7 +302,13 @@ export class ListHead {
                    <sf-button class="sf-view-head-create" size="${size}" icon-start="add" hidden></sf-button>
                  </div>
                </div>
-               <sf-drawer data-record placement="inline-end" size="2"><div slot="content" data-body></div></sf-drawer>`;
+               <sf-drawer data-record data-sf-role="head-record" placement="inline-end" size="2"><div slot="content" data-body></div></sf-drawer>`;
+        // The windows' drawers carry a role (data-sf-role): their path ids are
+        // then sf-view's own (…/head-sheet, …/head-record). Counted among the
+        // page's drawers by document order, the head's first drawer took the
+        // id sf-drawer-1 that the record card's drawer already had, and the two
+        // shared a portal -- with a record card on the page every head window
+        // drew inside the head (VR2-4).
         // A body moves with its window (sf-drawer takes its content out of the
         // host), so each body listens for itself.
         for (const body of this.root.querySelectorAll("[data-body]")) this._bindBody(body);
@@ -498,7 +504,8 @@ export class ListHead {
             if (popover.open || popover.hasAttribute("open")) popover.close?.("api");
         }
         for (const drawer of [...(this.root?.querySelectorAll("sf-drawer") ?? []), ...this._drawers()]) {
-            if (drawer.open || drawer.hasAttribute("open")) drawer.close?.("api");
+            // sf-drawer's open is its method, never false: its state is openState.
+            if (drawer.openState === true || drawer.hasAttribute("open")) drawer.close?.({reason: "api"});
         }
     }
 
@@ -554,7 +561,10 @@ export class ListHead {
             const body = sheet.querySelector("[data-body]") ?? this._sheetBody;
             this._sheetBody = body;
             this._show(kind, sheet, body);
-            if (!(sheet.open || sheet.hasAttribute("open"))) sheet.open?.();
+            // open() is the drawer's method (a function, always truthy): it was
+            // read as the open state, so the sheet never opened (VR2-4). It
+            // brings an open sheet to the front and opens a closed one.
+            sheet.open?.();
             return;
         }
         const popover = this.root?.querySelector(`sf-popover[data-pop="${CSS.escape(kind)}"]`)
@@ -694,7 +704,7 @@ export class ListHead {
                 + title("card_fields", this.text("headCardFields")) + checks("card_fields", all, settings.card_fields)
                 + `<sf-checkbox data-setting="empty_lanes" size="${size}" label="${esc(this.text("headEmptyLanes"))}"${settings.empty_lanes ? " checked" : ""}${lock("empty_lanes")}></sf-checkbox>`;
         } else if (kind === "cards") {
-            body = title("size", this.text("headCardSize")) + radios("size", [["s", this.text("headSizeS")], ["m", this.text("headSizeM")]], settings.size)
+            body = title("size", this.text("headCardSize")) + radios("size", [["s", this.text("headSizeS")], ["m", this.text("headSizeM")], ["l", this.text("headSizeL")]], settings.size)
                 + title("card_fields", this.text("headCardFields")) + checks("card_fields", all, settings.card_fields);
         } else if (kind === "calendar") {
             body = title("date_field", this.text("headDateField")) + radios("date_field", fieldsOf((type) => DATE_TYPES.has(type)), settings.date_field)
@@ -727,7 +737,8 @@ export class ListHead {
             merged.row_actions ??= (this.view.rowActionCatalog ?? []).map((action) => String(action.id));
         }
         if (kind === "board") { merged.card_fields ??= []; merged.empty_lanes ??= true; }
-        if (kind === "cards") { merged.size ??= "s"; merged.card_fields ??= []; }
+        // Cards S, M, L; M by default (C306).
+        if (kind === "cards") { merged.size ??= "m"; merged.card_fields ??= []; }
         if (kind === "calendar") merged.week_start ??= "mon";
         for (const key of ["columns", "row_actions", "card_fields"]) if (Array.isArray(merged[key])) merged[key] = merged[key].map(String);
         return merged;

@@ -264,11 +264,12 @@
       "layout": {
         "type": "string",
         "default": "auto",
-        "description": "How the records are drawn, passed to the table (owner decision C31): auto, a table where there is room and the list below list-below; table; list. A table the host wrote a layout on keeps it. An embedded view (no toolbar) without this attribute is a table, as before.",
+        "description": "How the records are drawn (owner decisions C31, C298): auto, a table where there is room and the list below list-below; table; list (these three pass to the table); board, the lanes of sf-view-board (kanban reads as board). A table the host wrote a layout on keeps it. An embedded view (no toolbar) without this attribute is a table, as before.",
         "enum": [
           "auto",
           "table",
-          "list"
+          "list",
+          "board"
         ]
       },
       "layout-switch": {

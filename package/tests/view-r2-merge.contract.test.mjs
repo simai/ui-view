@@ -33,11 +33,10 @@ test('recordBeside follows a board by its lanes', () => {
   assert.match(view, /this\.layoutKind === "board"\s*\? \(this\.board\?\.boardLanes \?\? this\.boardLanes \?\? \[\]\)\.filter\(\(lane\) => !lane\.hidden\)\.flatMap/u);
 });
 
-test('the board asks counts with the cards and the sums after it is drawn', () => {
-  assert.match(view, /per_lane: options\.per_lane \?\? 20, totals: \["count"\]/u);
-  assert.match(view, /reason: "lane-sums", query: this\._layoutQuery\(\{per_lane: 0, totals\}\)/u);
-  assert.match(view, /board\.toggleAttribute\("sums-pending", this\._laneSumsWanted === true\)/u);
-  assert.match(view, /sequence !== this\.sequence \|\| board !== this\.board\) return;\s*const lanes = answer\?\.answer === "applied"/u);
+test('the board asks the cards and every lane total in one request (C304, view returns VR2-9)', () => {
+  assert.match(view, /per_lane: options\.per_lane \?\? 20, totals: \["count", \.\.\.this\._boardSumTotals\(\)\.map\(copy\)\]/u);
+  assert.doesNotMatch(view, /reason: "lane-sums"/u);
+  assert.match(view, /board\.removeAttribute\("sums-pending"\)/u);
   assert.match(board, /setLaneTotals\(list\) \{/u);
   const component = json('src/smart/view-board/component.json');
   assert.equal(component.settings['sums-pending'].type, 'boolean');
