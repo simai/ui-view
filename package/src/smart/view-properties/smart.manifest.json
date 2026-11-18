@@ -230,7 +230,8 @@
           "1.16.0",
           "1.17.0",
           "1.18.0",
-          "1.19.0"
+          "1.19.0",
+          "1.20.0"
         ]
       }
     }
@@ -1955,7 +1956,7 @@
         "from": "1.19.0",
         "to": "1.20.0",
         "changes": [
-          "C311 (5), the dispatcher's call on RC-6 (round/view-r4): the «⋯» menu has no views submenu for anyone; the person who may arrange keeps the one entry «Вид: <name>» that enters the arranging mode with the picker open; a person who cannot arrange (no view settings from the host, no writable layer, or a view-only surface) and has more than one view gets sf-profile-picker in select-only mode above the fields (profiles not editable, nothing created, no reset; a choice raises view.profile). Removed as dead: renderViewProfiles and renderNewViewName in the template (with their CSS), viewProfileEntries, openViewProfileMenu, the view-profile: menu ids, namingView, startNamingView and cancelNamingView."
+          "C311 (5), the dispatcher's call on RC-6 (round/view-r4): the «⋯» menu has no views submenu for anyone; the person who may arrange keeps the one entry «Вид: <name>» that enters the arranging mode with the picker open; a person who cannot arrange (no view settings from the host, no writable layer, or a view-only surface) and has more than one view gets sf-profile-picker in select-only mode above the fields (profiles not editable, nothing created, no reset; a choice raises view.profile). Removed as dead: renderViewProfiles and renderNewViewName in the template (with their CSS), viewProfileEntries, openViewProfileMenu, the view-profile: menu ids, namingView, startNamingView and cancelNamingView. Port range 1.0.0..1.20.0 (SUPPORTED_PORT_VERSIONS, host_port.supported_versions, the passport's list): the C311 edition is port 1.20.0 (the dispatcher's renumbering; GB12 holds 1.19.0, money C294), and hostSpeaksCardSettings asks for 1.20.0 or later."
         ]
       }
     ]
@@ -1966,7 +1967,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-properties/index.js",
-        "sha256": "891e85b6d77b785d24d3eeac1fdaad2a78428cc1fd990231421671e92ca01d38"
+        "sha256": "49e901c5d3d9f96d7df0ddba12d37ad6a6b6276c497a1b58f09e22c93377acbe"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.js",
@@ -2026,7 +2027,7 @@
       },
       {
         "path": "src/smart/view-properties/docs.md",
-        "sha256": "43eb78903f785779972915a435c4fd6164690fefd54e71142f2e3affce573d5c"
+        "sha256": "c2bfbe1548210213a6bdf24beef32fe3eb0674f992c055bee0c4d35cc8e84754"
       }
     ],
     "generated_runtime": []

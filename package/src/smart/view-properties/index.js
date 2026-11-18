@@ -41,7 +41,7 @@ import {historyFromRevisions, timelineItems, valueText} from "./js/history.js";
 // keeps its list -- a guard naming a narrower set than the published versions is
 // a component refusing a host it asked to move. The contract test beside this
 // file compares the list with the manifest.
-const SUPPORTED_PORT_VERSIONS = ["1.0.0", "1.1.0", "1.2.0", "1.3.0", "1.4.0", "1.5.0", "1.6.0", "1.7.0", "1.8.0", "1.9.0", "1.10.0", "1.11.0", "1.12.0", "1.13.0", "1.14.0", "1.15.0", "1.16.0", "1.17.0", "1.18.0", "1.19.0"];
+const SUPPORTED_PORT_VERSIONS = ["1.0.0", "1.1.0", "1.2.0", "1.3.0", "1.4.0", "1.5.0", "1.6.0", "1.7.0", "1.8.0", "1.9.0", "1.10.0", "1.11.0", "1.12.0", "1.13.0", "1.14.0", "1.15.0", "1.16.0", "1.17.0", "1.18.0", "1.19.0", "1.20.0"];
 
 // The surface's mode (owner, 2026-10-14). view: show the object, never offer
 // a change. auto: show it and offer what this person may do. edit: every group
@@ -506,7 +506,7 @@ class SfPropertyView extends PropertyViewElement {
     // the port means by a null group.
     moveFieldToUnplaced(fieldKey, index, {save = true} = {}) {
         if (!this.configuring || !this.layerDraft) return false;
-        // «Стадия» the admin locked stays shown (port 1.19.0 view.locked).
+        // «Стадия» the admin locked stays shown (port 1.20.0 view.locked).
         if (this.lockedForMe(`fields.${String(fieldKey)}.hidden`)) return false;
         let moved = null;
         let fromGroup = null;
@@ -3568,12 +3568,14 @@ class SfPropertyView extends PropertyViewElement {
         return this.editableLayers.includes(wanted) ? wanted : this.viewTarget;
     }
 
-    // Whether the host speaks port 1.19.0 (view.publish, view.lock): the
-    // contract is in ui-source and rides the next pair; a 1.18.0 host is
-    // offered neither.
+    // Whether the host speaks port 1.20.0 (view.publish, view.lock): the
+    // contract is in ui-source and rides the next pair. A 1.19.0 host (group
+    // build 12: money C294) and earlier hosts are offered neither. The C311
+    // edition was called 1.19.0 on its ui-source branch until GB12 took the
+    // number; it is 1.20.0.
     get hostSpeaksCardSettings() {
         const [major, minor] = String(this.hostPort?.version ?? "").split(".").map(Number);
-        return major > 1 || (major === 1 && minor >= 19);
+        return major > 1 || (major === 1 && minor >= 20);
     }
 
     // Whether this person may write the shared layer: «Сохранить для всех»,
@@ -3582,7 +3584,7 @@ class SfPropertyView extends PropertyViewElement {
         return this.editableLayers.includes("shared") && this.hostSpeaksCardSettings;
     }
 
-    // A required profile (port 1.19.0 profiles[].required): it cannot be
+    // A required profile (port 1.20.0 profiles[].required): it cannot be
     // changed, and edits live until the page is left -- nothing is written
     // (C298, RC-2).
     get viewRequired() {
@@ -3590,7 +3592,7 @@ class SfPropertyView extends PropertyViewElement {
         return profile?.required === true;
     }
 
-    // The paths the lower layers cannot change (port 1.19.0 view.locked):
+    // The paths the lower layers cannot change (port 1.20.0 view.locked):
     // fields.<key>.hidden, fields.<key>.group, sections.<key>, sections.order,
     // head. A person who may write the shared layer is the one who locked
     // them and may still change them.
@@ -3765,7 +3767,7 @@ class SfPropertyView extends PropertyViewElement {
     // cannot reveal what was hidden for everyone -- and the component is told
     // which layer decided rather than working it out.
     canChangeVisibility(entry) {
-        // A setting the admin locked (port 1.19.0 view.locked).
+        // A setting the admin locked (port 1.20.0 view.locked).
         const key = entry?.key != null ? String(entry.key) : null;
         if (key && (this.lockedForMe(`fields.${key}.hidden`) || this.lockedForMe(`sections.${key}`))) return false;
         const hiddenBy = entry?.hiddenBy ?? null;
@@ -4293,7 +4295,7 @@ class SfPropertyView extends PropertyViewElement {
         return answer;
     }
 
-    // «Сохранить для всех» (port 1.19.0 view.publish; C298, C311 (5), RC-1):
+    // «Сохранить для всех» (port 1.20.0 view.publish; C298, C311 (5), RC-1):
     // the host merges the personal layer into the profile's shared layer and
     // clears the personal one, in one write. A conflict carries the newer
     // shared layer: the card redraws and says «Вид изменился».
@@ -4328,7 +4330,7 @@ class SfPropertyView extends PropertyViewElement {
         return answer;
     }
 
-    // «Закрыть для изменений» (port 1.19.0 view.lock; C298, RC-2): one setting
+    // «Закрыть для изменений» (port 1.20.0 view.lock; C298, RC-2): one setting
     // the lower layers cannot change, for a person who may write the shared
     // layer. The host answers the locked list and the shared revision.
     async lockViewPath(path, locked = !this.isLocked(path)) {
@@ -4368,7 +4370,7 @@ class SfPropertyView extends PropertyViewElement {
         return this.createViewProfile(label, {shared: false});
     }
 
-    // The card head (port 1.19.0 view.head; C289 (6), C311 (2)): the title,
+    // The card head (port 1.20.0 view.head; C289 (6), C311 (2)): the title,
     // under it up to two fields, and the stage as a tonal badge. What the
     // draft layer says wins over what the host resolved.
     get viewHead() {
