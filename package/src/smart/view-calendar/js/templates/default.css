@@ -458,9 +458,11 @@
     min-block-size: var(--sf-view-calendar-control);
   }
 
-  .sf-view-calendar__lday-h[data-picked] > span { margin-inline-end: auto; min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sf-view-calendar__lday-h[data-picked] > span { flex: 1 1 auto; min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .sf-view-calendar__lday-h[data-picked] .sf-view-calendar__add { opacity: 1; }
   .sf-view-calendar__phone-und { display: flex; margin-block-start: var(--sf-space-1\/2); }
+  /* A record without a date has no time: the title, the fields as on a day row. */
+  .sf-view-calendar[data-phone] [data-und-list] .sf-view-calendar__row { grid-template-columns: minmax(0, 1fr) auto; }
   .sf-view-calendar[data-phone] .sf-view-calendar__row { -webkit-touch-callout: none; user-select: none; }
   .sf-view-calendar__lday > .sf-view-calendar__note { padding-inline: var(--sf-space-1\/3); }
 

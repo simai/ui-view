@@ -271,7 +271,7 @@ function renderPhoneList(context) {
     const undatable = context.options.undated !== "none";
     return html`
         ${undatable ? html`<div class="sf-view-calendar__phone-und">
-            <sf-button size=${context.size} appearance="ghost" scheme=${context.phoneUndated ? "primary" : "on-surface"} icon="event_busy" data-undtoggle
+            <sf-button size=${context.size} appearance="ghost" scheme="on-surface" icon="event_busy" data-undtoggle
                        text=${component.word("undated-text", {count: context.undatedTotal})} aria-pressed=${context.phoneUndated ? "true" : "false"}></sf-button>
         </div>` : nothing}
         <div class="sf-view-calendar__list" data-picked-list>${context.phoneUndated ? renderUndatedList(context) : renderDayList(context, context.picked, true)}</div>`;
@@ -292,7 +292,6 @@ function renderUndatedList(context) {
             return html`<div class="sf-view-calendar__row" data-id=${id} data-ev=${id} tabindex="-1" role="listitem"
                     ?data-pending=${context.pending.has(id)} ?data-ro=${Boolean(readOnly)}
                     aria-label=${`${component.recordTitle(record)}, ${component.word("undated-label").toLocaleLowerCase(component.locale)}`}>
-                <span class="sf-view-calendar__time"><span class="sf-view-calendar__dot" aria-hidden="true"></span></span>
                 <span class="sf-view-calendar__name">${component.recordTitle(record)}</span>
                 ${component.eventFieldList.map((field) => html`<span class="sf-view-calendar__field" data-key=${String(field.key)} data-align=${component.fieldAlign(field)}>${renderShape(component.cellShape(field, record), component)}</span>`)}
             </div>`;

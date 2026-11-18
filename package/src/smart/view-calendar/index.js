@@ -477,6 +477,8 @@ class SfViewCalendar extends CalendarElement {
         this.addEventListener("change", (event) => this._onChange(event), {signal});
         this.addEventListener("sf-segmented-change", (event) => this._onChange(event), {signal});
         this.addEventListener("sf-input-date-change", (event) => this._onPicked(event), {signal});
+        // The pair's sf-input-date says a chosen day as sf-change (sf-input-date-change is the older name).
+        this.addEventListener("sf-change", (event) => { if (event.target?.matches?.("sf-input-date")) this._onPicked(event); }, {signal});
         this.addEventListener("keydown", (event) => this._onKey(event), {signal});
         this.addEventListener("focusin", (event) => this._onFocus(event), {signal});
         this.addEventListener("contextmenu", (event) => this._onContextMenu(event), {signal});
