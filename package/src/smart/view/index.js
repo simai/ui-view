@@ -8,6 +8,7 @@
 // copy of the element in data-view.min.js (431 KB min; stand 25).
 // The view's own first-paint styles, its skeleton, are its sheet.
 import "./js/first-paint.css";
+import "./js/head.css";
 import {pageText} from "../../core/js/page-language";
 import {elementFromManifest} from "../../core/js/element-manifest";
 // The renamed tags (sf-view-table for sf-table, sf-view for sf-data-view until
@@ -26,6 +27,7 @@ import tableEn from "../view-table/lang/en.json";
 import tableRu from "../view-table/lang/ru.json";
 import BundledPreferences from "../../core/js/preferences.js";
 import {acceptLevel, collapse, createTree, expandKnown, hasLevel, knownRecords, markLoading, visibleRows} from "./js/tree.js";
+import {ListHead} from "./js/head.js";
 const LISTENED = Object.freeze([
     "sf-view-table-search-change", "sf-view-table-filter-change", "sf-view-table-sort-change", "sf-view-table-save",
     "sf-view-table-apply", "sf-view-table-refresh", "sf-view-table-select", "sf-view-table-column-settings-reset",
@@ -269,6 +271,12 @@ class SfDataView extends DataViewElement {
         this.hasNext = false;
         this.countedQuery = null;
         this.savedViews = [];
+        // The list head's saved filters, the view's document and its locked
+        // settings, as the host answers them (study section 7, draft
+        // view-config/1); kept only while head="list" reads them.
+        this.savedFilters = [];
+        this.viewConfig = null;
+        this.lockedSettings = [];
         this.columnSettings = null;
         this.sequence = 0;
         this.epoch = 0;
@@ -383,6 +391,9 @@ class SfDataView extends DataViewElement {
                  its shadow root when the slot was empty, which consumers hid with
                  an empty <span slot="toolbar">. The table draws the search and
                  the saved views itself, with SIMAI Framework controls. -->
+            <!-- The list head (head="list", C297, C299-C301): the title row and
+                 the head row, drawn in the light DOM by js/head.js. -->
+            <div part="head" hidden><slot name="head"></slot></div>
             <div part="toolbar" hidden><slot name="toolbar"></slot></div>
             <div part="status" role="status" aria-live="polite" hidden></div>
             <div part="drop" hidden></div>
@@ -1139,7 +1150,8 @@ class SfDataView extends DataViewElement {
         // What the data will draw: the table's toolbar unless the page turned
         // it off (without a table of the page's, the view's own as its chrome
         // asks), the chrome columns, and a table or the compact list.
-        const toolbar = table ? table.getAttribute("toolbar") !== "false" : this.renders("toolbar");
+        const toolbar = !this.listHead && (table ? table.getAttribute("toolbar") !== "false" : this.renders("toolbar"));
+        const headRows = this.listHead && this.renders("toolbar");
         const ownToolbar = Boolean(table) && this.renders("toolbar") && Boolean(this.querySelector(':scope > [slot="toolbar"]'));
         const select = this.renders("select") && !hostWroteOff(table, "selectable");
         const settings = this.renders("settings") && !hostWroteOff(table, "settings");
@@ -1201,6 +1213,8 @@ class SfDataView extends DataViewElement {
         return [
             // An own toolbar slot is a row of the view's layout, even empty.
             ownToolbar ? '<div class="sf-data-view-skeleton-own-toolbar"></div>' : "",
+            // The list head's two rows hold their height from the first paint.
+            headRows ? `<div class="sf-view-head-skeleton" data-size="${this.size}"><div>${bar}</div><div>${control()}${control()}</div></div>` : "",
             '<div class="sf-data-view-skeleton-records">',
             toolbar ? toolbarMarkup : "",
             `<div class="sf-data-view-skeleton-table">${row()}${Array.from({length: rows}, () => row()).join("")}</div>`,
@@ -1346,7 +1360,7 @@ class SfDataView extends DataViewElement {
     }
 
     static get observedAttributes() {
-        return ["chrome", "row-cap", "aria-label", "size", "preferences-key", ...LIST_ATTRIBUTES, ...LABEL_ATTRIBUTES];
+        return ["chrome", "row-cap", "aria-label", "size", "preferences-key", "head", "heading", ...LIST_ATTRIBUTES, ...LABEL_ATTRIBUTES];
     }
 
     // The words of the table and the pagination the view draws itself, written
@@ -1377,6 +1391,38 @@ class SfDataView extends DataViewElement {
         if (name === "preferences-key") this._applyPreferences();
         if (name === "chrome") this._lightDefaults();
         this._renderProjection();
+    }
+
+    // The list head (head="list"; owner decisions C297, C299, C300, C301): the
+    // title row and the head row above the list, drawn by js/head.js in the
+    // light DOM (slot head) where the Framework's styles reach them. Without
+    // it the table draws its own toolbar, as before.
+    get listHead() { return this.getAttribute("head") === "list"; }
+
+    _syncHead() {
+        const part = this.shadowRoot?.querySelector('[part="head"]');
+        if (!this.listHead) {
+            if (this._head) {
+                this._head.detach();
+                this._head = null;
+                this.removeAttribute("data-display");
+            }
+            if (part) part.hidden = true;
+            return;
+        }
+        if (!this._head) {
+            this._head = new ListHead(this, {
+                text: (key) => pageText(DATA_VIEW_TEXT, key, this),
+                raise: (intent, payload) => this._raise(intent, payload),
+            });
+            this._ensureElements(["sf-button", "sf-button-icon", "sf-segmented", "sf-badge", "sf-input", "sf-popover", "sf-drawer",
+                "sf-tabs", "sf-checkbox", "sf-radio", "sf-icon", "sf-menu-context"])?.catch?.(() => {});
+        }
+        if (!this.isConnected) return;
+        this._head.attach();
+        if (part) part.hidden = !this.renders("toolbar");
+        if (this.hostPort) this._head.describe(this.hostPort);
+        this._head.render();
     }
 
     setHostPort(host) {
@@ -1779,13 +1825,23 @@ class SfDataView extends DataViewElement {
         if (Number.isSafeInteger(data.total)) this.totalExact = data.total_exact !== false;
         this._answered = true;
         if (Array.isArray(data.saved_views)) this.savedViews = copy(data.saved_views);
+        if (Array.isArray(data.saved_filters)) this.savedFilters = copy(data.saved_filters);
+        if (data.view_config && typeof data.view_config === "object") this.viewConfig = copy(data.view_config);
+        if (Array.isArray(data.locked)) this.lockedSettings = copy(data.locked);
         if (data.column_settings) this.columnSettings = copy(data.column_settings);
         if (data.echo) {
             const echo = data.echo;
+            // filters_chosen is two things: the conditions as chosen (port
+            // 1.x, an object) or, for the list head, the keys of the chosen
+            // filter fields (study section 7, a list) beside filters.
+            const chosenKeys = Array.isArray(echo.filters_chosen) ? echo.filters_chosen : null;
             this.query = {
-                ...this.query, filters: copy(echo.filters_chosen ?? echo.filters ?? {}),
+                ...this.query, filters: copy((chosenKeys ? echo.filters : echo.filters_chosen ?? echo.filters) ?? {}),
                 search: echo.search ?? "", sort: copy(echo.sort ?? []),
                 page: echo.page ?? 1, per_page: echo.per_page ?? 25,
+                ...(chosenKeys ? {filters_chosen: copy(chosenKeys)} : {}),
+                ...(echo.saved_filter !== undefined ? {saved_filter: echo.saved_filter} : {}),
+                ...(echo.view && typeof echo.view === "object" ? {view: copy(echo.view)} : {}),
             };
         }
         // The search box says what the list is searched for, whoever set it: a
@@ -2262,6 +2318,7 @@ class SfDataView extends DataViewElement {
 
     _renderProjection() {
         this._capabilitiesKey = capabilitiesKey(this.knownPort);
+        this._syncHead();
         this._readPrintedPageSize();
         this._applyForAll();
         if (this._current !== undefined && this.table && this.table.current !== this._current) this.table.current = this._current;
@@ -2292,7 +2349,9 @@ class SfDataView extends DataViewElement {
             const refused = this._queryRefused === true;
             if (!table.hasAttribute?.("data-sf-host-toolbar")) table.setAttribute("data-sf-host-toolbar", table.getAttribute?.("toolbar") ?? "");
             const authorToolbar = table.getAttribute?.("data-sf-host-toolbar");
-            if (refused) table.setAttribute("toolbar", "false");
+            // The list head draws the search, the filter and Create (C296, C301):
+            // the table draws no toolbar of its own under it.
+            if (refused || this.listHead) table.setAttribute("toolbar", "false");
             else if (authorToolbar) table.setAttribute("toolbar", authorToolbar);
             else table.removeAttribute?.("toolbar");
             // The row boxes and the gear column are the view's chrome, unless the
@@ -2325,7 +2384,9 @@ class SfDataView extends DataViewElement {
             table.setAttribute("settings", this.renders("settings") && !hostWroteOff(table, "settings") ? "true" : "false");
             // The column settings, without the column: it also carries each
             // row's menu, which is the host's row-actions, not this.
-            table.setAttribute("settings-menu", this.hostOffers("personal-column-settings") ? "true" : "false");
+            // No gear in the table head under the list head: the view settings
+            // are «Customize view» above the list (C301 (1)); the row menu stays.
+            table.setAttribute("settings-menu", this.hostOffers("personal-column-settings") && !this.listHead ? "true" : "false");
             table.setAttribute("creatable", this.hostOffers("create-record") && !refused ? "true" : "false");
             table.setAttribute("row-reorder", this.hostOffers("row-reorder") && this.treeMode !== "tree" ? "true" : "false");
             table.setAttribute("inline-edit", this.hostOffers("inline-edit") ? "true" : "false");

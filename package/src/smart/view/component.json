@@ -90,6 +90,20 @@
       "default": "toolbar pagination select settings",
       "summary": "Which chrome this list renders, as a space-separated list. `toolbar` and `pagination` are this element own parts; `select` and `settings` are the table two chrome columns, named here because they are furniture of the same kind -- a checkbox column exists to feed a bulk band and a gear column exists to reach column settings, and an embedded list has neither. Empty renders none of them, for a list inside something that already carries a heading. Named explicitly rather than inferred from the toolbar, so a consumer who wants a selection in an embedded list can ask for it alone. `status` is not in the list and cannot be switched off: a list that could not say a load failed would look empty when it is broken."
     },
+    "head": {
+      "type": "enum",
+      "values": [
+        "",
+        "list"
+      ],
+      "default": "",
+      "summary": "Which head the list has. Empty: the table's own toolbar, as before. list: the list head (owner decisions C297, C299, C300, C301): a title row (the list name and count, the views menu, the display kind as sf-segmented, «Настроить вид», the list menu «⋯» when describe().permissions allows) and a head row (Фильтр with its bookmark, the filter fields, Очистить, the search up to 20rem, Создать with a split menu); on a phone the display kind is an icon menu, the head row is Фильтр, the search and +, the filter fields one row that scrolls sideways, and every window a bottom sheet. Shown where chrome includes toolbar. The table then draws no toolbar and no gear in its head; the row menu stays."
+    },
+    "heading": {
+      "type": "string",
+      "default": "",
+      "summary": "The list's name in the list head's title row (head=\"list\"); empty: the view's aria-label."
+    },
     "row-cap": {
       "type": "number",
       "default": 0,
@@ -823,6 +837,42 @@
         }
       },
       "summary": "A table event the view listens to: rows were dragged into another order. The view shows the new order at once and raises record.reorder of simai.dataview-port 1.11.0 (capability row-reorder); a refusal or conflict puts the old order back."
+    },
+    "display-change": {
+      "carries": {
+        "kind": {
+          "type": "enum",
+          "values": [
+            "table",
+            "board",
+            "cards",
+            "calendar",
+            "list",
+            "tree"
+          ],
+          "summary": "The display kind chosen."
+        },
+        "previous": {
+          "type": "string",
+          "summary": "The display kind before it."
+        }
+      },
+      "cancelable": true,
+      "summary": "The person chose another display kind in the list head (head=\"list\"); cancelable. Not refused, the view writes data-display and asks the host again with query.view {id, type}; a kind other than table is the host's content until its layout comes (C298)."
+    },
+    "settings-open": {
+      "carries": {
+        "id": {
+          "type": "enum",
+          "values": [
+            "rights",
+            "export",
+            "record-field-add"
+          ],
+          "summary": "What was asked: the list's access rights, its export, or a new record field."
+        }
+      },
+      "summary": "The person asked in the list head for a list setting the host keeps on its own pages: access rights or export from «⋯», or «Добавить поле» in the record field settings. The view opens nothing of its own."
     }
   },
   "actions": {
@@ -977,6 +1027,37 @@
     },
     {
       "name": "cl-spinner"
+    },
+    {
+      "name": "cl-segmented",
+      "$comment": [
+        "The list head (head=\"list\", C297, C299-C301): the display kind, the count, the search and the windows are Framework parts; the sheets, tabs, radios and icons of its windows come when a window opens."
+      ]
+    },
+    {
+      "name": "cl-badge"
+    },
+    {
+      "name": "cl-input"
+    },
+    {
+      "name": "cl-popover"
+    },
+    {
+      "name": "cl-drawer",
+      "lazy": true
+    },
+    {
+      "name": "cl-tabs",
+      "lazy": true
+    },
+    {
+      "name": "cl-radio",
+      "lazy": true
+    },
+    {
+      "name": "cl-icon",
+      "lazy": true
     },
     {
       "name": "align-items/default",
