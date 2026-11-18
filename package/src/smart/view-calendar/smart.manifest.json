@@ -576,7 +576,7 @@
         "from": "1.0.0",
         "to": "1.1.0",
         "changes": [
-          "view-config/1 keys from the Larena backend (msg-75b451e2): calendarOptions reads span_days (31, clamped to 366; how far back the host looks for an event that started before the days on screen) and rules from layouts.calendar; the move rules in force are the rules setting and layouts.calendar.rules. moveCheck: weekdays {days} are the ISO days 1..7 a start may fall on (the host's reading; the round's own 0..6 refused days are gone), locked {field, in} holds a record whose field has one of the values (also with no day), ability is the host's and comes per record in can {update: false, code, reason}; sunday..saturday, min, max and dates are still read. A refusal carries its code; with no reason of its own a rule or a host refusal (storage_calendar_update_past, _weekday, _locked, _denied, _end_before_start, _too_long, _patch_invalid) is said in the pack's words (refuse-past, refuse-weekday, refuse-locked, refuse-denied, refuse-end-before-start, refuse-too-long, refuse-patch-invalid; en and ru); a machine code is never shown to a person. VCL-1: mode resolves the mode attribute only when written, then layouts.calendar mode, then month (getProp answered the property default, month, and hid the setting). VCL-3: «+N» is a plain button (sf-view-calendar__more) at --sf-text-height-1/2 instead of an sf-button of the control height; the day's block-size is padding + one control row + per_day text lines and gaps. VCL-4: the phone row's grid is time | title | auto, the second field on the title line (end), the first under the title, ellipsis on long values. Phone month: renderPhoneList draws «Без даты N» (data-undtoggle, aria-pressed) under the month and the chosen day's list (renderDayList with + in its heading, lday-h[data-picked]) or renderUndatedList (rows with data-ev, the close button data-undclose); phoneUndated is the phone's own state, apart from the saved undated_open, cleared by pickDay; toggleUndated on the phone's month toggles it. A touch held 700 ms on a list row opens openEventMenu (rows do not drag; the click after it is swallowed; a native contextmenu cancels the hold)."
+          "view-config/1 keys from the Larena backend (msg-75b451e2): calendarOptions reads span_days (31, clamped to 366; how far back the host looks for an event that started before the days on screen) and rules from layouts.calendar; the move rules in force are the rules setting and layouts.calendar.rules. moveCheck: weekdays {days} are the ISO days 1..7 a start may fall on (the host's reading; the round's own 0..6 refused days are gone), locked {field, in} holds a record whose field has one of the values (also with no day), ability is the host's and comes per record in can {update: false, code, reason}; sunday..saturday, min, max and dates are still read. A refusal carries its code; with no reason of its own a rule or a host refusal (storage_calendar_update_past, _weekday, _locked, _denied, _end_before_start, _too_long, _patch_invalid) is said in the pack's words (refuse-past, refuse-weekday, refuse-locked, refuse-denied, refuse-end-before-start, refuse-too-long, refuse-patch-invalid; en and ru); a machine code is never shown to a person. VCL-1: mode resolves the mode attribute only when written, then layouts.calendar mode, then month (getProp answered the property default, month, and hid the setting). VCL-3: «+N» is a plain button (sf-view-calendar__more) at --sf-text-height-1/2 instead of an sf-button of the control height; the day's block-size is padding + one control row + per_day text lines and gaps. VCL-4: the phone row's grid is time | title | auto, the second field on the title line (end), the first under the title, ellipsis on long values. Phone month: renderPhoneList draws «Без даты N» (data-undtoggle, aria-pressed) under the month and the chosen day's list (renderDayList with + in its heading, lday-h[data-picked]) or renderUndatedList (rows with data-ev, the close button data-undclose); phoneUndated is the phone's own state, apart from the saved undated_open, cleared by pickDay; toggleUndated on the phone's month toggles it. A touch held 700 ms on a list row opens openEventMenu (rows do not drag; the click after it is swallowed; a native contextmenu cancels the hold). The pick window (and the phone month panel) also hears sf-change, the name under which the pair's sf-input-date says a chosen day; with sf-input-date-change alone «Перенести на…» moved nothing. Undated phone rows have no time column."
         ]
       }
     ]
@@ -587,7 +587,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-calendar/index.js",
-        "sha256": "37a0ebf6b95de50492e6fba0ce40fe7a6b60e6735190f23c12e67a2390270cf9"
+        "sha256": "00e31bd5597bfe1268f732e91f2ca8af3f273171d4a73f97c3d383a961c02c64"
       },
       {
         "path": "src/smart/view-calendar/js/calendar.js",
@@ -595,11 +595,11 @@
       },
       {
         "path": "src/smart/view-calendar/js/templates/default.js",
-        "sha256": "a4d58af66ad94ab1d80f40acc452fcefc57346dc92e330203f3967b5c64410d4"
+        "sha256": "920fa2e216ef0250b637f60e44b27f81eb864d2d23e0531aadd9ca25e56caa6f"
       },
       {
         "path": "src/smart/view-calendar/js/templates/default.css",
-        "sha256": "85a9047b2fe54194f63a188bff5650e190cce28534fafc7b140108ca564582ed"
+        "sha256": "c077d99d5af2eb290afed51c9f319830b0768cf14a2d4afbabd06f78378cc6c8"
       },
       {
         "path": "src/smart/field-renderers/index.js",
@@ -611,7 +611,7 @@
       },
       {
         "path": "src/smart/view-calendar/docs.md",
-        "sha256": "502628db3cc26b44ee3b3667ed72a8c928210004598a6bb52370609c1daaa364"
+        "sha256": "bce16f8c679d37d32a5f7e2b215d4bf0a5dbee26eed39d5efd198ef1cb7c6891"
       }
     ],
     "generated_runtime": []

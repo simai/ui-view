@@ -64,7 +64,8 @@ window (C310); DEV's round 3 returns VR3-1..VR3-4.
   chosen day's heading under the month (always shown there) and a «Без даты N»
   item that shows the records without a date in place of the day's list; a
   held row, Shift+F10 or the context menu opens the event menu, where
-  «Перенести на…» sets the date.
+  «Перенести на…» sets the date. The pick window hears the pair's
+  `sf-input-date` (`sf-change`); before, «Перенести на…» moved nothing.
 - Tests: the STATUS test reads only the branches the candidate carries
   (`SET_LIVE_BRANCHES=1` reads live origin, VR3-3). Site: the view-table
   example of former tags uses `sf-view-table` (VR3-4).

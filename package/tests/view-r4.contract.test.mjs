@@ -187,6 +187,7 @@ test('phone month (C307 (3), (4)): + on the chosen day heading, «Без дат�
   assert.match(calendar, /this\._picked = day;\n\s+this\._phoneUndated = false;/u);
   assert.match(calendar, /this\._rowHeld = true;\n\s+this\.openEventMenu\(row\.dataset\.ev, row\);/u);
   assert.match(calendar, /\{id: "pick", text: this\.word\("pick-text"\)/u);
+  assert.match(calendar, /this\.addEventListener\("sf-change", \(event\) => \{ if \(event\.target\?\.matches\?\.\("sf-input-date"\)\) this\._onPicked\(event\); \}/u);
   for (const lang of ['en', 'ru']) {
     const words = json(`src/smart/view-calendar/lang/${lang}.json`).runtime;
     for (const key of ['undated-text', 'undated-hint-phone', 'undated-list-opened-text', 'undated-list-closed-text', 'add-short-text', 'pick-text']) assert.ok(words[key], `${lang} ${key}`);
