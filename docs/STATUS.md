@@ -58,6 +58,7 @@ Every remote branch ahead of `main`, with the release that takes it.
 | `round/view-r1` | view 1.9.0 (the round) |
 | `round/view-r2-head` | view round 2: list head (LH-1..LH-10), merged by the dispatcher in order table, head, page |
 | `round/view-r2-page` | view round 2: property page template (PT-1..PT-6), merged after head |
+| `round/view-r2-board` | view round 2: board helper's branch, merged by the dispatcher |
 | `round/view-r2-card` | view round 2: record card C305 (RC-1..RC-7), `sf-view-properties` 1.18.0, `sf-view` 1.16.0 |
 | `round/view-r1-site` | view 1.9.0: merged into `round/view-r1` (the round's merge); to close after the release |
 | `round/view-r1-card` | view 1.9.0: merged into `round/view-r1` (the round's merge); to close after the release |
