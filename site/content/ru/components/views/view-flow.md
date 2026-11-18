@@ -64,7 +64,7 @@ block.addEventListener('sf-view-flow-answer', async (event) => {
 
 ## Параметры
 
-Справочник собран из манифеста компонента в сборке-кандидате набора (`simai/ui-view@c1a699306eea`) и обновляется вместе с выпуском. Каждому атрибуту соответствует свойство элемента с тем же именем в camelCase: `search-placeholder` — `searchPlaceholder`.
+Справочник собран из манифеста компонента в сборке-кандидате набора (`simai/ui-view@5a77051ef8eb`) и обновляется вместе с выпуском. Каждому атрибуту соответствует свойство элемента с тем же именем в camelCase: `search-placeholder` — `searchPlaceholder`.
 
 | | |
 |:---|:---|
@@ -132,7 +132,7 @@ block.addEventListener('sf-view-flow-answer', async (event) => {
 
 ## Источник
 
-- `simai/ui-view@c1a699306eea:package/src/smart/view-flow`
+- `simai/ui-view@5a77051ef8eb:package/src/smart/view-flow`
 
 ## См. также
 
