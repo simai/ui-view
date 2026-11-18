@@ -5,7 +5,7 @@ profile: reference
 
 # Доска
 
-:badge[sf-view-board]{variant=main scheme=on-surface size=1} :badge[Версия 1.1.0]{variant=tonal scheme=neutral size=1} :badge[Предварительная версия]{variant=tonal scheme=warning size=1}
+:badge[sf-view-board]{variant=main scheme=on-surface size=1} :badge[Версия 1.1.1]{variant=tonal scheme=neutral size=1} :badge[Предварительная версия]{variant=tonal scheme=warning size=1}
 
 Доска раскладывает записи по колонкам: колонки — значения одного поля (состояние заказа, выбор, ответственный, да или нет), карточки — записи. Перенести карточку в другую колонку — значит изменить это поле; изменение сохраняет приложение. В шапке колонки — её название, число записей и суммы денег.
 

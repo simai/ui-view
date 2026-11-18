@@ -5,7 +5,7 @@ profile: reference
 
 # Карточка записи
 
-:badge[sf-view-properties]{variant=main scheme=on-surface size=1} :badge[Версия 1.18.1]{variant=tonal scheme=neutral size=1}
+:badge[sf-view-properties]{variant=main scheme=on-surface size=1} :badge[Версия 1.18.2]{variant=tonal scheme=neutral size=1}
 
 Карточка записи показывает одну запись: её свойства в разделах и группах, каждое своим [типом](/ru/properties/) — строка, текст, число, выбор, дата, флажок, ссылка на другую запись, файл. Группу можно открыть на правку и сохранить.
 

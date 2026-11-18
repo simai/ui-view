@@ -30,6 +30,7 @@ import {execFileSync} from 'node:child_process';
 import {existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync} from 'node:fs';
 import {dirname, join, resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {readHeights, reserveCss} from './record-example-heights.mjs';
 
 const site = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const repository = resolve(site, '..');
@@ -135,7 +136,12 @@ sf-tabs:not(:defined) > [slot] { display: none; }
 @media (max-width: 48rem) {
   .showcase-card { padding: var(--sf-space-2); }
 }
-`);
+` + (() => {
+  // The showcase holds its drawn height from its first frame (VR2-7): the
+  // reserve scripts/record-example-heights.mjs recorded for it.
+  const block = reserveCss(readHeights()['home/showcase']);
+  return block ? `\n${block}` : '';
+})());
 
 // ---- Release data ----------------------------------------------------------
 const materializer = readFileSync(join(site, 'scripts/materialize-framework-runtime.php'), 'utf8');

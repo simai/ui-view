@@ -22,6 +22,8 @@
 //
 //   - scripts/build-properties.mjs writes each property example's reserve
 //     into its index.css;
+//   - scripts/build-pages.mjs writes the home showcase's reserve into the
+//     sheet it generates;
 //   - --apply writes the reserve of every other example into its own
 //     index.css, between the markers below (the file is made if missing).
 //
@@ -126,6 +128,7 @@ function applyAll(heights) {
   let changed = 0;
   for (const [folder, entry] of Object.entries(heights)) {
     if (folder.startsWith('properties/')) continue; // build-properties.mjs writes these
+    if (folder === 'home/showcase') continue; // build-pages.mjs writes its sheet and the reserve
     const dir = join(site, 'examples', folder);
     if (!existsSync(dir)) continue;
     const file = join(dir, 'index.css');

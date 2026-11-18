@@ -5,7 +5,7 @@ profile: reference
 
 # Представление данных
 
-:badge[sf-view]{variant=main scheme=on-surface size=1} :badge[Версия 1.18.0]{variant=tonal scheme=neutral size=1}
+:badge[sf-view]{variant=main scheme=on-surface size=1} :badge[Версия 1.19.0]{variant=tonal scheme=neutral size=1}
 
 Представление данных связывает таблицу с приложением. Компонент не хранит данные: когда человек ищет, сортирует, листает страницы или нажимает действие, он передаёт приложению намерение — например `query.change`, — а приложение отвечает записями. Ответ компонент передаёт таблице `sf-view-table` и строке страниц `sf-pagination`.
 
