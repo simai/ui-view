@@ -4356,15 +4356,15 @@
             "schema_version": 2,
             "package": "view",
             "requires": "ui-1ed6b6c9a040",
-            "mount": "_docara/framework-packages/view/42a536582aa144f8336acce93eab2d89e1044f71",
+            "mount": "_docara/framework-packages/view/08813acfecbb0f0ed31c811bb5fd82db45465589",
             "receipt": {
                 "schema": "simai.framework.product-package-receipt",
                 "schema_version": 1,
                 "package_source": {
                     "repository": "simai/ui-view",
-                    "revision": "42a536582aa144f8336acce93eab2d89e1044f71",
+                    "revision": "08813acfecbb0f0ed31c811bb5fd82db45465589",
                     "path": "package",
-                    "tree": "0ce81b5d8d95c894119563550d03266b2c960691"
+                    "tree": "0bd0ae8c7af8f910d0ff95626f5c69e83b7eeb8e"
                 },
                 "framework_source": {
                     "repository": "simai/ui-source",
@@ -4374,15 +4374,15 @@
                     "repository": "simai/ui-builder",
                     "revision": "ba79e739d1f9e2568d27e030606e8f95ce91b380"
                 },
-                "manifest_sha256": "8db1ca894f503ab2e2b03ff6bb56adb52276dbedfe798793069f1ad5aa65886b",
-                "archive_sha256": "2c1119e2cf5b3415fb33a79fa19bc5b223bf33946f45f8aa2d1ca6be1567b9e6"
+                "manifest_sha256": "54b83d01c223d8e28a4438faa4a3f95d10850439a5d7a9f9fe3826bea2515a3a",
+                "archive_sha256": "fb689c795c02693fb77d47fe158fb38069172555485dd7d7ed646110df31fee4"
             },
             "files": {
                 "set.json": {
-                    "sha256": "d8e114fb26caa293941ff2ee71f6a53a0651ba2921932806c09c50dbe26c1238"
+                    "sha256": "69bbf8a3f519ef516e4b2619ac2a6b9ccde157a85073980d4f4d0c85c9db32ab"
                 },
                 "smart/rule.js": {
-                    "sha256": "0f2e4478ed709c1e207e7b0c8e0e06befbddc9bffce20686d8f2de08889a1450"
+                    "sha256": "dbaacc5741b7531e8a8a27904ca8103e0e8718153258fcaa6392f0b1ceca58d5"
                 },
                 "smart/view-board/css/view-board.css": {
                     "sha256": "06870742d352b0a054d582f565de0ce3531c2dba3771fbb31a570e3de9525078"
@@ -4395,6 +4395,18 @@
                 },
                 "smart/view-board/js/view-board.min.js": {
                     "sha256": "91ad3c4088967bdac9b692603255fdc65a0c3337f915bb77a305d1e2c412f31d"
+                },
+                "smart/view-calendar/css/view-calendar.css": {
+                    "sha256": "c10fb77e4c1246208d9dd6f3e368e247972e20dd000bd172bf094946c3f9f0f2"
+                },
+                "smart/view-calendar/css/view-calendar.min.css": {
+                    "sha256": "4dcfe459ffefe201b734adbd64754d51481538247b2eaf9beb44ed9b62689a38"
+                },
+                "smart/view-calendar/js/view-calendar.js": {
+                    "sha256": "6326e2c9b384045d1561c0691ae0ffdae63ca39c9c8612c5d299827f394be274"
+                },
+                "smart/view-calendar/js/view-calendar.min.js": {
+                    "sha256": "c0f662be0e9cebab19a61315d1549de2ff0dba2654b8f3b18687ee1fbcbbcc50"
                 },
                 "smart/view-cards/css/view-cards.css": {
                     "sha256": "192b7fc91beb16a16852006129c4c70e3e1e71be34b44aa3d642efe34a5dc64e"
@@ -4421,16 +4433,16 @@
                     "sha256": "e9367a3a8d3888cdb5d47b9aa40aa9dc0d5543efdae7e11e56bbb30ba45b287e"
                 },
                 "smart/view-properties/css/view-properties.css": {
-                    "sha256": "523201f362a6db47e269cc2a96aa9d1b398fcf9952eb8d2c9ff37fbd271c2715"
+                    "sha256": "69bf4e279a47157b7954d49eea15f21608fd803ed997b7ac960ed249a7957a96"
                 },
                 "smart/view-properties/css/view-properties.min.css": {
-                    "sha256": "24a159da5cf058e5f9c03eb0138f9ea5a4e3e47e3bedff9c4f6c23ee683c1599"
+                    "sha256": "c343a90cd648673328db0f60f23c19ea92382cd6841330c0b4cf4050ea46cf3e"
                 },
                 "smart/view-properties/js/view-properties.js": {
-                    "sha256": "10c679ce7d74115a824fcef103f015f05513cad68382a7ea57e5a90498fbe7cc"
+                    "sha256": "fb61045519935c657bb93fcc9564550248a05960694e65b99f247d39e2b1692a"
                 },
                 "smart/view-properties/js/view-properties.min.js": {
-                    "sha256": "d639ed3109a6e86898206e8dbd8ac16bb4d943db669893eb954b4eab2d06a578"
+                    "sha256": "2619fce1326409edd65d969f9bea427b249aee0686d3c208b969145774d5965c"
                 },
                 "smart/view-table/css/view-table.css": {
                     "sha256": "29039266c4a24db300f4a8702e3e952e53278cc40af4edb277846659b20bd97b"
@@ -4439,22 +4451,22 @@
                     "sha256": "3ce92fd9d7233d47750177ed2eb4472f26a52eb9dd0b9efbc2952199ded3fc73"
                 },
                 "smart/view-table/js/view-table.js": {
-                    "sha256": "cae6f73474daecceffcb8fb329aa07812a36949dfc5cd581749591890bf4a6ea"
+                    "sha256": "695de692e9c6b51835d4b9e76d72008173ca0a830b5038b5f62699f39c9740bc"
                 },
                 "smart/view-table/js/view-table.min.js": {
-                    "sha256": "dbd3c65abab5b9dacd7447b828530885affae96fbeb5262fe289bda1b2f9f6a2"
+                    "sha256": "856c20eb1fe81e3ac4ab9ecd8c59c64b4ca27256930d913eef666cb1ad3d3fd5"
                 },
                 "smart/view/css/view.css": {
-                    "sha256": "6248a493f7d9dbefd28c431960c9a51cd06d166126815de00d2befb45b61808e"
+                    "sha256": "b2b79a6dac0426fde0041d9b570a53ec9755e506d6933ad2a4ed537f30e409d3"
                 },
                 "smart/view/css/view.min.css": {
-                    "sha256": "d8eaa10852771841b9aebc8219afb6c5f929e00f0a92dd4ee6c5061b332393fc"
+                    "sha256": "8cdb10e0332a8aa3f2b6f27f0b645ac92c7ded612dd9ef0e424d1690ab25b2f7"
                 },
                 "smart/view/js/view.js": {
-                    "sha256": "5046cc811746fdd1a088ad21cdf337ba5910c6ce44ced68eb1ccf7797a59d865"
+                    "sha256": "de1a65411d9212fec8dbc4a081d9e4f2a6e510414b87a4ff780a9dd35ebf7a66"
                 },
                 "smart/view/js/view.min.js": {
-                    "sha256": "818992b390aa8d96f694be31375473a5d8b4b6f4c425271ba711497971f9887a"
+                    "sha256": "2cb52787ee0b00c68333c67b7e7f25ca4c3fbfb4e6a58a33b0f9f8e96176a221"
                 }
             }
         }

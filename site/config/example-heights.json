@@ -7,6 +7,14 @@
     "wide": 498,
     "narrow": 566
   },
+  "components/view-calendar": {
+    "wide": 797,
+    "narrow": 509
+  },
+  "components/view-cards": {
+    "wide": 2254,
+    "narrow": 7094
+  },
   "components/view-flow": {
     "wide": 562,
     "narrow": 730

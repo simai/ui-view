@@ -55,7 +55,7 @@ export function reserveCss(entry) {
     '   SIMAI Framework parts inside have drawn, and the page below moved when they did. */'];
   // Until the set's own parts are defined they have no height and the parts
   // below them would move when they draw: the example shows when they are.
-  lines.push('body:has(:is(sf-view, sf-view-table, sf-table, sf-view-properties, sf-view-board, sf-view-flow):not(:defined)) { visibility: hidden; }');
+  lines.push('body:has(:is(sf-view, sf-view-table, sf-table, sf-view-properties, sf-view-board, sf-view-cards, sf-view-calendar, sf-view-flow):not(:defined)) { visibility: hidden; }');
   if (entry.wide > 0) lines.push(`body { min-block-size: ${Math.ceil(entry.wide)}px; }`);
   if (entry.narrow > 0) lines.push(`@media (max-width: ${NARROW}px) { body { min-block-size: ${Math.ceil(entry.narrow)}px; } }`);
   lines.push(END);
