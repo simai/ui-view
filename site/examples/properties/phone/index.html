@@ -1,0 +1,44 @@
+<div data-property class="property">
+  <div class="property-templates" data-template-switch hidden>
+    <span class="property-label">Шаблон</span>
+    <sf-segmented size="1/2" aria-label="Шаблон"></sf-segmented>
+    <p class="property-note" data-template-note></p>
+  </div>
+  <section class="property-place" data-place="view" aria-labelledby="place-view">
+    <header class="property-place-head"><h2 class="property-head" id="place-view">Показ</h2><span class="property-changed" hidden>меняет шаблон</span></header>
+    <p class="property-note">Карточка записи, список, панель.</p>
+    <div class="property-rows" data-slot="view"></div>
+  </section>
+  <section class="property-place" data-place="compact" aria-labelledby="place-compact">
+    <header class="property-place-head"><h2 class="property-head" id="place-compact">Кратко</h2><span class="property-changed" hidden>меняет шаблон</span></header>
+    <p class="property-note">Значение в малом месте любого представления: в строке таблицы, на карточке, в записи календаря. Длинное обрезает само представление.</p>
+    <div class="property-compact">
+      <div class="property-table-wrap"><table class="property-table"><thead><tr><th>Счёт</th><th>Телефон</th><th>Клиент</th></tr></thead><tbody data-slot="compact-rows"></tbody></table></div>
+      <div class="property-cards" data-slot="compact-cards"></div>
+    </div>
+    <p class="property-out" data-slot="compact-out"></p>
+  </section>
+  <section class="property-place" data-place="edit" aria-labelledby="place-edit">
+    <header class="property-place-head"><h2 class="property-head" id="place-edit">Правка</h2><span class="property-changed" hidden>меняет шаблон</span></header>
+    <p class="property-note">Карточка в правке, форма.</p>
+    <div class="property-edit">
+      <span class="property-label" data-slot="edit-label">Телефон</span>
+      <div data-slot="edit"></div>
+      <p class="property-out" role="status" data-slot="edit-out"></p>
+    </div>
+    <div class="property-states">
+      <div><span class="property-label">Пусто, обязательное</span><div data-slot="state-empty"></div></div>
+      <div><span class="property-label">Ошибка</span><div data-slot="state-error"></div></div>
+      <div><span class="property-label">Только чтение</span><div data-slot="state-readonly"></div></div>
+    </div>
+  </section>
+  <section class="property-place" data-place="filter" aria-labelledby="place-filter">
+    <header class="property-place-head"><h2 class="property-head" id="place-filter">Фильтр</h2><span class="property-changed" hidden>меняет шаблон</span></header>
+    <p class="property-note">Панель фильтра над списком. Задайте условие.</p>
+    <div class="property-edit">
+      <span class="property-label">Телефон</span>
+      <div data-slot="filter"></div>
+      <p class="property-out" role="status" data-slot="filter-out"></p>
+    </div>
+  </section>
+</div>

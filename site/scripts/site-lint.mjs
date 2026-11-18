@@ -9,7 +9,9 @@
 //   properties  config/properties.json lists the property types of the
 //               Framework field renderers' registry of the pair the site is
 //               built over (.framework/), in its order, and every type has a
-//               page and an example (C290 (3), (4));
+//               page and an example (C290 (3), (4)); a type the pair does not
+//               have yet names in `framework` the registry type it is drawn
+//               as (phone and password, C302 (1)), and goes when it has it;
 //   tops        a component page's introduction does not start with the tag
 //               (D12), the overview puts words first (§11.9);
 //   versions    no release literal (a pair id, a set release id, an npm or
@@ -66,7 +68,9 @@ const SECTIONS = [['guide', 'Руководство'], ['components', 'Комп�
 
 // ---- properties ------------------------------------------------------------
 {
-  const config = json('config/properties.json').types.map((entry) => entry.type);
+  const entries = json('config/properties.json').types;
+  const config = entries.map((entry) => entry.type);
+  const own = entries.filter((entry) => !entry.framework).map((entry) => entry.type);
   const renderers = join(site, '.framework/distr/smart/field-renderers/js/field-renderers.js');
   if (existsSync(renderers)) {
     const source = readFileSync(renderers, 'utf8');
@@ -75,7 +79,11 @@ const SECTIONS = [['guide', 'Руководство'], ['components', 'Комп�
     if (start < 0 || end < 0) fail('properties', relative(site, renderers), 'PROPERTY_TYPES not found');
     else {
       const registry = [...source.slice(start, end).matchAll(/^ {2}type: '([^']+)'/gmu)].map((match) => match[1]);
-      if (JSON.stringify(registry) !== JSON.stringify(config)) fail('properties', 'config/properties.json', `types ${config.join(', ')} differ from the registry ${registry.join(', ')}`);
+      if (JSON.stringify(registry) !== JSON.stringify(own)) fail('properties', 'config/properties.json', `types ${own.join(', ')} differ from the registry ${registry.join(', ')}`);
+      for (const entry of entries.filter((one) => one.framework)) {
+        if (registry.includes(entry.type)) fail('properties', 'config/properties.json', `${entry.type} is in the registry now: drop its «framework»`);
+        if (!registry.includes(entry.framework)) fail('properties', 'config/properties.json', `${entry.type} is drawn as ${entry.framework}, which the registry does not have`);
+      }
     }
   } else {
     notes.push('properties: .framework/ is not extracted (run scripts/build.sh); the registry was not compared');

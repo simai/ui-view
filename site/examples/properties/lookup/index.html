@@ -1,52 +1,44 @@
-<div data-properties class="flex flex-col gap-3">
-  <section class="flex flex-col gap-1" aria-label="Ячейка таблицы и фильтр">
-    <p class="m-0 weight-6">Ячейка таблицы и фильтр</p>
-      <sf-view aria-label="Записи" preferences-key="view.properties-lookup">
-        <sf-view-table slot="content" aria-label="Записи" layout="auto" selectable="false"></sf-view-table>
-        <sf-pagination slot="pagination" page-size="10" page-sizes="10,25" top="false"></sf-pagination>
-      </sf-view>
+<div data-property class="property">
+  <div class="property-templates" data-template-switch hidden>
+    <span class="property-label">Шаблон</span>
+    <sf-segmented size="1/2" aria-label="Шаблон"></sf-segmented>
+    <p class="property-note" data-template-note></p>
+  </div>
+  <section class="property-place" data-place="view" aria-labelledby="place-view">
+    <header class="property-place-head"><h2 class="property-head" id="place-view">Показ</h2><span class="property-changed" hidden>меняет шаблон</span></header>
+    <p class="property-note">Карточка записи, список, панель.</p>
+    <div class="property-rows" data-slot="view"></div>
   </section>
-  <div class="flex flex-wrap gap-1 items-cross-center" role="group" aria-label="Запись в карточках" data-record-switch>
-      <button type="button" class="sf-button sf-button--outline sf-button--on-surface sf-button--size-1/2 active" data-record="r-1" aria-pressed="true"><span class="sf-button-text-container">Первая запись</span></button>
-      <button type="button" class="sf-button sf-button--outline sf-button--on-surface sf-button--size-1/2" data-record="r-2" aria-pressed="false"><span class="sf-button-text-container">Вторая запись</span></button>
-      <button type="button" class="sf-button sf-button--outline sf-button--on-surface sf-button--size-1/2" data-record="r-3" aria-pressed="false"><span class="sf-button-text-container">Пустые значения</span></button>
-  </div>
-  <div class="grid gap-3 property-cards">
-    <section class="flex flex-col gap-1 min-w-0" aria-label="Показ">
-      <p class="m-0 weight-6">Показ</p>
-      <sf-view-properties aria-label="Показ" mode="view" data-follows></sf-view-properties>
-    </section>
-    <section class="flex flex-col gap-1 min-w-0" aria-label="Правка">
-      <p class="m-0 weight-6">Правка</p>
-      <sf-view-properties aria-label="Правка" mode="edit" data-follows></sf-view-properties>
-    </section>
-  </div>
-  <p class="m-0 color-on-surface-variant" role="status" data-log>Измените поля в правке и нажмите «Сохранить» — здесь будет то, что получило приложение.</p>
-  <section class="flex flex-col gap-2" aria-label="Состояния">
-    <p class="m-0 weight-6">Состояния</p>
-    <div class="grid gap-3 property-states">
-      <section class="flex flex-col gap-1 min-w-0" aria-label="Пусто">
-        <p class="m-0 weight-6">Пусто</p>
-        <sf-view-properties aria-label="Пусто" mode="view" data-record="r-3"></sf-view-properties>
-      </section>
-      <section class="flex flex-col gap-1 min-w-0" aria-label="Ошибка">
-        <p class="m-0 weight-6">Ошибка</p>
-        <sf-view-properties aria-label="Ошибка" mode="edit" data-state="error"></sf-view-properties>
-      </section>
-      <section class="flex flex-col gap-1 min-w-0" aria-label="Только чтение">
-        <p class="m-0 weight-6">Только чтение</p>
-        <sf-view-properties aria-label="Только чтение" mode="edit" data-state="readonly"></sf-view-properties>
-      </section>
-      <section class="flex flex-col gap-1 min-w-0" aria-label="Телефон">
-        <p class="m-0 weight-6">Телефон</p>
-        <div class="flex flex-col gap-2 property-phone">
-      <sf-view aria-label="Записи" preferences-key="view.properties-lookup-phone">
-        <sf-view-table slot="content" aria-label="Записи" layout="auto" selectable="false"></sf-view-table>
-        <sf-pagination slot="pagination" page-size="10" page-sizes="10,25" top="false"></sf-pagination>
-      </sf-view>
-          <sf-view-properties aria-label="Телефон" mode="view"></sf-view-properties>
-        </div>
-      </section>
+  <section class="property-place" data-place="compact" aria-labelledby="place-compact">
+    <header class="property-place-head"><h2 class="property-head" id="place-compact">Кратко</h2><span class="property-changed" hidden>меняет шаблон</span></header>
+    <p class="property-note">Значение в малом месте любого представления: в строке таблицы, на карточке, в записи календаря. Длинное обрезает само представление.</p>
+    <div class="property-compact">
+      <div class="property-table-wrap"><table class="property-table"><thead><tr><th>Счёт</th><th>Страна</th><th>Клиент</th></tr></thead><tbody data-slot="compact-rows"></tbody></table></div>
+      <div class="property-cards" data-slot="compact-cards"></div>
+    </div>
+    <p class="property-out" data-slot="compact-out"></p>
+  </section>
+  <section class="property-place" data-place="edit" aria-labelledby="place-edit">
+    <header class="property-place-head"><h2 class="property-head" id="place-edit">Правка</h2><span class="property-changed" hidden>меняет шаблон</span></header>
+    <p class="property-note">Карточка в правке, форма.</p>
+    <div class="property-edit">
+      <span class="property-label" data-slot="edit-label">Страна</span>
+      <div data-slot="edit"></div>
+      <p class="property-out" role="status" data-slot="edit-out"></p>
+    </div>
+    <div class="property-states">
+      <div><span class="property-label">Пусто, обязательное</span><div data-slot="state-empty"></div></div>
+      <div><span class="property-label">Ошибка</span><div data-slot="state-error"></div></div>
+      <div><span class="property-label">Только чтение</span><div data-slot="state-readonly"></div></div>
+    </div>
+  </section>
+  <section class="property-place" data-place="filter" aria-labelledby="place-filter">
+    <header class="property-place-head"><h2 class="property-head" id="place-filter">Фильтр</h2><span class="property-changed" hidden>меняет шаблон</span></header>
+    <p class="property-note">Панель фильтра над списком. Задайте условие.</p>
+    <div class="property-edit">
+      <span class="property-label">Страна</span>
+      <div data-slot="filter"></div>
+      <p class="property-out" role="status" data-slot="filter-out"></p>
     </div>
   </section>
 </div>

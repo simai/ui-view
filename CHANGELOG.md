@@ -68,6 +68,23 @@ up). Each component.json says the same under `x-decisions`
   ui-source `acc113415d98`, core.runtime 1.60.0; the round's helpers built
   over `ui-24d64b7f6eb7`, npm 5.20261117.1311); the site on Docara 3.17.0
   (was 3.14.1). Former names keep ending on 2027-01-01.
+- Site, «Свойства» (owner decisions C300 and C302, round 2 page helper): one
+  page template for every type, written whole by
+  `site/scripts/build-properties.mjs` -- what the type stores and its
+  templates (id, default, which of the four places each changes), one live
+  example of four sections «Показ», «Кратко», «Правка», «Фильтр» (three
+  samples; the compact form in a table column and on cards with a small edit
+  window for short fields; the edit with «Сервер получит», then empty and
+  required, a real error and read only; the open filter with «В запрос
+  уйдёт»), a template switch that keeps the value and the server lines, then
+  «Значение и сервер» with the field description, «Настройки», «Где
+  хранится» (Larena, Bitrix) and the neighbours. Gone: the «Телефон» block,
+  the three state cards, pagination, search, «Запись», «Свойства» and
+  «Сохранить» in the examples, the HTML/CSS/JS tabs with the whole catalogue,
+  variants as bottom text. Phone and password have pages of their own
+  (C302 (1)); this pair draws them as string variants. The example reads the
+  templates from the Framework registry (`templates`, `template`) and falls
+  back to the former `variant` names.
 - `sf-view-table` 1.23.1 and `sf-view-flow` 1.1.6 follow the Framework files
   of the pair `ui-1ed6b6c9a040` they build in (`src/smart/pagination/index.js`
   takes its words from its language module, C282;
