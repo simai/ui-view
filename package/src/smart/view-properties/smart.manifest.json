@@ -1956,7 +1956,7 @@
         "from": "1.19.0",
         "to": "1.20.0",
         "changes": [
-          "C311 (5), the dispatcher's call on RC-6 (round/view-r4): the «⋯» menu has no views submenu for anyone; the person who may arrange keeps the one entry «Вид: <name>» that enters the arranging mode with the picker open; a person who cannot arrange (no view settings from the host, no writable layer, or a view-only surface) and has more than one view gets sf-profile-picker in select-only mode above the fields (profiles not editable, nothing created, no reset; a choice raises view.profile). Removed as dead: renderViewProfiles and renderNewViewName in the template (with their CSS), viewProfileEntries, openViewProfileMenu, the view-profile: menu ids, namingView, startNamingView and cancelNamingView. Port range 1.0.0..1.20.0 (SUPPORTED_PORT_VERSIONS, host_port.supported_versions, the passport's list): the C311 edition is port 1.20.0 (the dispatcher's renumbering; GB12 holds 1.19.0, money C294), and hostSpeaksCardSettings asks for 1.20.0 or later. On a phone the card opens on its tab list, and the chooser stands above that list too."
+          "C311 (5), the dispatcher's call on RC-6 (round/view-r4): the «⋯» menu has no views submenu for anyone; the person who may arrange keeps the one entry «Вид: <name>» that enters the arranging mode with the picker open; a person who cannot arrange (no view settings from the host, no writable layer, or a view-only surface) and has more than one view gets sf-profile-picker in select-only mode above the fields (profiles not editable, nothing created, no reset; a choice raises view.profile). Removed as dead: renderViewProfiles and renderNewViewName in the template (with their CSS), viewProfileEntries, openViewProfileMenu, the view-profile: menu ids, namingView, startNamingView and cancelNamingView. Port range 1.0.0..1.20.0 (SUPPORTED_PORT_VERSIONS, host_port.supported_versions, the passport's list): the C311 edition is port 1.20.0 (the dispatcher's renumbering; GB12 holds 1.19.0, money C294), and hostSpeaksCardSettings asks for 1.20.0 or later. On a phone the card opens on its tab list, and the chooser stands above that list too. Larena backend contract (c311-reply): VIEW_REFUSALS and viewRefusalText(answer, fallback) say the codes in words (view-refused-*-text, en and ru) for view.create/view.profile/view.publish/view.lock refusals and view.save entry errors (an entry error without kind:key, such as head, becomes the card's message); view.publish conflict stores personal {revision, view} as well as shared; view.lock reads required (Larena's path \"required\") into profiles[]; the select-only chooser is disabled in a required view."
         ]
       }
     ]
@@ -1967,11 +1967,11 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-properties/index.js",
-        "sha256": "49e901c5d3d9f96d7df0ddba12d37ad6a6b6276c497a1b58f09e22c93377acbe"
+        "sha256": "73e3ddbe96844fd1eae82d555a9cb59f452a7dab0923e235a24f96054701d3f1"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.js",
-        "sha256": "3975d6512885b65aa12c00fb170f7704f8084b16add25df2e4dc816cafd8689d"
+        "sha256": "1f2d397e75fea89d5d30db9ce92ae01fb2850f6c210b1c52c417167078619d29"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.css",

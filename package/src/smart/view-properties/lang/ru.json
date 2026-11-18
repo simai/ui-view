@@ -135,6 +135,14 @@
     "configure-personal-hint-text": "Ваши правки сохраняются сразу, только для вас.",
     "configure-admin-hint-text": "Ваши правки сохраняются сразу, только для вас. Для всех — кнопкой внизу.",
     "configure-required-hint-text": "Вид обязательный. Правки видны до ухода со страницы.",
-    "new-field-text": "Новое поле…"
+    "new-field-text": "Новое поле…",
+    "view-refused-invalid-text": "Вид не сохранён: настройки не подходят",
+    "view-refused-shared-denied-text": "Нет права настраивать вид для всех",
+    "view-refused-own-text": "Это личный вид, а не вид для всех",
+    "view-refused-unknown-text": "Такого вида больше нет",
+    "view-refused-required-text": "У этой карточки обязательный вид: его нельзя менять или заменить",
+    "view-refused-lock-invalid-text": "Эту настройку нельзя закрыть",
+    "view-refused-head-invalid-text": "В заголовке не больше двух полей, а статус — поле со списком значений",
+    "view-refused-icon-invalid-text": "Неизвестный значок вкладки"
   }
 }

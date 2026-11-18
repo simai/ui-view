@@ -72,7 +72,8 @@ function renderConfigureTop(context) {
 // A person who cannot arrange the card chooses between the views in the same
 // picker, select-only, above the fields (C311 (5), the dispatcher's call on
 // RC-6): no «⋯ → Вид» submenu for anyone. Nothing is made, renamed, removed
-// or reset here; one view, no picker.
+// or reset here; one view, no picker. A required view is the only one the
+// host lets anyone read (Larena c311-reply): the picker shows it, disabled.
 function renderViewChooser(context) {
     const profiles = context.viewProfiles ?? [];
     if (context.canConfigureView || context.configuring || profiles.length < 2) return nothing;
@@ -83,6 +84,7 @@ function renderViewChooser(context) {
                     data-action="view-profile"
                     label=${context.viewProfileLabel}
                     current=${context.viewProfile ?? ''}
+                    ?disabled=${context.viewRequired}
                     .profiles=${profiles.map((profile) => ({id: profile.id, label: profile.label, shared: Boolean(profile.shared), editable: false}))}
                     .rights=${{create: {personal: false, shared: false}}}
                     @sf-profile-picker-select=${(event) => context.component.selectViewProfile(event.detail.id)}

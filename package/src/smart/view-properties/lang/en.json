@@ -135,6 +135,14 @@
     "configure-personal-hint-text": "Your edits are saved at once, for you only.",
     "configure-admin-hint-text": "Your edits are saved at once, for you only. For everyone, with the button below.",
     "configure-required-hint-text": "This view is required. Edits stay until you leave the page.",
-    "new-field-text": "New field…"
+    "new-field-text": "New field…",
+    "view-refused-invalid-text": "The view was not saved: its settings do not fit",
+    "view-refused-shared-denied-text": "You may not set the view for everyone",
+    "view-refused-own-text": "This is a person's own view, not a view for everyone",
+    "view-refused-unknown-text": "This view no longer exists",
+    "view-refused-required-text": "This card has a required view: it cannot be changed or replaced",
+    "view-refused-lock-invalid-text": "This setting cannot be locked",
+    "view-refused-head-invalid-text": "The head takes up to two fields, and the status is a field with a list of values",
+    "view-refused-icon-invalid-text": "This tab icon is unknown"
   }
 }

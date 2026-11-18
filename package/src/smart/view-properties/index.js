@@ -200,6 +200,20 @@ const PROPERTY_VIEW_TEXT = {
 
 const SECTION_ICONS = ICON_CHOICES;
 
+// The refusal codes of a view write (port 1.20.0; Larena backend c311-reply)
+// and the pack's words for them.
+const VIEW_REFUSALS = {
+    view_invalid: "viewRefusedInvalidText",
+    admin_record_view_changed: "viewChangedText",
+    admin_record_layout_shared_denied: "viewRefusedSharedDeniedText",
+    admin_record_view_own: "viewRefusedOwnText",
+    admin_record_view_unknown: "viewRefusedUnknownText",
+    admin_record_view_required: "viewRefusedRequiredText",
+    admin_record_layout_lock_invalid: "viewRefusedLockInvalidText",
+    admin_record_layout_head_invalid: "viewRefusedHeadInvalidText",
+    admin_record_layout_icon_invalid: "viewRefusedIconInvalidText",
+};
+
 // sf-view-properties from its component.json (standard simai.smart-component
 // 1.3.8 §3, §4, §8, §11): its own props below keep their parsers; what they
 // do not name is the manifest's. The actions answer outcomes
@@ -2291,6 +2305,15 @@ class SfPropertyView extends PropertyViewElement {
         return !this.record && !this.loadFailure && this.getAttribute("data-state") !== "error";
     }
 
+    // A view refusal in words (port 1.20.0, Larena backend c311-reply): the
+    // host's message if it sends one, else the pack's words for its code;
+    // a machine code is never shown to a person.
+    viewRefusalText(answer, fallback = this.viewDeniedText) {
+        if (answer?.message) return String(answer.message);
+        const key = VIEW_REFUSALS[String(answer?.reason ?? answer?.code ?? "")];
+        return key ? pageText(PROPERTY_VIEW_TEXT, key, this) : fallback;
+    }
+
     _setState(state, message = "") {
         // Loading again while loading draws nothing new: the skeleton is already
         // on screen (one action, one render).
@@ -3468,7 +3491,7 @@ class SfPropertyView extends PropertyViewElement {
         }, {stale: () => epoch !== this.epoch});
         if (!answer) return null;
         if (answer.answer !== "applied") {
-            this._setState("error", answer.message || this.viewDeniedText);
+            this._setState("error", this.viewRefusalText(answer));
             return answer;
         }
         this.record = answer.record ?? this.record;
@@ -3497,7 +3520,7 @@ class SfPropertyView extends PropertyViewElement {
         }, {stale: () => epoch !== this.epoch});
         if (!answer) return null;
         if (answer.answer !== "applied") {
-            this._setState("error", answer.message || this.viewDeniedText);
+            this._setState("error", this.viewRefusalText(answer));
             return answer;
         }
         this.record = answer.record ?? this.record;
@@ -4287,8 +4310,12 @@ class SfPropertyView extends PropertyViewElement {
             return answer;
         }
         if (answer.answer === "refused") {
-            this.entryErrors = new Map(Object.entries(answer.entry_errors ?? {}).map(([key, value]) => [key, String(value)]));
+            const errors = Object.entries(answer.entry_errors ?? {});
+            this.entryErrors = new Map(errors.map(([key, value]) => [key, this.viewRefusalText({code: value}, String(value))]));
             await this.load("view-refused");
+            // An error of the head or of no entry on screen is said as the card's message.
+            const loose = errors.find(([key]) => !key.includes(":"));
+            if (loose || !errors.length) this.message = this.viewRefusalText(loose ? {code: loose[1]} : answer, pageText(PROPERTY_VIEW_TEXT, "viewSaveFailedText", this));
             return answer;
         }
         this._setState("error", answer.message || pageText(PROPERTY_VIEW_TEXT, "viewSaveFailedText", this));
@@ -4318,7 +4345,9 @@ class SfPropertyView extends PropertyViewElement {
                 this._storeLayer("personal", answer.personal?.revision ?? null, null);
                 this.message = pageText(PROPERTY_VIEW_TEXT, "viewPublishedText", this);
             } else {
-                this.message = answer.message || pageText(PROPERTY_VIEW_TEXT, "viewChangedText", this);
+                // A conflict carries both newer layers: the next publish asks with them.
+                if (answer.personal) this._storeLayer("personal", answer.personal.revision ?? null, answer.personal.view ?? null);
+                this.message = this.viewRefusalText(answer, pageText(PROPERTY_VIEW_TEXT, "viewChangedText", this));
             }
             this.layerDraft = this._layerCopy(this.viewTarget);
             // What «Отменить» puts back is now what everyone has.
@@ -4326,7 +4355,7 @@ class SfPropertyView extends PropertyViewElement {
             await this.load(answer.answer === "applied" ? "view-published" : "view-conflict");
             return answer;
         }
-        this._setState("error", answer.message || pageText(PROPERTY_VIEW_TEXT, "viewSaveFailedText", this));
+        this._setState("error", this.viewRefusalText(answer, pageText(PROPERTY_VIEW_TEXT, "viewSaveFailedText", this)));
         return answer;
     }
 
@@ -4347,13 +4376,17 @@ class SfPropertyView extends PropertyViewElement {
         if (!answer) return null;
         if ((answer.answer === "applied" || answer.answer === "conflict") && this.view) {
             if (Array.isArray(answer.locked)) this.view.locked = answer.locked.map(String);
+            // Larena's path "required" answers whether the profile is now required.
+            if (typeof answer.required === "boolean" && Array.isArray(this.view.profiles)) {
+                this.view.profiles = this.view.profiles.map((item) => (item.id === this.viewProfile ? {...item, required: answer.required} : item));
+            }
             const shared = this.view.layers?.shared;
             if (shared && answer.revision) this.view.layers = {...this.view.layers, shared: {...shared, revision: String(answer.revision)}};
-            if (answer.answer === "conflict") this.message = answer.message || pageText(PROPERTY_VIEW_TEXT, "viewChangedText", this);
+            if (answer.answer === "conflict") this.message = this.viewRefusalText(answer, pageText(PROPERTY_VIEW_TEXT, "viewChangedText", this));
             this.requestComponentUpdate("view-lock");
             return answer;
         }
-        this._setState("error", answer.message || pageText(PROPERTY_VIEW_TEXT, "viewSaveFailedText", this));
+        this._setState("error", this.viewRefusalText(answer, pageText(PROPERTY_VIEW_TEXT, "viewSaveFailedText", this)));
         return answer;
     }
 

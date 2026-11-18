@@ -66,6 +66,14 @@ window (C310); DEV's round 3 returns VR3-1..VR3-4.
   held row, Shift+F10 or the context menu opens the event menu, where
   «Перенести на…» sets the date. The pick window hears the pair's
   `sf-input-date` (`sf-change`); before, «Перенести на…» moved nothing.
+- `sf-view-properties` 1.20.0 against the Larena backend's C311 contract:
+  view refusals (`admin_record_layout_shared_denied`, `admin_record_view_own`,
+  `admin_record_view_unknown`, `admin_record_view_required`,
+  `admin_record_layout_lock_invalid`, `admin_record_layout_head_invalid`,
+  `admin_record_layout_icon_invalid`, `view_invalid`) are said in the pack's
+  words; a publish conflict keeps the personal layer it carries; a lock
+  answer's `required` updates the view; a required view disables the
+  reader's view chooser.
 - Tests: the STATUS test reads only the branches the candidate carries
   (`SET_LIVE_BRANCHES=1` reads live origin, VR3-3). Site: the view-table
   example of former tags uses `sf-view-table` (VR3-4).

@@ -194,3 +194,21 @@ test('phone month (C307 (3), (4)): + on the chosen day heading, «Без дат�
     for (const key of ['undated-text', 'undated-hint-phone', 'undated-list-opened-text', 'undated-list-closed-text', 'add-short-text', 'pick-text']) assert.ok(words[key], `${lang} ${key}`);
   }
 });
+
+test('Larena C311 contract (c311-reply, port 1.20.0): refusal codes in words, conflict layers kept, lock answers required, a required view disables the chooser', () => {
+  const card = read('src/smart/view-properties/index.js');
+  const template = read('src/smart/view-properties/js/templates/default.js');
+  for (const code of ['view_invalid', 'admin_record_view_changed', 'admin_record_layout_shared_denied', 'admin_record_view_own', 'admin_record_view_unknown', 'admin_record_view_required', 'admin_record_layout_lock_invalid', 'admin_record_layout_head_invalid', 'admin_record_layout_icon_invalid']) {
+    assert.match(card, new RegExp(`    ${code}: "view[A-Za-z]+Text",`, 'u'), code);
+  }
+  for (const lang of ['en', 'ru']) {
+    const words = json(`src/smart/view-properties/lang/${lang}.json`).runtime;
+    for (const key of ['view-refused-invalid-text', 'view-refused-shared-denied-text', 'view-refused-own-text', 'view-refused-unknown-text', 'view-refused-required-text', 'view-refused-lock-invalid-text', 'view-refused-head-invalid-text', 'view-refused-icon-invalid-text']) assert.ok(words[key], `${lang} ${key}`);
+  }
+  assert.match(card, /if \(answer\.personal\) this\._storeLayer\("personal", answer\.personal\.revision \?\? null, answer\.personal\.view \?\? null\);/u);
+  assert.match(card, /typeof answer\.required === "boolean"/u);
+  assert.match(card, /personal_revision: this\._layerRevision\("personal"\),\n\s+shared_revision: this\._layerRevision\("shared"\),/u);
+  assert.match(card, /return this\.sfEmit\?\.\("structure", \{\n\s+collection: this\.collection \|\| null,/u);
+  assert.match(card, /\}, \{cancelable: true\}\) \?\? null;/u);
+  assert.match(template, /data-chooser="true">\n\s+<sf-profile-picker[\s\S]*?\?disabled=\$\{context\.viewRequired\}/u);
+});
