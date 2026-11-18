@@ -62,6 +62,9 @@ Every remote branch ahead of `main`, with the release that takes it.
 | `round/view-r3` | view round 3 (from `round/view-r2` 42442ee): the head's display kind switches the layout live (sf-view 1.18.0), no empty group head (sf-view-properties 1.18.1), property-page layout shift, money page size, the board and list head pages; for the dispatcher's acceptance |
 | `round/view-r2` | view round 2: the dispatcher's merge of the five `round/view-r2-*` branches (sf-view 1.17.0); `round/view-r3` builds on it; to close after the release |
 | `round/view-r2-*` | view round 2 (C296-C305): the helpers' branches (table, head, page, board, card) cut from `round/view-r1` 6062713, merged by the dispatcher into `round/view-r2` (table, head, page, board, card); to close after the release |
+| `round/view-r2` | view round 2 merge (42442ee): the base of `round/view-r3`, `round/view-cards`, `round/view-calendar`; to close after the release |
+| `round/view-r3` | view round 3 (from `round/view-r2` 42442ee): the head's display kind switches the layout live (sf-view 1.18.0) and the board and list head pages; merges before `round/view-cards` |
+| `round/view-cards` | the cards layout sf-view-cards (C297, C306, CD-1..CD-8), cut from `round/view-r2` 42442ee; to merge after `round/view-r3` |
 | `round/view-r1-site` | view 1.9.0: merged into `round/view-r1` (the round's merge); to close after the release |
 | `round/view-r1-card` | view 1.9.0: merged into `round/view-r1` (the round's merge); to close after the release |
 | `round/view-r1-table` | view 1.9.0: merged into `round/view-r1` (the round's merge); to close after the release |

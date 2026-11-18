@@ -1,0 +1,24 @@
+{
+  "title": "Cards",
+  "runtime": {
+    "actions-text": "Actions",
+    "bulk-label": "Actions on the selection",
+    "card-menu-text": "Actions: {title}",
+    "card-selected-label": "{title}, selected",
+    "cards-label": "Cards, {count}",
+    "clear-text": "Clear selection",
+    "cleared-text": "Selection cleared",
+    "create-text": "Create",
+    "deselect-text": "Deselect",
+    "no-cover-text": "No photo",
+    "open-text": "Open",
+    "position-text": "{title}, {index} of {count}",
+    "reset-text": "Reset filters",
+    "select-text": "Select {title}",
+    "select-short-text": "Select",
+    "selected-text": "{count} selected",
+    "selected-one-text": "Selected: {title}. {count} selected in all",
+    "shown-text": "Showing {shown} of {total}",
+    "unselected-one-text": "Deselected: {title}. {count} selected in all"
+  }
+}

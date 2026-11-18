@@ -1877,7 +1877,11 @@
       },
       {
         "path": "src/smart/view/js/first-paint.css",
-        "sha256": "1399c2e9d14fdf0d74a77ff532cb28a5041ca77d34e6cfceb3195704c46571ed"
+        "sha256": "ce2bbcb1986b3b9e76a4a6d179de4e013f81c46ea611210b46f83ed7fc223015"
+      },
+      {
+        "path": "src/smart/view/js/cards.js",
+        "sha256": "ebf2faa1ff6a36c0d12778c551c14910bef09c7bdad4cda32beb1e1c54f0d9b9"
       }
     ],
     "generated_runtime": []

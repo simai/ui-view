@@ -443,6 +443,15 @@
       "consumer": "New: sf-view layout=\"board\" (or Larena's kanban) draws it; a host answers the lane window (lanes, per_lane) and settles moves.",
       "summary": "New: the board layout (owner decisions C298, C304): lanes by one field from the host's lane window, cards with up to four fields in the «Кратко» place, moves as a change of the lane field the host settles (settleMove), «Показать ещё» per lane (appendLane), soft limits, folded and hidden lanes, one lane per screen on a phone, one Tab stop with the arrows inside.",
       "evidence": "control/evidence/2026-11-18-view-r2-board"
+    },
+    {
+      "unit": "smart.view-cards",
+      "version": "1.0.0",
+      "recorded_on": "2026-11-18",
+      "change": "minor",
+      "consumer": "New: sf-view layout=\"cards\" draws it, where the author turned cards on (C297); a host answers the window {page, per_page: 24} with {records, total, has_next}.",
+      "summary": "New: the cards layout (owner decisions C297, C306): records as .sf-card in a grid whose columns follow its width (sizes S, M, L), a cover in a frame of one ratio drawn by the layout (cover or contain, lazy), the title in two lines and up to four fields in the «Кратко» place, «Показать ещё» over the window {page, per_page: 24}, one Tab stop with the arrows by rows, a selection for sf-bulk-actions, empty states by sf-empty-state.",
+      "evidence": "control/evidence/2026-11-18-view-cards"
     }
   ]
 }

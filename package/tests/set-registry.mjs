@@ -6,7 +6,8 @@
 // owner decisions C298, C304) is registered with the next SIMAI Framework group
 // build (order through the dispatcher, 2026-11-18). The entry goes when the
 // registry has the name.
-export const REGISTRATION_PENDING = new Set(['sf-view-board']);
+// sf-view-cards (view-cards, owner decisions C297, C306) waits the same way.
+export const REGISTRATION_PENDING = new Set(['sf-view-board', 'sf-view-cards']);
 
 export function registryProblems(registry, passport) {
   const problems = [];

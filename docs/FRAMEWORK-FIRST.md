@@ -22,7 +22,8 @@ is not re-read yet). Evidence is `package/src/smart/<folder>/…` at `4317b84` u
 | sf-view-properties | 29 | 12 | 8 | 2 | 7 |
 | sf-view-flow | 6 | 2 | 3 | 1 | 0 |
 | sf-view-board | 9 | 8 | 0 | 0 | 1 |
-| all | 97 | 44 | 28 | 7 | 18 |
+| sf-view-cards | 9 | 8 | 0 | 0 | 1 |
+| all | 106 | 52 | 28 | 7 | 19 |
 
 ## Framework orders
 
@@ -162,3 +163,19 @@ Evidence is `package/src/smart/view-board/…` on `round/view-r2-board`.
 | B-08 | refusal message | sf-toast | `fw` | uses the Framework | view-board/index.js _refuse |
 | B-09 | lanes, window, moves, limits, order, board grid keys | none: the board layout itself | `set` | the set's own | view-board/js/board.js, index.js |
 
+## sf-view-cards
+
+Added by the view-cards helper (owner decisions C297, C306), read over pair `ui-1ed6b6c9a040`.
+Evidence is `package/src/smart/view-cards/…` on `round/view-cards`.
+
+| Id | Part | Framework part | Verdict | State | Evidence |
+|---|---|---|---|---|---|
+| K-01 | card | .sf-card | `fw` | uses the Framework | view-cards/js/templates/default.js renderCard |
+| K-02 | card fields («Кратко») | field-renderers renderCellField (C300 (2)); a template per field (C302) waits the template registry | `fw` | uses the Framework; per-field templates come with the registry | view-cards/index.js cellShape |
+| K-03 | selection box, «⋯» | sf-checkbox, sf-button-icon | `fw` | uses the Framework | view-cards/js/templates/default.js renderControls |
+| K-04 | «Показать ещё», «Показано N из M» | sf-pagination appearance more (C167), its words in every language pack | `fw` | uses the Framework | view-cards/js/templates/default.js renderMore |
+| K-05 | empty, nothing found, no access, error | sf-empty-state | `fw` | uses the Framework | view-cards/js/templates/default.js renderEmpty |
+| K-06 | loading cards | sf-skeleton | `fw` | uses the Framework | view-cards/js/templates/default.js renderSkeleton |
+| K-07 | card menu | SF.menu.open | `fw` | uses the Framework | view-cards/index.js openCardMenu |
+| K-08 | selection bar | sf-bulk-actions (C295) behind a feature check; before it a strip of sf-button | `fw` | uses the Framework where the pair has it | view-cards/js/templates/default.js renderBulk |
+| K-09 | grid by width, cover frame, window, grid keys | none: the cards layout itself | `set` | the set's own | view-cards/js/cards.js, index.js, js/templates/default.css |

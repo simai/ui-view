@@ -1,0 +1,24 @@
+{
+  "title": "Карточки",
+  "runtime": {
+    "actions-text": "Действия",
+    "bulk-label": "Действия с выбранными",
+    "card-menu-text": "Действия: {title}",
+    "card-selected-label": "{title}, выбрано",
+    "cards-label": "Карточки, {count}",
+    "clear-text": "Снять выбор",
+    "cleared-text": "Выбор снят",
+    "create-text": "Создать",
+    "deselect-text": "Снять выбор",
+    "no-cover-text": "Нет фото",
+    "open-text": "Открыть",
+    "position-text": "{title}, {index} из {count}",
+    "reset-text": "Сбросить фильтр",
+    "select-text": "Выбрать {title}",
+    "select-short-text": "Выбрать",
+    "selected-text": "Выбрано {count}",
+    "selected-one-text": "Выбрано: {title}. Всего выбрано {count}",
+    "shown-text": "Показано {shown} из {total}",
+    "unselected-one-text": "Снят выбор: {title}. Всего выбрано {count}"
+  }
+}

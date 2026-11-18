@@ -4379,10 +4379,10 @@
             },
             "files": {
                 "set.json": {
-                    "sha256": "64dcd378cac93225fbcd7d49b3d675270e84bb1d239e24a337fc1fbdd46df92c"
+                    "sha256": "d8e114fb26caa293941ff2ee71f6a53a0651ba2921932806c09c50dbe26c1238"
                 },
                 "smart/rule.js": {
-                    "sha256": "70ec8042e1e0fb4d4e1d7116e85267f5431ba0061af971b35a030fa3af3e9277"
+                    "sha256": "0f2e4478ed709c1e207e7b0c8e0e06befbddc9bffce20686d8f2de08889a1450"
                 },
                 "smart/view-board/css/view-board.css": {
                     "sha256": "06870742d352b0a054d582f565de0ce3531c2dba3771fbb31a570e3de9525078"
@@ -4395,6 +4395,18 @@
                 },
                 "smart/view-board/js/view-board.min.js": {
                     "sha256": "91ad3c4088967bdac9b692603255fdc65a0c3337f915bb77a305d1e2c412f31d"
+                },
+                "smart/view-cards/css/view-cards.css": {
+                    "sha256": "192b7fc91beb16a16852006129c4c70e3e1e71be34b44aa3d642efe34a5dc64e"
+                },
+                "smart/view-cards/css/view-cards.min.css": {
+                    "sha256": "0af311feee365b53e2a3f4cb789b443a35e2e325cf250da8775e385a8566f045"
+                },
+                "smart/view-cards/js/view-cards.js": {
+                    "sha256": "f736223074a81e9e60a10fbda3b1527a4ded3f35957d7f5b3820a7cf8376f823"
+                },
+                "smart/view-cards/js/view-cards.min.js": {
+                    "sha256": "5f65b75320f22ff09a7feebda229e740994096aa3461d9356562caf88f03f108"
                 },
                 "smart/view-flow/css/view-flow.css": {
                     "sha256": "c43ab80ab39ed90d4f36539c4214e9aca050daedce329411f88395f67e4db2fc"
