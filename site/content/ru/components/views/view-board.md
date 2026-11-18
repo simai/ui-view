@@ -153,7 +153,7 @@ Larena отвечает доске своим методом `listBoard()`:
 
 ## Параметры
 
-Справочник собран из манифеста компонента в сборке-кандидате набора (`simai/ui-view@5a77051ef8eb`) и обновляется вместе с выпуском. Каждому атрибуту соответствует свойство элемента с тем же именем в camelCase: `search-placeholder` — `searchPlaceholder`.
+Справочник собран из манифеста компонента в сборке-кандидате набора (`simai/ui-view@031a0b3e2cb9`) и обновляется вместе с выпуском. Каждому атрибуту соответствует свойство элемента с тем же именем в camelCase: `search-placeholder` — `searchPlaceholder`.
 
 | | |
 |:---|:---|
@@ -222,7 +222,7 @@ Larena отвечает доске своим методом `listBoard()`:
 
 ## Источник
 
-- `simai/ui-view@5a77051ef8eb:package/src/smart/view-board`
+- `simai/ui-view@031a0b3e2cb9:package/src/smart/view-board`
 
 ## См. также
 

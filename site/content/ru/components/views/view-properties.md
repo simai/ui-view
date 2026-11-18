@@ -5,7 +5,7 @@ profile: reference
 
 # Карточка записи
 
-:badge[sf-view-properties]{variant=main scheme=on-surface size=1} :badge[Версия 1.18.2]{variant=tonal scheme=neutral size=1}
+:badge[sf-view-properties]{variant=main scheme=on-surface size=1} :badge[Версия 1.19.0]{variant=tonal scheme=neutral size=1}
 
 Карточка записи показывает одну запись: её свойства в разделах и группах, каждое своим [типом](/ru/properties/) — строка, текст, число, выбор, дата, флажок, ссылка на другую запись, файл. Группу можно открыть на правку и сохранить.
 
@@ -79,13 +79,13 @@ profile: reference
 
 ## Параметры
 
-Справочник собран из манифеста компонента в сборке-кандидате набора (`simai/ui-view@5a77051ef8eb`) и обновляется вместе с выпуском. Каждому атрибуту соответствует свойство элемента с тем же именем в camelCase: `search-placeholder` — `searchPlaceholder`.
+Справочник собран из манифеста компонента в сборке-кандидате набора (`simai/ui-view@031a0b3e2cb9`) и обновляется вместе с выпуском. Каждому атрибуту соответствует свойство элемента с тем же именем в camelCase: `search-placeholder` — `searchPlaceholder`.
 
 | | |
 |:---|:---|
 | Тег | `<sf-view-properties>` |
 | Назначение | Поля одного объекта по разделам, группам и полям; каждое поле рисует набор рендереров своего типа, данные идут через отдельный порт хоста. Группа редактируется и сохраняется одной ревизией по кнопке, а значение ссылочного поля выбирается из кандидатов элемента постранично. Парный компонент к представлению данных: то показывает набор записей, этот — один объект. |
-| Контракт | `smart.view-properties`, версия `1.18.2` |
+| Контракт | `smart.view-properties`, версия `1.19.0` |
 | Жизненный цикл | экспериментальный: API может меняться между выпусками |
 
 ### Атрибуты
@@ -193,6 +193,7 @@ profile: reference
 - `sf-view-properties-favourite` — `detail`: `{ collection: string|null, favourite: boolean, record_id }`. Нажата звезда. Передаёт запись, коллекцию и запрошенное состояние; компонент ничего не меняет, пока хост не установит favourite обратно.
 - `sf-view-properties-step` — `detail`: `{ direction, record_id, next_record_id }`. Alt+↓ / Alt+↑ (или `step()`) просит следующую или предыдущую запись представления, из которого открыта панель (C305 (4)). Хост, объявивший `record-neighbours`, называет соседа в своём текущем виде (`record.neighbours {record_id, collection}` с ответом `{listed, previous: {record_id}, next: {record_id}}`): событие несёт его как `next_record_id`, и карточка открывает его, если страница не отменила событие. Иначе соседа открывает страница (`sf-view recordBeside`) в той же панели по `record-id`. При несохранённом карточка сначала спрашивает (C159 (6)).
 - `sf-view-properties-history` — `detail`: `{ record_id }`. Открыт уровень истории (C305 (2)); карточка читает её через порт (`record.history`), событие только сообщает странице.
+- `sf-view-properties-structure` — `detail`: `{ collection: string|null, section: string|null, group: string|null }`. «Новое поле…» в режиме настройки (C311 (1)): добавить поле — это структура, а не вид, и открывается редактор полей владельца данных. Карточка называет коллекцию и место; редактор открывает хост.
 - `sf-host-port-request` — `detail`: `{ component?: object, context?: object }`. Запрашивает у страницы порт хоста — один раз за подключение и только пока у элемента его нет. Общее соглашение для всех компонентов, принимающих `setHostPort`. Ответ — вызов `setHostPort` на цели события, сразу или позже.
 
 Прежние имена событий приходят следом с тем же `detail` и отмечаются в `SF.deprecations`:
@@ -255,7 +256,7 @@ profile: reference
 
 ## Источник
 
-- `simai/ui-view@5a77051ef8eb:package/src/smart/view-properties`
+- `simai/ui-view@031a0b3e2cb9:package/src/smart/view-properties`
 
 ## См. также
 
