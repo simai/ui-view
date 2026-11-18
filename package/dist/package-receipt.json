@@ -9,9 +9,9 @@
   },
   "package_source": {
     "repository": "simai/ui-view",
-    "revision": "054588ce236c231ef54172941c0164ffb4cf4359",
+    "revision": "0bd7d7284c5aa62ce29c92176014bdc5f7b1491f",
     "path": "package",
-    "tree": "ebae4e14b8b97d799ba3aac0293aba1d6babb4eb"
+    "tree": "ac22c16a85d69860d2343afc975793150ddaa235"
   },
   "licence": {
     "ref": "PolyForm-Small-Business-1.0.0 OR PolyForm-Noncommercial-1.0.0 OR LicenseRef-SIMAI-Commercial"
@@ -106,9 +106,9 @@
   "output": {
     "runtime_path": "smart",
     "files_count": 161,
-    "manifest_sha256": "72def7b5aaf080d9e27ff9bc9fb3aa04bb1bb882896dbb0bb4d364b02213a054",
+    "manifest_sha256": "33a60b8df0b8db25e1f42aa37e35f71c3515832eceb87c2a0c4146e2306b815a",
     "archive": "package-view.tar",
-    "archive_sha256": "020e5584fee7551cdfbc273d93b5b9de4710ecba1e66b178699ae02c9c036ccd",
+    "archive_sha256": "3fe6f4f6c047763d73b8f7547540dfa60f13e14dfc00fdf88e20f581dac6e8dd",
     "archive_format": "ustar; entries sorted; owner 0:0; mtime 0; modes 0755/0644"
   },
   "required_files": [
@@ -139,8 +139,8 @@
     },
     {
       "path": "smart/view-properties/js/view-properties.js",
-      "sha256": "e026b2797ba17426b0a5a521752c2cbcde087575c5eeae797e63ac676d09a097",
-      "size": 608545
+      "sha256": "f3d14b444d548735eea7c48fa304552c4aa2ca474d32d92b3967d08ddc7cbd06",
+      "size": 608575
     },
     {
       "path": "smart/view-properties/css/view-properties.css",
@@ -419,7 +419,7 @@
     "requires_sets": [],
     "registry": {
       "status": "agrees",
-      "sha256": "7b112c8ed1dc3cce1556dad290e4dcaafa1692b2fd5de5af2ac3e10395e93c60"
+      "sha256": "9358661f7b556503a0e4dc85c370ed6cfc39024594ebf7ef5e5a96bb4997e2df"
     }
   },
   "files": [
@@ -790,13 +790,13 @@
     },
     {
       "path": "smart/view-properties/component.json",
-      "sha256": "c65da90b1177d72a60c476109a47e0c0e5ed22f218f73ac3c859966c2711ab8e",
-      "size": 100007
+      "sha256": "979ab5dc85fc31a04eae7f7016fa422e975d202f148d42c0203fa03510b10918",
+      "size": 101499
     },
     {
       "path": "smart/view-properties/component.json.gz",
-      "sha256": "26bd411a4fcbf4df6f5e3d1631b9c014a4de4064d63149a8bdfb56343905d980",
-      "size": 24675
+      "sha256": "b0fc4f92e97fd2b1bf645d1e4e46bf16bb2378a1ba9196d025181db0dd27ec47",
+      "size": 25105
     },
     {
       "path": "smart/view-properties/css/view-properties.css",
@@ -830,23 +830,23 @@
     },
     {
       "path": "smart/view-properties/js/view-properties.js",
-      "sha256": "e026b2797ba17426b0a5a521752c2cbcde087575c5eeae797e63ac676d09a097",
-      "size": 608545
+      "sha256": "f3d14b444d548735eea7c48fa304552c4aa2ca474d32d92b3967d08ddc7cbd06",
+      "size": 608575
     },
     {
       "path": "smart/view-properties/js/view-properties.js.gz",
-      "sha256": "ea7d6d9c2dfd3dac3980d0be2d2fed8af9978910e300ebb9d327c64ff411c56a",
-      "size": 154236
+      "sha256": "0eff6222ed86f12b85217df2739bf4dacb09591aded1dd108ff6c1419f370f25",
+      "size": 154247
     },
     {
       "path": "smart/view-properties/js/view-properties.min.js",
-      "sha256": "a1b0b74e8ac96087fecae077f813b01775215f962939bcc357256173d0071b22",
-      "size": 259509
+      "sha256": "429c2680df79bbe5cc0911a489a8b7cc1247e9fecfee843f9f5e1caab5ff3e12",
+      "size": 259536
     },
     {
       "path": "smart/view-properties/js/view-properties.min.js.gz",
-      "sha256": "1940b9f15bcce2671f86b8afa0481b110cce3a452b5f9bcb2afb28f6342491b1",
-      "size": 64705
+      "sha256": "bfff550f29a814b96d3fa3a7e5f26864d51813244e09367504f59c4e602f1c50",
+      "size": 64712
     },
     {
       "path": "smart/view-properties/lang/en.json",
@@ -890,13 +890,13 @@
     },
     {
       "path": "smart/view-properties/smart.manifest.json",
-      "sha256": "edd30586f3b098ec42d38dc621bb3dd5715377f8e1239011cd0cc213c6788bf2",
-      "size": 76412
+      "sha256": "200355959d9a460684fd92766d258735e062afb865cc681df4bfd0a0c9512261",
+      "size": 77902
     },
     {
       "path": "smart/view-properties/smart.manifest.json.gz",
-      "sha256": "1218a18b13b87c5f36c75f98df8c9888506fcfddf03c8a9f6ead57f17e8ca7a5",
-      "size": 19591
+      "sha256": "68497fbacf6839e2998ecb56091624d13d2e5686abb4235dbbf53c4f36d4cce1",
+      "size": 20026
     },
     {
       "path": "smart/view-properties/static/default/full.html",
