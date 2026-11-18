@@ -219,8 +219,8 @@
       "expect": {
         "name": "Доставки"
       },
-      "parent": "<div style=\"inline-size: 60rem; max-inline-size: 100%\"></div>",
-      "x-first-paint": "A page's width: the month grid of six weeks.",
+      "parent": "<div style=\"display: grid; grid-template-columns: minmax(37.5rem, 1fr); inline-size: 60rem; max-inline-size: 100%; overflow-x: auto\"></div>",
+      "x-first-paint": "A page's width: the month grid of six weeks. The frame keeps the page width (at least 600 px, where the phone layout starts) and scrolls inside itself on a phone, so the printed month and the drawn one are the same; the phone example shows the phone layout. Inside sf-view the phone is covered by the view's own calendar skeleton.",
       "first-paint": {
         "max-bytes": 65536,
         "why": "A month at rest: the bar (‹ ›, the period, «Сегодня», the modes, «Без даты N») and 42 days, each with its number and its events, «+N» where a day holds more than per_day; every control a printed Smart element with its own markup. Nothing closed is printed."
@@ -446,7 +446,7 @@
       "expect": {
         "name": "Доставки"
       },
-      "parent": "<div style=\"inline-size: 60rem; max-inline-size: 100%\"></div>",
+      "parent": "<div style=\"display: grid; grid-template-columns: minmax(37.5rem, 1fr); inline-size: 60rem; max-inline-size: 100%; overflow-x: auto\"></div>",
       "first-paint": {
         "max-bytes": 49152,
         "why": "A week: the bar, the day heads, the all-day row and the visible hours with the timed events."
