@@ -973,8 +973,12 @@ export class ListHead {
         const allowed = this.view.sfEmit?.("display-change", {kind, previous: this.kind}, {cancelable: true});
         if (allowed === false) return this.render();
         this.view.setAttribute("data-display", kind);
-        this.view.switchLayout?.(kind, {refresh: false});
-        this._query({view: {id: this.currentView?.key ?? null, type: kind}});
+        const view = {id: this.currentView?.key ?? null, type: kind};
+        if (typeof this.view.switchLayout !== "function") return this._query({view});
+        // The query names the kind, then the view swaps its layout and asks
+        // the host once, with the layout's own query (a board's lane window).
+        this.view.query = {...this.view.query, view, page: 1};
+        this.view.switchLayout(kind);
     }
 
     _onChange(event) {

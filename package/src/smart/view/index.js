@@ -653,10 +653,14 @@ class SfDataView extends DataViewElement {
         // table), or none -- the table's own default, as before the board.
         const own = this._tableLayout && !layoutsOfBoard(this._tableLayout) ? this._tableLayout : null;
         const written = toBoard ? "board" : (name === "table" ? own : name);
-        if (fromBoard !== toBoard) this._carrySelection = marked.map(String);
+        if (fromBoard !== toBoard) {
+            this._carrySelection = marked.map(String);
+            this._carrySequence = this.sequence;
+        }
         if (written === null) this.removeAttribute("layout");
         else this.setAttribute("layout", written);
-        if (refresh && fromBoard !== toBoard && this.isConnected) this.refresh("layout-change");
+        // refresh: false is for a caller that asks the host itself next.
+        if (refresh && this.isConnected) this.refresh("layout-change");
         return {outcome: "applied", layout: this.layoutKind};
     }
 
@@ -694,11 +698,13 @@ class SfDataView extends DataViewElement {
         }
     }
 
-    // The marks carried over a switch, given to the new element once it shows
-    // the records they name.
+    // The marks carried over a switch, given to the new element as it shows
+    // the records they name: at once from what is known, and again over the
+    // answer to the switch's own query (a new result clears a table's marks).
     _applyCarriedSelection() {
         const ids = this._carrySelection;
         if (!ids?.length) return;
+        const answered = this.pending === null && this.sequence > (this._carrySequence ?? 0);
         if (this.layoutKind === "board") {
             const board = this.board;
             if (!board || !this.boardLanes?.length) return;
@@ -708,9 +714,10 @@ class SfDataView extends DataViewElement {
             const table = this.table;
             if (typeof table?.applyRowSelection !== "function" || !this.cappedRecords?.length) return;
             const shown = new Set(this.cappedRecords.map((record) => String(record?.id)));
-            for (const id of ids) if (shown.has(id)) table.applyRowSelection(id, true);
+            const marked = new Set((table.getSelectedRecordIds?.() ?? []).map(String));
+            for (const id of ids) if (shown.has(id) && !marked.has(id)) table.applyRowSelection(id, true);
         }
-        this._carrySelection = null;
+        if (answered) this._carrySelection = null;
     }
 
     get board() {
