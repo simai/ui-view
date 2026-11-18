@@ -404,6 +404,13 @@ and the record page.
   longer offers it; a layer that holds one is read until 2027-01-01.
 - «Новое поле…» emits `sf-view-properties-structure {collection, section,
   group}`: adding a field is structure, and the data owner's editor opens it.
+- Choosing a view (C311 (5), since 1.20.0): the «⋯» menu has no views
+  submenu for anyone. The person who may arrange the card keeps «Вид:
+  <name>», which enters the mode with the picker open. A person who cannot
+  arrange it (no `view-settings` from the host, no layer to write, or a
+  view-only surface) and has more than one view chooses it in a select-only
+  `sf-profile-picker` above the fields: nothing to rename, create or reset; a
+  choice raises `view.profile`.
 
 ## Conditional fields
 
