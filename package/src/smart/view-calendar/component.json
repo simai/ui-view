@@ -636,5 +636,11 @@
         "const": "default"
       }
     }
+  },
+  "x-framework-first": {
+    "$comment": "Copies of Framework parts kept knowingly, part id (docs/FRAMEWORK-FIRST.md) to the Framework order (FO) each waits for (set standard draft 1.1 §7.3). The repin that brings an order removes its copy.",
+    "waits": {
+      "K-09": "FO-9"
+    }
   }
 }

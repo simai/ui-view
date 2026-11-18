@@ -139,7 +139,8 @@ test('the calendar is declared and its words are in every language pack', () => 
   const ru = json('src/smart/view-calendar/lang/ru.json');
   const keys = (pack) => Object.keys(pack.runtime ?? pack).sort();
   assert.deepEqual(keys(en), keys(ru));
-  const set = json('set.json');
+  // The passport sits beside the package (SET_ROOT under scripts/test.mjs, which runs in the overlay).
+  const set = JSON.parse(readFileSync(resolve(process.env.SET_ROOT ?? root, 'set.json'), 'utf8'));
   assert.ok(set.components.some((entry) => entry.element === 'sf-view-calendar' && entry.rule === 'cl-view-calendar'));
 });
 

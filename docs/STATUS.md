@@ -58,6 +58,9 @@ Every remote branch ahead of `main`, with the release that takes it.
 |---|---|
 | `round/view-r1` | view 1.9.0 (the round) |
 | `round/view-r2-*` | view round 2 (C296-C305): the helpers' branches (table, head, page, board, card) cut from `round/view-r1` 6062713, merged by the dispatcher into `round/view-r2` (table, head, page, board, card); to close after the release |
+| `round/view-r2` | view round 2 merge (C296-C305): the base of `round/view-r3`, `round/view-cards` and `round/view-calendar` |
+| `round/view-r3` | view round 3: parallel to `round/view-calendar`, merged by the dispatcher before it |
+| `round/view-cards` | the cards layout (C306): parallel to `round/view-calendar`, merged by the dispatcher after r3 and before it |
 | `round/view-calendar` | the calendar layout (C307), cut from `round/view-r2` 42442ee; merged by the dispatcher after `round/view-r3` and `round/view-cards` |
 | `round/view-r1-site` | view 1.9.0: merged into `round/view-r1` (the round's merge); to close after the release |
 | `round/view-r1-card` | view 1.9.0: merged into `round/view-r1` (the round's merge); to close after the release |

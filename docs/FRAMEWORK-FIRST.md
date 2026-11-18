@@ -37,6 +37,7 @@ is not re-read yet). Evidence is `package/src/smart/<folder>/…` at `4317b84` u
 | FO-6 | sf-pagination's selection band placeable in a host slot (after BQ-1) | V-06 |
 | FO-7 | `money` and `percent` property types (after BQ-2) | P-17 |
 | FO-8 | sf-form answer mode over the confirm surface (after BQ-3) | F-03, F-04, F-06 |
+| FO-9 | sf-input-date day marks (`dayMarks`, CL-6 of the calendar study) | K-09 |
 
 ## sf-view
 
@@ -178,6 +179,6 @@ Evidence is `package/src/smart/view-calendar/…` on `round/view-calendar`.
 | K-06 | event menu with disabled items and reasons | SF.menu.open | `fw` | uses the Framework | view-calendar/index.js openEventMenu |
 | K-07 | refusal message | sf-toast | `fw` | uses the Framework | view-calendar/index.js _refuse |
 | K-08 | selection bar (list mode) | sf-bulk-actions (C295) behind a feature check; before it sf-checkbox and a strip of sf-button | `fw` | uses the Framework where the pair has it | view-calendar/js/templates/default.js renderBulk |
-| K-09 | phone month with dots | sf-input-date dayMarks (CL-6) behind a feature check; before it the calendar's own grid | `copy` | kept until the pair's sf-input-date has day marks | view-calendar/index.js inputDateMarks, js/templates/default.js |
+| K-09 | phone month with dots | sf-input-date dayMarks (CL-6) behind a feature check; before it the calendar's own grid | `copy` | kept, waits FO-9 | view-calendar/index.js inputDateMarks, js/templates/default.js |
 | K-10 | month and time grids, window, moves, rules, date grid keys | none: the calendar layout itself | `set` | the set's own | view-calendar/js/calendar.js, index.js |
 

@@ -131,8 +131,8 @@
   .sf-view-calendar__ev:focus-visible,
   .sf-view-calendar__bar-piece:focus-visible,
   .sf-view-calendar__block:focus-visible {
-    outline: var(--sf-focus--width) solid var(--sf-focus--color);
-    outline-offset: calc(-1 * var(--sf-focus--width));
+    outline: var(--sf-focus--width) var(--sf-focus--style) var(--sf-focus--color);
+    outline-offset: var(--sf-focus--inset);
   }
 
   .sf-view-calendar__nrow {
@@ -252,8 +252,9 @@
   .sf-view-calendar :is(.sf-view-calendar__ev, .sf-view-calendar__bar-piece, .sf-view-calendar__block, .sf-view-calendar__row)[data-pending] { opacity: .64; }
   .sf-view-calendar [data-held] { opacity: var(--sf-view-calendar-refused-opacity); }
   .sf-view-calendar :is(.sf-view-calendar__ev, .sf-view-calendar__bar-piece, .sf-view-calendar__block, .sf-view-calendar__row)[data-open] {
-    outline: var(--sf-focus--width) solid var(--sf-primary);
-    outline-offset: calc(-1 * var(--sf-focus--width));
+    /* The record open in the card beside the list: a primary edge, not the
+       outline (the outline is the focus ring's). */
+    box-shadow: 0 0 0 var(--sf-focus--width) var(--sf-primary);
   }
 
   .sf-view-calendar__ghost {

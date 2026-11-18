@@ -5,6 +5,8 @@ import test from 'node:test';
 import {fileURLToPath} from 'node:url';
 import vm from 'node:vm';
 import * as treeModel from '../src/smart/view/js/tree.js';
+// The calendar layout's side of the view (view/js/calendar.js), supplied the same way.
+import * as calendarAdapter from '../src/smart/view/js/calendar.js';
 import {answerActions, settingSetters} from '../src/smart/view-table/js/manifest-actions.js';
 
 // What index.js imports since it is made from its component.json (standard
@@ -133,6 +135,7 @@ vm.runInNewContext(source, {
   ...manifestImports,
   // The tree model is a module of plain functions, supplied the same way.
   ...treeModel,
+  ...calendarAdapter,
   document: {createElement: (tag) => new FakeChild(tag)},
 });
 const DataView = elements.get('sf-view');
