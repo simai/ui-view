@@ -1430,7 +1430,9 @@ function phoneLevel(context) {
 // copy was the one that forgot to suppress the groups, so the list screen drew the
 // list with a section's groups underneath it.
 function onPhoneSectionList(context, sections) {
-    return !context.wide && sections.length > 1 && context.phoneSection === null;
+    // Arranging draws «Вкладки» over the fields at every width (C311 (4)): the
+    // phone's list screen is a way to read, not to arrange.
+    return !context.configuring && !context.wide && sections.length > 1 && context.phoneSection === null;
 }
 
 // The section being arranged, named where its areas are. The section list is
@@ -1697,8 +1699,10 @@ function lineTabsDrawn(context, sections) {
     return context.sectionsLayout === 'tabs' && sections.length > 1 && !context.configuring;
 }
 
+// While arranging, «Вкладки» stand over the fields wherever the sections are
+// not a column beside them -- tabs, and a narrow card (C311 (4)).
 function sectionsStacked(context) {
-    return context.sectionsLayout === 'tabs' && context.configuring;
+    return context.configuring && (context.sectionsLayout === 'tabs' || context.sectionsLayout === 'phone');
 }
 
 // The errors of a save, from two of them (C182 (6)): a summary over the
@@ -1827,10 +1831,12 @@ function renderBody(context, railOutside = false, withActions = true) {
         <div class="sf-property-view-layout"
              style=${`--sf-property-view--sections-width: ${context.sectionsWidth};${context.panel ? '' : sizeStyle(context)}`}
              data-sections=${String(sections.length)}
-             data-screen=${onPhoneSectionList(context, sections) ? 'sections' : 'groups'}>
-            ${!context.panel && !context.wide && sections.length > 1 && context.phoneSection !== null
+             data-screen=${onPhoneSectionList(context, sections) ? 'sections' : 'groups'}
+             data-stacked=${sectionsStacked(context) ? 'true' : nothing}>
+            ${!context.panel && !context.wide && !context.configuring && sections.length > 1 && context.phoneSection !== null
                     ? renderPhoneSectionHead(context)
                     : nothing}
+            ${sectionsStacked(context) ? renderConfigureTop(context) : nothing}
             ${(sidebarDrawn(context) && !railOutside) || sectionsStacked(context) ? renderSectionList(context, sections) : nothing}
             ${context.isEmptyRecord && !context.configuring
                     ? html`<p class="sf-property-view-empty-record color-on-surface-variant"
@@ -1839,7 +1845,7 @@ function renderBody(context, railOutside = false, withActions = true) {
             ${onPhoneSectionList(context, sections) ? nothing : context.configuring
                     ? html`
                         <div class="sf-property-view-body flex-auto min-w-0 flex flex-col gap-4">
-                            ${renderConfigureTop(context)}
+                            ${sectionsStacked(context) ? nothing : renderConfigureTop(context)}
                             ${renderSectionBar(context, current, sections.length)}
                             <sf-sortable
                                     class="sf-property-view-groups flex flex-col gap-4"

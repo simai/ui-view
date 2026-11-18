@@ -1963,11 +1963,11 @@
       },
       {
         "path": "src/smart/view-properties/js/templates/default.js",
-        "sha256": "dccd5cd929fb3c7319b9c4d657e74d06ec97e4cae7330685981d1f740556ee55"
+        "sha256": "95a3d8e37a9b990947751ff4d012acd3ac98dbdcc58f481e7698ad025384628b"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.css",
-        "sha256": "33132542f2f685b1222e2ac2031b518ebef8419764cb064e2d4dacaa0932a8c9"
+        "sha256": "5379d365d66490048341736b0d7ce146e97a76228297b24038bfc241336eee4b"
       },
       {
         "path": "src/smart/view-properties/js/conditions.js",

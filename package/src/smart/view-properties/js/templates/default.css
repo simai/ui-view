@@ -234,6 +234,13 @@
     gap: var(--sf-space-4);
   }
 
+  /* Arranging over a narrow card or tabs (C311 (4)): the picker, then
+     «Вкладки», then the fields, one under the other. */
+  .sf-property-view-layout[data-stacked="true"] {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
   /* A rail of tabs and nothing else: the record's name and the band of the
      arranging mode stand over the fields, not over this.
 
