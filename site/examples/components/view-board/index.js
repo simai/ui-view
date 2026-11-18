@@ -2,10 +2,10 @@
 // JavaScript with an array of orders; on a real page raise() sends the same
 // intents to the server and returns its answer in the same envelope.
 //
-// It answers three things: the lane window (the first cards of every lane
-// and their counts), the lanes' money sums in a second request once the
-// board is drawn (reason "lane-sums"), and a move (record.set of the lane
-// field), refused by the rule of the lanes or by the application itself.
+// It answers two things: the lane window -- the first cards of every lane
+// with the lane totals (the count and the money sum) in the same answer --
+// and a move (record.set of the lane field), refused by the rule of the lanes
+// or by the application itself.
 const STATUS = [
   {value: 'new', label: 'Новый', status: 'info'},
   {value: 'wait', label: 'Ждёт оплаты', status: 'warning'},
@@ -67,9 +67,13 @@ const initializeBoard = async () => {
   const lane = (value, from = 0, count = BOARD.per_lane) => {
     const all = orders.filter((order) => order.status === value);
     const records = all.slice(from, from + count);
-    return {value, total: all.length, records, cursor: from + count < all.length ? String(from + count) : null};
+    return {value, total: all.length, records, cursor: from + count < all.length ? String(from + count) : null, totals: sums(value)};
   };
-  const sums = (value) => ({amount: {RUB: String(orders.filter((order) => order.status === value).reduce((sum, order) => sum + order.amount, 0))}});
+  // A lane's totals, as the board's settings name them (totals: count and the
+  // sum of amount): the count is the lane's total, the sum comes beside it.
+  function sums(value) {
+    return {amount: {RUB: String(orders.filter((order) => order.status === value).reduce((sum, order) => sum + order.amount, 0))}};
+  }
 
   let first = false;
   view.setHostPort({
@@ -79,10 +83,6 @@ const initializeBoard = async () => {
       await new Promise((resolve) => setTimeout(resolve, 250));
       if (intent === 'query.change') {
         const window = payload.query?.window ?? {};
-        // The second request: the lanes' sums, nothing else.
-        if (payload.reason === 'lane-sums') {
-          return {answer: 'applied', sequence: payload.sequence, data: {lanes: STATUS.map(({value}) => ({value, totals: sums(value)}))}};
-        }
         // «Показать ещё»: the next cards of one lane.
         if (window.lane) {
           return {answer: 'applied', sequence: payload.sequence, data: {lanes: [lane(window.lane, Number(window.cursor ?? 0))], total: orders.length}};

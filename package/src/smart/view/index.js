@@ -515,12 +515,23 @@ class SfDataView extends DataViewElement {
             this._cardOpen = next;
             this.current = next;
             if (!detail.next_record_id) event.currentTarget.setAttribute("record-id", next);
+            // A step taken from the list moves the list's place with it.
+            if (this._stepFromList) {
+                const board = this.layoutKind === "board" ? this.board : null;
+                const cardOf = board?.querySelector?.(`.sf-view-board__card[data-id="${globalThis.CSS?.escape ? CSS.escape(next) : next}"]`);
+                if (cardOf) cardOf.focus?.({preventScroll: false});
+                else this.table?.focusRow?.(next, {focus: true, reveal: true});
+            }
         };
         this._onCardClose ??= (event) => {
             if (event.defaultPrevented || event.currentTarget !== this._wiredCard) return;
             const id = this._cardOpen;
             this._cardOpen = null;
             this.current = "";
+            // The card asks its page to close it and never closes itself
+            // (vocabulary §5 close): the view placed it, so the view closes it
+            // (VR2-2: × and Escape gave the focus back and left the panel open).
+            event.currentTarget.setAttribute("open", "false");
             if (!id) return;
             // The focus goes back to the record it was opened from.
             globalThis.setTimeout?.(() => {
@@ -570,7 +581,25 @@ class SfDataView extends DataViewElement {
             ["content", "sf-view-table", {}],
             ["pagination", "sf-pagination", {appearance: "field", top: "false", bottom: "false"}],
         ];
-        if (board) defaults[0][1] = "sf-view-board";
+        if (board) {
+            defaults[0][1] = "sf-view-board";
+            // A page that slotted its own sf-view-table under layout="board"
+            // (the markup a host with the list head writes) kept the table in
+            // the slot: no board was made and the skeleton stayed for ever
+            // (VR2-5). The table is parked, as a switch to the board parks it
+            // (it comes back with «Таблица»), the board draws, and the page is
+            // told once.
+            const tables = [...(this.children ?? [])].filter((child) => child.getAttribute?.("slot") === "content"
+                && isTag(child, "sf-view-table") && !child.hasAttribute?.("data-sf-view-default") && !child.hasAttribute?.("data-sf-view-made"));
+            for (const table of tables) {
+                table.setAttribute("slot", "sf-view-parked");
+                table.toggleAttribute("data-sf-view-parked", true);
+            }
+            if (tables.length && !this._parkedWarned) {
+                this._parkedWarned = true;
+                console.warn('sf-view: layout="board" draws sf-view-board; the page\'s sf-view-table in slot "content" is kept for the table layout and shows when the table is chosen');
+            }
+        }
         for (const [slot, tag, attributes] of defaults) {
             // A part the view does not draw (chrome without pagination, an
             // embedded list) gets no default element: it would print a page
@@ -1128,6 +1157,21 @@ class SfDataView extends DataViewElement {
         this._lightDefaults();
         this._readPrintedPageSize();
         super.connectedCallback();
+        // Alt+Down / Alt+Up from the list while a record card is open beside it
+        // (C305 (4), VR2-3): the card steps to the next or the previous record
+        // as it does with the focus inside it, and the list's place follows.
+        if (!this._onStepKey) {
+            this._onStepKey = (event) => {
+                if (!event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || event.defaultPrevented) return;
+                if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+                const card = this._cardOpen ? this.recordCard : null;
+                if (!card || card !== this._wiredCard || !card.panelOpen || typeof card.step !== "function") return;
+                event.preventDefault();
+                this._stepFromList = true;
+                Promise.resolve(card.step(event.key === "ArrowDown" ? "next" : "previous")).finally(() => { this._stepFromList = false; });
+            };
+            this.addEventListener("keydown", this._onStepKey);
+        }
         if (this.getAttribute("data-sf-instance")) this._ownParts();
         this._askForParts(["sf-view-table", "sf-pagination"]);
         // Dated aliases (§16.20), installed once per element as the Smart base does.
@@ -1683,6 +1727,15 @@ class SfDataView extends DataViewElement {
     // light DOM (slot head) where the Framework's styles reach them. Without
     // it the table draws its own toolbar, as before.
     get listHead() { return this.getAttribute("head") === "list"; }
+
+    // «Настроить вид» of the list head (head="list"), opened from outside the
+    // head: the table's column menu «Все колонки…» (C296, VR2-1). Answers an
+    // outcome; without the list head nothing opens.
+    openCustomize() {
+        if (!this.listHead || !this._head) return {outcome: "refused", reason: "no-list-head"};
+        this._head._openKind("view");
+        return {outcome: "applied"};
+    }
 
     _syncHead() {
         const part = this.shadowRoot?.querySelector('[part="head"]');
@@ -2674,6 +2727,10 @@ class SfDataView extends DataViewElement {
             // No gear in the table head under the list head: the view settings
             // are «Customize view» above the list (C301 (1)); the row menu stays.
             table.setAttribute("settings-menu", this.hostOffers("personal-column-settings") && !this.listHead ? "true" : "false");
+            // The column head menu keeps pin, hide and «Все колонки…» under the
+            // list head (C296, VR2-1): «Все колонки…» opens «Настроить вид».
+            if (this.hostOffers("personal-column-settings") && this.listHead) table.setAttribute("data-sf-view-columns", "head");
+            else table.removeAttribute?.("data-sf-view-columns");
             table.setAttribute("creatable", this.hostOffers("create-record") && !refused ? "true" : "false");
             table.setAttribute("row-reorder", this.hostOffers("row-reorder") && this.treeMode !== "tree" ? "true" : "false");
             table.setAttribute("inline-edit", this.hostOffers("inline-edit") ? "true" : "false");
@@ -2784,6 +2841,24 @@ class SfDataView extends DataViewElement {
                 // on the row itself.
                 table.addRows?.(this.appended);
             } else {
+                // The count under the filter (VR2-8): the grid's aria-rowcount is
+                // total + 1 and each row's aria-rowindex its place in the list.
+                // A tree counts its own levels; it is left out.
+                const known = this._answered && this.treeMode !== "tree" && this.countKnown !== false && this.totalExact !== false
+                    && Number.isSafeInteger(this.total) && this.total > 0;
+                if (known) {
+                    table.setAttribute("total", String(this.total));
+                    // Page 2 and on starts further down the list; «Показать ещё»
+                    // keeps every page from the first, so it starts at 0.
+                    const page = Number(this.query.page), per = Number(this.query.per_page);
+                    const offset = Number.isInteger(page) && page > 1 && Number.isInteger(per) && per > 0
+                        && this.records.length <= per ? (page - 1) * per : 0;
+                    table.setAttribute("row-offset", String(offset));
+                } else if (table.hasAttribute?.("data-sf-view-total")) {
+                    table.removeAttribute("total");
+                    table.removeAttribute("row-offset");
+                }
+                table.toggleAttribute?.("data-sf-view-total", known);
                 table.setRows?.(this.cappedRecords, this._newResult ? "result" : "rows");
                 this._newResult = false;
                 this._applyCarriedSelection();
@@ -3139,10 +3214,10 @@ class SfDataView extends DataViewElement {
         const query = copy(this.query);
         if (this.layoutKind !== "board") return query;
         const options = this._boardOptions();
-        // The lanes' counts come with the cards; their money sums are a
-        // request of their own once the board is drawn (agreed with Larena,
-        // 2026-11-18: a sum over a large lane is slower than its first cards).
-        query.window = {lanes: options.lane_field ?? null, per_lane: options.per_lane ?? 20, totals: ["count"], ...(extra ?? {})};
+        // One request (owner decision C304, VR2-9): the first cards of every
+        // lane and every lane's totals -- the count and the sums the board
+        // shows (layouts.board totals) -- come in the same answer.
+        query.window = {lanes: options.lane_field ?? null, per_lane: options.per_lane ?? 20, totals: ["count", ...this._boardSumTotals().map(copy)], ...(extra ?? {})};
         return query;
     }
 
@@ -3150,39 +3225,6 @@ class SfDataView extends DataViewElement {
     _boardSumTotals() {
         const totals = this._boardOptions().totals;
         return Array.isArray(totals) ? totals.filter((entry) => entry && typeof entry === "object" && entry.sum) : [];
-    }
-
-    // The second request (count at once, sum when it arrives): the lanes'
-    // sums of the same query, per_lane 0; the answer's lanes[].totals go into
-    // the lane heads, nothing else of it is read. A newer query, a refusal or
-    // a failure leaves the sums out; the counts stay.
-    async _askLaneSums(sequence, board) {
-        const totals = this._boardSumTotals();
-        const done = () => { if (board === this.board) board?.removeAttribute?.("sums-pending"); };
-        if (!totals.length || !this.hostPort) return done();
-        // After the board has drawn its lanes with their counts.
-        await globalThis.customElements?.whenDefined?.("sf-view-board");
-        await board?.whenRendered?.();
-        await new Promise((next) => (globalThis.requestAnimationFrame ?? globalThis.setTimeout)(() => next()));
-        if (!this.isConnected || sequence !== this.sequence || board !== this.board) return;
-        let answer = null;
-        try {
-            answer = await this.hostPort.raise("query.change", copy({
-                sequence, reason: "lane-sums", query: this._layoutQuery({per_lane: 0, totals}),
-            }), {signal: this._controller?.signal});
-        } catch {
-            answer = null;
-        }
-        if (!this.isConnected || sequence !== this.sequence || board !== this.board) return;
-        const lanes = answer?.answer === "applied" && Array.isArray(answer.data?.lanes) ? answer.data.lanes : [];
-        const sums = lanes.filter((lane) => lane && lane.totals && typeof lane.totals === "object")
-            .map((lane) => ({value: lane.value, totals: copy(lane.totals)}));
-        for (const lane of this.boardLanes ?? []) {
-            const given = sums.find((entry) => String(entry.value) === String(lane.value));
-            if (given) lane.totals = {...(lane.totals ?? {}), ...given.totals};
-        }
-        board.setLaneTotals?.(sums);
-        done();
     }
 
     // layouts.board as the host's view answers it (view_config), else as the
@@ -3216,9 +3258,6 @@ class SfDataView extends DataViewElement {
         } else {
             this.boardLanes = copy(data.lanes);
             this._boardFresh = true;
-            // Sums the board shows and the answer did not bring: asked after.
-            const keys = this._boardSumTotals().map((entry) => String(entry.sum));
-            this._laneSumsWanted = keys.length > 0 && !data.lanes.some((lane) => keys.some((key) => lane?.totals && Object.hasOwn(lane.totals, key)));
         }
         // The records on screen are the lanes' records: a write's answer
         // patches them as it patches a table's rows.
@@ -3233,13 +3272,10 @@ class SfDataView extends DataViewElement {
         board.moves = this._boardMoves ?? {};
         if (this._boardFresh) {
             this._boardFresh = false;
-            board.toggleAttribute("sums-pending", this._laneSumsWanted === true);
+            // The sums came with the cards (C304): nothing is held for them.
+            board.removeAttribute("sums-pending");
             board.lanes = this.boardLanes ?? [];
             this._applyCarriedSelection();
-            if (this._laneSumsWanted) {
-                this._laneSumsWanted = false;
-                this._askLaneSums(this.sequence, board);
-            }
         }
         const refused = this._queryRefused === true;
         board.setAttribute("order-field", this._boardOrderField ?? "");

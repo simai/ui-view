@@ -235,6 +235,11 @@ class SfTable extends TableElement {
             // (owner decision C296): the grid's aria-rowcount (VT-4) and the
             // «all N» of the bar of group actions. 0: not known.
             total: {type: Number, default: 0},
+            // How many records of the filter come before the first row drawn
+            // (a data view's page 2 and on): the rows' aria-rowindex count
+            // from it, so a grid of total + 1 rows says where each row is
+            // (VT-4, VR2-8). 0: the rows drawn start the list.
+            rowOffset: {attribute: "row-offset", type: Number, default: 0},
             // Who owns the vertical scroll. `self` keeps the rows in their own
             // scroll area, which is what a host that bounds the table's height
             // wants and what every page has had so far. `page` gives the
@@ -1529,6 +1534,17 @@ class SfTable extends TableElement {
         const total = Number(this.getProp?.("total") ?? this.getAttribute("total") ?? 0);
         if (Number.isSafeInteger(total) && total > 0) return String(total + 1);
         return this.windowRowCount();
+    }
+
+    // A row's aria-rowindex: in a windowed table its place in the window, in
+    // a page of a longer list (total and row-offset) its place in the list;
+    // else none -- the rows drawn are all there is.
+    ariaRowIndex(index, windowed) {
+        if (windowed) return String(index + 2);
+        const total = Number(this.getProp?.("total") ?? this.getAttribute("total") ?? 0);
+        const offset = Number(this.getProp?.("rowOffset") ?? this.getAttribute("row-offset") ?? 0);
+        if (!Number.isSafeInteger(total) || total <= 0 || !Number.isSafeInteger(offset) || offset <= 0) return null;
+        return String(offset + index + 2);
     }
 
     windowRowCount() {
@@ -8512,7 +8528,13 @@ class SfTable extends TableElement {
             entries.push({id: "sort-desc", text: this.text("columnSortDesc"), icon: "arrow_downward",
                 checked: sort.key === column.key && sort.direction === "desc"});
         }
-        const settings = this.getPropsContext?.().settings !== false && this.getAttribute("settings-menu") !== "false";
+        // Under the list head (sf-view head="list") there is no gear: the view
+        // settings are «Настроить вид» above the list (C301 (1)). The column's
+        // own pin and hide stay on its head all the same (C296, VR2-1), and
+        // «Все колонки…» opens «Настроить вид» (data-sf-view-columns="head",
+        // written by the view where the host keeps personal column settings).
+        const underHead = this.getAttribute("data-sf-view-columns") === "head";
+        const settings = this.getPropsContext?.().settings !== false && (this.getAttribute("settings-menu") !== "false" || underHead);
         if (!column.system && settings) {
             const pinned = this.isColumnPinned(column);
             const group = [{id: "pin", text: this.text(pinned ? "columnUnpin" : "columnPin"), icon: "push_pin"}];
@@ -8574,6 +8596,11 @@ class SfTable extends TableElement {
             return true;
         }
         if (id === "all") {
+            const view = this.getAttribute("data-sf-view-columns") === "head" ? this.closest?.("sf-view") : null;
+            if (typeof view?.openCustomize === "function") {
+                view.openCustomize();
+                return true;
+            }
             const gear = this.querySelector('thead th[data-key="settings"] button, thead th[data-key="settings"] [role="button"]');
             const anchor = gear ?? context.cell;
             this._settingsTab = "columns";

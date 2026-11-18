@@ -1587,6 +1587,29 @@
     );
   }
 
+  /* The open record (current, aria-current) in the grid keeps the same light
+     primary fill as in the phone list -- 12 in the light theme, 24 in the
+     dark (--sf-primary-container) -- so the row whose card is open beside the
+     list is seen (C305 (4), prototype open-b; VR2-3). A marked row keeps its
+     own fill, which is the same role. */
+  :is(sf-view-table, sf-table) tbody tr[aria-current="true"] {
+    --sf-surface-underlay: var(--sf-table-row--background-color, var(--sf-surface-page));
+    --sf-surface-place-fill: var(--sf-primary-container);
+    background-image: linear-gradient(
+      var(--sf-primary-container),
+      var(--sf-primary-container)
+    );
+  }
+
+  :is(sf-view-table, sf-table) tbody tr[aria-current="true"]:hover {
+    --sf-surface-underlay: var(--sf-table-row--background-color, var(--sf-surface-page));
+    --sf-surface-place-fill: var(--sf-primary-container-hover);
+    background-image: linear-gradient(
+      var(--sf-primary-container-hover),
+      var(--sf-primary-container-hover)
+    );
+  }
+
   /* The row the person is on carries `data-current` and takes focus, and shows
      nothing of its own. It used to draw a bar in its first cell, and the
      consumer found that the bar outlived what it meant: after a box was

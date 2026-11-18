@@ -1216,7 +1216,7 @@ export function renderTableTemplate(context) {
                 row.__tree ? String(row.__tree.setsize) : nothing,
                 row.__tree ? String(row.__tree.posinset) : nothing,
                 row.__tree?.loading ? 'true' : nothing,
-                slice ? String(index + 2) : nothing,
+                component.ariaRowIndex?.(index, Boolean(slice)) ?? (slice ? String(index + 2) : nothing),
                 component.getRowKey(row, index),
                 cursor ? '' : nothing,
                 current ? 'true' : nothing,

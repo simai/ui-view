@@ -373,6 +373,11 @@
       "default": 0,
       "summary": "How many records are under the filter, as the host knows it (C296, VT-4): the grid's aria-rowcount says total + 1 (the head), and a group actions bar offers «all N». 0 or absent: the rows drawn are all there is."
     },
+    "row-offset": {
+      "type": "number",
+      "default": 0,
+      "summary": "How many records of the filter come before the first row drawn (page 2 and on of a data view, VR2-8): with total, each row's aria-rowindex is its place in the list. 0: the rows drawn start the list. sf-view writes it with total."
+    },
     "active-filter-fields": {
       "type": "list",
       "entries": {
