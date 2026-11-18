@@ -34,7 +34,8 @@ test('VR2-3: the open row is filled in the grid and Alt steps the card from the 
 
 test('VR2-4: the head windows carry their own roles and the phone sheet opens', () => {
   assert.match(head, /data-sf-role="head-sheet"/u);
-  assert.match(head, /data-sf-role="head-record"/u);
+  // The record fields drawer went with C311 (sf-view 1.20.0): the card's own mode.
+  assert.doesNotMatch(head, /data-sf-role="head-record"/u);
   assert.match(head, /\n\s+sheet\.open\?\.\(\);/u);
 });
 

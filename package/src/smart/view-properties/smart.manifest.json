@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-properties",
-  "version": "1.18.2",
+  "version": "1.19.0",
   "title": "Property view",
   "summary": "One object's fields shown as sections, groups and fields, each drawn by the per-type field renderer set, behind a separate host port. A group is edited and saved as one revision by the button, and a reference field is picked from the host's own candidates a page at a time. The pair to the data view: that one is a set of records, this one is a single object.",
   "kind": "composite",
@@ -199,7 +199,8 @@
         "sf-view-properties-address-copy",
         "sf-view-properties-favourite",
         "sf-view-properties-step",
-        "sf-view-properties-history"
+        "sf-view-properties-history",
+        "sf-view-properties-structure"
       ],
       "persistence": {
         "settings_key_prop": null,
@@ -228,7 +229,8 @@
           "1.15.0",
           "1.16.0",
           "1.17.0",
-          "1.18.0"
+          "1.18.0",
+          "1.19.0"
         ]
       }
     }
@@ -1489,6 +1491,24 @@
         "type": "object"
       },
       "alias_of": "sf-view-properties-favourite"
+    },
+    "sf-view-properties-structure": {
+      "summary": "«Новое поле…» in the arranging mode (C311 (1)): opens the data owner's field editor; the card names the collection, the open tab and the area.",
+      "payload": {
+        "type": "object",
+        "required": [
+          "collection",
+          "section",
+          "group"
+        ],
+        "properties": {
+          "collection": {},
+          "section": {},
+          "group": {}
+        },
+        "additionalProperties": true
+      },
+      "canonical": true
     }
   },
   "state": {
@@ -1909,6 +1929,13 @@
         "changes": [
           "Alt+Down / Alt+Up step the record when the key is pressed anywhere in the card's own drawer, the panel included: the drawer gives its panel the focus when the card covers the list, and the keys went nowhere (VR2-3)."
         ]
+      },
+      {
+        "from": "1.18.2",
+        "to": "1.19.0",
+        "changes": [
+          "Record card settings (owner decision C311 on the levels of C298; RC-1..RC-4, RC-6..RC-10, TB-1): own edits go to the personal layer at once; «Сохранить для всех» (view.publish, merged and cleared by the host, a conflict redraws with «Вид изменился»); «Вернуть как у всех» in the profile picker (resettable) resets the personal layer only; «Сохранить как моё» (view.create shared false) in the head «⋯» while arranging; per-setting locks (view.locked, view.lock from a field or tab «⋯» for those who may write the shared layer; a lock mark «Закрыто администратором»); a required profile (profiles[].required) disables the picker and writes nothing; the head line under the title -- the stage as a tonal badge and up to two fields (view.head; «Показать в шапке», «Стадией в шапке»); the arranging mode: the picker and a one-line hint over the fields, the foot «Готово», «Сохранить для всех», «Отменить» (C157 (3)); «Вкладки» with handles and a «⋯» per tab (name, icon, up, down, hide, delete -- its fields to «Скрытые поля» --, lock); «+ Вкладка» with a «Поля» area; a field moves to another tab from its «⋯ → На вкладку …» at every width; one way to hide a field: the eye and «Скрытые поля» (open in the mode); the field template (variant) is no longer offered (C302 (2)), a layer that holds one is read until 2027-01-01; «Новое поле…» emits sf-view-properties-structure for the host's field editor; outside the mode «Профиль: <name>» enters it with the picker open (the «Вид» submenu stays only for a person who cannot arrange)."
+        ]
       }
     ]
   },
@@ -1918,15 +1945,15 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-properties/index.js",
-        "sha256": "307de54c21a377af4b400b0335e1c5b2cc48d7f283f77be2ff6e885e16d8d86f"
+        "sha256": "32bf3840e6d7d9d555f4dd7fa17eeb43f3ae6a0c9636e1c46bdd3d6f15eddba5"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.js",
-        "sha256": "07057e90752392b1f24edd44675a201bfb17bdf2b20ae0081a22ffffc80ddb0d"
+        "sha256": "bddc559994da8ea05f69fa84b5601cf2442c71f76970a1db4fd4bf3831c10c4b"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.css",
-        "sha256": "8d7afe9d3e5e34f0e4ec0806e17482c9139bd07f03d4104abbd9c3a402a23306"
+        "sha256": "33132542f2f685b1222e2ac2031b518ebef8419764cb064e2d4dacaa0932a8c9"
       },
       {
         "path": "src/smart/view-properties/js/conditions.js",
@@ -1978,7 +2005,7 @@
       },
       {
         "path": "src/smart/view-properties/docs.md",
-        "sha256": "090e0ac133464fd411c4b5abd302173c99c157d13c3454a15556d90953a147e8"
+        "sha256": "43eb78903f785779972915a435c4fd6164690fefd54e71142f2e3affce573d5c"
       }
     ],
     "generated_runtime": []

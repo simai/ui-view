@@ -5,6 +5,15 @@
   "entries": [
     {
       "unit": "smart.view",
+      "version": "1.20.0",
+      "recorded_on": "2026-11-18",
+      "change": "minor",
+      "consumer": "The list head's «Настройки полей записи» no longer raises entity.fields.save: it opens the first record in the card beside the list in its arranging mode (openRecordSettings()); a page without a card hears settings-open {id: \"record-fields\"}.",
+      "summary": "Record card settings (C311 (1), (3); RC-4): «⋯ → Настройки полей записи» opens the first record of the list in the record card straight in the arranging mode (openRecordSettings()): one card arrangement per entity for every layout. The head's own record fields drawer (head-record), its panel and entity.fields.save are gone; the words head-add-field, head-fields-default, head-hidden, head-hide-field, head-show-field, head-no-record-fields and head-record-note with them.",
+      "evidence": "control/evidence/2026-11-18-record-card-settings/README.md"
+    },
+    {
+      "unit": "smart.view",
       "version": "1.19.0",
       "recorded_on": "2026-11-18",
       "change": "minor",
@@ -245,6 +254,15 @@
       "consumer": "Nothing to change for a host: only the SIMAI Framework file it builds in moved with the repin.",
       "summary": "Over SIMAI Framework ui-078a4b4c6f6e (ui-source 10145e63b9dc) the Framework file it builds in, src/smart/pagination/index.js (sf-pagination 1.7: «Show more» within reach, C167; a deleting action listed last, C116), moved; the provenance and the version follow. Nothing of its own; nothing to change for a host. 1.19.7 and 1.19.8 are ui-pro's own patched copies, never this set's.",
       "evidence": "https://github.com/simai/ui-view/commit/e214dd608fdcf39cea527676fc522afd718922d4"
+    },
+    {
+      "unit": "smart.view-properties",
+      "version": "1.19.0",
+      "recorded_on": "2026-11-18",
+      "change": "minor",
+      "consumer": "Port 1.19.0 is accepted (ui-source round/property-view-port-1.19; the declared contract stays 1.18.0 until a pair carries 1.19.0). With a 1.19.0 host: answer view.publish and view.lock where the host offers view-settings and a shared layer; send profiles[].required, view.locked and view.head when known. The card now writes its own edits to the personal layer at once (view.save target personal) and «Вернуть как у всех» resets the personal layer only; listen for sf-view-properties-structure to open your field editor.",
+      "summary": "Record card settings (owner decision C311 on the levels of C298; RC-1..RC-4, RC-6..RC-10, TB-1): own edits go to the personal layer at once; «Сохранить для всех» (view.publish, merged and cleared by the host, a conflict redraws with «Вид изменился»); «Вернуть как у всех» in the profile picker (resettable) resets the personal layer only; «Сохранить как моё» (view.create shared false) in the head «⋯» while arranging; per-setting locks (view.locked, view.lock from a field or tab «⋯» for those who may write the shared layer; a lock mark «Закрыто администратором»); a required profile (profiles[].required) disables the picker and writes nothing; the head line under the title -- the stage as a tonal badge and up to two fields (view.head; «Показать в шапке», «Стадией в шапке»); the arranging mode: the picker and a one-line hint over the fields, the foot «Готово», «Сохранить для всех», «Отменить» (C157 (3)); «Вкладки» with handles and a «⋯» per tab (name, icon, up, down, hide, delete -- its fields to «Скрытые поля» --, lock); «+ Вкладка» with a «Поля» area; a field moves to another tab from its «⋯ → На вкладку …» at every width; one way to hide a field: the eye and «Скрытые поля» (open in the mode); the field template (variant) is no longer offered (C302 (2)), a layer that holds one is read until 2027-01-01; «Новое поле…» emits sf-view-properties-structure for the host's field editor; outside the mode «Профиль: <name>» enters it with the picker open (the «Вид» submenu stays only for a person who cannot arrange).",
+      "evidence": "control/evidence/2026-11-18-record-card-settings/README.md"
     },
     {
       "unit": "smart.view-properties",

@@ -41,7 +41,7 @@ import {historyFromRevisions, timelineItems, valueText} from "./js/history.js";
 // keeps its list -- a guard naming a narrower set than the published versions is
 // a component refusing a host it asked to move. The contract test beside this
 // file compares the list with the manifest.
-const SUPPORTED_PORT_VERSIONS = ["1.0.0", "1.1.0", "1.2.0", "1.3.0", "1.4.0", "1.5.0", "1.6.0", "1.7.0", "1.8.0", "1.9.0", "1.10.0", "1.11.0", "1.12.0", "1.13.0", "1.14.0", "1.15.0", "1.16.0", "1.17.0", "1.18.0"];
+const SUPPORTED_PORT_VERSIONS = ["1.0.0", "1.1.0", "1.2.0", "1.3.0", "1.4.0", "1.5.0", "1.6.0", "1.7.0", "1.8.0", "1.9.0", "1.10.0", "1.11.0", "1.12.0", "1.13.0", "1.14.0", "1.15.0", "1.16.0", "1.17.0", "1.18.0", "1.19.0"];
 
 // The surface's mode (owner, 2026-10-14). view: show the object, never offer
 // a change. auto: show it and offer what this person may do. edit: every group
@@ -3612,10 +3612,18 @@ class SfPropertyView extends PropertyViewElement {
         return this.editableLayers.includes(wanted) ? wanted : this.viewTarget;
     }
 
+    // Whether the host speaks port 1.19.0 (view.publish, view.lock): the
+    // contract is in ui-source and rides the next pair; a 1.18.0 host is
+    // offered neither.
+    get hostSpeaksCardSettings() {
+        const [major, minor] = String(this.hostPort?.version ?? "").split(".").map(Number);
+        return major > 1 || (major === 1 && minor >= 19);
+    }
+
     // Whether this person may write the shared layer: «Сохранить для всех»,
     // the locks and the head's fields are theirs (C298, C311 (2), (5)).
     get canWriteShared() {
-        return this.editableLayers.includes("shared");
+        return this.editableLayers.includes("shared") && this.hostSpeaksCardSettings;
     }
 
     // A required profile (port 1.19.0 profiles[].required): it cannot be
@@ -4437,7 +4445,8 @@ class SfPropertyView extends PropertyViewElement {
     }
 
     _writeHead(next) {
-        if (!this.configuring || !this.layerDraft || this.lockedForMe("head")) return false;
+        // A 1.18.0 layer holds sections, groups and fields only.
+        if (!this.configuring || !this.layerDraft || !this.hostSpeaksCardSettings || this.lockedForMe("head")) return false;
         this.layerDraft.head = {subtitle: next.subtitle.slice(0, 2), status: next.status ?? null};
         this.requestComponentUpdate("view-head");
         return this.saveView();
