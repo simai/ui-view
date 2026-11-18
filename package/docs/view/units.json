@@ -5,6 +5,15 @@
   "entries": [
     {
       "unit": "smart.view",
+      "version": "1.22.0",
+      "recorded_on": "2026-11-18",
+      "change": "minor",
+      "consumer": "Nothing changes for a host that writes no layout=\"calendar\". New: layout=\"calendar\" (sf-view-calendar, C307): the query carries window {range, date_field, end_field} and context {timeZone, weekStart, locale}, the undated records are a second query.change with reason undated and window {undated, page, per_page}, a move is record.set {record_id, key, value, patch, revision}; the first paint holds the month grid (CL-2). The list head's calendar settings no longer offer a week start (it is the request's, C293) and write color_field. (round/view-calendar said 1.18.0; renumbered above 1.21.0 when it met round/view-returns and round/view-cards in round/view-r4.)",
+      "summary": "The layout registry takes calendar (owner decision C307, CA-1): layout=\"calendar\" draws sf-view-calendar in the content slot, with no page row; its first paint holds the calendar's bar and the month of six weeks at the day's own height (CL-2). The query carries window {range: [from, to), date_field, end_field} and context {timeZone, weekStart, locale} (C293); the undated records are a second query.change (reason undated, window {undated, page, per_page}); a move or a stretch is record.set {record_id, key, value, patch, revision} and the answer settles it on the calendar; a + on a day is view.create_record with the date filled; an opened event goes to the record card (C305). The list head's calendar settings write color_field and no week start. (round/view-calendar, which said 1.18.0 over round/view-r2.) The layout setting lists calendar.",
+      "evidence": "control/evidence/2026-11-18-view-calendar/README.md"
+    },
+    {
+      "unit": "smart.view",
       "version": "1.21.0",
       "recorded_on": "2026-11-18",
       "change": "minor",
@@ -461,6 +470,15 @@
       "consumer": "New: sf-view layout=\"cards\" draws it, where the author turned cards on (C297); a host answers the window {page, per_page: 24} with {records, total, has_next}.",
       "summary": "New: the cards layout (owner decisions C297, C306): records as .sf-card in a grid whose columns follow its width (sizes S, M, L), a cover in a frame of one ratio drawn by the layout (cover or contain, lazy), the title in two lines and up to four fields in the «Кратко» place, «Показать ещё» over the window {page, per_page: 24}, one Tab stop with the arrows by rows, a selection for sf-bulk-actions, empty states by sf-empty-state.",
       "evidence": "control/evidence/2026-11-18-view-cards"
+    },
+    {
+      "unit": "smart.view-calendar",
+      "version": "1.0.0",
+      "recorded_on": "2026-11-18",
+      "change": "minor",
+      "consumer": "New: sf-view layout=\"calendar\" draws it; a host answers the date window {range, date_field, end_field} with context {timeZone, weekStart}, a query {window: {undated}} for the «Без даты» column, and record.set with patch for a move.",
+      "summary": "New: the calendar layout (owner decision C307): month, week, day and list modes over the host's date window in the request's time zone and week start; all-day and multi-day bars and timed events in their option's colour; «+N» opens the day list; moves and stretches by mouse, touch and keys as a change of the date fields the host settles (settleMove), refused days dim with the reason; «Без даты N» column; «+» on a day; the phone month with dots; selection in the list mode; one Tab stop with the W3C date grid keys.",
+      "evidence": "control/evidence/2026-11-18-view-calendar"
     }
   ]
 }

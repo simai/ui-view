@@ -112,10 +112,10 @@ test('CA-4: a move keeps the length; to no day clears both fields', () => {
 
 test('CA-1: sf-view registers the calendar layout and draws it with no page row', () => {
   const view = read('src/smart/view/index.js');
-  assert.match(view, /\["board", "sf-view-board"\], \["calendar", "sf-view-calendar"\]\]\)/u);
+  assert.match(view, /\["board", "sf-view-board"\], \["cards", "sf-view-cards"\], \["calendar", "sf-view-calendar"\]\]\)/u);
   assert.match(view, /\.\.\.CALENDAR_EVENTS,/u);
   assert.match(view, /if \(layout === "calendar"\) return calendarSkeleton\(\);/u);
-  assert.match(view, /this\.layoutKind === "board" \|\| this\.layoutKind === "calendar" \|\| nothingToCount/u);
+  assert.match(view, /this\.layoutKind === "board" \|\| this\.layoutKind === "cards" \|\| this\.layoutKind === "calendar" \|\| nothingToCount/u);
   assert.match(view, /if \(this\.layoutKind === "calendar"\) return calendarQuery\(this, query, extra\);/u);
   const adapter = read('src/smart/view/js/calendar.js');
   assert.match(adapter, /query\.window = \{\.\.\.window, \.\.\.\(extra \?\? \{\}\)\};\s*query\.context = contextOf\(view\);/u);

@@ -83,7 +83,7 @@ test('CD-6: the arrows go by the rows as drawn', () => {
 
 test('CD-1: sf-view registers cards and wires it at its hook points', () => {
   const view = read('src/smart/view/index.js');
-  assert.match(view, /\["board", "sf-view-board"\], \["cards", "sf-view-cards"\]\]/u);
+  assert.match(view, /\["board", "sf-view-board"\], \["cards", "sf-view-cards"\], \["calendar", "sf-view-calendar"\]\]/u);
   assert.match(view, /\.\.\.CARDS_EVENTS/u);
   for (const hook of ['cardsQuery(this, query)', 'acceptCards(this, data)', 'syncCards(this)', 'onCardsEvent(this, event)', 'cardsSkeleton(this, bar)', 'syncCardsState(this, state)']) {
     assert.ok(view.includes(hook), hook);
