@@ -429,7 +429,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-cards/index.js",
-        "sha256": "99d603216dfdfcce338320eb0ff9e0c42c528cdaf0adcf7a03a17e91d1023fb4"
+        "sha256": "7a25a6951c3371669ea6182ff324ccdd6e419f6c63e8ea42c89ed1a909f7b56b"
       },
       {
         "path": "src/smart/view-cards/js/cards.js",
