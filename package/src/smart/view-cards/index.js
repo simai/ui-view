@@ -193,8 +193,8 @@ class SfViewCards extends CardsElement {
         return key ? coverOf(record?.[key]) : null;
     }
 
-    fieldAlign(field) {
-        return fieldAlign(field);
+    fieldAlign(field, index = 1) {
+        return fieldAlign(field, index);
     }
 
     // A card field in the «Кратко» place: the Framework field renderers' cell

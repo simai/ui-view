@@ -149,9 +149,8 @@ function renderMonthDay(context, day, week, lanes, month, compact) {
         <div class="sf-view-calendar__nrow">${number}${renderAdd(context, day)}</div>
         ${pieces}
         ${shown.map((event) => renderChip(context, event))}
-        ${rest > 0 ? html`<span class="sf-view-calendar__more"><sf-button size=${context.size} appearance="ghost" scheme="on-surface-variant"
-                text=${component.word("more-text", {count: rest})} data-more=${day} tabindex="-1"
-                aria-label=${component.word("more-label", {count: rest, day: component.dayName(day)})}></sf-button></span>` : nothing}`);
+        ${rest > 0 ? html`<button type="button" class="sf-view-calendar__more" data-more=${day} tabindex="-1"
+                aria-label=${component.word("more-label", {count: rest, day: component.dayName(day)})}>${component.word("more-text", {count: rest})}</button>` : nothing}`);
 }
 
 // ── week and day ─────────────────────────────────────────────────────────

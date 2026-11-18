@@ -36,7 +36,10 @@ function calendarOptionsOf(view) {
 function defaultWindow(view) {
     const options = calendarOptionsOf(view);
     const fields = view.columns ?? [];
-    const dateField = options.date_field ?? fields.find((field) => ["date", "datetime"].includes(String(field.propertyType ?? field.property_type ?? field.type ?? "")))?.key ?? null;
+    const dated = (list) => (Array.isArray(list) ? list : []).find((field) => ["date", "datetime"].includes(String(field?.propertyType ?? field?.property_type ?? field?.type ?? "")))?.key ?? null;
+    // layouts.calendar, else the first date field of the columns, else of the
+    // host's description (VCL-2: the first range query went out with null).
+    const dateField = options.date_field ?? dated(fields) ?? dated(view._head?.description?.fields);
     const today = new Date();
     const first = new Date(Date.UTC(today.getFullYear(), today.getMonth(), 1));
     const start = Number(view.getAttribute?.("week-start") ?? 1) % 7;
@@ -45,7 +48,7 @@ function defaultWindow(view) {
     const to = new Date(from);
     to.setUTCDate(from.getUTCDate() + 42);
     const iso = (date) => date.toISOString().slice(0, 10);
-    return {range: [iso(from), iso(to)], date_field: dateField, ...(options.end_field ? {end_field: options.end_field} : {})};
+    return {range: [iso(from), iso(to)], ...(dateField ? {date_field: dateField} : {}), ...(options.end_field ? {end_field: options.end_field} : {})};
 }
 
 function contextOf(view) {
@@ -62,6 +65,12 @@ export function calendarQuery(view, query, extra = null) {
     const calendar = calendarOf(view);
     const window = calendar && typeof calendar.window === "object" && calendar.window?.date_field ? copy(calendar.window) : defaultWindow(view);
     query.window = {...window, ...(extra ?? {})};
+    // Never a null date field: a range asked before the field is known is
+    // asked again once layouts.calendar has named it (VCL-2).
+    if (!query.window.date_field) {
+        delete query.window.date_field;
+        if (query.window.range) view._calendarAskWithField = true;
+    }
     query.context = contextOf(view);
     delete query.page;
     delete query.per_page;
@@ -73,6 +82,10 @@ export function acceptCalendar(view, data) {
     if (view.layoutKind !== "calendar") return;
     const layouts = data.view_config?.layouts ?? data.layouts;
     if (layouts?.calendar && typeof layouts.calendar === "object") view._calendarHostOptions = copy(layouts.calendar);
+    if (view._calendarAskWithField && calendarOptionsOf(view).date_field) {
+        view._calendarAskWithField = false;
+        queueMicrotask(() => { if (view.isConnected && view.layoutKind === "calendar") view.refresh?.("calendar-range"); });
+    }
     if (data.context && typeof data.context === "object") view._calendarContext = copy(data.context);
     if (data.rules && typeof data.rules === "object") {
         const dateField = calendarOptionsOf(view).date_field;

@@ -576,7 +576,7 @@
         "from": "1.0.0",
         "to": "1.1.0",
         "changes": [
-          "view-config/1 keys from the Larena backend (msg-75b451e2): calendarOptions reads span_days (31, clamped to 366; how far back the host looks for an event that started before the days on screen) and rules from layouts.calendar; the move rules in force are the rules setting and layouts.calendar.rules. moveCheck: weekdays {days} are the ISO days 1..7 a start may fall on (the host's reading; the round's own 0..6 refused days are gone), locked {field, in} holds a record whose field has one of the values (also with no day), ability is the host's and comes per record in can {update: false, code, reason}; sunday..saturday, min, max and dates are still read. A refusal carries its code; with no reason of its own a rule or a host refusal (storage_calendar_update_past, _weekday, _locked, _denied, _end_before_start, _too_long, _patch_invalid) is said in the pack's words (refuse-past, refuse-weekday, refuse-locked, refuse-denied, refuse-end-before-start, refuse-too-long, refuse-patch-invalid; en and ru); a machine code is never shown to a person."
+          "view-config/1 keys from the Larena backend (msg-75b451e2): calendarOptions reads span_days (31, clamped to 366; how far back the host looks for an event that started before the days on screen) and rules from layouts.calendar; the move rules in force are the rules setting and layouts.calendar.rules. moveCheck: weekdays {days} are the ISO days 1..7 a start may fall on (the host's reading; the round's own 0..6 refused days are gone), locked {field, in} holds a record whose field has one of the values (also with no day), ability is the host's and comes per record in can {update: false, code, reason}; sunday..saturday, min, max and dates are still read. A refusal carries its code; with no reason of its own a rule or a host refusal (storage_calendar_update_past, _weekday, _locked, _denied, _end_before_start, _too_long, _patch_invalid) is said in the pack's words (refuse-past, refuse-weekday, refuse-locked, refuse-denied, refuse-end-before-start, refuse-too-long, refuse-patch-invalid; en and ru); a machine code is never shown to a person. VCL-1: mode resolves the mode attribute only when written, then layouts.calendar mode, then month (getProp answered the property default, month, and hid the setting). VCL-3: «+N» is a plain button (sf-view-calendar__more) at --sf-text-height-1/2 instead of an sf-button of the control height; the day's block-size is padding + one control row + per_day text lines and gaps. VCL-4: the phone row's grid is time | title | auto, the second field on the title line (end), the first under the title, ellipsis on long values."
         ]
       }
     ]
@@ -587,7 +587,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-calendar/index.js",
-        "sha256": "827d180a866da6b4cd04ab10c5dabb5c0cfa3427b0e2a7671fc94ca70c243eb4"
+        "sha256": "99012ac02bde63df30ead9c5c1f3e72b881a4bde58fb986b67f290c3b68180b9"
       },
       {
         "path": "src/smart/view-calendar/js/calendar.js",
@@ -595,11 +595,11 @@
       },
       {
         "path": "src/smart/view-calendar/js/templates/default.js",
-        "sha256": "07087d2598ec6fd985fdf52b072edfa97c2157a85b56d789d77282b09caf1810"
+        "sha256": "5bc567ebcb20f90820624dbb633712d3d4108599cfb5b86ffd316b8462bc7ff1"
       },
       {
         "path": "src/smart/view-calendar/js/templates/default.css",
-        "sha256": "b8b4dbd499aff0dda5779a09c7e2c53d6dbb62cd77156ee4cebc813779f0a075"
+        "sha256": "4758ef10e69faf23c1f749ef709d9a1f158129062095e58cd413bc58d1ea49c5"
       },
       {
         "path": "src/smart/field-renderers/index.js",

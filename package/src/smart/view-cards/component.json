@@ -2,8 +2,15 @@
   "$comment": "sf-view-cards, standard simai.smart-component 1.4 (vocabulary 1.1.5): the cards layout of the view set (a gallery of record cards; owner decisions C297, C306). Study: ui-control control/research/2026-11-18-cards-view. The card is .sf-card, the cover the layout's own frame, the card fields the Framework field renderers' cell output, «Показать ещё» sf-pagination in its more look, empty states sf-empty-state, menus SF.menu.open, the selection bar sf-bulk-actions where the pair has it.",
   "id": "smart.view-cards",
   "tag": "sf-view-cards",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "x-history": [
+    {
+      "version": "1.0.1",
+      "kind": "patch",
+      "recorded_on": "2026-11-18",
+      "consumer": "Nothing to change. A number in the first «Кратко» column stays at the column's start; only the second column ends numbers, dates and files, as the accepted prototype does (VC-1, DEV's acceptance of the cards).",
+      "evidence": "control/evidence/2026-11-18-view-r4/README.md"
+    },
     {
       "version": "1.0.0",
       "kind": "minor",
@@ -490,6 +497,13 @@
           "to": "1.0.0",
           "changes": [
             "New: the cards layout (owner decisions C297, C306): records as .sf-card in a grid whose columns follow its width (sizes S, M, L), a cover in a frame of one ratio drawn by the layout (cover or contain, lazy), the title in two lines and up to four fields in the «Кратко» place, «Показать ещё» over the window {page, per_page: 24}, one Tab stop with the arrows by rows, a selection for sf-bulk-actions, empty states by sf-empty-state."
+          ]
+        },
+        {
+          "from": "1.0.0",
+          "to": "1.0.1",
+          "changes": [
+            "DEV's acceptance return VC-1 (round/view-r4): fieldAlign(field, index) answers end only for a numeric field in the second column (odd index); the template passes the index and marks numbers data-numeric for tabular digits."
           ]
         }
       ]

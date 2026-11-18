@@ -4,7 +4,7 @@ import {dirname, resolve} from 'node:path';
 import test from 'node:test';
 import {fileURLToPath} from 'node:url';
 import {calendarOptions, moveCheck, refusalWord, SPAN_DAYS, SPAN_DAYS_MAX} from '../src/smart/view-calendar/js/calendar.js';
-import {cardsOptions} from '../src/smart/view-cards/js/cards.js';
+import {cardsOptions, fieldAlign} from '../src/smart/view-cards/js/cards.js';
 
 // View round 4 (round/view-r4): the dispatcher's merge of round/view-returns,
 // round/view-cards and round/view-calendar; the layout switch over the four
@@ -134,4 +134,42 @@ test('VR3-2: menu separators are {type: "separator"}, as sf-menu-context reads t
     assert.doesNotMatch(read(file), /kind: "separator"/u, file);
   }
   assert.match(head, /entries\.push\(\{type: "separator"\}\)/u);
+});
+
+// DEV's acceptance of cards and calendar (ui-control control/evidence/2026-11-18-view-cards-cal-acceptance).
+test('VCL-1: layouts.calendar mode wins over the property default when no attribute is written', () => {
+  const calendar = read('src/smart/view-calendar/index.js');
+  assert.match(calendar, /const asked = this\._mode \?\? \(this\.hasAttribute\?\.\("mode"\) \? this\.getProp\("mode"\) : null\) \?\? options\.mode \?\? "month";/u);
+});
+
+test('VCL-2: the range query never carries a null date field; it is asked again once the field is known', () => {
+  const glue = read('src/smart/view/js/calendar.js');
+  assert.match(glue, /\.\.\.\(dateField \? \{date_field: dateField\} : \{\}\)/u);
+  assert.match(glue, /dated\(view\._head\?\.description\?\.fields\)/u);
+  assert.match(glue, /if \(!query\.window\.date_field\) \{\s*delete query\.window\.date_field;\s*if \(query\.window\.range\) view\._calendarAskWithField = true;/u);
+  assert.match(glue, /view\._calendarAskWithField && calendarOptionsOf\(view\)\.date_field/u);
+});
+
+test('VCL-3: «+N» is a text row at the event line height; a day is the number row and per_day lines', () => {
+  const template = read('src/smart/view-calendar/js/templates/default.js');
+  const sheet = read('src/smart/view-calendar/js/templates/default.css');
+  assert.match(template, /<button type="button" class="sf-view-calendar__more" data-more=\$\{day\}/u);
+  assert.doesNotMatch(template, /sf-view-calendar__more"><sf-button/u);
+  assert.match(sheet, /\.sf-view-calendar__more \{[^}]*block-size: var\(--sf-text-height-1\\\/2\);/u);
+  assert.match(sheet, /\+ var\(--sf-px\) \+ var\(--sf-view-calendar-control\)\s*\+ var\(--sf-view-calendar-per-day\) \* var\(--sf-text-height-1\\\/2\)/u);
+});
+
+test('VCL-4: a phone row is two lines, the second field at the end of the title line, long values end with an ellipsis', () => {
+  const sheet = read('src/smart/view-calendar/js/templates/default.css');
+  assert.match(sheet, /\[data-phone\] \.sf-view-calendar__row \{\s*grid-template-columns: var\(--sf-e4\) minmax\(0, 1fr\) auto;/u);
+  assert.match(sheet, /__field ~ \.sf-view-calendar__field \{ grid-row: 1; grid-column: -2 \/ -1;/u);
+  assert.match(sheet, /__field \{ grid-row: 2; grid-column: -3 \/ -1; display: block; overflow: hidden; text-overflow: ellipsis;/u);
+});
+
+test('VC-1: a number in the first «Кратко» column stays at its start; the second column ends numbers', () => {
+  assert.equal(fieldAlign({propertyType: 'money'}, 0), 'start');
+  assert.equal(fieldAlign({propertyType: 'money'}, 1), 'end');
+  assert.equal(fieldAlign({propertyType: 'number'}, 2), 'start');
+  assert.equal(fieldAlign({propertyType: 'string'}, 1), 'start');
+  assert.match(read('src/smart/view-cards/js/templates/default.js'), /context\.cardFields\.map\(\(field, index\) => renderField\(context, field, record, index\)\)/u);
 });

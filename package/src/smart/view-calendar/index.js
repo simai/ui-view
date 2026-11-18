@@ -229,7 +229,9 @@ class SfViewCalendar extends CalendarElement {
     get mode() {
         const options = this.calendarOptions;
         const modes = this.modes;
-        const asked = this._mode ?? this.getProp("mode") ?? options.mode;
+        // The written attribute, else layouts.calendar mode, else month: the
+        // property's own default (month) must not hide the view's setting (VCL-1).
+        const asked = this._mode ?? (this.hasAttribute?.("mode") ? this.getProp("mode") : null) ?? options.mode ?? "month";
         const mode = modes.includes(asked) ? asked : modes[0];
         return mode;
     }

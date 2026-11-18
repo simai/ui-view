@@ -112,8 +112,8 @@
     gap: var(--sf-space-1\/4);
     min-inline-size: 0;
     box-sizing: border-box;
-    block-size: calc(2 * var(--sf-space-1\/4) + var(--sf-px) + 2 * var(--sf-view-calendar-control)
-      + (var(--sf-view-calendar-per-day) - 1) * var(--sf-text-height-1\/2) + var(--sf-view-calendar-per-day) * var(--sf-space-1\/4));
+    block-size: calc(2 * var(--sf-space-1\/4) + var(--sf-px) + var(--sf-view-calendar-control)
+      + var(--sf-view-calendar-per-day) * var(--sf-text-height-1\/2) + var(--sf-view-calendar-per-day) * var(--sf-space-1\/4));
     padding: var(--sf-space-1\/4);
     overflow: hidden;
     background: var(--sf-view-calendar-day-background);
@@ -165,7 +165,26 @@
   .sf-view-calendar__tgh:is(:hover, :focus-within) .sf-view-calendar__add { opacity: 1; }
   @media (pointer: coarse) { .sf-view-calendar__add { opacity: 1; } }
 
-  .sf-view-calendar__more { display: flex; justify-content: flex-start; }
+  /* «+N»: a text row at the event line height, like an event (VCL-3), so a
+     day of per_day rows is the number row and per_day lines. */
+  .sf-view-calendar__more {
+    display: flex;
+    align-items: center;
+    inline-size: 100%;
+    min-inline-size: 0;
+    block-size: var(--sf-text-height-1\/2);
+    padding: 0 var(--sf-space-1\/4);
+    border: 0;
+    border-radius: var(--sf-radius--ui);
+    background: transparent;
+    color: var(--sf-on-surface-variant);
+    font: inherit;
+    font-weight: var(--sf-font-weight-medium);
+    text-align: start;
+    cursor: pointer;
+  }
+  .sf-view-calendar__more:hover { background: var(--sf-surface-container-hover); color: var(--sf-on-surface); }
+  .sf-view-calendar__more:focus-visible { outline: var(--sf-focus--width) var(--sf-focus--style) var(--sf-focus--color); outline-offset: var(--sf-focus--inset); }
 
   /* While an event is held, a day the host refuses dims and names the reason (its title). */
   .sf-view-calendar[data-dragging] [data-refuse] { opacity: var(--sf-view-calendar-refused-opacity); cursor: not-allowed; }
@@ -455,14 +474,20 @@
   .sf-view-calendar__field[data-align="end"] { justify-content: flex-end; }
   .sf-view-calendar__values { display: inline-flex; align-items: center; gap: var(--sf-space-1\/4); min-inline-size: 0; }
 
+  /* A phone's row in two lines (VCL-4): the time, the title and the second
+     «Кратко» field at the line's end; the first field under the title. Long
+     values end with «…». */
   .sf-view-calendar[data-phone] .sf-view-calendar__row {
-    grid-template-columns: var(--sf-e4) minmax(0, 1fr);
+    grid-template-columns: var(--sf-e4) minmax(0, 1fr) auto;
     grid-auto-flow: row;
     row-gap: 0;
   }
 
-  .sf-view-calendar[data-phone] .sf-view-calendar__row[data-boxed] { grid-template-columns: auto var(--sf-e4) minmax(0, 1fr); }
-  .sf-view-calendar[data-phone] .sf-view-calendar__row > .sf-view-calendar__field { grid-column: -2; }
+  .sf-view-calendar[data-phone] .sf-view-calendar__row[data-boxed] { grid-template-columns: auto var(--sf-e4) minmax(0, 1fr) auto; }
+  .sf-view-calendar[data-phone] .sf-view-calendar__row > :is(.sf-view-calendar__box, .sf-view-calendar__time) { grid-row: 1; }
+  .sf-view-calendar[data-phone] .sf-view-calendar__row > .sf-view-calendar__name { grid-row: 1; grid-column: -3 / -2; }
+  .sf-view-calendar[data-phone] .sf-view-calendar__row > .sf-view-calendar__field { grid-row: 2; grid-column: -3 / -1; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sf-view-calendar[data-phone] .sf-view-calendar__row > .sf-view-calendar__field ~ .sf-view-calendar__field { grid-row: 1; grid-column: -2 / -1; text-align: end; }
   .sf-view-calendar[data-phone] .sf-view-calendar__row > .sf-view-calendar__field ~ .sf-view-calendar__field ~ .sf-view-calendar__field { display: none; }
 
   /* ── the «Без даты» column and the pick window ── */

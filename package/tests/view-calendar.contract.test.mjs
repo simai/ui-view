@@ -118,7 +118,7 @@ test('CA-1: sf-view registers the calendar layout and draws it with no page row'
   assert.match(view, /this\.layoutKind === "board" \|\| this\.layoutKind === "cards" \|\| this\.layoutKind === "calendar" \|\| nothingToCount/u);
   assert.match(view, /if \(this\.layoutKind === "calendar"\) return calendarQuery\(this, query, extra\);/u);
   const adapter = read('src/smart/view/js/calendar.js');
-  assert.match(adapter, /query\.window = \{\.\.\.window, \.\.\.\(extra \?\? \{\}\)\};\s*query\.context = contextOf\(view\);/u);
+  assert.match(adapter, /query\.window = \{\.\.\.window, \.\.\.\(extra \?\? \{\}\)\};[\s\S]{0,400}?query\.context = contextOf\(view\);/u);
   assert.match(adapter, /window = \{undated: dateField, page: 1, per_page: UNDATED_PAGE\}/u);
   assert.match(adapter, /"record\.set", \{\s*record_id: detail\.id, key, value: detail\.patch\?\.\[key\] \?\? null, patch: copy\(detail\.patch \?\? \{\}\), revision: detail\.revision \?\? null,/u);
   assert.match(adapter, /calendar\.settleMove\(detail\.id,/u);

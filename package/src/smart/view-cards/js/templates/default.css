@@ -164,7 +164,8 @@
   }
 
   /* Up to four «Кратко» fields in two columns pushed to the card's foot:
-     text at the start, numbers and dates at the end, tabular digits; rows of
+     the first column at its start, numbers and dates of the second at the
+     end (VC-1), tabular digits; rows of
      one height across a row of cards. */
   .sf-view-cards__fields {
     margin-block-start: auto;
@@ -189,7 +190,8 @@
     color: var(--sf-on-surface-variant);
   }
 
-  .sf-view-cards__field[data-align="end"] { justify-self: end; font-variant-numeric: tabular-nums; }
+  .sf-view-cards__field[data-align="end"] { justify-self: end; }
+  .sf-view-cards__field[data-numeric] { font-variant-numeric: tabular-nums; }
   .sf-view-cards__value,
   .sf-view-cards__values { display: inline-flex; align-items: center; gap: var(--sf-space-1\/4); min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; }
 

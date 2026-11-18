@@ -52,6 +52,14 @@ window (C310); DEV's round 3 returns VR3-1..VR3-4.
   so «Сохранить для всех» and the locks are offered to a 1.20.0 host only.
 - `sf-view-table` 1.25.1: the column head menu's separators draw as
   separators (VR3-2).
+- DEV's acceptance of the cards and the calendar: `sf-view-calendar` 1.1.0
+  opens in `layouts.calendar.mode` when no `mode` is written (VCL-1); «+N»
+  is a text row at the event line height, so the month is 672 px instead of
+  750 (VCL-3); a phone's day rows are two lines with the second field at the
+  end of the title line and «…» on long values (VCL-4). `sf-view` 1.23.0
+  never sends a calendar range with `date_field: null` (VCL-2).
+  `sf-view-cards` 1.0.1: a number in the first «Кратко» column stays at its
+  start (VC-1).
 - Tests: the STATUS test reads only the branches the candidate carries
   (`SET_LIVE_BRANCHES=1` reads live origin, VR3-3). Site: the view-table
   example of former tags uses `sf-view-table` (VR3-4).
