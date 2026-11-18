@@ -117,8 +117,24 @@
 <div class="sf-view-calendar__dots" aria-hidden="true"></div></div>
 </div>
 </div>
+
+<div class="sf-view-calendar__phone-und">
+<sf-button appearance="ghost" scheme="on-surface" icon="event_busy" size="1/2" text="Без даты 1" aria-pressed="false" style="display: contents;" data-sf-size-relative tabindex="-1">
+<button type="button" class="sf-button sf-button--size-1/2 sf-button--ghost sf-button--link sf-button--on-surface flex items-cross-center" tabindex="-1" aria-pressed="false" data-undtoggle data-sf-static>
+
+<sf-icon root-class="pointer-events-none" aria-hidden="true" icon="event_busy" style="display: contents;"><i class="sf-icon pointer-events-none" aria-hidden="true" data-sf-static>event_busy</i></sf-icon>
+<span class="sf-button-text-container text-center pointer-events-none">
+Без даты 1
+</span>
+
+</button>
+</sf-button>
+</div>
 <div class="sf-view-calendar__list" data-picked-list><div class="sf-view-calendar__lday" role="list" aria-label="Среда, 18 ноября">
-<div class="sf-view-calendar__lday-h" data-today>Среда, 18 ноября · сегодня</div>
+<div class="sf-view-calendar__lday-h" data-today data-picked>
+<span>Среда, 18 ноября · сегодня</span>
+
+</div>
 <div class="sf-view-calendar__row" tabindex="-1" role="listitem" data-id="o1003" data-ev="o1003" style="--sf-view-calendar-tone: var(--sf-success); --sf-view-calendar-tone-container: var(--sf-success-container); --sf-view-calendar-on-tone: var(--sf-on-success-container)" aria-label="Заказ № 1003, 09:00–10:00, Оплачен" title="Заказ № 1003, 09:00–10:00, Оплачен
 Клиент: ИП Смирнова
 Сумма: 129990.50">
