@@ -109,7 +109,7 @@ try {
     // is read whole: nothing else on it draws an sf- tag.
     const undefinedTags = () => page.evaluate(() => [...new Set([...document.querySelectorAll(':not(:defined)')]
       .map((node) => node.localName).filter((tag) => tag.startsWith('sf-')))]);
-    const sections = await page.evaluate(() => document.querySelectorAll('sf-tabs, sf-list.sf-property-view-phone-sections').length);
+    const sections = await page.evaluate(() => document.querySelectorAll('sf-tabs, sf-list.sf-property-view-phone-sections, sf-menu.sf-property-view-section-menu').length);
     // On a phone the sections are a list first: the first one is opened.
     await page.evaluate(() => document.getElementById('view').openPhoneSection?.('main'));
     await page.waitForTimeout(1200);

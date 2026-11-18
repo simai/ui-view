@@ -749,8 +749,15 @@ class SfPropertyView extends PropertyViewElement {
     // C305 (4): a panel narrower than the screen is a column beside the list
     // from 64rem (sf-drawer docked), the list usable; below it, and with
     // modal="true", it floats over a scrim.
+    // A panel opened over another card's panel (a related record, C289 (6))
+    // stays a window over the one below, which the Framework's overlay dims.
     get docked() {
-        return this.panel && this.getAttribute("modal") !== "true" && this.drawerStep !== "full";
+        if (!this.panel || this.getAttribute("modal") === "true" || this.drawerStep === "full") return false;
+        // Only a panel below counts: the one under a related record stays docked.
+        const own = this._ownDrawer();
+        const cards = openLayers("panel").filter((owner) => owner?.parentElement?.localName === this.localName);
+        const at = cards.indexOf(own);
+        return at === -1 ? cards.length === 0 : at === 0;
     }
 
     // What the drawer is told to be. `size` is a ladder and its widest step short

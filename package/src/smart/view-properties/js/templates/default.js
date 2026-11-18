@@ -691,6 +691,7 @@ function renderGroup(context, section, group) {
                 <sf-form class="sf-property-view-form"
                          label=${String(group.label ?? groupKey)}
                          labels=${context.sectionsLayout === 'column' ? 'start' : 'top'}
+                         footer=${context.panel || context.sectionsLayout === 'phone' ? 'sticky' : 'static'}
                          .fields=${guard([form], () => form.fields)}
                          .value=${guard([form], () => form.value)}
                          @sf-form-submit=${(event) => context.component.submitForm(event)}

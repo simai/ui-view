@@ -1901,11 +1901,11 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-properties/index.js",
-        "sha256": "261ffc5dc7bd900c23003301be9aa399c810f40a6b913c8bf5032e3ecc17e6f7"
+        "sha256": "32d9c484a0d73ebda074c4042e59f85db677ebbb7231b28e2142b267ee998db9"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.js",
-        "sha256": "455e7080a9a0de050fdece64b8b84e5cd285f95a66488a184e399e41a9d86ff3"
+        "sha256": "7c7dc2e0133ec00b74fbd91d3524b05a791380482546ba2f9cc4458782a3a335"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.css",
