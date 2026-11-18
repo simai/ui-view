@@ -6,7 +6,7 @@
   "x-history": [
     {
       "version": "1.15.1",
-      "kind": "patch",
+      "kind": "minor",
       "recorded_on": "2026-11-18",
       "consumer": "Nothing to change for a host: the first paint of a selectable view on a phone holds the list's page box that sf-view-table 1.24.0 draws over its records.",
       "evidence": "control/evidence/2026-11-18-view-r2-table/README.md"
