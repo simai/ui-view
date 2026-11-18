@@ -61,10 +61,11 @@ test("CLI discovers and describes the whole data view", () => {
   // that nothing holds to the truth. Every version before the current one stays
   // supported, so a host does not have to move.
   assert.equal(composite.host_port.version, "1.15.0");
-  // sf-view-properties in the set: 1.16.3 (D1, the head row in its own sheet).
-  // 1.16.1 and 1.16.2 are ui-pro's own patched copies, never this set's.
+  // sf-view-properties in the set: 1.19.2 (accepts simai.property-view-port
+  // 1.19.0, C294; view 1.8.2). 1.16.1, 1.16.2 and 1.19.1 are ui-pro's own
+  // patched copies, never this set's; 1.19.0 is round/view-returns'.
   const record = JSON.parse(run("describe", "smart.view-properties", "--format", "ai"));
-  assert.equal(record.identity.version, '1.16.3');
+  assert.equal(record.identity.version, '1.19.2');
   assert.deepEqual(composite.host_port.supported_versions, ["1.0.0", "1.1.0", "1.2.0", "1.3.0", "1.4.0", "1.5.0", "1.6.0", "1.7.0", "1.8.0", "1.9.0", "1.10.0", "1.11.0", "1.12.0", "1.13.0", "1.14.0", "1.15.0"]);
 });
 

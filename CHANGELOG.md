@@ -3,6 +3,20 @@
 The set `view`, by its npm version `@simai-studio/view`; component versions
 in brackets. The site page «Изменения» says the same in Russian.
 
+## 1.8.2 — 2026-11-18
+
+- Over the same SIMAI Framework pair `ui-141822273efe`.
+- `sf-view-properties` 1.19.2: the panel accepts a host that declares
+  `simai.property-view-port` 1.19.0 (owner decision C294). 1.19.0 adds two
+  optional money settings (`currencies`, `currencyDisplay`) and drops a
+  percent's default bounds; its conformance cases are 1.18.0's, unchanged,
+  so nothing the panel reads or writes changes. The panel does not read the
+  two money settings yet, and a percent without `min` and `max` still stops
+  at 0..100 while typed; a value the host sends is shown and kept as it is.
+  Without this, a page on the SIMAI Framework pair that carries 1.19.0 would
+  refuse the panel's host. (1.19.0 is a version on an unreleased branch and
+  1.19.1 ui-pro's own copy; neither is in this set.)
+
 ## 1.8.1 — 2026-11-15
 
 - Over the same SIMAI Framework pair `ui-141822273efe`.
