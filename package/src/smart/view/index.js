@@ -543,18 +543,19 @@ class SfDataView extends DataViewElement {
 
     // One way a record of the list opens (vocabulary §5 open {id}).
     _openRecord(id, detail) {
+        const card = this.recordCard;
+        // Without a card beside the list the page opens the record itself --
+        // on sf-view-open (refusing it) or on record.open -- in a panel of its
+        // own, whose close is watched for the focus.
+        if (!card) this._watchHostRecordClose(String(id));
         const allowed = this.sfEmit("open", {id}, {cancelable: true});
         if (!allowed) return null;
-        const card = this.recordCard;
-        if (!card) {
-            this._watchHostRecordClose(String(id));
-            return this._raise("record.open", detail);
-        }
+        if (!card) return this._raise("record.open", detail);
         return this._openBeside(card, String(id));
     }
 
-    // A record the host opened in a panel of its own (record.open, no
-    // record-card): when that panel closes (sf-view-properties-close, Escape
+    // A record the page or the host opened in a panel of its own (sf-view-open
+    // refused, or record.open; no record-card): when that panel closes (sf-view-properties-close, Escape
     // or ×) and the host removes it, the focus fell to the page's body (view
     // round 5 R5-1, 12/12 runs). The focus goes back to the record's row, as
     // it does from the card beside the list -- only when it was lost, so a
