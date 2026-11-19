@@ -1981,7 +1981,7 @@
         "from": "1.22.0",
         "to": "1.23.0",
         "changes": [
-          "Round 6 (round/view-r6, VB-1, owner C394, C20): in a panel a group card takes bg-surface-card (light: white as before; dark: --sf-surface-2 over the panel's --sf-surface-area), on a page it keeps bg-surface-page; the sticky section tabs strip in a panel takes light-dark(--sf-surface-page, --sf-surface-area) over sf-tabs' --sf-surface-page (dark: #1a1b1f instead of #0f1115 on #1a1b1f). C396 (WM-7): panel-size 1/2, 1 and 2 draw the drawer at the text-measure steps 44, 52 and 64 (panelWidthStyle writes --sf-drawer-width: var(--sf-measure-N, calc(N * var(--sf-text--size-1) / 2)) on every wide panel below full, plus the sections column and gutter when widened; 352, 416, 512 px at normal density, 308, 364, 448 at compact); the panel-size default is 2 (the record card at 64); a former panel-width still maps by the old 20, 24, 30rem steps."
+          "Round 6 (round/view-r6, VB-1, owner C394, C20): in a panel a group card takes bg-surface-card (light: white as before; dark: --sf-surface-2 over the panel's --sf-surface-area), on a page it keeps bg-surface-page; the sticky section tabs strip in a panel takes light-dark(--sf-surface-page, --sf-surface-area) over sf-tabs' --sf-surface-page (dark: #1a1b1f instead of #0f1115 on #1a1b1f). C396 (WM-7): panel-size 1/2, 1 and 2 draw the drawer at the text-measure steps 44, 52 and 64 (panelWidthStyle writes --sf-drawer-width: var(--sf-measure-N, calc(N * var(--sf-text--size-1) / 2)) on every wide panel below full, plus the sections column and gutter when widened; 352, 416, 512 px at normal density, 308, 364, 448 at compact); the panel-size default is 2 (the record card at 64); a former panel-width still maps by the old 20, 24, 30rem steps. C396 (round 6): the record body's flex basis g0 -> var(--sf-measure-44, calc(44 * var(--sf-text--size-1) / 2))."
         ]
       }
     ]
@@ -2000,7 +2000,7 @@
       },
       {
         "path": "src/smart/view-properties/js/templates/default.css",
-        "sha256": "bfdfbd6421a43f7fc4cce3ddee5265d145d688423117085c7edb7bf9346352b1"
+        "sha256": "e53546864703917689a9a822a36afe352955cb5a865c68cacc61c0771843b58b"
       },
       {
         "path": "src/smart/view-properties/js/conditions.js",

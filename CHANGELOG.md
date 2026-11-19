@@ -44,6 +44,12 @@ scroll and VB-1 (DEV msg-b137d217, C394 revised).
   and 64 (352, 416, 512 px at normal density, 308, 364, 448 at compact),
   read from `--sf-measure-N` once the pair carries it; the default is now 2
   (512 px, was 384): write `panel-size="1"` for the former default.
+- Widths of text containers follow the text measure (C396), read as
+  `var(--sf-measure-N, calc(N * var(--sf-text--size-1) / 2))`; px at normal
+  density: the table column max, the search field and toolbar end start, the
+  context menu fallback, the notice max and the record body basis 44 (352,
+  were 320); the places window 52 (416, was 448); the resource list title 52
+  (416, unchanged). The card sizes keep their C306 steps.
 
 ## Unreleased — view round 5
 

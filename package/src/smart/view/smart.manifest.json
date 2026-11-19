@@ -1890,7 +1890,7 @@
         "from": "1.24.0",
         "to": "1.25.0",
         "changes": [
-          "Round 6 (round/view-r6, VZ-1, owner C393, C394, views study option D): js/head.js draws the title row with the name only (data-count gone), the view toggle first in the head row (sf-button-icon, name and tooltip «Представление: <name>», badge-dot while the open view has unsaved changes, glyph tinted while a view other than the default is open, pressed and aria-expanded while the zone is open; appearance toggle where the page's sheets carry sf-icon-button--toggle, else the own look .sf-view-head-zone-toggle--own with the same tokens), the view zone (.sf-view-head-zone, --sf-outline-variant 1 px, --sf-radius--surface) with the views button (menu by level system / shared / personal with headings), sf-segmented of the kinds, Настроить вид and Изменено (state window: unsaved or mine note, save for everyone, save as new, reset); its open state in SF.Preferences (viewZone) read by keptPreferences, and the first-paint skeleton holds the zone row while it is kept open. «⋯» moved to the head row end. A page row without appearance takes --sf-pagination-divider-color: transparent (the footer draws the line)."
+          "Round 6 (round/view-r6, VZ-1, owner C393, C394, views study option D): js/head.js draws the title row with the name only (data-count gone), the view toggle first in the head row (sf-button-icon, name and tooltip «Представление: <name>», badge-dot while the open view has unsaved changes, glyph tinted while a view other than the default is open, pressed and aria-expanded while the zone is open; appearance toggle where the page's sheets carry sf-icon-button--toggle, else the own look .sf-view-head-zone-toggle--own with the same tokens), the view zone (.sf-view-head-zone, --sf-outline-variant 1 px, --sf-radius--surface) with the views button (menu by level system / shared / personal with headings), sf-segmented of the kinds, Настроить вид and Изменено (state window: unsaved or mine note, save for everyone, save as new, reset); its open state in SF.Preferences (viewZone) read by keptPreferences, and the first-paint skeleton holds the zone row while it is kept open. «⋯» moved to the head row end. A page row without appearance takes --sf-pagination-divider-color: transparent (the footer draws the line). C396 (round 6): text-container widths moved from --sf-g* to the text measure var(--sf-measure-N, calc(N * var(--sf-text--size-1) / 2)): notice max g0 -> 44, places window g4 -> 52, skeleton search basis and toolbar end min g0 -> 44."
         ]
       }
     ]
@@ -1901,7 +1901,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view/index.js",
-        "sha256": "0969b9a21107cfde90ee774970f15e64780e6cbb9a50aa875880efc8a20062d0"
+        "sha256": "72678e6643db9db758f688264c23eefa9d402c24a5c9baee680d67cf9752a294"
       },
       {
         "path": "src/core/contracts/ports/simai.dataview-port/1.5.0/port.json",
@@ -1921,7 +1921,7 @@
       },
       {
         "path": "src/smart/view/js/first-paint.css",
-        "sha256": "d81a64ad261724b0df6f1f2ecc57cd885fea3fc673fee13bfa6729fb8886116b"
+        "sha256": "804c4b1911a55d55c0e8fbee572e0bd236531bb2abd81a2db32e117331ef81d1"
       },
       {
         "path": "src/smart/view/js/cards.js",

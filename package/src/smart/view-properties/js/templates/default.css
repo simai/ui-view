@@ -387,7 +387,7 @@
   }
 
   .sf-property-view-layout > .sf-property-view-body {
-    flex: 1 1 var(--sf-g0);
+    flex: 1 1 var(--sf-measure-44, calc(44 * var(--sf-text--size-1) / 2));
     min-inline-size: 0;
   }
 

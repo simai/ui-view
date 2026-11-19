@@ -369,7 +369,7 @@ class SfDataView extends DataViewElement {
               position: fixed;
               inset-block-end: var(--sf-space-3);
               inset-inline-end: var(--sf-space-3);
-              max-inline-size: var(--sf-g0);
+              max-inline-size: var(--sf-measure-44, calc(44 * var(--sf-text--size-1) / 2));
               /* One above the menus: they share the top step, and a refusal
                  answering a menu choice opened under the menu that asked. */
               z-index: calc(var(--sf-z-index-9, 90) + 1);
@@ -2617,7 +2617,7 @@ class SfDataView extends DataViewElement {
         modal.className = "sf-data-view-dialog";
         modal.setAttribute("heading", title);
         modal.setAttribute("aria-label", title);
-        modal.setAttribute("width", "min(var(--sf-g4), calc(100vw - 2 * var(--sf-space-3)))");
+        modal.setAttribute("width", "min(var(--sf-measure-52, calc(52 * var(--sf-text--size-1) / 2)), calc(100vw - 2 * var(--sf-space-3)))");
         // The places can be many; the list scrolls and the title and the
         // buttons stay where they are.
         const content = document.createElement("div");

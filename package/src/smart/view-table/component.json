@@ -8,7 +8,7 @@
       "version": "1.27.0",
       "kind": "minor",
       "recorded_on": "2026-11-19",
-      "consumer": "Nothing to change. Column widths the host declares shrink toward their content before the table scrolls sideways: a list beside a docked record panel no longer scrolls while its content fits.",
+      "consumer": "Nothing to change. Column widths the host declares shrink toward their content before the table scrolls sideways: a list beside a docked record panel no longer scrolls while its content fits. Widths follow the text measure (C396): a column grows to at most 44 steps (352 px at normal density, was 320), the search field and toolbar end start from 44 (352, was 320), the context menu's fallback width is 44 (352, was 320), and the resource list's title measure is 52 (416, unchanged at normal density).",
       "evidence": "control/evidence/2026-11-19-view-r6/README.md"
     },
     {
@@ -3035,7 +3035,7 @@
           "from": "1.26.0",
           "to": "1.27.0",
           "changes": [
-            "Round 6 (round/view-r6, DEV msg-b137d217): fittedWidth/readFittedWidths: where the sum of the declared column widths (width or size in pixels; never the person's colWidth) and the system columns exceeds the scroll box, each declared column gives back what it holds above its measured content width (or its min_width), in proportion, before the box scrolls; columnStyle uses it. Measured: sites list beside a record panel at 1440, box 1024, columns 1100 -> 1024, no scroll, no cut cell."
+            "Round 6 (round/view-r6, DEV msg-b137d217): fittedWidth/readFittedWidths: where the sum of the declared column widths (width or size in pixels; never the person's colWidth) and the system columns exceeds the scroll box, each declared column gives back what it holds above its measured content width (or its min_width), in proportion, before the box scrolls; columnStyle uses it. Measured: sites list beside a record panel at 1440, box 1024, columns 1100 -> 1024, no scroll, no cut cell. C396 (round 6): text-container widths moved from --sf-g* to var(--sf-measure-N, calc(N * var(--sf-text--size-1) / 2)): column max g0 -> 44, toolbar end min and search basis g0 -> 44, context menu fallbacks g0 -> 44, resource title measure g3 -> 52."
           ]
         }
       ]
