@@ -1,0 +1,493 @@
+{
+  "schema_version": 2,
+  "id": "smart.view-cards",
+  "version": "1.0.3",
+  "title": "Cards",
+  "summary": "The cards layout of the view set: records as cards in a grid whose columns follow its width, a cover the layout draws, a title and up to four fields in the «Кратко» place; «Показать ещё» appends the next page. sf-view layout=\"cards\" draws it where the author turned it on.",
+  "kind": "smart",
+  "reuse_mode": "whole",
+  "lifecycle": "experimental",
+  "tags": [
+    "cards",
+    "gallery",
+    "grid",
+    "view"
+  ],
+  "capabilities": [
+    "field-renderers",
+    "live-announcement",
+    "selection"
+  ],
+  "custom_element": "sf-view-cards",
+  "templates": [
+    "default"
+  ],
+  "exported_parts": [],
+  "composition": {
+    "uses": [
+      "component.card",
+      "component.icons",
+      "smart.avatar",
+      "smart.badge",
+      "smart.button",
+      "smart.button-icon",
+      "smart.checkbox",
+      "smart.empty-state",
+      "smart.icon",
+      "smart.menu-context",
+      "smart.pagination",
+      "smart.progress-scale",
+      "smart.reference-link",
+      "smart.skeleton",
+      "smart.tag"
+    ],
+    "public_parts": []
+  },
+  "inputs": {
+    "type": "object",
+    "properties": {
+      "template": {
+        "type": "string",
+        "default": "default",
+        "description": "Template variant name for SfBaseElement external templates.",
+        "const": "default"
+      },
+      "root-class": {
+        "type": "string",
+        "default": "",
+        "description": "Classes added to the root element the component draws."
+      },
+      "root-style": {
+        "type": "string",
+        "default": "",
+        "description": "Inline style declarations set on the root element the component draws, custom properties included."
+      },
+      "size": {
+        "type": "string",
+        "default": "1/2",
+        "description": "The rung of the cards' text and controls.",
+        "enum": [
+          "1/2",
+          "1"
+        ]
+      },
+      "card-size": {
+        "type": "string",
+        "default": "",
+        "description": "The card size over layouts.cards size: s, m, l = least card width 12, 15, 20rem (--sf-f2, --sf-f5, --sf-g0); the columns follow the width (C306). Empty: the options' size (m).",
+        "enum": [
+          "",
+          "s",
+          "m",
+          "l"
+        ]
+      },
+      "selectable": {
+        "type": "boolean",
+        "default": true,
+        "description": "Cards carry the selection box; Space marks a card, Shift+Space a range."
+      },
+      "creatable": {
+        "type": "boolean",
+        "default": false,
+        "description": "An empty list offers «Создать» (the create event)."
+      },
+      "total": {
+        "type": "integer",
+        "description": "How many records are under the filter (the host's total). Unset: the records shown.",
+        "minimum": 0
+      },
+      "has-next": {
+        "type": "boolean",
+        "default": false,
+        "description": "Whether a further page exists (the answer's has_next). Unset: total is larger than the records shown."
+      },
+      "count-known": {
+        "type": "boolean",
+        "default": true,
+        "description": "false when the host does not count: «Показано N» without «из M»."
+      },
+      "current": {
+        "type": "string",
+        "default": "",
+        "description": "The record open in the record card beside the list (C305): its card is marked."
+      },
+      "aria-label": {
+        "type": "string",
+        "default": ""
+      },
+      "records": {
+        "type": "array",
+        "default": [],
+        "description": "The records shown, in the view's order: every page asked so far (window {page, per_page})."
+      },
+      "fields": {
+        "type": "array",
+        "default": [],
+        "description": "Field descriptors (sf-view's columns): the cover field, the title field and the card fields among them; the card fields are drawn by the Framework field renderers."
+      },
+      "options": {
+        "type": "object",
+        "default": {},
+        "description": "layouts.cards of simai.view-config/1: cover_field (a file field or null; default the first image field), cover {fit: cover|contain, ratio: 1:1|4:3|3:4|16:9}, title_field, card_fields (up to four), card_labels, size s|m|l, density default|compact, more (button), per_page (24). No grouping (C297)."
+      },
+      "actions": {
+        "type": "array",
+        "default": [],
+        "description": "The host's actions on a selection (sf-view's bulk actions); also in a card's menu for that record."
+      },
+      "selected": {
+        "type": "array",
+        "default": [],
+        "description": "The ids marked."
+      },
+      "empty-context": {
+        "type": "object",
+        "default": {},
+        "description": "Why the list is empty, as sf-view knows it: {kind: no-data|nothing-found|no-access|error, message?}; drawn by sf-empty-state."
+      }
+    },
+    "additionalProperties": false
+  },
+  "item_contract": {},
+  "contracts": {
+    "window": {
+      "const": "query.window {page, per_page} -> {records, total, has_next}"
+    },
+    "cover": {
+      "const": "file value {label, mime, href, width?, height?, thumb?: {<width>: href}}"
+    }
+  },
+  "methods": {
+    "appendRecords": {
+      "summary": "The host's next page (the answer to more), for a host without sf-view: appended, a record already shown is not repeated.",
+      "arguments": [
+        {
+          "name": "args",
+          "type": "object",
+          "required": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "records": {
+                "type": "array"
+              },
+              "total": {
+                "type": "number"
+              },
+              "hasNext": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "records"
+            ]
+          }
+        }
+      ],
+      "returns": {
+        "type": "object",
+        "description": "{outcome: applied} or {outcome: refused, reason}"
+      }
+    }
+  },
+  "events": {
+    "sf-view-cards-open": {
+      "summary": "A press on a card, Enter, or «Открыть» in its menu (vocabulary open; trigger pointer|keyboard|menu|api): the host opens the record card (sf-view-properties beside the list, C305).",
+      "payload": {
+        "type": "object",
+        "required": [
+          "id",
+          "trigger"
+        ],
+        "properties": {
+          "id": {},
+          "trigger": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "sf-view-cards-select": {
+      "summary": "The selection changed (vocabulary select).",
+      "payload": {
+        "type": "object",
+        "required": [
+          "ids"
+        ],
+        "properties": {
+          "ids": {
+            "type": "array"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "sf-view-cards-more": {
+      "summary": "«Показать ещё»: the host answers the next page; sf-view appends it (records), a bare host calls appendRecords.",
+      "payload": {
+        "type": "object",
+        "required": [
+          "page",
+          "offset",
+          "per_page"
+        ],
+        "properties": {
+          "page": {
+            "type": "number"
+          },
+          "offset": {
+            "type": "number"
+          },
+          "per_page": {
+            "type": "number"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "sf-view-cards-menu": {
+      "summary": "A card's menu is about to open (right click, Shift+F10, «⋯»); cancel to draw the host's own.",
+      "payload": {
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "properties": {
+          "id": {}
+        },
+        "additionalProperties": true
+      }
+    },
+    "sf-view-cards-apply": {
+      "summary": "A host action chosen on the selection (scope selection) or in a card's menu (scope record).",
+      "payload": {
+        "type": "object",
+        "required": [
+          "action",
+          "ids",
+          "scope"
+        ],
+        "properties": {
+          "action": {},
+          "ids": {
+            "type": "array"
+          },
+          "scope": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "sf-view-cards-create": {
+      "summary": "«Создать» in an empty list.",
+      "payload": {
+        "type": "object",
+        "required": [],
+        "properties": {},
+        "additionalProperties": true
+      }
+    },
+    "sf-view-cards-reset": {
+      "summary": "«Сбросить фильтр» where nothing was found: the host clears the search and the filters.",
+      "payload": {
+        "type": "object",
+        "required": [],
+        "properties": {},
+        "additionalProperties": true
+      }
+    },
+    "sf-view-cards-refresh": {
+      "summary": "«Повторить» after a failed load.",
+      "payload": {
+        "type": "object",
+        "required": [],
+        "properties": {},
+        "additionalProperties": true
+      }
+    }
+  },
+  "state": {
+    "machines": {
+      "more": [
+        "idle",
+        "loading"
+      ]
+    },
+    "visual_states": [
+      "default",
+      "loading",
+      "empty",
+      "error"
+    ]
+  },
+  "persistence": {
+    "mode": "none",
+    "source_of_truth": "host",
+    "network_owner": "host",
+    "revision_field": "revision"
+  },
+  "ownership": {
+    "source": "simai/ui-view",
+    "data": "host",
+    "effects": "host",
+    "forbidden_client_responsibilities": [
+      "paging the records",
+      "thumbnails of the cover",
+      "permissions"
+    ]
+  },
+  "security": {
+    "permissions_owner": "host",
+    "untrusted_inputs": [
+      "titles, field values and cover addresses (drawn as text, by the field renderers, or as an img src)"
+    ],
+    "network_policy": "deny"
+  },
+  "accessibility": {
+    "role": "list",
+    "accessible_name": "internal",
+    "keyboard": [
+      "Tab",
+      "ArrowLeft",
+      "ArrowRight",
+      "ArrowUp",
+      "ArrowDown",
+      "Home",
+      "End",
+      "PageUp",
+      "PageDown",
+      "Enter",
+      "Space",
+      "Escape"
+    ],
+    "focus": "A list named by aria-label with the count (else «Карточки, N»); one Tab stop for the grid, the arrows by the rows as drawn; Enter opens, Space marks; a polite live region says the position, the selection and its clearing; after the record card closes focus returns to its card."
+  },
+  "presentation": {
+    "themes": [
+      "light",
+      "dark"
+    ],
+    "locales": [
+      "en",
+      "ru"
+    ],
+    "responsive": [
+      "desktop",
+      "mobile"
+    ],
+    "skeleton": {
+      "shape": "block",
+      "while_loading": "template"
+    }
+  },
+  "adapter": {
+    "kind": "generic",
+    "protocol": "simai.smart-studio-adapter.v1",
+    "module": null
+  },
+  "artifacts": {
+    "fixtures": [],
+    "scenarios": []
+  },
+  "readiness": {
+    "level": "host-required",
+    "required_checks": [
+      "manifest",
+      "loader-rule",
+      "view-cards-contract",
+      "view-cards-browser"
+    ]
+  },
+  "compatibility": {
+    "contract_schema": {
+      "id": "https://simai.io/contracts/smart-component-manifest.v2.schema.json",
+      "version": 2
+    },
+    "runtime_pair": {
+      "ui_revision": "62b1d9b6dc8d390837b7daa7c28a4543297521ad",
+      "ui_smart_revision": "62b1d9b6dc8d390837b7daa7c28a4543297521ad"
+    },
+    "aliases": [],
+    "deprecations": [],
+    "replacement": null,
+    "migrations": [
+      {
+        "from": "0.0.0",
+        "to": "1.0.0",
+        "changes": [
+          "New: the cards layout (owner decisions C297, C306): records as .sf-card in a grid whose columns follow its width (sizes S, M, L), a cover in a frame of one ratio drawn by the layout (cover or contain, lazy), the title in two lines and up to four fields in the «Кратко» place, «Показать ещё» over the window {page, per_page: 24}, one Tab stop with the arrows by rows, a selection for sf-bulk-actions, empty states by sf-empty-state."
+        ]
+      },
+      {
+        "from": "1.0.0",
+        "to": "1.0.1",
+        "changes": [
+          "DEV's acceptance return VC-1 (round/view-r4): fieldAlign(field, index) answers end only for a numeric field in the second column (odd index); the template passes the index and marks numbers data-numeric for tabular digits."
+        ]
+      },
+      {
+        "from": "1.0.1",
+        "to": "1.0.3",
+        "changes": [
+          "Release numbering (view 1.9.0): the same code as 1.0.1 of round/view-r4; 1.0.2 is the same VC-1 change on the superseded round/view-cards f85ac5a (not merged, not released), so the release takes 1.0.3."
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "source_repository": "simai/ui-view",
+    "source_revision": "94a63c638f63c0cae50623b2f911a3120e4c5a6b",
+    "source_artifacts": [
+      {
+        "path": "src/smart/view-cards/index.js",
+        "sha256": "ef957e7b3ae5f3bd6ff6a1fee8eb266bf48a38158b37578b1b6db5f288911438"
+      },
+      {
+        "path": "src/smart/view-cards/js/cards.js",
+        "sha256": "d5dbaabae6820944f16bf62b4643e319b01e91365e50d4cba0105904c5f823de"
+      },
+      {
+        "path": "src/smart/view-cards/js/templates/default.js",
+        "sha256": "45384448ae6a49612e5fa86d45312ec429cc44037747282f2d72ab11b620b5f8"
+      },
+      {
+        "path": "src/smart/view-cards/js/templates/default.css",
+        "sha256": "8d1d17ca49f9d2f8dd600fd63e3078d06d3ab67c8b685ed8cdcdd8cf3038e30d"
+      },
+      {
+        "path": "src/smart/field-renderers/index.js",
+        "sha256": "6ac942637adeecab6d761d81589d6cc2ec40c5fe2971adb8eedbf28f54a2e631"
+      },
+      {
+        "path": "src/smart/view-cards/rule.js",
+        "sha256": "3159e5e905946c5609062417247252016d99282d5f39b07d20aba1f4f6d12719"
+      },
+      {
+        "path": "src/smart/view-cards/docs.md",
+        "sha256": "96a2e95ec96344ac0e6c01c7af0d6e5f075d133c6ce7389a0689f1b03cc473fa"
+      }
+    ],
+    "generated_runtime": []
+  },
+  "ai_guidance": {
+    "use_when": "Use sf-view-cards through sf-view layout=\"cards\" for records a person recognises by a picture or a few fields (goods, media, people, projects), where the author of the list turned cards on.",
+    "do_not": [
+      "Do not page or fetch in the element; answer sf-view-cards-more (sf-view does).",
+      "Do not use it for records grouped by a field (the board) or by a date (the calendar)."
+    ],
+    "required_reads": [
+      "inputs",
+      "contracts",
+      "events",
+      "accessibility"
+    ],
+    "minimal_example": "<sf-view layout=\"cards\" aria-label=\"Товары\"></sf-view>",
+    "owner_commands": [
+      "node scripts/test.mjs",
+      "node scripts/run-browser-probes.mjs <free> <set build>"
+    ]
+  }
+}

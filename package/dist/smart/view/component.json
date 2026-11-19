@@ -2,7 +2,135 @@
   "$comment": "sf-data-view from its component.json (standard simai.smart-component 1.3.8, vocabulary 1.1.5), migrated from ui-control control/smart-architecture/migration/out/data-view; every x-todo decided in x-decisions.",
   "id": "smart.view",
   "tag": "sf-view",
-  "version": "1.12.3",
+  "version": "1.23.2",
+  "x-history": [
+    {
+      "version": "1.23.2",
+      "kind": "patch",
+      "recorded_on": "2026-11-19",
+      "consumer": "Nothing to change for a host: the release number of round/view-r4's 1.23.0 in view 1.9.0. 1.23.1 is the superseded round/view-calendar (DEV's parallel VCL-1..VCL-4, never released), so the released number is above it.",
+      "evidence": "control/evidence/2026-11-19-view-r4-release/README.md"
+    },
+    {
+      "version": "1.23.0",
+      "kind": "minor",
+      "recorded_on": "2026-11-18",
+      "consumer": "Nothing to change for a host. New: the list head's display kind switches live between all four layouts of the set (table, board, cards, calendar; switchLayout keeps the marked records and the record card beside, the cards' page size of 24 gives the list's back on leaving them); cards and calendar are no longer shown disabled. Where the pair carries SF.fieldRenderers.filterWindow (C310, FO-5), a filter field of the list head opens the Framework's filter window and draws its summary (colour while active, the number only above 0, the words in the tooltip); without it the head's own window as before. The calendar's view-config/1 keys (span_days, rules) and the host's refusal codes storage_calendar_update_* are read (sf-view-calendar 1.1.0). DEV's round 3 returns: a display kind whose layout is not in the running set (its element neither defined nor a rule the Loader can fetch) is hidden in the head, not shown disabled (VR3-1); the head's menu separators draw as separators (VR3-2). A table or board after the cards or the calendar asks the list's own page size again (it was the page row's default, 25, after the calendar). The first range query no longer carries date_field null: the field comes from layouts.calendar, else the columns, else the host's description, and a range asked before any of them knows it is asked again once layouts.calendar names it (VCL-2).",
+      "evidence": "control/evidence/2026-11-18-view-r4/README.md"
+    },
+    {
+      "version": "1.22.0",
+      "kind": "minor",
+      "recorded_on": "2026-11-18",
+      "consumer": "Nothing changes for a host that writes no layout=\"calendar\". New: layout=\"calendar\" (sf-view-calendar, C307): the query carries window {range, date_field, end_field} and context {timeZone, weekStart, locale}, the undated records are a second query.change with reason undated and window {undated, page, per_page}, a move is record.set {record_id, key, value, patch, revision}; the first paint holds the month grid (CL-2). The list head's calendar settings no longer offer a week start (it is the request's, C293) and write color_field. (round/view-calendar said 1.18.0; renumbered above 1.21.0 when it met round/view-returns and round/view-cards in round/view-r4.)",
+      "evidence": "control/evidence/2026-11-18-view-calendar/README.md"
+    },
+    {
+      "version": "1.21.0",
+      "kind": "minor",
+      "recorded_on": "2026-11-18",
+      "consumer": "New: layout=\"cards\" draws sf-view-cards over the window {page, per_page: 24} (records, total, has_next); a press on a card opens the record card beside the list. Nothing changes for a table or a board. (round/view-cards said 1.19.0; renumbered above round/view-returns' 1.20.0 when the branches met in round/view-r4.)",
+      "evidence": "control/evidence/2026-11-18-view-cards/README.md"
+    },
+    {
+      "version": "1.20.0",
+      "kind": "minor",
+      "recorded_on": "2026-11-18",
+      "consumer": "The list head's «Настройки полей записи» no longer raises entity.fields.save: it opens the first record in the card beside the list in its arranging mode (openRecordSettings()); a page without a card hears settings-open {id: \"record-fields\"}.",
+      "evidence": "control/evidence/2026-11-18-record-card-settings/README.md"
+    },
+    {
+      "version": "1.19.0",
+      "kind": "minor",
+      "recorded_on": "2026-11-18",
+      "consumer": "A host with a board answers the lane totals (the count and the sums its layouts.board totals name) with the first cards of every lane: sf-view no longer asks the sums in a second query.change (reason lane-sums, C304, VR2-9). Nothing else to change. New: openCustomize(); the column head menu under the list head keeps pin, hide and «Все колонки…»; the record card beside the list closes on × and Escape; Alt+Down / Alt+Up step it from the list; the table inside the view gets total and row-offset.",
+      "evidence": "control/evidence/2026-11-18-view-returns/README.md"
+    },
+    {
+      "version": "1.18.0",
+      "kind": "minor",
+      "recorded_on": "2026-11-18",
+      "consumer": "Nothing to change for a host. New: the list head's display kind switches the layout live (table <-> board) through switchLayout(kind); canDrawLayout(kind); a kind no layout of the set holds (cards, calendar, tree) is shown disabled with its reason.",
+      "evidence": "control/evidence/2026-11-18-view-r3/README.md"
+    },
+    {
+      "version": "1.17.0",
+      "kind": "minor",
+      "recorded_on": "2026-11-18",
+      "consumer": "Nothing changes for a host that writes none of the new settings. New: head=\"list\" (the list head, C297, C299-C301), layout=\"board\" / kanban (sf-view-board over the lane window, C298, C304; lane sums come in a second query.change with reason lane-sums), recordBeside(id, direction) and record-card (the record card beside the list, C305 (4)); the phone first paint of a selectable view holds the list's page box (C296). One number above the round's branches (1.15.0 head, 1.15.1 table, 1.16.0 board and card).",
+      "evidence": "control/evidence/2026-11-18-view-r2-merge/README.md"
+    },
+    {
+      "version": "1.14.0",
+      "kind": "minor",
+      "recorded_on": "2026-11-17",
+      "consumer": "A page that slotted an empty <span slot=\"toolbar\"> to hide the fallback toolbar no longer needs it; a page that slots no toolbar now has none (the view draws no bare search of its own).",
+      "evidence": "https://github.com/simai/ui-view/commit/548b6e88425ee85c7d642f69b089165aa18de268"
+    },
+    {
+      "version": "1.13.5",
+      "kind": "patch",
+      "recorded_on": "2026-11-17",
+      "consumer": "Nothing to change for a host: the same look, asked for as ghost instead of its former name link.",
+      "evidence": "https://github.com/simai/ui-view/commit/da5de52ef022bfcd6da197ee6963675ded22ef08"
+    },
+    {
+      "version": "1.13.4",
+      "kind": "patch",
+      "recorded_on": "2026-11-17",
+      "consumer": "Nothing to change for a host: former names that ended 2026-12-01 now end 2027-01-01 and keep coming as before.",
+      "evidence": "https://github.com/simai/ui-view/commit/fa0ee5e8a1ee42a718079a2430cc9b36df8b93c6"
+    },
+    {
+      "version": "1.13.3",
+      "kind": "patch",
+      "recorded_on": "2026-11-17",
+      "consumer": "Nothing to change for a host: the bulk band orders its actions with the Framework's own rule instead of a copy.",
+      "evidence": "https://github.com/simai/ui-view/commit/6213b80d272b881ba31bad1bd8d7ba16d6ed5fce"
+    },
+    {
+      "version": "1.13.2",
+      "kind": "patch",
+      "recorded_on": "2026-11-17",
+      "consumer": "Nothing to change for a host: the same field look, asked for by its current name.",
+      "evidence": "https://github.com/simai/ui-view/commit/12a1f16bf2063fb522fe6c6074049a0fd08e1886"
+    },
+    {
+      "version": "1.13.1",
+      "kind": "patch",
+      "recorded_on": "2026-11-17",
+      "consumer": "Nothing to change for a host: the move and confirm window puts its main action first and «Отмена» last.",
+      "evidence": "https://github.com/simai/ui-view/commit/15af7a0972a5625f9df050e3c8ed55acf71fcff0"
+    },
+    {
+      "version": "1.13.0",
+      "kind": "minor",
+      "recorded_on": "2026-11-17",
+      "consumer": "Nothing to change for a host; a page that styled sf-pagination's compatible footer inside sf-view now styles the view's own footer row (slot footer).",
+      "evidence": "https://github.com/simai/ui-view/commit/4c1a3e3c70de704ecd5f95f99fdbc7d6a5ab944e"
+    },
+    {
+      "version": "1.12.5",
+      "kind": "patch",
+      "recorded_on": "2026-11-16",
+      "consumer": "Nothing to change for a host: the utility classes come with the component, so the first paint no longer shifts.",
+      "evidence": "https://github.com/simai/ui-view/commit/cc73a1fa9632a29db947dde22160a9016bfee4ed"
+    },
+    {
+      "version": "1.12.4",
+      "kind": "patch",
+      "recorded_on": "2026-11-16",
+      "consumer": "Nothing to change for a host: the compact list toolbar keeps its spacing when the list comes.",
+      "evidence": "https://github.com/simai/ui-view/commit/961bdae11e2749f69ac7fbb744b197b74e8c4a23"
+    }
+  ],
+  "x-framework-first": {
+    "$comment": "Copies of Framework parts kept knowingly, part id (docs/FRAMEWORK-FIRST.md) to the Framework order (FO) each waits for (set standard draft 1.1 §7.3). The repin that brings an order removes its copy.",
+    "waits": {
+      "V-06": "FO-6",
+      "V-11": "FO-1"
+    }
+  },
   "kind": "leaf",
   "family": "table",
   "settings": {
@@ -10,6 +138,20 @@
       "type": "string",
       "default": "toolbar pagination select settings",
       "summary": "Which chrome this list renders, as a space-separated list. `toolbar` and `pagination` are this element own parts; `select` and `settings` are the table two chrome columns, named here because they are furniture of the same kind -- a checkbox column exists to feed a bulk band and a gear column exists to reach column settings, and an embedded list has neither. Empty renders none of them, for a list inside something that already carries a heading. Named explicitly rather than inferred from the toolbar, so a consumer who wants a selection in an embedded list can ask for it alone. `status` is not in the list and cannot be switched off: a list that could not say a load failed would look empty when it is broken."
+    },
+    "head": {
+      "type": "enum",
+      "values": [
+        "",
+        "list"
+      ],
+      "default": "",
+      "summary": "Which head the list has. Empty: the table's own toolbar, as before. list: the list head (owner decisions C297, C299, C300, C301): a title row (the list name and count, the views menu, the display kind as sf-segmented, «Настроить вид», the list menu «⋯» when describe().permissions allows) and a head row (Фильтр with its bookmark, the filter fields, Очистить, the search up to 20rem, Создать with a split menu); on a phone the display kind is an icon menu, the head row is Фильтр, the search and +, the filter fields one row that scrolls sideways, and every window a bottom sheet. Shown where chrome includes toolbar. The table then draws no toolbar and no gear in its head; the row menu stays."
+    },
+    "heading": {
+      "type": "string",
+      "default": "",
+      "summary": "The list's name in the list head's title row (head=\"list\"); empty: the view's aria-label."
     },
     "row-cap": {
       "type": "number",
@@ -54,10 +196,13 @@
       "values": [
         "auto",
         "table",
-        "list"
+        "list",
+        "board",
+        "cards",
+        "calendar"
       ],
       "default": "auto",
-      "summary": "How the records are drawn, passed to the table (owner decision C31): auto, a table where there is room and the list below list-below; table; list. A table the host wrote a layout on keeps it. An embedded view (no toolbar) without this attribute is a table, as before."
+      "summary": "How the records are drawn (owner decisions C31, C298): auto, a table where there is room and the list below list-below; table; list (these three pass to the table); board, the lanes of sf-view-board (kanban reads as board). cards, a grid of sf-view-cards (C297). calendar, the month, week, day or list of sf-view-calendar (C307). A table the host wrote a layout on keeps it. An embedded view (no toolbar) without this attribute is a table, as before."
     },
     "layout-switch": {
       "type": "boolean",
@@ -189,6 +334,11 @@
       "default": "",
       "x-shape": "the id of the record the page has open; its row carries aria-current",
       "summary": "The id of the record the page has open: its row carries aria-current. Writing it sends nothing (component.json settings.current)."
+    },
+    "record-card": {
+      "type": "string",
+      "default": "",
+      "summary": "The id of an sf-view-properties panel on the page (C305 (4)): a record opened from the list or the board opens in it beside the list, its steps follow the view's order (recordBeside), its close gives the focus back; empty: the host's record.open as before."
     },
     "bulk-actions": {
       "type": "list",
@@ -328,7 +478,7 @@
         }
       },
       "own-verb": true,
-      "summary": "The tree's port intents announced, {intent, payload}; the old sf-table-tree-intent follows once until 2026-12-01 (aliases.json)."
+      "summary": "The tree's port intents announced, {intent, payload}; the old sf-table-tree-intent follows once until 2027-01-01 (aliases.json)."
     },
     "files-drop": {
       "carries": {
@@ -744,6 +894,42 @@
         }
       },
       "summary": "A table event the view listens to: rows were dragged into another order. The view shows the new order at once and raises record.reorder of simai.dataview-port 1.11.0 (capability row-reorder); a refusal or conflict puts the old order back."
+    },
+    "display-change": {
+      "carries": {
+        "kind": {
+          "type": "enum",
+          "values": [
+            "table",
+            "board",
+            "cards",
+            "calendar",
+            "list",
+            "tree"
+          ],
+          "summary": "The display kind chosen."
+        },
+        "previous": {
+          "type": "string",
+          "summary": "The display kind before it."
+        }
+      },
+      "cancelable": true,
+      "summary": "The person chose another display kind in the list head (head=\"list\"); cancelable. Not refused, the view writes data-display, switches its layout (switchLayout: table <-> board, the marks and the record card kept) and asks the host once with the layout's query and query.view {id, type}; a kind no layout of the set holds is shown disabled and not offered."
+    },
+    "settings-open": {
+      "carries": {
+        "id": {
+          "type": "enum",
+          "values": [
+            "rights",
+            "export",
+            "record-field-add"
+          ],
+          "summary": "What was asked: the list's access rights, its export, or a new record field."
+        }
+      },
+      "summary": "The person asked in the list head for a list setting the host keeps on its own pages: access rights or export from «⋯», or «Добавить поле» in the record field settings. The view opens nothing of its own."
     }
   },
   "actions": {
@@ -889,6 +1075,76 @@
     },
     {
       "name": "cl-button-icon"
+    },
+    {
+      "name": "cl-menu-context",
+      "$comment": [
+        "C97 (5): the footer's page-size menu is the view's own (it was sf-pagination's compatible footer's); sf-spinner is the wait while the host counts."
+      ]
+    },
+    {
+      "name": "cl-spinner"
+    },
+    {
+      "name": "cl-segmented",
+      "$comment": [
+        "The list head (head=\"list\", C297, C299-C301): the display kind, the count, the search and the windows are Framework parts; the sheets, tabs, radios and icons of its windows come when a window opens."
+      ]
+    },
+    {
+      "name": "cl-badge"
+    },
+    {
+      "name": "cl-input"
+    },
+    {
+      "name": "cl-popover"
+    },
+    {
+      "name": "cl-drawer",
+      "lazy": true
+    },
+    {
+      "name": "cl-tabs",
+      "lazy": true
+    },
+    {
+      "name": "cl-radio",
+      "lazy": true
+    },
+    {
+      "name": "cl-icon",
+      "lazy": true
+    },
+    {
+      "name": "align-items/default",
+      "$comment": [
+        "The utility classes its templates write, asked for with the component (SIMAI Framework loader: a Framework component gets them from template-utilities.generated.json, a package component names them here); fetched after the first paint, they moved the drawn parts -- the bulk band's gap came 0 -> 8 and the band 8 px down some 150 ms in (View 1.8.1 acceptance, queue #172). The list is scripts/generate-template-utilities.mjs run over the overlay."
+      ]
+    },
+    {
+      "name": "display/default"
+    },
+    {
+      "name": "flex-direction/default"
+    },
+    {
+      "name": "flex-wrap/default"
+    },
+    {
+      "name": "gap/default"
+    },
+    {
+      "name": "justify-content/default"
+    },
+    {
+      "name": "margin/default"
+    },
+    {
+      "name": "position/default"
+    },
+    {
+      "name": "table/default"
     }
   ],
   "templates": {
@@ -949,7 +1205,7 @@
   "aliases": {
     "$comment": "Dated aliases of sf-view for the shim (core/js/aliases.js, standard §16 item 20).",
     "since": "2026-10-27",
-    "remove-after": "2026-12-01",
+    "remove-after": "2027-01-01",
     "rows": [
       {
         "from": "aria-label",
@@ -1174,7 +1430,7 @@
     "item-shape": "the projection's records are the table's rows {id, revision, …}; page and page-size are numbers (vocabulary 1.1.5).",
     "slot-interface": "toolbar, content and pagination take page content as it is; they name no interface (§4.5.1) until a trait exists for them — the x-accepts the converter found are component lists, not interfaces.",
     "host-port": "connect-port (setHostPort its alias) hands the port; sf-host-port-request is still sent once per connection to a page that answers it, and is not part of this interface (the runtime hands ports down, §4.9). 1.9.0 (2026-11-08): the port moves to simai.dataview-port 1.14.0 (bulk.apply_selected may be confirmed first, ui-source #48); the confirm repeat the view already makes for any write the host refuses with confirm_required now covers a selected bulk too, and 1.0.0-1.13.0 stay supported. 1.11.0 (2026-11-10): simai.dataview-port 1.15.0, whose columns carry their list role (columns[].list); 1.0.0-1.14.0 stay supported.",
-    "listened-names": "the view listens to the table's and the page row's names of standard 1.3.8 (sf-table-apply, -select, -save, -refresh, -expand, -load-more, -move, -query, -create; sf-pagination-change, -size-change, -apply, -load-more, -selection-clear, -count, -action-change, -action-for-all-change), not to their dated aliases, so it keeps working after 2026-12-01 and takes each act once. Another page size reads from the first page.",
+    "listened-names": "the view listens to the table's and the page row's names of standard 1.3.8 (sf-table-apply, -select, -save, -refresh, -expand, -load-more, -move, -query, -create; sf-pagination-change, -size-change, -apply, -load-more, -selection-clear, -count, -action-change, -action-for-all-change), not to their dated aliases, so it keeps working after 2027-01-01 and takes each act once. Another page size reads from the first page.",
     "own-parts": "a view placed by an assembly (the bare tag, data-sf-instance) makes its sf-table and sf-pagination as light-DOM children in its content and pagination slots, where the page's stylesheets reach them; the fallbacks inside the shadow root are drawn without the table's sheet. A page that writes the documented markup gives them itself and nothing is made. Since 1.6.0 the fallbacks and the made parts are the elements the Loader defines from their own bundles (the rule's relations cl-table, cl-pagination, cl-toast lazy); the view asks the Loader for any not defined yet (SF.Loader.ensure since 1.6.5) and projects again when it is. The fallbacks stay.",
     "parts-by-tag": "1.6.0: index.js no longer imports ../table, ../pagination or ../toast (a package carries no element layer of its own, ui-source docs/developer/shared-runtime.md); data-view.min.js held a second copy of each (431 KB min, stand 25). Only the table's manifest-actions helpers are imported. The view's own sheet is its first paint (js/first-paint.css -> data-view.css, rule css true): the skeleton rules moved there from sf-table's sheet. A page that links data-view.css by hand keeps a sheet that exists; a page that relies on the Loader gets it from the rule.",
     "conflict-total": "a filter-wide action whose count moved is a conflict carrying the current total (vocabulary §3.1); the page row shows that total at once.",
@@ -1189,7 +1445,8 @@
     "layer-stack-dialog": "version 1.7.0: the move dialog and the host's confirmation (confirm_required) are sf-modal, not a native <dialog> shown with showModal() (reuse audit 2026-11-02, findings 1 and 2): a modal layer of the one document stack, so a drawer or a modal opened over it or under it is ordered with it, Escape and a press outside close the top one only, focus returns by the stack's rule, the page lock is the stack's. The window is made in slot dialog and drawn in sf-modal's portal; open() asked with a signal answers when it closes (§19.4), accepted only through the apply button (sf-modal confirm()); Escape, the scrim, the close button and «Отмена» answer null as Escape and «Отмена» did. sf-modal, sf-button and sf-radio are asked for through SF.Loader.ensure before it opens; without sf-modal the view says unavailable and writes nothing. Visible: the shared scrim (black at 60) in place of the browser's light backdrop, the title in sf-modal's header with its close button, sf-modal's panel and footer. Needs core.runtime >= 1.19.0.",
     "framework-tag-renames": "version 1.7.1: the Framework elements it draws, finds and listens to are named by their new tags (Smart component naming of 2026-11-02, sf-[set]-<block>): the bulk clear button is sf-button-icon. The rule relations and the registry ids follow (cl-<new>, smart.<new>; the package reference pro.package.json of the pair). The former tags stay dated aliases of the Framework until 2027-01-01; public CSS variables and classes keep their names. No visible change. Needs the SIMAI Framework pair with the tag renames (core.runtime 1.21.0).",
     "tag-rename": "version 1.8.0: the tag is sf-view (naming decision 2026-11-02: sf-[set]-<block>[-<variant>]; rename plan R2); the folder view, the id smart.view and the bundle cl-view follow it. sf-data-view stays a dated alias until 2027-01-01: a subclass the Smart base defines beside the new tag, listed in the package rule, in sheets as :is(sf-view, sf-data-view), its events named after the tag followed by their former names (ui-source change journal tag-sf-data-view-to-sf-view, path-smart-data-view-to-view).",
-    "host-chrome": "version 1.8.1: a table the host wrote selectable=\"false\" or settings=\"false\" on keeps it. The view wrote its own chrome (select, settings) over both on every projection, so a list the host had turned them off on came back with a box in every row and the settings column (Larena, the sites list, 2026-11-05). What the table carried before the view first touched it is kept in data-sf-host-selectable and data-sf-host-settings, as data-sf-host-row-actions already was, and the first-paint skeleton draws the same columns."
+    "host-chrome": "version 1.8.1: a table the host wrote selectable=\"false\" or settings=\"false\" on keeps it. The view wrote its own chrome (select, settings) over both on every projection, so a list the host had turned them off on came back with a box in every row and the settings column (Larena, the sites list, 2026-11-05). What the table carried before the view first touched it is kept in data-sf-host-selectable and data-sf-host-settings, as data-sf-host-row-actions already was, and the first-paint skeleton draws the same columns.",
+    "pro-copy-versions": "Version line (draft set standard §5.7, VS1.r2, VW-3; view round 1 B2): version numbers of sf-view are assigned only in this set. ui-pro's copy shipped its own 1.12.6 (ui-pro 55c8c26, a first-paint pass of its own), which is not a version of this set; the set's next version is above every number a copy shipped (1.13.x)."
   },
   "x-rule": {
     "$comment": [
@@ -1522,7 +1779,7 @@
           "to": "1.12.1",
           "changes": [
             "The first paint's rows are the table's C146 rows (sf-view-table 1.19.0): the step's control, 40 at size 1 and 32 at 1/2 and compact, the head as tall; they were the rung above (48 and 40). Nothing to change for a host.",
-          "The bulk band's Apply is a regular button (outline on-surface, C116), the outlined danger over an action that deletes (delete, remove, destroy, trash), and such an action is listed last (C164 (5)); it was the filled main button. Nothing to change for a host."
+            "The bulk band's Apply is a regular button (outline on-surface, C116), the outlined danger over an action that deletes (delete, remove, destroy, trash), and such an action is listed last (C164 (5)); it was the filled main button. Nothing to change for a host."
           ]
         },
         {
@@ -1538,6 +1795,129 @@
           "changes": [
             "The first paint's control blocks (the toolbar's saved-views place, the layout switch, the create split arrow and the actions button) are the controls' boxes again over the SIMAI Framework pair ui-141822273efe. That pair's skeleton draws a text bar at the capitals' height (owner decision C136 (1), 0.727 of the text size), and the view's control blocks are skeleton text: they were held at 30 of 40 (24 of 32 compact, 20 of 28 at 1/2 compact) while the controls that came were whole, so the toolbar looked different from its first frame. A control block now sets its own bar, height and margin. Text bars take the pair's capital height. Nothing to change for a host.",
             "The first paint's page row is the one SIMAI Framework sf-pagination 1.5 draws (owner decision C97, the compatible footer): the range, the arrows to the first and the previous page, the page field with its «из N», the arrows to the next and the last, and the page-size button. It held the 1.4 row (a label and one control for the pages, a label and a field for the size), which fit one line on a phone where the drawn row puts the pages on a line of their own: the view grew 48 px when its answer came (1211 to 1259 at 390). Nothing to change for a host."
+          ]
+        },
+        {
+          "from": "1.12.3",
+          "to": "1.12.4",
+          "changes": [
+            "C144: the skeleton's compact list toolbar holds the field, filter and Создать --sf-space-1 apart, as sf-view-table 1.20.1 draws them (the field no longer moves 8 when the list comes)"
+          ]
+        },
+        {
+          "from": "1.12.4",
+          "to": "1.12.5",
+          "changes": [
+            "#172: the utility classes its templates write are its relations, asked for with the component; fetched after the first paint they moved the drawn parts (the bulk band 0 -> 8 gap, 8 px down)"
+          ]
+        },
+        {
+          "from": "1.12.5",
+          "to": "1.13.0",
+          "changes": [
+            "C97 (5): the footer is the view's own, one row «41–60 из 240 · По 20 ▾ · ‹ [3] из 12 ›» -- the range (with the offer to count) and the page size as a quiet button «По 20 ▾» with a menu drawn by the view (slot footer, light DOM), the page row sf-pagination appearance=field, navigation only; a page row given without appearance gets field. It no longer relies on sf-pagination's compatible footer (no appearance), which retires on 2027-01-01. The state stays the page row's (setState, page-sizes, its words); the first paint draws the same row. Nothing to change for a host."
+          ]
+        },
+        {
+          "from": "1.13.0",
+          "to": "1.13.1",
+          "changes": [
+            "The move and confirm window's footer per C159 (4) and C144: the main action first at the start, the quiet «Отмена» (ghost, on-surface) last, --sf-space-1/3 apart (8, compact 4); it was an outline «Отмена» first and the main button last at the end, 20 apart (modal study MD-2)."
+          ]
+        },
+        {
+          "from": "1.13.1",
+          "to": "1.13.2",
+          "changes": [
+            "Over SIMAI Framework ui-24d64b7f6eb7 (ui-source 40541c0c4fba): the bulk band's action list asks sf-dropdown for appearance=\"bordered\", the field look's current name (sf-dropdown 1.18.1, FM-9); \"outlined\" is its dated former name until 2027-01-01. The same look; nothing to change for a host."
+          ]
+        },
+        {
+          "from": "1.13.2",
+          "to": "1.13.3",
+          "changes": [
+            "Framework first (draft set standard §7.4, view round 1 A3): the bulk band orders its actions and marks a deleting one with SIMAI Framework sf-pagination's own isDestructiveAction and orderActions (smart/pagination/js/actions.js, in the pair since ui-078a4b4c6f6e) instead of its copy _bulkDestructive, kept until the pair carried it. The same rule and order; nothing to change for a host."
+          ]
+        },
+        {
+          "from": "1.13.3",
+          "to": "1.13.4",
+          "changes": [
+            "Former names (aliases.json, every alias that ended 2026-12-01) now end 2027-01-01 (draft set standard §13.4, view round 1 G1): no alias may end before the main consumer moves to the set, Larena on data-sf-sets=\"admin view\" on 2026-12-15, with at least two weeks' margin. The old names keep coming as before; nothing to change for a host."
+          ]
+        },
+        {
+          "from": "1.13.4",
+          "to": "1.13.5",
+          "changes": [
+            "Over SIMAI Framework ui-24d64b7f6eb7: its icon buttons and buttons ask for the look ghost where they asked for link, ghost's former name (component.icon-buttons 1.14.0, sf-button-icon 1.13.3, sf-button 1.16.3, RG-IB-1..3, C213); the printed row menu wrote sf-icon-button--link, which the pair answers with a console warning. The same look; nothing to change for a host."
+          ]
+        },
+        {
+          "from": "1.13.5",
+          "to": "1.14.0",
+          "changes": [
+            "View round 1 (D4, D5, VW-2): the shadow root draws no control of its own (the fallback search, view select and save/delete buttons are gone; the toolbar part shows only an author's slotted toolbar); the default sf-view-table and sf-pagination are light DOM, where the page's sheets reach them, so the table's search gap is the Framework's; the move dialog chooses through sf-input-choice in its list look."
+          ]
+        },
+        {
+          "from": "1.14.0",
+          "to": "1.17.0",
+          "changes": [
+            "View round 2 (C296, VT-2): the first paint of a selectable view on a phone holds the page box sf-view-table 1.24.0 draws over its list of records. (round/view-r2-table, was 1.15.1)",
+            "List head (head=\"list\"; owner decisions C297, C299, C300, C301; view round 2 LH-1..LH-10): a title row (name and count, views, display kind on sf-segmented, «Настроить вид», list menu by describe().permissions) and a head row (Фильтр + bookmark, filter fields as joined sf-button + sf-button-icon, Очистить, search up to 20rem, Создать split) drawn by the view from SIMAI Framework parts; windows are sf-popover on a desktop and an sf-drawer bottom sheet on a phone; the field window is the pair's filter template (SF.fieldRenderers.renderFilterField). The table draws no toolbar and no head gear under it. Draft intents of the list head study (section 7) through the same port. Without head=\"list\" nothing changes. (round/view-r2-head, was 1.15.0)",
+            "The layout registry (owner decision C298, BD-1): layout=\"board\" (alias kanban) draws sf-view-board in the content slot, with no page row; a name outside the registry warns once (it drew the table silently) and still draws the table. The board's first paint holds lanes of a head and cards, not a table (BD-2). A board's query carries window {lanes, per_lane} (BD-4); the answer's lanes, board.moves and board.order_field go to the board; a move is record.set of the lane field, «Показать ещё» a query.change with window.lane. (round/view-r2-board, was 1.16.0)",
+            "Record card round 2 (C305 (4), RC-5): recordBeside(id, direction) answers the next or the previous record id in the order the view shows (null at the ends or for an id it does not show), so a page that opened a record card from the view steps it with Alt+Down / Alt+Up. Nothing to change for a host. (round/view-r2-card, was 1.16.0)",
+            "View round 2 merge: record-card names an sf-view-properties panel of the page; a record opened from the table, the list or the board then opens in it beside the list (the view marks itself data-sf-drawer-dock-host when the page marked nothing), its steps go to recordBeside (the board's order is its lanes'), its close gives the focus back to the row; without record-card the host's record.open as before. The board's lane window asks totals [\"count\"] with the cards; the money sums are a second query.change (reason lane-sums, per_lane 0, totals of layouts.board) after the board is drawn, their line held meanwhile (sf-view-board sums-pending, setLaneTotals)."
+          ]
+        },
+        {
+          "from": "1.17.0",
+          "to": "1.18.0",
+          "changes": [
+            "View round 3: the list head's display kind (Таблица / Доска) switches the layout live. switchLayout(kind) swaps the view-made table or board for the layout's own, parks the page's own sf-view-table (out of every slot, with its filter fields and create items) while a board draws and brings it back with the table, keeps the marked records (a table's marks become the board's and back, also over the switch's own answer) and the record card beside, draws what is already known at once and asks the host once with the new layout's query (a board's lane window). A layout attribute written after the view drew swaps the same way. canDrawLayout(kind) says whether a layout of the set (or one registered) draws a kind; the head shows the others (cards, calendar, tree) disabled with their reason (head-kind-unavailable). A saved view saved as a board opens as a board."
+          ]
+        },
+        {
+          "from": "1.18.0",
+          "to": "1.19.0",
+          "changes": [
+            "View returns (DEV acceptance of round 2, VR2-1..VR2-9): under head=\"list\" the table keeps its column head menu (sort, Закрепить, Скрыть колонку, Все колонки… and the width, C296) -- data-sf-view-columns=\"head\" on the table where the host keeps personal column settings -- and «Все колонки…» opens «Настроить вид» (openCustomize()); the record card beside the list is closed by the view on its close request (open=\"false\"; it gave the focus back and stayed open); Alt+Down / Alt+Up from the list step the card and move the list's place with it; the list head's windows carry roles (data-sf-role head-sheet, head-record): their path ids are the view's, not sf-drawer-1 of the record card's drawer, with which they shared a portal and drew inside the head; the phone sheet opens (sf-drawer open is a method and was read as the open state); the table inside gets total and row-offset (aria-rowcount total + 1, aria-rowindex of later pages); the board asks the cards and every lane total in one request (window.totals count and the known sums; no lane-sums query, C304); a page table under layout=\"board\" is parked with one console warning; cards size S / M / L, M by default (C306); the layout values list board."
+          ]
+        },
+        {
+          "from": "1.19.0",
+          "to": "1.20.0",
+          "changes": [
+            "Record card settings (C311 (1), (3); RC-4): «⋯ → Настройки полей записи» opens the first record of the list in the record card straight in the arranging mode (openRecordSettings()): one card arrangement per entity for every layout. The head's own record fields drawer (head-record), its panel and entity.fields.save are gone; the words head-add-field, head-fields-default, head-hidden, head-hide-field, head-show-field, head-no-record-fields and head-record-note with them."
+          ]
+        },
+        {
+          "from": "1.20.0",
+          "to": "1.21.0",
+          "changes": [
+            "The cards layout (owner decisions C297, C306, CD-1..CD-8, round/view-cards, which said 1.19.0 over round/view-r2): the layout registry holds cards -> sf-view-cards, drawn in the content slot with no page row (its «Показать ещё» is under the grid); the query carries window {page, per_page: 24}; «Показать ещё» (sf-view-cards-more) continues the list as Show more does; a card's open goes the way a row's does (the record card beside the list, C305, its card marked current and focused again on close); the selection and the host's bulk actions go to the cards' bar; the data state and why a list is empty go to the cards (sf-empty-state); the first paint holds a grid of cards. The layout setting lists cards. The wiring is view/js/cards.js."
+          ]
+        },
+        {
+          "from": "1.21.0",
+          "to": "1.22.0",
+          "changes": [
+            "The layout registry takes calendar (owner decision C307, CA-1): layout=\"calendar\" draws sf-view-calendar in the content slot, with no page row; its first paint holds the calendar's bar and the month of six weeks at the day's own height (CL-2). The query carries window {range: [from, to), date_field, end_field} and context {timeZone, weekStart, locale} (C293); the undated records are a second query.change (reason undated, window {undated, page, per_page}); a move or a stretch is record.set {record_id, key, value, patch, revision} and the answer settles it on the calendar; a + on a day is view.create_record with the date filled; an opened event goes to the record card (C305). The list head's calendar settings write color_field and no week start. (round/view-calendar, which said 1.18.0 over round/view-r2.) The layout setting lists calendar."
+          ]
+        },
+        {
+          "from": "1.22.0",
+          "to": "1.23.0",
+          "changes": [
+            "View round 4 (round/view-r4, the dispatcher's merge of round/view-returns, round/view-cards and round/view-calendar): switchLayout(kind) works over every layout of the registry -- the content element is the layout's own (table, board, cards, calendar), a page's own element of another layout is parked with one console warning, the marked records go over to the new layout (sf-view-board, sf-view-cards and sf-view-calendar take selected) at once and again over the switch's own answer, the board's lanes become the list's records for the others, the calendar draws the known records on their days at once, the cards' per_page (24) gives the list's page size back when another layout is chosen and the window of the left layout is dropped from the query; selection reads the layout on screen. The list head therefore offers cards and calendar enabled when the host lists them. A filter field of the list head (C300, C310): with SF.fieldRenderers.filterWindow {open, summary} in the pair it opens filterWindow.open({anchor, field, value, size}) and applies {action: apply, value} or resets on {action: reset}; null changes nothing; the button reads filterWindow.summary(field, value) {active, count, words}; without it (the pair ui-1ed6b6c9a040) the head's own window as before; a head drawn before the field renderers loaded draws its fields again once they are in. The calendar's move refusal carries the host's code to sf-view-calendar. DEV's round 3 returns: canDrawLayout(kind) answers true for a layout element only when it is in the running set -- defined, or its cl- rule known to the Loader; the head's kinds leave out what the view cannot draw (the disabled segment, its reason caption and the word head-kind-unavailable are gone, VR3-1, DEV's decision). The head's menus pass separators as {type: \"separator\"}, the key sf-menu-context reads; {kind: \"separator\"} drew an empty focusable item (VR3-2). The list's page size is kept while the cards or the calendar are on screen (OWN_PAGING) and given back, from page 1, with the table or the board: the calendar's query has no page, and the table after it asked the page row's default. VCL-2: calendarQuery leaves date_field out rather than null (defaultWindow reads layouts.calendar, the columns, then describe().fields), and acceptCalendar asks the range again once the answer's layouts.calendar names the field. The calendar's first paint draws each day at the calendar's new height (the number row and three event lines, VCL-3)."
+          ]
+        },
+        {
+          "from": "1.23.0",
+          "to": "1.23.2",
+          "changes": [
+            "Release numbering (view 1.9.0): the same code as 1.23.0 of round/view-r4; 1.23.1 belongs to the superseded round/view-calendar a2c5c8f (not merged, not released), so the release takes 1.23.2."
           ]
         }
       ]

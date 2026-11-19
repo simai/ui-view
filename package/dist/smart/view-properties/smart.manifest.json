@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-properties",
-  "version": "1.20.2",
+  "version": "1.21.0",
   "title": "Property view",
   "summary": "One object's fields shown as sections, groups and fields, each drawn by the per-type field renderer set, behind a separate host port. A group is edited and saved as one revision by the button, and a reference field is picked from the host's own candidates a page at a time. The pair to the data view: that one is a set of records, this one is a single object.",
   "kind": "composite",
@@ -34,6 +34,7 @@
     "uses": [
       "component.accordion",
       "component.icons",
+      "component.skeleton",
       "smart.avatar",
       "smart.badge",
       "smart.button",
@@ -41,11 +42,13 @@
       "smart.button-copy",
       "smart.button-icon",
       "smart.checkbox",
+      "smart.confirm",
       "smart.drawer",
       "smart.dropdown",
       "smart.empty-state",
       "smart.file-preview",
       "smart.file-upload",
+      "smart.form",
       "smart.help-mark",
       "smart.icon",
       "smart.input",
@@ -54,7 +57,11 @@
       "smart.input-date",
       "smart.input-lookup",
       "smart.input-textarea",
+      "smart.list",
+      "smart.list-description",
       "smart.list-item",
+      "smart.list-timeline",
+      "smart.menu",
       "smart.popover",
       "smart.profile-picker",
       "smart.progress-bar",
@@ -158,6 +165,9 @@
         "last-shared-view-text",
         "full",
         "open",
+        "edit",
+        "history",
+        "modal",
         "aria-label"
       ],
       "presentation": {
@@ -187,7 +197,10 @@
         "sf-view-properties-cancel",
         "sf-view-properties-state",
         "sf-view-properties-address-copy",
-        "sf-view-properties-favourite"
+        "sf-view-properties-favourite",
+        "sf-view-properties-step",
+        "sf-view-properties-history",
+        "sf-view-properties-structure"
       ],
       "persistence": {
         "settings_key_prop": null,
@@ -451,7 +464,7 @@
       "panel-width": {
         "type": "string",
         "default": "",
-        "description": "An exact panel width, for a consumer whose layout the ladder step does not fit. Empty leaves panel-size in charge; a length here wins over it. A stacked panel is narrowed from this width rather than from the ladder."
+        "description": "Former name until 2027-01-01 (C289 (2), C157 (2)): the panel never takes a width of its own. A length here is mapped to the nearest step of the drawer ladder (20rem → 1/2, 24rem → 1, 30rem → 2; wider lands on 2) when panel-size is not set, with a console notice. Use panel-size."
       },
       "personal-layer-text": {
         "type": "string",
@@ -510,7 +523,7 @@
       "sections-as": {
         "type": "string",
         "default": "list",
-        "description": "Where the sections are read: as a list beside the groups, which suits a settings screen with many of them, or as a row of tabs above them, which suits a record with a few. The sections are the same either way.",
+        "description": "Where the sections of an inline view are read: as a list beside the groups, which suits a settings screen with many of them, or as a row of tabs above them, which suits a record with a few. A panel lays them out by its width since 1.17.0 (C289 (5)): tabs with «Ещё (n)» in a panel, the column in a panel of size full, a list of rows on a phone; there this setting is not read.",
         "enum": [
           "list",
           "tabs"
@@ -590,6 +603,34 @@
         "type": "boolean",
         "default": true,
         "description": "A panel shows while open and not hidden; open=false or hidden closes its drawer and takes it off the stack, and the same brings it back (component.json settings.open, simai/ui-pro#4)."
+      },
+      "edit": {
+        "type": "string",
+        "default": "group+quick",
+        "description": "How the record is edited (owner decision C305 (1)): group -- a group at a time with its Save; group+quick (the default where the record may be edited) -- and a short field (one choice, a date, a time, a yes/no, a person, a number; a field says so itself with quick) in a window at its value, as the table's cell (C296), saved as group.save with that one value, the same revision and confirmation; none -- read only. «Изменить всё» in «⋯» opens every group at once.",
+        "enum": [
+          "group",
+          "group+quick",
+          "none"
+        ]
+      },
+      "history": {
+        "type": "string",
+        "default": "auto",
+        "description": "The record's change history (C305 (2)): auto -- offered where the host answers record.history (capability record-history): «⋯ → История изменений» opens it as a level of the same panel, the full screen from 80rem keeps it in a column of its own; off -- never offered.",
+        "enum": [
+          "auto",
+          "off"
+        ]
+      },
+      "modal": {
+        "type": "string",
+        "default": "auto",
+        "description": "Where a panel stands (C305 (4)): auto -- from 64rem a column beside the list (sf-drawer docked; the page marks the list data-sf-drawer-dock-host), the list stays usable and another record opens in the same panel; narrower, and on a phone, over a scrim. true -- always over a scrim. A full-screen panel is always over the page.",
+        "enum": [
+          "auto",
+          "true"
+        ]
       },
       "aria-label": {
         "type": "string",
@@ -705,6 +746,10 @@
               },
               "group": {
                 "type": "string"
+              },
+              "options": {
+                "type": "object",
+                "description": "{focus}: the key of the field the focus goes to once the group is open (C305 (1))."
               }
             },
             "required": [
@@ -827,6 +872,67 @@
       "returns": {
         "type": "object",
         "description": "The element, for chaining."
+      }
+    },
+    "openHistory": {
+      "summary": "Open the record's history as a level of the panel (C305 (2)); refused unavailable when the host does not answer record.history.",
+      "arguments": [],
+      "returns": {
+        "type": "object",
+        "description": "The outcome: applied, or refused {reason: unavailable}."
+      }
+    },
+    "editField": {
+      "summary": "Edit one field: a short field opens its window at the value, any other its group with the focus on it (C305 (1)).",
+      "arguments": [
+        {
+          "name": "args",
+          "type": "object",
+          "required": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "key"
+            ]
+          }
+        }
+      ],
+      "returns": {
+        "type": "object",
+        "description": "The outcome: applied, or refused when the field is not there or may not be edited."
+      }
+    },
+    "step": {
+      "summary": "Ask for the next or the previous record of the view (sf-view-properties-step); over unsaved entries the card asks first.",
+      "arguments": [
+        {
+          "name": "args",
+          "type": "object",
+          "required": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "direction": {
+                "enum": [
+                  "next",
+                  "previous"
+                ]
+              }
+            },
+            "required": [
+              "direction"
+            ]
+          }
+        }
+      ],
+      "returns": {
+        "type": "object",
+        "description": "The outcome: applied, refused {reason: unsaved} while the question stands, or refused {reason: prevented}."
       }
     },
     "setHostPort": {
@@ -1005,13 +1111,14 @@
   },
   "events": {
     "sf-view-properties-close": {
-      "summary": "The panel asks to be closed (by its close control, Esc, a press on the dimmed page or Cancel), carrying how many fields would be lost: changed and not saved, or entered and not yet a value.",
+      "summary": "The panel asks to be closed (by its close control, Esc, a press on the dimmed page or Cancel), carrying how many fields would be lost: changed and not saved, or entered and not yet a value. Since 1.18.0 (C159 (6)) the card asks the person first over unsaved entries; asked is true when the person already chose «Закрыть без сохранения», so the host does not ask again.",
       "payload": {
         "type": "object",
         "required": [
           "reason",
           "record_id",
-          "unsaved_fields"
+          "unsaved_fields",
+          "asked"
         ],
         "properties": {
           "reason": {
@@ -1027,6 +1134,9 @@
           "record_id": {},
           "unsaved_fields": {
             "type": "array"
+          },
+          "asked": {
+            "type": "boolean"
           }
         },
         "additionalProperties": true
@@ -1090,7 +1200,7 @@
       "canonical": true
     },
     "sf-view-properties-open": {
-      "summary": "A referenced record was asked open, vocabulary §5 open: {field, value, answer}. The old sf-property-view-open-record follows once until 2026-12-01 (aliases.json).",
+      "summary": "A referenced record was asked open, vocabulary §5 open: {field, value, answer}. The old sf-property-view-open-record follows once until 2027-01-01 (aliases.json).",
       "payload": {
         "type": "object",
         "required": [
@@ -1114,7 +1224,7 @@
       "canonical": true
     },
     "sf-view-properties-delete": {
-      "summary": "The record's delete was asked and answered, vocabulary §5 delete: {record_id, collection, revision, answer}. The old sf-property-view-delete-record follows once until 2026-12-01 (aliases.json).",
+      "summary": "The record's delete was asked and answered, vocabulary §5 delete: {record_id, collection, revision, answer}. The old sf-property-view-delete-record follows once until 2027-01-01 (aliases.json).",
       "payload": {
         "type": "object",
         "required": [
@@ -1243,6 +1353,73 @@
         "additionalProperties": true
       },
       "canonical": true
+    },
+    "sf-view-properties-step": {
+      "summary": "Alt+↓ / Alt+↑ (or step()) asks for the next or the previous record of the view the panel was opened from (C305 (4)). A host that announces record-neighbours names the neighbour over its current view (record.neighbours {record_id, collection} answered {listed, previous: {record_id}, next: {record_id}}): the event carries it as next_record_id and the card opens it unless the page prevents the event. Otherwise the page opens the neighbour (sf-view recordBeside) in the same panel by its record-id. Asked over unsaved entries, the card asks first (C159 (6)).",
+      "payload": {
+        "type": "object",
+        "required": [
+          "direction",
+          "record_id",
+          "next_record_id"
+        ],
+        "properties": {
+          "direction": {
+            "enum": [
+              "next",
+              "previous"
+            ]
+          },
+          "record_id": {},
+          "next_record_id": {}
+        },
+        "additionalProperties": true
+      }
+    },
+    "sf-view-properties-history": {
+      "summary": "The history level was opened (C305 (2)); the card reads it through the port (record.history), the event only tells the page.",
+      "payload": {
+        "type": "object",
+        "required": [
+          "record_id"
+        ],
+        "properties": {
+          "record_id": {}
+        },
+        "additionalProperties": true
+      }
+    },
+    "sf-view-properties-structure": {
+      "summary": "«Новое поле…» in the arranging mode (C311 (1)): adding a field is structure, not view, and opens the data owner's field editor. The card names the collection and where; the host opens its editor.",
+      "payload": {
+        "type": "object",
+        "required": [
+          "collection",
+          "section",
+          "group"
+        ],
+        "properties": {
+          "collection": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "section": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "group": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "additionalProperties": true
+      }
     },
     "sf-property-view-delete-record": {
       "summary": "The person asked for the record to be deleted; the host decides whether to ask first and whether to delete at all.",
@@ -1666,16 +1843,131 @@
       },
       {
         "from": "1.16.3",
-        "to": "1.19.2",
+        "to": "1.16.4",
         "changes": [
-          "Accepts simai.property-view-port 1.19.0 (owner decision C294, ui-source acb9bcd77): a host that declares 1.19.0 is taken as one that declares 1.18.0 (SUPPORTED_PORT_VERSIONS, x-port.supports, host_port.supported_versions). 1.19.0 adds two optional money keys (currencies, currencyDisplay) and drops a percent's default bounds; its conformance kit is 1.18.0's 65 cases unchanged, so what the panel reads and writes does not change. The panel does not read the two money keys yet, and a percent without min and max still stops at 0..100 while typed (a host that wants a wider percent sends min and max); a value the host sends is shown and kept as it is. The contract it is checked against stays 1.18.0. Over the same SIMAI Framework pair ui-141822273efe. 1.19.0 is held by simai/ui-view round/view-returns and 1.19.1 by ui-pro's own copy (pro, 2026-11-18), so the number is 1.19.2."
+          "In its panel (VP-5, VP-8 of the 2026-11-16 re-check; C157 (3), C157 (7) = C159 (4), (5)): (1) the title reads the window title step the drawer's panel publishes, --sf-drawer--title-size / --sf-drawer--title-height (sf-drawer 1.16.4), before the h4 role: the head stands inside the drawer's body, where sf-drawer 1.16.0 moves the heading roles down for the content, and the title drew 16/18 (a phone 14/16) instead of 20/24 (16). --sf-property-view--title-* still come first; with no drawer, or a drawer before 1.16.4, the h4 role as before. (2) On a phone (below 48rem) Save (or Create) and Cancel in the foot share the row in equal halves, 8 apart, the main one first; what else the bar holds wraps under them. The desktop foot is unchanged. Markup, settings, events and the host port unchanged."
         ]
       },
       {
-        "from": "1.19.2",
-        "to": "1.20.2",
+        "from": "1.16.4",
+        "to": "1.16.5",
         "changes": [
-          "Accepts simai.property-view-port 1.20.0, 1.21.0 and 1.22.0 (SIMAI Framework group build 13, ui-source integration/pair-next-15 89b0c3b8e): a host that declares any of them is taken as one that declares 1.18.0 (SUPPORTED_PORT_VERSIONS, x-port.supports, host_port.supported_versions). The three editions only add: field keys template, templateParams, decimals and holder and new type names (1.20.0), record.history and record.neighbours behind their own capabilities and the refusal revision_moved (1.21.0), view.publish, view.lock and the view keys head, locked and profiles[].required (1.22.0); the kit keeps 1.19.0's 65 cases unchanged (75 in 1.22.0). What the panel reads and writes does not change: it asks neither new intent, a field sent with template alone is drawn with its type's default template, a type name it does not know (phone, password, complex, url, link, ru.inn) is not offered for editing and nothing is written for it, revision_moved is shown as a refusal with nothing written, and its view.save with target.kind shared and a layer's variant are read by a 1.22.0 host until 2027-01-01. The contract it is checked against stays 1.18.0, the newest edition in the released pair it is built over (ui-141822273efe). The number is above 1.20.0 (simai/ui-view round/view-r4) and 1.20.1 (ui-pro's own copy)."
+          "In its panel (C205 (2); ui-pro f29d4bf taken back, so ui-view is the one home of the component): (1) when sf-drawer brings the edge controls into its head's row (data-sf-drawer-edge-in-head: a phone, size full, or no room beside the panel), copy-link and open-full are the page's buttons beside the close: size 1/3 (they were the panel's size, 36-40 next to a 24-28 close), without the raised popup plate, in a row 8 apart; the wrapper no longer keeps a column there. The view follows the drawer's attribute (it measures), and draws the controls anew when their place changes. Beside a wide panel they are unchanged. (2) A filled panel whose edge stands in the drawer's head starts its head on the panel's axis and stops --sf-space-1/3 short of the drawer's --sf-drawer-edge-room: still padded for a strip at its start, the record's name ran under the controls at 390. 1.16.4 here is VP-5/VP-8; ui-pro's own 1.16.1, 1.16.2 and 1.16.4 are its patched copies, superseded by this version. Markup, settings, events and the host port unchanged."
+        ]
+      },
+      {
+        "from": "1.16.5",
+        "to": "1.16.6",
+        "changes": [
+          "#172: the utility classes its templates write are its relations, asked for with the component; fetched after the first paint they moved the drawn parts (the bulk band 0 -> 8 gap, 8 px down)"
+        ]
+      },
+      {
+        "from": "1.16.6",
+        "to": "1.16.7",
+        "changes": [
+          "PRO-ADM-16: a record to read opens with the focus on its title (out of the Tab order), not on the favourite star whose tooltip stood over the title; a record with a field keeps the field the drawer focuses"
+        ]
+      },
+      {
+        "from": "1.16.7",
+        "to": "1.16.8",
+        "changes": [
+          "The not-placed bin's count is a grey tonal sf-badge (C140 (3); accordion AC-3, tags TG-5), not an sf-tag in the retired appearance surface."
+        ]
+      },
+      {
+        "from": "1.16.8",
+        "to": "1.16.9",
+        "changes": [
+          "Over SIMAI Framework ui-24d64b7f6eb7 (ui-source 40541c0c4fba): the money field's currency choice and the settings' variant choice ask sf-dropdown for appearance=\"bordered\", the field look's current name (sf-dropdown 1.18.1, FM-9); \"outlined\" is its dated former name until 2027-01-01. The same look; nothing to change for a host."
+        ]
+      },
+      {
+        "from": "1.16.9",
+        "to": "1.16.10",
+        "changes": [
+          "Former names (aliases.json, every alias that ended 2026-12-01) now end 2027-01-01 (draft set standard §13.4, view round 1 G1): no alias may end before the main consumer moves to the set, Larena on data-sf-sets=\"admin view\" on 2026-12-15, with at least two weeks' margin. The old names keep coming as before; nothing to change for a host."
+        ]
+      },
+      {
+        "from": "1.16.10",
+        "to": "1.16.11",
+        "changes": [
+          "Over SIMAI Framework ui-24d64b7f6eb7: its icon buttons and buttons ask for the look ghost where they asked for link, ghost's former name (component.icon-buttons 1.14.0, sf-button-icon 1.13.3, sf-button 1.16.3, RG-IB-1..3, C213); the printed row menu wrote sf-icon-button--link, which the pair answers with a console warning. The same look; nothing to change for a host."
+        ]
+      },
+      {
+        "from": "1.16.11",
+        "to": "1.17.0",
+        "changes": [
+          "C289 (1), (5), R250: the sections are laid out by width, not by a setting: a panel shows them as an underline sf-tabs line under the head (overflow more, «Ещё (n)»); a panel of size full and a wide inline view keep the section column at the start; on a phone they are an sf-list of rows, each opening its section with «←». sections-as applies to an inline view only.",
+          "C289 (2), C157 (2): the panel is drawn at a step of the sf-drawer ladder (1/2, 1, 2) or full and never grows; panel-width is a dated former name until 2027-01-01, mapped to the nearest step with a console notice and an SF.deprecations entry.",
+          "C289 (3), (6), R254: «Удалить» is the last row of the head's «⋯» menu, with «Копировать ссылку» and «Открыть на всю страницу»; a record to read has no foot, and nothing stands on the drawer's edge outside the panel.",
+          "C289 (4), R252: a record to read is an sf-list-description: the label beside the value on one row, each group a heading of the list, «Изменить» in the group's heading.",
+          "C289 (6): the head is one row of the drawer's control height; a record opened from another shows «← <record>» above its title as the drawer's back line (sf-drawer-back), which returns to the previous record.",
+          "C289 (6): a panel the page gave no panel-label is headed by the record's name, record.label or record.title (the reference host and most pages send title); it showed the record id. The back line and the drawer's accessible name read the same name.",
+          "C289 (7), C182: Save is never disabled; a Save over empty required fields or entries that are not values is refused with the message under each field and, for two or more, a summary with a link per field; a host's confirmation is asked in place with sf-confirm.",
+          "C289 (8), (9), (10): the first paint keeps its boxes (no layout shift when the record comes); value buttons are 24px high at least on a phone (--sf-hit--min); the view asks the Loader for every tag it draws, so a page needs no defineFieldsOf or own defines."
+        ]
+      },
+      {
+        "from": "1.17.0",
+        "to": "1.17.2",
+        "changes": [
+          "View round 1 (VF-10, msg-e78f2e51): the host's formatFieldValue or the field renderers read a date, the set's own date parsing is gone; a percent is the SIMAI Framework's formatPercent, 12,5 % and 12.5 % in every language (C203 (3)).",
+          "Merge of view round 1: the card group's 1.17.0 and the table group's change (numbered 1.17.1 on round/view-r1-table, not a set version) as one version above both."
+        ]
+      },
+      {
+        "from": "1.17.2",
+        "to": "1.18.0",
+        "changes": [
+          "C305 (1), RC-1: edit = group | group+quick | none (group+quick where the host allows editing). A group edits in sf-form (label above in the panel, beside in the full screen; Save first, a quiet Cancel); a group with a field sf-form 1.3 cannot edit (pickers, uploads, sets) keeps the card's own form. A short field (choice, date, time, yes/no, number) edits in a window at its value and saves one value through group.save. «Изменить всё» in the menu; a press on a long field's value opens its group with the focus on it (VP-19, VP-21); edited fields take the group's width (VP-27).",
+          "C305 (2), RC-3: history = auto | off. «История изменений» in the menu opens a level of the same panel (C289 head: back line, title, menu, close) with sf-list-timeline by day, newest first, before and after drawn by the field's template, «Показать ещё», «Только изменения полей» / «Все события» in its menu. New port intent record.history {record_id, collection, cursor, kinds, limit} for a host that announces record-history (pages of 20, 50 at most); a field the reader may not see comes as {field, label, sealed: true} and is said as «Значение скрыто», never drawn; SfPropertyView.historyFromRevisions builds the answer from stored revisions.",
+          "C305 (4): a host that announces record-neighbours names the next and the previous record over its current view (record.neighbours, answered {listed, previous: {record_id}, next: {record_id}}); the step carries it as next_record_id and the card opens it. A save the host refuses with revision_moved (the revision moved, nothing written) is a conflict: the card says so, keeps what was typed and reads the record again.",
+          "C305 (3), RC-4: the full screen keeps the section column (sf-menu until sf-tabs vertical places its box, VP-26), fields in two columns, the history as a 24rem column from 80rem (VP-22).",
+          "C305 (4), RC-5: from 64rem the panel docks beside a list marked data-sf-drawer-dock-host (no scrim, the list usable); modal=\"true\" keeps the scrim (VP-23). Alt+Down / Alt+Up ask for the next or the previous record (sf-view-properties-step); the focus stays in the panel.",
+          "C159 (6): closing, stepping or opening another record over unsaved entries asks in the card first (sf-confirm: «Закрыть без сохранения» / «Вернуться к правке»).",
+          "RC-6: seven public variables --sf-view-properties-label-width, -row-gap, -group-gap, -sections-width, -side-width, -current-background-color, -saved-background-color; --sf-property-view--sections-width is a former name until 2027-01-01. Every new word is in the language files (C282).",
+          "RC-7, VP-29: the quick windows draw nothing before sf-popover is defined (no shift at the first paint)."
+        ]
+      },
+      {
+        "from": "1.18.0",
+        "to": "1.18.1",
+        "changes": [
+          "A group whose label is '' draws no group head: read (the description list head, 36 px), edited in sf-form and edited in the card (29 px) the heading row was empty and named nothing to a screen reader; the head stays when the group has «Изменить», the rare mark or the arranging tools."
+        ]
+      },
+      {
+        "from": "1.18.1",
+        "to": "1.18.2",
+        "changes": [
+          "Alt+Down / Alt+Up step the record when the key is pressed anywhere in the card's own drawer, the panel included: the drawer gives its panel the focus when the card covers the list, and the keys went nowhere (VR2-3)."
+        ]
+      },
+      {
+        "from": "1.18.2",
+        "to": "1.19.0",
+        "changes": [
+          "Record card settings (owner decision C311 on the levels of C298; RC-1..RC-4, RC-6..RC-10, TB-1): own edits go to the personal layer at once; «Сохранить для всех» (view.publish, merged and cleared by the host, a conflict redraws with «Вид изменился»); «Вернуть как у всех» in the profile picker (resettable) resets the personal layer only; «Сохранить как моё» (view.create shared false) in the head «⋯» while arranging; per-setting locks (view.locked, view.lock from a field or tab «⋯» for those who may write the shared layer; a lock mark «Закрыто администратором»); a required profile (profiles[].required) disables the picker and writes nothing; the head line under the title -- the stage as a tonal badge and up to two fields (view.head; «Показать в шапке», «Стадией в шапке»); the arranging mode: the picker and a one-line hint over the fields, the foot «Готово», «Сохранить для всех», «Отменить» (C157 (3)); «Вкладки» with handles and a «⋯» per tab (name, icon, up, down, hide, delete -- its fields to «Скрытые поля» --, lock); «+ Вкладка» with a «Поля» area; a field moves to another tab from its «⋯ → На вкладку …» at every width; one way to hide a field: the eye and «Скрытые поля» (open in the mode); the field template (variant) is no longer offered (C302 (2)), a layer that holds one is read until 2027-01-01; «Новое поле…» emits sf-view-properties-structure for the host's field editor; outside the mode «Профиль: <name>» enters it with the picker open (the «Вид» submenu stays only for a person who cannot arrange)."
+        ]
+      },
+      {
+        "from": "1.19.0",
+        "to": "1.20.0",
+        "changes": [
+          "C311 (5), the dispatcher's call on RC-6 (round/view-r4): the «⋯» menu has no views submenu for anyone; the person who may arrange keeps the one entry «Вид: <name>» that enters the arranging mode with the picker open; a person who cannot arrange (no view settings from the host, no writable layer, or a view-only surface) and has more than one view gets sf-profile-picker in select-only mode above the fields (profiles not editable, nothing created, no reset; a choice raises view.profile). Removed as dead: renderViewProfiles and renderNewViewName in the template (with their CSS), viewProfileEntries, openViewProfileMenu, the view-profile: menu ids, namingView, startNamingView and cancelNamingView. Port range 1.0.0..1.20.0 (SUPPORTED_PORT_VERSIONS, host_port.supported_versions, the passport's list): the C311 edition is port 1.20.0 (the dispatcher's renumbering; GB12 holds 1.19.0, money C294), and hostSpeaksCardSettings asks for 1.20.0 or later. On a phone the card opens on its tab list, and the chooser stands above that list too. Larena backend contract (c311-reply): VIEW_REFUSALS and viewRefusalText(answer, fallback) say the codes in words (view-refused-*-text, en and ru) for view.create/view.profile/view.publish/view.lock refusals and view.save entry errors (an entry error without kind:key, such as head, becomes the card's message); view.publish conflict stores personal {revision, view} as well as shared; view.lock reads required (Larena's path \"required\") into profiles[]; the select-only chooser is disabled in a required view.",
+          "Group build 13 (ui-source integration/pair-next-15 89b0c3b8e) numbers the C311 edition simai.property-view-port 1.22.0 (1.20.0 type templates and 1.21.0 form fields came first; its kit is 1.21.0's 71 cases and the four C311 cases, 75): the range is 1.0.0..1.22.0 and hostSpeaksCardSettings asks for 1.22.0 or later, so a 1.20.0 or 1.21.0 host is offered no card settings."
+        ]
+      },
+      {
+        "from": "1.20.0",
+        "to": "1.21.0",
+        "changes": [
+          "Release of round/view-r4 in view 1.9.0: the code of 1.20.0 (port range 1.0.0..1.22.0, card settings only for a 1.22.0 host) merged with the released line 1.19.2 and 1.20.2 (view 1.8.2, 1.8.3: port widening of the 1.16.3 panel), numbered above both and above ui-pro's 1.20.1. A 1.20.0 or 1.21.0 host is offered no card settings (they need 1.22.0).",
+          "The released 1.19.2 and 1.20.2 (view 1.8.2, 1.8.3) were steps of the 1.16.3 panel that only widened the accepted port range (1.19.0, then 1.20.0..1.22.0); 1.21.0 holds the same range, so a host of 1.20.2 gets everything of 1.16.4..1.20.0 above with nothing taken away."
         ]
       }
     ]
@@ -1686,15 +1978,15 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-properties/index.js",
-        "sha256": "c6fbbfa2eabeef1bfb6960d5a3d19740662932326b8bf5e6b588c1c6516a1da3"
+        "sha256": "4aaa991e2b8cbff403e6058776176bbf1760a58f2129c5dce44f976733e302d8"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.js",
-        "sha256": "d1abc1e69bdd47443185cf6627847b1a59a57b94aba37caed4c273651056ad2b"
+        "sha256": "1f2d397e75fea89d5d30db9ce92ae01fb2850f6c210b1c52c417167078619d29"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.css",
-        "sha256": "765b6c1efa6e9be1aa1516eabb85d8a69da9c19ce0cb03cf1a07050b80a49e0a"
+        "sha256": "32864a531bd6467d16a2209e59e51a42da7f1900b60057bd96309432e3b18b47"
       },
       {
         "path": "src/smart/view-properties/js/conditions.js",
@@ -1703,6 +1995,14 @@
       {
         "path": "src/smart/view-properties/js/field-value.js",
         "sha256": "aa04dbf2f3f8a979966af613c82e2bcffa13020371a5884f88728f50c1145b8e"
+      },
+      {
+        "path": "src/smart/view-properties/js/history.js",
+        "sha256": "7b6fe4d1c1bd88686edb70e31a2b13e508f6f075d7116d5e7da36af2489a359b"
+      },
+      {
+        "path": "src/smart/view-properties/js/history-port.js",
+        "sha256": "80ca9f19329b667600b63432d9971fcc3275c58f33063c06b8f58d4ef46ca2fc"
       },
       {
         "path": "src/smart/view-properties/js/requisites.js",
@@ -1718,7 +2018,7 @@
       },
       {
         "path": "src/smart/view-properties/js/money.js",
-        "sha256": "8e7ba7bab391daf9f28e403bee2a3e3f2fd2ad1ec11742421fceff0d18b0c188"
+        "sha256": "ca936af5b59ee2f0fe8788df3f69cccdc1cb6fd3045213bbd1a14d4f5963f537"
       },
       {
         "path": "src/smart/view-properties/js/set-fields.css",
@@ -1726,11 +2026,11 @@
       },
       {
         "path": "src/smart/view-properties/js/set-fields.js",
-        "sha256": "5186f15be38ea810912463a6c1e4dc265708df87765c923bb57f58ba85b4f580"
+        "sha256": "8b5c3d72c4359bdbee46e6d1cc3f58abdf84c6a57bffa829e1695d84356622bc"
       },
       {
         "path": "src/smart/view-properties/rule.js",
-        "sha256": "3b9e6ff478e98d4b478b37911a36c9ef3317404d2f9084dae4945301af67d393"
+        "sha256": "7ee0d5f20ac88d2d56663eba2fd9a0a3db183273009d54a494a9461f899eae1e"
       },
       {
         "path": "src/core/contracts/ports/simai.property-view-port/1.4.0/port.json",
@@ -1738,7 +2038,7 @@
       },
       {
         "path": "src/smart/view-properties/docs.md",
-        "sha256": "e2a29465f32db3b5e62cd95f9bcfe65ebe6838aa73bcad1af2dccf3cc974fbe6"
+        "sha256": "2bdcacab3c6afb69ea7a87f6718c3ceea51fb2a359d5c896fa41239c9cee96cc"
       }
     ],
     "generated_runtime": []

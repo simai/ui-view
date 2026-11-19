@@ -1,0 +1,609 @@
+{
+  "$comment": "sf-view-board, standard simai.smart-component 1.4 (vocabulary 1.1.5): the board layout of the view set (kanban; owner decisions C298, C304). Study: ui-control control/research/2026-11-17-board-view. Drag and keys are sf-sortable's, the card is .sf-card, the card fields the Framework field renderers' cell output, menus SF.menu.open, the selection bar sf-bulk-actions where the pair has it.",
+  "id": "smart.view-board",
+  "tag": "sf-view-board",
+  "version": "1.1.1",
+  "x-history": [
+    {
+      "version": "1.1.1",
+      "kind": "patch",
+      "recorded_on": "2026-11-18",
+      "consumer": "Nothing to change: sums-pending is now for a page that computes the sums after the cards; sf-view does not set it (the sums come with the cards, C304).",
+      "evidence": "control/evidence/2026-11-18-view-returns/README.md"
+    },
+    {
+      "version": "1.1.0",
+      "kind": "minor",
+      "recorded_on": "2026-11-18",
+      "consumer": "New: sums-pending holds the lane heads' sum line while the sums come in a request after the cards; setLaneTotals([{value, totals}]) takes them. Nothing to change for a host that answers sums with the cards.",
+      "evidence": "control/evidence/2026-11-18-view-r2-merge/README.md"
+    },
+    {
+      "version": "1.0.0",
+      "kind": "minor",
+      "recorded_on": "2026-11-18",
+      "consumer": "New: sf-view layout=\"board\" (or Larena's kanban) draws it; a host answers the lane window (lanes, per_lane) and settles moves.",
+      "evidence": "control/evidence/2026-11-18-view-r2-board"
+    }
+  ],
+  "kind": "leaf",
+  "family": "view",
+  "settings": {
+    "size": {
+      "type": "enum",
+      "values": [
+        "1/2",
+        "1"
+      ],
+      "default": "1/2",
+      "summary": "The rung of the lane heads, the cards and their controls."
+    },
+    "title-field": {
+      "type": "string",
+      "default": "title",
+      "summary": "The record key a card's title reads (else title, name, id)."
+    },
+    "order-field": {
+      "type": "string",
+      "default": "",
+      "summary": "The source's manual order field (describe().order_field). Without it a lane follows the view's sort (C304 (2))."
+    },
+    "sort-active": {
+      "type": "boolean",
+      "default": false,
+      "summary": "A sort is on in the view: manual reorder inside a lane is off (C304 (2))."
+    },
+    "selectable": {
+      "type": "boolean",
+      "default": true,
+      "summary": "Cards carry the selection box; Space marks a card."
+    },
+    "creatable": {
+      "type": "boolean",
+      "default": false,
+      "summary": "«+» in a lane head and «Новая запись» in the lane menu: the create event with the lane's value."
+    },
+    "movable": {
+      "type": "boolean",
+      "default": true,
+      "summary": "Moves are offered; false refuses each with «Нет права менять»."
+    },
+    "lanes": {
+      "type": "list",
+      "default": [],
+      "of": {
+        "value": "string",
+        "label": {
+          "type": "string",
+          "optional": true
+        },
+        "total": {
+          "type": "number",
+          "optional": true
+        },
+        "totals": {
+          "type": "object",
+          "optional": true
+        },
+        "records": "list",
+        "cursor": {
+          "type": "any",
+          "nullable": true,
+          "optional": true
+        }
+      },
+      "summary": "The lane window the host answered (C304): the first per_lane records of every lane, each lane's total under the filter and its sums (C294), a cursor for «Показать ещё»."
+    },
+    "fields": {
+      "type": "list",
+      "default": [],
+      "of": {
+        "key": "string",
+        "label": {
+          "type": "string",
+          "optional": true
+        },
+        "propertyType": {
+          "type": "string",
+          "optional": true
+        },
+        "options": {
+          "type": "list",
+          "optional": true
+        }
+      },
+      "summary": "Field descriptors (sf-view's columns): the lane field's options give the lane order, labels and colours; the card fields are drawn by the Framework field renderers."
+    },
+    "options": {
+      "type": "object",
+      "default": {},
+      "summary": "layouts.board of simai.view-config/1: lane_field, lanes {order, hidden, collapsed}, empty_lanes show|hide, card_fields (up to four), totals (count, {sum: key}), limits {lane: n} (soft, C304 (3)), order sort|manual, per_lane (20), swimlane_field (reserved, C304 (4))."
+    },
+    "moves": {
+      "type": "object",
+      "default": {},
+      "summary": "The host's move rules: {<to>: {from: [...], reason}}; a lane that refuses dims with the reason while a card is held and is disabled in «Переместить в»."
+    },
+    "actions": {
+      "type": "list",
+      "default": [],
+      "of": {
+        "id": "id",
+        "text": "string",
+        "icon": {
+          "type": "icon",
+          "optional": true
+        }
+      },
+      "summary": "The host's actions on a selection, after «Переместить в…»."
+    },
+    "selected": {
+      "type": "list",
+      "default": [],
+      "summary": "The ids marked."
+    },
+    "sums-pending": {
+      "type": "boolean",
+      "default": false,
+      "summary": "The sum line of each lane head is held empty until setLaneTotals brings the sums: for a page that computes them after the cards. sf-view does not set it: the sums come with the cards (C304)."
+    }
+  },
+  "values": {},
+  "events": {
+    "move": {
+      "carries": {
+        "id": "id",
+        "field": "string",
+        "from": "string",
+        "to": "string",
+        "before": {
+          "type": "id",
+          "nullable": true
+        },
+        "revision": {
+          "type": "any",
+          "nullable": true
+        },
+        "how": "string"
+      },
+      "cancelable": true,
+      "summary": "A card moved (drag, keys, the card menu, the bulk bar): shown at once and pale until the host answers settleMove. Cancel to refuse at once."
+    },
+    "open": {
+      "carries": {
+        "id": "id"
+      },
+      "summary": "The card's title or «Открыть» in its menu (vocabulary open): the host opens the record card (sf-view-properties, C289)."
+    },
+    "create": {
+      "carries": {
+        "field": "string",
+        "value": "string"
+      },
+      "own-verb": true,
+      "summary": "«+» in a lane: the host opens a new record with the lane's value."
+    },
+    "more": {
+      "carries": {
+        "lane": "string",
+        "cursor": {
+          "type": "any",
+          "nullable": true
+        },
+        "offset": "number"
+      },
+      "own-verb": true,
+      "summary": "«Показать ещё» in a lane: the host answers appendLane with that lane's next records."
+    },
+    "select": {
+      "carries": {
+        "ids": "list"
+      },
+      "summary": "The selection changed (vocabulary select)."
+    },
+    "save": {
+      "carries": {
+        "collapsed": "list",
+        "hidden": "list",
+        "order": "list"
+      },
+      "summary": "A lane folded, unfolded or hidden: the board's options to keep in the view (layouts.board.lanes)."
+    },
+    "apply": {
+      "carries": {
+        "action": "id",
+        "ids": "list",
+        "scope": "string"
+      },
+      "own-verb": true,
+      "summary": "A host action chosen on the selection in the bulk bar."
+    }
+  },
+  "actions": {
+    "settle-move": {
+      "with": {
+        "id": "id",
+        "result": "object"
+      },
+      "x-outcomes": [
+        "applied",
+        "refused"
+      ],
+      "summary": "The host's answer to a move: {answer: applied, record?} keeps it; refused or conflict ({reason, message}) puts the card back and says why.",
+      "x-returns": {
+        "type": "object",
+        "description": "{outcome: applied} or {outcome: refused, reason}"
+      }
+    },
+    "append-lane": {
+      "with": {
+        "lane": "string",
+        "records": "list",
+        "cursor": {
+          "type": "any",
+          "nullable": true
+        },
+        "total": "number"
+      },
+      "x-outcomes": [
+        "applied",
+        "refused"
+      ],
+      "summary": "The host's next records of one lane (the answer to more).",
+      "x-returns": {
+        "type": "object",
+        "description": "{outcome: applied} or {outcome: refused, reason}"
+      }
+    },
+    "set-lane-totals": {
+      "with": {
+        "lanes": "list"
+      },
+      "x-outcomes": [
+        "applied",
+        "refused"
+      ],
+      "summary": "The lanes' totals the host answered after the cards ([{value, totals}], sums per currency); cards and cursors stay.",
+      "x-returns": {
+        "type": "object",
+        "description": "{outcome: applied} or {outcome: refused, reason}"
+      }
+    }
+  },
+  "slots": {},
+  "layer": {
+    "kind": "surface",
+    "locks-page": false,
+    "traps-focus": false
+  },
+  "side-effects": [],
+  "keyboard": {
+    "host": {
+      "Tab": "reach",
+      "ArrowLeft": "move",
+      "ArrowRight": "move",
+      "ArrowUp": "move",
+      "ArrowDown": "move",
+      "Home": "move",
+      "End": "move",
+      "Enter": "activate",
+      "Space": "select",
+      "Escape": "dismiss"
+    }
+  },
+  "relations": [
+    {
+      "name": "icons"
+    },
+    {
+      "name": "cl-sortable",
+      "$comment": [
+        "Drag, long press, the drop line, the keyboard move and its announcements (C171)."
+      ]
+    },
+    {
+      "name": "card",
+      "$comment": [
+        "A card is the Framework .sf-card."
+      ]
+    },
+    {
+      "name": "cl-badge",
+      "$comment": [
+        "The lane's name, a tonal badge of its option's colour (C140); a choice value on a card."
+      ]
+    },
+    {
+      "name": "cl-button"
+    },
+    {
+      "name": "cl-button-icon"
+    },
+    {
+      "name": "cl-checkbox"
+    },
+    {
+      "name": "cl-tabs",
+      "lazy": true,
+      "$comment": [
+        "The lane switcher on a phone (C304 (1))."
+      ]
+    },
+    {
+      "name": "cl-toast",
+      "lazy": true,
+      "$comment": [
+        "A refused move."
+      ]
+    },
+    {
+      "name": "cl-menu-context",
+      "lazy": true,
+      "$comment": [
+        "The card menu and the lane menu (SF.menu.open)."
+      ]
+    },
+    {
+      "name": "cl-avatar",
+      "$comment": [
+        "Below: what the Framework field renderers draw in the «Кратко» place."
+      ]
+    },
+    {
+      "name": "cl-tag"
+    },
+    {
+      "name": "cl-reference-link"
+    },
+    {
+      "name": "cl-progress-scale"
+    },
+    {
+      "name": "cl-icon"
+    },
+    {
+      "name": "align-items/default",
+      "$comment": [
+        "The utility classes its templates write, asked for with the component (SIMAI Framework loader: a Framework component gets them from template-utilities.generated.json, a package component names them here); fetched after the first paint, they moved the drawn parts -- the bulk band's gap came 0 -> 8 and the band 8 px down some 150 ms in (View 1.8.1 acceptance, queue #172). The list is scripts/generate-template-utilities.mjs run over the overlay."
+      ]
+    },
+    {
+      "name": "display/default"
+    },
+    {
+      "name": "flex-direction/default"
+    },
+    {
+      "name": "flex-wrap/default"
+    },
+    {
+      "name": "gap/default"
+    },
+    {
+      "name": "min-width/default"
+    },
+    {
+      "name": "text-color/default"
+    }
+  ],
+  "templates": {
+    "default": {
+      "file": "js/templates/default.js",
+      "$comment": "The Lit template in JavaScript (§5.2)."
+    }
+  },
+  "styles": "js/templates/default.css",
+  "examples": "examples.json",
+  "docs": "docs.md",
+  "lang": "lang/",
+  "accessibility": {
+    "role": "region",
+    "name": {
+      "from": [
+        "aria-label",
+        "runtime.board-label"
+      ]
+    },
+    "keys": {
+      "Tab": "reach",
+      "ArrowLeft": "move",
+      "ArrowRight": "move",
+      "ArrowUp": "move",
+      "ArrowDown": "move",
+      "Home": "move",
+      "End": "move",
+      "Enter": "activate",
+      "Space": "select",
+      "Escape": "dismiss"
+    },
+    "x-keys": "One Tab stop for the board (BD-10, C146 (8)): left and right go between lanes, up and down, Home and End inside a lane (its head's controls, its cards, «Показать ещё»); Space marks a card; Enter picks it up (sf-sortable) and the arrows carry it; Shift+F10 or the context menu key opens the card menu with «Переместить в»; Escape clears the selection. Every move is announced in the board's live region."
+  },
+  "host-states": {},
+  "css-variables": {
+    "--sf-view-board-lane-width": {
+      "type": "length",
+      "state": "default"
+    },
+    "--sf-view-board-gap": {
+      "type": "length",
+      "state": "default"
+    },
+    "--sf-view-board-lane-background": {
+      "type": "color",
+      "state": "default"
+    },
+    "--sf-view-board-lane-radius": {
+      "type": "length",
+      "state": "default"
+    },
+    "--sf-view-board-refused-opacity": {
+      "type": "number",
+      "state": "default"
+    }
+  },
+  "x-summary": "The board layout of the view set: lanes by one field, cards with up to four fields in the «Кратко» place, a move is a change of that field the host settles. sf-view layout=\"board\" draws it over the lane window.",
+  "x-words": [
+    "board-label",
+    "empty-text",
+    "more-text",
+    "move-to-text",
+    "move-selected-text",
+    "refuse-default"
+  ],
+  "x-decisions": [
+    "shape: a leaf drawn by sf-view (layout board, the layout registry) or by a host directly; it owns no data.",
+    "reuse: sf-sortable for drag and keys, .sf-card, sf-badge, sf-checkbox, sf-button(-icon), sf-tabs (phone), sf-toast, SF.menu.open, the Framework field renderers' renderCellField; sf-bulk-actions where the pair has it. Nothing is copied.",
+    "window: one query answers the first per_lane records of every lane and the totals of all lanes; «Показать ещё» asks one lane further (C304, draft open point 1).",
+    "moves: a change of the lane field; the host's rules dim a lane while a card is held and disable it in «Переместить в»; a refusal puts the card back with the host's reason (toast and live region); limits are soft (C304 (3)); order follows the view's sort unless the source declares an order field and no sort is on (C304 (2)).",
+    "phone: one lane per screen under sf-tabs with counts, swipe kept (C304 (1)). Swimlanes: reserved (swimlane_field), not drawn (C304 (4))."
+  ],
+  "x-rule": {
+    "$comment": [
+      "The board draws its lanes with sf-sortable, sf-badge and sf-button(-icon), its cards as .sf-card",
+      "with sf-checkbox and the Framework field renderers' cell output; menus, tabs and toasts come later."
+    ]
+  },
+  "x-registry": {
+    "capabilities": [
+      "drag-and-drop",
+      "field-renderers",
+      "live-announcement",
+      "selection"
+    ],
+    "persistence": {
+      "mode": "none",
+      "source_of_truth": "host",
+      "network_owner": "host",
+      "revision_field": "revision"
+    },
+    "readiness": {
+      "level": "host-required",
+      "required_checks": [
+        "manifest",
+        "loader-rule",
+        "view-board-contract",
+        "view-board-browser"
+      ]
+    },
+    "tags": [
+      "board",
+      "kanban",
+      "lanes",
+      "view"
+    ],
+    "contracts": {
+      "lane": {
+        "const": "{value, label?, total, totals: {<field>: {<currency>: amount}}, records: [...], cursor}"
+      },
+      "moves": {
+        "const": "{<to>: {from: [...], reason}}"
+      }
+    },
+    "state": {
+      "machines": {
+        "move": [
+          "shown",
+          "pending",
+          "applied",
+          "refused"
+        ]
+      },
+      "visual_states": [
+        "default",
+        "loading",
+        "error"
+      ]
+    },
+    "artifacts": {
+      "fixtures": [],
+      "scenarios": []
+    },
+    "ownership": {
+      "source": "simai/ui-view",
+      "data": "host",
+      "effects": "host",
+      "forbidden_client_responsibilities": [
+        "saving a move",
+        "move rules and permissions",
+        "lane totals"
+      ]
+    },
+    "security": {
+      "permissions_owner": "host",
+      "untrusted_inputs": [
+        "lane labels, titles and field values (drawn as text or by the field renderers)"
+      ],
+      "network_policy": "deny"
+    },
+    "presentation": {
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "locales": [
+        "en",
+        "ru"
+      ],
+      "responsive": [
+        "desktop",
+        "mobile"
+      ],
+      "skeleton": {
+        "shape": "block",
+        "while_loading": "none"
+      }
+    },
+    "ai_guidance": {
+      "use_when": "Use sf-view-board through sf-view layout=\"board\" for records grouped by a status, choice, user or yes/no field, where a person moves them between lanes.",
+      "do_not": [
+        "Do not save a move in the element; answer sf-view-board-move and call settleMove.",
+        "Do not use it for a calendar or a timeline."
+      ],
+      "required_reads": [
+        "inputs",
+        "contracts",
+        "events",
+        "accessibility"
+      ],
+      "minimal_example": "<sf-view layout=\"board\" aria-label=\"Заказы\"></sf-view>",
+      "owner_commands": [
+        "node scripts/test.mjs",
+        "node scripts/run-browser-probes.mjs <free> <set build>"
+      ]
+    },
+    "accessibility": {
+      "accessible_name": "internal",
+      "focus": "A region named by aria-label (else «Доска»); one Tab stop for the board, the arrows inside (lanes left and right, a lane's head, cards and «Показать ещё» up and down); a polite live region says every move and refusal; after a settled move focus stays on the card."
+    },
+    "compatibility": {
+      "migrations": [
+        {
+          "from": "0.0.0",
+          "to": "1.0.0",
+          "changes": [
+            "New: the board layout (owner decisions C298, C304): lanes by one field from the host's lane window, cards with up to four fields in the «Кратко» place, moves as a change of the lane field the host settles (settleMove), «Показать ещё» per lane (appendLane), soft limits, folded and hidden lanes, one lane per screen on a phone, one Tab stop with the arrows inside."
+          ]
+        },
+        {
+          "from": "1.0.0",
+          "to": "1.1.0",
+          "changes": [
+            "Lane sums after the cards (view round 2 merge, agreed with Larena): sums-pending (set by sf-view while it asks the sums in a second request) holds the sum line of every lane head, so nothing grows when they come; setLaneTotals([{value, totals}]) merges the answered totals into the lanes without touching their cards or cursors."
+          ]
+        },
+        {
+          "from": "1.1.0",
+          "to": "1.1.1",
+          "changes": [
+            "The sums-pending description: sf-view asks the lane totals with the cards in one request (C304, VR2-9) and no longer sets it; the attribute and setLaneTotals stay for a page that computes the sums later."
+          ]
+        }
+      ]
+    },
+    "inputs": {
+      "template": {
+        "const": "default"
+      }
+    }
+  }
+}

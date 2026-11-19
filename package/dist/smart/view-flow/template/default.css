@@ -1,4 +1,4 @@
-@layer sf.reset, sf.tokens, sf.base, sf.utilities, sf.components, sf.overrides, sf.states;
+@layer sf.reset, sf.tokens, sf.base, sf.paint, sf.utilities, sf.components, sf.overrides, sf.states;
 @layer sf.components {
   /* sf-view-flow. The host is display: contents; .sf-view-flow
      is the block the flow places, as wide as the flow. Every value is a
@@ -132,7 +132,6 @@
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    justify-content: space-between;
     gap: var(--sf-space-1\/3);
   }
 
@@ -157,7 +156,6 @@
   .sf-view-flow__actions {
     display: flex;
     gap: var(--sf-space-1\/3);
-    margin-inline-start: auto;
   }
 
   .sf-view-flow__actions[hidden] { display: none; }

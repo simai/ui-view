@@ -1,0 +1,63 @@
+{
+  "component": "sf-view-cards",
+  "probe": "sf-view-cards against component.json (standard simai.smart-component 1.4 §12, gate 20)",
+  "format": "stands/15-scenarios (A4 modal: a page, probes in steps); the runner is ui-source tests/browser/manifest-probes.browser.mjs, run for the package by scripts/run-manifest-probes.mjs",
+  "page": {
+    "lang": "ru",
+    "body": [
+      "<main>",
+      "  <sf-view-cards id=\"c\" aria-label=\"Товары\" total=\"40\" fields='[{\"key\": \"title\", \"label\": \"Название\", \"propertyType\": \"string\", \"title\": true}, {\"key\": \"photo\", \"label\": \"Фото\", \"propertyType\": \"file\", \"variant\": \"image\"}, {\"key\": \"sku\", \"label\": \"Артикул\", \"propertyType\": \"string\"}, {\"key\": \"category\", \"label\": \"Категория\", \"propertyType\": \"choice\", \"options\": [{\"value\": \"kitchen\", \"label\": \"Кухня\", \"status\": \"warning\"}, {\"value\": \"garden\", \"label\": \"Сад\", \"status\": \"success\"}, {\"value\": \"home\", \"label\": \"Дом\", \"scheme\": \"primary\"}]}, {\"key\": \"price\", \"label\": \"Цена\", \"propertyType\": \"money\", \"currency\": \"RUB\"}, {\"key\": \"stock\", \"label\": \"Остаток\", \"propertyType\": \"number\"}]' records='[{\"id\": \"p1\", \"title\": \"Кружка «Утро»\", \"photo\": {\"label\": \"item-1.svg\", \"mime\": \"image/svg+xml\", \"href\": \"data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22800%22%20height%3D%22600%22%20viewBox%3D%220%200%20800%20600%22%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20fill%3D%22%23f4e3d3%22/%3E%3Ccircle%20cx%3D%22400.0%22%20cy%3D%22300.0%22%20r%3D%22150.0%22%20fill%3D%22%23c0623b%22/%3E%3C/svg%3E\", \"width\": 800, \"height\": 600}, \"sku\": \"SM-10230\", \"category\": \"kitchen\", \"price\": \"490.00\", \"stock\": 0}, {\"id\": \"p2\", \"title\": \"Кашпо керамическое\", \"photo\": {\"label\": \"item-2.svg\", \"mime\": \"image/svg+xml\", \"href\": \"data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22600%22%20height%3D%22600%22%20viewBox%3D%220%200%20600%20600%22%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20fill%3D%22%23e6efe2%22/%3E%3Ccircle%20cx%3D%22300.0%22%20cy%3D%22300.0%22%20r%3D%22150.0%22%20fill%3D%22%23b8743c%22/%3E%3C/svg%3E\", \"width\": 600, \"height\": 600}, \"sku\": \"SM-10237\", \"category\": \"garden\", \"price\": \"1290.00\", \"stock\": 13}, {\"id\": \"p3\", \"title\": \"Лампа настольная «Север»\", \"photo\": {\"label\": \"item-3.svg\", \"mime\": \"image/svg+xml\", \"href\": \"data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22600%22%20height%3D%22900%22%20viewBox%3D%220%200%20600%20900%22%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20fill%3D%22%23e3e8f2%22/%3E%3Ccircle%20cx%3D%22300.0%22%20cy%3D%22450.0%22%20r%3D%22150.0%22%20fill%3D%22%232f4a7a%22/%3E%3C/svg%3E\", \"width\": 600, \"height\": 900}, \"sku\": \"SM-10244\", \"category\": \"home\", \"price\": \"3990.00\", \"stock\": 26}, {\"id\": \"p4\", \"title\": \"Стул «Венский»\", \"photo\": null, \"sku\": \"SM-10251\", \"category\": \"kitchen\", \"price\": \"5490.00\", \"stock\": 39}]' options='{\"cover_field\": \"photo\", \"cover\": {\"fit\": \"cover\", \"ratio\": \"4:3\"}, \"card_fields\": [\"sku\", \"category\", \"price\", \"stock\"], \"size\": \"m\"}'></sf-view-cards>",
+      "</main>"
+    ]
+  },
+  "probes": [
+    {
+      "id": "p1-grid",
+      "title": "Four cards, one Tab stop, a cover frame of 4:3 with a lazy picture, «Нет фото» where there is none",
+      "covers": "settings.records, settings.options, accessibility.name",
+      "steps": [
+        {
+          "script": "true",
+          "wait": 400,
+          "check": "document.querySelectorAll('#c .sf-view-cards__card').length === 4 && [...document.querySelectorAll('#c .sf-view-cards__card')].filter((card) => card.tabIndex === 0).length === 1 && document.querySelector('#c .sf-view-cards__image').loading === 'lazy' && document.querySelector('#c [data-id=p4] .sf-view-cards__none') !== null && document.querySelector('#c [role=list]').getAttribute('aria-label') === 'Товары, 40'"
+        }
+      ]
+    },
+    {
+      "id": "p2-keys",
+      "title": "→ goes to the next card, Space marks it, Escape clears",
+      "covers": "keyboard, events.select",
+      "steps": [
+        {
+          "script": "(() => { window.__s=[];document.querySelector('#c').addEventListener('sf-view-cards-select',(e)=>window.__s.push(e.detail.ids.length));const card=document.querySelector('#c .sf-view-cards__card');card.focus();card.dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowRight',bubbles:true}));document.activeElement.dispatchEvent(new KeyboardEvent('keydown',{key:' ',bubbles:true}));document.activeElement.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true})); return true; })()",
+          "wait": 300,
+          "check": "document.activeElement?.dataset?.id === 'p2' && JSON.stringify(window.__s) === '[1,0]'"
+        }
+      ]
+    },
+    {
+      "id": "p3-open",
+      "title": "Enter opens the record: sf-view-cards-open {id, trigger: keyboard}",
+      "covers": "events.open",
+      "steps": [
+        {
+          "script": "(() => { window.__o=null;document.querySelector('#c').addEventListener('sf-view-cards-open',(e)=>window.__o=e.detail);const card=document.querySelector('#c [data-id=p3]');card.focus();card.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true})); return true; })()",
+          "wait": 200,
+          "check": "window.__o && window.__o.id === 'p3' && window.__o.trigger === 'keyboard'"
+        }
+      ]
+    },
+    {
+      "id": "p4-more",
+      "title": "«Показать ещё» asks page 2; appendRecords adds a card",
+      "covers": "events.more, actions.append-records",
+      "steps": [
+        {
+          "script": "(() => { window.__m=null;const c=document.querySelector('#c');c.addEventListener('sf-view-cards-more',(e)=>{window.__m=e.detail;c.appendRecords([{id:'p9',title:'Ещё'}],{total:40});});c.showMore(); return true; })()",
+          "wait": 300,
+          "check": "window.__m && window.__m.page === 2 && document.querySelectorAll('#c .sf-view-cards__card').length === 5"
+        }
+      ]
+    }
+  ]
+}

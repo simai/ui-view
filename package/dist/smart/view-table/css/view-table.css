@@ -1,5 +1,5 @@
 @charset "UTF-8";
-@layer sf.reset, sf.tokens, sf.base, sf.utilities, sf.components, sf.overrides, sf.states;
+@layer sf.reset, sf.tokens, sf.base, sf.paint, sf.utilities, sf.components, sf.overrides, sf.states;
 /* The table's published box (the :root block below, docs/docs.md) is
    registered as lengths: a page that reads one from script
    (getComputedStyle(document.documentElement).getPropertyValue(
@@ -108,6 +108,21 @@
   }
   sf-table .sf-table-toolbar--list > div {
     gap: var(--sf-space-1\/3);
+  }
+  sf-view-table .sf-table-list-view-buttons {
+    gap: var(--sf-space-1\/3);
+  }
+  sf-table .sf-table-list-view-buttons {
+    gap: var(--sf-space-1\/3);
+  }
+  /* The list toolbar's row (C144): the field, the view buttons (filter and
+     sort, neighbours at 1/3) and «Создать» are three groups, --sf-space-1
+     apart -- 12 on a phone, not the 8 of neighbours. */
+  sf-view-table .sf-table-toolbar--list > .sf-table-list-search {
+    gap: var(--sf-space-1);
+  }
+  sf-table .sf-table-toolbar--list > .sf-table-list-search {
+    gap: var(--sf-space-1);
   }
   /* The search row keeps a usable width or goes to the line above. Without a
      floor it simply shrank instead of wrapping, and the field ended up a stub
@@ -432,72 +447,6 @@
   .sf-table-context-menu .sf-table-context-body {
     min-height: 0;
     min-block-size: 0;
-  }
-  /* The search stood flush against the window edges while every other block in
-     the window is inset by the same step. */
-  /* The inline insets of every block in these windows come from the menu's own
-     published axis -- --sf-context-menu--item-inset-start-1 / -end-1 -- rather
-     than from a step written here. They had been a literal --sf-space-2, which
-     measured 20px against the axis's 17 on desktop and 16 against 15 on mobile:
-     straight inside the window, because the rows live inside these blocks, and
-     3px away from where every other menu in the Framework puts its content. A
-     second copy of the arithmetic is how the two drift apart; the fallback keeps
-     old runtimes rendering. */
-  _:-ms-input-placeholder, html:not([dir="rtl"]) .sf-table-context-menu .sf-table-column-search{
-    padding-right: var(--sf-table-column-search--padding-inline-end);
-  }
-  @supports not (padding-inline-end: initial){
-  html:not([dir="rtl"]) .sf-table-context-menu .sf-table-column-search{
-    padding-right: var(--sf-table-column-search--padding-inline-end);
-    }
-  }
-  .sf-table-context-menu .sf-table-column-search:where(:dir(ltr)){
-    padding-right: var(--sf-table-column-search--padding-inline-end);
-  }
-  _:-ms-input-placeholder, [dir="rtl"] .sf-table-context-menu .sf-table-column-search{
-    padding-left: var(--sf-table-column-search--padding-inline-end);
-  }
-  @supports not (padding-inline-end: initial){
-  [dir="rtl"] .sf-table-context-menu .sf-table-column-search{
-    padding-left: var(--sf-table-column-search--padding-inline-end);
-    }
-  }
-  .sf-table-context-menu .sf-table-column-search:where(:dir(rtl)){
-    padding-left: var(--sf-table-column-search--padding-inline-end);
-  }
-  _:-ms-input-placeholder, html:not([dir="rtl"]) .sf-table-context-menu .sf-table-column-search{
-    padding-left: var(--sf-table-column-search--padding-inline-start);
-  }
-  @supports not (padding-inline-start: initial){
-  html:not([dir="rtl"]) .sf-table-context-menu .sf-table-column-search{
-    padding-left: var(--sf-table-column-search--padding-inline-start);
-    }
-  }
-  .sf-table-context-menu .sf-table-column-search:where(:dir(ltr)){
-    padding-left: var(--sf-table-column-search--padding-inline-start);
-  }
-  _:-ms-input-placeholder, [dir="rtl"] .sf-table-context-menu .sf-table-column-search{
-    padding-right: var(--sf-table-column-search--padding-inline-start);
-  }
-  @supports not (padding-inline-start: initial){
-  [dir="rtl"] .sf-table-context-menu .sf-table-column-search{
-    padding-right: var(--sf-table-column-search--padding-inline-start);
-    }
-  }
-  .sf-table-context-menu .sf-table-column-search:where(:dir(rtl)){
-    padding-right: var(--sf-table-column-search--padding-inline-start);
-  }
-  .sf-table-context-menu .sf-table-column-search {
-    --sf-table-column-search--padding-inline-end: var(--sf-context-menu--inset-end);
-    --sf-table-column-search--padding-inline-start: var(--sf-context-menu--inset-start);
-    --sf-table-column-search--padding-top: var(--sf-context-menu--block-space);
-    padding-bottom: 0;
-    padding-bottom: var(--sf-table-column-search--padding-bottom, 0);
-    padding-top: var(--sf-table-column-search--padding-top);
-    -webkit-padding-end: var(--sf-table-column-search--padding-inline-end);
-            padding-inline-end: var(--sf-table-column-search--padding-inline-end);
-    -webkit-padding-start: var(--sf-table-column-search--padding-inline-start);
-            padding-inline-start: var(--sf-table-column-search--padding-inline-start);
   }
   sf-view-table > .sf-table thead th[data-key=select] {
     --sf-table--select-column-width: var(--sf-text-height-1);
@@ -1369,35 +1318,37 @@
      headers, is wide enough to hit with a mouse, and shows nothing of itself —
      the line it is on is the affordance, and the cursor says what it does. */
   _:-ms-input-placeholder, html:not([dir="rtl"]) sf-view-table .sf-table-column-resizer{
-    right: calc(var(--sf-b0) / -2);
+    right: calc(var(--sf-c2) / -2);
   }
   @supports not (inset-inline-end: initial){
   html:not([dir="rtl"]) sf-view-table .sf-table-column-resizer{
-    right: calc(var(--sf-b0) / -2);
+    right: calc(var(--sf-c2) / -2);
     }
   }
   sf-view-table .sf-table-column-resizer:where(:dir(ltr)){
-    right: calc(var(--sf-b0) / -2);
+    right: calc(var(--sf-c2) / -2);
   }
   _:-ms-input-placeholder, [dir="rtl"] sf-view-table .sf-table-column-resizer{
-    left: calc(var(--sf-b0) / -2);
+    left: calc(var(--sf-c2) / -2);
   }
   @supports not (inset-inline-end: initial){
   [dir="rtl"] sf-view-table .sf-table-column-resizer{
-    left: calc(var(--sf-b0) / -2);
+    left: calc(var(--sf-c2) / -2);
     }
   }
   sf-view-table .sf-table-column-resizer:where(:dir(rtl)){
-    left: calc(var(--sf-b0) / -2);
+    left: calc(var(--sf-c2) / -2);
   }
   sf-view-table .sf-table-column-resizer {
     position: absolute;
     top: 0;
     bottom: 0;
     inset-block: 0;
-    inset-inline-end: calc(var(--sf-b0) / -2);
-    width: var(--sf-b0);
-    inline-size: var(--sf-b0);
+    /* A zone of 24 centred on the line (owner decision C158 (1), VT-10 of
+       the sf-view-table study; it was 10). */
+    inset-inline-end: calc(var(--sf-c2) / -2);
+    width: var(--sf-c2);
+    inline-size: var(--sf-c2);
     padding: 0;
     border: 0;
     background: none;
@@ -1407,35 +1358,37 @@
     z-index: 2;
   }
   _:-ms-input-placeholder, html:not([dir="rtl"]) sf-table .sf-table-column-resizer{
-    right: calc(var(--sf-b0) / -2);
+    right: calc(var(--sf-c2) / -2);
   }
   @supports not (inset-inline-end: initial){
   html:not([dir="rtl"]) sf-table .sf-table-column-resizer{
-    right: calc(var(--sf-b0) / -2);
+    right: calc(var(--sf-c2) / -2);
     }
   }
   sf-table .sf-table-column-resizer:where(:dir(ltr)){
-    right: calc(var(--sf-b0) / -2);
+    right: calc(var(--sf-c2) / -2);
   }
   _:-ms-input-placeholder, [dir="rtl"] sf-table .sf-table-column-resizer{
-    left: calc(var(--sf-b0) / -2);
+    left: calc(var(--sf-c2) / -2);
   }
   @supports not (inset-inline-end: initial){
   [dir="rtl"] sf-table .sf-table-column-resizer{
-    left: calc(var(--sf-b0) / -2);
+    left: calc(var(--sf-c2) / -2);
     }
   }
   sf-table .sf-table-column-resizer:where(:dir(rtl)){
-    left: calc(var(--sf-b0) / -2);
+    left: calc(var(--sf-c2) / -2);
   }
   sf-table .sf-table-column-resizer {
     position: absolute;
     top: 0;
     bottom: 0;
     inset-block: 0;
-    inset-inline-end: calc(var(--sf-b0) / -2);
-    width: var(--sf-b0);
-    inline-size: var(--sf-b0);
+    /* A zone of 24 centred on the line (owner decision C158 (1), VT-10 of
+       the sf-view-table study; it was 10). */
+    inset-inline-end: calc(var(--sf-c2) / -2);
+    width: var(--sf-c2);
+    inline-size: var(--sf-c2);
     padding: 0;
     border: 0;
     background: none;
@@ -1468,6 +1421,34 @@
     outline-offset: calc(var(--sf-focus--width) * -1);
   }
   sf-table .sf-table-column-resizer:focus-visible {
+    outline: var(--sf-focus--width) var(--sf-focus--style) var(--sf-focus--color);
+    outline-offset: calc(var(--sf-focus--width) * -1);
+  }
+  /* A head with nothing to press is a stop of the grid when its column has an
+     edge (C158 (5)): the arrows reach it and Enter opens its width menu. Its
+     ring is the shared one, turned inwards as the edge's: the heads are flush
+     with each other. */
+  sf-view-table thead th.focus-visible[tabindex] {
+    outline: var(--sf-focus--width) var(--sf-focus--style) var(--sf-focus--color);
+    outline-offset: calc(var(--sf-focus--width) * -1);
+  }
+  sf-table thead th.focus-visible[tabindex] {
+    outline: var(--sf-focus--width) var(--sf-focus--style) var(--sf-focus--color);
+    outline-offset: calc(var(--sf-focus--width) * -1);
+  }
+  sf-view-table thead th[tabindex].focus-visible {
+    outline: var(--sf-focus--width) var(--sf-focus--style) var(--sf-focus--color);
+    outline-offset: calc(var(--sf-focus--width) * -1);
+  }
+  sf-view-table thead th[tabindex]:focus-visible {
+    outline: var(--sf-focus--width) var(--sf-focus--style) var(--sf-focus--color);
+    outline-offset: calc(var(--sf-focus--width) * -1);
+  }
+  sf-table thead th[tabindex].focus-visible {
+    outline: var(--sf-focus--width) var(--sf-focus--style) var(--sf-focus--color);
+    outline-offset: calc(var(--sf-focus--width) * -1);
+  }
+  sf-table thead th[tabindex]:focus-visible {
     outline: var(--sf-focus--width) var(--sf-focus--style) var(--sf-focus--color);
     outline-offset: calc(var(--sf-focus--width) * -1);
   }
@@ -1645,32 +1626,16 @@
     max-width: var(--sf-table-avatar--max-width, none);
   }
   sf-view-table .sf-table-link-cell {
-    color: inherit;
-    display: inline-flex;
     max-width: 100%;
     min-width: 0;
-    text-decoration: none;
   }
   sf-table .sf-table-link-cell {
-    color: inherit;
-    display: inline-flex;
     max-width: 100%;
     min-width: 0;
-    text-decoration: none;
   }
   /* One link in a table (owner, 2026-10-14): the link colour, no underline at
      rest, the underline on hover and focus -- the title, a link cell and a
      related record alike. Three styles side by side were visual noise. */
-  sf-view-table a.sf-table-link-cell .sf-table-link-cell-text {
-    color: var(--sf-link);
-    text-decoration: none;
-    text-underline-offset: var(--sf-a3);
-  }
-  sf-table a.sf-table-link-cell .sf-table-link-cell-text {
-    color: var(--sf-link);
-    text-decoration: none;
-    text-underline-offset: var(--sf-a3);
-  }
   sf-view-table .sf-table-title-link {
     color: var(--sf-link);
     text-decoration: none;
@@ -1690,18 +1655,6 @@
     color: var(--sf-link);
     text-decoration: none;
     text-underline-offset: var(--sf-a3);
-  }
-  sf-view-table a.sf-table-link-cell:hover .sf-table-link-cell-text {
-    text-decoration: underline;
-  }
-  sf-view-table a.sf-table-link-cell.focus-visible .sf-table-link-cell-text {
-    text-decoration: underline;
-  }
-  sf-table a.sf-table-link-cell:hover .sf-table-link-cell-text {
-    text-decoration: underline;
-  }
-  sf-table a.sf-table-link-cell.focus-visible .sf-table-link-cell-text {
-    text-decoration: underline;
   }
   sf-view-table .sf-table-title-link:hover {
     text-decoration: underline;
@@ -1725,24 +1678,6 @@
     text-decoration: underline;
   }
   sf-table .sf-reference-link .focus-visible:where(.sf-reference-link__link, .sf-reference-link-left > a) {
-    text-decoration: underline;
-  }
-  sf-view-table a.sf-table-link-cell:hover .sf-table-link-cell-text {
-    text-decoration: underline;
-  }
-  sf-view-table a.sf-table-link-cell.focus-visible .sf-table-link-cell-text {
-    text-decoration: underline;
-  }
-  sf-view-table a.sf-table-link-cell:focus-visible .sf-table-link-cell-text {
-    text-decoration: underline;
-  }
-  sf-table a.sf-table-link-cell:hover .sf-table-link-cell-text {
-    text-decoration: underline;
-  }
-  sf-table a.sf-table-link-cell.focus-visible .sf-table-link-cell-text {
-    text-decoration: underline;
-  }
-  sf-table a.sf-table-link-cell:focus-visible .sf-table-link-cell-text {
     text-decoration: underline;
   }
   sf-view-table .sf-table-title-link:hover {
@@ -2417,15 +2352,18 @@
     background-color: var(--sf-surface-page);
     background-color: var(--sf-table-row--background-color, var(--sf-surface-page));
   }
+  /* Hover is the 8 % state of the alpha scale (owner decision C185 (3),
+     VT-7 of the sf-view-table study), the one the Framework's .table hovers
+     with (--sf-table-hover-bg); it was the 16 % container hover. */
   sf-view-table .sf-table-list-item:hover {
     --sf-surface-underlay: var(--sf-table-row--background-color, var(--sf-surface-page));
-    --sf-surface-place-fill: var(--sf-surface-container-hover);
-    background-image: linear-gradient(var(--sf-surface-container-hover), var(--sf-surface-container-hover));
+    --sf-surface-place-fill: var(--sf-surface-state-select);
+    background-image: linear-gradient(var(--sf-surface-state-select), var(--sf-surface-state-select));
   }
   sf-table .sf-table-list-item:hover {
     --sf-surface-underlay: var(--sf-table-row--background-color, var(--sf-surface-page));
-    --sf-surface-place-fill: var(--sf-surface-container-hover);
-    background-image: linear-gradient(var(--sf-surface-container-hover), var(--sf-surface-container-hover));
+    --sf-surface-place-fill: var(--sf-surface-state-select);
+    background-image: linear-gradient(var(--sf-surface-state-select), var(--sf-surface-state-select));
   }
   /* A row's state is a translucent tint (an image) over the row's own opaque
      base, so the row names both to core mix sf-place-fill (C43 D3, D4): a
@@ -3289,96 +3227,15 @@
       line-height: var(--sf-text-height-1);
     }
   }
-  /* The filter button carries how many conditions are on. */
+  /* The filter button carries how many conditions are on: the icon
+     button's own badge (badge-count). */
   sf-view-table .sf-table-list-filter {
-    position: relative;
     display: inline-flex;
     flex: none;
   }
   sf-table .sf-table-list-filter {
-    position: relative;
     display: inline-flex;
     flex: none;
-  }
-  _:-ms-input-placeholder, html:not([dir="rtl"]) sf-view-table .sf-table-list-filter-count{
-    right: calc(var(--sf-a4) * -1);
-  }
-  @supports not (inset-inline-end: initial){
-  html:not([dir="rtl"]) sf-view-table .sf-table-list-filter-count{
-    right: calc(var(--sf-a4) * -1);
-    }
-  }
-  sf-view-table .sf-table-list-filter-count:where(:dir(ltr)){
-    right: calc(var(--sf-a4) * -1);
-  }
-  _:-ms-input-placeholder, [dir="rtl"] sf-view-table .sf-table-list-filter-count{
-    left: calc(var(--sf-a4) * -1);
-  }
-  @supports not (inset-inline-end: initial){
-  [dir="rtl"] sf-view-table .sf-table-list-filter-count{
-    left: calc(var(--sf-a4) * -1);
-    }
-  }
-  sf-view-table .sf-table-list-filter-count:where(:dir(rtl)){
-    left: calc(var(--sf-a4) * -1);
-  }
-  sf-view-table .sf-table-list-filter-count {
-    position: absolute;
-    top: calc(var(--sf-a4) * -1);
-    inset-block-start: calc(var(--sf-a4) * -1);
-    inset-inline-end: calc(var(--sf-a4) * -1);
-    min-width: var(--sf-text-height-1\/2);
-    min-inline-size: var(--sf-text-height-1\/2);
-    padding-left: var(--sf-a2);
-    padding-right: var(--sf-a2);
-    padding-inline: var(--sf-a2);
-    border-radius: var(--sf-radius-circle);
-    background-color: var(--sf-error);
-    color: var(--sf-on-error);
-    font-size: var(--sf-text-size-1\/2);
-    line-height: var(--sf-text-height-1\/2);
-    text-align: center;
-    pointer-events: none;
-  }
-  _:-ms-input-placeholder, html:not([dir="rtl"]) sf-table .sf-table-list-filter-count{
-    right: calc(var(--sf-a4) * -1);
-  }
-  @supports not (inset-inline-end: initial){
-  html:not([dir="rtl"]) sf-table .sf-table-list-filter-count{
-    right: calc(var(--sf-a4) * -1);
-    }
-  }
-  sf-table .sf-table-list-filter-count:where(:dir(ltr)){
-    right: calc(var(--sf-a4) * -1);
-  }
-  _:-ms-input-placeholder, [dir="rtl"] sf-table .sf-table-list-filter-count{
-    left: calc(var(--sf-a4) * -1);
-  }
-  @supports not (inset-inline-end: initial){
-  [dir="rtl"] sf-table .sf-table-list-filter-count{
-    left: calc(var(--sf-a4) * -1);
-    }
-  }
-  sf-table .sf-table-list-filter-count:where(:dir(rtl)){
-    left: calc(var(--sf-a4) * -1);
-  }
-  sf-table .sf-table-list-filter-count {
-    position: absolute;
-    top: calc(var(--sf-a4) * -1);
-    inset-block-start: calc(var(--sf-a4) * -1);
-    inset-inline-end: calc(var(--sf-a4) * -1);
-    min-width: var(--sf-text-height-1\/2);
-    min-inline-size: var(--sf-text-height-1\/2);
-    padding-left: var(--sf-a2);
-    padding-right: var(--sf-a2);
-    padding-inline: var(--sf-a2);
-    border-radius: var(--sf-radius-circle);
-    background-color: var(--sf-error);
-    color: var(--sf-on-error);
-    font-size: var(--sf-text-size-1\/2);
-    line-height: var(--sf-text-height-1\/2);
-    text-align: center;
-    pointer-events: none;
   }
   /* Active filters: one row of chips that scrolls sideways, so the list starts
      where it starts however many there are. */
@@ -3729,6 +3586,167 @@
     inset-inline-start: 0;
     width: calc(100cqi - 2 * var(--sf-space-1));
     inline-size: calc(100cqi - 2 * var(--sf-space-1));
+  }
+  /* A table with row actions whose host marks key cells, on a phone (owner
+     decision C259, variant Б; isKeyedNarrow, below 44rem): the row keeps the
+     box, «≡» and the key cells, and the table is as wide as its place -- no
+     sideways scroll. The box and «≡» columns are as wide as their control;
+     a key cell keeps its words on one line, and the name (the cell with a
+     second line, else the title) takes what the others leave and ends in an
+     ellipsis. The same numbers as SIMAI Framework utility.table 1.7.0. */
+  sf-view-table table.sf-table-keyed {
+    width: 100%;
+    inline-size: 100%;
+    table-layout: auto;
+  }
+  sf-table table.sf-table-keyed {
+    width: 100%;
+    inline-size: 100%;
+    table-layout: auto;
+  }
+  sf-view-table table.sf-table-keyed th {
+    white-space: nowrap;
+    word-break: normal;
+    word-wrap: normal;
+  }
+  sf-view-table table.sf-table-keyed td {
+    white-space: nowrap;
+    word-break: normal;
+    word-wrap: normal;
+  }
+  sf-table table.sf-table-keyed th {
+    white-space: nowrap;
+    word-break: normal;
+    word-wrap: normal;
+  }
+  sf-table table.sf-table-keyed td {
+    white-space: nowrap;
+    word-break: normal;
+    word-wrap: normal;
+  }
+  sf-view-table table.sf-table-keyed th[data-key=select] {
+    width: var(--sf-0);
+    inline-size: var(--sf-0);
+  }
+  sf-view-table table.sf-table-keyed th[data-key=settings] {
+    width: var(--sf-0);
+    inline-size: var(--sf-0);
+  }
+  sf-view-table table.sf-table-keyed td[data-key=select] {
+    width: var(--sf-0);
+    inline-size: var(--sf-0);
+  }
+  sf-view-table table.sf-table-keyed td[data-key=settings] {
+    width: var(--sf-0);
+    inline-size: var(--sf-0);
+  }
+  sf-table table.sf-table-keyed th[data-key=select] {
+    width: var(--sf-0);
+    inline-size: var(--sf-0);
+  }
+  sf-table table.sf-table-keyed th[data-key=settings] {
+    width: var(--sf-0);
+    inline-size: var(--sf-0);
+  }
+  sf-table table.sf-table-keyed td[data-key=select] {
+    width: var(--sf-0);
+    inline-size: var(--sf-0);
+  }
+  sf-table table.sf-table-keyed td[data-key=settings] {
+    width: var(--sf-0);
+    inline-size: var(--sf-0);
+  }
+  sf-view-table table.sf-table-keyed td:has(> .sf-table-key-name) {
+    width: 100%;
+    inline-size: 100%;
+    max-width: var(--sf-0);
+    max-inline-size: var(--sf-0);
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  sf-table table.sf-table-keyed td:has(> .sf-table-key-name) {
+    width: 100%;
+    inline-size: 100%;
+    max-width: var(--sf-0);
+    max-inline-size: var(--sf-0);
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  sf-view-table table.sf-table-keyed th[data-sf-cell=title] {
+    width: 100%;
+    inline-size: 100%;
+    max-width: var(--sf-0);
+    max-inline-size: var(--sf-0);
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  sf-view-table table.sf-table-keyed td[data-sf-cell=title] {
+    width: 100%;
+    inline-size: 100%;
+    max-width: var(--sf-0);
+    max-inline-size: var(--sf-0);
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  sf-table table.sf-table-keyed th[data-sf-cell=title] {
+    width: 100%;
+    inline-size: 100%;
+    max-width: var(--sf-0);
+    max-inline-size: var(--sf-0);
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  sf-table table.sf-table-keyed td[data-sf-cell=title] {
+    width: 100%;
+    inline-size: 100%;
+    max-width: var(--sf-0);
+    max-inline-size: var(--sf-0);
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  /* The name and its second line: one line each, the line quiet, on the
+     two-line rung (--sf-ui-2--control-height, 44), as the Framework's. */
+  sf-view-table table.sf-table-keyed td:has(> .sf-table-key-name) {
+    height: var(--sf-ui-2--control-height);
+    block-size: var(--sf-ui-2--control-height);
+  }
+  sf-table table.sf-table-keyed td:has(> .sf-table-key-name) {
+    height: var(--sf-ui-2--control-height);
+    block-size: var(--sf-ui-2--control-height);
+  }
+  sf-view-table .sf-table-key-name {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  sf-table .sf-table-key-name {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  sf-view-table .sf-table-key-line {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  sf-table .sf-table-key-line {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  sf-view-table .sf-table-key-line {
+    color: var(--sf-on-surface-variant);
+    font-size: var(--sf-text-size-1\/2);
+    line-height: var(--sf-text-height-1\/2);
+  }
+  sf-table .sf-table-key-line {
+    color: var(--sf-on-surface-variant);
+    font-size: var(--sf-text-size-1\/2);
+    line-height: var(--sf-text-height-1\/2);
   }
 }
 @layer sf.states {
@@ -4266,103 +4284,6 @@
     background-color: inherit;
     background-image: inherit;
   }
-  /* The gear's «Вид» tab: the standard menu's rows -- its row height and
-     inset -- a quiet heading over the density, a separator before the reach. */
-  /* The tabs and the way out are the Framework panel's head now
-     (sf-menu-context tabs, 2026-10-15). */
-  .sf-table-view-settings .sf-table-settings-heading {
-    padding-top: var(--sf-space-1\/4);
-    -webkit-padding-before: var(--sf-space-1\/4);
-            padding-block-start: var(--sf-space-1\/4);
-  }
-  _:-ms-input-placeholder, html:not([dir="rtl"]) .sf-table-view-settings .sf-table-settings-row{
-    padding-left: var(--sf-a8);
-    padding-left: var(--sf-context-menu--inset-start, var(--sf-a8));
-  }
-  @supports not (padding-inline-start: initial){
-  html:not([dir="rtl"]) .sf-table-view-settings .sf-table-settings-row{
-    padding-left: var(--sf-a8);
-    padding-left: var(--sf-context-menu--inset-start, var(--sf-a8));
-    }
-  }
-  _:-ms-input-placeholder, html:not([dir="rtl"]) .sf-table-view-settings .sf-table-settings-row{
-    padding-right: var(--sf-a8);
-    padding-right: var(--sf-context-menu--inset-end, var(--sf-a8));
-  }
-  @supports not (padding-inline-end: initial){
-  html:not([dir="rtl"]) .sf-table-view-settings .sf-table-settings-row{
-    padding-right: var(--sf-a8);
-    padding-right: var(--sf-context-menu--inset-end, var(--sf-a8));
-    }
-  }
-  .sf-table-view-settings .sf-table-settings-row:where(:dir(ltr)){
-    padding-left: var(--sf-a8);
-    padding-left: var(--sf-context-menu--inset-start, var(--sf-a8));
-    padding-right: var(--sf-a8);
-    padding-right: var(--sf-context-menu--inset-end, var(--sf-a8));
-  }
-  _:-ms-input-placeholder, [dir="rtl"] .sf-table-view-settings .sf-table-settings-row{
-    padding-right: var(--sf-a8);
-    padding-right: var(--sf-context-menu--inset-start, var(--sf-a8));
-  }
-  @supports not (padding-inline-start: initial){
-  [dir="rtl"] .sf-table-view-settings .sf-table-settings-row{
-    padding-right: var(--sf-a8);
-    padding-right: var(--sf-context-menu--inset-start, var(--sf-a8));
-    }
-  }
-  _:-ms-input-placeholder, [dir="rtl"] .sf-table-view-settings .sf-table-settings-row{
-    padding-left: var(--sf-a8);
-    padding-left: var(--sf-context-menu--inset-end, var(--sf-a8));
-  }
-  @supports not (padding-inline-end: initial){
-  [dir="rtl"] .sf-table-view-settings .sf-table-settings-row{
-    padding-left: var(--sf-a8);
-    padding-left: var(--sf-context-menu--inset-end, var(--sf-a8));
-    }
-  }
-  .sf-table-view-settings .sf-table-settings-row:where(:dir(rtl)){
-    padding-right: var(--sf-a8);
-    padding-right: var(--sf-context-menu--inset-start, var(--sf-a8));
-    padding-left: var(--sf-a8);
-    padding-left: var(--sf-context-menu--inset-end, var(--sf-a8));
-  }
-  .sf-table-view-settings .sf-table-settings-row {
-    display: flex;
-    align-items: center;
-    gap: var(--sf-space-1\/2);
-    min-height: calc(var(--sf-text-height-1\/2) + 2 * var(--sf-a6));
-    min-block-size: calc(var(--sf-text-height-1\/2) + 2 * var(--sf-a6));
-    min-height: calc(var(--sf-text-height-1\/2) + 2 * var(--sf-a6));
-    min-height: calc(var(--sf-context-menu--line, var(--sf-text-height-1\/2)) + 2 * var(--sf-context-menu--space-y, var(--sf-a6)));
-    min-block-size: calc(var(--sf-context-menu--line, var(--sf-text-height-1\/2)) + 2 * var(--sf-context-menu--space-y, var(--sf-a6)));
-    padding-left: var(--sf-a8);
-    padding-right: var(--sf-a8);
-    padding-inline: var(--sf-a8) var(--sf-a8);
-    padding-inline: var(--sf-context-menu--inset-start, var(--sf-a8)) var(--sf-context-menu--inset-end, var(--sf-a8));
-    cursor: pointer;
-  }
-  .sf-table-view-settings .sf-table-settings-heading {
-    padding-left: var(--sf-a8);
-    padding-right: var(--sf-a8);
-    padding-inline: var(--sf-a8);
-    padding-left: var(--sf-a8);
-    padding-left: var(--sf-context-menu--inset-start, var(--sf-a8));
-    padding-right: var(--sf-a8);
-    padding-right: var(--sf-context-menu--inset-start, var(--sf-a8));
-    padding-inline: var(--sf-context-menu--inset-start, var(--sf-a8));
-    color: var(--sf-on-surface-variant);
-    font-size: var(--sf-text-size-1\/3);
-    line-height: var(--sf-text-height-1\/3);
-  }
-  .sf-table-view-settings .sf-table-settings-separator {
-    height: var(--sf-px);
-    block-size: var(--sf-px);
-    margin-top: var(--sf-space-1\/4);
-    margin-bottom: var(--sf-space-1\/4);
-    margin-block: var(--sf-space-1\/4);
-    background-color: var(--sf-outline-variant);
-  }
   /* The person's view of the table (the gear's «Вид», owner 2026-10-14),
      kept as a view preference and written on the host as data attributes.
      Density moves the rows' vertical space one ladder step either way. */
@@ -4543,13 +4464,13 @@
   }
   sf-view-table tbody tr:hover {
     --sf-surface-underlay: var(--sf-table-row--background-color, var(--sf-surface-page));
-    --sf-surface-place-fill: var(--sf-surface-container-hover);
-    background-image: linear-gradient(var(--sf-surface-container-hover), var(--sf-surface-container-hover));
+    --sf-surface-place-fill: var(--sf-surface-state-select);
+    background-image: linear-gradient(var(--sf-surface-state-select), var(--sf-surface-state-select));
   }
   sf-table tbody tr:hover {
     --sf-surface-underlay: var(--sf-table-row--background-color, var(--sf-surface-page));
-    --sf-surface-place-fill: var(--sf-surface-container-hover);
-    background-image: linear-gradient(var(--sf-surface-container-hover), var(--sf-surface-container-hover));
+    --sf-surface-place-fill: var(--sf-surface-state-select);
+    background-image: linear-gradient(var(--sf-surface-state-select), var(--sf-surface-state-select));
   }
   sf-view-table tbody tr[data-selected] {
     --sf-surface-underlay: var(--sf-table-row--background-color, var(--sf-surface-page));
@@ -4560,6 +4481,31 @@
     --sf-surface-underlay: var(--sf-table-row--background-color, var(--sf-surface-page));
     --sf-surface-place-fill: var(--sf-primary-container);
     background-image: linear-gradient(var(--sf-primary-container), var(--sf-primary-container));
+  }
+  /* The open record (current, aria-current) in the grid keeps the same light
+     primary fill as in the phone list -- 12 in the light theme, 24 in the
+     dark (--sf-primary-container) -- so the row whose card is open beside the
+     list is seen (C305 (4), prototype open-b; VR2-3). A marked row keeps its
+     own fill, which is the same role. */
+  sf-view-table tbody tr[aria-current=true] {
+    --sf-surface-underlay: var(--sf-table-row--background-color, var(--sf-surface-page));
+    --sf-surface-place-fill: var(--sf-primary-container);
+    background-image: linear-gradient(var(--sf-primary-container), var(--sf-primary-container));
+  }
+  sf-table tbody tr[aria-current=true] {
+    --sf-surface-underlay: var(--sf-table-row--background-color, var(--sf-surface-page));
+    --sf-surface-place-fill: var(--sf-primary-container);
+    background-image: linear-gradient(var(--sf-primary-container), var(--sf-primary-container));
+  }
+  sf-view-table tbody tr[aria-current=true]:hover {
+    --sf-surface-underlay: var(--sf-table-row--background-color, var(--sf-surface-page));
+    --sf-surface-place-fill: var(--sf-primary-container-hover);
+    background-image: linear-gradient(var(--sf-primary-container-hover), var(--sf-primary-container-hover));
+  }
+  sf-table tbody tr[aria-current=true]:hover {
+    --sf-surface-underlay: var(--sf-table-row--background-color, var(--sf-surface-page));
+    --sf-surface-place-fill: var(--sf-primary-container-hover);
+    background-image: linear-gradient(var(--sf-primary-container-hover), var(--sf-primary-container-hover));
   }
   /* The row the person is on carries `data-current` and takes focus, and shows
      nothing of its own. It used to draw a bar in its first cell, and the
@@ -5415,5 +5361,712 @@ sf-table tbody tr[data-sf-drop-after] > td {
   }
   sf-table tbody[data-sf-window] > tr {
     overflow-anchor: none;
+  }
+}
+/* Owner decision C296 (sf-view-table study, view round 2). */
+@layer sf.components {
+  /* The table's public variables (eight, --sf-view-table-*). The row and head
+     boxes are read-only: the step's room, so a page keeps the place before the
+     first paint. The others are the author's: the edge inset, the lines, the
+     head's ink, a row's own fill (zebra) and the selected fill, how many lines
+     a title takes. The former --sf-table-* names keep working until
+     2027-01-01 (component.json css-variables, aliases.json). */
+  sf-view-table {
+    --sf-view-table-row-block-size: var(--sf-table-row-block-size-1);
+    --sf-view-table-head-block-size: var(--sf-table-head-block-size-1);
+  }
+  sf-table {
+    --sf-view-table-row-block-size: var(--sf-table-row-block-size-1);
+    --sf-view-table-head-block-size: var(--sf-table-head-block-size-1);
+  }
+  sf-view-table[size="1/2"] {
+    --sf-view-table-row-block-size: var(--sf-table-row-block-size-1\/2);
+    --sf-view-table-head-block-size: var(--sf-table-head-block-size-1\/2);
+  }
+  sf-table[size="1/2"] {
+    --sf-view-table-row-block-size: var(--sf-table-row-block-size-1\/2);
+    --sf-view-table-head-block-size: var(--sf-table-head-block-size-1\/2);
+  }
+  sf-view-table tbody tr {
+    --sf-table-row--background-color: var(--sf-view-table-row-background-color, var(--sf-surface-page));
+  }
+  sf-table tbody tr {
+    --sf-table-row--background-color: var(--sf-view-table-row-background-color, var(--sf-surface-page));
+  }
+  sf-view-table .sf-table-list-item {
+    --sf-table-row--background-color: var(--sf-view-table-row-background-color, var(--sf-surface-page));
+  }
+  sf-table .sf-table-list-item {
+    --sf-table-row--background-color: var(--sf-view-table-row-background-color, var(--sf-surface-page));
+  }
+  sf-view-table[data-sf-view-stripes] tbody tr:nth-child(even) {
+    --sf-table-row--background-color: var(--sf-view-table-row-background-color, color-mix(in srgb,
+      light-dark(var(--sf-neutral-50), var(--sf-neutral-90)) 16%, var(--sf-surface-page)));
+  }
+  sf-table[data-sf-view-stripes] tbody tr:nth-child(even) {
+    --sf-table-row--background-color: var(--sf-view-table-row-background-color, color-mix(in srgb,
+      light-dark(var(--sf-neutral-50), var(--sf-neutral-90)) 16%, var(--sf-surface-page)));
+  }
+  sf-view-table tbody tr[data-selected] {
+    --sf-surface-place-fill: var(--sf-view-table-selected-background-color, var(--sf-primary-container));
+    background-image: linear-gradient(var(--sf-primary-container), var(--sf-primary-container));
+    background-image: linear-gradient(var(--sf-view-table-selected-background-color, var(--sf-primary-container)), var(--sf-view-table-selected-background-color, var(--sf-primary-container)));
+  }
+  sf-table tbody tr[data-selected] {
+    --sf-surface-place-fill: var(--sf-view-table-selected-background-color, var(--sf-primary-container));
+    background-image: linear-gradient(var(--sf-primary-container), var(--sf-primary-container));
+    background-image: linear-gradient(var(--sf-view-table-selected-background-color, var(--sf-primary-container)), var(--sf-view-table-selected-background-color, var(--sf-primary-container)));
+  }
+  sf-view-table .sf-table-list-item[data-selected] {
+    --sf-surface-place-fill: var(--sf-view-table-selected-background-color, var(--sf-primary-container));
+    background-image: linear-gradient(var(--sf-primary-container), var(--sf-primary-container));
+    background-image: linear-gradient(var(--sf-view-table-selected-background-color, var(--sf-primary-container)), var(--sf-view-table-selected-background-color, var(--sf-primary-container)));
+  }
+  sf-table .sf-table-list-item[data-selected] {
+    --sf-surface-place-fill: var(--sf-view-table-selected-background-color, var(--sf-primary-container));
+    background-image: linear-gradient(var(--sf-primary-container), var(--sf-primary-container));
+    background-image: linear-gradient(var(--sf-view-table-selected-background-color, var(--sf-primary-container)), var(--sf-view-table-selected-background-color, var(--sf-primary-container)));
+  }
+  sf-view-table td[data-sf-cell=title] {
+    --sf-table-cell--line-clamp: var(--sf-view-table-title-lines, 2);
+  }
+  sf-table td[data-sf-cell=title] {
+    --sf-table-cell--line-clamp: var(--sf-view-table-title-lines, 2);
+  }
+  /* Unset, each of these leaves what was drawn: the line name is
+     guaranteed-invalid and its readers fall back; the head and the edge fall
+     back to the values the rules before them give (C146 (2), the utility's
+     edge --sf-space-1). */
+  sf-view-table {
+    --sf-table-line-color: var(--sf-view-table-line-color);
+  }
+  sf-table {
+    --sf-table-line-color: var(--sf-view-table-line-color);
+  }
+  sf-view-table > * .table > thead > tr > th {
+    color: var(--sf-on-surface-variant);
+    color: var(--sf-view-table-head-color, var(--sf-on-surface-variant));
+  }
+  sf-table > * .table > thead > tr > th {
+    color: var(--sf-on-surface-variant);
+    color: var(--sf-view-table-head-color, var(--sf-on-surface-variant));
+  }
+  _:-ms-input-placeholder, html:not([dir="rtl"]) sf-view-table > * .table > :not(caption) > * > :first-child{
+    padding-left: var(--sf-space-1);
+    padding-left: var(--sf-view-table-edge, var(--sf-space-1));
+  }
+  @supports not (padding-inline-start: initial){
+  html:not([dir="rtl"]) sf-view-table > * .table > :not(caption) > * > :first-child{
+    padding-left: var(--sf-space-1);
+    padding-left: var(--sf-view-table-edge, var(--sf-space-1));
+    }
+  }
+  sf-view-table > * .table > :not(caption) > * > :first-child:where(:dir(ltr)){
+    padding-left: var(--sf-space-1);
+    padding-left: var(--sf-view-table-edge, var(--sf-space-1));
+  }
+  _:-ms-input-placeholder, [dir="rtl"] sf-view-table > * .table > :not(caption) > * > :first-child{
+    padding-right: var(--sf-space-1);
+    padding-right: var(--sf-view-table-edge, var(--sf-space-1));
+  }
+  @supports not (padding-inline-start: initial){
+  [dir="rtl"] sf-view-table > * .table > :not(caption) > * > :first-child{
+    padding-right: var(--sf-space-1);
+    padding-right: var(--sf-view-table-edge, var(--sf-space-1));
+    }
+  }
+  sf-view-table > * .table > :not(caption) > * > :first-child:where(:dir(rtl)){
+    padding-right: var(--sf-space-1);
+    padding-right: var(--sf-view-table-edge, var(--sf-space-1));
+  }
+  sf-view-table > * .table > :not(caption) > * > :first-child {
+    -webkit-padding-start: var(--sf-space-1);
+            padding-inline-start: var(--sf-space-1);
+    -webkit-padding-start: var(--sf-view-table-edge, var(--sf-space-1));
+            padding-inline-start: var(--sf-view-table-edge, var(--sf-space-1));
+  }
+  _:-ms-input-placeholder, html:not([dir="rtl"]) sf-table > * .table > :not(caption) > * > :first-child{
+    padding-left: var(--sf-space-1);
+    padding-left: var(--sf-view-table-edge, var(--sf-space-1));
+  }
+  @supports not (padding-inline-start: initial){
+  html:not([dir="rtl"]) sf-table > * .table > :not(caption) > * > :first-child{
+    padding-left: var(--sf-space-1);
+    padding-left: var(--sf-view-table-edge, var(--sf-space-1));
+    }
+  }
+  sf-table > * .table > :not(caption) > * > :first-child:where(:dir(ltr)){
+    padding-left: var(--sf-space-1);
+    padding-left: var(--sf-view-table-edge, var(--sf-space-1));
+  }
+  _:-ms-input-placeholder, [dir="rtl"] sf-table > * .table > :not(caption) > * > :first-child{
+    padding-right: var(--sf-space-1);
+    padding-right: var(--sf-view-table-edge, var(--sf-space-1));
+  }
+  @supports not (padding-inline-start: initial){
+  [dir="rtl"] sf-table > * .table > :not(caption) > * > :first-child{
+    padding-right: var(--sf-space-1);
+    padding-right: var(--sf-view-table-edge, var(--sf-space-1));
+    }
+  }
+  sf-table > * .table > :not(caption) > * > :first-child:where(:dir(rtl)){
+    padding-right: var(--sf-space-1);
+    padding-right: var(--sf-view-table-edge, var(--sf-space-1));
+  }
+  sf-table > * .table > :not(caption) > * > :first-child {
+    -webkit-padding-start: var(--sf-space-1);
+            padding-inline-start: var(--sf-space-1);
+    -webkit-padding-start: var(--sf-view-table-edge, var(--sf-space-1));
+            padding-inline-start: var(--sf-view-table-edge, var(--sf-space-1));
+  }
+  _:-ms-input-placeholder, html:not([dir="rtl"]) sf-view-table > * .table > :not(caption) > * > :last-child{
+    padding-right: var(--sf-space-1);
+    padding-right: var(--sf-view-table-edge, var(--sf-space-1));
+  }
+  @supports not (padding-inline-end: initial){
+  html:not([dir="rtl"]) sf-view-table > * .table > :not(caption) > * > :last-child{
+    padding-right: var(--sf-space-1);
+    padding-right: var(--sf-view-table-edge, var(--sf-space-1));
+    }
+  }
+  sf-view-table > * .table > :not(caption) > * > :last-child:where(:dir(ltr)){
+    padding-right: var(--sf-space-1);
+    padding-right: var(--sf-view-table-edge, var(--sf-space-1));
+  }
+  _:-ms-input-placeholder, [dir="rtl"] sf-view-table > * .table > :not(caption) > * > :last-child{
+    padding-left: var(--sf-space-1);
+    padding-left: var(--sf-view-table-edge, var(--sf-space-1));
+  }
+  @supports not (padding-inline-end: initial){
+  [dir="rtl"] sf-view-table > * .table > :not(caption) > * > :last-child{
+    padding-left: var(--sf-space-1);
+    padding-left: var(--sf-view-table-edge, var(--sf-space-1));
+    }
+  }
+  sf-view-table > * .table > :not(caption) > * > :last-child:where(:dir(rtl)){
+    padding-left: var(--sf-space-1);
+    padding-left: var(--sf-view-table-edge, var(--sf-space-1));
+  }
+  sf-view-table > * .table > :not(caption) > * > :last-child {
+    -webkit-padding-end: var(--sf-space-1);
+            padding-inline-end: var(--sf-space-1);
+    -webkit-padding-end: var(--sf-view-table-edge, var(--sf-space-1));
+            padding-inline-end: var(--sf-view-table-edge, var(--sf-space-1));
+  }
+  _:-ms-input-placeholder, html:not([dir="rtl"]) sf-table > * .table > :not(caption) > * > :last-child{
+    padding-right: var(--sf-space-1);
+    padding-right: var(--sf-view-table-edge, var(--sf-space-1));
+  }
+  @supports not (padding-inline-end: initial){
+  html:not([dir="rtl"]) sf-table > * .table > :not(caption) > * > :last-child{
+    padding-right: var(--sf-space-1);
+    padding-right: var(--sf-view-table-edge, var(--sf-space-1));
+    }
+  }
+  sf-table > * .table > :not(caption) > * > :last-child:where(:dir(ltr)){
+    padding-right: var(--sf-space-1);
+    padding-right: var(--sf-view-table-edge, var(--sf-space-1));
+  }
+  _:-ms-input-placeholder, [dir="rtl"] sf-table > * .table > :not(caption) > * > :last-child{
+    padding-left: var(--sf-space-1);
+    padding-left: var(--sf-view-table-edge, var(--sf-space-1));
+  }
+  @supports not (padding-inline-end: initial){
+  [dir="rtl"] sf-table > * .table > :not(caption) > * > :last-child{
+    padding-left: var(--sf-space-1);
+    padding-left: var(--sf-view-table-edge, var(--sf-space-1));
+    }
+  }
+  sf-table > * .table > :not(caption) > * > :last-child:where(:dir(rtl)){
+    padding-left: var(--sf-space-1);
+    padding-left: var(--sf-view-table-edge, var(--sf-space-1));
+  }
+  sf-table > * .table > :not(caption) > * > :last-child {
+    -webkit-padding-end: var(--sf-space-1);
+            padding-inline-end: var(--sf-space-1);
+    -webkit-padding-end: var(--sf-view-table-edge, var(--sf-space-1));
+            padding-inline-end: var(--sf-view-table-edge, var(--sf-space-1));
+  }
+  /* A status badge is never taller than the row less 8 (C58; VT-8): one step
+     down in a 28 row (size 1/2 on a phone or compact), its own size where the
+     row has room. The badge keeps its size and gives up padding, through its
+     public --sf-badge-padding-block; a badge on a text line (line-*) is
+     already as tall as its line. */
+  sf-view-table td:not(.does-not-exist) .sf-badge:not([class*=sf-badge--line-]) {
+    --sf-badge-padding-block: clamp(var(--sf-a0), (var(--sf-table-row-block-size-1) - var(--sf-a8) - var(--sf-text-height-1\/2)) / 2, var(--sf-a4));
+  }
+  sf-view-table .sf-table-list-item .sf-badge:not([class*=sf-badge--line-]) {
+    --sf-badge-padding-block: clamp(var(--sf-a0), (var(--sf-table-row-block-size-1) - var(--sf-a8) - var(--sf-text-height-1\/2)) / 2, var(--sf-a4));
+  }
+  sf-table td:not(.does-not-exist) .sf-badge:not([class*=sf-badge--line-]) {
+    --sf-badge-padding-block: clamp(var(--sf-a0), (var(--sf-table-row-block-size-1) - var(--sf-a8) - var(--sf-text-height-1\/2)) / 2, var(--sf-a4));
+  }
+  sf-table .sf-table-list-item .sf-badge:not([class*=sf-badge--line-]) {
+    --sf-badge-padding-block: clamp(var(--sf-a0), (var(--sf-table-row-block-size-1) - var(--sf-a8) - var(--sf-text-height-1\/2)) / 2, var(--sf-a4));
+  }
+  sf-view-table[size="1/2"] td:not(.does-not-exist) .sf-badge:not([class*=sf-badge--line-]) {
+    --sf-badge-padding-block: clamp(var(--sf-a0), (var(--sf-table-row-block-size-1\/2) - var(--sf-a8) - var(--sf-text-height-1\/3)) / 2, var(--sf-a4));
+  }
+  sf-view-table[size="1/2"] .sf-table-list-item .sf-badge:not([class*=sf-badge--line-]) {
+    --sf-badge-padding-block: clamp(var(--sf-a0), (var(--sf-table-row-block-size-1\/2) - var(--sf-a8) - var(--sf-text-height-1\/3)) / 2, var(--sf-a4));
+  }
+  sf-table[size="1/2"] td:not(.does-not-exist) .sf-badge:not([class*=sf-badge--line-]) {
+    --sf-badge-padding-block: clamp(var(--sf-a0), (var(--sf-table-row-block-size-1\/2) - var(--sf-a8) - var(--sf-text-height-1\/3)) / 2, var(--sf-a4));
+  }
+  sf-table[size="1/2"] .sf-table-list-item .sf-badge:not([class*=sf-badge--line-]) {
+    --sf-badge-padding-block: clamp(var(--sf-a0), (var(--sf-table-row-block-size-1\/2) - var(--sf-a8) - var(--sf-text-height-1\/3)) / 2, var(--sf-a4));
+  }
+  /* Empty and error: air under the state's action, so its button does not
+     sit on the table's closing line (C105, C120; VT-11). */
+  sf-view-table .sf-table-state {
+    padding-bottom: var(--sf-space-1);
+    -webkit-padding-after: var(--sf-space-1);
+            padding-block-end: var(--sf-space-1);
+  }
+  sf-table .sf-table-state {
+    padding-bottom: var(--sf-space-1);
+    -webkit-padding-after: var(--sf-space-1);
+            padding-block-end: var(--sf-space-1);
+  }
+  /* The totals at the foot (C296, q-totals B): the numbers the host gives,
+     on the rows' step, held to the bottom of the scroll box as the head is to
+     its top; a quiet fill and the line above them. */
+  sf-view-table tfoot.sf-table-totals {
+    position: sticky;
+    bottom: 0;
+    inset-block-end: 0;
+    z-index: 4;
+  }
+  sf-table tfoot.sf-table-totals {
+    position: sticky;
+    bottom: 0;
+    inset-block-end: 0;
+    z-index: 4;
+  }
+  sf-view-table tfoot.sf-table-totals th {
+    height: var(--sf-view-table-row-block-size);
+    block-size: var(--sf-view-table-row-block-size);
+    padding-top: 0;
+    padding-bottom: 0;
+    padding-block: 0;
+    font-weight: var(--sf-font-weight-medium);
+    background-color: var(--sf-surface-page);
+    border-top: var(--sf-px) solid var(--sf-outline-variant);
+    -webkit-border-before: var(--sf-px) solid var(--sf-outline-variant);
+            border-block-start: var(--sf-px) solid var(--sf-outline-variant);
+    border-top: var(--sf-px) solid var(--sf-outline-variant);
+    border-top: var(--sf-px) solid var(--sf-view-table-line-color, var(--sf-outline-variant));
+    -webkit-border-before: var(--sf-px) solid var(--sf-view-table-line-color, var(--sf-outline-variant));
+            border-block-start: var(--sf-px) solid var(--sf-view-table-line-color, var(--sf-outline-variant));
+    white-space: nowrap;
+  }
+  sf-view-table tfoot.sf-table-totals td {
+    height: var(--sf-view-table-row-block-size);
+    block-size: var(--sf-view-table-row-block-size);
+    padding-top: 0;
+    padding-bottom: 0;
+    padding-block: 0;
+    font-weight: var(--sf-font-weight-medium);
+    background-color: var(--sf-surface-page);
+    border-top: var(--sf-px) solid var(--sf-outline-variant);
+    -webkit-border-before: var(--sf-px) solid var(--sf-outline-variant);
+            border-block-start: var(--sf-px) solid var(--sf-outline-variant);
+    border-top: var(--sf-px) solid var(--sf-outline-variant);
+    border-top: var(--sf-px) solid var(--sf-view-table-line-color, var(--sf-outline-variant));
+    -webkit-border-before: var(--sf-px) solid var(--sf-view-table-line-color, var(--sf-outline-variant));
+            border-block-start: var(--sf-px) solid var(--sf-view-table-line-color, var(--sf-outline-variant));
+    white-space: nowrap;
+  }
+  sf-table tfoot.sf-table-totals th {
+    height: var(--sf-view-table-row-block-size);
+    block-size: var(--sf-view-table-row-block-size);
+    padding-top: 0;
+    padding-bottom: 0;
+    padding-block: 0;
+    font-weight: var(--sf-font-weight-medium);
+    background-color: var(--sf-surface-page);
+    border-top: var(--sf-px) solid var(--sf-outline-variant);
+    -webkit-border-before: var(--sf-px) solid var(--sf-outline-variant);
+            border-block-start: var(--sf-px) solid var(--sf-outline-variant);
+    border-top: var(--sf-px) solid var(--sf-outline-variant);
+    border-top: var(--sf-px) solid var(--sf-view-table-line-color, var(--sf-outline-variant));
+    -webkit-border-before: var(--sf-px) solid var(--sf-view-table-line-color, var(--sf-outline-variant));
+            border-block-start: var(--sf-px) solid var(--sf-view-table-line-color, var(--sf-outline-variant));
+    white-space: nowrap;
+  }
+  sf-table tfoot.sf-table-totals td {
+    height: var(--sf-view-table-row-block-size);
+    block-size: var(--sf-view-table-row-block-size);
+    padding-top: 0;
+    padding-bottom: 0;
+    padding-block: 0;
+    font-weight: var(--sf-font-weight-medium);
+    background-color: var(--sf-surface-page);
+    border-top: var(--sf-px) solid var(--sf-outline-variant);
+    -webkit-border-before: var(--sf-px) solid var(--sf-outline-variant);
+            border-block-start: var(--sf-px) solid var(--sf-outline-variant);
+    border-top: var(--sf-px) solid var(--sf-outline-variant);
+    border-top: var(--sf-px) solid var(--sf-view-table-line-color, var(--sf-outline-variant));
+    -webkit-border-before: var(--sf-px) solid var(--sf-view-table-line-color, var(--sf-outline-variant));
+            border-block-start: var(--sf-px) solid var(--sf-view-table-line-color, var(--sf-outline-variant));
+    white-space: nowrap;
+  }
+  _:-ms-input-placeholder, html:not([dir="rtl"]) sf-view-table tfoot.sf-table-totals [data-sf-cell=number]{
+    text-align: right;
+  }
+  @supports not (text-align: end){
+  html:not([dir="rtl"]) sf-view-table tfoot.sf-table-totals [data-sf-cell=number]{
+    text-align: right;
+    }
+  }
+  sf-view-table tfoot.sf-table-totals [data-sf-cell=number]:where(:dir(ltr)){
+    text-align: right;
+  }
+  _:-ms-input-placeholder, [dir="rtl"] sf-view-table tfoot.sf-table-totals [data-sf-cell=number]{
+    text-align: left;
+  }
+  @supports not (text-align: end){
+  [dir="rtl"] sf-view-table tfoot.sf-table-totals [data-sf-cell=number]{
+    text-align: left;
+    }
+  }
+  sf-view-table tfoot.sf-table-totals [data-sf-cell=number]:where(:dir(rtl)){
+    text-align: left;
+  }
+  sf-view-table tfoot.sf-table-totals [data-sf-cell=number] {
+    text-align: end;
+    -webkit-font-feature-settings: "tnum";
+            font-feature-settings: "tnum";
+    font-variant-numeric: tabular-nums;
+  }
+  _:-ms-input-placeholder, html:not([dir="rtl"]) sf-table tfoot.sf-table-totals [data-sf-cell=number]{
+    text-align: right;
+  }
+  @supports not (text-align: end){
+  html:not([dir="rtl"]) sf-table tfoot.sf-table-totals [data-sf-cell=number]{
+    text-align: right;
+    }
+  }
+  sf-table tfoot.sf-table-totals [data-sf-cell=number]:where(:dir(ltr)){
+    text-align: right;
+  }
+  _:-ms-input-placeholder, [dir="rtl"] sf-table tfoot.sf-table-totals [data-sf-cell=number]{
+    text-align: left;
+  }
+  @supports not (text-align: end){
+  [dir="rtl"] sf-table tfoot.sf-table-totals [data-sf-cell=number]{
+    text-align: left;
+    }
+  }
+  sf-table tfoot.sf-table-totals [data-sf-cell=number]:where(:dir(rtl)){
+    text-align: left;
+  }
+  sf-table tfoot.sf-table-totals [data-sf-cell=number] {
+    text-align: end;
+    -webkit-font-feature-settings: "tnum";
+            font-feature-settings: "tnum";
+    font-variant-numeric: tabular-nums;
+  }
+  /* A title without an address is a button that opens the record, drawn as
+     the title link (VT-9): no href="#". */
+  _:-ms-input-placeholder, html:not([dir="rtl"]) sf-view-table button.sf-table-title-link{
+    text-align: left;
+  }
+  @supports not (text-align: start){
+  html:not([dir="rtl"]) sf-view-table button.sf-table-title-link{
+    text-align: left;
+    }
+  }
+  sf-view-table button.sf-table-title-link:where(:dir(ltr)){
+    text-align: left;
+  }
+  _:-ms-input-placeholder, [dir="rtl"] sf-view-table button.sf-table-title-link{
+    text-align: right;
+  }
+  @supports not (text-align: start){
+  [dir="rtl"] sf-view-table button.sf-table-title-link{
+    text-align: right;
+    }
+  }
+  sf-view-table button.sf-table-title-link:where(:dir(rtl)){
+    text-align: right;
+  }
+  sf-view-table button.sf-table-title-link {
+    display: inline;
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    color: inherit;
+    text-align: start;
+    vertical-align: top;
+    cursor: pointer;
+  }
+  _:-ms-input-placeholder, html:not([dir="rtl"]) sf-table button.sf-table-title-link{
+    text-align: left;
+  }
+  @supports not (text-align: start){
+  html:not([dir="rtl"]) sf-table button.sf-table-title-link{
+    text-align: left;
+    }
+  }
+  sf-table button.sf-table-title-link:where(:dir(ltr)){
+    text-align: left;
+  }
+  _:-ms-input-placeholder, [dir="rtl"] sf-table button.sf-table-title-link{
+    text-align: right;
+  }
+  @supports not (text-align: start){
+  [dir="rtl"] sf-table button.sf-table-title-link{
+    text-align: right;
+    }
+  }
+  sf-table button.sf-table-title-link:where(:dir(rtl)){
+    text-align: right;
+  }
+  sf-table button.sf-table-title-link {
+    display: inline;
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    color: inherit;
+    text-align: start;
+    vertical-align: top;
+    cursor: pointer;
+  }
+  sf-view-table button.sf-table-title-link:hover {
+    -webkit-text-decoration-line: underline;
+            text-decoration-line: underline;
+  }
+  sf-view-table button.sf-table-title-link.focus-visible {
+    -webkit-text-decoration-line: underline;
+            text-decoration-line: underline;
+  }
+  sf-table button.sf-table-title-link:hover {
+    -webkit-text-decoration-line: underline;
+            text-decoration-line: underline;
+  }
+  sf-table button.sf-table-title-link.focus-visible {
+    -webkit-text-decoration-line: underline;
+            text-decoration-line: underline;
+  }
+  sf-view-table button.sf-table-title-link:hover {
+    -webkit-text-decoration-line: underline;
+            text-decoration-line: underline;
+  }
+  sf-view-table button.sf-table-title-link.focus-visible {
+    -webkit-text-decoration-line: underline;
+            text-decoration-line: underline;
+  }
+  sf-view-table button.sf-table-title-link:focus-visible {
+    -webkit-text-decoration-line: underline;
+            text-decoration-line: underline;
+  }
+  sf-table button.sf-table-title-link:hover {
+    -webkit-text-decoration-line: underline;
+            text-decoration-line: underline;
+  }
+  sf-table button.sf-table-title-link.focus-visible {
+    -webkit-text-decoration-line: underline;
+            text-decoration-line: underline;
+  }
+  sf-table button.sf-table-title-link:focus-visible {
+    -webkit-text-decoration-line: underline;
+            text-decoration-line: underline;
+  }
+  /* The column window's host: no box; the panel is a popover (VT-12). */
+  sf-view-table > .sf-table-settings-host {
+    display: contents;
+  }
+  sf-table > .sf-table-settings-host {
+    display: contents;
+  }
+  /* A narrow column (yes/no, a short number) is at least as wide as its head's
+     words on one line, so the head never breaks letter by letter (C146 (1):
+     the head is a row; VT-15). */
+  sf-view-table thead th[data-key] .sf-table-sort-button {
+    white-space: nowrap;
+  }
+  sf-view-table thead th[data-key] .sf-table-head-text {
+    white-space: nowrap;
+  }
+  sf-table thead th[data-key] .sf-table-sort-button {
+    white-space: nowrap;
+  }
+  sf-table thead th[data-key] .sf-table-head-text {
+    white-space: nowrap;
+  }
+  sf-view-table thead th {
+    word-break: normal;
+    word-wrap: normal;
+  }
+  sf-table thead th {
+    word-break: normal;
+    word-wrap: normal;
+  }
+  /* The phone list of records (C259, VT-2): the box, «≡», the title with its
+     second line, then the status and the amount; the page's box over it. */
+  sf-view-table .sf-table-list-head {
+    display: flex;
+    align-items: center;
+    gap: var(--sf-a8);
+    padding: var(--sf-a4) var(--sf-a8);
+    border-bottom: var(--sf-px) solid var(--sf-outline-variant);
+    -webkit-border-after: var(--sf-px) solid var(--sf-outline-variant);
+            border-block-end: var(--sf-px) solid var(--sf-outline-variant);
+    border-bottom: var(--sf-px) solid var(--sf-outline-variant);
+    border-bottom: var(--sf-px) solid var(--sf-view-table-line-color, var(--sf-outline-variant));
+    -webkit-border-after: var(--sf-px) solid var(--sf-view-table-line-color, var(--sf-outline-variant));
+            border-block-end: var(--sf-px) solid var(--sf-view-table-line-color, var(--sf-outline-variant));
+    color: var(--sf-on-surface-variant);
+    color: var(--sf-view-table-head-color, var(--sf-on-surface-variant));
+    font-size: var(--sf-text-size-1\/3);
+  }
+  sf-table .sf-table-list-head {
+    display: flex;
+    align-items: center;
+    gap: var(--sf-a8);
+    padding: var(--sf-a4) var(--sf-a8);
+    border-bottom: var(--sf-px) solid var(--sf-outline-variant);
+    -webkit-border-after: var(--sf-px) solid var(--sf-outline-variant);
+            border-block-end: var(--sf-px) solid var(--sf-outline-variant);
+    border-bottom: var(--sf-px) solid var(--sf-outline-variant);
+    border-bottom: var(--sf-px) solid var(--sf-view-table-line-color, var(--sf-outline-variant));
+    -webkit-border-after: var(--sf-px) solid var(--sf-view-table-line-color, var(--sf-outline-variant));
+            border-block-end: var(--sf-px) solid var(--sf-view-table-line-color, var(--sf-outline-variant));
+    color: var(--sf-on-surface-variant);
+    color: var(--sf-view-table-head-color, var(--sf-on-surface-variant));
+    font-size: var(--sf-text-size-1\/3);
+  }
+  /* A row of its parts in a line (not the list's three columns): with «≡»
+     after the box and nothing at the end, no empty column takes a gap from
+     the title, which kept its width and its line count (first paint). */
+  sf-view-table .sf-table-list-item[data-sf-record] {
+    display: flex;
+    align-items: center;
+  }
+  sf-table .sf-table-list-item[data-sf-record] {
+    display: flex;
+    align-items: center;
+  }
+  sf-view-table .sf-table-list-item[data-sf-record] > .sf-table-list-main {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-inline-size: 0;
+  }
+  sf-table .sf-table-list-item[data-sf-record] > .sf-table-list-main {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-inline-size: 0;
+  }
+  sf-view-table .sf-table-resource[data-sf-record] > .sf-table-resource-main {
+    flex: 1 1 auto;
+  }
+  sf-table .sf-table-resource[data-sf-record] > .sf-table-resource-main {
+    flex: 1 1 auto;
+  }
+  sf-view-table .sf-table-resource[data-sf-record] > .sf-table-list-menu {
+    display: flex;
+    flex: none;
+  }
+  sf-table .sf-table-resource[data-sf-record] > .sf-table-list-menu {
+    display: flex;
+    flex: none;
+  }
+  _:-ms-input-placeholder, html:not([dir="rtl"]) sf-view-table .sf-table-list-end{
+    margin-left: auto;
+  }
+  @supports not (margin-inline-start: initial){
+  html:not([dir="rtl"]) sf-view-table .sf-table-list-end{
+    margin-left: auto;
+    }
+  }
+  sf-view-table .sf-table-list-end:where(:dir(ltr)){
+    margin-left: auto;
+  }
+  _:-ms-input-placeholder, [dir="rtl"] sf-view-table .sf-table-list-end{
+    margin-right: auto;
+  }
+  @supports not (margin-inline-start: initial){
+  [dir="rtl"] sf-view-table .sf-table-list-end{
+    margin-right: auto;
+    }
+  }
+  sf-view-table .sf-table-list-end:where(:dir(rtl)){
+    margin-right: auto;
+  }
+  sf-view-table .sf-table-list-end {
+    flex: none;
+    -webkit-margin-start: auto;
+            margin-inline-start: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: end;
+    gap: var(--sf-a4);
+    white-space: nowrap;
+  }
+  _:-ms-input-placeholder, html:not([dir="rtl"]) sf-table .sf-table-list-end{
+    margin-left: auto;
+  }
+  @supports not (margin-inline-start: initial){
+  html:not([dir="rtl"]) sf-table .sf-table-list-end{
+    margin-left: auto;
+    }
+  }
+  sf-table .sf-table-list-end:where(:dir(ltr)){
+    margin-left: auto;
+  }
+  _:-ms-input-placeholder, [dir="rtl"] sf-table .sf-table-list-end{
+    margin-right: auto;
+  }
+  @supports not (margin-inline-start: initial){
+  [dir="rtl"] sf-table .sf-table-list-end{
+    margin-right: auto;
+    }
+  }
+  sf-table .sf-table-list-end:where(:dir(rtl)){
+    margin-right: auto;
+  }
+  sf-table .sf-table-list-end {
+    flex: none;
+    -webkit-margin-start: auto;
+            margin-inline-start: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: end;
+    gap: var(--sf-a4);
+    white-space: nowrap;
+  }
+  sf-view-table .sf-table-list-amount {
+    -webkit-font-feature-settings: "tnum";
+            font-feature-settings: "tnum";
+    font-variant-numeric: tabular-nums;
+  }
+  sf-table .sf-table-list-amount {
+    -webkit-font-feature-settings: "tnum";
+            font-feature-settings: "tnum";
+    font-variant-numeric: tabular-nums;
+  }
+}
+/* C296: the editor of a short field, a small popover at the cell. */
+@layer sf.components {
+  .sf-table-cell-editor {
+    padding: var(--sf-space-1\/2);
+    border: 0;
+    border-radius: var(--sf-radius-1);
+    background: var(--sf-elevation-3--surface);
+    color: var(--sf-on-surface);
+    box-shadow: var(--sf-elevation-3--shadow);
+  }
+  .sf-table-cell-editor-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sf-space-1\/2);
+  }
+  .sf-table-cell-editor-actions {
+    display: flex;
+    gap: var(--sf-space-1\/3);
+    justify-content: flex-end;
   }
 }

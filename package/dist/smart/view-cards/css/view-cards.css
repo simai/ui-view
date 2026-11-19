@@ -1,0 +1,397 @@
+@charset "UTF-8";
+@layer sf.reset, sf.tokens, sf.base, sf.paint, sf.utilities, sf.components, sf.overrides, sf.states;
+/* sf-view-cards: a grid of record cards. Colours, sizes, radii and spaces are
+   SIMAI Framework tokens only (C18, C19): the least card width of a size is a
+   size step (S --sf-f2 12rem, M --sf-f5 15rem, L --sf-g0 20rem, C306), every
+   gap a --sf-space-* step. The columns follow the grid's own width, so the
+   record card docked beside the list narrows it (C305 (4)); on a phone (the
+   grid below 600 px) size S draws two columns, M and L one (C306). */
+@layer sf.components {
+  sf-view-cards {
+    display: block;
+    min-width: 0;
+    min-inline-size: 0;
+    --sf-view-cards-min: var(--sf-f5);
+    --sf-view-cards-gap: var(--sf-space-1\/2);
+    --sf-view-cards-cover-background: var(--sf-surface-container);
+    --sf-view-cards-selected-background: var(--sf-primary-container);
+    --sf-view-cards-ratio: 4 / 3;
+  }
+  .sf-view-cards {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--sf-space-1\/2);
+    min-width: 0;
+    min-inline-size: 0;
+    container-type: inline-size;
+  }
+  .sf-view-cards[data-card-size=s] {
+    --sf-view-cards-min: var(--sf-f2);
+  }
+  .sf-view-cards[data-card-size=l] {
+    --sf-view-cards-min: var(--sf-g0);
+  }
+  .sf-view-cards__grid {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--sf-view-cards-min)), 1fr));
+    grid-gap: var(--sf-view-cards-gap);
+    gap: var(--sf-view-cards-gap);
+    align-items: stretch;
+    min-width: 0;
+    min-inline-size: 0;
+  }
+  .sf-view-cards__grid.focus-visible {
+    outline: none;
+  }
+  .sf-view-cards__grid:focus-visible {
+    outline: none;
+  }
+  /* The card: the Framework .sf-card at the 1/2 rung (12 / 8 padding at a
+     desktop, 8 / 8 on a phone), positioned so its corner controls and its
+     hidden labels stay inside it (CV-6). */
+  .sf-view-cards__card.sf-card {
+    --sf-card-padding-block: var(--sf-space-1\/3);
+    --sf-card-padding-inline: var(--sf-space-1\/2);
+    --sf-card-gap: var(--sf-space-1\/4);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--sf-space-1\/4);
+    min-width: 0;
+    min-inline-size: 0;
+    overflow: hidden;
+    cursor: pointer;
+  }
+  .sf-view-cards[data-density=compact] .sf-view-cards__card.sf-card {
+    --sf-card-padding-block: var(--sf-space-1\/4);
+    --sf-card-padding-inline: var(--sf-space-1\/3);
+  }
+  .sf-view-cards__card:hover {
+    background: var(--sf-surface-container);
+    background: var(--sf-surface-container-hover, var(--sf-surface-container));
+  }
+  .sf-view-cards__card.focus-visible {
+    outline: var(--sf-a2) solid var(--sf-primary);
+    outline-offset: var(--sf-px);
+  }
+  .sf-view-cards__card:focus-visible {
+    outline: var(--sf-a2) solid var(--sf-primary);
+    outline-offset: var(--sf-px);
+  }
+  .sf-view-cards__card[data-selected] {
+    background: var(--sf-view-cards-selected-background);
+    border-color: var(--sf-primary);
+  }
+  .sf-view-cards__card[data-current] {
+    border-color: var(--sf-primary);
+  }
+  .sf-view-cards__skeleton {
+    cursor: default;
+    pointer-events: none;
+  }
+  /* The cover: a frame of one ratio from the card's edge to edge (CD-3). */
+  .sf-view-cards__cover {
+    position: relative;
+    margin: calc(-1 * var(--sf-card-padding-block)) calc(-1 * var(--sf-card-padding-inline)) 0;
+    aspect-ratio: var(--sf-view-cards-ratio);
+    background: var(--sf-view-cards-cover-background);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .sf-view-cards__image {
+    display: block;
+    width: 100%;
+    inline-size: 100%;
+    height: 100%;
+    block-size: 100%;
+    -o-object-fit: cover;
+       object-fit: cover;
+  }
+  .sf-view-cards[data-fit=contain] .sf-view-cards__image {
+    -o-object-fit: contain;
+       object-fit: contain;
+  }
+  .sf-view-cards__none {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--sf-space-1\/4);
+    color: var(--sf-on-surface-variant);
+    font-size: var(--sf-text-size-1\/2);
+    line-height: var(--sf-text-height-1\/2);
+  }
+  /* The box and «⋯» in the cover's corners: on hover, on focus, on a touch
+     screen, and on every card once something is selected. */
+  .sf-view-cards__box,
+  .sf-view-cards__menu {
+    display: inline-flex;
+    opacity: 0;
+    background: var(--sf-surface-card);
+    border-radius: var(--sf-radius--ui);
+  }
+  .sf-view-cards__card:not([data-flat]) > .sf-view-cards__box,
+  .sf-view-cards__card:not([data-flat]) > .sf-view-cards__menu {
+    position: absolute;
+    top: var(--sf-space-1\/3);
+    inset-block-start: var(--sf-space-1\/3);
+  }
+  _:-ms-input-placeholder, html:not([dir="rtl"]) .sf-view-cards__card:not([data-flat]) > .sf-view-cards__box{
+    left: var(--sf-space-1\/3);
+  }
+  @supports not (inset-inline-start: initial){
+  html:not([dir="rtl"]) .sf-view-cards__card:not([data-flat]) > .sf-view-cards__box{
+    left: var(--sf-space-1\/3);
+    }
+  }
+  .sf-view-cards__card:not([data-flat]) > .sf-view-cards__box:where(:dir(ltr)){
+    left: var(--sf-space-1\/3);
+  }
+  _:-ms-input-placeholder, [dir="rtl"] .sf-view-cards__card:not([data-flat]) > .sf-view-cards__box{
+    right: var(--sf-space-1\/3);
+  }
+  @supports not (inset-inline-start: initial){
+  [dir="rtl"] .sf-view-cards__card:not([data-flat]) > .sf-view-cards__box{
+    right: var(--sf-space-1\/3);
+    }
+  }
+  .sf-view-cards__card:not([data-flat]) > .sf-view-cards__box:where(:dir(rtl)){
+    right: var(--sf-space-1\/3);
+  }
+  .sf-view-cards__card:not([data-flat]) > .sf-view-cards__box {
+    inset-inline-start: var(--sf-space-1\/3);
+    padding: var(--sf-space-1\/4);
+  }
+  _:-ms-input-placeholder, html:not([dir="rtl"]) .sf-view-cards__card:not([data-flat]) > .sf-view-cards__menu{
+    right: var(--sf-space-1\/3);
+  }
+  @supports not (inset-inline-end: initial){
+  html:not([dir="rtl"]) .sf-view-cards__card:not([data-flat]) > .sf-view-cards__menu{
+    right: var(--sf-space-1\/3);
+    }
+  }
+  .sf-view-cards__card:not([data-flat]) > .sf-view-cards__menu:where(:dir(ltr)){
+    right: var(--sf-space-1\/3);
+  }
+  _:-ms-input-placeholder, [dir="rtl"] .sf-view-cards__card:not([data-flat]) > .sf-view-cards__menu{
+    left: var(--sf-space-1\/3);
+  }
+  @supports not (inset-inline-end: initial){
+  [dir="rtl"] .sf-view-cards__card:not([data-flat]) > .sf-view-cards__menu{
+    left: var(--sf-space-1\/3);
+    }
+  }
+  .sf-view-cards__card:not([data-flat]) > .sf-view-cards__menu:where(:dir(rtl)){
+    left: var(--sf-space-1\/3);
+  }
+  .sf-view-cards__card:not([data-flat]) > .sf-view-cards__menu {
+    inset-inline-end: var(--sf-space-1\/3);
+  }
+  .sf-view-cards__card:hover .sf-view-cards__box,
+  .sf-view-cards__card:focus .sf-view-cards__box,
+  .sf-view-cards__card[focus-within] .sf-view-cards__box,
+  .sf-view-cards[data-selecting] .sf-view-cards__box,
+  .sf-view-cards__card:hover .sf-view-cards__menu,
+  .sf-view-cards__card:focus .sf-view-cards__menu,
+  .sf-view-cards__card[focus-within] .sf-view-cards__menu {
+    opacity: 1;
+  }
+  .sf-view-cards__card:hover .sf-view-cards__box,
+  .sf-view-cards__card:focus .sf-view-cards__box,
+  .sf-view-cards__card:focus-within .sf-view-cards__box,
+  .sf-view-cards[data-selecting] .sf-view-cards__box,
+  .sf-view-cards__card:hover .sf-view-cards__menu,
+  .sf-view-cards__card:focus .sf-view-cards__menu,
+  .sf-view-cards__card:focus-within .sf-view-cards__menu {
+    opacity: 1;
+  }
+  @media (pointer: coarse) {
+    .sf-view-cards__box,
+    .sf-view-cards__menu {
+      opacity: 1;
+    }
+  }
+  /* A card without a cover: the box and «⋯» on the title's row. */
+  .sf-view-cards__top {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--sf-space-1\/4);
+    min-width: 0;
+    min-inline-size: 0;
+  }
+  .sf-view-cards__top > .sf-view-cards__title {
+    flex: 1 1 auto;
+  }
+  .sf-view-cards__top > .sf-view-cards__box,
+  .sf-view-cards__top > .sf-view-cards__menu {
+    flex: 0 0 auto;
+    background: transparent;
+  }
+  .sf-view-cards__title {
+    min-width: 0;
+    min-inline-size: 0;
+    font-size: var(--sf-text-size-1\/2);
+    line-height: var(--sf-text-height-1\/2);
+    font-weight: var(--sf-font-weight-medium);
+    color: var(--sf-on-surface);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    word-wrap: anywhere;
+  }
+  .sf-view-cards[data-size="1"] .sf-view-cards__title,
+  .sf-view-cards[data-size="1"] .sf-view-cards__fields {
+    font-size: var(--sf-text-size-1);
+    line-height: var(--sf-text-height-1);
+  }
+  /* Up to four «Кратко» fields in two columns pushed to the card's foot:
+     the first column at its start, numbers and dates of the second at the
+     end (VC-1), tabular digits; rows of
+     one height across a row of cards. */
+  .sf-view-cards__fields {
+    margin-top: auto;
+    -webkit-margin-before: auto;
+            margin-block-start: auto;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    grid-gap: var(--sf-space-1\/4) var(--sf-space-1\/2);
+    gap: var(--sf-space-1\/4) var(--sf-space-1\/2);
+    font-size: var(--sf-text-size-1\/2);
+    line-height: var(--sf-text-height-1\/2);
+    min-width: 0;
+    min-inline-size: 0;
+  }
+  .sf-view-cards__field {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sf-space-1\/4);
+    min-width: 0;
+    min-inline-size: 0;
+    min-height: var(--sf-text-height-1\/2);
+    min-block-size: var(--sf-text-height-1\/2);
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    color: var(--sf-on-surface-variant);
+  }
+  .sf-view-cards__field[data-align=end] {
+    justify-self: end;
+  }
+  .sf-view-cards__field[data-numeric] {
+    -webkit-font-feature-settings: "tnum";
+            font-feature-settings: "tnum";
+    font-variant-numeric: tabular-nums;
+  }
+  .sf-view-cards__value,
+  .sf-view-cards__values {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sf-space-1\/4);
+    min-width: 0;
+    min-inline-size: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  /* card_labels: each field a row of its label and its value. */
+  .sf-view-cards__fields[data-labels] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .sf-view-cards__fields[data-labels] .sf-view-cards__field {
+    justify-self: stretch;
+    justify-content: space-between;
+    gap: var(--sf-space-1\/2);
+  }
+  .sf-view-cards__label {
+    color: var(--sf-on-surface-variant);
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .sf-view-cards__fields[data-labels] .sf-view-cards__value {
+    color: var(--sf-on-surface);
+  }
+  .sf-view-cards__empty {
+    display: flex;
+    justify-content: center;
+    padding-top: var(--sf-space-2);
+    padding-bottom: var(--sf-space-2);
+    padding-block: var(--sf-space-2);
+  }
+  .sf-view-cards__more {
+    display: flex;
+    justify-content: center;
+  }
+  .sf-view-cards__live {
+    font-size: var(--sf-text-size-1\/2);
+    line-height: var(--sf-text-height-1\/2);
+    color: var(--sf-on-surface-variant);
+  }
+  .sf-view-cards__live:empty {
+    display: none;
+  }
+  /* The fallback strip where sf-bulk-actions is not in the pair. */
+  .sf-view-cards__bulk {
+    position: sticky;
+    bottom: 0;
+    inset-block-end: 0;
+    z-index: 1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--sf-space-1\/3);
+    padding: var(--sf-space-1\/3) var(--sf-space-1\/2);
+    background: var(--sf-surface-card);
+    border: var(--sf-px) solid var(--sf-outline-variant);
+    border-radius: var(--sf-radius--surface);
+    box-shadow: var(--sf-shadow-raised);
+  }
+  .sf-view-cards__bulk[hidden] {
+    display: none;
+  }
+  _:-ms-input-placeholder, html:not([dir="rtl"]) .sf-view-cards__bulk-count{
+    margin-right: auto;
+  }
+  @supports not (margin-inline-end: initial){
+  html:not([dir="rtl"]) .sf-view-cards__bulk-count{
+    margin-right: auto;
+    }
+  }
+  .sf-view-cards__bulk-count:where(:dir(ltr)){
+    margin-right: auto;
+  }
+  _:-ms-input-placeholder, [dir="rtl"] .sf-view-cards__bulk-count{
+    margin-left: auto;
+  }
+  @supports not (margin-inline-end: initial){
+  [dir="rtl"] .sf-view-cards__bulk-count{
+    margin-left: auto;
+    }
+  }
+  .sf-view-cards__bulk-count:where(:dir(rtl)){
+    margin-left: auto;
+  }
+  .sf-view-cards__bulk-count {
+    -webkit-margin-end: auto;
+            margin-inline-end: auto;
+    font-size: var(--sf-text-size-1\/2);
+    line-height: var(--sf-text-height-1\/2);
+    color: var(--sf-on-surface);
+  }
+  /* Phone (C306, q-phone В): by the grid's own width, so a printed grid and
+     the drawn one lay out the same. */
+  @container (max-width: 599.98px) {
+    .sf-view-cards__grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .sf-view-cards[data-card-size=s] .sf-view-cards__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .sf-view-cards__card.sf-card {
+      --sf-card-padding-inline: var(--sf-space-1\/3);
+    }
+  }
+}

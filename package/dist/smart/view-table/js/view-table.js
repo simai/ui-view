@@ -106,6 +106,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   followDensity: () => (/* binding */ followDensity),
 /* harmony export */   markRelativeSizes: () => (/* binding */ markRelativeSizes),
 /* harmony export */   noteAuthored: () => (/* binding */ noteAuthored),
+/* harmony export */   sizeOf: () => (/* binding */ sizeOf),
+/* harmony export */   sizeStep: () => (/* binding */ sizeStep),
 /* harmony export */   sizedBefore: () => (/* binding */ sizedBefore)
 /* harmony export */ });
 // Density (owner decision C22, 2026-11-09). data-sf-density="compact" on the
@@ -202,6 +204,40 @@ function densityOf(from) {
   }
 
   return null;
+} // The size step of the control a popup opens from (owner remark 2026-11-15:
+// the row menu of a table of size 1 opened at 1/2). A popup a component
+// builds outside itself -- a menu on <body> or in the open dialog -- stood on
+// the default step whatever opened it. The step is the first size written
+// from the opener up: the opener's own (a row's «⋯», the native button an
+// sf-button draws), else its component's, else the Smart component that
+// holds it (sf-view-table size="1"). A size a template gave a part it draws
+// (data-sf-size-relative) follows its host, so the walk goes on past it. It
+// ends on the default step (null) at the second custom element without a
+// size: the opener's own component may stand on its default, the host
+// holding it decides.
+
+function sizeOf(from) {
+  let own = true;
+
+  for (let node = from; node?.nodeType === 1; node = node.parentElement) {
+    if (node.hasAttribute('size')) {
+      if (!node.hasAttribute(RELATIVE)) return node.getAttribute('size');
+      continue;
+    }
+
+    if (!node.localName.includes('-')) continue;
+    if (!own) return null;
+    own = false;
+  }
+
+  return null;
+} // A size step as a number of the ladder ("1/2" is 0.5, "2" is 2); NaN for
+// anything else.
+
+function sizeStep(size) {
+  const [top, bottom = '1'] = String(size ?? '').trim().split('/');
+  const step = Number(top) / Number(bottom);
+  return top !== '' && Number.isFinite(step) && step > 0 ? step : Number.NaN;
 }
 
 /***/ },
@@ -214,7 +250,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   calendarDayOffset: () => (/* binding */ calendarDayOffset),
 /* harmony export */   formatDate: () => (/* binding */ formatDate),
+/* harmony export */   knownTimeZone: () => (/* binding */ knownTimeZone),
 /* harmony export */   msUntilNextDay: () => (/* binding */ msUntilNextDay),
+/* harmony export */   timeZoneOffset: () => (/* binding */ timeZoneOffset),
 /* harmony export */   toDate: () => (/* reexport safe */ _format_intl_js__WEBPACK_IMPORTED_MODULE_0__.toDate)
 /* harmony export */ });
 /* harmony import */ var _format_intl_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("15b4e93ff6ed");
@@ -243,8 +281,10 @@ function hasDateStyle(style) {
  *
  * `date` and `time` are Intl styles (short, medium, long, full); `intl` gives
  * Intl.DateTimeFormat options outright, for a form the styles do not name (a
- * chart's tick, «14:05» with two-digit hours). Anything that is not a date is
- * `gap`, '' by default.
+ * chart's tick, «14:05» with two-digit hours). `timeZone` (an IANA name,
+ * Europe/Moscow) writes the moment on that zone's clock instead of the
+ * reader's (owner decision C183 (3): a product that knows the person's zone).
+ * Anything that is not a date is `gap`, '' by default.
  */
 
 
@@ -252,6 +292,7 @@ function formatDate(value, {
   date = 'medium',
   time = null,
   intl = null,
+  timeZone = '',
   gap = '',
   ...where
 } = {}) {
@@ -266,23 +307,107 @@ function formatDate(value, {
     if (!options.dateStyle && !options.timeStyle) options.dateStyle = 'medium';
   }
 
+  if (knownTimeZone(timeZone)) options = { ...options,
+    timeZone
+  };
   return (0,_format_intl_js__WEBPACK_IMPORTED_MODULE_0__.intlFormatter)('DateTimeFormat', (0,_format_intl_js__WEBPACK_IMPORTED_MODULE_0__.formatLocale)(where), options).format(moment);
 }
 /**
- * Calendar days from `now` to the value in the reader's time zone: 0 today,
- * -1 yesterday, 1 tomorrow; NaN when the value is no date. Counted on
- * calendar dates, not 24-hour spans, so 23:59 yesterday is -1 at 00:01 and a
- * day of a clock change is still one day.
+ * Whether the platform knows an IANA time zone name (Europe/Moscow, UTC). An
+ * empty or unknown name is the reader's own zone everywhere here.
+ */
+
+function knownTimeZone(timeZone) {
+  const name = String(timeZone ?? '').trim();
+  if (!name) return false;
+  const root = typeof globalThis !== 'undefined' ? globalThis : {};
+  if (!(root.__sfTimeZones instanceof Map)) root.__sfTimeZones = new Map();
+  if (root.__sfTimeZones.has(name)) return root.__sfTimeZones.get(name);
+  let known = true;
+
+  try {
+    new Intl.DateTimeFormat('en', {
+      timeZone: name
+    });
+  } catch {
+    known = false;
+  }
+
+  if (root.__sfTimeZones.size < 64) root.__sfTimeZones.set(name, known);
+  return known;
+} // The calendar date and the clock of a moment in a zone, as numbers: the
+// reader's own when the zone is none.
+
+function wallClock(moment, timeZone) {
+  if (!knownTimeZone(timeZone)) {
+    return {
+      year: moment.getFullYear(),
+      month: moment.getMonth(),
+      day: moment.getDate(),
+      hour: moment.getHours(),
+      minute: moment.getMinutes(),
+      second: moment.getSeconds()
+    };
+  }
+
+  const parts = {};
+
+  for (const part of (0,_format_intl_js__WEBPACK_IMPORTED_MODULE_0__.intlFormatter)('DateTimeFormat', 'en-US', {
+    timeZone,
+    hourCycle: 'h23',
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: 'numeric',
+    second: 'numeric'
+  }).formatToParts(moment)) {
+    if (part.type !== 'literal') parts[part.type] = Number(part.value);
+  }
+
+  return {
+    year: parts.year,
+    month: parts.month - 1,
+    day: parts.day,
+    hour: parts.hour % 24,
+    minute: parts.minute,
+    second: parts.second
+  };
+}
+/**
+ * The zone's offset from UTC at a moment, in minutes (Moscow +180, New York
+ * -300 in winter); the reader's own when the zone is none.
+ */
+
+
+function timeZoneOffset(value, {
+  timeZone = ''
+} = {}) {
+  const moment = (0,_format_intl_js__WEBPACK_IMPORTED_MODULE_0__.toDate)(value);
+  if (!moment) return Number.NaN;
+  if (!knownTimeZone(timeZone)) return -moment.getTimezoneOffset();
+  const clock = wallClock(moment, timeZone);
+  const asUtc = Date.UTC(clock.year, clock.month, clock.day, clock.hour, clock.minute, clock.second);
+  return Math.round((asUtc - Math.floor(moment.getTime() / 1000) * 1000) / 60000);
+}
+/**
+ * Calendar days from `now` to the value in the reader's time zone (or
+ * `timeZone`'s): 0 today, -1 yesterday, 1 tomorrow; NaN when the value is no
+ * date. Counted on calendar dates, not 24-hour spans, so 23:59 yesterday is
+ * -1 at 00:01 and a day of a clock change is still one day.
  */
 
 function calendarDayOffset(value, {
-  now = new Date()
+  now = new Date(),
+  timeZone = ''
 } = {}) {
   const moment = (0,_format_intl_js__WEBPACK_IMPORTED_MODULE_0__.toDate)(value);
   const today = (0,_format_intl_js__WEBPACK_IMPORTED_MODULE_0__.toDate)(now);
   if (!moment || !today) return Number.NaN;
-  const day = Date.UTC(moment.getFullYear(), moment.getMonth(), moment.getDate());
-  const base = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
+  const at = wallClock(moment, timeZone);
+  const from = wallClock(today, timeZone);
+  const day = Date.UTC(at.year, at.month, at.day);
+  const base = Date.UTC(from.year, from.month, from.day);
   return Math.round((day - base) / DAY_MS);
 }
 /**
@@ -292,10 +417,26 @@ function calendarDayOffset(value, {
  * draws them again; «сегодня» said yesterday is wrong by morning.
  */
 
-function msUntilNextDay(now = new Date()) {
+function msUntilNextDay(now = new Date(), {
+  timeZone = ''
+} = {}) {
   const today = (0,_format_intl_js__WEBPACK_IMPORTED_MODULE_0__.toDate)(now) ?? new Date();
-  const next = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
-  return next.getTime() - today.getTime();
+
+  if (!knownTimeZone(timeZone)) {
+    const next = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+    return next.getTime() - today.getTime();
+  } // In a named zone: the time left on its clock until 24:00, corrected by a
+  // change of its offset before then (a clock change at night).
+
+
+  const clock = wallClock(today, timeZone);
+  const left = DAY_MS - ((clock.hour * 60 + clock.minute) * 60 + clock.second) * 1000 - today.getMilliseconds();
+  const shift = timeZoneOffset(today, {
+    timeZone
+  }) - timeZoneOffset(new Date(today.getTime() + left), {
+    timeZone
+  });
+  return Math.max(1, left + shift * 60000);
 }
 __webpack_async_result__();
 } catch(e) { __webpack_async_result__(e); } });
@@ -381,6 +522,367 @@ function intlFormatter(kind, locale, options) {
 }
 __webpack_async_result__();
 } catch(e) { __webpack_async_result__(e); } });
+
+/***/ },
+
+/***/ "c9ce0852ac73"
+(module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   formatNumber: () => (/* binding */ formatNumber),
+/* harmony export */   numberOptions: () => (/* binding */ numberOptions),
+/* harmony export */   percentSign: () => (/* binding */ percentSign),
+/* harmony export */   percentText: () => (/* binding */ percentText)
+/* harmony export */ });
+/* harmony import */ var _format_intl_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("15b4e93ff6ed");
+var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_format_intl_js__WEBPACK_IMPORTED_MODULE_0__]);
+var __webpack_async_dependencies_result__ = (__webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
+_format_intl_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_async_dependencies_result__[0];
+// Numbers in the page's language by a format word: formatNumber and
+// numberOptions alone, with no top-level side effects (format-intl.js). The
+// same functions as core/js/format.js and SF.format.number; a bundle that
+// formats numbers only imports them from here.
+
+/**
+ * The Intl options of a number format word (ui-chart's words, kept so a page
+ * writes a format as an attribute):
+ *
+ *   number (default)  1 234,5   as many digits as `step` needs, at most 6; 2 without one
+ *   integer           1 235
+ *   decimal-<n>       n digits after the point, always (0 to 20)
+ *   share             a share 0..1 as 12 % (0.125 is 12,5 %)
+ *   percent           the same share: the charts' word, kept
+ *   unit-percent      a value that already is the percent (12.5 is 12,5 %),
+ *                     as the property type `percent` stores it
+ *   compact           1,2 тыс.  /  1.2K
+ *   currency-<CODE>   1 234,50 ₽ (an ISO 4217 code)
+ *   unit-<unit>       45,3 ГБ (an Intl unit: gigabyte, megabit-per-second)
+ *
+ * Anything else reads as number. Words join with a space: a kind (currency-,
+ * unit-, percent) and a precision (integer, decimal-<n>, compact), so
+ * «currency-RUB integer» is 1 235 ₽, «currency-RUB decimal-2» 1 234,50 ₽ and
+ * «currency-RUB compact» 1,1 млн ₽. The precision wins whatever the order.
+ */
+
+function numberOptions(format = 'number', step = 0) {
+  const words = String(format || 'number').trim().split(/\s+/u).filter(Boolean);
+
+  if (words.length > 1) {
+    const PRECISION = /^(?:integer|compact|decimal-\d{1,2})$/u;
+    const kinds = words.filter(one => !PRECISION.test(one));
+    const precision = words.filter(one => PRECISION.test(one));
+    return [...kinds, ...precision].reduce((options, one) => ({ ...options,
+      ...numberOptions(one, step)
+    }), {});
+  }
+
+  const word = words[0] ?? 'number';
+  if (word === 'integer') return {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }; // Two meanings of «percent» met in the Framework (C294, MP-4): this word
+  // multiplies a share by 100, while the property type `percent` holds the
+  // percent itself. `share` says which one it is; `percent` stays its alias for
+  // the charts that write it, and `unit-percent` is the percent itself.
+
+  if (word === 'share' || word === 'percent') return {
+    style: 'percent',
+    maximumFractionDigits: 1
+  };
+  if (word === 'compact') return {
+    notation: 'compact',
+    maximumFractionDigits: 1
+  };
+  const decimal = /^decimal-(\d{1,2})$/u.exec(word);
+
+  if (decimal) {
+    const digits = Math.min(20, Number(decimal[1]));
+    return {
+      minimumFractionDigits: digits,
+      maximumFractionDigits: digits
+    };
+  }
+
+  const unit = /^unit-([a-z]+(?:-per-[a-z]+)?)$/u.exec(word);
+  if (unit) return {
+    style: 'unit',
+    unit: unit[1],
+    unitDisplay: 'short',
+    maximumFractionDigits: 1
+  };
+  const currency = /^currency-([A-Z]{3})$/u.exec(word);
+  if (currency) return {
+    style: 'currency',
+    currency: currency[1]
+  };
+  const digits = step > 0 && step < 1 ? Math.min(6, Math.ceil(-Math.log10(step) - 1e-9)) : 2;
+  return {
+    maximumFractionDigits: digits
+  };
+}
+/**
+ * A number in the locale by a format word (numberOptions). `grouping: false`
+ * writes it without thousands marks («2026»), `step` sets the digits of
+ * `number`, and a value that is not a finite number is `gap`, '' by default
+ * (a chart passes '—').
+ */
+
+function formatNumber(value, format = 'number', {
+  step = 0,
+  gap = '',
+  grouping = true,
+  ...where
+} = {}) {
+  const number = typeof value === 'string' && value.trim() !== '' ? Number(value) : value;
+  if (typeof number !== 'number' || !Number.isFinite(number)) return gap;
+  const options = numberOptions(format, step);
+  if (grouping === false) options.useGrouping = false;
+  const text = (0,_format_intl_js__WEBPACK_IMPORTED_MODULE_0__.intlFormatter)('NumberFormat', (0,_format_intl_js__WEBPACK_IMPORTED_MODULE_0__.formatLocale)(where), options).format(number);
+  return options.style === 'percent' || options.unit === 'percent' ? percentSign(text) : text;
+}
+/**
+ * One spelling of a per cent in every language (owner decision C203 (3), DEV
+ * msg-913fd9e4, 2026-11-15): the number, a no-break space (U+00A0) and «%» --
+ * «72 %», «12,5 %», and «72 %» in English too, where Intl writes «72%». A
+ * language that writes the sign first («%72») keeps its order.
+ */
+
+function percentSign(text) {
+  // A right-to-left language writes direction marks around the sign («12.5‎%‎»
+  // in Arabic); they go with the space it had, and the number keeps the mark
+  // it starts with (C294).
+  return String(text).replace(/[\s\u00a0\u202f\u200e\u200f\u061c]*%[\u200e\u200f\u061c]*$/u, '\u00a0%');
+}
+/**
+ * A value that already is a per cent (0..100, «72», «72.5») as the progress
+ * family shows and says it (owner decision C203 (3), IM-3): the number in the
+ * language of the node's part of the page, as many digits as it has (up to
+ * 2), a no-break space and «%» -- «72 %», «72,5 %».
+ */
+
+function percentText(value, node) {
+  const number = Number(value);
+  return percentSign(`${formatNumber(Number.isFinite(number) ? number : 0, 'number', {
+    node,
+    grouping: false
+  })}%`);
+}
+__webpack_async_result__();
+} catch(e) { __webpack_async_result__(e); } });
+
+/***/ },
+
+/***/ "8d229b7c92e9"
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__),
+/* harmony export */   menuOpen: () => (/* binding */ menuOpen),
+/* harmony export */   publishMenu: () => (/* binding */ publishMenu)
+/* harmony export */ });
+/* harmony import */ var _density_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("1412c5875b4d");
+// SF.menu.open: the page's one menu of actions (owner decision C184 (4),
+// 2026-11-14; the public name is the owner's; study control/research/
+// 2026-11-14-toolbar-menu-open.md, K-03).
+//
+// A row's «⋯», a toolbar's «Ещё», the right button and the menu key on a row
+// all open the standard menu -- sf-menu-context -- and every component used to
+// place its own and wait for it (nine in SIMAI Pro, more in the Framework).
+// Now one call opens the one menu of the page:
+//
+//   const choice = await SF.menu.open({anchor, entries, label});
+//   const choice = await SF.menu.open({x, y, entries, label, returnTo: row});
+//   // choice: {id, entry} of the row chosen, or null (closed without one)
+//
+// - anchor: the control the menu hangs from (a press on the same control
+//   while its menu is open closes it, as a toggle); or x, y: a point in the
+//   window -- where a right-click was, or a row's corner for Shift+F10 -- the
+//   menu's corner exactly there;
+// - entries: the rows, as sf-menu-context takes them;
+// - label: the menu's name, read by a screen reader;
+// - size: the menu's size step, as sf-menu-context's size attribute; left
+//   out, the step of what opens it (the anchor's, its component's or the
+//   Smart component holding it: a row menu of a table of size 1 is size 1);
+// - returnTo: where the focus goes when the menu closes (the row it acted
+//   on); left out, the menu gives the focus back to where it was, or to the
+//   anchor.
+//
+// The menu is fetched by the Loader the first time (SF.Loader.ensure), one on
+// the page -- on the body, or in the open modal dialog the anchor is in, since
+// a modal dialog makes the rest of the page inert. A second opening while one
+// is open closes the first, which answers null. The answer never rejects:
+// without a menu (no Loader, no sf-menu-context) it is null.
+//
+// Every bundle may carry a copy of this module (bundles each carry their own
+// module copy), so the one menu and its pending answer live behind the shared
+// global: the first copy to run publishes SF.menu.open and every other copy
+// calls the published one.
+
+const SHARED = 'data-sf-menu-shared';
+
+function installMenuOpen() {
+  let pending = null;
+  let point = null; // The opening the menu belongs to now, kept past its answer: a choice
+  // answers before the menu closes, and the focus goes back on closing.
+
+  let shown = null;
+
+  const settle = value => {
+    const waiting = pending;
+    pending = null;
+    waiting?.resolve(value);
+    return waiting;
+  };
+
+  function sharedMenu(anchor) {
+    const doc = globalThis.document;
+    let menu = doc.querySelector(`[${SHARED}]`);
+
+    if (!menu) {
+      menu = doc.createElement('sf-menu-context');
+      menu.setAttribute('popup', '');
+      menu.setAttribute(SHARED, '');
+      menu.addEventListener('sf-menu-context-select', event => {
+        if (event.target !== menu) return;
+        settle({
+          id: event.detail?.id ?? null,
+          entry: event.detail?.entry ?? null
+        });
+      });
+      menu.addEventListener('sf-menu-context-closed', event => {
+        if (event.target !== menu) return;
+        settle(null);
+        const opening = shown;
+        shown = null;
+        const back = opening?.returnTo;
+        if (!back?.isConnected) return; // After the menu's own return: the row the person acted on, when the
+        // focus fell to the page, stayed in the closed menu or went back to
+        // the «⋯» that opened it (a pointer's control, not a Tab stop).
+
+        const anchor = opening.anchor;
+        setTimeout(() => {
+          const active = doc.activeElement;
+
+          if (!active || active === doc.body || active === doc.documentElement || menu.contains(active) || anchor && (active === anchor || anchor.contains?.(active))) {
+            back.focus?.({
+              preventScroll: true
+            });
+          }
+        }, 0);
+      });
+    } // In the open modal dialog the opener is in, or on the body.
+
+
+    const home = anchor?.closest?.('dialog[open]') || doc.body;
+    if (menu.parentNode !== home && !menu.isOpen) home.append(menu);
+    return menu;
+  } // A point in the window as an anchor of no size: sf-menu-context hangs its
+  // corner exactly there and reads the page under it (density, focus back).
+
+
+  function pointAnchor(x, y, near) {
+    const doc = globalThis.document;
+
+    if (!point?.isConnected) {
+      point = doc.createElement('span');
+      point.setAttribute('aria-hidden', 'true');
+      point.setAttribute('data-sf-menu-point', '');
+    }
+
+    const home = near?.closest?.('dialog[open]') || doc.body;
+    if (point.parentNode !== home) home.append(point);
+    point.style.cssText = `position:fixed;left:${x}px;top:${y}px;inline-size:0;block-size:0;pointer-events:none;overflow:hidden`;
+    return point;
+  }
+
+  return async function open(options = {}) {
+    const {
+      anchor = null,
+      x,
+      y,
+      entries = [],
+      label = '',
+      size = '',
+      returnTo = null
+    } = options || {};
+    const atPoint = !(anchor instanceof Element);
+    if (atPoint && !(Number.isFinite(Number(x)) && Number.isFinite(Number(y)))) return null;
+    const doc = globalThis.document;
+    if (!doc) return null;
+    await globalThis.SF?.Loader?.ensure?.(['sf-menu-context']);
+    if (!globalThis.customElements?.get('sf-menu-context')) return null;
+    const menu = sharedMenu(atPoint ? returnTo : anchor); // The same control again: its open menu closes (a toggle).
+
+    if (!atPoint && menu.isOpen && pending?.anchor === anchor) {
+      menu.close({
+        reason: 'api'
+      });
+      return null;
+    }
+
+    if (menu.isOpen) {
+      settle(null);
+      shown = null;
+      menu.close({
+        restoreFocus: false,
+        reason: 'api',
+        ask: false
+      });
+    }
+
+    if (label) menu.setAttribute('aria-label', label);else menu.removeAttribute('aria-label');
+    if (size) menu.setAttribute('size', String(size));else {
+      menu.removeAttribute('size');
+      menu.removeAttribute(_density_js__WEBPACK_IMPORTED_MODULE_0__.RELATIVE);
+    } // In the density of the control or the row it opens from (C22, C79), not
+    // of the body it stands on.
+
+    (0,_density_js__WEBPACK_IMPORTED_MODULE_0__.followDensity)(menu, atPoint ? returnTo : anchor);
+    menu.search = null;
+    menu.entries = Array.isArray(entries) ? entries : [];
+    return new Promise(resolve => {
+      pending = {
+        resolve,
+        anchor,
+        returnTo: returnTo instanceof Element ? returnTo : null
+      };
+      shown = pending;
+      const mine = pending;
+      const opening = atPoint ? typeof menu.openAt === 'function' ? menu.openAt(Number(x), Number(y), {
+        target: returnTo ?? undefined
+      }) : menu.openFor(pointAnchor(Number(x), Number(y), returnTo), {
+        side: 'block-end',
+        align: 'start',
+        focus: 'first'
+      }) : menu.openFor(anchor, {
+        side: 'block-end',
+        align: 'start',
+        focus: 'first'
+      });
+      Promise.resolve(opening).then(answer => {
+        // Refused (a listener kept it closed) or no surface: nothing chosen.
+        if (pending === mine && answer && answer !== true && answer.outcome !== 'applied') settle(null);
+      }, () => {
+        if (pending === mine) settle(null);
+      });
+    });
+  };
+} // The published one, or this copy published.
+
+
+function publishMenu() {
+  const SF = globalThis.SF = globalThis.SF || {};
+  SF.menu = SF.menu || {};
+  if (typeof SF.menu.open !== 'function') SF.menu.open = installMenuOpen();
+  return SF.menu;
+}
+function menuOpen(options) {
+  return publishMenu().open(options);
+}
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (menuOpen);
 
 /***/ },
 
@@ -649,6 +1151,731 @@ const Preferences = globalThis.SF?.Preferences;
 
 /***/ },
 
+/***/ "557c99eb8f3a"
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__),
+/* harmony export */   focusTarget: () => (/* binding */ focusTarget),
+/* harmony export */   roving: () => (/* binding */ roving)
+/* harmony export */ });
+// One Tab stop for a row of controls, and the arrows between them (owner
+// decision C184 (1)-(3), 2026-11-14; study control/research/2026-11-14-
+// toolbar-menu-open.md, K-02). A toolbar is not a component of its own
+// (C155 (8): no sf-toolbar): it is ordinary sf-button-icon groups, 4 apart
+// inside a group and a separator between groups (C144), and this helper gives
+// them the keyboard of the WAI-ARIA toolbar pattern:
+//
+// - the row is one Tab stop; Tab comes back to the control the person left
+//   (memory, C184 (3)), or to the first one (memory: false);
+// - the arrows of the row's orientation move between the controls, in the
+//   row's direction (right-to-left reverses ← and →), Home and End go to the
+//   ends, and the walk wraps;
+// - a control that cannot be used now (aria-disabled) stays in the walk,
+//   dimmed by its component, with its reason as a tooltip (C184 (2), as
+//   C164 (4) does for a menu row); disabled: 'skip' leaves it out. A control
+//   with the native disabled attribute cannot take the focus and is skipped;
+// - a control inside «Ещё» (the C155 row engine marks the part that left the
+//   row with .out or [hidden]) is not in the walk;
+// - ↓ (↑) on a menu button of a horizontal row opens its menu, as the
+//   pattern's menu button does.
+//
+// It is also the list's keyboard (C184 (5)): a list is one Tab stop and ↑ ↓
+// move between its rows (orientation 'vertical').
+//
+// roving(container, options) -> {refresh, set, current, items, destroy}.
+// The look stays with the components; this module holds no state of its own
+// outside the controller it returns, so every bundle may carry its own copy.
+const NATIVE_FOCUSABLE = 'button, a[href], input, select, textarea, [tabindex], [contenteditable=""], [contenteditable="true"]';
+const OUT = '.out, [hidden], [data-sf-out], [inert]'; // The element that takes the focus for an item: the item itself when it can
+// (a <button>, a row with a tabindex), else the control inside it -- an
+// sf-button-icon host draws a <button> and is display: contents.
+
+function focusTarget(item) {
+  if (!item) return null;
+  if (item.matches?.(NATIVE_FOCUSABLE)) return item;
+  return item.querySelector?.('button, a[href], [role="button"], [tabindex]') ?? item;
+}
+
+const isUnavailable = target => target.getAttribute?.('aria-disabled') === 'true';
+
+const isDisabled = target => Boolean(target.disabled) || target.matches?.(':disabled');
+
+function roving(container, {
+  items: itemsOf = 'button',
+  orientation = 'horizontal',
+  wrap = true,
+  disabled = 'focusable',
+  memory = true,
+  out = OUT,
+  onMove = null,
+  observe = true
+} = {}) {
+  let current = null; // Every item of the row, in order, as the targets that take the focus.
+
+  const all = () => {
+    const found = typeof itemsOf === 'function' ? itemsOf() : [...container.querySelectorAll(itemsOf)];
+    const targets = [];
+
+    for (const item of found) {
+      const target = focusTarget(item);
+      if (!target || !container.contains(target) || targets.includes(target)) continue; // Out of the row: a part inside it that left (into «Ещё») or is
+      // hidden. The row itself being hidden for now does not count.
+
+      const away = target.closest(out);
+      if (away && away !== container && container.contains(away)) continue;
+      targets.push(target);
+    }
+
+    return targets;
+  }; // The items the walk stops on.
+
+
+  const items = () => all().filter(target => !isDisabled(target) && (disabled === 'focusable' || !isUnavailable(target)));
+
+  function set(element) {
+    const target = focusTarget(element);
+    const every = all();
+    if (!target || !every.includes(target)) return;
+    current = target;
+
+    for (const other of every) {
+      const next = other === target ? '0' : '-1';
+      if (other.getAttribute('tabindex') !== next) other.setAttribute('tabindex', next);
+    }
+  } // After a drawing or a change of the row: the one Tab stop is the item
+  // remembered, or the first one when it is gone (or the row forgets).
+
+
+  function refresh() {
+    const list = items();
+
+    if (!list.length) {
+      // Nothing to stop on: no item keeps a stop either (a disabled field's
+      // toolbar is not a Tab stop).
+      for (const other of all()) if (other.getAttribute('tabindex') !== '-1') other.setAttribute('tabindex', '-1');
+
+      current = null;
+      return;
+    }
+
+    set(current && list.includes(current) ? current : list[0]);
+  }
+
+  const vertical = orientation === 'vertical';
+  const both = orientation === 'both';
+
+  function onKeydown(event) {
+    if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey) return;
+    const list = items();
+    const target = list.find(one => one === event.target || one.contains(event.target));
+    if (!target) return; // A field inside an item (a link's address) keeps its own keys.
+
+    if (event.target !== target && event.target.matches?.('input, textarea, select, [contenteditable="true"], [contenteditable=""]')) return;
+    const rtl = getComputedStyle(container).direction === 'rtl';
+    const forward = vertical ? ['ArrowDown'] : both ? ['ArrowDown', rtl ? 'ArrowLeft' : 'ArrowRight'] : [rtl ? 'ArrowLeft' : 'ArrowRight'];
+    const back = vertical ? ['ArrowUp'] : both ? ['ArrowUp', rtl ? 'ArrowRight' : 'ArrowLeft'] : [rtl ? 'ArrowRight' : 'ArrowLeft'];
+    const at = list.indexOf(target);
+    let next = null;
+
+    if (!vertical && !both && (event.key === 'ArrowDown' || event.key === 'ArrowUp') && target.getAttribute('aria-haspopup') === 'menu' && !isUnavailable(target)) {
+      event.preventDefault();
+      target.click();
+      return;
+    }
+
+    if (forward.includes(event.key)) next = at + 1 < list.length ? list[at + 1] : wrap ? list[0] : null;else if (back.includes(event.key)) next = at > 0 ? list[at - 1] : wrap ? list[list.length - 1] : null;else if (event.key === 'Home') next = list[0];else if (event.key === 'End') next = list[list.length - 1];else return;
+    event.preventDefault();
+    if (!next || next === target) return;
+    set(next);
+    next.focus();
+    onMove?.(next, event.key);
+  }
+
+  function onFocusIn(event) {
+    const target = all().find(one => one === event.target);
+    if (!target || target === current) return;
+    set(target);
+    onMove?.(target, 'focus');
+  }
+
+  function onFocusOut(event) {
+    if (memory || container.contains(event.relatedTarget)) return;
+    const list = items();
+    if (list.length) set(list[0]);
+  }
+
+  container.addEventListener('keydown', onKeydown);
+  container.addEventListener('focusin', onFocusIn);
+  container.addEventListener('focusout', onFocusOut); // Items drawn later -- a host that draws its <button> on its own schedule
+  // (sf-button-icon), a row added -- join the walk with tabindex -1 at once:
+  // the row stays one Tab stop whatever draws when.
+
+  let queued = false;
+  const watcher = observe && typeof MutationObserver === 'function' ? new MutationObserver(() => {
+    if (queued) return;
+    queued = true;
+    queueMicrotask(() => {
+      queued = false;
+      refresh();
+    });
+  }) : null;
+  watcher?.observe(container, {
+    childList: true,
+    subtree: true
+  });
+  refresh();
+  return {
+    refresh,
+    set,
+    items,
+
+    get current() {
+      return current;
+    },
+
+    destroy() {
+      watcher?.disconnect();
+      container.removeEventListener('keydown', onKeydown);
+      container.removeEventListener('focusin', onFocusIn);
+      container.removeEventListener('focusout', onFocusOut);
+    }
+
+  };
+}
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (roving);
+
+/***/ },
+
+/***/ "c11c730f061a"
+(module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   DATE_FUTURE_PERIODS: () => (/* binding */ DATE_FUTURE_PERIODS),
+/* harmony export */   DATE_PERIODS: () => (/* binding */ DATE_PERIODS),
+/* harmony export */   LEGACY_DATE_OPERATORS: () => (/* binding */ LEGACY_DATE_OPERATORS),
+/* harmony export */   LEGACY_DATE_OPERATORS_UNTIL: () => (/* binding */ LEGACY_DATE_OPERATORS_UNTIL),
+/* harmony export */   buildFilterRequest: () => (/* binding */ buildFilterRequest),
+/* harmony export */   dateConditionLabel: () => (/* binding */ dateConditionLabel),
+/* harmony export */   dateConditionOf: () => (/* binding */ dateConditionOf),
+/* harmony export */   dateConditionPhrase: () => (/* binding */ dateConditionPhrase),
+/* harmony export */   dateConditionValue: () => (/* binding */ dateConditionValue),
+/* harmony export */   dateFilterChipText: () => (/* binding */ dateFilterChipText),
+/* harmony export */   dateFilterConditions: () => (/* binding */ dateFilterConditions),
+/* harmony export */   dateFilterKind: () => (/* binding */ dateFilterKind),
+/* harmony export */   dateGroupLabel: () => (/* binding */ dateGroupLabel),
+/* harmony export */   filterRequestContext: () => (/* binding */ filterRequestContext),
+/* harmony export */   isEmptyFilterEntry: () => (/* binding */ isEmptyFilterEntry),
+/* harmony export */   normalizeFilterEntry: () => (/* binding */ normalizeFilterEntry),
+/* harmony export */   resolveDatePeriod: () => (/* binding */ resolveDatePeriod)
+/* harmony export */ });
+/* harmony import */ var _core_js_page_language_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("43090d1c8307");
+/* harmony import */ var _core_js_deprecations_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__("d3818183b14c");
+/* harmony import */ var _input_date_js_locale_calendar_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__("c4779e51fee1");
+/* harmony import */ var _lang_index_mjs__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__("354525e80715");
+var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_core_js_page_language_js__WEBPACK_IMPORTED_MODULE_0__, _core_js_deprecations_js__WEBPACK_IMPORTED_MODULE_1__]);
+([_core_js_page_language_js__WEBPACK_IMPORTED_MODULE_0__, _core_js_deprecations_js__WEBPACK_IMPORTED_MODULE_1__] = __webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
+/* harmony import */ var _core_js_page_language_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_core_js_page_language_js__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _core_js_deprecations_js__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_core_js_deprecations_js__WEBPACK_IMPORTED_MODULE_1__);
+// The date filter's conditions, its server contract and its words (owner
+// decision C293, 2026-11-17; study ui-control
+// prototypes/date-filter-conditions-study.html, notes
+// control/research/2026-11-17-date-filter/README.md).
+//
+// A field holds one date (a date, or a date and time) or a period (a start and
+// an end). The filter is a condition first and then exactly what the condition
+// needs: nothing, one day, two days, a number of days, or -- for a period
+// field -- a period by name or two days. One condition per field travels to the
+// server as {operator, value}:
+//
+//   one date    eq, lt, gt, gte, lte          value: "yyyy-mm-dd"
+//               between                       value: ["yyyy-mm-dd", "yyyy-mm-dd"], both days in
+//               period                        value: a period's name (DATE_PERIODS)
+//               last-days, next-days          value: a whole number of days, today counted
+//   a period    overlaps, within, starts, ends   value: a period's name or two days
+//               contains                      value: "yyyy-mm-dd"
+//   both        empty, not-empty              value: true
+//
+// The request carries the context the server resolves the periods in,
+// {timeZone, weekStart} (weekStart 0 Sunday .. 6 Saturday, as Date#getDay
+// counts): «this week» is the server's to work out, by name, so a saved view
+// stays «this week» and the browser's clock is not trusted. A date and time is
+// compared by its day in that time zone.
+//
+// The operators today, week and month (fix/date-pd) are read as the periods
+// today, this-week and this-month until 2027-01-01 (contracts/changes/journal.json
+// value-date-filter-period-operators).
+//
+// No DOM here and no Lit: the table, a record view and a server-side test read
+// the same rules.
+
+
+
+
+const SET_NAME = 'sf-field-renderers'; // Whole calendar periods (this week is Monday to Sunday where the week starts
+// on Monday, this month to its last day, this year to 31 December) and the
+// rolling «last 7 days», today and the six days before it.
+
+const DATE_PERIODS = Object.freeze(['today', 'yesterday', 'this-week', 'last-week', 'last-7-days', 'this-month', 'last-month', 'this-year']); // A deadline field (filter.future: true) also looks forward. «Overdue» is not
+// a date condition: it depends on the record's status.
+
+const DATE_FUTURE_PERIODS = Object.freeze(['tomorrow', 'next-week', 'next-month']);
+const LEGACY_DATE_OPERATORS = Object.freeze({
+  today: 'today',
+  week: 'this-week',
+  month: 'this-month'
+});
+const LEGACY_DATE_OPERATORS_UNTIL = '2027-01-01'; // What a condition needs: none | day | days | count | when (a period's name or
+// two days).
+
+const DAY_OPERATORS = ['eq', 'lt', 'gt', 'gte', 'lte'];
+const PERIOD_FIELD_OPERATORS = ['overlaps', 'within', 'starts', 'ends'];
+
+function condition(operator, need, group, period = '') {
+  return Object.freeze({
+    key: period ? `period:${period}` : operator,
+    operator,
+    need,
+    group,
+    ...(period ? {
+      period
+    } : {})
+  });
+}
+
+function singleConditions(future) {
+  return [condition('eq', 'day', 'date'), condition('between', 'days', 'date'), condition('lt', 'day', 'date'), condition('gt', 'day', 'date'), condition('gte', 'day', 'date'), condition('lte', 'day', 'date'), ...DATE_PERIODS.map(name => condition('period', 'none', 'period', name)), condition('last-days', 'count', 'period'), ...(future ? [condition('period', 'none', 'period', 'tomorrow'), condition('period', 'none', 'period', 'next-week'), condition('next-days', 'count', 'period'), condition('period', 'none', 'period', 'next-month')] : []), condition('empty', 'none', 'filled'), condition('not-empty', 'none', 'filled')];
+}
+
+function periodFieldConditions() {
+  return [...PERIOD_FIELD_OPERATORS.map(operator => condition(operator, 'when', 'range')), condition('contains', 'day', 'range'), condition('empty', 'none', 'filled'), condition('not-empty', 'none', 'filled')];
+} // A field is a period when it says so: its property type or control is
+// `period`, or its filter's kind is. Every other date field holds one date.
+
+
+function dateFilterKind(field = {}) {
+  const asked = [field.filter?.kind, field.filter?.control, field.propertyType, field.type];
+  return asked.includes('period') ? 'period' : 'date';
+}
+
+function isDueField(field = {}) {
+  return field.filter?.future === true || field.future === true;
+} // The conditions the field's filter offers, in the order of the list. A host's
+// filter.operators narrows them: an operator it names stays, `period` keeps
+// every period, and the old today, week and month keep every period and «last
+// N days» (they were the list's periods).
+
+
+function dateFilterConditions(field = {}) {
+  const all = dateFilterKind(field) === 'period' ? periodFieldConditions() : singleConditions(isDueField(field));
+  const asked = field.filter?.operators;
+  if (!Array.isArray(asked) || !asked.length) return all;
+  const names = new Set();
+
+  for (const operator of asked) {
+    const name = String(operator);
+
+    if (LEGACY_DATE_OPERATORS[name]) {
+      names.add('period');
+      names.add('last-days');
+      names.add('next-days');
+    } else names.add(name);
+  }
+
+  const kept = all.filter(one => names.has(one.operator));
+  return kept.length ? kept : all;
+}
+
+function isDay(value) {
+  return typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/u.test(value);
+}
+
+function dayOf(value) {
+  if (typeof value !== 'string') return '';
+  const day = value.slice(0, 10);
+  return isDay(day) ? day : '';
+}
+
+function isTwoDays(value) {
+  return Array.isArray(value) && value.length === 2 && isDay(dayOf(value[0])) && isDay(dayOf(value[1]));
+}
+
+function isPeriodName(value) {
+  return typeof value === 'string' && (DATE_PERIODS.includes(value) || DATE_FUTURE_PERIODS.includes(value));
+}
+
+function isCount(value) {
+  const number = Number(value);
+  return value !== '' && value !== null && value !== true && Number.isInteger(number) && number > 0;
+} // The old operators as the new periods, noted once per page in
+// SF.deprecations until LEGACY_DATE_OPERATORS_UNTIL.
+
+
+function normalizeFilterEntry(entry) {
+  if (!entry || typeof entry !== 'object' || Array.isArray(entry)) return entry;
+  const period = LEGACY_DATE_OPERATORS[entry.operator];
+  if (!period) return entry;
+  (0,_core_js_deprecations_js__WEBPACK_IMPORTED_MODULE_1__.noteDeprecated)({
+    component: SET_NAME,
+    kind: 'value',
+    attribute: 'filter operator',
+    from: entry.operator,
+    to: `period ${period}`,
+    since: '2026-11-17',
+    remove_after: LEGACY_DATE_OPERATORS_UNTIL
+  });
+  return { ...entry,
+    operator: 'period',
+    value: period
+  };
+}
+
+function isBlank(value) {
+  if (value === null || value === undefined) return true;
+  if (Array.isArray(value)) return value.every(isBlank);
+  if (typeof value === 'string') return value.trim() === '';
+  if (typeof value === 'object') return Object.values(value).every(isBlank);
+  return false;
+} // Whether a filter entry says nothing yet, so the table drops it with its
+// chip. It reads the operator (DF-1): a period, «empty» and «not empty» are
+// whole by themselves, and a condition that needs a day is empty without one.
+// An entry of any other field keeps the old reading: empty when its value or
+// values are.
+
+
+function isEmptyFilterEntry(entry) {
+  if (!entry || typeof entry !== 'object' || Array.isArray(entry)) return isBlank(entry);
+  const one = LEGACY_DATE_OPERATORS[entry.operator] ? normalizeFilterEntry(entry) : entry;
+  const {
+    operator,
+    value
+  } = one;
+
+  switch (operator) {
+    case 'empty':
+    case 'not-empty':
+      return false;
+
+    case 'period':
+      return !isPeriodName(value);
+
+    case 'last-days':
+    case 'next-days':
+      return !isCount(value);
+
+    case 'overlaps':
+    case 'within':
+    case 'starts':
+    case 'ends':
+      return !(isPeriodName(value) || isTwoDays(value));
+
+    default:
+      break;
+  }
+
+  if (Object.prototype.hasOwnProperty.call(one, 'values')) return isBlank(one.values);
+  if (Object.prototype.hasOwnProperty.call(one, 'value')) return isBlank(one.value);
+  return Object.entries(one).filter(([key]) => !['operator', 'control', 'type'].includes(key)).every(([, item]) => isBlank(item));
+} // The value a condition starts with when it is chosen: the stale day of the
+// condition before is not carried into a period (DF-2), but a day stays a day
+// and two days stay two days.
+
+function dateConditionValue(next, previous = {}) {
+  const before = previous?.value;
+
+  switch (next.need) {
+    case 'none':
+      return next.period || true;
+
+    case 'day':
+      return isDay(dayOf(before)) ? dayOf(before) : null;
+
+    case 'days':
+      return isTwoDays(before) ? before.map(dayOf) : null;
+
+    case 'count':
+      return isCount(before) ? Number(before) : 30;
+
+    case 'when':
+      return isPeriodName(before) || isTwoDays(before) ? before : 'this-week';
+
+    default:
+      return null;
+  }
+} // The condition an entry stands for, in the field's list.
+
+function dateConditionOf(field, entry) {
+  const list = dateFilterConditions(field);
+  const one = normalizeFilterEntry(entry || {});
+  if (one?.operator === 'period') return list.find(item => item.period === one.value) ?? null;
+  return list.find(item => item.operator === one?.operator) ?? null;
+} // The context a request carries: the time zone and the first day of the week
+// the server resolves the periods in. A host that knows the person's own
+// (monday.com takes them from the profile) passes them; otherwise the
+// browser's zone and the page language's week.
+
+function filterRequestContext(node = null, {
+  timeZone,
+  weekStart
+} = {}) {
+  let zone = typeof timeZone === 'string' && timeZone ? timeZone : '';
+
+  if (!zone) {
+    try {
+      zone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+    } catch {
+      zone = 'UTC';
+    }
+  }
+
+  const start = Number.isInteger(weekStart) && weekStart >= 0 && weekStart <= 7 ? weekStart % 7 : (0,_input_date_js_locale_calendar_js__WEBPACK_IMPORTED_MODULE_2__.localeWeekStart)((0,_core_js_page_language_js__WEBPACK_IMPORTED_MODULE_0__.pageLocale)(node));
+  return {
+    timeZone: zone,
+    weekStart: start
+  };
+} // A filter's values as the server is asked for them: the old operators read as
+// periods, empty entries left out, and the context beside them.
+
+function buildFilterRequest(values = {}, {
+  node = null,
+  context
+} = {}) {
+  const out = {};
+
+  for (const [key, entry] of Object.entries(values || {})) {
+    if (isEmptyFilterEntry(entry)) continue;
+    out[key] = normalizeFilterEntry(entry);
+  }
+
+  return {
+    values: out,
+    context: filterRequestContext(node, context || {})
+  };
+} // A period's first and last day for a given today, as the server is asked to
+// resolve it (a reference for a host's server and for the tests). `today` is
+// yyyy-mm-dd in the request's time zone.
+
+function resolveDatePeriod(name, {
+  today,
+  weekStart = 1
+} = {}) {
+  if (!isDay(today)) return null;
+  const [y, m, d] = today.split('-').map(Number);
+
+  const at = (year, month, day) => {
+    const date = new Date(Date.UTC(year, month - 1, day));
+    return date.toISOString().slice(0, 10);
+  };
+
+  const shift = days => at(y, m, d + days);
+
+  const dow = new Date(Date.UTC(y, m - 1, d)).getUTCDay();
+  const back = (dow - weekStart % 7 + 7) % 7;
+
+  switch (name) {
+    case 'today':
+      return [today, today];
+
+    case 'yesterday':
+      return [shift(-1), shift(-1)];
+
+    case 'tomorrow':
+      return [shift(1), shift(1)];
+
+    case 'this-week':
+      return [shift(-back), shift(6 - back)];
+
+    case 'last-week':
+      return [shift(-back - 7), shift(-back - 1)];
+
+    case 'next-week':
+      return [shift(7 - back), shift(13 - back)];
+
+    case 'last-7-days':
+      return [shift(-6), today];
+
+    case 'this-month':
+      return [at(y, m, 1), at(y, m + 1, 0)];
+
+    case 'last-month':
+      return [at(y, m - 1, 1), at(y, m, 0)];
+
+    case 'next-month':
+      return [at(y, m + 1, 1), at(y, m + 2, 0)];
+
+    case 'this-year':
+      return [at(y, 1, 1), at(y, 12, 31)];
+
+    default:
+      return null;
+  }
+} // ---- Words ----
+
+const camel = text => String(text).replace(/-([a-z0-9])/gu, (_, letter) => letter.toUpperCase());
+
+function word(node, key, vars, count) {
+  return (0,_core_js_page_language_js__WEBPACK_IMPORTED_MODULE_0__.pageWord)(_lang_index_mjs__WEBPACK_IMPORTED_MODULE_3__["default"], key, node, {
+    component: SET_NAME,
+    vars,
+    count
+  });
+} // A condition's name in the list: «Точная дата», «Прошлый месяц», «Пусто».
+
+
+function dateConditionLabel(node, item) {
+  if (!item) return '';
+  if (item.period) return word(node, `datePeriod_${camel(item.period)}`);
+  return word(node, `dateCondition_${camel(item.operator)}`);
+}
+function dateGroupLabel(node, group) {
+  return word(node, `dateGroup_${group}`);
+}
+
+function currentYear(timeZone) {
+  try {
+    return new Intl.DateTimeFormat('en-CA', {
+      timeZone,
+      year: 'numeric'
+    }).format(new Date());
+  } catch {
+    return String(new Date().getFullYear());
+  }
+}
+
+function dayDate(day) {
+  const [y, m, d] = day.split('-').map(Number);
+  return new Date(Date.UTC(y, m - 1, d, 12));
+} // A day as the chip says it: «17 ноября», «20 января 2025» -- the year only when
+// it is not this year.
+
+
+function dayText(node, day, timeZone) {
+  if (!isDay(day)) return '…';
+  const withYear = day.slice(0, 4) !== currentYear(timeZone);
+
+  try {
+    return new Intl.DateTimeFormat((0,_core_js_page_language_js__WEBPACK_IMPORTED_MODULE_0__.pageLocale)(node), {
+      day: 'numeric',
+      month: 'long',
+      ...(withYear ? {
+        year: 'numeric'
+      } : {}),
+      timeZone: 'UTC'
+    }).format(dayDate(day));
+  } catch {
+    return day;
+  }
+} // Two days as one span: «1–15 ноября», «28 октября – 3 ноября».
+
+
+function spanText(node, from, to, timeZone) {
+  const a = dayOf(from);
+  const b = dayOf(to);
+  if (!isDay(a) || !isDay(b)) return dayText(node, a || b, timeZone);
+  if (a === b) return dayText(node, a, timeZone);
+  const year = currentYear(timeZone);
+  const withYear = a.slice(0, 4) !== year || b.slice(0, 4) !== year;
+
+  try {
+    const format = new Intl.DateTimeFormat((0,_core_js_page_language_js__WEBPACK_IMPORTED_MODULE_0__.pageLocale)(node), {
+      day: 'numeric',
+      month: 'long',
+      ...(withYear ? {
+        year: 'numeric'
+      } : {}),
+      timeZone: 'UTC'
+    });
+    return format.formatRange(dayDate(a), dayDate(b));
+  } catch {
+    return `${dayText(node, a, timeZone)} – ${dayText(node, b, timeZone)}`;
+  }
+}
+
+function periodPhrase(node, name) {
+  return word(node, `datePeriodIn_${camel(name)}`);
+} // What a condition says after the field's name on its chip: «в прошлом
+// месяце», «не позже 17 ноября», «идёт на этой неделе», «пусто» (DF-4).
+
+
+function dateConditionPhrase(field, entry, node = null, {
+  timeZone
+} = {}) {
+  const one = normalizeFilterEntry(entry || {});
+  const zone = timeZone || filterRequestContext(node).timeZone;
+  const {
+    operator,
+    value
+  } = one || {};
+
+  const when = () => isPeriodName(value) ? periodPhrase(node, value) : isTwoDays(value) ? spanText(node, value[0], value[1], zone) : '…';
+
+  switch (operator) {
+    case 'eq':
+      return dayText(node, dayOf(value), zone);
+
+    case 'between':
+      return Array.isArray(value) ? spanText(node, value[0], value[1], zone) : '…';
+
+    case 'lt':
+    case 'gt':
+    case 'gte':
+    case 'lte':
+      return word(node, `dateChip_${operator}`, {
+        date: dayText(node, dayOf(value), zone)
+      });
+
+    case 'period':
+      return isPeriodName(value) ? periodPhrase(node, value) : '…';
+
+    case 'last-days':
+    case 'next-days':
+      return word(node, `dateChip_${camel(operator)}`, undefined, isCount(value) ? Number(value) : 0);
+
+    case 'empty':
+    case 'not-empty':
+      return word(node, `dateChip_${camel(operator)}`);
+
+    case 'overlaps':
+    case 'starts':
+    case 'ends':
+      return word(node, `dateChip_${operator}`, {
+        when: when()
+      });
+
+    case 'within':
+      return isPeriodName(value) ? word(node, 'dateChip_within', {
+        when: when()
+      }) : word(node, 'dateChip_withinDays', {
+        when: when()
+      });
+
+    case 'contains':
+      return word(node, 'dateChip_contains', {
+        date: dayText(node, dayOf(value), zone)
+      });
+
+    default:
+      return '';
+  }
+} // The chip of a date filter: «Дата оплаты: в прошлом месяце». A condition the
+// set does not know keeps the field's name alone.
+
+function dateFilterChipText(field = {}, entry, node = null, options = {}) {
+  const name = String(field.label ?? field.key ?? '');
+  const phrase = dateConditionPhrase(field, entry, node, options);
+  return phrase ? word(node, 'dateChip', {
+    field: name,
+    condition: phrase
+  }) : name;
+}
+__webpack_async_result__();
+} catch(e) { __webpack_async_result__(e); } });
+
+/***/ },
+
 /***/ "9ce1a42b2a85"
 (__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
@@ -815,31 +2042,50 @@ function composeTime(original, text) {
 __webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   CURRENCY_DISPLAYS: () => (/* binding */ CURRENCY_DISPLAYS),
+/* harmony export */   addDecimal: () => (/* binding */ addDecimal),
+/* harmony export */   compareDecimal: () => (/* binding */ compareDecimal),
+/* harmony export */   currencyCodes: () => (/* binding */ currencyCodes),
+/* harmony export */   currencyDisplayOf: () => (/* binding */ currencyDisplayOf),
+/* harmony export */   currencyOf: () => (/* binding */ currencyOf),
+/* harmony export */   editableDecimal: () => (/* binding */ editableDecimal),
 /* harmony export */   formatDecimal: () => (/* binding */ formatDecimal),
 /* harmony export */   formatMoney: () => (/* binding */ formatMoney),
 /* harmony export */   formatPercent: () => (/* binding */ formatPercent),
 /* harmony export */   fractionDigits: () => (/* binding */ fractionDigits),
+/* harmony export */   isRtlLocale: () => (/* binding */ isRtlLocale),
+/* harmony export */   minorUnits: () => (/* binding */ minorUnits),
 /* harmony export */   moneyParts: () => (/* binding */ moneyParts),
-/* harmony export */   readDecimal: () => (/* binding */ readDecimal)
+/* harmony export */   moneyTotals: () => (/* binding */ moneyTotals),
+/* harmony export */   readDecimal: () => (/* binding */ readDecimal),
+/* harmony export */   readTypedDecimal: () => (/* binding */ readTypedDecimal),
+/* harmony export */   restingDecimal: () => (/* binding */ restingDecimal)
 /* harmony export */ });
 /* harmony import */ var _core_js_format_intl_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("15b4e93ff6ed");
-var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_core_js_format_intl_js__WEBPACK_IMPORTED_MODULE_0__]);
-var __webpack_async_dependencies_result__ = (__webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
-_core_js_format_intl_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_async_dependencies_result__[0];
+/* harmony import */ var _core_js_format_number_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__("c9ce0852ac73");
+var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_core_js_format_intl_js__WEBPACK_IMPORTED_MODULE_0__, _core_js_format_number_js__WEBPACK_IMPORTED_MODULE_1__]);
+([_core_js_format_intl_js__WEBPACK_IMPORTED_MODULE_0__, _core_js_format_number_js__WEBPACK_IMPORTED_MODULE_1__] = __webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
 // Decimal numbers as strings, never as floats (simai.property-view-port
 // 1.18.0; Larena property types standard, notes of 2026-11-03: «Never a float
 // on the wire»). What a person typed is read into a canonical decimal string,
 // and a decimal, a money amount and a percent are shown in the page's language
 // through Intl, which formats a string by its digits: «1500.10» never passes
 // through a float on the way to «1 500,10 ₽». Pure, so the unit suite reads it
-// without a browser; the View set draws the editors of money, percent and
-// items with its own copy of the same rules.
+// without a browser. Money and percent are the Framework's in every mode
+// (owner decision C291 (2)) and their display, paste and totals follow owner
+// decision C294 (2026-11-17, MP-1..MP-12): the standard sign, never the
+// narrow one; a minus and nothing else for a negative; the amount and its
+// sign never broken apart; a direction mark on a right-to-left page; what a
+// person pastes («1 234,50 ₽», «$1,234.50») read as a decimal string. The
+// View set's items, compound and ru.requisites call these functions instead
+// of keeping a copy.
+
 
 const TYPED = /^([+-]?)(\d*)(?:[.,](\d*))?$/u; // Spaces a person or a formatter puts between groups of digits: the plain
 // space, the no-break space and the narrow no-break space ru-RU writes, and
 // the apostrophe some locales group with.
 
-const GROUP_SPACES = /[\s  ']/gu;
+const GROUP_SPACES = /[\s\u00a0\u202f']/gu;
 /**
  * What a person typed, read as a decimal: `{ok: true, value}` with the
  * canonical string (an optional minus, the integer digits without leading
@@ -891,24 +2137,76 @@ function fractionDigits(value) {
   const at = String(value ?? '').indexOf('.');
   return at === -1 ? 0 : String(value).length - at - 1;
 } // A float a host sent anyway is shown, not refused: a cell is not the place to
-// argue with a stored value. Only what reads as a decimal is formatted.
+// argue with a stored value. Only what reads as a decimal is formatted. A
+// float that is not a whole number is rounded to `digits` when they are given
+// (a currency's minor units, a percent's six) -- 0.1 + 0.2 roubles are
+// «0,30 ₽», never «0,30000000000000004 ₽» (MP-2) -- and the page hears it once
+// in the console: the value should have been a decimal string.
 
-function decimalOf(value) {
-  if (typeof value === 'number') return Number.isFinite(value) ? String(value) : null;
+const FLOAT_WARNED = new Set();
+
+function warnFloat(kind) {
+  if (FLOAT_WARNED.has(kind)) return;
+  FLOAT_WARNED.add(kind);
+  globalThis.console?.warn?.(`SF.fieldRenderers: a ${kind} value came as a number; send a decimal string ("1500.5"), a float loses digits.`);
+}
+
+function decimalOf(value, digits = null, kind = 'number') {
+  if (typeof value === 'number') {
+    if (!Number.isFinite(value)) return null;
+    if (Number.isInteger(value)) return Number.isSafeInteger(value) ? String(value) : BigInt(value).toString();
+    if (!Number.isInteger(digits)) return String(value);
+    warnFloat(kind);
+    return readDecimal(value.toFixed(Math.min(20, digits)).replace(/(\.\d*?)0+$/u, '$1').replace(/\.$/u, '')).value;
+  }
+
   const read = readDecimal(value);
   return read.ok ? read.value : null;
-}
-/** A decimal string in the locale's digits, with every digit it has: «1 500,5». */
+} // Right-to-left languages: a number drawn there starts with the right-to-left
+// mark, so a minus, a sign or a «%» never jumps to the other end of the line
+// (C294, MP-9). Intl writes the mark for a negative already; the positive
+// amount had none.
 
 
-function formatDecimal(value, locale) {
-  const decimal = decimalOf(value);
+const RTL_LANGUAGES = new Set(['ar', 'he', 'iw', 'fa', 'ur', 'ps', 'yi', 'dv', 'ckb', 'sd', 'ug']);
+const DIRECTION_MARKS = /[\u200e\u200f\u061c\u2066-\u2069]/gu;
+function isRtlLocale(locale) {
+  return RTL_LANGUAGES.has(String(locale || '').toLowerCase().split(/[-_]/u)[0]);
+} // On a right-to-left page a sign that ends in a neutral mark («US$», «CA$»)
+// is isolated left to right (U+2066 .. U+2069), or the browser draws «$US»; a
+// percent is held left to right as a whole («12.5 %»), as Intl's Arabic
+// pattern holds «12.5%» with its marks.
+
+function directed(text, locale, {
+  wholeLtr = false
+} = {}) {
+  if (!text || !isRtlLocale(locale)) return text;
+  if (wholeLtr) return `\u200f\u200e${text.replace(DIRECTION_MARKS, '')}\u200e`;
+  const glued = text.replace(/[A-Za-z]+[^\sA-Za-z\d\u00a0\u202f\u200e\u200f\u061c\u2066-\u2069.,\u066b\u066c-]+/gu, '\u2066$&\u2069');
+  return glued.startsWith('\u200f') ? glued : `\u200f${glued}`;
+} // The amount and its sign stay on one line: every plain space Intl leaves
+// between them becomes a no-break one (ru, de write U+00A0 already).
+
+
+const unbroken = text => text.replace(/ /gu, '\u00a0');
+/**
+ * A decimal string in the locale's digits and groups, with every digit it has
+ * and at least `minDigits`: «1 500,5», «1 234 567,5» (the Number type, MP-5;
+ * money and percent use the same groups). A float that is not whole keeps at
+ * most six digits.
+ */
+
+
+function formatDecimal(value, locale, {
+  minDigits = 0
+} = {}) {
+  const decimal = decimalOf(value, 6);
   if (decimal === null) return '';
-  const digits = Math.min(20, fractionDigits(decimal));
-  return (0,_core_js_format_intl_js__WEBPACK_IMPORTED_MODULE_0__.intlFormatter)('NumberFormat', locale, {
+  const digits = Math.min(20, Math.max(minDigits, fractionDigits(decimal)));
+  return directed(unbroken((0,_core_js_format_intl_js__WEBPACK_IMPORTED_MODULE_0__.intlFormatter)('NumberFormat', locale, {
     minimumFractionDigits: digits,
     maximumFractionDigits: digits
-  }).format(decimal);
+  }).format(decimal)), locale);
 }
 /** A money value as {amount, currency}; a field that fixes the currency takes a bare amount. */
 
@@ -930,11 +2228,38 @@ function moneyParts(value, fixed) {
     amount: value,
     currency
   };
+} // How a field names its currency (C294, q-mp-sign): Intl's standard sign
+// (`symbol`, the default) -- «₽» on a Russian page, «$» for the US dollar on an
+// English one and «CA$» for the Canadian dollar, so two currencies never read
+// the same -- or the code (`code`, for accounting and exports) or the name
+// (`name`). The narrow sign wrote USD, CAD and AUD all as «$» (MP-3): a field
+// asking for it gets the standard sign.
+
+const CURRENCY_DISPLAYS = Object.freeze(['symbol', 'code', 'name']);
+function currencyDisplayOf(field = {}) {
+  return CURRENCY_DISPLAYS.includes(field?.currencyDisplay) ? field.currencyDisplay : 'symbol';
+}
+/** ISO 4217 minor units of a currency (RUB 2, JPY 0, KWD 3); 2 for a code Intl does not know. */
+
+function minorUnits(currency) {
+  try {
+    return new Intl.NumberFormat('en', {
+      style: 'currency',
+      currency
+    }).resolvedOptions().maximumFractionDigits ?? 2;
+  } catch {
+    return 2;
+  }
 }
 /**
- * An amount with its currency, as a person reads it: «1 500,50 ₽», «$1,500.50».
- * The digits after the point are at least the currency's minor units (ISO
- * 4217) and every digit the amount has. Without a currency, the amount alone.
+ * An amount with its currency, as a person reads it: «1 500,50 ₽», «$1,500.50»,
+ * «CA$10.00» (C294). The digits after the point are at least the currency's
+ * minor units (ISO 4217) and every digit the amount has; a float is rounded
+ * to the minor units, with one console warning. A negative amount has the
+ * minus where the language writes it and nothing else -- no colour, no
+ * brackets (q-mp-negative). The amount and the sign never break apart, and a
+ * right-to-left page gets the direction mark. Without a currency, the amount
+ * alone.
  */
 
 function formatMoney(value, field = {}, locale = 'en') {
@@ -942,34 +2267,316 @@ function formatMoney(value, field = {}, locale = 'en') {
     amount,
     currency
   } = moneyParts(value, field.currency);
-  const decimal = decimalOf(amount);
+  const minor = currency ? minorUnits(currency) : 2;
+  const decimal = decimalOf(amount, minor, 'money');
   if (decimal === null) return '';
   if (!currency) return formatDecimal(decimal, locale);
-  const minor = (0,_core_js_format_intl_js__WEBPACK_IMPORTED_MODULE_0__.intlFormatter)('NumberFormat', locale, {
-    style: 'currency',
-    currency
-  }).resolvedOptions().maximumFractionDigits ?? 2;
   const digits = Math.min(20, Math.max(minor, fractionDigits(decimal)));
-  return (0,_core_js_format_intl_js__WEBPACK_IMPORTED_MODULE_0__.intlFormatter)('NumberFormat', locale, {
+  return directed(unbroken((0,_core_js_format_intl_js__WEBPACK_IMPORTED_MODULE_0__.intlFormatter)('NumberFormat', locale, {
     style: 'currency',
     currency,
-    currencyDisplay: 'narrowSymbol',
+    currencyDisplay: currencyDisplayOf(field),
     minimumFractionDigits: digits,
     maximumFractionDigits: digits
-  }).format(decimal);
+  }).format(decimal)), locale);
 }
-/** A percent, «12,5 %» or «12.5%»: the value is the percent ("20" is 20 %), never the share. */
+/**
+ * A percent, «12,5 %» and «12.5 %»: the value is the percent ("20" is 20 %),
+ * never the share -- the share is SF.format's word `share` (MP-4). One
+ * spelling in every language (C203 (3)): the number, a no-break space, «%».
+ * A float keeps at most six digits, with one console warning.
+ */
 
 function formatPercent(value, locale = 'en') {
-  const decimal = decimalOf(value);
+  const decimal = decimalOf(value, 6, 'percent');
   if (decimal === null) return '';
   const digits = Math.min(20, fractionDigits(decimal));
-  return (0,_core_js_format_intl_js__WEBPACK_IMPORTED_MODULE_0__.intlFormatter)('NumberFormat', locale, {
+  return directed((0,_core_js_format_number_js__WEBPACK_IMPORTED_MODULE_1__.percentSign)((0,_core_js_format_intl_js__WEBPACK_IMPORTED_MODULE_0__.intlFormatter)('NumberFormat', locale, {
     style: 'unit',
     unit: 'percent',
     minimumFractionDigits: digits,
     maximumFractionDigits: digits
-  }).format(decimal);
+  }).format(decimal)), locale, {
+    wholeLtr: true
+  });
+}
+/** The sum of decimal strings, by their digits (a column total): "1500.5" + "0.75" is "1501.25"; null when one is not a decimal. */
+
+function addDecimal(...values) {
+  let scale = 0;
+  const read = [];
+
+  for (const value of values.flat()) {
+    if (value === null || value === undefined || value === '') continue;
+    const one = decimalOf(value, 20);
+    if (one === null) return null;
+    read.push(one);
+    scale = Math.max(scale, fractionDigits(one));
+  }
+
+  let total = 0n;
+
+  for (const one of read) {
+    const negative = one.startsWith('-');
+    const [whole, fraction = ''] = one.replace('-', '').split('.');
+    const units = BigInt(whole + fraction.padEnd(scale, '0'));
+    total += negative ? -units : units;
+  }
+
+  const negative = total < 0n;
+  const digits = (negative ? -total : total).toString().padStart(scale + 1, '0');
+  const whole = digits.slice(0, digits.length - scale) || '0';
+  const fraction = scale ? digits.slice(-scale).replace(/0+$/u, '') : '';
+  const zero = /^0*$/u.test(whole + fraction);
+  return `${negative && !zero ? '-' : ''}${whole}${fraction ? `.${fraction}` : ''}`;
+}
+/**
+ * A money column's total (C294): the amounts added by their digits, one sum
+ * per currency, in the order the currencies first appear -- a column of
+ * dollars and euros is two sums, never one. [{currency, amount, text}];
+ * values that are not money are left out.
+ */
+
+function moneyTotals(values = [], field = {}, locale = 'en') {
+  const sums = new Map();
+
+  for (const value of values) {
+    const {
+      amount,
+      currency
+    } = moneyParts(value, field.currency);
+    const decimal = decimalOf(amount, currency ? minorUnits(currency) : null);
+    if (decimal === null) continue;
+    const key = currency ?? '';
+    sums.set(key, addDecimal(sums.get(key) ?? '0', decimal));
+  }
+
+  return [...sums].map(([currency, amount]) => ({
+    currency: currency || null,
+    amount,
+    text: formatMoney(currency ? {
+      amount,
+      currency
+    } : amount, {
+      currencyDisplay: field.currencyDisplay
+    }, locale)
+  }));
+} // What a person pastes or types, read as a decimal (C294, MP-8). Arabic-Indic
+// digits and separators are read as ASCII; the currency's signs and code,
+// «%», spaces, apostrophes and direction marks are dropped; a minus may stand
+// before or after the digits. With both a point and a comma the last one
+// separates the fraction; a separator that repeats groups; a single one is
+// the fraction, unless it is the page's group separator followed by exactly
+// three digits -- «1,234» on an English page is 1234, on a Russian one 1,234.
+
+const CURRENCY_MARKS = /[$€£¥₽₸₴₺₹₩₪₦₱฿₫¤]/gu;
+
+function signsOf(currency, locale) {
+  if (typeof currency !== 'string' || !/^[A-Z]{3}$/u.test(currency)) return [];
+  const signs = new Set([currency]);
+
+  for (const display of ['symbol', 'narrowSymbol', 'code', 'name']) {
+    try {
+      for (const part of new Intl.NumberFormat(locale, {
+        style: 'currency',
+        currency,
+        currencyDisplay: display
+      }).formatToParts(2)) {
+        if (part.type === 'currency') signs.add(part.value);
+      }
+    } catch {// A code Intl does not know keeps its letters only.
+    }
+  }
+
+  return [...signs].sort((a, b) => b.length - a.length);
+}
+
+function separatorsOf(locale) {
+  try {
+    const parts = new Intl.NumberFormat(locale).formatToParts(1234567.5);
+    return {
+      group: parts.find(part => part.type === 'group')?.value ?? ',',
+      decimal: parts.find(part => part.type === 'decimal')?.value ?? '.'
+    };
+  } catch {
+    return {
+      group: ',',
+      decimal: '.'
+    };
+  }
+}
+/**
+ * `{ok: true, value, typedDigits}` for what reads as a number -- the canonical
+ * decimal string (no groups, a point, no trailing zeros after it; null for
+ * nothing typed) and how many digits were typed after the separator -- or
+ * `{ok: false}`. `currency` names the code whose signs may stand in the text.
+ */
+
+
+function readTypedDecimal(text, {
+  locale = 'en',
+  currency = null
+} = {}) {
+  if (text === null || text === undefined) return {
+    ok: true,
+    value: null,
+    typedDigits: 0
+  };
+
+  if (typeof text === 'number') {
+    const read = readDecimal(Number.isInteger(text) ? text : String(text));
+    return read.ok ? {
+      ok: true,
+      value: read.value,
+      typedDigits: fractionDigits(read.value ?? '')
+    } : {
+      ok: false
+    };
+  }
+
+  let plain = String(text).replace(/[\u0660-\u0669]/gu, digit => String(digit.charCodeAt(0) - 0x660)).replace(/[\u06f0-\u06f9]/gu, digit => String(digit.charCodeAt(0) - 0x6f0)).replace(/\u066b/gu, '.').replace(/\u066c/gu, '');
+
+  for (const sign of signsOf(currency, locale)) plain = plain.split(sign).join('');
+
+  plain = plain.replace(CURRENCY_MARKS, '').replace(/[%\u066a]/gu, '').replace(DIRECTION_MARKS, '').replace(/[\s\u00a0\u202f'\u2019]/gu, '').replace(/[\u2212\u2013]/gu, '-');
+  if (plain === '') return {
+    ok: true,
+    value: null,
+    typedDigits: 0
+  };
+  let negative = false;
+
+  if (plain.startsWith('-')) {
+    negative = true;
+    plain = plain.slice(1);
+  } else if (plain.startsWith('+')) {
+    plain = plain.slice(1);
+  } else if (plain.endsWith('-')) {
+    negative = true;
+    plain = plain.slice(0, -1);
+  }
+
+  const dots = (plain.match(/\./gu) || []).length;
+  const commas = (plain.match(/,/gu) || []).length;
+
+  if (dots && commas) {
+    const mark = plain.charAt(Math.max(plain.lastIndexOf('.'), plain.lastIndexOf(',')));
+    plain = plain.split(mark === '.' ? ',' : '.').join('');
+    if (mark === ',') plain = plain.replace(',', '.');
+  } else if (dots + commas > 1) {
+    plain = plain.split(dots ? '.' : ',').join('');
+  } else if (dots + commas === 1) {
+    const mark = dots ? '.' : ',';
+    const after = plain.length - plain.indexOf(mark) - 1;
+    if (mark === separatorsOf(locale).group && after === 3) plain = plain.replace(mark, '');else plain = plain.replace(',', '.');
+  }
+
+  if (!/^\d*(?:\.\d*)?$/u.test(plain) || !/\d/u.test(plain)) return {
+    ok: false
+  };
+  const [whole = '', fraction = ''] = plain.split('.');
+  const integer = whole.replace(/^0+(?=\d)/u, '') || '0';
+  const digits = fraction.replace(/0+$/u, '');
+  const zero = /^0*$/u.test(integer + digits);
+  return {
+    ok: true,
+    value: `${negative && !zero ? '-' : ''}${integer}${digits ? `.${digits}` : ''}`,
+    typedDigits: fraction.length
+  };
+}
+/** A decimal at rest in an edit field: the locale's groups and point, at least `minDigits` after it, no sign («1 500,50»). */
+
+function restingDecimal(value, locale = 'en', minDigits = 0) {
+  const read = readDecimal(value);
+  if (!read.ok || read.value === null) return '';
+  const digits = Math.min(20, Math.max(minDigits, fractionDigits(read.value)));
+  return unbroken((0,_core_js_format_intl_js__WEBPACK_IMPORTED_MODULE_0__.intlFormatter)('NumberFormat', locale, {
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits
+  }).format(read.value));
+}
+/** Every ISO 4217 code the browser knows, for a currency field that names no list; the ten offered codes where Intl cannot list them. */
+
+function currencyCodes(fallback = []) {
+  try {
+    const codes = Intl.supportedValuesOf?.('currency');
+    if (Array.isArray(codes) && codes.length) return codes;
+  } catch {// An older engine: the offered list.
+  }
+
+  return [...fallback];
+} // What the editors of money and percent need (owner decision C291 (2): the two
+// types are the Framework's in every mode, the View set's editors were the
+// reference): the sign and minor units of a currency, two decimals compared by
+// their digits, and a decimal as it is typed back in an input.
+
+/**
+ * A currency in a locale: {sign, before, minor} -- the sign the locale writes
+ * by the field's `currencyDisplay` (the standard sign by default: «₽», «$»,
+ * «CA$»; C294), whether it stands before the amount, and its ISO 4217 minor
+ * units (RUB 2, JPY 0, KWD 3). A code Intl does not know keeps its letters,
+ * after the amount, with two minor digits.
+ */
+
+function currencyOf(code, locale = 'en', display = 'symbol') {
+  const fallback = {
+    sign: String(code ?? ''),
+    before: false,
+    minor: 2
+  };
+  if (typeof code !== 'string' || !/^[A-Z]{3}$/u.test(code)) return fallback;
+
+  try {
+    const format = new Intl.NumberFormat(locale, {
+      style: 'currency',
+      currency: code,
+      currencyDisplay: CURRENCY_DISPLAYS.includes(display) ? display : 'symbol'
+    });
+    const parts = format.formatToParts(1);
+    const at = parts.findIndex(part => part.type === 'currency');
+    if (at === -1) return fallback;
+    return {
+      sign: parts[at].value,
+      before: at < parts.findIndex(part => part.type === 'integer'),
+      minor: format.resolvedOptions().maximumFractionDigits ?? 2
+    };
+  } catch {
+    return fallback;
+  }
+}
+/** -1, 0 or 1: two decimals (canonical strings or integers) compared by their digits, never as floats; null when either is not a decimal. */
+
+function compareDecimal(a, b) {
+  const left = readDecimal(a);
+  const right = readDecimal(b);
+  if (!left.ok || !right.ok || left.value === null || right.value === null) return null;
+  const scale = Math.max(fractionDigits(left.value), fractionDigits(right.value));
+
+  const units = value => {
+    const negative = value.startsWith('-');
+    const [whole, fraction = ''] = value.replace('-', '').split('.');
+    const digits = BigInt(whole + fraction.padEnd(scale, '0'));
+    return negative ? -digits : digits;
+  };
+
+  const x = units(left.value);
+  const y = units(right.value);
+  return x === y ? 0 : x < y ? -1 : 1;
+}
+/** A decimal as typed back into an input: the locale's point, no groups («1500,5» on a Russian page); '' for nothing or not a decimal. */
+
+function editableDecimal(value, locale = 'en') {
+  const read = readDecimal(value);
+  if (!read.ok || read.value === null) return '';
+  let point = '.';
+
+  try {
+    point = (0,_core_js_format_intl_js__WEBPACK_IMPORTED_MODULE_0__.intlFormatter)('NumberFormat', locale, {}).formatToParts(1.5).find(part => part.type === 'decimal')?.value || '.';
+  } catch {
+    point = '.';
+  }
+
+  return read.value.replace('.', point);
 }
 __webpack_async_result__();
 } catch(e) { __webpack_async_result__(e); } });
@@ -1026,14 +2633,26 @@ function htmlText(value) {
 __webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   DATE_FUTURE_PERIODS: () => (/* reexport safe */ _date_filter_js__WEBPACK_IMPORTED_MODULE_13__.DATE_FUTURE_PERIODS),
+/* harmony export */   DATE_PERIODS: () => (/* reexport safe */ _date_filter_js__WEBPACK_IMPORTED_MODULE_13__.DATE_PERIODS),
 /* harmony export */   FILTER_RENDERERS: () => (/* binding */ FILTER_RENDERERS),
+/* harmony export */   NUMBER_FILTER_OPERATORS: () => (/* binding */ NUMBER_FILTER_OPERATORS),
 /* harmony export */   PROPERTY_TYPES: () => (/* reexport safe */ _registry_js__WEBPACK_IMPORTED_MODULE_5__.PROPERTY_TYPES),
+/* harmony export */   buildFilterRequest: () => (/* reexport safe */ _date_filter_js__WEBPACK_IMPORTED_MODULE_13__.buildFilterRequest),
+/* harmony export */   dateFilterChipText: () => (/* reexport safe */ _date_filter_js__WEBPACK_IMPORTED_MODULE_13__.dateFilterChipText),
+/* harmony export */   dateFilterConditions: () => (/* reexport safe */ _date_filter_js__WEBPACK_IMPORTED_MODULE_13__.dateFilterConditions),
 /* harmony export */   dateTimeAttribute: () => (/* binding */ dateTimeAttribute),
+/* harmony export */   filterRequestContext: () => (/* reexport safe */ _date_filter_js__WEBPACK_IMPORTED_MODULE_13__.filterRequestContext),
+/* harmony export */   isEmptyFilterEntry: () => (/* reexport safe */ _date_filter_js__WEBPACK_IMPORTED_MODULE_13__.isEmptyFilterEntry),
+/* harmony export */   isNumericType: () => (/* binding */ isNumericType),
+/* harmony export */   normalizeFilterEntry: () => (/* reexport safe */ _date_filter_js__WEBPACK_IMPORTED_MODULE_13__.normalizeFilterEntry),
 /* harmony export */   propertyModes: () => (/* binding */ propertyModes),
 /* harmony export */   renderCellField: () => (/* binding */ renderCellField),
 /* harmony export */   renderEditField: () => (/* binding */ renderEditField),
 /* harmony export */   renderFilterField: () => (/* binding */ renderFilterField),
-/* harmony export */   renderViewField: () => (/* binding */ renderViewField)
+/* harmony export */   renderTotalField: () => (/* binding */ renderTotalField),
+/* harmony export */   renderViewField: () => (/* binding */ renderViewField),
+/* harmony export */   resolveDatePeriod: () => (/* reexport safe */ _date_filter_js__WEBPACK_IMPORTED_MODULE_13__.resolveDatePeriod)
 /* harmony export */ });
 /* harmony import */ var lit__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("2a080a730149");
 /* harmony import */ var lit_directives_unsafe_html_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__("073f05ff1a81");
@@ -1046,8 +2665,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _html_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__("01ae054f01b4");
 /* harmony import */ var _core_js_deprecations_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__("d3818183b14c");
 /* harmony import */ var _decimal_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__("ab3947ea3647");
-var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([lit__WEBPACK_IMPORTED_MODULE_0__, lit_directives_unsafe_html_js__WEBPACK_IMPORTED_MODULE_1__, _core_js_page_language__WEBPACK_IMPORTED_MODULE_3__, _core_js_format_date_js__WEBPACK_IMPORTED_MODULE_4__, _core_js_deprecations_js__WEBPACK_IMPORTED_MODULE_9__, _decimal_js__WEBPACK_IMPORTED_MODULE_10__]);
-([lit__WEBPACK_IMPORTED_MODULE_0__, lit_directives_unsafe_html_js__WEBPACK_IMPORTED_MODULE_1__, _core_js_page_language__WEBPACK_IMPORTED_MODULE_3__, _core_js_format_date_js__WEBPACK_IMPORTED_MODULE_4__, _core_js_deprecations_js__WEBPACK_IMPORTED_MODULE_9__, _decimal_js__WEBPACK_IMPORTED_MODULE_10__] = __webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
+/* harmony import */ var _phone_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__("25be1c2df717");
+/* harmony import */ var _lang_index_mjs__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__("354525e80715");
+/* harmony import */ var _date_filter_js__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__("c11c730f061a");
+var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([lit__WEBPACK_IMPORTED_MODULE_0__, lit_directives_unsafe_html_js__WEBPACK_IMPORTED_MODULE_1__, _core_js_page_language__WEBPACK_IMPORTED_MODULE_3__, _core_js_format_date_js__WEBPACK_IMPORTED_MODULE_4__, _core_js_deprecations_js__WEBPACK_IMPORTED_MODULE_9__, _decimal_js__WEBPACK_IMPORTED_MODULE_10__, _date_filter_js__WEBPACK_IMPORTED_MODULE_13__]);
+([lit__WEBPACK_IMPORTED_MODULE_0__, lit_directives_unsafe_html_js__WEBPACK_IMPORTED_MODULE_1__, _core_js_page_language__WEBPACK_IMPORTED_MODULE_3__, _core_js_format_date_js__WEBPACK_IMPORTED_MODULE_4__, _core_js_deprecations_js__WEBPACK_IMPORTED_MODULE_9__, _decimal_js__WEBPACK_IMPORTED_MODULE_10__, _date_filter_js__WEBPACK_IMPORTED_MODULE_13__] = __webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
 /* harmony import */ var lit__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(lit__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var lit_directives_unsafe_html_js__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(lit_directives_unsafe_html_js__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var _core_js_page_language__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__);
@@ -1060,6 +2682,11 @@ var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([lit_
 
 
 
+
+
+
+ // The set's words and the property types' names live in its language files
+// (localization study LC-5), as a Smart component keeps them.
 
 
  // The Framework's field renderers, addressed by a property type and a template
@@ -1147,7 +2774,7 @@ function renderRangeFilterControl(field, host) {
             </div>
             <sf-dropdown
                     size=${filterSize(host)}
-                    appearance="outlined"
+                    appearance="bordered"
                     mode="select"
                     placeholder="${setText(host, 'operator')}"
                     root-class="flex-1"
@@ -1171,134 +2798,416 @@ function renderRangeFilterControl(field, host) {
             </sf-dropdown>
         </div>
     `;
+} // The number filter (owner decision C294, MP-6, MP-7; the same order as the
+// date filter): the condition comes first and under it exactly what it needs
+// -- one number, two («Между», both ends included) or nothing («Пусто», «Не
+// пусто», whose value is true). The nine conditions are the ones AG Grid, MUI
+// X and spreadsheets agree on; a field's `filter.operators` may name fewer.
+// The value is typed with the decimal keyboard and the sign in the field (a
+// fixed currency's sign where the language writes it, «%» after a percent),
+// pasted text is read as a person means it («1 234,50 ₽», «$1,234.50») and
+// the request carries a decimal string, never the typed text. A money field
+// whose currency lives in the value adds a currency choice (q-mp-mix): the
+// request carries `currency` and compares amounts within it. A new condition
+// of another shape drops the old value.
+
+
+const NUMBER_FILTER_OPERATORS = Object.freeze(['eq', 'neq', 'gt', 'gte', 'lt', 'lte', 'between', 'empty', 'not-empty']);
+const NUMBER_NO_VALUE_OPERATORS = new Set(['empty', 'not-empty']);
+
+const operatorShape = operator => NUMBER_NO_VALUE_OPERATORS.has(operator) ? 'none' : operator === 'between' ? 'two' : 'one';
+
+function numberOperatorLabel(host, operator) {
+  return NUMBER_FILTER_OPERATORS.includes(operator) ? setText(host, `numberOperator_${operator}`) : host.getFilterOperatorLabel(operator);
 }
 
-function renderNumberFilterControl(field, host) {
-  const control = host.getFilterControlValue(field.key);
-  const operators = field.filter?.operators || ['eq'];
+function renderNumberFilterControl(field, host, look = {}) {
+  const control = host.getFilterControlValue(field.key) || {};
+  const locale = (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(host ?? null);
+  const operators = field.filter?.operators || NUMBER_FILTER_OPERATORS;
   const selectedOperator = control.operator || field.filter?.defaultOperator || operators[0];
-  const isBetween = selectedOperator === 'between';
+  const shape = operatorShape(selectedOperator);
   const rawValue = control.value;
-  const rangeValue = Array.isArray(rawValue) ? rawValue : [rawValue || '', ''];
+  const rangeValue = Array.isArray(rawValue) ? rawValue : [rawValue ?? '', ''];
+  const currencies = look.currencies || null;
+  const currency = currencies ? currencies.includes(control.currency) ? control.currency : currencies[0] : look.currency || null;
+  const sign = look.money && currency ? (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.currencyOf)(currency, locale, (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.currencyDisplayOf)(field)) : null;
+  const textStart = sign?.before ? sign.sign : '';
+  const textEnd = look.percent ? '%' : sign && !sign.before ? sign.sign : '';
+  const minDigits = look.money && currency ? (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.currencyOf)(currency, locale).minor : 0;
 
-  const patchNumberValue = (index, nextInputValue) => {
-    if (!isBetween) {
-      host.patchTempFilterValue(field.key, {
-        value: nextInputValue || '',
-        operator: selectedOperator
+  const shown = value => (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.restingDecimal)(value, locale, value === '' || value === null || value === undefined ? 0 : minDigits);
+
+  const withCurrency = patch => currencies ? { ...patch,
+    currency
+  } : patch;
+
+  const patch = next => host.patchTempFilterValue(field.key, withCurrency({
+    operator: selectedOperator,
+    ...next
+  }));
+
+  const typed = (index, event) => {
+    const input = event.currentTarget ?? event.target;
+    const text = String(input?.value ?? '');
+    const read = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.readTypedDecimal)(text, {
+      locale,
+      currency
+    });
+
+    if (input) {
+      input.toggleAttribute('invalid', !read.ok);
+      if (read.ok) input.removeAttribute('error-message');else input.setAttribute('error-message', setText(host, 'notNumber'));
+    }
+
+    if (!read.ok) return;
+    const value = read.value ?? '';
+
+    if (shape !== 'two') {
+      patch({
+        value
       });
       return;
     }
 
-    const nextValue = [...rangeValue];
-    nextValue[index] = nextInputValue || '';
-    host.patchTempFilterValue(field.key, {
-      value: nextValue,
-      operator: selectedOperator
+    const next = [...rangeValue];
+    next[index] = value;
+    patch({
+      value: next
     });
   };
 
+  const input = (index, label, value) => (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+        <sf-input
+                size=${filterSize(host)}
+                appearance="bordered"
+                root-class="flex-1 min-w-0"
+                label=${label}
+                value=${shown(value)}
+                inputmode=${look.integer ? 'numeric' : 'decimal'}
+                text-start=${textStart || lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                text-end=${textEnd || lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                name="sf_filter_${field.key || 'number'}${index ? '_second' : ''}"
+                @change=${event => typed(index, event)}
+        ></sf-input>`;
+
+  const valueWord = setText(host, look.money ? 'filterAmount' : look.percent ? 'filterPercent' : 'filterNumber');
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
         <div class="flex gap-1/3 flex-col">
-            <div class="sf-filter-operator-inputs flex gap-1/3 items-cross-center">
-                <sf-input
-                        size=${filterSize(host)}
-                        appearance="bordered"
-                        root-class="flex-1 min-w-0"
-                        label="${isBetween ? setText(host, 'rangeFrom') : host.getFilterOperatorLabel(selectedOperator)}"
-                        value="${isBetween ? rangeValue[0] || '' : rawValue || ''}"
-                        name="sf_filter_${field.key || 'number'}"
-                        @change=${event => {
-    patchNumberValue(0, event.target?.value);
-  }}
-                ></sf-input>
-                ${isBetween ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
-                    <sf-input
-                            size=${filterSize(host)}
-                            appearance="bordered"
-                            label="${setText(host, 'rangeTo')}"
-                            root-class="flex-1 min-w-0"
-                            value="${rangeValue[1] || ''}"
-                            name="sf_filter_${field.key || 'number'}_second"
-                            @change=${event => {
-    patchNumberValue(1, event.target?.value);
-  }}
-                    ></sf-input>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
-            </div>
             <sf-dropdown
                     size=${filterSize(host)}
-                    appearance="outlined"
+                    appearance="bordered"
                     mode="select"
-                    placeholder="${setText(host, 'operator')}"
+                    label=${setText(host, 'condition')}
+                    placeholder=${setText(host, 'condition')}
                     root-class="flex-1"
                     search="false"
+                    data-sf-filter-part="operator"
                     @change=${event => {
+    if (event.target !== event.currentTarget) return;
     const operator = event.detail?.values?.[0] || event.detail?.value || selectedOperator;
-    host.patchTempFilterValue(field.key, {
-      operator
-    });
+    if (operator === selectedOperator) return;
+    const next = operatorShape(operator); // A new condition of another shape drops the old value:
+    // one amount and two amounts are not the same question.
+
+    const value = next === 'none' ? true : next === shape ? rawValue : next === 'two' ? ['', ''] : '';
+    host.patchTempFilterValue(field.key, withCurrency({
+      operator,
+      value
+    }));
   }}
             >
                 ${operators.map(operator => (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
                     <sf-list-item
                             kind="text"
                             size=${filterSize(host)}
-                            text="${host.getFilterOperatorLabel(operator)}"
+                            text="${numberOperatorLabel(host, operator)}"
                             value="${operator}"
                             ?selected=${operator === selectedOperator}
                     ></sf-list-item>
                 `)}
             </sf-dropdown>
+            ${shape === 'none' ? lit__WEBPACK_IMPORTED_MODULE_0__.nothing : shape === 'two' ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+                <div class="sf-filter-operator-inputs flex gap-1/3 items-cross-start">
+                    ${input(0, setText(host, 'rangeFrom'), rangeValue[0])}
+                    ${input(1, setText(host, 'rangeTo'), rangeValue[1])}
+                </div>` : (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+                <div class="sf-filter-operator-inputs flex gap-1/3 items-cross-start">
+                    ${input(0, valueWord, Array.isArray(rawValue) ? rawValue[0] : rawValue)}
+                </div>`}
+            ${currencies && shape !== 'none' ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+                <sf-dropdown
+                        size=${filterSize(host)}
+                        appearance="bordered"
+                        mode="select"
+                        label=${setText(host, 'currency')}
+                        root-class="flex-1"
+                        search=${currencies.length > 12 ? 'true' : 'false'}
+                        data-sf-filter-part="currency"
+                        .options=${currencies.map(code => ({
+    type: 'text',
+    size: filterSize(host),
+    value: code,
+    text: code,
+    selected: code === currency
+  }))}
+                        @change=${event => {
+    if (event.target !== event.currentTarget) return;
+    const code = event.detail?.values?.[0] || event.detail?.value;
+    if (!code || code === currency) return;
+    host.patchTempFilterValue(field.key, {
+      operator: selectedOperator,
+      value: rawValue,
+      currency: code
+    });
+  }}
+                ></sf-dropdown>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
         </div>
     `;
 }
 
+function renderIntegerFilterControl(field, host) {
+  return renderNumberFilterControl(field, host, {
+    integer: true
+  });
+} // Money and percent are filtered as numbers with their own sign in the field
+// (owner decisions C291 (2), C294): «%» after a percent, a fixed currency's
+// sign where the locale writes it. A money field whose currency lives in the
+// value chooses the currency in the filter, from the field's `currencies`.
+
+
+function renderMoneyFilterControl(field, host) {
+  const fixed = fixedCurrency(field);
+  return renderNumberFilterControl(field, host, {
+    money: true,
+    currency: fixed,
+    currencies: fixed ? null : fieldCurrencies(field)
+  });
+}
+
+function renderPercentFilterControl(field, host) {
+  return renderNumberFilterControl(field, host, {
+    percent: true
+  });
+} // The date filter (owner decision C293, 2026-11-17; it replaces the operator
+// words and quick ranges of PD-6/PD-7). A condition first, then exactly what it
+// needs: nothing (a period by name, «Пусто», «Не пусто»), one day, two days (a
+// range calendar whose quick ranges are the whole periods; pressing one makes
+// the condition that period by name), a number of days, or -- for a period
+// field -- «when»: a period by name or two days of one's own. The list is
+// grouped: Дата, Период, Заполнено (a period field: Период записи,
+// Заполнено). Choosing a condition writes its own starting value, so a stale
+// day never travels with a period (DF-2); a period, «Пусто» and «Не пусто»
+// carry a value of their own, so the table keeps them (DF-1). The rules and
+// the words are date-filter.js; this draws them. The day controls keep PD-4,
+// PD-5 and PD-8: the table's size, the page's language, the condition above.
+
+
+function dateFilterPresets(field) {
+  const presets = field.filter?.presets;
+
+  if (presets === undefined || presets === null) {
+    return [..._date_filter_js__WEBPACK_IMPORTED_MODULE_13__.DATE_PERIODS, ...(field.filter?.future === true ? _date_filter_js__WEBPACK_IMPORTED_MODULE_13__.DATE_FUTURE_PERIODS : [])].join(',');
+  }
+
+  return Array.isArray(presets) ? presets : String(presets);
+}
+
+function defaultDateCondition(field, list) {
+  const asked = field.filter?.defaultOperator;
+
+  if (asked) {
+    const one = (0,_date_filter_js__WEBPACK_IMPORTED_MODULE_13__.dateConditionOf)(field, {
+      operator: asked,
+      value: _date_filter_js__WEBPACK_IMPORTED_MODULE_13__.LEGACY_DATE_OPERATORS[asked] || asked
+    });
+    const named = list.find(item => item.key === asked);
+    if (named || one) return named || one;
+  } // One date: «Между» (the list's second, after the exact day); a period
+  // field: «Идёт в».
+
+
+  return list.find(item => item.operator === ((0,_date_filter_js__WEBPACK_IMPORTED_MODULE_13__.dateFilterKind)(field) === 'period' ? 'overlaps' : 'between')) ?? list[0];
+}
+
+function dateFilterContext(host) {
+  return (0,_date_filter_js__WEBPACK_IMPORTED_MODULE_13__.filterRequestContext)(host ?? null, host?.getFilterContext?.() || {});
+}
+
 function renderDateFilterControl(field, host) {
-  const control = host.getFilterControlValue(field.key);
-  const operators = field.filter?.operators || ['eq'];
-  const selectedOperator = control.operator || field.filter?.defaultOperator || operators[0];
-  const isBetween = selectedOperator === 'between';
-  const dateValue = isBetween && Array.isArray(control.value) ? control.value : isBetween ? ['', ''] : control.value || '';
+  const control = host.getFilterControlValue(field.key) || {};
+  const list = (0,_date_filter_js__WEBPACK_IMPORTED_MODULE_13__.dateFilterConditions)(field);
+  const asked = control.operator ? (0,_date_filter_js__WEBPACK_IMPORTED_MODULE_13__.dateConditionOf)(field, control) : null;
+  const current = asked ?? defaultDateCondition(field, list);
+  const value = asked ? (0,_date_filter_js__WEBPACK_IMPORTED_MODULE_13__.normalizeFilterEntry)(control).value : control.value;
+  const size = filterSize(host);
+
+  const patch = next => host.patchTempFilterValue(field.key, next);
+
+  const isDateTime = (field.propertyType || field.type) === 'datetime';
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
         <div class="flex flex-col gap-1/3">
-            <sf-input-date
-                    .value=${dateValue}
-                    ?range=${isBetween}
-                    name="sf_filter_${field.key || 'date'}"
-                    locale="ru-Ru"
-                    @change=${event => {
-    host.patchTempFilterValue(field.key, {
-      value: event.detail.value,
-      operator: selectedOperator
-    });
-  }}
-            ></sf-input-date>
             <sf-dropdown
-                    size=${filterSize(host)}
-                    appearance="outlined"
+                    size=${size}
+                    appearance="bordered"
                     mode="select"
-                    placeholder="${setText(host, 'operator')}"
+                    label="${setText(host, 'dateCondition')}"
+                    .value=${current.key}
+                    hint=${isDateTime ? setWord(host, 'dateByDayIn', {
+    zone: dateFilterContext(host).timeZone
+  }) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                     root-class="flex-1"
                     search="false"
                     @change=${event => {
-    const operator = event.detail?.values?.[0] || event.detail?.value || selectedOperator;
-    host.patchTempFilterValue(field.key, {
-      operator
+    const key = event.detail?.values?.[0] || event.detail?.value || current.key;
+    const next = list.find(item => item.key === key); // The condition shown before any is chosen is the default;
+    // choosing it writes it, with its own starting value.
+
+    if (!next || asked && next.key === current.key) return;
+    patch({
+      operator: next.operator,
+      value: (0,_date_filter_js__WEBPACK_IMPORTED_MODULE_13__.dateConditionValue)(next, {
+        value
+      })
     });
   }}
             >
-                ${operators.map(operator => (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+                ${list.map(item => (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
                     <sf-list-item
                             kind="text"
-                            size=${filterSize(host)}
-                            text="${host.getFilterOperatorLabel(operator)}"
-                            value="${operator}"
-                            ?selected=${operator === selectedOperator}
+                            size=${size}
+                            group=${(0,_date_filter_js__WEBPACK_IMPORTED_MODULE_13__.dateGroupLabel)(host, item.group)}
+                            text="${(0,_date_filter_js__WEBPACK_IMPORTED_MODULE_13__.dateConditionLabel)(host, item)}"
+                            value="${item.key}"
+                            ?selected=${item.key === current.key}
                     ></sf-list-item>
                 `)}
             </sf-dropdown>
+            ${renderDateConditionValue(field, host, current, value, patch)}
         </div>
     `;
+}
+
+function renderDateConditionValue(field, host, current, value, patch) {
+  const size = filterSize(host);
+  const name = `sf_filter_${field.key || 'date'}`;
+  if (current.need === 'none') return lit__WEBPACK_IMPORTED_MODULE_0__.nothing;
+
+  if (current.need === 'count') {
+    return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+            <sf-input-quantity
+                    size=${size}
+                    label="${setText(host, current.operator === 'next-days' ? 'dateCountNext' : 'dateCountLast')}"
+                    min="1"
+                    max="366"
+                    unit="${setText(host, 'dateCountUnit')}"
+                    name="${name}_count"
+                    .value=${Number(value) > 0 ? Number(value) : 30}
+                    @change=${event => {
+      if (event.target !== event.currentTarget) return;
+      const count = Math.round(Number(event.detail?.value));
+      patch({
+        operator: current.operator,
+        value: count > 0 ? count : null
+      });
+    }}
+            ></sf-input-quantity>`;
+  }
+
+  if (current.need === 'day') {
+    return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+            <sf-input-date
+                    size=${size}
+                    label="${setText(host, current.operator === 'contains' ? 'dateValueDay' : 'dateValueDate')}"
+                    .value=${typeof value === 'string' ? value.slice(0, 10) : ''}
+                    name="${name}"
+                    @change=${event => {
+      if (event.target !== event.currentTarget) return;
+      patch({
+        operator: current.operator,
+        value: event.detail?.value || null
+      });
+    }}
+            ></sf-input-date>`;
+  }
+
+  if (current.need === 'days') return renderDateRangeValue(field, host, current, value, patch); // «when» (a period field): a period by name, or two days of one's own.
+
+  const own = Array.isArray(value);
+  const periods = [..._date_filter_js__WEBPACK_IMPORTED_MODULE_13__.DATE_PERIODS, ...(field.filter?.future === true ? _date_filter_js__WEBPACK_IMPORTED_MODULE_13__.DATE_FUTURE_PERIODS : [])];
+  return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+        <sf-dropdown
+                size=${size}
+                appearance="bordered"
+                mode="select"
+                label="${setText(host, 'dateWhen')}"
+                .value=${own ? 'own' : typeof value === 'string' ? value : ''}
+                root-class="flex-1"
+                search="false"
+                @change=${event => {
+    const key = event.detail?.values?.[0] || event.detail?.value;
+    if (!key) return;
+
+    if (key === 'own') {
+      if (!own) patch({
+        operator: current.operator,
+        value: ['', '']
+      });
+      return;
+    }
+
+    if (key !== value) patch({
+      operator: current.operator,
+      value: key
+    });
+  }}
+        >
+            ${periods.map(period => (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+                <sf-list-item kind="text" size=${size} text="${(0,_date_filter_js__WEBPACK_IMPORTED_MODULE_13__.dateConditionLabel)(host, {
+    period
+  })}" value="${period}"
+                        ?selected=${!own && value === period}></sf-list-item>
+            `)}
+            <sf-list-item kind="text" size=${size} text="${setText(host, 'dateOwnDays')}" value="own" ?selected=${own}></sf-list-item>
+        </sf-dropdown>
+        ${own ? renderDateRangeValue(field, host, current, value, patch) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}`;
+} // Two days on a range calendar. Its quick ranges are the whole periods: one
+// pressed is the period by name -- in «Между» the condition becomes that
+// period (C293 (4)), in a period field's «when» the value is its name.
+
+
+function renderDateRangeValue(field, host, current, value, patch) {
+  const days = Array.isArray(value) ? value.map(day => typeof day === 'string' ? day.slice(0, 10) : '') : ['', ''];
+  return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+        <sf-input-date
+                size=${filterSize(host)}
+                range
+                label="${setText(host, 'dateValuePeriod')}"
+                .value=${days}
+                .presets=${dateFilterPresets(field)}
+                name="sf_filter_${field.key || 'date'}"
+                @change=${event => {
+    if (event.target !== event.currentTarget) return;
+    const preset = event.detail?.preset?.id;
+
+    if (preset && (_date_filter_js__WEBPACK_IMPORTED_MODULE_13__.DATE_PERIODS.includes(preset) || _date_filter_js__WEBPACK_IMPORTED_MODULE_13__.DATE_FUTURE_PERIODS.includes(preset))) {
+      patch(current.operator === 'between' ? {
+        operator: 'period',
+        value: preset
+      } : {
+        operator: current.operator,
+        value: preset
+      });
+      return;
+    }
+
+    const next = Array.isArray(event.detail?.value) ? event.detail.value : [event.detail?.startValue || '', event.detail?.endValue || ''];
+    patch({
+      operator: current.operator,
+      value: next
+    });
+  }}
+        ></sf-input-date>`;
 }
 
 function renderMultiSelectFilterControl(field, host) {
@@ -1404,11 +3313,14 @@ const FILTER_RENDERERS = {
   text: renderTextFilterControl,
   string: renderTextFilterControl,
   number: renderNumberFilterControl,
-  integer: renderNumberFilterControl,
+  integer: renderIntegerFilterControl,
   date: renderDateFilterControl,
   datetime: renderDateFilterControl,
   range: renderRangeFilterControl,
   'date-range': renderDateFilterControl,
+  // A period field (a start and an end, C293): its own conditions -- overlaps,
+  // within, starts, ends, contains a day.
+  period: renderDateFilterControl,
   'multi-select': renderMultiSelectFilterControl,
   'single-select': renderMultiSelectFilterControl,
   choice: renderMultiSelectFilterControl,
@@ -1422,14 +3334,17 @@ const FILTER_RENDERERS = {
   lookup: renderEntityMultiSelectFilterControl,
   file: renderFileFilterControl,
   color: renderColorFilterControl,
-  // The types a component set draws (property-view port 1.18.0): a money
-  // amount and a percent are filtered as numbers (the host compares the
-  // amount, as a decimal), and an items field by its number of rows.
-  money: renderNumberFilterControl,
-  percent: renderNumberFilterControl,
-  items: renderNumberFilterControl
+  // A money amount and a percent are filtered as decimals with their sign
+  // (C291 (2)); an items field, which the View set draws, by its number of
+  // rows (property-view port 1.18.0).
+  money: renderMoneyFilterControl,
+  percent: renderPercentFilterControl,
+  items: renderIntegerFilterControl
 }; // What a field asks to be filtered by: its own declared control if it has one,
 // otherwise its property type, otherwise text.
+// The date filter's rules for a host that builds the request or draws the
+// chips itself (sf-view-table): the same functions as SF.fieldRenderers.dateFilter.
+
 
 function renderFilterField(field = {}, host) {
   const asked = field.filter?.control || field.propertyType || field.type || field.dataType || 'text';
@@ -1506,12 +3421,14 @@ function renderColorCell(field, value) {
 
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
         <sf-input-color size="1/2" appearance="plain" value=${String(hex)}
-                  aria-label=${field.label || field.key || ''} disabled></sf-input-color>
+                  aria-label=${field.label || field.key || ''} readonly></sf-input-color>
     `;
 } // Reads what port 1.8.0 declares: `inherited` says a value comes from somewhere
 // else, `inheritedValue` says what it is. A view that drew the inherited colour as
 // the value would make «not set» and «set to the same colour» look identical, and
-// only the first follows the theme when the theme moves.
+// only the first follows the theme when the theme moves. The view and the cell
+// draw the field read-only (sf-input-color 1.17.0): the value in the text's ink;
+// disabled drew it in the disabled ink, as a field nobody may use.
 
 
 function renderColorView(field, value) {
@@ -1525,7 +3442,7 @@ function renderColorView(field, value) {
                 value=${hex ? String(hex) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                 inherited-value=${inherited ? String(inherited) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                 aria-label=${field.label || field.key || ''}
-                disabled
+                readonly
         ></sf-input-color>
     `;
 }
@@ -1542,7 +3459,7 @@ function renderColorEdit(field, value, host) {
                 inherited-value=${inherited ? String(inherited) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                 swatches=${field.swatches ? String(field.swatches) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                 ?clearable=${Boolean(inherited) || field.required !== true}
-                ?disabled=${field.readonly === true}
+                ?readonly=${field.readonly === true}
                 aria-label=${field.label || field.key || ''}
                 @change=${event => host.setFieldValue(field, event.detail?.value ?? '')}
         ></sf-input-color>
@@ -1789,17 +3706,44 @@ function renderDateCell(field, value, host) {
   const formatted = renderHostFormattedCell(field, value, host);
   if (formatted !== null) return formatted;
   return defaultDateText(field, value, host);
+} // A share of a limit (owner decision C203 (5), IM-8): the `meter` variant of a
+// number 0..100 is the inline sf-progress-bar meter -- a 64 track, the number
+// «72 %» before it -- named by the field's label. The scale stays for levels
+// («4 из 5», C185 (5)). Out of range it is left as text, as the scale is.
+
+
+function meterProps(field, number) {
+  const name = typeof field.label === 'string' ? field.label : field.key || '';
+  return {
+    inline: true,
+    meter: true,
+    value: String(number),
+    ...(name ? {
+      label: name
+    } : {})
+  };
 }
 
 function renderNumericCell(field, value, host) {
   const variant = field.variant || field.filter?.variant;
   const number = Number(scalarValue(value));
 
-  if (variant !== 'scale' || !Number.isFinite(number)) {
-    return renderHostFormattedCell(field, value, host);
+  if (variant !== 'scale' && variant !== 'meter' || !Number.isFinite(number)) {
+    // The host's text first; else the number in the page's language, as
+    // the view prints it («12,5»), where the table printed «12.5».
+    const formatted = renderHostFormattedCell(field, value, host);
+    if (formatted !== null) return formatted;
+    if (carriesText(value)) return value.text || null;
+    return (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.formatDecimal)(scalarValue(value), (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(host ?? null)) || null;
   }
 
   if (number < 0 || number > 100) return null;
+  if (variant === 'meter') return {
+    component: {
+      type: 'progress-bar',
+      props: meterProps(field, number)
+    }
+  };
   return {
     component: {
       type: 'progress-scale',
@@ -1898,7 +3842,7 @@ function renderCellField(field = {}, value, host) {
 // value control reports a committed change as `change` on its host, once per
 // change the user makes, with each older name kept as an alias the manifest
 // marks `alias_of`. So the set binds the canonical name for all of them --
-// sf-input, sf-textarea, sf-switch, sf-dropdown, sf-button-group and
+// sf-input, sf-textarea, sf-switch, sf-checkbox, sf-dropdown, sf-segmented and
 // sf-datepicker -- where it bound three different alias names before. The one
 // event this file still binds under its own name is sf-file-upload:select,
 // which is not a value change but a selection; the `change` on that component
@@ -1927,7 +3871,9 @@ const EDIT_RENDERERS = {
   choices: renderChoicesEdit,
   file: renderFileEdit,
   color: renderColorEdit,
-  include: renderIncludeEdit
+  include: renderIncludeEdit,
+  money: renderMoneyEdit,
+  percent: renderPercentEdit
 };
 
 function fieldName(field) {
@@ -1936,22 +3882,64 @@ function fieldName(field) {
 // already has a control that knows country codes, dial prefixes and masks, so a
 // `string` whose variant is `phone` gets it and everything else about a string
 // stays true. Counted on a running Larena site, which declares one.
+//
+// What it writes is E.164, `+79161234567` (FL-1): the control's own form value,
+// whatever the box shows -- `+7 916 123-45-67` written back changed a stored
+// number on every save. It reads E.164 and the formatted strings stored before.
+//
+// An extension (`;ext=12`) is not the control's to edit: the number goes to
+// it alone and the extension is written back after it, so a save keeps it.
+//
+// The country an empty field starts on (FL-7): `defaultCountry` (ISO 3166
+// alpha-2, "RU") where the field names one, else the page's (ru is Russia,
+// en-GB Britain; sf-input-country's own rule). A stored number names its own
+// country, so the setting is passed only while the field is empty.
 
 
 function renderPhoneEdit(field, value, host) {
+  const {
+    number: stored,
+    extension
+  } = (0,_phone_js__WEBPACK_IMPORTED_MODULE_11__.splitPhone)(scalarValue(value) ?? '');
+  const preferred = String(field.defaultCountry ?? '').trim().toUpperCase();
+  const iso2 = /^[A-Z]{2}$/u.test(preferred) && !String(stored).trim() ? preferred : lit__WEBPACK_IMPORTED_MODULE_0__.nothing;
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
         <sf-input-country
                 size=${EDIT_SIZE}
                 name=${fieldName(field)}
-                value=${scalarValue(value) ?? ''}
+                value=${stored}
+                iso2=${iso2}
                 aria-label=${field.label || field.key || ''}
                 ?required=${Boolean(field.required)}
                 ?disabled=${field.readonly === true}
                 use-mask="true"
                 show-code="true"
-                @change=${event => host.setFieldValue(field, event.detail?.value ?? event.target?.value ?? '')}
+                @change=${event => host.setFieldValue(field, phoneWritten(event, extension))}
         ></sf-input-country>
     `;
+} // The control's form value (E.164; nothing for the dial code alone), or the
+// box's text brought to E.164 where the element is not defined yet.
+
+
+function phoneWritten(event, extension = '') {
+  const control = event.currentTarget;
+  const number = typeof control?.sfFormValue === 'function' ? control.sfFormValue() ?? '' : (0,_phone_js__WEBPACK_IMPORTED_MODULE_11__.phoneE164)(event.detail?.value ?? event.target?.value ?? '');
+  return number && extension ? `${number};ext=${extension}` : number;
+}
+
+function isPhoneField(field) {
+  return String(field.variant ?? '') === 'phone';
+} // A phone shown: the host's text first (formatFieldValue, or {value, text}),
+// as for any string; else the number
+// laid out by its country, left to right on a right-to-left page too (an
+// Arabic page drew the groups in reverse order).
+
+
+function phoneText(field, value, host) {
+  const formatted = host?.formatFieldValue?.(field, value);
+  if (typeof formatted === 'string') return formatted;
+  if (carriesText(value)) return value.text;
+  return (0,_phone_js__WEBPACK_IMPORTED_MODULE_11__.formatPhone)(scalarValue(value), setText(host, 'phoneExtension'));
 } // A password is a string the set never shows (owner, 2026-10-19; Larena's
 // storage settings). The host never sends one: the value of a `password`
 // variant is {set: true} or {set: false}, and null or an absent value reads as
@@ -2017,11 +4005,22 @@ function renderPasswordEdit(field, value, host) {
 }
 
 function renderStringCell(field, value, host) {
+  if (isPhoneField(field)) {
+    const text = phoneText(field, value, host);
+    return text ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<bdi dir="ltr">${text}</bdi>` : null;
+  }
+
   return isPasswordField(field) ? passwordState(host, value) : null;
 }
 
 function renderStringView(field, value, host) {
   if (isPasswordField(field)) return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-field-view">${passwordState(host, value)}</span>`;
+
+  if (isPhoneField(field)) {
+    const text = phoneText(field, value, host);
+    return text ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-field-view"><bdi dir="ltr">${text}</bdi></span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing;
+  }
+
   return renderTextView(field, value, host);
 } // A file shown as what it is. The site keeps logos, so a file whose variant says
 // image is drawn as the image rather than as a row with a paperclip -- the same
@@ -2369,6 +4368,335 @@ function renderNumberEdit(field, value, host) {
                 @change=${event => write(event, true)}
         ></sf-input>
     `;
+} // Money and percent are the Framework's in every mode (owner decision C291
+// (2), 2026-11-17; set boundary study BQ-2): the View set's editors were the
+// reference, its option names kept -- `currency` (a fixed ISO 4217 code),
+// `min`, `max`, `precision` (a percent's digits; money's are its currency's
+// minor units, ISO 4217) and `placeholder`, as simai.property-view-port 1.18.0
+// declares them. Every value is a decimal string, never a float:
+//
+//   percent   "12.5" -- the percent, not the share; 0 to 100 unless the
+//             field bounds it otherwise
+//   money     {amount: "1500.50", currency: "RUB"}; a field with a fixed
+//             currency also reads a bare amount, and writes the pair
+//
+// One sf-input with the decimal keyboard and the sign in the field («%», a
+// fixed currency's «₽» after the amount or «$» before it, as the page's
+// language writes it); a money field without a fixed currency has a currency
+// dropdown beside the amount. What is typed is read with a comma or a point
+// and written canonical; the input shows it back in the page's language
+// («1500,5»). An entry that is not a value yet -- text that is not a number,
+// more digits after the point than allowed, a bound crossed, an amount without
+// a currency -- is written as typed and said through setFieldError, which holds
+// a save (port 1.16.0, as a masked string's), and under the field once the
+// person leaves it. A host without setFieldError hears undefined, as for a
+// number.
+// The codes a currency choice offers when a field names no `currencies` and
+// the browser cannot list ISO 4217 (Intl.supportedValuesOf).
+
+
+const OFFERED_CURRENCIES = ['RUB', 'USD', 'EUR', 'CNY', 'KZT', 'BYN', 'AED', 'TRY', 'GBP', 'JPY']; // A field's `currencies` (C294, MP-10): an array of ISO 4217 codes or a
+// comma-separated string; absent, every code the browser knows.
+
+function fieldCurrencies(field) {
+  const asked = Array.isArray(field?.currencies) ? field.currencies : typeof field?.currencies === 'string' ? field.currencies.split(',') : [];
+  const codes = asked.map(code => String(code).trim().toUpperCase()).filter(code => /^[A-Z]{3}$/u.test(code));
+  return codes.length ? [...new Set(codes)] : (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.currencyCodes)(OFFERED_CURRENCIES);
+} // What a person is typing, per host and field: the value written is
+// canonical («12.5»), and drawn back as such it would move the caret under
+// «12,50» or swallow the comma of «12,». The typed text is shown while it
+// still reads as the value, and forgotten when the field is left.
+
+
+const DECIMAL_DRAFTS = new WeakMap();
+
+function draftOf(host, key) {
+  return host && typeof host === 'object' ? DECIMAL_DRAFTS.get(host)?.get(key) : undefined;
+}
+
+function keepDraft(host, key, text) {
+  if (!host || typeof host !== 'object') return;
+  let drafts = DECIMAL_DRAFTS.get(host);
+
+  if (!drafts) {
+    drafts = new Map();
+    DECIMAL_DRAFTS.set(host, drafts);
+  }
+
+  if (text === undefined) drafts.delete(key);else drafts.set(key, text);
+} // At rest the amount shows its groups and at least `minDigits` after the
+// point («1 500,50»); while it is typed, as typed (C294).
+
+
+function decimalShown(host, key, value, {
+  currency = null,
+  minDigits = 0
+} = {}) {
+  if (value === null || value === undefined || value === '') return '';
+  const locale = (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(host ?? null);
+  const read = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.readTypedDecimal)(value, {
+    locale: 'en',
+    currency
+  });
+  if (!read.ok) return String(value);
+  const draft = draftOf(host, key);
+
+  if (typeof draft === 'string') {
+    const typed = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.readTypedDecimal)(draft, {
+      locale,
+      currency
+    });
+    if (typed.ok && typed.value === read.value) return draft;
+  }
+
+  return (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.restingDecimal)(read.value, locale, minDigits);
+}
+
+const hasBound = bound => bound !== null && bound !== undefined && bound !== '' && (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.readDecimal)(bound).ok; // What is wrong with a typed decimal, or '': not a number, more digits after
+// the point than `digits` (never rounded away: «1500,555» is an error, while
+// «1500,500» is 1500.5), outside min..max.
+
+
+function decimalError(host, text, {
+  digits = null,
+  min = null,
+  max = null,
+  currency = null
+} = {}) {
+  const read = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.readTypedDecimal)(text, {
+    locale: (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(host ?? null),
+    currency
+  });
+  if (!read.ok) return setText(host, 'notNumber');
+  if (read.value === null) return '';
+
+  if (Number.isInteger(digits) && (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.fractionDigits)(read.value) > digits) {
+    return digits === 0 ? setText(host, 'fractionNone') : (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageWord)(SET_TEXT, 'precisionMax', host ?? null, {
+      component: SET_NAME,
+      count: digits
+    });
+  }
+
+  const low = hasBound(min) && (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.compareDecimal)(read.value, min) === -1;
+  const high = hasBound(max) && (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.compareDecimal)(read.value, max) === 1;
+  if (!low && !high) return '';
+  const locale = (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(host ?? null);
+  const vars = {
+    min: hasBound(min) ? (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.formatDecimal)(min, locale) : '',
+    max: hasBound(max) ? (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.formatDecimal)(max, locale) : ''
+  };
+  if (hasBound(min) && hasBound(max)) return setWord(host, 'boundBetween', vars);
+  return low ? setWord(host, 'boundAtLeast', vars) : setWord(host, 'boundAtMost', vars);
+} // The value goes to the host with what is wrong with it: a value that is not
+// one yet is written as typed while setFieldError holds the save.
+
+
+function writeDecimal(field, host, value, message) {
+  if (message) {
+    if (typeof host.setFieldError === 'function') {
+      host.setFieldError(field, message);
+      host.setFieldValue(field, value);
+    } else {
+      host.setFieldValue(field, undefined);
+    }
+
+    return;
+  }
+
+  host.setFieldError?.(field, null);
+  host.setFieldValue(field, value);
+}
+
+function decimalInput(field, value, host, {
+  key,
+  check,
+  write,
+  currency = null,
+  minDigits = 0,
+  textStart = '',
+  textEnd = '',
+  rootClass = ''
+}) {
+  const own = EDIT_ERROR;
+  const locale = (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(host ?? null);
+
+  const typed = (event, left) => {
+    const input = event.currentTarget ?? event.target;
+    const text = String(input?.value ?? '');
+    keepDraft(host, key, left ? undefined : text);
+    const message = check(text);
+
+    if (input && !own) {
+      if (message && left) {
+        input.setAttribute('error-message', message);
+        input.toggleAttribute('invalid', true);
+      } else if (!message && input.hasAttribute?.('invalid') && !input.hasAttribute('data-sf-form-invalid')) {
+        input.toggleAttribute('invalid', false);
+        input.removeAttribute('error-message');
+      }
+    }
+
+    const read = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.readTypedDecimal)(text, {
+      locale,
+      currency
+    });
+    write(read.ok ? read.value : text, message);
+  };
+
+  return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+        <sf-input
+                size=${EDIT_SIZE}
+                appearance="bordered"
+                name=${fieldName(field)}
+                value=${decimalShown(host, key, value, {
+    currency,
+    minDigits
+  })}
+                inputmode="decimal"
+                text-start=${textStart || lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                text-end=${textEnd || lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                placeholder=${field.placeholder || lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                root-class=${rootClass || lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                ?required=${Boolean(field.required)}
+                ?invalid=${Boolean(own)}
+                error-message=${own || lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                aria-label=${field.label || field.key || ''}
+                @input=${event => typed(event, false)}
+                @change=${event => typed(event, true)}
+        ></sf-input>
+    `;
+}
+
+function fixedCurrency(field) {
+  return typeof field?.currency === 'string' && /^[A-Z]{3}$/u.test(field.currency) ? field.currency : null;
+} // A percent's digits after the point: `precision`, else the digits its
+// `step` has («0.1» is one), else as many as typed.
+
+
+function percentDigits(field) {
+  if (Number.isInteger(field.precision)) return field.precision;
+  const step = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.readDecimal)(field.step);
+  return step.ok && step.value !== null && Number(step.value) > 0 ? (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.fractionDigits)(step.value) : null;
+} // A percent is the percent itself, «12.5» is 12,5 % (C294); it is bounded
+// only by the field's min and max -- a growth of 150 % or a change of −5 % is
+// a percent too (MP-11: the View set bounded it 0..100 without saying why).
+
+
+function renderPercentEdit(field, value, host) {
+  const key = String(field.key ?? '');
+  const min = hasBound(field.min) ? field.min : null;
+  const max = hasBound(field.max) ? field.max : null;
+  const digits = percentDigits(field);
+  return decimalInput(field, scalarValue(value), host, {
+    key,
+    textEnd: '%',
+    check: text => decimalError(host, text, {
+      digits,
+      min,
+      max
+    }),
+    write: (next, message) => writeDecimal(field, host, next, message)
+  });
+}
+
+function renderMoneyEdit(field, value, host) {
+  const locale = (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(host ?? null);
+  const key = String(field.key ?? '');
+  const fixed = fixedCurrency(field);
+  const display = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.currencyDisplayOf)(field);
+  const parts = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.moneyParts)(scalarValue(value), fixed); // A currency chosen before an amount is typed waits here: a value is an
+  // amount and its currency, never a currency alone.
+
+  const currencyKey = `${key}#currency`;
+  const currency = parts.currency || draftOf(host, currencyKey) || null;
+  const min = hasBound(field.min) ? field.min : null;
+  const max = hasBound(field.max) ? field.max : null;
+
+  const check = (text, code) => {
+    const message = decimalError(host, text, {
+      digits: code ? (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.currencyOf)(code, locale).minor : null,
+      min,
+      max,
+      currency: code
+    });
+    if (message) return message;
+    return (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.readTypedDecimal)(text, {
+      locale,
+      currency: code
+    }).value !== null && !code ? setText(host, 'chooseCurrency') : '';
+  };
+
+  const write = (amount, message, code) => writeDecimal(field, host, amount === null || amount === '' ? null : {
+    amount,
+    currency: code ?? null
+  }, message);
+
+  const sign = fixed ? (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.currencyOf)(fixed, locale, display) : null;
+  const amount = decimalInput(field, parts.amount, host, {
+    key,
+    currency,
+    minDigits: currency ? (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.currencyOf)(currency, locale).minor : 0,
+    textStart: sign?.before ? sign.sign : '',
+    textEnd: sign && !sign.before ? sign.sign : '',
+    rootClass: fixed ? '' : 'flex-1 min-w-0',
+    check: text => check(text, currency),
+    write: (next, message) => write(next, message, currency)
+  });
+  if (fixed) return amount; // The field's `currencies`, the value's own currency first when the list
+  // lacks it; without a list, every ISO 4217 code with a search.
+
+  const listed = fieldCurrencies(field);
+  const offered = [...new Set([...(currency ? [currency] : []), ...listed])];
+  const name = setText(host, 'currency');
+  return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+        <div class="flex gap-1/3 items-cross-start min-w-0 w-full">
+            ${amount}
+            <sf-dropdown
+                    size=${EDIT_SIZE}
+                    appearance="bordered"
+                    mode="select"
+                    search=${offered.length > 12 ? 'true' : 'false'}
+                    root-class="basis-1/3 min-w-0"
+                    name=${`${fieldName(field)}_currency`}
+                    value=${currency ?? ''}
+                    placeholder=${name}
+                    aria-label=${name}
+                    .options=${offered.map(code => {
+    const {
+      sign: mark
+    } = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.currencyOf)(code, locale, display);
+    return {
+      type: 'text',
+      size: '1',
+      value: code,
+      text: mark === code ? code : `${code} ${mark}`,
+      selected: code === currency
+    };
+  })}
+                    @change=${event => {
+    const code = event.detail?.values?.[0] || event.detail?.value || null;
+    keepDraft(host, currencyKey, code ?? undefined);
+    const typed = parts.amount; // The dropdown shows the code itself; a value is written
+    // only with an amount.
+    // The stored amount is checked as the page would show it.
+
+    if (typed !== null && typed !== undefined && typed !== '') write(typed, check((0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.restingDecimal)(typed, locale), code), code);
+  }}
+            ></sf-dropdown>
+        </div>
+    `;
+}
+
+function renderPercentView(field, value, host) {
+  const formatted = host?.formatFieldValue?.(field, value);
+  const text = typeof formatted === 'string' ? formatted : carriesText(value) ? value.text : (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.formatPercent)(scalarValue(value), (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(host ?? null)) || viewText(field, value, null);
+  return text ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-field-view">${text}</span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing;
+}
+
+function renderMoneyView(field, value, host) {
+  const formatted = host?.formatFieldValue?.(field, value);
+  const text = typeof formatted === 'string' ? formatted : carriesText(value) ? value.text : (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.formatMoney)(scalarValue(value), field, (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(host ?? null));
+  return text ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-field-view">${text}</span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing;
 } // A date control has no clock. `sf-input-date` declares a format and a date,
 // and its parser is anchored (`^\d{4}-\d{2}-\d{2}$`), so a datetime value
 // falls through to a loose digit scan that reads `2026-11-27T13:26:00` as day
@@ -2397,6 +4725,14 @@ function splitDateTime(value) {
     date: match[1],
     suffix: `T${match[2]}${match[3] || ''}`
   };
+} // min and max bound the day (PD-2, as a datetime's do): an ISO date, or the
+// day of an ISO date and time; the calendar disables the days outside them
+// and a typed day outside them is put back. The host still validates.
+
+
+function dayBound(bound) {
+  const match = typeof bound === 'string' ? bound.trim().match(/^\d{4}-\d{2}-\d{2}/u) : null;
+  return match ? match[0] : '';
 }
 
 function renderDateEdit(field, value, host) {
@@ -2405,13 +4741,19 @@ function renderDateEdit(field, value, host) {
     date,
     suffix
   } = splitDateTime(value);
+  const min = dayBound(field.min);
+  const max = dayBound(field.max);
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
         <sf-input-date
                 size=${EDIT_SIZE}
                 name=${fieldName(field)}
                 value=${date ?? ''}
+                min-date=${min || lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                max-date=${max || lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                 aria-label=${field.label || field.key || ''}
                 ?required=${Boolean(field.required)}
+                ?invalid=${Boolean(EDIT_ERROR)}
+                error-message=${EDIT_ERROR || lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                 @change=${event => {
     const next = event.detail?.value ?? event.target?.value ?? null;
     host.setFieldValue(field, next && suffix ? `${next}${suffix}` : next);
@@ -2465,6 +4807,8 @@ function renderDateTimeEdit(field, value, host) {
                 minute-step=${step || lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                 aria-label=${field.label || field.key || ''}
                 ?required=${Boolean(field.required)}
+                ?invalid=${Boolean(EDIT_ERROR)}
+                error-message=${EDIT_ERROR || lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                 @change=${event => {
     // The picker's own change, not a native one from its field.
     if (event.target !== event.currentTarget) return;
@@ -2502,6 +4846,8 @@ function renderTimeEdit(field, value, host) {
                 minute-step=${step || lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                 aria-label=${field.label || field.key || ''}
                 ?required=${Boolean(field.required)}
+                ?invalid=${Boolean(EDIT_ERROR)}
+                error-message=${EDIT_ERROR || lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                 @change=${event => {
     if (event.target !== event.currentTarget) return;
     const result = (0,_datetime_js__WEBPACK_IMPORTED_MODULE_6__.composeTime)(stored, String(event.detail?.value ?? ''));
@@ -2511,17 +4857,23 @@ function renderTimeEdit(field, value, host) {
   }}
         ></sf-input-date>
     `;
-} // A required boolean is a switch: two states are all it has. An optional one is
-// a pair of buttons with nothing chosen while the value is absent -- the
-// consumer owner's decision of 2026-10-06, and the reason is that a switch
-// cannot say «не задано»: rendering one over an absent value would write false
-// on the first save, a value nobody chose.
+} // A required boolean has two states and nothing else. In a form saved with a
+// button it is a checkbox, and a switch only where the change acts at once
+// (owner decision C165 (4), form study FM-6): a switch says «on now», which a
+// form that has not been saved has not done. The host says it acts at once with
+// renderEditField(…, {apply: 'instant'}). The checkbox carries no `required`:
+// a required yes/no is one with a value, and an unticked box is «Нет», not an
+// empty answer. An optional one is a pair of buttons with nothing chosen while
+// the value is absent -- the consumer owner's decision of 2026-10-06, and the
+// reason is that neither a switch nor a checkbox can say «не задано»: rendering
+// one over an absent value would write false on the first save, a value nobody
+// chose.
 
 
 function renderBooleanEdit(field, value, host) {
   const optional = field.required !== true;
 
-  if (!optional) {
+  if (!optional && EDIT_APPLY === 'instant') {
     return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
             <sf-switch
                     size=${EDIT_SIZE}
@@ -2530,6 +4882,18 @@ function renderBooleanEdit(field, value, host) {
                     aria-label=${field.label || field.key || ''}
                     @change=${event => host.setFieldValue(field, Boolean(event.target?.checked))}
             ></sf-switch>
+        `;
+  }
+
+  if (!optional) {
+    return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+            <sf-checkbox
+                    size=${EDIT_SIZE}
+                    name=${fieldName(field)}
+                    ?checked=${value === true}
+                    aria-label=${field.label || field.key || ''}
+                    @change=${event => host.setFieldValue(field, Boolean(event.target?.checked ?? event.detail?.checked))}
+            ></sf-checkbox>
         `;
   }
 
@@ -2661,7 +5025,7 @@ function renderChoiceButtons(field, value, host) {
                 class="sf-field-choice-buttons"
                 appearance="track"
                 size=${size}
-                root-class=${locked ? 'flex-wrap pointer-event-none' : 'flex-wrap'}
+                root-class=${locked ? 'flex-wrap pointer-events-none' : 'flex-wrap'}
                 name=${fieldName(field)}
                 items=${JSON.stringify(items)}
                 value=${chosen || lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
@@ -2684,7 +5048,7 @@ function renderChoiceEdit(field, value, host) {
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
         <sf-dropdown
                 size=${EDIT_SIZE}
-                appearance="outlined"
+                appearance="bordered"
                 mode="select"
                 search="false"
                 name=${fieldName(field)}
@@ -2738,7 +5102,7 @@ function renderChoicesEdit(field, value, host) {
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
         <sf-dropdown
                 size=${EDIT_SIZE}
-                appearance="outlined"
+                appearance="bordered"
                 mode="select"
                 multiple
                 search="false"
@@ -2782,81 +5146,7 @@ function renderChoicesEdit(field, value, host) {
 // keeps exactly what was published.
 
 
-const SET_TEXT = {
-  en: {
-    yes: 'Yes',
-    no: 'No',
-    searchInList: 'Find in the list',
-    // A text filter is a text the value contains, not a list to search.
-    containsText: 'Contains…',
-    fileKind_image: 'Images',
-    fileKind_document: 'Documents',
-    fileKind_archive: 'Archives',
-    fileKind_other: 'Other files',
-    operator: 'Operator',
-    rangeFrom: 'From',
-    rangeTo: 'To',
-    loadingOptions: 'Loading the options',
-    optionsError: 'The options could not be loaded',
-    pickRecord: 'Choose a record',
-    pickFromList: 'Choose from the list',
-    searchRecords: 'Find a record',
-    loadingRecords: 'Loading records',
-    recordsError: 'The records could not be loaded',
-    retry: 'Try again',
-    loadMore: 'Load more',
-    removeFile: 'Remove',
-    fileRemoved: 'File removed',
-    undo: 'Undo',
-    passwordSet: 'Set',
-    passwordUnset: 'Not set',
-    passwordKeep: 'Set; type a new one to replace it',
-    maskIncomplete: 'Complete the field',
-    notNumber: 'Enter a number',
-    precisionMax: 'At most {n} digits after the point',
-    rowCount: {
-      one: '{n} row',
-      other: '{n} rows'
-    }
-  },
-  ru: {
-    yes: 'Да',
-    no: 'Нет',
-    searchInList: 'Найти в списке',
-    containsText: 'Содержит…',
-    fileKind_image: 'Изображения',
-    fileKind_document: 'Документы',
-    fileKind_archive: 'Архивы',
-    fileKind_other: 'Прочие файлы',
-    operator: 'Оператор',
-    rangeFrom: 'От',
-    rangeTo: 'До',
-    loadingOptions: 'Загрузка вариантов',
-    optionsError: 'Не удалось загрузить варианты',
-    pickRecord: 'Выберите запись',
-    pickFromList: 'Выберите из списка',
-    searchRecords: 'Найти запись',
-    loadingRecords: 'Загрузка записей',
-    recordsError: 'Не удалось загрузить записи',
-    retry: 'Повторить',
-    loadMore: 'Загрузить ещё',
-    removeFile: 'Убрать',
-    fileRemoved: 'Файл убран',
-    undo: 'Вернуть',
-    passwordSet: 'Задан',
-    passwordUnset: 'Не задан',
-    passwordKeep: 'Задан; введите новый, чтобы заменить',
-    maskIncomplete: 'Заполните поле полностью',
-    notNumber: 'Введите число',
-    precisionMax: 'Не больше {n} знаков после запятой',
-    rowCount: {
-      one: '{n} строка',
-      few: '{n} строки',
-      many: '{n} строк',
-      other: '{n} строки'
-    }
-  }
-}; // The host's word wins, as it always did; the set's own fallback now follows
+const SET_TEXT = _lang_index_mjs__WEBPACK_IMPORTED_MODULE_12__["default"]; // The host's word wins, as it always did; the set's own fallback now follows
 // the page's language instead of being Russian whatever the page is. `host` is
 // the component that called the set, which is the node the rule reads from.
 // The set is not an element, so it is named here rather than taken from the
@@ -2867,6 +5157,20 @@ const SET_NAME = 'sf-field-renderers';
 
 function setText(host, key) {
   return host?.getFieldText?.(key) ?? (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageText)(SET_TEXT, key, host ?? null, SET_NAME);
+} // A word with places in it ({zone}, {n}): the host's word wins, as setText's.
+
+
+function setWord(host, key, vars) {
+  const own = host?.getFieldText?.(key);
+
+  if (own !== undefined && own !== null) {
+    return String(own).replace(/\{([a-z][\w-]*)\}/giu, (whole, name) => vars && name in vars ? String(vars[name]) : whole);
+  }
+
+  return (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageWord)(SET_TEXT, key, host ?? null, {
+    component: SET_NAME,
+    vars
+  });
 } // One job, one component (owner decision C139 (1), 2026-11-14): a record, a
 // relation, a user and a paged lookup are chosen with sf-input-lookup -- the
 // search the host answers, its rows with a picture and a caption, its states
@@ -3080,7 +5384,7 @@ function renderRecordPicker(field, value, host) {
         <div class="sf-field-picker flex flex-col gap-1/3" data-field-picker=${field.key || lit__WEBPACK_IMPORTED_MODULE_0__.nothing}>
             <sf-dropdown
                     size=${EDIT_SIZE}
-                    appearance="outlined"
+                    appearance="bordered"
                     mode="select"
                     search="true"
                     name=${fieldName(field)}
@@ -3225,7 +5529,7 @@ function renderLookupEdit(field, value, host) {
         <div class="sf-field-picker flex flex-col gap-1/3" data-field-picker=${field.key || lit__WEBPACK_IMPORTED_MODULE_0__.nothing}>
             <sf-dropdown
                     size=${EDIT_SIZE}
-                    appearance="outlined"
+                    appearance="bordered"
                     mode="select"
                     ?multiple=${multiple}
                     search="true"
@@ -3441,10 +5745,24 @@ function renderFileEdit(field, value, host) {
 // type yet.
 
 
-const sizeOption = options => options?.size === '1/2' ? '1/2' : '1'; // A control that stays a control when it may not be changed: a choice as
+const sizeOption = options => options?.size === '1/2' ? '1/2' : '1'; // `options.density`: 'compact' or 'normal', the density the control is drawn in
+// (owner decision C22; form study FM-5). Without it the control follows the
+// region it stands in, as every component does; with it the host sets the
+// region for this field alone -- a compact panel asks for 'compact' instead of
+// shrinking the field with size '1/2', which C22 forbids. Anything else is no
+// density at all.
+
+
+const DENSITIES = new Set(['compact', 'normal']);
+
+const densityOption = options => DENSITIES.has(options?.density) ? options.density : ''; // `options.apply`: 'instant' when a change acts at once (a settings panel, the
+// parameters of a block), anything else for a form saved with a button. Read by
+// the yes/no field only: a switch at once, a checkbox in a form (C165 (4)).
+
+
+let EDIT_APPLY = ''; // A control that stays a control when it may not be changed: a choice as
 // buttons shows which button is chosen, which is what it is for, where the
 // view's badge would show a different thing (port 1.16.0).
-
 
 const keepsControlWhenLocked = (asked, field) => asked === 'choice' && isChoiceButtons(field); // `options.disabled`: the control is drawn disabled, not read-only -- a field a
 // condition turns off for now (port 1.14.0 `when.enabled`), which the host
@@ -3452,7 +5770,15 @@ const keepsControlWhenLocked = (asked, field) => asked === 'choice' && isChoiceB
 // differently; for every other one a disabled field is a read-only one.
 
 
-let EDIT_DISABLED = false;
+let EDIT_DISABLED = false; // `options.error`: what is wrong with the field now, a sentence, or empty (PD-1,
+// property type study «Дата»). A control that says its own error (sf-input-date
+// for a date, a datetime and a time) is drawn invalid with the sentence under
+// it, the error-message of the field family, so a host that is not sf-form --
+// a record card -- marks the field itself instead of writing a line under a
+// field with a normal border. sf-form keeps setting invalid on the controls it
+// draws, as before.
+
+let EDIT_ERROR = '';
 function renderEditField(field = {}, value, host, options = {}) {
   const asked = field.propertyType || field.type || field.dataType;
   const disabled = options?.disabled === true; // A field the person may not change is shown, not offered as a control that
@@ -3468,19 +5794,35 @@ function renderEditField(field = {}, value, host, options = {}) {
   const outer = EDIT_SIZE;
   const outerDisabled = EDIT_DISABLED;
   const outerPicker = EDIT_PICKER;
+  const outerApply = EDIT_APPLY;
+  const outerError = EDIT_ERROR;
   EDIT_SIZE = sizeOption(options);
+  EDIT_ERROR = typeof options?.error === 'string' ? options.error.trim() : '';
   EDIT_DISABLED = disabled; // `options.picker: 'dropdown'`: the record, relation, user and paged lookup
   // fields drawn as before C139, a searchable sf-dropdown (until 2027-01-01).
 
   EDIT_PICKER = options?.picker === 'dropdown' ? 'dropdown' : '';
+  EDIT_APPLY = options?.apply === 'instant' ? 'instant' : '';
 
   try {
-    return renderer(field, value, host);
+    return inDensity(renderer(field, value, host), densityOption(options));
   } finally {
     EDIT_SIZE = outer;
     EDIT_DISABLED = outerDisabled;
     EDIT_PICKER = outerPicker;
+    EDIT_APPLY = outerApply;
+    EDIT_ERROR = outerError;
   }
+} // A density asked for one field is a region around it that draws no box of its
+// own: the variables of the density rules (core/scss/_sf_css__density.scss)
+// stand on it and every part of the control inherits them, the popups it opens
+// read it (core/js/density.js densityOf), and the control lays out in the
+// host's flex or grid as if the wrapper were not there. No density, no wrapper:
+// what a host had is unchanged.
+
+function inDensity(content, density) {
+  if (!density || content == null) return content;
+  return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<div class="sf-field-density" style="display: contents" data-sf-density=${density}>${content}</div>`;
 } // The view template: a field shown and not edited, which is the fourth of the
 // four the assignment names and the last one the set was missing.
 //
@@ -3497,6 +5839,7 @@ function renderEditField(field = {}, value, host, options = {}) {
 // has no visual size at all, its `size` being a legacy name for the file's size
 // as text.
 // The line a viewed value is drawn on: 1, or 1/2 with {size: '1/2'}, as above.
+
 
 let VIEW_LINE = '1'; // A scalar may arrive as the value itself or as {value, text}: the data and the
 // host's own formatting of it. The consumer asked for the second and they are
@@ -3534,6 +5877,18 @@ function renderTextView(field, value, host) {
 function renderHtmlView(field, value) {
   const clean = (0,_html_js__WEBPACK_IMPORTED_MODULE_8__.cleanHtml)(value);
   return clean ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<div class="sf-field-view sf-field-html">${(0,lit_directives_unsafe_html_js__WEBPACK_IMPORTED_MODULE_1__.unsafeHTML)(clean)}</div>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing;
+} // A number in the page's language (set boundary study, 2026-11-17): «12,5 кг»
+// on a Russian page, «12.5 kg» on an English one, through Intl with every
+// digit the value has (decimal.js formatDecimal, never through a float on the
+// way). The host's formatFieldValue and a value's own text still win; what is
+// not a number is shown as it came.
+
+
+function numberText(field, value, host) {
+  const formatted = host?.formatFieldValue?.(field, value);
+  if (typeof formatted === 'string') return formatted;
+  if (carriesText(value)) return value.text;
+  return (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.formatDecimal)(scalarValue(value), (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(host ?? null)) || viewText(field, value, null);
 } // A number carries its unit when the field declares one, and nothing when it
 // does not -- the set does not guess at a unit, and «42» with an invented «шт»
 // beside it is a worse answer than «42».
@@ -3549,7 +5904,14 @@ function renderNumberView(field, value, host) {
     return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<sf-progress-scale size="1" value=${String(number)}></sf-progress-scale>`;
   }
 
-  const text = viewText(field, value, host);
+  if (variant === 'meter' && Number.isFinite(number) && number >= 0 && number <= 100) {
+    const {
+      label
+    } = meterProps(field, number);
+    return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<sf-progress-bar inline meter value=${String(number)} label=${label || lit__WEBPACK_IMPORTED_MODULE_0__.nothing}></sf-progress-bar>`;
+  }
+
+  const text = numberText(field, value, host);
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-field-view">${field.unit ? `${text} ${field.unit}` : text}</span>`;
 } // A date is the host's to format first: formatFieldValue wins, and so does a
 // value that carries its own text. Without it the set used to print the stored
@@ -3562,17 +5924,22 @@ function renderNumberView(field, value, host) {
 // reads them as written, in the host's zone): nothing is moved to the reader's
 // time zone, which would show a different day near midnight. A value that is
 // not a date at all is shown as it came, never guessed at.
+//
+// `format` is the field's display setting (PD-3): the length of the date,
+// Intl's dateStyle in the page's language -- short «17.11.2026» / «11/17/26»,
+// medium (the default) «17 нояб. 2026 г.» / «Nov 17, 2026», long «17 ноября
+// 2026 г.» / «November 17, 2026», full with the weekday. A datetime keeps its
+// clock beside it. It is read by the view and the cell; the edit control
+// types the locale's digits whatever it says. Any other value is medium, and
+// the host's formatFieldValue or text still wins.
 
 
-const DATE_VIEW = {
-  dateStyle: 'medium',
-  timeZone: 'UTC'
-};
-const DATETIME_VIEW = {
-  dateStyle: 'medium',
-  timeStyle: 'short',
-  timeZone: 'UTC'
-};
+const DATE_FORMATS = new Set(['short', 'medium', 'long', 'full']);
+
+function dateFormatOf(field) {
+  const format = String(field?.format ?? '').trim();
+  return DATE_FORMATS.has(format) ? format : 'medium';
+}
 
 function defaultDateText(field, value, host) {
   if (carriesText(value)) return null;
@@ -3585,14 +5952,22 @@ function defaultDateText(field, value, host) {
     const date = new Date(0);
     date.setUTCFullYear(year, month - 1, day);
     const type = field?.propertyType || field?.type || field?.dataType;
+    const dateStyle = dateFormatOf(field);
     if (type !== 'datetime' || !parts.time) return (0,_core_js_format_date_js__WEBPACK_IMPORTED_MODULE_4__.formatDate)(date, {
-      intl: DATE_VIEW,
+      intl: {
+        dateStyle,
+        timeZone: 'UTC'
+      },
       locale
     }) || null;
     const [hours, minutes] = parts.time.split(':').map(Number);
     date.setUTCHours(hours, minutes, 0, 0);
     return (0,_core_js_format_date_js__WEBPACK_IMPORTED_MODULE_4__.formatDate)(date, {
-      intl: DATETIME_VIEW,
+      intl: {
+        dateStyle,
+        timeStyle: 'short',
+        timeZone: 'UTC'
+      },
       locale
     }) || null;
   } catch {
@@ -3769,11 +6144,40 @@ const VIEW_RENDERERS = {
   lookup: renderLookupView,
   file: renderFileView,
   color: renderColorView,
-  include: renderIncludeView
+  include: renderIncludeView,
+  money: renderMoneyView,
+  percent: renderPercentView
 }; // A field shown rather than edited. `host` is optional and used for one thing
 // only -- formatFieldValue, where a consumer's own formatting of a number or a
 // date belongs. Null when the set has no view for that type.
+// A column total (owner decision C294, MP-12): the table owns its totals
+// row, the set gives the sum by the digits and its display. Money is summed
+// per currency -- a column of dollars and euros is two lines, never one
+// number -- and a number or an integer is one sum; a percent, a choice or a
+// text has no total (null). `values` are the column's stored values; what is
+// not a number is left out.
 
+function renderTotalField(field = {}, values = [], host) {
+  const type = field.propertyType || field.type || field.dataType;
+  const locale = (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(host ?? null);
+  const list = (Array.isArray(values) ? values : []).map(value => scalarValue(value));
+
+  if (type === 'money') {
+    const totals = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.moneyTotals)(list, field, locale);
+    return totals.length ? totals.map(total => total.text) : null;
+  }
+
+  if (type !== 'number' && type !== 'integer') return null;
+  const numbers = list.filter(value => value !== null && value !== undefined && value !== '' && (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.readTypedDecimal)(value).ok);
+  if (!numbers.length) return null;
+  const sum = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.addDecimal)(numbers);
+  return sum === null ? null : [(0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.formatDecimal)(sum, locale)];
+} // Whether a type is a number a table aligns to the end of the line with
+// figures of one width (the registry's `numeric`, C294 MP-12).
+
+function isNumericType(type) {
+  return Boolean(_registry_js__WEBPACK_IMPORTED_MODULE_5__.PROPERTY_TYPES.find(entry => entry.type === type)?.numeric);
+}
 function propertyModes(type) {
   return (0,_registry_js__WEBPACK_IMPORTED_MODULE_5__.modesOf)(type, {
     view: VIEW_RENDERERS,
@@ -3791,7 +6195,7 @@ function renderViewField(field = {}, value, host, options = {}) {
   VIEW_LINE = sizeOption(options);
 
   try {
-    return renderer(field, value, host);
+    return inDensity(renderer(field, value, host), densityOption(options));
   } finally {
     VIEW_LINE = outer;
   }
@@ -3813,7 +6217,44 @@ if (typeof window !== 'undefined') {
     renderEditField,
     renderFilterField,
     renderViewField,
+    renderTotalField,
     FILTER_RENDERERS,
+    // The nine number conditions in the filter's order (C294).
+    NUMBER_FILTER_OPERATORS,
+    isNumericType,
+    // Decimal strings as the set reads and shows them (C294): the View
+    // set's items, compound and ru.requisites call these instead of
+    // keeping a copy. format(value), money(value, field), percent(value)
+    // take a locale (the page's when absent); read(text, {locale,
+    // currency}) reads what a person typed or pasted; add(...values) and
+    // compare(a, b) work by the digits; totals(values, field) sums money
+    // per currency; currency(code, locale, display) is {sign, before, minor}.
+    decimal: {
+      format: (value, locale) => (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.formatDecimal)(value, locale || (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(null)),
+      money: (value, field = {}, locale) => (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.formatMoney)(value, field, locale || (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(null)),
+      percent: (value, locale) => (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.formatPercent)(value, locale || (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(null)),
+      read: (text, options = {}) => (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.readTypedDecimal)(text, {
+        locale: (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(null),
+        ...options
+      }),
+      add: _decimal_js__WEBPACK_IMPORTED_MODULE_10__.addDecimal,
+      compare: _decimal_js__WEBPACK_IMPORTED_MODULE_10__.compareDecimal,
+      totals: (values, field = {}, locale) => (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.moneyTotals)(values, field, locale || (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(null)),
+      currency: (code, locale, display) => (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.currencyOf)(code, locale || (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(null), display)
+    },
+    // The date filter's rules (C293): the chip's words, when an entry is
+    // empty, the request with its context, a period's days.
+    dateFilter: {
+      conditions: _date_filter_js__WEBPACK_IMPORTED_MODULE_13__.dateFilterConditions,
+      chipText: _date_filter_js__WEBPACK_IMPORTED_MODULE_13__.dateFilterChipText,
+      isEmptyEntry: _date_filter_js__WEBPACK_IMPORTED_MODULE_13__.isEmptyFilterEntry,
+      normalizeEntry: _date_filter_js__WEBPACK_IMPORTED_MODULE_13__.normalizeFilterEntry,
+      requestContext: _date_filter_js__WEBPACK_IMPORTED_MODULE_13__.filterRequestContext,
+      buildRequest: _date_filter_js__WEBPACK_IMPORTED_MODULE_13__.buildFilterRequest,
+      resolvePeriod: _date_filter_js__WEBPACK_IMPORTED_MODULE_13__.resolveDatePeriod,
+      periods: _date_filter_js__WEBPACK_IMPORTED_MODULE_13__.DATE_PERIODS,
+      futurePeriods: _date_filter_js__WEBPACK_IMPORTED_MODULE_13__.DATE_FUTURE_PERIODS
+    },
     // A datetime's value read and written back, for a host that draws its
     // own control: split(value), compose(stored, {date, time}),
     // normalizeTime(text); and a time of day's: splitTime(value),
@@ -3959,6 +6400,133 @@ function maskState(text, pattern, placeholder = '_') {
 
 /***/ },
 
+/***/ "25be1c2df717"
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   formatPhone: () => (/* binding */ formatPhone),
+/* harmony export */   phoneDialCode: () => (/* binding */ phoneDialCode),
+/* harmony export */   phoneE164: () => (/* binding */ phoneE164),
+/* harmony export */   splitPhone: () => (/* binding */ splitPhone)
+/* harmony export */ });
+// A telephone number, stored and shown (FL-1, FL-7 of the property page study,
+// 2026-11-17). Larena keeps a phone in E.164 -- `+79161234567`, a plus and the
+// digits, nothing else (Larena decision 2026-10-24) -- and so does every form
+// that submits sf-input-country (standard simai.smart-component §17.1 item 2).
+// The edit control used to write the text as the box showed it,
+// `+7 916 123-45-67`, so opening a record and saving it changed the stored
+// value. Edit writes E.164 now; view and cell lay the number out by its
+// country, as the box does, and read the formatted strings stored before.
+// The national part of each dial code's number, laid out as sf-input-country
+// lays it out (its `formatByPattern`): `0` is a digit, anything else is
+// written as it stands. Derived from src/component/country-code/data/countries.json
+// -- each dial code's pattern without its own code; where countries share a
+// code, the country the code means (+7 Russia, +1 the United States, +44
+// Britain) -- and held equal to it by tests/phone-e164-fl.contract.test.mjs,
+// so the set carries 2 KB instead of the 54 KB table.
+const PATTERNS = [['0 00 00 00', '46'], ['0 00 00 00 00', '33 212 237'], ['0 000 00 00', '386'], ['0 000 000', '95 248 265 291 359 961 967 975'], ['0 000 0000', '36 64 66 389 599 850 962 964 970 971'], ['0 0000 000', '385'], ['0 0000 0000', '61 63 886'], ['0 000000', '252'], ['0 0000000', '51 53 591'], ['0 00000000', '20'], ['0 000000000', '43'], ['0-000-0000', '82 593 972'], ['0-0000 0000', '60'], ['0-0000-0000', '81'], ['0-0000000', '880 977'], ['0/000 000 00', '421'], ['00 00 0 00000', '225'], ['00 00 00', '299 508 681'], ['00 00 00 00', '32 45 47 213 222 223 224 226 227 228 235 236 241 253 257 352 377 689'], ['00 00 00 00 00', '229'], ['00 00 000 00', '261'], ['00 00 0000', '509'], ['00 00-00-00', '993'], ['00 000', '682 688'], ['00 000 00 00', '41 48 221 994 995 998'], ['00 000 000', '216 231 258 264 355 371 373 382 383 855 856'], ['00 000 0000', '27 31 40 93 233 242 249 251 255 351 595 963 966'], ['00 000-000', '387'], ['00 0000', '672'], ['00 0000 0000', '30 39 86 98'], ['00 0000-0000', '54 55'], ['00 00000', '243 263 353'], ['00 000000', '49 232 357 374 381 968'], ['00 0000000', '62 254 256 358'], ['00 00000000', '92'], ['00-000', '676'], ['00-0000000', '218'], ['00.00.00', '687'], ['000 00 00', '238 269 423'], ['000 00 00 00', '34 262 590 594 596'], ['000 00 0000', '992'], ['000 00-00-00', '375'], ['000 000', '376'], ['000 000 00 00', '90'], ['000 000 000', '56 94 211 240 244 245 250 260 420 996'], ['000 000 0000', '44 52'], ['000 000-00-00', '7'], ['000 0000', '220 239 246 267 297 354 372 592 670 673 674 675 679 680 691'], ['000 0000 000', '84'], ['000 00000', '350 370'], ['000 0000000', '57'], ['000-000', '597'], ['000-000-0000', '1'], ['000-0000', '501 507 692 960'], ['000-0000000', '58'], ['0000', '683 690'], ['0000 00 0000', '234'], ['0000 0000', '65 230 266 268 356 502 503 505 506 598 852 853 965 973 974 976'], ['0000 00000', '380'], ['0000 000000', '378'], ['0000-0000', '504'], ['00000', '290 500 677 678 685 686'], ['00000 00000', '91'], ['000000', '298']];
+const NATIONAL = new Map();
+
+for (const [pattern, codes] of PATTERNS) for (const code of codes.split(' ')) NATIONAL.set(code, pattern);
+
+const digitsOf = text => String(text ?? '').replace(/\D/gu, ''); // An extension rides after the number: Larena writes `+73472468500;ext=12`
+// (RFC 3966), and a person may have typed «доб. 12» or «ext. 12». Its digits
+// are not the number's: read into the number they made `+7347246850012`.
+
+
+const EXTENSION = /\s*(?:;\s*ext\s*=\s*|,?\s*(?:ext|доб)\.?\s*)(\d+)\s*$/iu;
+/** The number and its extension apart: {number, extension}; extension '' for none. */
+
+function splitPhone(value) {
+  const text = String(value ?? '').trim();
+  const match = text.match(EXTENSION);
+  if (!match || !/\d/u.test(text.slice(0, match.index))) return {
+    number: text,
+    extension: ''
+  };
+  return {
+    number: text.slice(0, match.index).trim(),
+    extension: match[1]
+  };
+}
+
+function numberE164(text) {
+  const digits = digitsOf(text);
+  if (!digits) return '';
+  if (text.startsWith('+')) return `+${digits}`;
+  if (/^00[1-9]/u.test(text.replace(/[\s\-().]/gu, ''))) return `+${digits.slice(2)}`;
+  return text;
+}
+/**
+ * The number in E.164: `+` and the digits. A text that starts with `+` (or the
+ * international `00`) is a full number, laid out however it was:
+ * `+7 916 123-45-67`, `+7 (916) 123 45 67` and `+79161234567` are one number.
+ * A text without a country code is returned as it came, trimmed: which country
+ * it belongs to is not the renderer's to guess. Empty for no digits. An
+ * extension is kept as `;ext=<digits>`: `+7 347 246-85-00 доб. 12` is
+ * `+73472468500;ext=12`.
+ */
+
+
+function phoneE164(value) {
+  const {
+    number,
+    extension
+  } = splitPhone(value);
+  const e164 = numberE164(number);
+  return extension && e164.startsWith('+') ? `${e164};ext=${extension}` : extension ? String(value ?? '').trim() : e164;
+}
+/** The dial code (digits) an E.164 number starts with: the longest one known. */
+
+function phoneDialCode(e164) {
+  const digits = digitsOf(e164);
+
+  for (let length = Math.min(4, digits.length); length > 0; length -= 1) {
+    if (NATIONAL.has(digits.slice(0, length))) return digits.slice(0, length);
+  }
+
+  return '';
+}
+/**
+ * The number as a person reads it: `+79161234567` reads `+7 916 123-45-67`,
+ * by the country its code names. Digits beyond the pattern stay at the end, a
+ * number is never cut; an unknown code reads `+<digits>`; a number without a
+ * country code is shown as it came. An extension follows the number after the
+ * page language's word for it (`extensionWord`, «доб.» on a Russian page).
+ */
+
+function formatPhone(value, extensionWord = 'ext.') {
+  const {
+    number,
+    extension
+  } = splitPhone(value);
+  const main = formatNumber(number);
+  if (!extension || !main.startsWith('+')) return extension && !main.startsWith('+') ? String(value ?? '').trim() : main;
+  return `${main} ${extensionWord} ${extension}`;
+}
+
+function formatNumber(value) {
+  const e164 = numberE164(String(value ?? '').trim());
+  if (!e164.startsWith('+')) return e164;
+  const digits = e164.slice(1);
+  const code = phoneDialCode(e164);
+  if (!code) return e164;
+  const rest = digits.slice(code.length);
+  if (!rest) return `+${code}`;
+  let out = '',
+      index = 0;
+
+  for (const char of NATIONAL.get(code)) {
+    if (index >= rest.length) break;
+    out += char === '0' ? rest[index++] : char;
+  }
+
+  return `+${code} ${out}${rest.slice(index)}`.trimEnd();
+}
+
+/***/ },
+
 /***/ "fc654eb7fab0"
 (__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
@@ -3967,6 +6535,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   PROPERTY_TYPES: () => (/* binding */ PROPERTY_TYPES),
 /* harmony export */   modesOf: () => (/* binding */ modesOf)
 /* harmony export */ });
+/* harmony import */ var _lang_index_mjs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("354525e80715");
 // The registry of universal properties (owner, 2026-10-15): every property
 // type the Framework renders, or a component set renders beside it (`set`),
 // its variants and the parameters a field of it reads -- one list a host
@@ -3981,28 +6550,39 @@ __webpack_require__.r(__webpack_exports__);
 // what is read). A record, a relation and a user hold one value and take their
 // candidates from the host, not from `options`; a constraint other than a
 // choice's options is the host's to enforce, not a renderer's.
+// The names of the types and variants live in the set's language files
+// (localization study LC-5); `label` keeps its {ru, en} shape for the hosts
+// that read it. English is built in; the Russian name is read from the words
+// the ru language file registered for sf-field-renderers (owner decision
+// C282), English until it is on the page.
+
+
+const registeredName = (code, key) => globalThis.__sfPageLanguage?.registered?.get?.('sf-field-renderers')?.get?.(code)?.[key];
+
+const typeLabel = key => Object.freeze(Object.defineProperties({}, {
+  ru: {
+    enumerable: true,
+    get: () => _lang_index_mjs__WEBPACK_IMPORTED_MODULE_0__["default"].ru?.[key] ?? registeredName('ru', key) ?? _lang_index_mjs__WEBPACK_IMPORTED_MODULE_0__["default"].en[key]
+  },
+  en: {
+    enumerable: true,
+    value: _lang_index_mjs__WEBPACK_IMPORTED_MODULE_0__["default"].en[key]
+  }
+}));
+
 const PROPERTY_TYPES = Object.freeze([{
   type: 'string',
-  label: {
-    ru: 'Строка',
-    en: 'String'
-  },
+  label: typeLabel('type-string'),
   // password: write-only. The host never sends the password; the value it
   // sends is {set: true} or {set: false} (null reads as not set), and the
   // set shows only «задан»/«не задан». An edit writes the typed text through
   // setFieldValue and writes nothing for a field nobody typed in.
   variants: [{
     id: 'phone',
-    label: {
-      ru: 'Телефон',
-      en: 'Phone'
-    }
+    label: typeLabel('variant-string-phone')
   }, {
     id: 'password',
-    label: {
-      ru: 'Пароль',
-      en: 'Password'
-    },
+    label: typeLabel('variant-string-password'),
     writeOnly: true
   }],
   // mask (property-view port 1.16.0): the Framework mask grammar of
@@ -4010,13 +6590,12 @@ const PROPERTY_TYPES = Object.freeze([{
   // included, and an incomplete one is reported, not written as a value.
   // nullable: false makes a cleared masked field write "" instead of null.
   // Read by the plain string alone: phone and password keep their controls.
-  params: ['placeholder', 'mask', 'nullable', 'required', 'readonly']
+  // defaultCountry (FL-7): the phone variant's country while it is empty,
+  // ISO 3166 alpha-2; without it, the page's.
+  params: ['placeholder', 'mask', 'nullable', 'defaultCountry', 'required', 'readonly']
 }, {
   type: 'text',
-  label: {
-    ru: 'Текст',
-    en: 'Text'
-  },
+  label: typeLabel('type-text'),
   variants: [],
   params: ['placeholder', 'required', 'readonly']
 }, // html (property-view port 1.17.0): formatted text, an HTML string of
@@ -4024,81 +6603,65 @@ const PROPERTY_TYPES = Object.freeze([{
 // component's own rule, a cell its text on one line, filtered as text.
 {
   type: 'html',
-  label: {
-    ru: 'Форматированный текст',
-    en: 'Formatted text'
-  },
+  label: typeLabel('type-html'),
   variants: [],
   params: ['placeholder', 'required', 'readonly']
 }, // stepper: edited with sf-quantity, «−» and «+» and the arrow keys; min,
 // max and step (and a number's precision) are read by that variant alone.
+// numeric (C294, MP-12): a number a table aligns to the end of the line
+// with figures of one width -- integer, number, money and percent -- read
+// from here by any table instead of each keeping its own list.
 {
   type: 'integer',
-  label: {
-    ru: 'Целое число',
-    en: 'Integer'
-  },
+  label: typeLabel('type-integer'),
+  numeric: true,
   variants: [{
     id: 'stepper',
-    label: {
-      ru: 'Кнопками «−» и «+»',
-      en: 'With steppers'
-    }
+    label: typeLabel('variant-integer-stepper')
   }],
   params: ['unit', 'min', 'max', 'step', 'required', 'readonly']
 }, {
   type: 'number',
-  label: {
-    ru: 'Число',
-    en: 'Number'
-  },
+  label: typeLabel('type-number'),
+  numeric: true,
   variants: [{
     id: 'scale',
-    label: {
-      ru: 'Шкала 0–100',
-      en: 'Scale 0–100'
-    }
+    label: typeLabel('variant-number-scale')
+  }, // meter (owner decision C203 (5)): a share of a limit, 0..100, as
+  // the inline sf-progress-bar meter; the scale stays for levels.
+  {
+    id: 'meter',
+    label: typeLabel('variant-number-meter')
   }, {
     id: 'stepper',
-    label: {
-      ru: 'Кнопками «−» и «+»',
-      en: 'With steppers'
-    }
+    label: typeLabel('variant-number-stepper')
   }],
   params: ['unit', 'min', 'max', 'step', 'precision', 'required', 'readonly']
-}, {
+}, // date (PD-2, PD-3): min and max bound the day, an ISO date (the day of a
+// date and time is read); format is the length the view and the cell print
+// the date in, Intl's dateStyle: short, medium (the default), long, full.
+{
   type: 'date',
-  label: {
-    ru: 'Дата',
-    en: 'Date'
-  },
+  label: typeLabel('type-date'),
   variants: [],
-  params: ['required', 'readonly']
+  params: ['min', 'max', 'format', 'required', 'readonly']
 }, // datetime and time: sf-input-date in mode datetime and time (1.4.0). min
 // and max bound the value -- an ISO date or date and time for a datetime,
-// hh:mm for a time -- and step is the minute step, 1 to 60.
+// hh:mm for a time -- and step is the minute step, 1 to 60. A datetime's
+// format is its date's length, as a date's; the clock stays short.
 {
   type: 'datetime',
-  label: {
-    ru: 'Дата и время',
-    en: 'Date and time'
-  },
+  label: typeLabel('type-datetime'),
   variants: [],
-  params: ['min', 'max', 'step', 'required', 'readonly']
+  params: ['min', 'max', 'step', 'format', 'required', 'readonly']
 }, {
   type: 'time',
-  label: {
-    ru: 'Время',
-    en: 'Time'
-  },
+  label: typeLabel('type-time'),
   variants: [],
   params: ['min', 'max', 'step', 'required', 'readonly']
 }, {
   type: 'boolean',
-  label: {
-    ru: 'Да или нет',
-    en: 'Yes or no'
-  },
+  label: typeLabel('type-boolean'),
   variants: [],
   params: ['trueText', 'falseText', 'required', 'readonly']
 }, // buttons (property-view port 1.16.0): one segmented button group, a
@@ -4107,68 +6670,41 @@ const PROPERTY_TYPES = Object.freeze([{
 // required. The dropdown stays the default.
 {
   type: 'choice',
-  label: {
-    ru: 'Одно из списка',
-    en: 'One of a list'
-  },
+  label: typeLabel('type-choice'),
   variants: [{
     id: 'buttons',
-    label: {
-      ru: 'Кнопками',
-      en: 'As buttons'
-    }
+    label: typeLabel('variant-choice-buttons')
   }],
   params: ['options', 'badgeAppearance', 'size', 'required', 'readonly']
 }, {
   type: 'choices',
-  label: {
-    ru: 'Несколько из списка',
-    en: 'Several of a list'
-  },
+  label: typeLabel('type-choices'),
   // badges: the view; checklist and select: the edit control (a list of
   // 13 or more is a checklist unless select is asked for).
   variants: [{
     id: 'badges',
-    label: {
-      ru: 'Значками',
-      en: 'As badges'
-    }
+    label: typeLabel('variant-choices-badges')
   }, {
     id: 'checklist',
-    label: {
-      ru: 'Флажками',
-      en: 'As a checklist'
-    }
+    label: typeLabel('variant-choices-checklist')
   }, {
     id: 'select',
-    label: {
-      ru: 'Выпадающим списком',
-      en: 'As a dropdown'
-    }
+    label: typeLabel('variant-choices-select')
   }],
   params: ['options', 'badgeAppearance', 'required', 'readonly']
 }, {
   type: 'user',
-  label: {
-    ru: 'Пользователь',
-    en: 'User'
-  },
+  label: typeLabel('type-user'),
   variants: [],
   params: ['placeholder', 'searchPlaceholder', 'required', 'readonly']
 }, {
   type: 'record',
-  label: {
-    ru: 'Запись',
-    en: 'Record'
-  },
+  label: typeLabel('type-record'),
   variants: [],
   params: ['placeholder', 'searchPlaceholder', 'required', 'readonly']
 }, {
   type: 'relation',
-  label: {
-    ru: 'Связь',
-    en: 'Relation'
-  },
+  label: typeLabel('type-relation'),
   variants: [],
   params: ['placeholder', 'searchPlaceholder', 'required', 'readonly']
 }, // lookup: a value chosen from a reference list the host keeps -- a country,
@@ -4179,105 +6715,79 @@ const PROPERTY_TYPES = Object.freeze([{
 // host reads and no renderer does).
 {
   type: 'lookup',
-  label: {
-    ru: 'Из справочника',
-    en: 'From a reference list'
-  },
+  label: typeLabel('type-lookup'),
   variants: [],
   params: ['options', 'multiple', 'placeholder', 'searchPlaceholder', 'required', 'readonly']
 }, {
   type: 'file',
-  label: {
-    ru: 'Файл',
-    en: 'File'
-  },
+  label: typeLabel('type-file'),
   variants: [{
     id: 'image',
-    label: {
-      ru: 'Изображение',
-      en: 'Image'
-    }
+    label: typeLabel('variant-file-image')
   }, {
     id: 'image-card',
-    label: {
-      ru: 'Изображение карточкой',
-      en: 'Image card'
-    }
+    label: typeLabel('variant-file-image-card')
   }, {
     id: 'image-list',
-    label: {
-      ru: 'Изображения списком',
-      en: 'Image list'
-    }
+    label: typeLabel('variant-file-image-list')
   }],
   // required: read by the image variant alone, whose control is
   // sf-image-field -- a required, empty one keeps its form from submitting.
   params: ['accept', 'multiple', 'formats', 'uploadText', 'uploadSupportingText', 'uploadHint', 'required', 'readonly']
 }, {
   type: 'color',
-  label: {
-    ru: 'Цвет',
-    en: 'Colour'
-  },
+  label: typeLabel('type-color'),
   variants: [],
   params: ['swatches', 'required', 'readonly']
 }, {
   type: 'include',
-  label: {
-    ru: 'Код',
-    en: 'Code'
-  },
+  label: typeLabel('type-include'),
   variants: [],
   params: ['language', 'required', 'readonly']
-}, // The types a component set draws (property-view port 1.18.0; Larena
-// property types standard, notes of 2026-11-03): `set` names the set whose
-// components show and edit them -- the View set's sf-view-properties and
-// sf-view-flow -- and the Framework draws their table cells and filters
-// (money and percent as numbers, items by its number of rows). `params` are
-// the keys the type reads, in the set's renderers and in these. Every
-// number is a decimal string, never a float.
+}, // money and percent (owner decisions C291 (2) and C294, 2026-11-17): the
+// Framework's in every mode -- view, cell, edit and filter. Every number
+// is a decimal string, never a float. money is {amount, currency}:
+// `currency` fixes an ISO 4217 code (a bare amount is then read in it, and
+// no currency is offered); `currencies` lists the codes a value may carry
+// (absent: every ISO 4217 code, with a search); `currencyDisplay` is how
+// the currency is written -- symbol (default: «₽», «$», «CA$»), code or
+// name; the digits after the point are at most the currency's minor units
+// (more is a field error, never rounded); min and max bound the amount.
+// percent is the percent ("12.5" is 12,5 %), bounded only by min and max;
+// its digits after the point are `precision`, else those of `step`.
 {
   type: 'money',
-  label: {
-    ru: 'Деньги',
-    en: 'Money'
-  },
-  set: 'view',
+  label: typeLabel('type-money'),
+  numeric: true,
   variants: [],
-  params: ['currency', 'min', 'max', 'required', 'readonly']
+  params: ['currency', 'currencies', 'currencyDisplay', 'min', 'max', 'placeholder', 'required', 'readonly']
 }, {
   type: 'percent',
-  label: {
-    ru: 'Процент',
-    en: 'Percent'
-  },
-  set: 'view',
+  label: typeLabel('type-percent'),
+  numeric: true,
   variants: [],
-  params: ['min', 'max', 'required', 'readonly']
-}, {
+  params: ['min', 'max', 'step', 'precision', 'placeholder', 'required', 'readonly']
+}, // The types a component set draws (property-view port 1.18.0; Larena
+// property types standard, notes of 2026-11-03): `set` names the set whose
+// components show and edit them -- the View set's sf-view-properties -- and
+// the Framework draws their table cells and filters (items by its number
+// of rows). `params` are the keys the type reads, in the set's renderers
+// and in these.
+{
   type: 'items',
-  label: {
-    ru: 'Строки',
-    en: 'Rows'
-  },
+  label: typeLabel('type-items'),
   set: 'view',
   variants: [],
   params: ['columns', 'minRows', 'maxRows', 'required', 'readonly']
 }, {
   type: 'compound',
-  label: {
-    ru: 'Составное',
-    en: 'Compound'
-  },
+  label: typeLabel('type-compound'),
   set: 'view',
   variants: [],
   params: ['parts', 'required', 'readonly']
 }, {
   type: 'ru.requisites',
-  label: {
-    ru: 'Реквизиты',
-    en: 'Requisites (Russia)'
-  },
+  label: typeLabel('type-ru.requisites'),
   set: 'view',
   variants: [],
   params: ['parts', 'required', 'readonly']
@@ -4506,6 +7016,163 @@ function optionBadgeProps(option = {}) {
 
 /***/ },
 
+/***/ "c4779e51fee1"
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   formatPlaceholder: () => (/* binding */ formatPlaceholder),
+/* harmony export */   localeDateFormat: () => (/* binding */ localeDateFormat),
+/* harmony export */   localeWeekStart: () => (/* binding */ localeWeekStart),
+/* harmony export */   localeWeekend: () => (/* binding */ localeWeekend),
+/* harmony export */   weekendDays: () => (/* binding */ weekendDays)
+/* harmony export */ });
+// What a locale says about its calendar, read from Intl once per locale: the
+// first day of the week and the days off (Intl.Locale#getWeekInfo, the older
+// weekInfo getter where a browser still has that). No DOM, so the rules are
+// unit-tested as they are (tests/datepicker-c62.contract.test.mjs).
+//
+// Days are numbered as Date#getDay numbers them, 0 Sunday to 6 Saturday; Intl
+// numbers them 1 Monday to 7 Sunday, so 7 is read as Sunday too.
+const weekInfos = new Map();
+
+function weekInfo(code) {
+  if (weekInfos.has(code)) return weekInfos.get(code);
+  let info = null;
+
+  try {
+    const locale = new Intl.Locale(code);
+    info = (typeof locale.getWeekInfo === 'function' ? locale.getWeekInfo() : locale.weekInfo) || null;
+  } catch {// An unknown locale keeps the defaults below.
+  }
+
+  weekInfos.set(code, info);
+  return info;
+} // The first day of the locale's week, read once per locale: the grid asks it
+// several times a render. Monday where the locale does not say.
+
+
+function localeWeekStart(code) {
+  const first = weekInfo(code)?.firstDay;
+  return Number.isInteger(first) ? first % 7 : 1;
+}
+const SATURDAY_SUNDAY = Object.freeze([6, 0]); // The locale's days off: Saturday and Sunday in ru, de and en-US, Friday and
+// Saturday in ar-EG and he-IL. Saturday and Sunday where the locale does not say.
+
+function localeWeekend(code) {
+  const days = weekInfo(code)?.weekend;
+  if (!Array.isArray(days) || !days.length) return SATURDAY_SUNDAY;
+  return Object.freeze(days.map(day => day % 7));
+} // The `weekend` setting (owner decision C62: days off are red, and a product
+// whose weekends are working days says so). Empty: the locale's days off.
+// "none": no day is a day off. Otherwise the days, comma or space separated,
+// 0 or 7 Sunday, 1 Monday to 6 Saturday ("6,7" as Intl writes Saturday and
+// Sunday, "5,6" for Friday and Saturday). Anything else in the list is left
+// out; a list with nothing left falls back to the locale.
+
+function weekendDays(setting, code) {
+  const text = String(setting ?? '').trim().toLowerCase();
+  if (!text) return new Set(localeWeekend(code));
+  if (text === 'none') return new Set();
+  const days = text.split(/[\s,]+/u).filter(part => /^[0-7]$/u.test(part)).map(part => Number(part) % 7);
+  return new Set(days.length ? days : localeWeekend(code));
+} // The date format of a locale, in the component's tokens (owner decision C62:
+// typing follows the language and the country, not a fixed «ДД.ММ.ГГГГ»). The
+// parts' order and the signs between them come from Intl alone:
+// formatToParts of a two-digit day and month and a numeric year gives
+// DD.MM.YYYY for ru and de, MM/DD/YYYY for en-US, DD/MM/YYYY for en-GB and fr,
+// YYYY-MM-DD for sv-SE and en-CA. A sign before the first part or after the
+// last («12.11.2026 г.» in bg, the closing dot of hu and ko) is left out: it is
+// not between two numbers, and a person does not type it. Right-to-left marks
+// are left out of the signs too. A locale Intl refuses, or a sign that is not
+// one a date is typed with (. / - , or a space), keeps DD.MM.YYYY.
+
+const DEFAULT_DATE_FORMAT = 'DD.MM.YYYY';
+const PART_TOKENS = {
+  day: 'DD',
+  month: 'MM',
+  year: 'YYYY'
+};
+const dateFormats = new Map();
+function localeDateFormat(code) {
+  if (dateFormats.has(code)) return dateFormats.get(code);
+  let format = DEFAULT_DATE_FORMAT;
+
+  try {
+    const parts = new Intl.DateTimeFormat(code, {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    }).formatToParts(new Date(2026, 10, 12));
+    const tokens = [];
+    const signs = [];
+    let sign = '';
+
+    for (const part of parts) {
+      if (part.type === 'literal') {
+        sign += part.value.replace(/[\u200e\u200f\u061c]/gu, '');
+      } else if (PART_TOKENS[part.type]) {
+        if (tokens.length) signs.push(sign);
+        tokens.push(PART_TOKENS[part.type]);
+        sign = '';
+      }
+    }
+
+    const whole = tokens.length === 3 && new Set(tokens).size === 3 && signs.every(one => /^[\s./,-]+$/u.test(one));
+    if (whole) format = tokens.reduce((text, token, index) => text + (index ? signs[index - 1] : '') + token, '');
+  } catch {// An unknown locale keeps the default.
+  }
+
+  dateFormats.set(code, format);
+  return format;
+} // The hint in an empty field: the format written with the letters of the
+// locale's own names for the parts (Intl.DisplayNames, type dateTimeField):
+// ДД.ММ.ГГГГ in ru, MM/DD/YYYY in en-US, TT.MM.JJJJ in de, JJ/MM/AAAA in fr.
+// A name in a script without letter case or initials (日, 年) gives the Latin
+// D, M, Y, H instead.
+
+const LATIN_LETTERS = {
+  DD: 'D',
+  MM: 'M',
+  YYYY: 'Y',
+  YY: 'Y',
+  HH: 'H',
+  mm: 'M'
+};
+const FIELD_NAMES = {
+  DD: 'day',
+  MM: 'month',
+  YYYY: 'year',
+  YY: 'year',
+  HH: 'hour',
+  mm: 'minute'
+};
+const INITIAL_RE = /^[\p{Script=Latin}\p{Script=Cyrillic}\p{Script=Greek}]/u;
+const placeholders = new Map();
+
+function letterOf(token, code) {
+  try {
+    const name = new Intl.DisplayNames(code, {
+      type: 'dateTimeField'
+    }).of(FIELD_NAMES[token]) || '';
+    const first = name.trim().charAt(0);
+    if (INITIAL_RE.test(first)) return first.toLocaleUpperCase(code);
+  } catch {// No names for this locale: the Latin letter below.
+  }
+
+  return LATIN_LETTERS[token];
+}
+
+function formatPlaceholder(format, code) {
+  const key = `${code}|${format}`;
+  if (placeholders.has(key)) return placeholders.get(key);
+  const text = String(format || '').replace(/YYYY|YY|MM|DD|HH|mm/gu, token => letterOf(token, code).repeat(token.length));
+  placeholders.set(key, text);
+  return text;
+}
+
+/***/ },
+
 /***/ "94d60d3691b5"
 (module, __webpack_exports__, __webpack_require__) {
 
@@ -4522,27 +7189,32 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _helpers_option_badge_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__("b30ec5bc0edb");
 /* harmony import */ var _field_renderers_index_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__("e5483002f3ea");
 /* harmony import */ var _field_renderers_html_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__("01ae054f01b4");
-/* harmony import */ var _js_format_value_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__("2f31b00ad99a");
-/* harmony import */ var lit__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__("2a080a730149");
-/* harmony import */ var lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__("8137feb490e0");
-/* harmony import */ var _core_js_page_language__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__("43090d1c8307");
-/* harmony import */ var _helpers_dom__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__("926043d18700");
-/* harmony import */ var _helpers_loaderDragState__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__("870b5dfddc25");
-/* harmony import */ var _core_js_position_js__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__("116963e5e31b");
-/* harmony import */ var _core_js_open_surface_mark_js__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__("bf0cea966575");
-/* harmony import */ var _core_js_layer_stack_js__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__("18003344cff0");
-/* harmony import */ var _core_js_density_js__WEBPACK_IMPORTED_MODULE_20__ = __webpack_require__("1412c5875b4d");
-/* harmony import */ var _core_js_preferences_js__WEBPACK_IMPORTED_MODULE_21__ = __webpack_require__("51250bf01ab0");
-var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_core_js_smart_base__WEBPACK_IMPORTED_MODULE_0__, _core_js_element_manifest__WEBPACK_IMPORTED_MODULE_1__, _js_templates_default__WEBPACK_IMPORTED_MODULE_7__, _field_renderers_index_js__WEBPACK_IMPORTED_MODULE_9__, _js_format_value_js__WEBPACK_IMPORTED_MODULE_11__, lit__WEBPACK_IMPORTED_MODULE_12__, lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_13__, _core_js_page_language__WEBPACK_IMPORTED_MODULE_14__, _core_js_position_js__WEBPACK_IMPORTED_MODULE_17__, _core_js_open_surface_mark_js__WEBPACK_IMPORTED_MODULE_18__, _core_js_layer_stack_js__WEBPACK_IMPORTED_MODULE_19__]);
-([_core_js_smart_base__WEBPACK_IMPORTED_MODULE_0__, _core_js_element_manifest__WEBPACK_IMPORTED_MODULE_1__, _js_templates_default__WEBPACK_IMPORTED_MODULE_7__, _field_renderers_index_js__WEBPACK_IMPORTED_MODULE_9__, _js_format_value_js__WEBPACK_IMPORTED_MODULE_11__, lit__WEBPACK_IMPORTED_MODULE_12__, lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_13__, _core_js_page_language__WEBPACK_IMPORTED_MODULE_14__, _core_js_position_js__WEBPACK_IMPORTED_MODULE_17__, _core_js_open_surface_mark_js__WEBPACK_IMPORTED_MODULE_18__, _core_js_layer_stack_js__WEBPACK_IMPORTED_MODULE_19__] = __webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
+/* harmony import */ var lit__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__("2a080a730149");
+/* harmony import */ var lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__("8137feb490e0");
+/* harmony import */ var _core_js_page_language__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__("43090d1c8307");
+/* harmony import */ var _helpers_dom__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__("926043d18700");
+/* harmony import */ var _helpers_loaderDragState__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__("870b5dfddc25");
+/* harmony import */ var _core_js_position_js__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__("116963e5e31b");
+/* harmony import */ var _core_js_open_surface_mark_js__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__("bf0cea966575");
+/* harmony import */ var _core_js_layer_stack_js__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__("18003344cff0");
+/* harmony import */ var _core_js_density_js__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__("1412c5875b4d");
+/* harmony import */ var _core_js_menu_open_js__WEBPACK_IMPORTED_MODULE_20__ = __webpack_require__("8d229b7c92e9");
+/* harmony import */ var _core_js_deprecations_js__WEBPACK_IMPORTED_MODULE_21__ = __webpack_require__("d3818183b14c");
+/* harmony import */ var _core_js_roving_js__WEBPACK_IMPORTED_MODULE_22__ = __webpack_require__("557c99eb8f3a");
+/* harmony import */ var _core_js_preferences_js__WEBPACK_IMPORTED_MODULE_23__ = __webpack_require__("51250bf01ab0");
+var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_core_js_smart_base__WEBPACK_IMPORTED_MODULE_0__, _core_js_element_manifest__WEBPACK_IMPORTED_MODULE_1__, _js_templates_default__WEBPACK_IMPORTED_MODULE_7__, _field_renderers_index_js__WEBPACK_IMPORTED_MODULE_9__, lit__WEBPACK_IMPORTED_MODULE_11__, lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_12__, _core_js_page_language__WEBPACK_IMPORTED_MODULE_13__, _core_js_position_js__WEBPACK_IMPORTED_MODULE_16__, _core_js_open_surface_mark_js__WEBPACK_IMPORTED_MODULE_17__, _core_js_layer_stack_js__WEBPACK_IMPORTED_MODULE_18__, _core_js_deprecations_js__WEBPACK_IMPORTED_MODULE_21__]);
+([_core_js_smart_base__WEBPACK_IMPORTED_MODULE_0__, _core_js_element_manifest__WEBPACK_IMPORTED_MODULE_1__, _js_templates_default__WEBPACK_IMPORTED_MODULE_7__, _field_renderers_index_js__WEBPACK_IMPORTED_MODULE_9__, lit__WEBPACK_IMPORTED_MODULE_11__, lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_12__, _core_js_page_language__WEBPACK_IMPORTED_MODULE_13__, _core_js_position_js__WEBPACK_IMPORTED_MODULE_16__, _core_js_open_surface_mark_js__WEBPACK_IMPORTED_MODULE_17__, _core_js_layer_stack_js__WEBPACK_IMPORTED_MODULE_18__, _core_js_deprecations_js__WEBPACK_IMPORTED_MODULE_21__] = __webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
 /* harmony import */ var _core_js_smart_base__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_core_js_smart_base__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _core_js_element_manifest__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_core_js_element_manifest__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var lit__WEBPACK_IMPORTED_MODULE_12___default = /*#__PURE__*/__webpack_require__.n(lit__WEBPACK_IMPORTED_MODULE_12__);
-/* harmony import */ var lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_13___default = /*#__PURE__*/__webpack_require__.n(lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_13__);
-/* harmony import */ var _core_js_page_language__WEBPACK_IMPORTED_MODULE_14___default = /*#__PURE__*/__webpack_require__.n(_core_js_page_language__WEBPACK_IMPORTED_MODULE_14__);
-/* harmony import */ var _core_js_position_js__WEBPACK_IMPORTED_MODULE_17___default = /*#__PURE__*/__webpack_require__.n(_core_js_position_js__WEBPACK_IMPORTED_MODULE_17__);
-/* harmony import */ var _core_js_open_surface_mark_js__WEBPACK_IMPORTED_MODULE_18___default = /*#__PURE__*/__webpack_require__.n(_core_js_open_surface_mark_js__WEBPACK_IMPORTED_MODULE_18__);
-/* harmony import */ var _core_js_layer_stack_js__WEBPACK_IMPORTED_MODULE_19___default = /*#__PURE__*/__webpack_require__.n(_core_js_layer_stack_js__WEBPACK_IMPORTED_MODULE_19__);
+/* harmony import */ var lit__WEBPACK_IMPORTED_MODULE_11___default = /*#__PURE__*/__webpack_require__.n(lit__WEBPACK_IMPORTED_MODULE_11__);
+/* harmony import */ var lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_12___default = /*#__PURE__*/__webpack_require__.n(lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_12__);
+/* harmony import */ var _core_js_page_language__WEBPACK_IMPORTED_MODULE_13___default = /*#__PURE__*/__webpack_require__.n(_core_js_page_language__WEBPACK_IMPORTED_MODULE_13__);
+/* harmony import */ var _core_js_position_js__WEBPACK_IMPORTED_MODULE_16___default = /*#__PURE__*/__webpack_require__.n(_core_js_position_js__WEBPACK_IMPORTED_MODULE_16__);
+/* harmony import */ var _core_js_open_surface_mark_js__WEBPACK_IMPORTED_MODULE_17___default = /*#__PURE__*/__webpack_require__.n(_core_js_open_surface_mark_js__WEBPACK_IMPORTED_MODULE_17__);
+/* harmony import */ var _core_js_layer_stack_js__WEBPACK_IMPORTED_MODULE_18___default = /*#__PURE__*/__webpack_require__.n(_core_js_layer_stack_js__WEBPACK_IMPORTED_MODULE_18__);
+/* harmony import */ var _core_js_deprecations_js__WEBPACK_IMPORTED_MODULE_21___default = /*#__PURE__*/__webpack_require__.n(_core_js_deprecations_js__WEBPACK_IMPORTED_MODULE_21__);
+
+
 
 
 
@@ -4576,10 +7248,12 @@ var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_cor
 // SF.Preferences, the Framework's one store of view preferences (core
 // publishes it; this bundle's copy is the fallback).
 
-const preferences = () => globalThis.SF?.Preferences || _core_js_preferences_js__WEBPACK_IMPORTED_MODULE_21__["default"];
+const preferences = () => globalThis.SF?.Preferences || _core_js_preferences_js__WEBPACK_IMPORTED_MODULE_23__["default"];
 
-const tablePreferenceKey = key => `sf-table/${String(key).replace(/[^\w.:-]+/gu, "-")}`; // What a cell may draw as markup rather than as an element of its own.
+const tablePreferenceKey = key => `sf-table/${String(key).replace(/[^\w.:-]+/gu, "-")}`; // The id prefix of the entries a host listed for one row action (CM-8).
 
+
+const ROW_MENU_ITEM = "listed:"; // What a cell may draw as markup rather than as an element of its own.
 
 const LIGHT_CELL_TAGS = new Set(["sf-badge", "sf-tag", "sf-avatar"]); // How long the content table of an sf-view waits for the view's code before
 // it draws on its own (saved-views r2, D2), and the grace after the view's
@@ -4597,32 +7271,30 @@ const TABLE_VIEW_DEFAULTS = Object.freeze({
   stickyHead: true
 }); // The nearest box that scrolls vertically above an element, across shadow
 // roots; null when it is the page.
-// Where a right click was, as a menu anchor (C164 (1); ui-control research
-// 2026-11-14-context-menu, CM-1): a fixed box of no size at the pointer.
-// sf-menu-context reads such an anchor as a point (1.18.0): the menu's corner
-// is the point, and the focus goes back to the control under it. The table
-// removes it when the menu closes.
-
-function menuPointAt({
-  x,
-  y
-}) {
-  const point = document.createElement("span");
-  point.dataset.sfTableMenuPoint = "";
-  point.style.cssText = `position: fixed; left: ${x}px; top: ${y}px; inline-size: 0; block-size: 0`;
-  document.body.append(point);
-  return point;
-} // A list row's own menu button: «≡» of a plain list, «⋯» of a list with
+// A list row's own menu button: «≡» of a plain list, «⋯» of a list with
 // quick actions.
 
+const LIST_ROW_MENU_BUTTON = "[data-sf-row-menu], .sf-table-list-menu button"; // The areas the row menu is bound to by sf-menu-context's `for` (C164; SIMAI
+// Framework sf-menu-context 1.21.0): the table and the list of each table on
+// the page, by an id of their own.
 
-const LIST_ROW_MENU_BUTTON = "[data-sf-row-menu], .sf-table-list-menu button"; // The context-menu key and Shift+F10 (C164 (1), C184 (5)).
+let ROW_AREA_COUNT = 0; // A key cell (owner decision C259, variant Б): a column the host marks
+// `key_cell: true` stays in the row of a table with row actions on a phone,
+// where every other column goes; `key_line` names the column whose value is
+// the key cell's second line there (the client under an order). The names
+// follow the Framework's .table-key and .table-key-line (utility.table 1.7.0).
 
-const isMenuKey = event => event?.key === "ContextMenu" || event?.key === "F10" && event?.shiftKey === true; // A target that keeps the browser's own menu: a link (open in a new tab) and
-// a field a person types in.
+const isKeyCell = column => column?.key_cell === true || column?.keyCell === true;
+
+const keyLineOf = column => {
+  const line = column?.key_line ?? column?.keyLine;
+  return typeof line === "string" && line ? line : null;
+}; // Below the md step of the breakpoint ladder (44rem), where the row menu is
+// the bottom sheet (C164 (6)), a keyed table with row actions keeps its key
+// cells (C259).
 
 
-const keepsBrowserMenu = target => Boolean(target?.closest?.("a[href], input, textarea, select, [contenteditable]"));
+const KEYED_NARROW_REM = 44;
 
 function verticalScroller(element) {
   for (let node = element; node; node = node.parentElement ?? node.getRootNode?.()?.host ?? null) {
@@ -4667,13 +7339,35 @@ const STATUS_WORDS = Object.freeze({
   warning: "statusWarning",
   error: "statusError",
   stopped: "statusStopped"
-});
+}); // sort="key:asc" (owner decision C296): the attribute's short form, a list of
+// one; null when it is not that form (the JSON list keeps working).
+
+function parseSortText(text) {
+  const match = /^\s*([^:\s][^:]*?)\s*:\s*(asc|desc)\s*$/u.exec(String(text ?? ""));
+  return match ? [{
+    key: match[1],
+    direction: match[2]
+  }] : null;
+} // The table's former container settings (C296, VT-13), dated until 2027-01-01.
+
+
+const CONTAINER_SETTINGS = ["toolbar", "pagin", "filter-templates", "filter-text", "clear-text", "search-placeholder", "create-text", "creatable", "pagination-total", "pagination-page-size", "page-sizes", "filter-apply-text", "layout-switch"];
+const CONTAINER_SETTING_HOME = {
+  "pagin": "sf-pagination",
+  "pagination-total": "sf-pagination total",
+  "pagination-page-size": "sf-pagination page-size",
+  "page-sizes": "sf-pagination page-sizes"
+}; // The short fields edited at the cell (C296 q-edit).
+
+const SHORT_EDIT_TYPES = new Set(["choice", "enum", "select", "user", "date", "datetime", "number", "integer", "money"]); // The schemes a fact's badge takes from its option (C140 (2)).
+
+const BADGE_SCHEMES = new Set(["neutral", "primary", "secondary", "success", "info", "warning", "error"]);
 const FACT_LEVELS = Object.freeze({
   warning: 1,
   error: 2
 });
 
-const positioning = () => globalThis.SF?.Position || (_core_js_position_js__WEBPACK_IMPORTED_MODULE_17___default()); // Published Composition ports (simai.composition.port-manifest.v1, sf-view-table@1.0.0).
+const positioning = () => globalThis.SF?.Position || (_core_js_position_js__WEBPACK_IMPORTED_MODULE_16___default()); // Published Composition ports (simai.composition.port-manifest.v1, sf-view-table@1.0.0).
 
 
 const SF_TABLE_PORTS = Object.freeze({
@@ -4789,6 +7483,22 @@ class SfTable extends TableElement {
       selectable: {
         type: Boolean,
         default: true
+      },
+      // The count of records under the filter, when the host knows it
+      // (owner decision C296): the grid's aria-rowcount (VT-4) and the
+      // «all N» of the bar of group actions. 0: not known.
+      total: {
+        type: Number,
+        default: 0
+      },
+      // How many records of the filter come before the first row drawn
+      // (a data view's page 2 and on): the rows' aria-rowindex count
+      // from it, so a grid of total + 1 rows says where each row is
+      // (VT-4, VR2-8). 0: the rows drawn start the list.
+      rowOffset: {
+        attribute: "row-offset",
+        type: Number,
+        default: 0
       },
       // Who owns the vertical scroll. `self` keeps the rows in their own
       // scroll area, which is what a host that bounds the table's height
@@ -5118,7 +7828,7 @@ class SfTable extends TableElement {
         props: {
           kind: 'icon',
           size: '1',
-          appearance: 'link',
+          appearance: 'ghost',
           scheme: 'on-surface',
           icon: 'edit',
           ariaLabel: this.text('editActionText'),
@@ -5133,7 +7843,7 @@ class SfTable extends TableElement {
         props: {
           kind: 'icon',
           size: '1',
-          appearance: 'link',
+          appearance: 'ghost',
           scheme: 'on-surface',
           icon: 'visibility',
           ariaLabel: this.text('viewActionText'),
@@ -5164,7 +7874,7 @@ class SfTable extends TableElement {
         props: {
           kind: 'icon',
           size: '1',
-          appearance: 'link',
+          appearance: 'ghost',
           scheme: 'on-surface',
           status: 'error',
           icon: 'delete',
@@ -5189,7 +7899,7 @@ class SfTable extends TableElement {
         type: "button-icon",
         props: {
           size: "1",
-          appearance: "link",
+          appearance: "ghost",
           scheme: "on-surface",
           icon: "settings",
           ariaLabel: this.text("settingsColumnLabel"),
@@ -5246,6 +7956,7 @@ class SfTable extends TableElement {
     this._checkboxMeasureToken = 0;
     this._responsiveWidth = 0;
     this._responsiveObserver = null;
+    this._rowAreaId = `sf-view-table-rows-${++ROW_AREA_COUNT}`;
     this._filterTemplatesLoaded = false;
     this.tempSettings = null;
     this.state = {
@@ -5254,8 +7965,6 @@ class SfTable extends TableElement {
       createItems: [],
       // What the toolbar's own control offers, straight from the host.
       toolbarActions: [],
-      // What is typed over the list of fields in the column settings.
-      columnSettingsQuery: "",
       sort: {
         key: null,
         direction: null
@@ -5424,6 +8133,14 @@ class SfTable extends TableElement {
   }
 
   set sort(list) {
+    // The short form of C296's contract: "key:asc" or "key:desc".
+    if (typeof list === "string") list = parseSortText(list) ?? (() => {
+      try {
+        return JSON.parse(list);
+      } catch {
+        return null;
+      }
+    })();
     const first = Array.isArray(list) ? list[0] : list;
     const key = first?.key ?? first?.field ?? null;
     const direction = first?.direction ?? first?.dir ?? null;
@@ -5480,6 +8197,96 @@ class SfTable extends TableElement {
     this.focusRow(String(id), {
       reveal: true
     });
+    return {
+      outcome: "applied"
+    };
+  } // The settings a markup author writes as attributes: sort="key:dir" is
+  // read before the base's JSON reading of list attributes, which would
+  // otherwise say the short form is not JSON (C296).
+
+
+  sfReadListAttributes() {
+    if (!this.__sfListAttributesRead && this.hasAttribute?.("sort")) {
+      const short = parseSortText(this.getAttribute("sort"));
+      if (short) this.sort = short;
+    }
+
+    return super.sfReadListAttributes?.();
+  } // The totals at the foot (C296, q-totals B): the host's numbers, never
+  // counted here -- under a filter only the server sees every record.
+  // {page?: {key: value}, all?: {key: value}}, keyed by the columns marked
+  // `total`; a row per side given, «На странице» then «Всего».
+
+
+  get totals() {
+    return this._totals ?? null;
+  }
+
+  set totals(value) {
+    const shaped = value && typeof value === "object" && !Array.isArray(value) ? value : null;
+    this._totals = shaped ? Object.freeze({ ...(shaped.page && typeof shaped.page === "object" ? {
+        page: { ...shaped.page
+        }
+      } : {}),
+      ...(shaped.all && typeof shaped.all === "object" ? {
+        all: { ...shaped.all
+        }
+      } : {})
+    }) : null;
+    this.requestComponentUpdate?.("totals");
+  } // Opening a record (C296): sf-view-table-open {id, newTab} beside the
+  // view intent the title has always raised; newTab when a modifier or the
+  // middle button took the record's address to a tab of its own.
+
+
+  requestOpen(row, newTab = false) {
+    const id = row?.id;
+    if (id === null || id === undefined || id === "") return false;
+    return this.emitTableEvent("open", Object.freeze({
+      id,
+      newTab: newTab === true
+    }));
+  } // Brings a record's row into view without moving the focus (C296); a row
+  // outside the drawn range is drawn first. Answers an outcome, as
+  // focus-row does.
+
+
+  scrollToRow(rowId) {
+    const id = rowId && typeof rowId === "object" ? rowId.id : rowId;
+    if (id === null || id === undefined || id === "") return {
+      outcome: "refused",
+      reason: "empty"
+    };
+    const key = String(id).replace(/"/gu, '\\"');
+    const element = this.isList ? this.querySelector(`.sf-table-list-item[data-row-id="${key}"]`) : this.refs.table?.value?.querySelector(`tbody tr[data-row-id="${key}"]`);
+
+    if (element) {
+      element.scrollIntoView?.({
+        block: "nearest",
+        behavior: "instant"
+      });
+      return {
+        outcome: "applied"
+      };
+    }
+
+    const rows = this.getTableData().rows || [];
+    const index = rows.findIndex((one, at) => this.getRowKey(one, at) === String(id));
+    if (index < 0) return {
+      outcome: "refused",
+      reason: "unknown"
+    };
+
+    if (this._windowed) {
+      this._windowRange = this.clampWindow({
+        first: index - WINDOW_MARGIN,
+        last: index + WINDOW_MARGIN
+      }, rows.length);
+      this._windowOnly = true;
+      this._pendingScrollRow = String(id);
+      this.requestComponentUpdate("window");
+    }
+
     return {
       outcome: "applied"
     };
@@ -5656,6 +8463,8 @@ class SfTable extends TableElement {
   }
 
   setBulkActions(actions = []) {
+    this.noteBulkActionsName?.();
+
     if (!Array.isArray(actions) || Array.from(actions).some(action => !action || typeof action !== 'object' || typeof action.id !== 'string' || !action.id.trim() || typeof action.name !== 'string' || !action.name.trim() || Object.keys(action).some(key => key !== 'id' && key !== 'name'))) {
       throw new TypeError('Bulk actions require opaque id and name only');
     }
@@ -5671,8 +8480,11 @@ class SfTable extends TableElement {
     });
   }
 
-  renderBulkActions() {
-    if (!this.state.bulkActions?.length) return lit__WEBPACK_IMPORTED_MODULE_12__.nothing;
+  renderBulkActions(place = "before") {
+    if (!this.state.bulkActions?.length) return lit__WEBPACK_IMPORTED_MODULE_11__.nothing;
+    const bar = this.hasBulkBar();
+    if (place === "after") return bar ? this.renderBulkBar() : lit__WEBPACK_IMPORTED_MODULE_11__.nothing;
+    if (bar) return lit__WEBPACK_IMPORTED_MODULE_11__.nothing;
     const selected = this.getSelectedRecordIds(); // C116: a bulk action is a regular button (outline on-surface); one
     // that deletes opens a confirmation, so it is the outlined danger and
     // stands last (C164 (5)). None is the filled main button.
@@ -5680,9 +8492,9 @@ class SfTable extends TableElement {
     const destructive = action => /^(delete|remove|destroy|trash)\b/iu.test(String(action.id));
 
     const ordered = [...this.state.bulkActions].sort((a, b) => Number(destructive(a)) - Number(destructive(b)));
-    return (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`<div class="flex flex-wrap gap-1/3">
-            ${ordered.map(action => (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`<sf-button
-                appearance="outline" scheme="on-surface" status=${destructive(action) ? "error" : lit__WEBPACK_IMPORTED_MODULE_12__.nothing}
+    return (0,lit__WEBPACK_IMPORTED_MODULE_11__.html)`<div class="flex flex-wrap gap-1/3">
+            ${ordered.map(action => (0,lit__WEBPACK_IMPORTED_MODULE_11__.html)`<sf-button
+                appearance="outline" scheme="on-surface" status=${destructive(action) ? "error" : lit__WEBPACK_IMPORTED_MODULE_11__.nothing}
                 text=${action.name} ?disabled=${selected.length === 0}
                 @click=${() => {
       const ids = this.getSelectedRecordIds();
@@ -5691,6 +8503,72 @@ class SfTable extends TableElement {
       });
     }}></sf-button>`)}
         </div>`;
+  } // C295 / C296: group actions are sf-bulk-actions' job. Where the page's
+  // pair carries that element, a table standing alone places one bar after
+  // its rows (count, clear and «all N» come with it: BA-2, BA-5); where it
+  // does not, the table's own buttons stay above the rows as before. Inside
+  // sf-view the view draws the bar. setBulkActions / bulkActions are the
+  // former names of the bar's actions until 2027-01-01.
+
+
+  noteBulkActionsName() {
+    if (this.closest?.("sf-view")) return;
+    (0,_core_js_deprecations_js__WEBPACK_IMPORTED_MODULE_21__.noteDeprecated)({
+      component: "sf-view-table",
+      tag: "sf-view-table",
+      kind: "method",
+      from: "setBulkActions",
+      to: "sf-bulk-actions actions",
+      since: "2026-11-18",
+      remove_after: "2027-01-01",
+      package: "view"
+    });
+  }
+
+  hasBulkBar() {
+    return typeof customElements !== "undefined" && Boolean(customElements.get("sf-bulk-actions"));
+  }
+
+  renderBulkBar() {
+    const selected = this.getSelectedRecordIds();
+    const rows = this.getTableData().rows || [];
+    const count = Number(this.getProp?.("total") ?? this.getAttribute("total") ?? 0);
+    const total = Number.isSafeInteger(count) && count > 0 ? String(count) : lit__WEBPACK_IMPORTED_MODULE_11__.nothing;
+    const actions = this.state.bulkActions.map(({
+      id,
+      name
+    }) => ({
+      id,
+      text: name
+    }));
+    return (0,lit__WEBPACK_IMPORTED_MODULE_11__.html)`<sf-bulk-actions place="inline" data-sf-table-bulk
+            size=${this.getPropsContext().size === "1/2" ? "1/2" : "1"}
+            count=${selected.length} page-count=${rows.length} total=${total}
+            ?all-selected=${this._bulkAll === true}
+            .actions=${actions}
+            @sf-bulk-actions-action=${event => {
+      const {
+        id,
+        scope
+      } = event.detail || {};
+      const ids = this.getSelectedRecordIds();
+      if (!id || !ids.length && scope !== "all") return;
+      this.requestActionIntent(String(id), ids.length ? ids : rows.map(row => row.id), {
+        scope: scope === "all" ? "all" : "selection"
+      });
+    }}
+            @sf-bulk-actions-select-all=${() => {
+      this._bulkAll = true;
+      this.requestComponentUpdate("bulk");
+    }}
+            @sf-bulk-actions-select-page=${() => {
+      this._bulkAll = false;
+      this.requestComponentUpdate("bulk");
+    }}
+            @sf-bulk-actions-clear=${() => {
+      this._bulkAll = false;
+      this.clearSelection();
+    }}></sf-bulk-actions>`;
   } // Items for the create split button menu. Choosing one (or the main
   // button, with item null) emits sf-table-create-intent; the host opens its form.
 
@@ -5794,145 +8672,105 @@ class SfTable extends TableElement {
     }
 
     return this;
-  }
-
-  renderToolbarActionsContextMenu(data) {
-    const {
-      x,
-      y
-    } = data; // The standard menu's entries, not link buttons: a link button in a
-    // menu drew centred text on a light block that looked like no other
-    // menu in the admin (owner, 2026-10-13).
-
-    const actions = this.getToolbarActions();
-    const entries = actions.map(action => ({
-      id: String(action.id),
-      text: action.label,
-      ...(action.icon ? {
-        icon: action.icon
-      } : {})
-    }));
-
-    const select = event => {
-      const action = actions.find(item => String(item.id) === event.detail?.id);
-      this.closeContextMenu();
-      if (action) this.requestToolbarAction(action.id);
-    };
-
-    return (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
-            <sf-menu-context
-                    size=${this.menuSize}
-                    :key=${x + y}
-                    aria-label=${this.getContextMenuLabel({ ...data,
-      menu: 'toolbar-actions'
-    })}
-                    style="
-            position: fixed;
-            left: ${x}px;
-            inset-block-start: calc(${y}px + calc(var(--sf-focus-outline-width) * 2));
-            z-index: var(--sf-table-context-menu--z-index, ${this.contextMenuZIndex()});
-          "
-                    data-context-main-menu
-                    .entries=${entries}
-                    @sf-menu-context-select=${select}
-            ></sf-menu-context>
-        `;
-  } // The list has no column heads to sort by, so its sort is a menu: the host's
-  // own order, then each sortable column one way and the other. Choosing one
-  // raises sf-table-sort-change exactly as a head does.
+  } // The view's three action menus -- the create arrow's variants, the
+  // toolbar's «⋯» and the list's sort -- are the page's one menu of actions,
+  // SIMAI Framework SF.menu.open (C184 (4), VF-1, set standard 7.5): the
+  // Framework places it at its control, closes it on a press outside or
+  // Escape, toggles it from the same control and gives the focus back. They
+  // were sf-menu-context windows the table drew in its own portal with
+  // position: fixed. Each entry list answers {entries, choose(id)}.
 
 
-  renderListSortContextMenu(data) {
-    const {
-      x,
-      y
-    } = data;
-    const current = this.state.sort || {};
-
-    const choose = (key, direction) => {
-      this.closeContextMenu();
-      this.setSort(key, direction);
-      this.emitTableEvent('sort-change', Object.freeze({
-        key,
-        direction
-      }));
-    };
-
-    const choices = new Map();
-
-    const option = (text, key, direction) => {
-      const id = `${key ?? ''}:${direction ?? ''}`;
-      choices.set(id, [key, direction]);
+  actionMenu(menu) {
+    if (menu === 'toolbar-actions') {
+      // The standard menu's entries, not link buttons: a link button in a
+      // menu drew centred text on a light block that looked like no other
+      // menu in the admin (owner, 2026-10-13).
+      const actions = this.getToolbarActions();
       return {
-        id,
-        text,
-        kind: 'radio',
-        checked: current.key === key && current.direction === direction
+        entries: actions.map(action => ({
+          id: String(action.id),
+          text: action.label,
+          ...(action.icon ? {
+            icon: action.icon
+          } : {})
+        })),
+        choose: id => {
+          const action = actions.find(item => String(item.id) === id);
+          if (action) this.requestToolbarAction(action.id);
+        }
       };
-    };
+    }
 
-    const select = event => {
-      const choice = choices.get(event.detail?.id);
-      if (choice) choose(...choice);
-    };
+    if (menu === 'list-sort') {
+      // The list has no column heads to sort by, so its sort is a menu:
+      // the host's own order, then each sortable column one way and the
+      // other. Choosing one raises sf-table-sort-change exactly as a head
+      // does.
+      const current = this.state.sort || {};
+      const choices = new Map();
 
-    const sortable = this.getColumns().filter(column => column?.sortable && !column.system && !["select", "settings", "actions"].includes(column.key));
-    const items = [option(this.text('sortNone'), null, null), ...sortable.flatMap(column => [option(`${column.label ?? column.key}, ${this.text('sortAscending')}`, column.key, 'asc'), option(`${column.label ?? column.key}, ${this.text('sortDescending')}`, column.key, 'desc')])];
-    return (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
-            <sf-menu-context
-                    size=${this.menuSize}
-                    :key=${x + y}
-                    aria-label=${this.getContextMenuLabel({ ...data,
-      menu: 'list-sort'
-    })}
-                    style="
-            position: fixed;
-            left: ${x}px;
-            inset-block-start: calc(${y}px + calc(var(--sf-focus-outline-width) * 2));
-            z-index: var(--sf-table-context-menu--z-index, ${this.contextMenuZIndex()});
-          "
-                    data-context-main-menu
-                    .entries=${items}
-                    @sf-menu-context-select=${select}
-            ></sf-menu-context>
-        `;
-  }
+      const option = (text, key, direction) => {
+        const id = `${key ?? ''}:${direction ?? ''}`;
+        choices.set(id, [key, direction]);
+        return {
+          id,
+          text,
+          kind: 'radio',
+          checked: current.key === key && current.direction === direction
+        };
+      };
 
-  renderCreateContextMenu(data) {
-    const {
-      x,
-      y
-    } = data;
-    const createItems = this.state.createItems;
-    const entries = createItems.map(item => ({
-      id: String(item.id),
-      text: item.name
-    }));
+      const sortable = this.getColumns().filter(column => column?.sortable && !column.system && !["select", "settings", "actions"].includes(column.key));
+      return {
+        entries: [option(this.text('sortNone'), null, null), ...sortable.flatMap(column => [option(`${column.label ?? column.key}, ${this.text('sortAscending')}`, column.key, 'asc'), option(`${column.label ?? column.key}, ${this.text('sortDescending')}`, column.key, 'desc')])],
+        choose: id => {
+          const choice = choices.get(id);
+          if (!choice) return;
+          const [key, direction] = choice;
+          this.setSort(key, direction);
+          this.emitTableEvent('sort-change', Object.freeze({
+            key,
+            direction
+          }));
+        }
+      };
+    }
 
-    const select = event => {
-      const item = createItems.find(entry => String(entry.id) === event.detail?.id);
-      this.closeContextMenu();
-      if (item) this.requestCreateIntent(item.id);
-    };
+    if (menu === 'create') {
+      const createItems = this.state.createItems || [];
+      return {
+        entries: createItems.map(item => ({
+          id: String(item.id),
+          text: item.name
+        })),
+        choose: id => {
+          const item = createItems.find(entry => String(entry.id) === id);
+          if (item) this.requestCreateIntent(item.id);
+        }
+      };
+    }
 
-    return (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
-            <sf-menu-context
-                    size=${this.menuSize}
-                    :key=${x + y}
-                    aria-label=${this.getContextMenuLabel({ ...data,
-      menu: 'create'
-    })}
-                    style="
-            position: fixed;
-            left: ${x}px;
-            inset-block-start: calc(${y}px + calc(var(--sf-focus-outline-width) * 2));
-            z-index: var(--sf-table-context-menu--z-index, ${this.contextMenuZIndex()});
-          "
-                    data-context-main-menu
-                    .entries=${entries}
-                    @sf-menu-context-select=${select}
-            ></sf-menu-context>
-        `;
+    return null;
+  } // Opens one of the action menus at its control through SF.menu.open and
+  // acts on the row chosen. A second press on the same control closes it.
+
+
+  async openActionMenu(menu, anchor) {
+    const built = this.actionMenu(menu);
+    if (!built || !(anchor instanceof Element)) return null;
+    anchor.setAttribute('aria-expanded', 'true');
+    const choice = await (0,_core_js_menu_open_js__WEBPACK_IMPORTED_MODULE_20__.menuOpen)({
+      anchor,
+      entries: built.entries,
+      label: this.getContextMenuLabel({
+        menu
+      }),
+      size: this.menuSize
+    });
+    if (anchor.isConnected) anchor.setAttribute('aria-expanded', 'false');
+    if (choice?.id !== undefined && choice?.id !== null) built.choose(String(choice.id));
+    return choice;
   } // Sorting reports intent only: the table marks the header and emits
   // sf-table-sort-change; the host reorders or reloads the rows.
 
@@ -6350,7 +9188,26 @@ class SfTable extends TableElement {
       last: to
     };
   } // aria-rowcount of a windowed table: every row, the head's included.
+  // aria-rowcount (VT-4, APG grid): the head and every record under the
+  // filter when the host says how many (total), else the drawn window's.
 
+
+  ariaRowCount() {
+    const total = Number(this.getProp?.("total") ?? this.getAttribute("total") ?? 0);
+    if (Number.isSafeInteger(total) && total > 0) return String(total + 1);
+    return this.windowRowCount();
+  } // A row's aria-rowindex: in a windowed table its place in the window, in
+  // a page of a longer list (total and row-offset) its place in the list;
+  // else none -- the rows drawn are all there is.
+
+
+  ariaRowIndex(index, windowed) {
+    if (windowed) return String(index + 2);
+    const total = Number(this.getProp?.("total") ?? this.getAttribute("total") ?? 0);
+    const offset = Number(this.getProp?.("rowOffset") ?? this.getAttribute("row-offset") ?? 0);
+    if (!Number.isSafeInteger(total) || total <= 0 || !Number.isSafeInteger(offset) || offset <= 0) return null;
+    return String(offset + index + 2);
+  }
 
   windowRowCount() {
     return this._windowed ? String((this._windowCount ?? 0) + 1) : null;
@@ -6529,10 +9386,17 @@ class SfTable extends TableElement {
       };
     }
 
-    const typed = this.getTypedCellValue(column, value);
+    const typed = this.cellValue(column, value);
 
     if (typed !== null && typeof typed !== "undefined") {
       if (typeof typed !== "string" && typeof typed !== "number") return null;
+      const datetime = this.cellDateTime(column, value);
+      if (datetime) return {
+        kind: "time",
+        className: "sf-table-cell-bare",
+        text: String(typed),
+        datetime
+      };
       return {
         kind: "text",
         className: "sf-table-cell-bare",
@@ -6645,6 +9509,7 @@ class SfTable extends TableElement {
     if (event?.type === "dblclick" && this.getAttribute("row-open") === "row") return this;
     const id = row?.id;
     if (id == null) return this;
+    this.requestOpen(row, false);
     return this.requestActionIntent("view", [id]);
   } // The keyboard reaches the same two answers as the pointer: Enter opens the
   // row, Space marks it. Without them the row would be focusable and mute,
@@ -6706,17 +9571,9 @@ class SfTable extends TableElement {
   }
 
   handleRowKeydown(event, row) {
-    // A list row's menu from the keyboard (C164 (1)): the context-menu
-    // key and Shift+F10 on the row or a control in it, not in a field.
-    // The table's rows have theirs in handleGridKeydown.
-    if (this.isList && isMenuKey(event) && !keepsBrowserMenu(event?.target) && event?.currentTarget?.matches?.("li.sf-table-list-item[data-row-id]")) {
-      if (this.openListRowMenu(event.currentTarget)) event.preventDefault?.();
-      return this;
-    } // In the list the row's title link is its tab stop: the arrows, Home
+    // In the list the row's title link is its tab stop: the arrows, Home
     // and End move from it as from the row.
     // In the table the grid walks from a control (C146 (8)).
-
-
     const fromTitle = this.isList && event?.target !== event?.currentTarget && event?.target?.matches?.(".sf-table-title-link") && ["ArrowDown", "ArrowUp", "Home", "End"].includes(event?.key);
     if (event?.target !== event?.currentTarget && !fromTitle) return this; // A treegrid row: the right arrow opens a closed node, the left arrow
     // closes an open one.
@@ -6886,31 +9743,13 @@ class SfTable extends TableElement {
   }
 
   onConnected() {
-    super.onConnected(); // A right click on a list row (C164 (1)(2)); a table's rows are
-    // heard by the grid (bindGridKeys).
-
-    if (!this._listContextMenu) {
-      this._listContextMenu = event => {
-        if (event.defaultPrevented || event.shiftKey || !this.isList) return;
-        const target = event.target instanceof Element ? event.target : null;
-        if (!target || keepsBrowserMenu(target)) return;
-        const item = target.closest("li.sf-table-list-item[data-row-id]");
-        if (!item || !this.contains(item)) return;
-        if (this.openListRowMenu(item, {
-          x: event.clientX,
-          y: event.clientY
-        })) event.preventDefault();
-      };
-
-      this.addEventListener("contextmenu", this._listContextMenu);
-    } // The content widths are read once the rows are drawn, and a font or
+    super.onConnected(); // The content widths are read once the rows are drawn, and a font or
     // a component's stylesheet that arrives after that makes the same
     // content wider: columns measured before it stayed narrow and their
     // values wrapped onto two lines until something re-rendered the table
     // (owner, 2026-10-14: «after I changed the sort it was right»). The
     // Loader brings a part's stylesheet when the page first uses it, and
     // fonts load late, so both send the widths to be read again.
-
 
     if (!this._lateLayoutAbort) {
       this._lateLayoutAbort = new AbortController();
@@ -7530,12 +10369,32 @@ class SfTable extends TableElement {
 
   getFilterPayload(filter = this.state?.filter || {}) {
     const selectedTemplate = this.getSelectedFilterTemplate(filter);
-    return { ...(selectedTemplate?.data || {}),
+    const payload = { ...(selectedTemplate?.data || {}),
       templateKey: selectedTemplate?.key || "",
       templateLabel: selectedTemplate?.label || "",
       values: this.getCurrentFilterValues(filter),
       tags: this.getCurrentFilterTags(filter)
     };
+    const api = this.dateFilterApi();
+
+    if (api && typeof api.buildFilterRequest === "function") {
+      try {
+        const context = typeof this.getFilterContext === "function" ? this.getFilterContext() : undefined;
+        const request = api.buildFilterRequest(payload.values, {
+          node: this,
+          context
+        });
+
+        if (request && typeof request === "object") {
+          if (request.values) payload.values = request.values;
+          if (request.context) payload.context = request.context;
+        }
+      } catch {
+        /* the values as written */
+      }
+    }
+
+    return payload;
   }
 
   selectFilterTemplate(key) {
@@ -7588,36 +10447,6 @@ class SfTable extends TableElement {
     };
     keys.forEach((key, at) => orderedByGroup[group].set(key, at));
     this.syncFilterTemplateOrder(orderedByGroup);
-  } // A column list may be narrowed by the search: the move is placed against
-  // the shown neighbours, and the columns the search hides keep their places.
-
-
-  onColumnSettingsIntent(event) {
-    const list = event.target;
-    const {
-      item,
-      index
-    } = event.detail ?? {};
-    if (!(list instanceof Element) || !item) return;
-    const pinnedGroup = list.getAttribute('data-group') === 'pinned';
-    const shown = SfTable.reorderedKeys(list, item, index);
-    const at = shown.indexOf(item);
-    const columns = this.getColumnItems().filter(column => column?.key && !column.system);
-    const groupKeys = columns.filter(column => this.isColumnPinned(column) === pinnedGroup).map(column => column.key).filter(key => key !== item);
-    const before = shown[at + 1];
-    const after = shown[at - 1];
-    let place = before !== undefined ? groupKeys.indexOf(before) : -1;
-    if (place === -1) place = after !== undefined ? groupKeys.indexOf(after) + 1 : groupKeys.length;
-    groupKeys.splice(place === -1 ? groupKeys.length : place, 0, item);
-    const otherKeys = columns.filter(column => this.isColumnPinned(column) !== pinnedGroup).map(column => column.key);
-    const ordered = pinnedGroup ? [...groupKeys, ...otherKeys] : [...otherKeys, ...groupKeys];
-    ordered.forEach((key, position) => this.patchTempColumnSettings(key, {
-      order: (position + 1) * 10
-    }));
-    this.requestComponentUpdate('column-order'); // The consumer's owner read the drag as applying at once, because the
-    // list redraws from the draft; it does, as every control in the window.
-
-    this.commitColumnSettings('column-order');
   }
 
   syncFilterTemplateOrder(orderedByGroup) {
@@ -7704,8 +10533,30 @@ class SfTable extends TableElement {
   get isList() {
     const layout = this.resolvedLayout;
     if (layout === "list") return true;
-    if (layout === "table") return false;
+    if (layout === "table") return false; // A table with row actions that marks key cells stays a table on a
+    // phone and keeps them (C259); without key cells, the list below
+    // list-below as before.
+
+    if (this.keyedActions) return false;
     return this.isNarrow;
+  } // A table with row actions whose host marks key cells (C259).
+
+
+  get keyedActions() {
+    return this.hasRowMenus && (this.getTableData().columns || []).some(isKeyCell);
+  } // Below 44rem (the md step, where the row menu is the sheet) such a table
+  // keeps the box, «≡» and its key cells alone, without sideways scroll.
+
+
+  get isKeyedNarrow() {
+    if (this.isList || !this.keyedActions || !(this._responsiveWidth > 0)) return false;
+    const rem = Number.parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+    return this._responsiveWidth < KEYED_NARROW_REM * rem;
+  } // The column whose value is a key cell's second line on a phone (C259).
+
+
+  keyLineOf(column) {
+    return this.isKeyedNarrow ? keyLineOf(column) : null;
   } // Whether the table's container is below list-below: a phone, or a list
   // beside an open panel.
 
@@ -7891,11 +10742,17 @@ class SfTable extends TableElement {
     const option = !props && Array.isArray(column?.options) ? column.options.find(item => String(item?.value) === String(raw)) : null;
     const status = String(props?.status ?? props?.level ?? option?.status ?? "").replace(/^danger$/u, "error");
     const text = this.listText(column, raw);
-    if (!text) return null;
+    if (!text) return null; // The option's colour reaches the badge (owner decision C140 (2): a
+    // status or a value is the tonal badge of its scheme; VT-18 of the
+    // sf-view-table study: five statuses drew five grey badges). A
+    // warning or an error the fact names wins over it.
+
+    const scheme = String(props?.scheme ?? option?.scheme ?? "");
     return {
       text,
       level: FACT_LEVELS[status] ?? 0,
       status: FACT_LEVELS[status] ? status : "",
+      scheme: BADGE_SCHEMES.has(scheme) ? scheme : "",
       tip: String(props?.tip ?? props?.title ?? option?.tip ?? "")
     };
   } // The id of the table's shared name tooltip (C146 (7)).
@@ -8417,7 +11274,7 @@ class SfTable extends TableElement {
       position
     } = data;
     const template = this.getSelectedFilterTemplate();
-    return (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
+    return (0,lit__WEBPACK_IMPORTED_MODULE_11__.html)`
             <sf-menu-context
                     size=${this.menuSize}
                     :key=${x + y + this._renderToken}
@@ -8435,9 +11292,9 @@ class SfTable extends TableElement {
                     position="${position || ""}"
             >
                 <div class="flex flex-col flex-1 gap-2" slot="content">
-                    <div class="sf-table-context-top"><span class="sf-text-2 bold">Сохранение шаблона</span></div>
+                    <div class="sf-table-context-top"><span class="sf-text-2 bold">${this.text('saveTemplateLabel')}</span></div>
                     <div class="sf-table-context-main">
-                        <form ${(0,lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_13__.ref)(this.refs.templateForm)} id="save_template" class="flex flex-col gap-1/2">
+                        <form ${(0,lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_12__.ref)(this.refs.templateForm)} id="save_template" class="flex flex-col gap-1/2">
                             <sf-input
                                     size=${this.size}
                                     appearance="filled"
@@ -8476,16 +11333,16 @@ class SfTable extends TableElement {
                     </div>
                 </div>
                 <div class="sf-table-context-bottom sf-context-menu-footer">
-                    <sf-button size=${this.size} @click="${() => {
-      this.tempSettings = null;
-      this.requestComponentUpdate('table');
-    }}" appearance="outline" scheme="on-surface" root-class="flex-1"
-                               text="${this.text('resetText')}"></sf-button>
                     <sf-button size=${this.size}
                             ?disabled=${this.state.saveInputValue.length === 0}
                             @click="${() => {
       this.saveFilterTemplate();
     }}" root-class="flex-1" text="${this.text('applyText')}"></sf-button>
+                    <sf-button size=${this.size} @click="${() => {
+      this.tempSettings = null;
+      this.requestComponentUpdate('table');
+    }}" appearance="outline" scheme="on-surface" root-class="flex-1"
+                               text="${this.text('resetText')}"></sf-button>
                 </div>
                 </div>
             </sf-menu-context>
@@ -8518,84 +11375,6 @@ class SfTable extends TableElement {
     });
     this.tempSettings = null;
     this.closeContextMenu();
-  }
-
-  renderRowSettingsContextMenu(data) {
-    const {
-      x,
-      y,
-      position,
-      transform,
-      items = this.getActionRowItems(data.row || {}).map(action => ({
-        component: "sf-button",
-        props: {
-          appearance: "link",
-          scheme: "on-surface",
-          text: action.name,
-          "@click": event => {
-            const handler = action.component.props["@click"] || action.component.props.onClick;
-            handler?.(event);
-            this.closeContextMenu();
-          }
-        }
-      }))
-    } = data;
-    let pos = `translateY(calc(${transform !== undefined ? transform : -50}%))`;
-
-    if (position) {
-      switch (position) {
-        case "left-bottom":
-        case "right-bottom":
-          pos = `translateY(calc(${transform !== undefined ? transform : -100}% + var(--sf-context-menu-tail-corner-offset)))`;
-          break;
-      }
-    }
-
-    return (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
-            <sf-menu-context
-                    size=${this.menuSize}
-                    :key=${x + y}
-                    aria-label=${this.getContextMenuLabel({ ...data,
-      menu: 'row-settings'
-    })}
-                    style="
-            position: fixed;
-            left: calc(${x}px + var(--sf-context-menu-tail-corner-offset));
-            inset-block-start: ${y}px;
-            transform: ${pos};
-            z-index: var(--sf-table-context-menu--z-index, ${this.contextMenuZIndex()});
-          "
-                    .entries=${items.map((item, at) => {
-      // The standard menu's rows (owner, 2026-10-14): these were
-      // link buttons, the one menu of the table drawn otherwise.
-      const props = item.props || item.component?.props || {};
-      return {
-        id: String(at),
-        text: props.text ?? item.name ?? "",
-        icon: props.iconLeft ?? props.iconStart ?? props.icon ?? undefined,
-        danger: props.scheme === "error" || item.danger === true,
-        disabled: Boolean(props.disabled)
-      };
-    })}
-                    @sf-menu-context-select=${event => {
-      const item = items[Number(event.detail?.id)];
-      const props = item?.props || item?.component?.props || {};
-      const handler = props["@click"] ?? props.onClick;
-      if (typeof handler === "function") handler({
-        currentTarget: event.target,
-        target: event.target,
-
-        preventDefault() {},
-
-        stopPropagation() {}
-
-      });
-      this.closeContextMenu();
-    }}
-                    position="${position || "left"}"
-            >
-            </sf-menu-context>
-        `;
   }
 
   getColumnItems() {
@@ -8917,9 +11696,40 @@ class SfTable extends TableElement {
     }
 
     return false;
+  } // C293 (DF-1, DF-4, DF-6): the date filter's own reading -- a period,
+  // empty and not empty are whole entries; the chip says the condition; the
+  // request carries the zone and week start -- comes with the pair that has
+  // SF.fieldRenderers.dateFilter. Without it the table reads as before.
+
+
+  dateFilterApi() {
+    const api = globalThis.SF?.fieldRenderers?.dateFilter;
+    return api && typeof api.isEmptyFilterEntry === "function" ? api : null;
+  }
+
+  filterChipText(key, tag = {}) {
+    const api = this.dateFilterApi();
+    const label = tag?.label ?? key;
+    if (!api || typeof api.dateFilterChipText !== "function") return label;
+    const field = (this.getFilterFields?.() || []).find(item => item?.key === key);
+    const type = field?.propertyType ?? field?.type ?? field?.dataType ?? tag?.control;
+    if (!["date", "datetime", "period"].includes(type)) return label;
+    const entry = this.getCurrentFilterValues?.()?.[key];
+    if (!entry || this.isEmptyFilterEntry(entry)) return label;
+
+    try {
+      return api.dateFilterChipText({ ...field,
+        label
+      }, entry, this) || label;
+    } catch {
+      return label;
+    }
   }
 
   isEmptyFilterEntry(entry) {
+    const api = this.dateFilterApi();
+    if (api) return api.isEmptyFilterEntry(entry);
+
     if (!entry || typeof entry !== "object") {
       return this.isEmptyFilterValue(entry);
     }
@@ -8944,100 +11754,6 @@ class SfTable extends TableElement {
     return this.patchFilterTemplateData(filter, {
       tags,
       values
-    });
-  } // What the person typed over the list of fields. Kept in state so the list
-  // and the field agree after a render; there can be hundreds of fields and
-  // scrolling for one is not an answer.
-
-
-  setColumnSettingsQuery(value = "") {
-    return this.set({
-      columnSettingsQuery: String(value ?? "")
-    });
-  } // Case and ё/е are not differences a person means when searching.
-
-
-  matchesColumnQuery(label = "", query = "") {
-    const normalise = value => String(value ?? "").toLowerCase().replace(/ё/gu, "е");
-
-    const needle = normalise(query).trim();
-    if (!needle) return true;
-    return normalise(label).includes(needle);
-  }
-
-  getColumnCheckboxItems(options = {}) {
-    const {
-      checked,
-      onChange,
-      refPrefix = "column"
-    } = options;
-    const {
-      pin = false,
-      handle = false,
-      query = "",
-      group = ""
-    } = options; // A group is one of the two sortable lists: the pinned columns -- the
-    // system ones among them, offered nothing -- or the loose ones.
-
-    const inGroup = col => !group || (group === 'pinned' ? col.system || this.isColumnPinned(col) : !col.system && !this.isColumnPinned(col));
-
-    return this.getColumnItems().filter(col => inGroup(col) && (!pin || col.system || this.matchesColumnQuery(col.label, query))).map(col => {
-      const itemRef = this.getItemRef(`${refPrefix}:${col.key}`) || false;
-      const isChecked = typeof checked === "function" ? Boolean(checked(col)) : Boolean(checked);
-      const box = (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
-                <sf-checkbox
-                    size=${this.size}
-                    label=${col.label}
-                    position="end"
-                    root-class="content-main-between"
-                    ?checked=${isChecked}
-                    ${(0,lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_13__.ref)(itemRef)}
-                    @change=${event => onChange?.(col, event)}
-                ></sf-checkbox>
-            `;
-
-      if (!pin || col.system) {
-        return box;
-      } // The pin sits beside the visibility box, because both are answers
-      // about the same column. The box and the row menu are always pinned
-      // and are offered nothing.
-
-
-      const pinned = this.isColumnPinned(col);
-      return (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
-                <div class="sf-table-column-option flex items-cross-center gap-1/3"
-                     data-column-key=${col.key}
-                     data-sf-sortable-item=${col.key}
-                     data-pinned=${pinned ? "1" : "0"}>
-                    ${handle ? (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`<sf-button-icon
-                                size="1/2"
-                                appearance="ghost"
-                                scheme="on-surface"
-                                icon="drag_indicator"
-                                data-move
-                                data-sf-sortable-handle
-                                root-class="sf-table-column-move cursor-grab"
-                                aria-label=${`${this.text("columnMoveLabel", "column-move-label")}: ${col.label || col.key}`}
-                            ></sf-button-icon>` : lit__WEBPACK_IMPORTED_MODULE_12__.nothing}
-                    <span class="flex-1 min-w-0">${box}</span>
-                    <!-- A pinned column's pin is filled and a loose one's is
-                         outlined, the way a pinned filter template already
-                         shows itself. Colour alone had to carry the state, and
-                         the two schemes are close enough that a person reading
-                         a list of twenty pins could not tell which were set. -->
-                    <sf-button-icon
-                        size="1/2"
-                        appearance="ghost"
-                        scheme=${pinned ? "primary" : "on-surface"}
-                        ?filled=${pinned}
-                        icon="push_pin"
-                        title=${pinned ? this.text("unpinColumnLabel", "unpin-column-label") : this.text("pinColumnLabel", "pin-column-label")}
-                        aria-label=${pinned ? this.text("unpinColumnLabel", "unpin-column-label") : this.text("pinColumnLabel", "pin-column-label")}
-                        aria-pressed=${pinned ? "true" : "false"}
-                        @click=${() => this.toggleColumnPinned(col)}
-                    ></sf-button-icon>
-                </div>
-            `;
     });
   } // «Сбросить» in the column settings: the state the window opened with,
   // applied at once and announced once -- not the host's defaults, which is
@@ -9114,34 +11830,14 @@ class SfTable extends TableElement {
     label,
     onIntent
   }) {
-    const list = (group, rows) => rows.length ? (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`<sf-sortable
+    const list = (group, rows) => rows.length ? (0,lit__WEBPACK_IMPORTED_MODULE_11__.html)`<sf-sortable
                 group=${`${name}-${group}`}
                 data-group=${group}
                 label=${label}
                 class="flex flex-col gap-1/3"
-                @sf-sortable-intent=${onIntent}>${rows}</sf-sortable>` : lit__WEBPACK_IMPORTED_MODULE_12__.nothing;
+                @sf-sortable-intent=${onIntent}>${rows}</sf-sortable>` : lit__WEBPACK_IMPORTED_MODULE_11__.nothing;
 
-    return (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`${list('pinned', pinnedRows)}${list('loose', looseRows)}`;
-  }
-
-  getTableColsData(group = '') {
-    return this.getColumnCheckboxItems({
-      group,
-      pin: true,
-      handle: true,
-      query: this.state.columnSettingsQuery || "",
-      refPrefix: "table-column",
-      checked: col => this.isColumnVisible(col),
-      onChange: (col, event) => {
-        this.patchTempColumnSettings(col.key, {
-          visible: Boolean(event.target?.checked)
-        }); // Everything in this window applies at once, by the consumer
-        // owner's decision of 2026-10-05, so a click outside loses
-        // nothing and no «Применить» is left to press.
-
-        this.commitColumnSettings('column-visibility');
-      }
-    });
+    return (0,lit__WEBPACK_IMPORTED_MODULE_11__.html)`${list('pinned', pinnedRows)}${list('loose', looseRows)}`;
   }
 
   getFilterTagColsData() {
@@ -9421,6 +12117,163 @@ class SfTable extends TableElement {
       value,
       revision: row._revision ?? row.revision ?? null
     }));
+  } // C296: a short field -- a choice, a person, yes/no, a date, a number --
+  // the host lets this person write is edited at the cell, in a small menu
+  // or popover, when the author turns inline-edit on. Longer fields are the
+  // record card's. A boolean keeps its checkbox in the cell.
+
+
+  cellShortEditable(row = {}, column = {}) {
+    if (this.getAttribute("inline-edit") !== "true" || column.system) return false;
+    const type = column.propertyType ?? column.property_type ?? column.type;
+    if (!SHORT_EDIT_TYPES.has(type)) return false;
+    if ((type === "user" || type === "choice" || type === "enum" || type === "select") && !Array.isArray(column.options)) return false;
+    return Array.isArray(row.editable) && row.editable.map(String).includes(String(column.key));
+  } // Opens the editor of one cell: a menu of the choices (checked at the
+  // value), or a popover with the Framework's own edit field and Save and
+  // Cancel. What is chosen goes to the host as cell-set, like the checkbox.
+
+
+  async openCellEditor(row, column, cell) {
+    if (!row || !column || !(cell instanceof Element) || !this.cellShortEditable(row, column)) return null;
+    if (this.cellPending(row, column)) return null;
+    const type = column.propertyType ?? column.property_type ?? column.type;
+    const value = row[column.key];
+    const label = column.label ?? column.key;
+
+    if (type === "boolean" || Array.isArray(column.options)) {
+      const options = type === "boolean" ? [{
+        value: true,
+        label: this.text("cellEditYes")
+      }, {
+        value: false,
+        label: this.text("cellEditNo")
+      }] : column.options;
+      const current = value && typeof value === "object" && !Array.isArray(value) ? value.value ?? value.id : value;
+      const entries = options.map((option, index) => ({
+        id: String(index),
+        text: String(option?.label ?? option?.text ?? option?.value ?? ""),
+        checked: String(option?.value) === String(current)
+      }));
+      const choice = await (0,_core_js_menu_open_js__WEBPACK_IMPORTED_MODULE_20__.menuOpen)({
+        anchor: cell,
+        entries,
+        label: `${this.text("cellEditLabel")}: ${label}`,
+        size: this.menuSize
+      });
+      if (choice?.id === undefined || choice?.id === null) return null;
+      const picked = options[Number(choice.id)];
+      if (!picked || String(picked.value) === String(current)) return null;
+      this.setCellValue(row, column, picked.value);
+      return {
+        outcome: "applied"
+      };
+    }
+
+    return this.openCellPopover(row, column, cell, value, label);
+  }
+
+  openCellPopover(row, column, cell, value, label) {
+    this.closeCellPopover();
+    const box = document.createElement("div");
+    box.className = "sf-table-cell-editor";
+    box.setAttribute("role", "dialog");
+    box.setAttribute("aria-label", `${this.text("cellEditLabel")}: ${label}`);
+    let draft = value;
+    const host = {
+      setFieldValue: (_field, next) => {
+        draft = next;
+      },
+      text: key => this.text(key)
+    };
+    const field = { ...column,
+      key: column.key,
+      label,
+      propertyType: column.propertyType ?? column.property_type ?? column.type
+    };
+    const size = this.getPropsContext().size === "1/2" ? "1/2" : "1";
+
+    const finish = apply => {
+      const was = String(value ?? "");
+      this.closeCellPopover();
+      if (apply && String(draft ?? "") !== was) this.setCellValue(row, column, draft);
+      cell.closest("tr")?.focus?.({
+        preventScroll: true
+      });
+    };
+
+    (0,lit__WEBPACK_IMPORTED_MODULE_11__.render)((0,lit__WEBPACK_IMPORTED_MODULE_11__.html)`<form class="sf-table-cell-editor-form" @submit=${event => {
+      event.preventDefault();
+      finish(true);
+    }}
+                @keydown=${event => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        event.stopPropagation();
+        finish(false);
+      }
+    }}>
+            ${(0,_field_renderers_index_js__WEBPACK_IMPORTED_MODULE_9__.renderEditField)(field, value, host, {
+      size
+    })}
+            <div class="sf-table-cell-editor-actions">
+                <sf-button size=${size} scheme="primary" text=${this.text("cellEditApply")}
+                    @click=${() => finish(true)}></sf-button>
+                <sf-button size=${size} appearance="outline" scheme="on-surface" text=${this.text("cellEditCancel")}
+                    @click=${() => finish(false)}></sf-button>
+            </div>
+        </form>`, box);
+    document.body.append(box);
+    this._cellPopover = box; // Placed by the Framework's one anchoring helper (SF.Position): under
+    // the cell, at least as wide, flipped or shifted to stay in view, in
+    // the top layer. A press outside closes it without saving.
+
+    this._cellPlace = positioning().anchor(cell, box, {
+      side: "block-end",
+      align: "start",
+      matchWidth: "min"
+    }); // One layer of the page's stack: Escape and a press outside close it
+    // without saving (a picker the field opens is a layer above it).
+
+    (0,_core_js_layer_stack_js__WEBPACK_IMPORTED_MODULE_18__.openLayer)(box, {
+      kind: "surface",
+      root: () => box,
+      onEscape: () => {
+        finish(false);
+        return true;
+      },
+      onOutsidePress: () => this.closeCellPopover(box)
+    });
+    requestAnimationFrame(() => box.querySelector("input, select, textarea, button, [tabindex]")?.focus?.());
+    return {
+      outcome: "opened"
+    };
+  }
+
+  closeCellPopover(only = null) {
+    const box = this._cellPopover;
+    if (!box || only && only !== box) return;
+    this._cellPopover = null;
+    this._cellPlace?.stop?.();
+    this._cellPlace = null;
+    (0,_core_js_layer_stack_js__WEBPACK_IMPORTED_MODULE_18__.closeLayer)(box, {
+      restoreFocus: false
+    });
+    (0,lit__WEBPACK_IMPORTED_MODULE_11__.render)(lit__WEBPACK_IMPORTED_MODULE_11__.nothing, box);
+    box.remove();
+  } // Double click or F2 on a short editable cell opens its editor.
+
+
+  cellEditTarget(event) {
+    const cell = event.target instanceof Element ? event.target.closest("tbody td[data-key]") : null;
+    if (!cell || !this.contains(cell)) return null;
+    const row = this.rowOfElement(cell);
+    const column = (this.getTableData().columns || []).find(one => String(one.key) === cell.dataset.key);
+    return row && column && this.cellShortEditable(row, column) ? {
+      row,
+      column,
+      cell
+    } : null;
   }
 
   clearCellPending(id, key) {
@@ -9459,14 +12312,56 @@ class SfTable extends TableElement {
     if (type === "file" && Array.isArray(value)) {
       const files = value.map(file => (0,_field_renderers_index_js__WEBPACK_IMPORTED_MODULE_9__.renderCellField)(column, file, host)).filter(item => item !== null && item !== undefined);
       return files.length ? files : null;
-    }
+    } // A date reads as the SIMAI Framework's field renderers read it (the
+    // record's own day and clock, in the page's language; the host's
+    // formatFieldValue first): the table's own date parsing is gone (VF-10).
+
 
     const rendered = (0,_field_renderers_index_js__WEBPACK_IMPORTED_MODULE_9__.renderCellField)(column, value, host);
-    if (rendered !== null && rendered !== undefined) return rendered; // A date the host did not format reads in the page's language rather
-    // than as stored (format-date); the host's formatFieldValue still wins.
-
-    if (_js_format_value_js__WEBPACK_IMPORTED_MODULE_11__.DATE_TYPES.has(type)) return (0,_js_format_value_js__WEBPACK_IMPORTED_MODULE_11__.formatDateValue)(type, value, this) || null;
+    if (rendered !== null && rendered !== undefined) return rendered;
     return null;
+  } // What a cell draws: the field renderers' answer, and when they leave a
+  // plain number to the host and the host has none, the number in the
+  // page's language (VT-14 of the sf-view-table study: «1.5» in a Russian
+  // table, while money and dates were localised) -- every digit the value
+  // has, never rounded, grouped as the language groups.
+
+
+  cellValue(column = {}, value) {
+    const typed = this.getTypedCellValue(column, value);
+    if (typed !== null && typed !== undefined) return typed;
+    const type = column.propertyType ?? column.property_type ?? column.type;
+    if ((type === "integer" || type === "number") && !(column.variant || column.filter?.variant)) return this.localNumber(value);
+    return null;
+  }
+
+  localNumber(value) {
+    const text = typeof value === "number" ? Number.isFinite(value) ? String(value) : "" : String(value ?? "").trim();
+    if (!/^-?\d+(\.\d+)?$/u.test(text)) return null;
+    const digits = (text.split(".")[1] ?? "").length;
+    const locale = this.closest?.("[lang]")?.getAttribute("lang") || globalThis.document?.documentElement?.lang || undefined;
+
+    try {
+      return new Intl.NumberFormat(locale || undefined, {
+        minimumFractionDigits: digits,
+        maximumFractionDigits: digits
+      }).format(Number(text));
+    } catch {
+      return null;
+    }
+  } // The machine reading of a date cell (C40, PD-9): a date or a date and time
+  // the Framework reads is printed as a time element whose datetime is the
+  // record's own day and clock, as the record panel prints it. '' for any
+  // other cell, or a value that is no date.
+
+
+  cellDateTime(column = {}, value) {
+    const type = column.propertyType ?? column.property_type ?? column.type;
+    if (type !== "date" && type !== "datetime") return "";
+    if (typeof value !== "string" && !(value && typeof value === "object" && !Array.isArray(value))) return "";
+    return (0,_field_renderers_index_js__WEBPACK_IMPORTED_MODULE_9__.dateTimeAttribute)({ ...column,
+      propertyType: type
+    }, value) || "";
   } // The text a long-text cell shows on its one line: formatted text is its
   // text, not its markup -- «<p>Этапы: <strong>дизайн</strong>…» stood in
   // the row as written (the Fields page, 2026-11-05).
@@ -9491,7 +12386,7 @@ class SfTable extends TableElement {
       size: this.size,
       getFilterControlValue: key => this.getFilterControlValue(key),
       patchTempFilterValue: (key, patch) => this.patchTempFilterValue(key, patch),
-      getFilterOperatorLabel: operator => this.getFilterOperatorLabel(operator),
+      getFilterOperatorLabel: operator => this.getFilterOperatorLabel(operator, field),
       getFilterOptionSearch: key => this.getFilterOptionSearch(key),
       patchTempFilterOptionSearch: (key, search) => this.patchTempFilterOptionSearch(key, search),
       getVisibleFilterOptions: item => this.getVisibleFilterOptions(item),
@@ -9507,21 +12402,21 @@ class SfTable extends TableElement {
     const badge = field.filter?.optionRenderer === 'badge' ? (0,_helpers_option_badge_js__WEBPACK_IMPORTED_MODULE_8__.optionBadgeProps)(option) : null; // An option list is a dense place: its badge keeps the size's own narrow
     // side room (sf-badge tight, sf-badge 1.3.0), as a cell's choice badge does.
 
-    return (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
+    return (0,lit__WEBPACK_IMPORTED_MODULE_11__.html)`
             <div
-                    ${(0,lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_13__.ref)(this.getItemRef(option.label))}
+                    ${(0,lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_12__.ref)(this.getItemRef(option.label))}
                     class="flex items-cross-center gap-1/2 content-main-between">
                 <div class="flex items-cross-center gap-1/2 min-w-0">
-                    ${badge ? (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
+                    ${badge ? (0,lit__WEBPACK_IMPORTED_MODULE_11__.html)`
                         <sf-badge
                                 appearance="tonal"
                                 tight
                                 scheme=${badge.scheme}
-                                root-style=${badge.rootStyle || lit__WEBPACK_IMPORTED_MODULE_12__.nothing}
-                                icon=${option.icon || lit__WEBPACK_IMPORTED_MODULE_12__.nothing}
+                                root-style=${badge.rootStyle || lit__WEBPACK_IMPORTED_MODULE_11__.nothing}
+                                icon=${option.icon || lit__WEBPACK_IMPORTED_MODULE_11__.nothing}
                                 text=${label}
                         ></sf-badge>
-                    ` : (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
+                    ` : (0,lit__WEBPACK_IMPORTED_MODULE_11__.html)`
                         ${this.renderFilterOptionVisual(field, option)}
                         <span class="sf-text-1 truncate">${label}</span>
                     `}
@@ -9553,7 +12448,7 @@ class SfTable extends TableElement {
   renderFilterOptionVisual(field = {}, option = {}) {
     // A colour from the field's palette is shown as its swatch.
     if (field.filter?.optionRenderer === 'swatch' && option.color) {
-      return (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`<span class="sf-table-filter-swatch" aria-hidden="true" style=${`background-color: ${option.color}`}></span>`;
+      return (0,lit__WEBPACK_IMPORTED_MODULE_11__.html)`<span class="sf-table-filter-swatch" aria-hidden="true" style=${`background-color: ${option.color}`}></span>`;
     }
 
     if (field.filter?.optionRenderer !== 'avatar-checkbox') {
@@ -9561,7 +12456,7 @@ class SfTable extends TableElement {
     }
 
     if (option.imageUrl) {
-      return (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
+      return (0,lit__WEBPACK_IMPORTED_MODULE_11__.html)`
                 <sf-avatar
                         size=${this.size}
                         image-url="${option.imageUrl}"
@@ -9570,15 +12465,25 @@ class SfTable extends TableElement {
             `;
     }
 
-    return (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
+    return (0,lit__WEBPACK_IMPORTED_MODULE_11__.html)`
             <sf-avatar
                     size=${this.size}
                     heading="${option.avatarText || option.title || option.label || ''}"
             ></sf-avatar>
         `;
-  }
+  } // A date's comparisons read as time, not as amounts (PD-6): «Позже»,
+  // «Не раньше», «Раньше», «Не позже» for a date or a date and time field.
 
-  getFilterOperatorLabel(operator) {
+
+  getFilterOperatorLabel(operator, field = null) {
+    const type = field?.propertyType ?? field?.property_type ?? field?.type ?? field?.dataType ?? field?.filter?.control;
+    const dated = {
+      gt: 'operatorAfter',
+      gte: 'operatorOnOrAfter',
+      lt: 'operatorBefore',
+      lte: 'operatorOnOrBefore'
+    };
+    if ((type === 'date' || type === 'datetime') && dated[operator]) return this.text(dated[operator]);
     const keys = {
       eq: 'operatorEq',
       gt: 'operatorGt',
@@ -9641,9 +12546,9 @@ class SfTable extends TableElement {
         };
         component = this.renderSmartElement(data.type, data.props);
       } else {
-        component = (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
+        component = (0,lit__WEBPACK_IMPORTED_MODULE_11__.html)`
                     <div class="flex items-cross-center gap-1/4 flex-1">
-                        <sf-input size=${this.size} ${(0,lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_13__.ref)(this.refs.renameInput)} root-class="flex-1"
+                        <sf-input size=${this.size} ${(0,lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_12__.ref)(this.refs.renameInput)} root-class="flex-1"
                                   default-value="${col.label}"></sf-input>
                         <div class="flex items-cross-center flex-none">
                             <sf-button-icon size=${this.size} segment="start" appearance="outline" scheme="on-surface" @click="${() => {
@@ -9669,16 +12574,16 @@ class SfTable extends TableElement {
                     </div>`;
       }
 
-      return (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
+      return (0,lit__WEBPACK_IMPORTED_MODULE_11__.html)`
                 <div
                         :key=${col.key}
-                        ${(0,lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_13__.ref)(this.getItemRef(col.label))}
+                        ${(0,lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_12__.ref)(this.getItemRef(col.label))}
                         class="sf-settings-context-menu-item flex items-cross-center flex-1 gap-1/3 ${col.deleted ? 'opacity-3' : ''}"
                         data-filter-template-key="${col.key}"
                         data-sf-sortable-item=${col.key}
                         data-pinned="${col.pinned ? "1" : "0"}"
                 >
-                    ${!isActiveEdit ? (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
+                    ${!isActiveEdit ? (0,lit__WEBPACK_IMPORTED_MODULE_11__.html)`
                         <sf-button-icon size=${this.size}
                                 id="${this.getInstanceId()}--template-move--${col.key}"
                                 appearance="ghost"
@@ -9688,9 +12593,9 @@ class SfTable extends TableElement {
                                 aria-label=${`${this.text("templateMoveLabel")}: ${col.label}`}
                                 icon="drag_indicator"
                                 root-class="cursor-move"
-                        ></sf-button-icon>` : lit__WEBPACK_IMPORTED_MODULE_12__.nothing}
+                        ></sf-button-icon>` : lit__WEBPACK_IMPORTED_MODULE_11__.nothing}
                     ${component}
-                    ${!isActiveEdit ? (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
+                    ${!isActiveEdit ? (0,lit__WEBPACK_IMPORTED_MODULE_11__.html)`
                         <div class="flex items-cross-center m-inline-start-auto gap-1/3">
                             <sf-button-icon
                                     appearance="ghost"
@@ -9721,14 +12626,14 @@ class SfTable extends TableElement {
         });
       }}
                             ></sf-button-icon>
-                        </div>` : lit__WEBPACK_IMPORTED_MODULE_12__.nothing}
+                        </div>` : lit__WEBPACK_IMPORTED_MODULE_11__.nothing}
                 </div>`;
     });
     const menuColumnCount = columnCount ?? columnsCount ?? this.contextMenuColumns ?? 1;
     const colsData = this.getFilterTagColsData();
     const columnGroups = this.splitItemsByColumns(colsData, menuColumnCount);
     let contextItems = `${this.text('templatesTabText')}|${this.text('fieldsTabText')}`;
-    return (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
+    return (0,lit__WEBPACK_IMPORTED_MODULE_11__.html)`
             <sf-menu-context
                     size=${this.menuSize}
                     :key=${x + y + this._renderToken}
@@ -9765,7 +12670,7 @@ class SfTable extends TableElement {
                      bottom, and the window keeps its width -- it grew under
                      the pointer when «Применить (2)» got longer. -->
                 <div class="sf-table-context-body flex flex-col flex-1" slot="content">
-                    ${this._filterTab !== 'fields' ? (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
+                    ${this._filterTab !== 'fields' ? (0,lit__WEBPACK_IMPORTED_MODULE_11__.html)`
                             <div
                                     class="sf-context-menu-columns flex flex-col gap-1/4 overflow-auto flex-1"
                                     data-filter-template-list
@@ -9775,26 +12680,15 @@ class SfTable extends TableElement {
       label: this.text('templatesTabText'),
       onIntent: event => this.onFilterTemplateIntent(event)
     })}
-                            </div>` : (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
+                            </div>` : (0,lit__WEBPACK_IMPORTED_MODULE_11__.html)`
                             <div class="sf-context-menu-columns flex flex-1 gap-1 overflow-auto">
-                                ${columnGroups.map(group => (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
+                                ${columnGroups.map(group => (0,lit__WEBPACK_IMPORTED_MODULE_11__.html)`
                                             <div class="flex flex-col gap-1 flex-1">
                                                 ${group}
                                             </div>
                                         `)}
                             </div>`}
                 </div>
-                        <sf-button slot="footer" size=${this.size} @click="${() => {
-      // Reset means the defaults, not "forget what I just
-      // typed here": the draft goes, and the host is asked
-      // to clear the person's own layer — order, widths,
-      // visibility and pinning — because the defaults are
-      // the host's to decide, not this component's.
-      this.tempSettings = null;
-      this.requestComponentUpdate('table');
-      this.requestColumnSettingsReset();
-    }}" appearance="outline" scheme="on-surface" root-class="flex-1"
-                                   text="${this.text('resetText')}"></sf-button>
                         <sf-button slot="footer" size=${this.size} @click="${() => {
       const tempFilter = this.tempSettings?.filter;
 
@@ -9840,6 +12734,17 @@ class SfTable extends TableElement {
     }}" root-class="flex-1"
                                    aria-label=${pendingConditions ? `${this.text("filterApplyText", "filter-apply-text")}: ${pendingConditions}` : this.text("filterApplyText", "filter-apply-text")}
                                    text=${pendingConditions ? `${this.text("filterApplyText", "filter-apply-text")} (${pendingConditions})` : this.text("filterApplyText", "filter-apply-text")}></sf-button>
+                        <sf-button slot="footer" size=${this.size} @click="${() => {
+      // Reset means the defaults, not "forget what I just
+      // typed here": the draft goes, and the host is asked
+      // to clear the person's own layer — order, widths,
+      // visibility and pinning — because the defaults are
+      // the host's to decide, not this component's.
+      this.tempSettings = null;
+      this.requestComponentUpdate('table');
+      this.requestColumnSettingsReset();
+    }}" appearance="outline" scheme="on-surface" root-class="flex-1"
+                                   text="${this.text('resetText')}"></sf-button>
             </sf-menu-context>
         `;
   }
@@ -9858,7 +12763,7 @@ class SfTable extends TableElement {
         control: this.getCurrentFilterTags()?.[fieldKey]?.control || 'text'
       }
     };
-    return (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
+    return (0,lit__WEBPACK_IMPORTED_MODULE_11__.html)`
             <sf-menu-context
                     size=${this.menuSize}
                     :key=${x + y + this._renderToken}
@@ -9884,11 +12789,6 @@ class SfTable extends TableElement {
                     </div>
                     <div class="sf-table-context-bottom sf-context-menu-footer">
                         <sf-button size=${this.size} @click="${() => {
-      this.tempSettings = null;
-      this.requestComponentUpdate('table');
-    }}" appearance="outline" scheme="on-surface" root-class="flex-1"
-                                   text="${this.text('resetText')}"></sf-button>
-                        <sf-button size=${this.size} @click="${() => {
       const tempFilter = this.tempSettings?.filter;
 
       if (tempFilter) {
@@ -9907,6 +12807,11 @@ class SfTable extends TableElement {
       this.tempSettings = null;
       this.closeContextMenu();
     }}" root-class="flex-1" text="${this.text('applyText')}"></sf-button>
+                        <sf-button size=${this.size} @click="${() => {
+      this.tempSettings = null;
+      this.requestComponentUpdate('table');
+    }}" appearance="outline" scheme="on-surface" root-class="flex-1"
+                                   text="${this.text('resetText')}"></sf-button>
                     </div>
                 </div>
             </sf-menu-context>
@@ -9956,171 +12861,225 @@ class SfTable extends TableElement {
       this.emitTableEvent('filter-change', detail);
     });
     return this;
-  }
+  } // The gear's window (owner decision C106): SIMAI Framework sf-settings in
+  // its panel look, not sf-menu-context's tabs with rows drawn here. Two
+  // groups as tabs, «Поля» -- the columns, shown or not, in their order, the
+  // pinned ones on top, with the panel's search -- and «Вид» -- the rows'
+  // density, the lines, one line, the held head and whether a change is for
+  // all the person's tables. Everything applies at once (2026-10-05);
+  // «Сбросить» puts back the fields as the window opened with them, or the
+  // view's defaults, by the tab it stands on. The panel takes its density
+  // from the gear (C22); a size is passed only when the host wrote one.
+
 
   renderTableSettingsContextMenu(data) {
-    const {
-      x,
-      y,
-      position,
-      transform,
-      columnCount,
-      columnsCount
-    } = data;
-    let pos = `translateX(${transform !== undefined ? transform : 0}%)`;
-    const menuColumnCount = columnCount ?? columnsCount ?? this.contextMenuColumns ?? 1;
-    const cols = this.getTableColsData();
-    const pinnedCols = this.getTableColsData('pinned');
-    const looseCols = this.getTableColsData('loose');
-    const query = this.state.columnSettingsQuery || ""; // The settings window is about the columns. Its "Actions" tab was asked
-    // to go on 2026-10-02: row actions are offered in the row's own menu and
-    // bulk actions in the band under the table, so a third place to find
-    // them taught nobody anything.
-
-    return (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
-            <sf-menu-context
-                    size=${this.menuSize}
-                    :key=${x + y + this._renderToken}
-                    aria-label=${this.getContextMenuLabel({ ...data,
+    return (0,lit__WEBPACK_IMPORTED_MODULE_11__.html)`
+            <sf-settings
+                    look="panel"
+                    search
+                    data-table-settings
+                    for=${this.settingsTriggerId(data.anchor)}
+                    size=${this.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_11__.nothing}
+                    label=${this.getContextMenuLabel({ ...data,
       menu: 'table-settings'
     })}
-                    style="
-            position: fixed;
-            left: ${x}px;
-            inset-block-start: calc(${y}px + calc(var(--sf-focus-outline-width) * 2));
-            transform: ${pos};
-            z-index: var(--sf-table-context-menu--z-index, ${this.contextMenuZIndex()});
-            --sf-table-context-menu--max-block-size: calc(100dvh - ${y}px - var(--sf-space-4));
-            --sf-table-context-menu--trigger-inline-size: ${this.contextTriggerInlineSize(data)}px;
-          "
-                    root-class="sf-table-context-menu ${this.contextWindowClass('table-settings', menuColumnCount)} ${this.size === "1/2" ? "sf-table-context-menu--dense " : ""}flex flex-col"
-                    position="${position || ""}"
-                    role="dialog"
-                    tabs=${`${this.text('settingsFieldsTab')}|${this.text('settingsViewTab')}`}
-                    active-tab=${this._settingsTab === 'view' ? '1' : '0'}
-                    closable
-                    @sf-menu-context-tab=${event => {
-      event.stopPropagation();
-      this._settingsTab = event.detail?.index === 1 ? 'view' : 'fields';
-      this.requestComponentUpdate('settings-tab');
-    }}
-                    @sf-menu-context-close=${event => {
-      event.stopPropagation();
-      this.closeContextMenu();
-    }}
-            >
-                <!-- Two tabs (owner, 2026-10-14) in the Framework's panel
-                     (2026-10-15): its head -- the tabs and the way out --
-                     stays while the rows scroll, and its width is its own.
-                     Esc, a click outside and the gear again close it too. -->
-                <div class="sf-table-context-body flex flex-col flex-1" slot="content">
-                    ${this._settingsTab === 'view' ? this.renderTableViewSettings() : (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
-                    <!-- The search: a site can have hundreds of fields, and
-                         scrolling for one is not an answer. -->
-                    <label class="sf-table-column-search flex flex-col">
-                        <sf-input
-                            size=${this.size}
-                            appearance="bordered"
-                            root-class="sf-table-column-search-input"
-                            name="sf_table_column_search"
-                            .value=${query}
-                            placeholder=${this.text("columnSearchPlaceholder", "column-search-placeholder")}
-                            aria-label=${this.text("columnSearchPlaceholder", "column-search-placeholder")}
-                            @input=${event => this.setColumnSettingsQuery(event.target?.value ?? "")}
-                        ></sf-input>
-                    </label>
-                    <div class="sf-context-menu-columns flex flex-col flex-1 gap-1/3 overflow-auto"
-                         data-column-settings-list>
-                        ${cols.length ? this.renderSortableGroups(pinnedCols, looseCols, {
-      name: 'table-columns',
-      label: this.text('settingsColumnLabel'),
-      onIntent: event => this.onColumnSettingsIntent(event)
-    }) : (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`<div class="sf-table-column-empty p-1 color-on-surface-variant">
-                                ${this.text("columnSearchEmptyText", "column-search-empty-text")}
-                            </div>`}
-                    </div>
-                    `}
-                </div>
-                <!-- «Применить» went with the consumer owner's decision of
-                     2026-10-05: every control in this window applies as it is
-                     pressed. «Сбросить» is the way back -- for the fields, the
-                     settings as they stood when the window was opened; for the
-                     view, the defaults. -->
-                <!-- One button that stays, its words and act following the
-                     tab: the panel took its footer once, at the start. -->
-                <sf-button slot="footer" size=${this.size} appearance="outline" scheme="on-surface" root-class="flex-1"
-                           text=${this._settingsTab === 'view' ? this.text('viewReset') : this.text('resetText')}
-                           @click=${() => this._settingsTab === 'view' ? this.resetTableView() : this.restoreColumnSettingsOnOpen()}></sf-button>
-            </sf-menu-context>
+                    .items=${this.tableSettingsItems()}
+                    @sf-settings-changed=${event => this.onTableSettingChanged(event)}
+                    @sf-settings-reset=${event => this.onTableSettingsReset(event)}
+                    @sf-settings-open=${event => event.stopPropagation()}
+                    @sf-settings-opened=${event => event.stopPropagation()}
+                    @sf-settings-close=${event => this.onTableSettingsClose(event)}
+                    @sf-settings-closed=${event => this.onTableSettingsClosed(event)}
+            ></sf-settings>
         `;
-  } // The gear's «Вид»: the rows' density as a radio list, three switches, and
-  // whether a change is for this table or for all the person's tables.
+  } // The panel opens against the control that opened the window, which it
+  // names by id (sf-settings for=): a control without one is given one.
 
 
-  renderTableViewSettings() {
+  settingsTriggerId(anchor) {
+    const trigger = anchor instanceof Element ? anchor : this;
+    if (!trigger.id) trigger.id = `${this.getInstanceId()}--settings-trigger`;
+    return trigger.id;
+  } // The gear's settings as sf-settings items, made again only when what they
+  // say changes, so the panel is not handed a new list on every drawing.
+
+
+  tableSettingsItems() {
     const view = this.tableView;
-    const size = this.size === "1/2" ? "1/2" : "1";
-    const everywhere = this._viewEverywhere === true;
-
-    const row = (label, control) => (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`<div class="sf-table-settings-row">${control}<span>${label}</span></div>`;
-
-    const density = ["compact", "normal", "spacious"];
-    const label = {
+    const options = this.getColumnItems().filter(column => column?.key).map(column => ({
+      id: String(column.key),
+      text: column.label || String(column.key),
+      checked: this.isColumnVisible(column),
+      // The box and the row menu are always pinned (offered nothing).
+      pinned: Boolean(column.system) || this.isColumnPinned(column)
+    }));
+    const density = {
       compact: "viewDensityCompact",
       normal: "viewDensityNormal",
       spacious: "viewDensitySpacious"
     };
 
-    const check = (field, text) => (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`<label class="sf-table-settings-row" data-view-option=${field}>
-            <sf-checkbox size=${size} ?checked=${view[field] === true}
-                         @change=${event => this.setTableView({
-      [field]: Boolean(event.target?.checked ?? event.detail?.checked)
-    }, {
-      everywhere
-    })}></sf-checkbox>
-            <span>${this.text(text)}</span></label>`;
+    const toggle = (id, word) => ({
+      id,
+      type: "switch",
+      text: this.text(word),
+      value: view[id] === true
+    });
 
-    return (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
-            <div class="sf-table-view-settings flex flex-col flex-1 gap-1/3" data-table-view-settings>
-                <div class="sf-table-settings-heading">${this.text('viewDensity')}</div>
-                <div role="radiogroup" aria-label=${this.text('viewDensity')} class="flex flex-col">
-                    ${density.map(value => (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`<label class="sf-table-settings-row" data-view-density=${value}>
-                        <sf-radio size=${size} name=${`${this.getInstanceId()}-density`} value=${value} ?checked=${view.density === value}
-                                  @change=${() => this.setTableView({
-      density: value
+    const items = [{
+      type: "group",
+      text: this.text("settingsFieldsTab"),
+      items: [{
+        id: "columns",
+        type: "fields",
+        text: this.text("settingsFieldsTab"),
+        sortable: true,
+        pinnable: true,
+        options
+      }]
     }, {
-      everywhere
-    })}></sf-radio>
-                        <span>${this.text(label[value])}</span></label>`)}
-                </div>
-                ${check("lines", "viewLines")}
-                ${check("singleLine", "viewSingleLine")}
-                ${this.getAttribute("vertical-scroll") === "page" ? check("stickyHead", "viewStickyHead") : lit__WEBPACK_IMPORTED_MODULE_12__.nothing}
-                ${this.viewPreferenceKey ? (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`<div class="sf-table-settings-separator" role="separator"></div>
-                    ${row(this.text('viewEverywhere'), (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`<sf-checkbox size=${size} data-view-everywhere ?checked=${everywhere}
-                        @change=${event => {
-      this._viewEverywhere = Boolean(event.target?.checked ?? event.detail?.checked);
-      this.requestComponentUpdate('view-everywhere');
-    }}></sf-checkbox>`)}` : lit__WEBPACK_IMPORTED_MODULE_12__.nothing}
-            </div>`;
+      type: "group",
+      text: this.text("settingsViewTab"),
+      items: [{
+        id: "density",
+        type: "choice",
+        text: this.text("viewDensity"),
+        value: view.density,
+        options: Object.entries(density).map(([id, word]) => ({
+          id,
+          text: this.text(word)
+        }))
+      }, toggle("lines", "viewLines"), toggle("singleLine", "viewSingleLine"), ...(this.getAttribute("vertical-scroll") === "page" ? [toggle("stickyHead", "viewStickyHead")] : []), ...(this.viewPreferenceKey ? [{
+        type: "separator"
+      }, {
+        id: "everywhere",
+        type: "switch",
+        text: this.text("viewEverywhere"),
+        value: this._viewEverywhere === true
+      }] : [])]
+    }];
+    const key = JSON.stringify(items);
+    if (this._settingsItems?.key !== key) this._settingsItems = {
+      key,
+      items
+    };
+    return this._settingsItems.items;
+  } // The fields list's value as the table holds it: what the panel shows
+  // after a change the table took otherwise or not at all.
+
+
+  tableSettingsColumns() {
+    const columns = this.tableSettingsItems()[0].items[0].options;
+    return columns.map(({
+      id,
+      checked,
+      pinned
+    }) => ({
+      id,
+      checked,
+      pinned
+    }));
+  } // A setting a person changed in the panel, applied as the window's own
+  // controls applied it: a pin through toggleColumnPinned (the end of the
+  // pinned block, the start of the loose ones), a column shown or hidden,
+  // the order of every column (a drag or Alt+arrows), the view through
+  // setTableView, for this table or for all of them.
+
+
+  onTableSettingChanged(event) {
+    event.stopPropagation();
+    const settings = event.currentTarget;
+    const {
+      id,
+      value
+    } = event.detail ?? {};
+    if (id === "columns") this.applyColumnsSetting(value);else if (id === "everywhere") this._viewEverywhere = value === true;else if (["density", "lines", "singleLine", "stickyHead"].includes(id)) {
+      this.setTableView({
+        [id]: value
+      }, {
+        everywhere: this._viewEverywhere === true
+      });
+    } // A change the table did not take (a system column's pin or place)
+    // goes back in the panel; one it took is already the same.
+
+    requestAnimationFrame(() => {
+      if (id === "columns" && settings?.isConnected) settings.setValue?.("columns", this.tableSettingsColumns());
+    });
+  }
+
+  applyColumnsSetting(value = []) {
+    const columns = this.getColumnItems().filter(column => column?.key);
+    const byKey = new Map(columns.map(column => [String(column.key), column]));
+    const asked = (Array.isArray(value) ? value : []).filter(one => byKey.has(one?.id));
+    const pin = asked.find(one => !byKey.get(one.id).system && Boolean(one.pinned) !== this.isColumnPinned(byKey.get(one.id)));
+    if (pin) return this.toggleColumnPinned(byKey.get(pin.id));
+    const shown = asked.find(one => Boolean(one.checked) !== this.isColumnVisible(byKey.get(one.id)));
+
+    if (shown) {
+      this.patchTempColumnSettings(byKey.get(shown.id).key, {
+        visible: Boolean(shown.checked)
+      });
+      return this.commitColumnSettings("column-visibility");
+    }
+
+    const loose = list => list.filter(key => !byKey.get(key).system);
+
+    const ordered = loose(asked.map(one => one.id));
+    const before = loose(columns.map(column => String(column.key)));
+    if (ordered.join("\n") === before.join("\n")) return this;
+    ordered.forEach((key, position) => this.patchTempColumnSettings(byKey.get(key).key, {
+      order: (position + 1) * 10
+    }));
+    this.requestComponentUpdate("column-order");
+    return this.commitColumnSettings("column-order");
+  } // The tab the panel stands on: its groups are tabs (a search and a fields
+  // list), «Поля» first.
+
+
+  settingsTabOf(settings) {
+    const tabs = settings?.querySelector?.(".sf-settings-panel-tabs");
+    return Number(tabs?.getAttribute("active-index") ?? 0) === 1 ? "view" : "fields";
+  }
+
+  onTableSettingsReset(event) {
+    event.stopPropagation();
+    event.preventDefault();
+    if (this.settingsTabOf(event.currentTarget) === "view") this.resetTableView();else this.restoreColumnSettingsOnOpen();
+  } // The window opens again on the tab it was closed on.
+
+
+  onTableSettingsClose(event) {
+    event.stopPropagation();
+    this._settingsTab = this.settingsTabOf(event.currentTarget);
+  } // Closed by the panel itself (×, Escape, a press outside, Tab out): the
+  // window goes; the panel has already put the focus back. A panel leaving
+  // because the window closed is not connected any more.
+
+
+  onTableSettingsClosed(event) {
+    event.stopPropagation();
+    if (event.currentTarget?.isConnected && this.state.contextMenu?.open) this.closeContextMenu(false);
+  } // The panel drawn, it is opened against its trigger, on the tab it was
+  // closed on; a trigger the page cannot find by id is passed in.
+
+
+  async showSettingsPanel(settings) {
+    await customElements.whenDefined("sf-settings");
+    await settings.whenRendered?.();
+    if (!settings.isConnected) return;
+    const view = this._settingsTab === "view";
+    const answer = await settings.show?.(view ? "density" : "columns");
+
+    if (answer?.outcome === "unavailable" && answer.reason === "no-trigger" && settings.isConnected) {
+      settings.toggle?.(this.state.contextMenu?.anchor ?? this);
+      if (view) settings.chooseGroup?.(1);
+    }
   }
 
   renderMainContextMenu(data) {
     const menu = data.menu || data.menuType || data.contextMenu;
 
     switch (menu) {
-      case 'row-settings':
-        return this.renderRowSettingsContextMenu(data);
-
-      case 'create':
-        return this.renderCreateContextMenu(data);
-
-      case 'list-sort':
-        return this.renderListSortContextMenu(data);
-
-      case 'toolbar-actions':
-        return this.renderToolbarActionsContextMenu(data);
-
       case 'filter-favorites':
         return this.renderFilterFavoritesContextMenu(data);
 
@@ -10134,92 +13093,62 @@ class SfTable extends TableElement {
         return this.renderTagsSettingsContextMenu(data);
 
       default:
-        return data.type === 'left' ? this.renderRowSettingsContextMenu(data) : this.renderTableSettingsContextMenu(data);
+        return this.renderTableSettingsContextMenu(data);
     }
-  }
+  } // A saved view's actions -- rename, make it the default, delete or
+  // restore -- through SF.menu.open, at its «⋯» inside the filter window
+  // (VF-1): the menu was a second sf-menu-context the table placed with
+  // position: fixed and a tail. A delete or a restore is marked in the window
+  // and applied with «Применить», as before.
 
-  renderTemplateActionsContextSubmenu(data) {
-    const {
-      x,
-      y,
-      position,
-      transform,
-      template = {}
-    } = data;
-    let pos = `translateY(${transform !== undefined ? transform : 0}%)`;
+
+  async openTemplateActionsMenu(anchor, template = {}) {
     const temp = this.getFilterTemplateByKey(template.key, this.tempSettings?.filter || null);
-    let isDeleted = (temp || template).deleted;
+    const isDeleted = (temp || template).deleted;
     const isDefaultTemplate = (temp || template).default === true;
-    return (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
-            <sf-menu-context
-                    size=${this.menuSize}
-                    :key=${`${template.key || ''}-${x}-${y}`}
-                    aria-label=${this.getContextMenuLabel({ ...data,
-      type: 'filter-template-actions'
-    })}
-                    style="
-          position: fixed;
-        left: calc(${x}px + var(--sf-context-menu-tail-corner-offset));
-            inset-block-start: ${y}px;
-          z-index: var(--sf-table-context-submenu--z-index, ${this.contextMenuZIndex()});
-          transform: ${pos}
-        "
-                    data-context-submenu
-                    root-class="sf-table-context-submenu flex flex-col"
-                    position="${position || "right"}"
-                    .entries=${[// The standard menu's rows (owner, 2026-10-14), not link
-    // buttons; a delete is marked as one, a restore is not.
-    {
-      id: 'rename',
-      text: this.text('renameText'),
-      icon: 'edit'
-    }, {
-      id: 'default',
-      text: isDefaultTemplate ? this.text('defaultTemplateText') : this.text('makeDefaultLabel'),
-      icon: isDefaultTemplate ? 'remove' : 'check'
-    }, {
-      id: 'delete',
-      text: isDeleted ? this.text('restoreText') : this.text('deleteActionText'),
-      icon: isDeleted ? 'restore_from_trash' : 'delete',
-      danger: !isDeleted,
-      keepOpen: true
-    }]}
-                    @sf-menu-context-select=${event => {
-      const id = event.detail?.id;
+    const choice = await (0,_core_js_menu_open_js__WEBPACK_IMPORTED_MODULE_20__.menuOpen)({
+      anchor,
+      label: this.getContextMenuLabel({
+        type: 'filter-template-actions',
+        template
+      }),
+      size: this.menuSize,
+      entries: [// The standard menu's rows (owner, 2026-10-14), not link
+      // buttons; a delete is marked as one, a restore is not.
+      {
+        id: 'rename',
+        text: this.text('renameText'),
+        icon: 'edit'
+      }, {
+        id: 'default',
+        text: isDefaultTemplate ? this.text('defaultTemplateText') : this.text('makeDefaultLabel'),
+        icon: isDefaultTemplate ? 'remove' : 'check'
+      }, {
+        id: 'delete',
+        text: isDeleted ? this.text('restoreText') : this.text('deleteActionText'),
+        icon: isDeleted ? 'restore_from_trash' : 'delete',
+        danger: !isDeleted
+      }]
+    });
+    const id = choice?.id;
 
-      if (id === 'rename') {
-        this.set(prevState => ({
-          filter: { ...(prevState.filter || {}),
-            rename: template.key
-          },
-          contextMenu: { ...(prevState.contextMenu || {}),
-            submenu: null
-          }
-        }));
-      } else if (id === 'default') {
-        this.changeTempFilterTemplateSettings(template.key, {
-          default: !template.default
-        });
-        this.closeContextSubmenu();
-      } else if (id === 'delete') {
-        this.patchTempFilterTemplateSettings(template.key, {
-          deleted: !isDeleted
-        });
-      }
-    }}
-            >
-            </sf-menu-context>
-        `;
-  }
-
-  renderContextSubmenu(data) {
-    switch (data?.type) {
-      case 'filter-template-actions':
-        return this.renderTemplateActionsContextSubmenu(data);
-
-      default:
-        return lit__WEBPACK_IMPORTED_MODULE_12__.nothing;
+    if (id === 'rename') {
+      this.set(prevState => ({
+        filter: { ...(prevState.filter || {}),
+          rename: template.key
+        }
+      }));
+    } else if (id === 'default') {
+      this.changeTempFilterTemplateSettings(template.key, {
+        default: !isDefaultTemplate
+      });
+    } else if (id === 'delete') {
+      this.patchTempFilterTemplateSettings(template.key, {
+        deleted: !isDeleted
+      });
     }
+
+    return choice;
   }
 
   renderContextMenu(data) {
@@ -10227,43 +13156,73 @@ class SfTable extends TableElement {
     // as the page (SF.Loader.watch in getPortalContainer); the window's
     // elements are asked for as it opens so they arrive with it.
     if (data?.open) {
-      globalThis.SF?.Loader?.ensure?.(data.menu === 'tag-settings' ? ["sf-input-date", "sf-slider-range"] : ["sf-sortable", "sf-radio", "sf-tabs"]);
+      globalThis.SF?.Loader?.ensure?.(data.menu === 'tag-settings' ? ["sf-input-date", "sf-slider-range"] : ["sf-sortable", "sf-radio", "sf-tabs", "sf-settings"]);
     }
 
     if (!data?.open) {
-      (0,lit__WEBPACK_IMPORTED_MODULE_12__.render)(null, this.getPortalContainer());
+      (0,lit__WEBPACK_IMPORTED_MODULE_11__.render)(null, this.getPortalContainer());
       this.hidePortal();
-      return lit__WEBPACK_IMPORTED_MODULE_12__.nothing;
-    } // On the layer stack before it is drawn: the windows take their
+      if (this._settingsHost?.isConnected) (0,lit__WEBPACK_IMPORTED_MODULE_11__.render)(null, this._settingsHost);
+      return lit__WEBPACK_IMPORTED_MODULE_11__.nothing;
+    } // The column window (C296, VT-12): the Framework's sf-settings panel is
+    // a popover of its own (the top layer, against the gear or «Все
+    // колонки…»), so it is not put in the table's full-viewport portal --
+    // a 1440x800 layer for a 320-wide panel. It stands in a host of no box.
+
+
+    if (data.menu === 'table-settings') {
+      (0,lit__WEBPACK_IMPORTED_MODULE_11__.render)(null, this.getPortalContainer());
+      this.hidePortal();
+      this.bindContextEvent();
+      (0,lit__WEBPACK_IMPORTED_MODULE_11__.render)((0,lit__WEBPACK_IMPORTED_MODULE_11__.html)`<div class="sf-table-context-layer" data-sf-table-settings-layer ${(0,lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_12__.ref)(this.refs.contextMenu)}>
+                    ${this.renderTableSettingsContextMenu(data)}</div>`, this.getSettingsHost());
+
+      const panel = this._settingsHost.querySelector("sf-settings[data-table-settings]");
+
+      if (panel && panel !== this._settingsShown) {
+        this._settingsShown = panel;
+        this.showSettingsPanel(panel);
+      }
+
+      requestAnimationFrame(() => this.redrawWhenComponentsUpgrade(this._settingsHost));
+      return lit__WEBPACK_IMPORTED_MODULE_11__.nothing;
+    }
+
+    if (this._settingsHost?.isConnected) (0,lit__WEBPACK_IMPORTED_MODULE_11__.render)(null, this._settingsHost); // On the layer stack before it is drawn: the windows take their
     // z-index from their place in it.
 
-
     this.bindContextEvent();
-    (0,lit__WEBPACK_IMPORTED_MODULE_12__.render)((0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
+    (0,lit__WEBPACK_IMPORTED_MODULE_11__.render)((0,lit__WEBPACK_IMPORTED_MODULE_11__.html)`
                 <div
                         class="sf-table-context-layer"
-                        data-sf-sheet=${this.isList && ["filter-settings", "tag-settings"].includes(data.menu) ? "" : lit__WEBPACK_IMPORTED_MODULE_12__.nothing}
-                        ${(0,lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_13__.ref)(this.refs.contextMenu)}
-                        @click=${event => this.handleContextLayerClick(event)}
+                        data-sf-sheet=${this.isList && ["filter-settings", "tag-settings"].includes(data.menu) ? "" : lit__WEBPACK_IMPORTED_MODULE_11__.nothing}
+                        ${(0,lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_12__.ref)(this.refs.contextMenu)}
                 >
                     ${this.renderMainContextMenu(data)}
-                    ${data.submenu?.open ? this.renderContextSubmenu(data.submenu) : lit__WEBPACK_IMPORTED_MODULE_12__.nothing}
-                    ${this.isList && ["filter-settings", "tag-settings"].includes(data.menu) ? (0,lit__WEBPACK_IMPORTED_MODULE_12__.html)`
+                    ${this.isList && ["filter-settings", "tag-settings"].includes(data.menu) ? (0,lit__WEBPACK_IMPORTED_MODULE_11__.html)`
                         <div class="sf-table-sheet-close">
                             <sf-button-icon size=${this.size} appearance="ghost" scheme="on-surface"
                                             icon="close" aria-label=${this.text('closeText')}
                                             @click=${() => this.closeContextMenu()}></sf-button-icon>
-                        </div>` : lit__WEBPACK_IMPORTED_MODULE_12__.nothing}
+                        </div>` : lit__WEBPACK_IMPORTED_MODULE_11__.nothing}
                 </div>
             `, this.getPortalContainer());
     this.showPortal();
-    this.bindContextViewport();
+    this.bindContextViewport(); // The gear's panel opens itself once it is drawn, once per window.
+
+    const settings = this.getPortalContainer().querySelector("sf-settings[data-table-settings]");
+
+    if (settings && settings !== this._settingsShown) {
+      this._settingsShown = settings;
+      this.showSettingsPanel(settings);
+    }
+
     requestAnimationFrame(() => {
       this.clampContextMenusToViewport(); // The menu lives in the portal, not in this element's own tree.
 
       this.redrawWhenComponentsUpgrade(this.getPortalContainer());
     });
-    return lit__WEBPACK_IMPORTED_MODULE_12__.nothing;
+    return lit__WEBPACK_IMPORTED_MODULE_11__.nothing;
   }
 
   getActionItems() {
@@ -10460,7 +13419,10 @@ class SfTable extends TableElement {
     this._columnResizeTable = table;
     this._columnResizeDetach = attach(table, {
       handles: '.sf-table-column-resizer',
-      session: handle => this.columnResizeSession(handle)
+      session: handle => this.columnResizeSession(handle),
+      // The value a screen reader hears: the share of the way from the
+      // least width to the most, «27 %» (C158 (3)).
+      text: share => this.text('columnWidthValue').replace('{n}', String(share))
     });
   }
 
@@ -10496,10 +13458,15 @@ class SfTable extends TableElement {
         const {
           minWidth,
           maxWidth
-        } = this.getColumnResizeLimits(column, th.getBoundingClientRect().width);
+        } = this.getColumnResizeLimits(column, th.getBoundingClientRect().width); // A column with no most width of its own goes as wide as the
+        // table's box: the share a screen reader hears runs from the
+        // least width to there (C158 (3)), and End is that width. With
+        // no end the share was 0 % at any width.
+
+        const box = this.refs.scroll?.value?.clientWidth ?? 0;
         return {
           min: minWidth,
-          max: maxWidth
+          max: Number.isFinite(maxWidth) ? maxWidth : Math.max(minWidth, box || minWidth)
         };
       },
       direction: () => table && getComputedStyle(table).direction === 'rtl' ? -1 : 1,
@@ -10507,7 +13474,7 @@ class SfTable extends TableElement {
       start: () => {
         state.dragging = true;
         this._columnResizeState = state;
-        (0,_helpers_loaderDragState__WEBPACK_IMPORTED_MODULE_16__.setLoaderDragState)(true);
+        (0,_helpers_loaderDragState__WEBPACK_IMPORTED_MODULE_15__.setLoaderDragState)(true);
         document.documentElement.classList.add('sf-table-column-resizing');
       },
       apply: width => {
@@ -10527,15 +13494,16 @@ class SfTable extends TableElement {
       },
       end: () => {
         document.documentElement.classList.remove('sf-table-column-resizing');
-        (0,_helpers_loaderDragState__WEBPACK_IMPORTED_MODULE_16__.setLoaderDragState)(false);
+        (0,_helpers_loaderDragState__WEBPACK_IMPORTED_MODULE_15__.setLoaderDragState)(false);
         this.suppressNextHeaderClick(); // The drag is over before the line goes: hidden while the
         // state still said «resizing», it stayed on the edge.
 
         clear();
         this.hideColumnResizeGuide();
       },
-      // Back to the width the column has by itself: its content's, or
-      // the one the host declared.
+      // A double click on the edge is the fit to content (C158 (5));
+      // «По умолчанию» in the head's menu is the width the column has
+      // by itself (resetColumnWidth).
       reset: () => {
         clear();
         this.resetColumnWidth(key);
@@ -11194,7 +14162,7 @@ class SfTable extends TableElement {
 
     const portal = this.getPortalContainer();
     this._contextLayerOwner = portal;
-    (0,_core_js_open_surface_mark_js__WEBPACK_IMPORTED_MODULE_18__.holdOpenSurfaceMark)(portal, true, {
+    (0,_core_js_open_surface_mark_js__WEBPACK_IMPORTED_MODULE_17__.holdOpenSurfaceMark)(portal, true, {
       root: () => portal,
       onOutsidePress: event => this.contextOutsidePress(event),
       onEscape: event => this.contextKeyEvent(event)
@@ -11207,7 +14175,7 @@ class SfTable extends TableElement {
       return;
     }
 
-    (0,_core_js_open_surface_mark_js__WEBPACK_IMPORTED_MODULE_18__.holdOpenSurfaceMark)(this._contextLayerOwner, false);
+    (0,_core_js_open_surface_mark_js__WEBPACK_IMPORTED_MODULE_17__.holdOpenSurfaceMark)(this._contextLayerOwner, false);
     this._contextLayerOwner = null;
     this._contextEventBound = false;
   } // The window's place on the stack's z-index scale; the Framework's old
@@ -11241,7 +14209,7 @@ class SfTable extends TableElement {
   }
 
   contextMenuZIndex() {
-    const zIndex = this._contextLayerOwner ? (0,_core_js_layer_stack_js__WEBPACK_IMPORTED_MODULE_19__.layerZIndex)(this._contextLayerOwner) : '';
+    const zIndex = this._contextLayerOwner ? (0,_core_js_layer_stack_js__WEBPACK_IMPORTED_MODULE_18__.layerZIndex)(this._contextLayerOwner) : '';
     return zIndex === '' ? 'var(--sf-z-index-9)' : String(zIndex);
   } // A press on the control that opened the window is left to that
   // control's own click, which reopens or closes it as it always did: closed
@@ -11304,6 +14272,22 @@ class SfTable extends TableElement {
     globalThis.SF?.Loader?.watch?.(portal);
     this._portalContainer = portal;
     return portal;
+  } // The column window's host (VT-12): no box of its own, in this element
+  // so the panel reads the table's density and the Loader sees it.
+
+
+  getSettingsHost() {
+    if (this._settingsHost?.isConnected) return this._settingsHost;
+    const host = document.createElement("div");
+    host.className = "sf-table-settings-host";
+    host.dataset.sfInstance = this.getInstanceId();
+
+    for (const type of ["change", "input"]) host.addEventListener(type, event => event.stopPropagation());
+
+    this.insertBefore(host, this.firstChild);
+    globalThis.SF?.Loader?.watch?.(host);
+    this._settingsHost = host;
+    return host;
   } // The top layer is entered while a window is open and left when none is.
 
 
@@ -11420,23 +14404,17 @@ class SfTable extends TableElement {
 
 
   getContextMenuPlacement(menu) {
-    const isSubmenu = menu.hasAttribute('data-context-submenu');
-    const data = isSubmenu ? this.state.contextMenu?.submenu : this.state.contextMenu;
+    const data = this.state.contextMenu;
     const anchor = this.resolveContextAnchor(data);
     if (!anchor) return null;
-    const position = String(data.position || (isSubmenu || data.type === 'left' ? 'left' : ''));
+    const position = String(data.position || (data.type === 'left' ? 'left' : ''));
     const family = /^(left|right)(-top|-bottom)?$/.exec(position);
 
     if (!family) {
-      // A menu belonging to a control at the end of its row aligns to that
-      // control's end edge; otherwise it hangs past the button and over
-      // whatever is beside it. The create arrow and the view's actions are
-      // both such controls.
-      const toTheEnd = ['create', 'toolbar-actions'].includes(data.menu);
       return {
         anchor,
         side: 'block-end',
-        align: toTheEnd ? 'end' : 'start',
+        align: 'start',
         tail: null
       };
     }
@@ -11559,6 +14537,26 @@ class SfTable extends TableElement {
   }
 
   openContextMenu(event, opts = {}) {
+    // The row's menu is the one standard menu bound to the rows (CM-8,
+    // C164 (2)); the table no longer draws a second one of its own.
+    if (opts.menu === "row-settings" || !opts.menu && opts.type === "left" && opts.row) {
+      this.closeContextMenu(false);
+      return this.openRowMenu(event, opts.row ?? {}, {
+        group: Array.isArray(opts.action?.members) ? opts.action : null,
+        items: Array.isArray(opts.items) ? opts.items : null
+      });
+    } // The action menus are SF.menu.open's: no window of the table's own.
+
+
+    if (["create", "list-sort", "toolbar-actions"].includes(opts.menu)) {
+      this.closeContextMenu(false);
+      const opener = event.currentTarget instanceof Element ? event.currentTarget : event.target instanceof Element ? event.target : null;
+      if (!opener) return;
+      event.preventDefault?.();
+      event.stopPropagation?.();
+      return this.openActionMenu(opts.menu, this.resolveBoxedAnchor(event, opener));
+    }
+
     this.closeContextMenu(false);
     this.contextTarget?.classList.remove("active");
     const target = event.currentTarget instanceof Element ? event.currentTarget : event.target instanceof Element ? event.target : null;
@@ -11605,7 +14603,7 @@ class SfTable extends TableElement {
           let parent = null;
 
           if (opts.parent) {
-            parent = (0,_helpers_dom__WEBPACK_IMPORTED_MODULE_15__.getParent)(event.target);
+            parent = (0,_helpers_dom__WEBPACK_IMPORTED_MODULE_14__.getParent)(event.target);
             pos = parent.getBoundingClientRect();
             anchor = parent;
           }
@@ -11682,77 +14680,19 @@ class SfTable extends TableElement {
     }
 
     return this;
-  }
+  } // A saved view's «⋯» opens the page's one menu of actions (VF-1).
+
 
   openContextSubmenu(event, opts = {}) {
     event.preventDefault();
     event.stopPropagation();
     const target = event.target instanceof Element ? event.target : null;
     const anchorTarget = event.currentTarget instanceof Element ? event.currentTarget : target;
-
-    if (!anchorTarget) {
-      return;
-    } // The opener is usually an sf-button-icon, whose host is display:contents
-    // and has no box at all: anchoring to it put the menu at the top left of
-    // the viewport, which the clamp then pushed to the window's edge -- the
-    // consumer saw it open far from its button, over the admin menu. The
-    // native control on the event path is the thing with a box.
-
+    if (!anchorTarget) return null; // The opener is usually an sf-button-icon, whose host is display:contents
+    // and has no box at all; the native control on the event path has one.
 
     const boxed = this.resolveBoxedAnchor(event, anchorTarget);
-    const rect = boxed.getBoundingClientRect();
-    const anchorKey = opts.anchorKey || opts.template?.key || anchorTarget.dataset?.contextSubmenuAnchor || "";
-
-    if (anchorKey && this.state.contextMenu?.submenu?.open && this.state.contextMenu.submenu.anchorKey === anchorKey) {
-      this.closeContextSubmenu();
-      return;
-    }
-
-    const data = {
-      open: true,
-      type: opts.type,
-      anchorKey,
-      x: rect.left + rect.width,
-      y: rect.y + rect.height / 2,
-      position: opts.position || 'left',
-      transform: -50,
-      ...opts,
-      anchor: boxed,
-      anchorRef: this.describeContextAnchor(boxed)
-    };
-    this.set(state => ({
-      contextMenu: { ...(state.contextMenu || {}),
-        submenu: data
-      }
-    }));
-  }
-
-  handleContextLayerClick(event) {
-    const target = event.target;
-
-    if (!(target instanceof Element)) {
-      return;
-    }
-
-    if (target.closest("[data-context-submenu]")) {
-      return;
-    }
-
-    if (target.closest("[data-context-submenu-anchor]")) {
-      return;
-    }
-
-    if (this.state.contextMenu?.submenu?.open && !target.closest("[data-context-main-menu]")) {
-      this.closeContextSubmenu();
-    }
-  }
-
-  closeContextSubmenu() {
-    this.set(state => ({
-      contextMenu: { ...(state.contextMenu || {}),
-        submenu: null
-      }
-    }));
+    return this.openTemplateActionsMenu(boxed, opts.template || {});
   } // Every element the table draws goes through here -- its own controls,
   // the row menus, the select boxes, a host's row actions -- and each was
   // written for the ladder's step 1. A table at another step draws them at
@@ -11899,7 +14839,10 @@ class SfTable extends TableElement {
 
     const pinnedUserColumns = userColumns.filter(column => this.isColumnPinned(column));
     const looseUserColumns = userColumns.filter(column => !this.isColumnPinned(column));
-    const columns = [...leftSystemColumns, ...pinnedUserColumns, ...looseUserColumns, ...rightSystemColumns].filter(column => column?.visible !== false);
+    const columns = [...leftSystemColumns, ...pinnedUserColumns, ...looseUserColumns, ...rightSystemColumns].filter(column => column?.visible !== false); // On a phone a keyed table with row actions keeps the box, «≡» and
+    // the key cells (C259); the others are the record's, opened by its name.
+
+    if (this.isKeyedNarrow) return columns.filter(column => systemKeys.has(column.key) || isKeyCell(column));
     const width = this._responsiveWidth || this.clientWidth || 0; // The list chooses its own fields by priority and wants every column to
     // choose from; dropping columns that do not fit is the table's answer.
 
@@ -12085,27 +15028,192 @@ class SfTable extends TableElement {
   // swapped in over the first. What a choice does is unchanged -- an intent
   // for the row, or the action's own handler where it has one.
   //
-  // at: a point anchor (menuPointAt) for a right click -- the menu opens at
-  // the pointer, while a handler of the host still gets the row's button
-  // as its anchor; the point leaves the page when the menu closes.
+  // One menu, bound to the table's rows by sf-menu-context's `for` (C164,
+  // SIMAI Framework sf-menu-context 1.21.0): the right button, the menu key,
+  // Shift+F10 and a long press on a row open it through the menu itself, and
+  // a row's «≡» (or a list row's «⋯») opens it at the button. Every way in
+  // asks the same `open` question, answered by fillRowMenu: one list (C164
+  // (2)), every action of the row (C259 (3)).
+  //
+  // A group's own button (an «Опубликовать» drawn in the row) opens the same
+  // menu with that group's members alone (CM-8): it was a second menu of the
+  // table's own, drawn by hand with a tail beside the button.
 
 
-  async openRowMenu(event, row = {}, only = null, {
-    ids = null,
-    at = null
+  async openRowMenu(event, row = {}, {
+    group = null,
+    items = null
   } = {}) {
     const anchor = event?.currentTarget?.querySelector?.("button") ?? event?.target?.closest?.("button") ?? event?.currentTarget;
+    if (!(anchor instanceof Element)) return null;
+    this._rowMenuGroup = Array.isArray(items) && items.length ? {
+      row,
+      items,
+      anchor
+    } : Array.isArray(group?.members) ? {
+      row,
+      group,
+      anchor
+    } : null; // The standard menu is a lazy relation of the table: fetched after the
+    // page is ready, and asked for here if a press comes first.
 
-    if (!(anchor instanceof Element)) {
-      at?.remove();
-      return null;
+    await globalThis.SF?.Loader?.ensure?.(["sf-menu-context"]);
+    const menu = this.rowMenu();
+    await customElements.whenDefined?.("sf-menu-context"); // The row is named: a table inside a shadow root (sf-view's own
+    // table) is not found by `for`, which reads the document's ids.
+
+    const target = anchor.closest("[data-row-id]") ?? undefined;
+
+    try {
+      return menu.toggleFor(anchor, target ? {
+        target
+      } : {});
+    } finally {
+      this._rowMenuGroup = null;
+    }
+  } // Whether the rows carry a menu: the host's row actions, whatever
+  // row-actions says -- a view writes row-actions="false" when every action
+  // lives in the row menu (no actions column), and the menu stays.
+
+
+  get hasRowMenus() {
+    return (this.ACTIONS_SETTINGS_ROW ?? []).length > 0;
+  } // The ids of the areas the row menu is bound to: the table and the list.
+
+
+  get rowAreaId() {
+    return this._rowAreaId;
+  } // The menu is in the page as soon as the rows have one, so the right
+  // button, the menu key and a long press find it before any «≡» is pressed.
+
+
+  bindRowMenu() {
+    if (!this.isConnected || !this.hasRowMenus) return; // A slot's fallback table is not drawn while the slot holds another.
+
+    const slot = this.parentElement;
+    if (slot?.tagName === "SLOT" && slot.assignedNodes?.().length) return;
+    this.bindShadowRowMenu();
+    if (this._rowMenu?.isConnected) return;
+    globalThis.SF?.Loader?.ensure?.(["sf-menu-context"]);
+    this.rowMenu();
+  } // sf-menu-context's `for` reads the document's ids and listens on the
+  // document, so a table inside a shadow root (sf-view's own table, when
+  // the host slots none) is out of its reach. There the table answers the
+  // right button, the menu key and Shift+F10 itself, the way the menu does
+  // for its areas (C164 (1)): Shift with the right button, a link, a field
+  // and selected text keep the browser's menu.
+
+
+  bindShadowRowMenu() {
+    if (this._shadowRowMenuBound) return;
+    this._shadowRowMenuBound = true;
+
+    const inShadow = () => this.getRootNode() !== document;
+
+    const rowAt = event => {
+      const element = event.target?.closest?.("tbody > tr[data-row-id], li[data-row-id]");
+      return element && this.contains(element) ? element : null;
+    };
+
+    const keeps = event => Boolean(event.target?.closest?.("a[href], input:not([type=checkbox]), textarea, select, [contenteditable]")) || Boolean(String(document.getSelection?.() ?? "").trim());
+
+    this.addEventListener("keydown", event => {
+      if (!inShadow() || event.defaultPrevented) return;
+      if (event.key !== "ContextMenu" && !(event.shiftKey && event.key === "F10")) return;
+      const row = rowAt(event);
+      if (!row || keeps(event)) return;
+      event.preventDefault();
+      this._shadowMenuKeyAt = Date.now();
+      this.rowMenu().openAtTarget?.(row);
+    });
+    this.addEventListener("contextmenu", event => {
+      if (!inShadow() || event.defaultPrevented) return;
+      const row = rowAt(event);
+      if (!row) return;
+
+      if (Date.now() - (this._shadowMenuKeyAt ?? 0) < 500) {
+        event.preventDefault();
+        return;
+      }
+
+      if (event.shiftKey && event.button === 2 || keeps(event)) return;
+      event.preventDefault();
+      const menu = this.rowMenu();
+      if (event.button === 2 || event.pointerType === "touch") menu.openAt?.(event.clientX, event.clientY, {
+        target: row
+      });else menu.openAtTarget?.(row);
+    });
+  } // The entries of the row the menu opens for (C164): every action the row
+  // offers (C259 (3): the quick ones of a list too); over several selected
+  // rows (C164 (3)) the actions every one of them offers, under «Выбрано N».
+
+
+  fillRowMenu(menu, row, ids, anchor) {
+    const selection = Array.isArray(row.actions) && row.actions.every(item => typeof item === "string") ? row.actions : null;
+    const asked = this._rowMenuGroup && String(this._rowMenuGroup.row?.id) === String(row?.id) ? this._rowMenuGroup : null;
+    const only = asked?.group ?? null; // A list a host built for one row action (its `menu` with `items`):
+    // the entries of the same standard menu, each choice its own handler.
+
+    if (asked?.items) {
+      const entries = asked.items.map((item, at) => {
+        const props = item.props || item.component?.props || {};
+        return {
+          id: `${ROW_MENU_ITEM}${at}`,
+          text: props.text ?? item.name ?? "",
+          icon: props.iconStart ?? props.icon ?? undefined,
+          danger: props.scheme === "error" || item.danger === true,
+          disabled: Boolean(props.disabled)
+        };
+      });
+      menu.setAttribute("size", this.menuSize);
+      (0,_core_js_density_js__WEBPACK_IMPORTED_MODULE_19__.followDensity)(menu, this);
+      menu.setAttribute("aria-label", this.getContextMenuLabel({
+        row,
+        menu: "row-settings"
+      }));
+      menu.entries = entries;
+      this._rowMenuContext = {
+        row,
+        items: [],
+        listed: asked.items,
+        anchor,
+        ids: null
+      };
+      return entries.length;
     }
 
-    const selection = Array.isArray(row.actions) && row.actions.every(item => typeof item === "string") ? row.actions : null; // The list's «more» menu holds the actions its row does not show.
-    // Several selected rows (C164): the actions every one of them offers.
+    const many = !only && Array.isArray(ids) && ids.length > 1;
+    let items = this.getActionRowItems(row);
 
-    const many = Array.isArray(ids) && ids.length > 1;
-    let items = Array.isArray(only) ? only : this.getActionRowItems(row);
+    if (only) {
+      const group = items.find(item => item.id === only.id && Array.isArray(item.members));
+      const members = (group?.members ?? []).filter(member => !selection || selection.includes(member.id));
+      const entries = members.map(member => ({
+        id: member.id,
+        text: member.name,
+        icon: member.icon ?? member.component?.props?.icon ?? undefined,
+        danger: member.danger === true
+      }));
+      entries.sort((a, b) => Number(a.danger === true) - Number(b.danger === true));
+      const firstDanger = entries.findIndex(entry => entry.danger === true);
+      if (firstDanger > 0) entries.splice(firstDanger, 0, {
+        type: "separator"
+      });
+      menu.setAttribute("size", this.menuSize);
+      (0,_core_js_density_js__WEBPACK_IMPORTED_MODULE_19__.followDensity)(menu, this);
+      menu.setAttribute("aria-label", `${this.getContextMenuLabel({
+        row,
+        menu: "row-settings"
+      })}: ${only.name ?? only.id}`);
+      menu.entries = entries;
+      this._rowMenuContext = {
+        row,
+        items: group ? [group] : [],
+        anchor,
+        ids: null
+      };
+      return entries.length;
+    }
 
     if (many) {
       const rows = this.getTableData().rows.filter(one => ids.some(id => String(id) === String(one.id)));
@@ -12141,17 +15249,13 @@ class SfTable extends TableElement {
     if (many) entries.unshift({
       type: "heading",
       text: `${this.text("selectedRowsHeading")} ${ids.length}`
-    }); // The standard menu is a lazy relation of the table: fetched after the
-    // page is ready, and asked for here if a press comes first.
-
-    await globalThis.SF?.Loader?.ensure?.(["sf-menu-context"]);
-    const menu = this.rowMenu(); // On every opening, as the table stands now: the row menu lives on
+    }); // On every opening, as the table stands now: the row menu lives on
     // <body> or in the open dialog, outside the table, so it has neither
     // the table's size nor the density of the table's area unless it is
     // given them (owner remark 2026-11-15).
 
     menu.setAttribute("size", this.menuSize);
-    (0,_core_js_density_js__WEBPACK_IMPORTED_MODULE_20__.followDensity)(menu, this);
+    (0,_core_js_density_js__WEBPACK_IMPORTED_MODULE_19__.followDensity)(menu, this);
     menu.setAttribute("aria-label", this.getContextMenuLabel({
       row,
       menu: "row-settings"
@@ -12163,21 +15267,46 @@ class SfTable extends TableElement {
       anchor,
       ids: many ? ids.map(String) : null
     };
-    if (!at) return menu.toggleFor(anchor); // Bound once the menu is open: opening it again closes the previous
-    // opening first, and that close must not take the new point.
-
-    const opened = await menu.toggleFor(at);
-    if (menu.isOpen) menu.addEventListener("sf-menu-context-closed", () => at.remove(), {
-      once: true
-    });else at.remove();
-    return opened;
+    return entries.length;
   }
 
   rowMenu() {
     if (this._rowMenu?.isConnected) return this._rowMenu;
     const menu = document.createElement("sf-menu-context");
     menu.setAttribute("popup", "");
-    menu.dataset.sfTableMenu = "row";
+    menu.dataset.sfTableMenu = "row"; // The table's rows and the list's rows are this menu's objects.
+
+    menu.setAttribute("for", `${this.rowAreaId} ${this.rowAreaId}-list`); // The question every way in asks (C164 (2)): which row, and what it
+    // offers. A press outside a record's row (the head, a «load more»
+    // row) and a row without actions open nothing.
+
+    menu.addEventListener("sf-menu-context-open", event => {
+      // An opening asked for one row's group or listed entries (CM-8):
+      // the row is the one named, wherever the opener stands.
+      const asked = this._rowMenuGroup;
+
+      if (asked) {
+        if (!this.fillRowMenu(menu, asked.row, null, asked.anchor)) event.preventDefault();
+        return;
+      }
+
+      const target = event.detail?.target;
+      const element = target instanceof Element ? target.closest("[data-row-id]") : null;
+      const row = element && this.contains(element) ? this.rowOfElement(element) : null;
+
+      if (!row || !this.getActionRowItems(row).length) {
+        event.preventDefault();
+        return;
+      } // The selection rule (C164 (3)): a selected row speaks for the
+      // selection, a row outside it becomes the selection first.
+
+
+      const {
+        ids
+      } = this.rowMenuTargets(row);
+      const anchor = element.querySelector(LIST_ROW_MENU_BUTTON) ?? element;
+      if (!this.fillRowMenu(menu, row, ids, anchor)) event.preventDefault();
+    });
     menu.addEventListener("sf-menu-context-select", event => {
       const context = this._rowMenuContext;
       if (!context) return;
@@ -12186,8 +15315,26 @@ class SfTable extends TableElement {
         row,
         items,
         anchor,
-        ids
-      } = context; // A menu over several selected rows acts on all of them.
+        ids,
+        listed
+      } = context;
+
+      if (listed && String(id ?? "").startsWith(ROW_MENU_ITEM)) {
+        const item = listed[Number(String(id).slice(ROW_MENU_ITEM.length))];
+        const props = item?.props || item?.component?.props || {};
+        const handler = props["@click"] ?? props.onClick;
+        if (typeof handler === "function") handler({
+          currentTarget: anchor,
+          target: anchor,
+
+          preventDefault() {},
+
+          stopPropagation() {}
+
+        });
+        return;
+      } // A menu over several selected rows acts on all of them.
+
 
       if (ids && id) {
         this.requestActionIntent(id, ids);
@@ -12276,23 +15423,10 @@ class SfTable extends TableElement {
         const props = { ...(action.component?.props || {})
         };
 
-        props["@click"] = event => this.openContextMenu(event, {
-          type: "left",
-          row,
-          action,
-          menu: "row-settings",
-          items: members.map(member => ({
-            component: "sf-button",
-            props: {
-              appearance: "link",
-              scheme: member.danger ? "error" : "on-surface",
-              text: member.name,
-              "@click": () => {
-                this.requestActionIntent(member.id, [row.id]);
-                this.closeContextMenu();
-              }
-            }
-          }))
+        props["@click"] = event => this.openRowMenu(event, row, {
+          group: { ...action,
+            members
+          }
         });
 
         return { ...action,
@@ -12309,7 +15443,10 @@ class SfTable extends TableElement {
       const menu = action.menu || props.menu;
       const hasClickHandler = typeof props["@click"] === "function" || typeof props.onClick === "function";
 
-      if (menu && !hasClickHandler) {
+      if (menu === "row-settings" && !hasClickHandler) {
+        // The row's own menu is the one standard menu (CM-8, C164 (2)).
+        props["@click"] = event => this.openRowMenu(event, row);
+      } else if (menu && !hasClickHandler) {
         props["@click"] = event => {
           const menuOptions = menu && typeof menu === "object" ? menu : {
             menu
@@ -12356,7 +15493,7 @@ class SfTable extends TableElement {
         type: "button-icon",
         props: {
           size: "1",
-          appearance: "link",
+          appearance: "ghost",
           scheme: "on-surface",
           icon: "menu",
           ariaLabel: this.getRowMenuLabel(row),
@@ -12572,8 +15709,10 @@ class SfTable extends TableElement {
       }
     });
     this.stopContextMenuPositions();
-    (0,lit__WEBPACK_IMPORTED_MODULE_12__.render)(null, this.getPortalContainer());
-    this.hidePortal();
+    (0,lit__WEBPACK_IMPORTED_MODULE_11__.render)(null, this.getPortalContainer());
+    this.hidePortal(); // The column window's host empties with the window (VT-12).
+
+    if (this._settingsHost?.isConnected) (0,lit__WEBPACK_IMPORTED_MODULE_11__.render)(null, this._settingsHost);
 
     if (this.refs.contextMenu) {
       this.refs.contextMenu.value = null;
@@ -12728,7 +15867,12 @@ class SfTable extends TableElement {
   }
 
   disconnectedCallback() {
-    this.unbindWindowScroll(); // The row menu lives beside the page, not inside the table: it goes
+    this.closeCellPopover();
+    this.unbindWindowScroll();
+
+    for (const controller of this._toolbarRoving?.values() ?? []) controller.destroy();
+
+    this._toolbarRoving?.clear(); // The row menu lives beside the page, not inside the table: it goes
     // with the table that made it.
 
     this._rowMenu?.close?.({
@@ -12807,11 +15951,20 @@ class SfTable extends TableElement {
     this.contextTarget = null;
 
     if (this._portalContainer) {
-      (0,lit__WEBPACK_IMPORTED_MODULE_12__.render)(null, this._portalContainer);
+      (0,lit__WEBPACK_IMPORTED_MODULE_11__.render)(null, this._portalContainer);
 
       this._portalContainer.remove();
 
       this._portalContainer = null;
+    }
+
+    if (this._settingsHost) {
+      (0,lit__WEBPACK_IMPORTED_MODULE_11__.render)(null, this._settingsHost);
+
+      this._settingsHost.remove();
+
+      this._settingsHost = null;
+      this._settingsShown = null;
     }
 
     super.disconnectedCallback();
@@ -12830,7 +15983,7 @@ class SfTable extends TableElement {
 
 
   text(key, attribute) {
-    return attribute && this.getAttribute(attribute) || (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_14__.pageText)(TABLE_TEXT, key, this);
+    return attribute && this.getAttribute(attribute) || (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_13__.pageText)(TABLE_TEXT, key, this);
   }
 
   templateContext() {
@@ -12848,6 +16001,9 @@ class SfTable extends TableElement {
       layoutSwitch: this.hasLayoutSwitch && !this.isNarrow,
       shownLayout: this._renderedList ? "list" : "table",
       quickActionIds: this.quickActionIds,
+      // The row menu's areas (C164) and the phone's keyed table (C259).
+      rowAreaId: this.rowAreaId,
+      keyedNarrow: this.isKeyedNarrow,
       // The size the controls inside are written with: the host's own,
       // or none, so a host without a size keeps its controls relative
       // and page density moves them (C22).
@@ -12879,7 +16035,7 @@ class SfTable extends TableElement {
         return;
       }
 
-      const parentSpace = (0,_helpers_dom__WEBPACK_IMPORTED_MODULE_15__.setParentSpace)(this.refs.items);
+      const parentSpace = (0,_helpers_dom__WEBPACK_IMPORTED_MODULE_14__.setParentSpace)(this.refs.items);
 
       if (!parentSpace) {
         return;
@@ -12958,6 +16114,44 @@ class SfTable extends TableElement {
     this._responsiveTarget = target;
 
     this._responsiveObserver.observe(target);
+  } // C296 / C295 (VT-13): the table draws columns and rows. Its toolbar,
+  // search, filter, saved templates, create button, layout switch, own
+  // paging and own group buttons are the container's (sf-view,
+  // sf-pagination, sf-bulk-actions). They keep working, as they were,
+  // until 2027-01-01; a table standing alone that is given one is noted in
+  // SF.deprecations once. Inside sf-view the view writes them: no note.
+
+
+  noteContainerSettings() {
+    if (this._containerNoted || this.closest?.("sf-view")) return;
+    this._containerNoted = true;
+
+    for (const name of CONTAINER_SETTINGS) {
+      // toolbar="false" and the like already say what the table becomes.
+      if (!this.hasAttribute(name) || this.getAttribute(name) === "false") continue;
+      (0,_core_js_deprecations_js__WEBPACK_IMPORTED_MODULE_21__.noteDeprecated)({
+        component: "sf-view-table",
+        tag: "sf-view-table",
+        kind: "attribute",
+        attribute: name,
+        from: name,
+        to: CONTAINER_SETTING_HOME[name] ?? "sf-view",
+        since: "2026-11-18",
+        remove_after: "2027-01-01",
+        package: "view"
+      });
+    }
+  } // A row scrollToRow asked for outside the drawn range is drawn now, and
+  // brought into view inside the table's scroll (C296).
+
+
+  revealPendingRow() {
+    const id = this._pendingScrollRow;
+    this._pendingScrollRow = null;
+    this.refs.table?.value?.querySelector(`tbody tr[data-row-id="${id.replace(/"/gu, '\\"')}"]`)?.scrollIntoView?.({
+      block: "nearest",
+      behavior: "instant"
+    });
   }
 
   afterRender() {
@@ -12995,16 +16189,20 @@ class SfTable extends TableElement {
   }
 
   afterDraw() {
+    this.noteContainerSettings();
     this.preloadSelectionGlyphs();
     this.adoptSelectionGlyphs();
 
     this._observeResponsiveBox();
 
     this.bindRowActionsEvents(this.refs.table?.value);
+    this.bindToolbarKeyboard();
     this.syncGrid();
-    if (this._windowed) this.bindWindowScroll(); // A row the keyboard asked for outside the drawn range is drawn now:
-    // it is focused and scrolled into view, and the scroll that brings
-    // moves the range around it -- not the place the page was at before.
+    this.bindRowMenu();
+    this.syncListStops();
+    this.toggleAttribute("data-sf-keyed-narrow", this.isKeyedNarrow);
+    if (this._windowed) this.bindWindowScroll();
+    if (this._pendingScrollRow) this.revealPendingRow();
 
     if (this._pendingFocusRow) {
       const id = this._pendingFocusRow;
@@ -13083,6 +16281,36 @@ class SfTable extends TableElement {
     this.bindColumnDragEvent();
     this.syncWindow();
     this.markClippedTitles();
+  } // The toolbar's keyboard is SIMAI Framework roving.js (C184 (1)-(3),
+  // VF-6): each group of the toolbar's buttons -- the filter with its chips
+  // and their buttons at the start, create and the view's actions at the
+  // end -- is one Tab stop, the arrows walk it in the row's direction, ↓ on
+  // a menu button opens its menu, and Tab comes back to the button left.
+  // The search field and the layout switch keep their own keys and stops.
+
+
+  bindToolbarKeyboard() {
+    const groups = [...this.querySelectorAll(":scope .sf-table-toolbar .sf-table-toolbar-start, :scope .sf-table-toolbar .sf-table-toolbar-end, :scope .sf-table-toolbar .sf-table-list-search")].filter(group => group.closest("sf-view-table, sf-table") === this);
+    this._toolbarRoving ??= new Map();
+
+    for (const [group, controller] of this._toolbarRoving) {
+      if (!groups.includes(group) || !group.isConnected) {
+        controller.destroy();
+
+        this._toolbarRoving.delete(group);
+      }
+    }
+
+    const buttons = group => () => [...group.querySelectorAll("button")].filter(button => !button.closest("sf-input, .sf-input, sf-segmented, .sf-segmented"));
+
+    for (const group of groups) {
+      if (this._toolbarRoving.has(group)) continue;
+
+      this._toolbarRoving.set(group, (0,_core_js_roving_js__WEBPACK_IMPORTED_MODULE_22__.roving)(group, {
+        items: buttons(group),
+        orientation: "horizontal"
+      }));
+    }
   } // A name cut by its two lines (C146 (7)) says so on its cell, and the
   // Framework tooltip over it shows the whole name; a name that fits has
   // no tooltip.
@@ -13130,8 +16358,478 @@ class SfTable extends TableElement {
     const own = row.parentElement?.tagName === "TBODY" ? [row] : []; // A column edge is no stop of the grid (C146 (8), RS-10): the person
     // sets a width with the pointer.
 
-    const controls = [...row.querySelectorAll("a[href], button:not([disabled]), input:not([disabled]):not([type=hidden]), select:not([disabled]), textarea:not([disabled])")].filter(element => !element.closest(".sf-tooltip, [hidden]") && !element.matches("[data-sf-column-resizer]"));
+    const controls = [...row.querySelectorAll("a[href], button:not([disabled]), input:not([disabled]):not([type=hidden]), select:not([disabled]), textarea:not([disabled])")].filter(element => !element.closest(".sf-tooltip, [hidden]") && !element.matches("[data-sf-column-resizer]")); // The head of a column whose width can be set and that has nothing to
+    // press (no sort) is a stop itself: the arrows reach it and Enter
+    // opens its width menu (C158 (5)).
+
+    const heads = row.parentElement?.tagName === "THEAD" ? [...row.children].filter(cell => this.headStopOf(cell) === cell) : [];
+
+    if (heads.length) {
+      return [...controls, ...heads].sort((a, b) => a.compareDocumentPosition(b) & 4 ? -1 : 1);
+    }
+
     return [...own, ...controls];
+  } // ─── a column's width from the keyboard (owner decision C158 (5)) ───────
+  // The table stays one Tab stop (C146 (8)): the arrows walk the heads, and
+  // Enter on a head whose column has an edge -- Shift+F10, the menu key or
+  // the right button too -- opens «Изменить ширину · По содержимому · По
+  // умолчанию». «Изменить ширину» takes the focus to the edge, where the
+  // arrows set the width (SIMAI Framework SF.Resizer.attach, sf-resizer
+  // 1.3.0); Enter or Escape there go back to the head. A double click on the
+  // edge is the fit to content. Space on a sort button still sorts.
+  // The stop of a head: its sort button, or the head itself; null for a
+  // column without an edge (the system columns, the last column, a column
+  // marked resizable: false).
+
+
+  headStopOf(cell) {
+    if (!(cell instanceof Element) || cell.tagName !== "TH") return null;
+    if (!cell.querySelector("[data-sf-column-resizer]")) return null;
+    return cell.querySelector(".sf-table-sort-button") ?? cell;
+  } // A plain table (no grid) keeps its sort buttons as its stops; a head with
+  // nothing to press is reached by the arrows from them, and is the head
+  // row's one stop when the row has no other.
+
+
+  syncHeadStops(table) {
+    const row = table?.tHead?.rows?.[0];
+    if (!row) return;
+    const heads = [...row.children].filter(cell => this.headStopOf(cell) === cell);
+
+    for (const head of heads) if (head.getAttribute("aria-haspopup") !== "menu") head.setAttribute("aria-haspopup", "menu");
+
+    if (this.isGrid) return;
+    const others = this.gridControls(row).filter(element => !heads.includes(element));
+    heads.forEach((head, index) => {
+      const value = index === 0 && !others.length ? "0" : "-1";
+      if (head.getAttribute("tabindex") !== value) head.setAttribute("tabindex", value);
+    });
+  } // The head's keys go first, so Enter on a sort button opens the width
+  // menu rather than sorting; the right button on a head with an edge opens
+  // the same menu (the row menu's `for` asks only about rows).
+
+
+  bindHeadMenu(table, signal) {
+    table.addEventListener("keydown", event => this.handleHeadKeydown(event, table), {
+      signal
+    });
+    table.addEventListener("contextmenu", event => {
+      const cell = event.target instanceof Element ? event.target.closest("th") : null;
+      if (!cell || cell.parentElement?.parentElement !== table.tHead) return;
+      const key = cell.dataset.key;
+      const column = key ? this.getColumns().find(item => String(item?.key) === key) : null;
+      if (!column || column.system) return;
+      event.preventDefault();
+      event.stopPropagation(); // Shift+F10 and the menu key opened it already.
+
+      if (Date.now() - (this._headMenuKeyAt ?? 0) < 500) return;
+      if (event.target.closest("[data-sf-column-resizer]")) return;
+      const point = event.button === 2 || !this.headStopOf(cell) ? {
+        x: event.clientX,
+        y: event.clientY
+      } : null;
+      this.openColumnMenu(cell, this.headStopOf(cell) ?? cell, point);
+    }, {
+      signal
+    });
+  }
+
+  handleHeadKeydown(event, table) {
+    if (event.defaultPrevented) return;
+    const target = event.target instanceof Element ? event.target : null;
+    const cell = target?.closest?.("th");
+    if (!cell || cell.parentElement?.parentElement !== table.tHead) return; // On the edge: Enter and Escape go back to the head (the Framework's
+    // gesture leaves them to the table).
+
+    if (target.matches("[data-sf-column-resizer]")) {
+      if (event.key !== "Enter" && event.key !== "Escape") return;
+      const stop = this.headStopOf(cell);
+      if (!stop) return;
+      event.preventDefault();
+      event.stopPropagation();
+      this.focusHeadStop(stop);
+      return;
+    }
+
+    const stop = this.headStopOf(cell);
+    const onStop = stop && target === stop;
+
+    if (onStop && (event.key === "Enter" || event.key === "ContextMenu" || event.shiftKey && event.key === "F10")) {
+      event.preventDefault();
+      event.stopPropagation();
+      this._headMenuKeyAt = Date.now();
+      this.openColumnMenu(cell, stop);
+      return;
+    } // A plain table walks its heads with the arrows as a grid does.
+
+
+    if (this.isGrid || event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+    const stops = this.gridControls(cell.parentElement);
+    const at = stops.indexOf(target);
+    if (at < 0) return;
+    const forward = event.key === "ArrowRight" !== this.isRightToLeft();
+    const next = stops[at + (forward ? 1 : -1)];
+    if (!next) return;
+    event.preventDefault();
+    this.focusHeadStop(next);
+  }
+
+  focusHeadStop(stop) {
+    if (this.isGrid) {
+      this._gridStop = stop;
+      this.syncGrid();
+    }
+
+    stop.focus({
+      preventScroll: false
+    });
+  } // The column's menu (owner decision C296, q-columns B): on the head --
+  // the right button, a long press, Shift+F10, the menu key, Enter on a
+  // head with an edge -- sort up and down, pin, hide and «Все колонки…»
+  // (the column window), then the width (C158 (5)). The window stays for
+  // the order and for bringing a hidden column back.
+
+
+  columnMenuEntries(column, cell) {
+    const entries = [];
+    const sort = this.state?.sort ?? {};
+
+    if (column.sortable === true && !column.system) {
+      entries.push({
+        id: "sort-asc",
+        text: this.text("columnSortAsc"),
+        icon: "arrow_upward",
+        checked: sort.key === column.key && sort.direction === "asc"
+      });
+      entries.push({
+        id: "sort-desc",
+        text: this.text("columnSortDesc"),
+        icon: "arrow_downward",
+        checked: sort.key === column.key && sort.direction === "desc"
+      });
+    } // Under the list head (sf-view head="list") there is no gear: the view
+    // settings are «Настроить вид» above the list (C301 (1)). The column's
+    // own pin and hide stay on its head all the same (C296, VR2-1), and
+    // «Все колонки…» opens «Настроить вид» (data-sf-view-columns="head",
+    // written by the view where the host keeps personal column settings).
+
+
+    const underHead = this.getAttribute("data-sf-view-columns") === "head";
+    const settings = this.getPropsContext?.().settings !== false && (this.getAttribute("settings-menu") !== "false" || underHead);
+
+    if (!column.system && settings) {
+      const pinned = this.isColumnPinned(column);
+      const group = [{
+        id: "pin",
+        text: this.text(pinned ? "columnUnpin" : "columnPin"),
+        icon: "push_pin"
+      }]; // The title stays: it is the record's name and its link (C146 (5)).
+
+      const shown = this.getColumnItems().filter(item => item?.key && !item.system && this.isColumnVisible(item));
+      if (column.role !== "title" && shown.length > 1) group.push({
+        id: "hide",
+        text: this.text("columnHide"),
+        icon: "visibility_off"
+      });
+      if (entries.length) entries.push({
+        type: "separator"
+      });
+      entries.push(...group, {
+        id: "all",
+        text: this.text("columnAll"),
+        icon: "view_column"
+      });
+    }
+
+    if (cell?.querySelector?.("[data-sf-column-resizer]")) {
+      if (entries.length) entries.push({
+        type: "separator"
+      });
+      entries.push({
+        id: "resize",
+        text: this.text("columnWidthChangeText")
+      }, {
+        id: "fit",
+        text: this.text("columnWidthFitText")
+      }, {
+        id: "default",
+        text: this.text("columnWidthDefaultText")
+      });
+    }
+
+    return entries;
+  }
+
+  async openColumnMenu(cell, anchor = cell, point = null) {
+    const key = cell?.dataset?.key;
+    const column = key ? this.getColumns().find(item => String(item?.key) === key) : null;
+    if (!column || column.system) return null;
+    const entries = this.columnMenuEntries(column, cell);
+    if (!entries.length) return null;
+    await globalThis.SF?.Loader?.ensure?.(["sf-menu-context"]);
+    await customElements.whenDefined?.("sf-menu-context");
+    const menu = this.columnMenu();
+    menu.setAttribute("size", this.menuSize);
+    (0,_core_js_density_js__WEBPACK_IMPORTED_MODULE_19__.followDensity)(menu, this);
+    const label = column.label || column.key;
+    menu.setAttribute("aria-label", `${this.text("columnMenuLabel")}: ${label}`);
+    menu.entries = entries;
+    this._columnMenuContext = {
+      key,
+      cell,
+      anchor,
+      column
+    };
+    if (point) return menu.openAt?.(point.x, point.y);
+    return typeof menu.toggleFor === "function" ? menu.toggleFor(anchor, {
+      align: "start"
+    }) : menu.openFor?.(anchor, {
+      align: "start"
+    });
+  } // A choice of the column menu: the sort goes out as a person's sort
+  // (sort-change), the pin and the hide as column settings (save), «Все
+  // колонки…» opens the column window against the head.
+
+
+  applyColumnMenuChoice(id, context) {
+    const {
+      key,
+      column
+    } = context;
+
+    if (id === "sort-asc" || id === "sort-desc") {
+      const direction = id === "sort-asc" ? "asc" : "desc";
+      const sort = this.state?.sort ?? {};
+      if (sort.key === key && sort.direction === direction) return true;
+      this.setSort(key, direction);
+      this.emitTableEvent("sort-change", Object.freeze({
+        key,
+        direction
+      }));
+      return true;
+    }
+
+    if (id === "pin") {
+      this.toggleColumnPinned(column);
+      return true;
+    }
+
+    if (id === "hide") {
+      this.patchColumnSettings(key, {
+        visible: false
+      }, "column-hide");
+      return true;
+    }
+
+    if (id === "all") {
+      const view = this.getAttribute("data-sf-view-columns") === "head" ? this.closest?.("sf-view") : null;
+
+      if (typeof view?.openCustomize === "function") {
+        view.openCustomize();
+        return true;
+      }
+
+      const gear = this.querySelector('thead th[data-key="settings"] button, thead th[data-key="settings"] [role="button"]');
+      const anchor = gear ?? context.cell;
+      this._settingsTab = "columns";
+      this.openContextMenu({
+        currentTarget: anchor,
+        target: anchor,
+        timeStamp: performance.now(),
+
+        preventDefault() {},
+
+        stopPropagation() {}
+
+      }, {
+        menu: "table-settings"
+      });
+      return true;
+    }
+
+    return false;
+  }
+
+  columnMenu() {
+    if (this._columnMenu?.isConnected) return this._columnMenu;
+    const menu = document.createElement("sf-menu-context");
+    menu.setAttribute("popup", "");
+    menu.dataset.sfTableMenu = "column";
+    menu.addEventListener("sf-menu-context-select", event => {
+      const context = this._columnMenuContext;
+      if (!context) return;
+      const id = event.detail?.id ?? event.detail?.entry?.id;
+      const stop = this.headStopOf(context.cell) ?? context.anchor;
+      menu.close?.();
+
+      if (id !== "all" && this.applyColumnMenuChoice(id, context)) {
+        requestAnimationFrame(() => {
+          const cell = this.refs.table?.value?.querySelector(`thead th[data-key="${this.escapeColumnKey(context.key)}"]`);
+          const again = this.headStopOf(cell) ?? (cell?.isConnected ? null : null);
+          if (again?.isConnected) this.focusHeadStop(again);
+        });
+        return;
+      }
+
+      if (id === "all") {
+        // After the menu has closed and given the focus back.
+        requestAnimationFrame(() => this.applyColumnMenuChoice(id, context));
+        return;
+      }
+
+      if (id === "resize") {
+        const edge = context.cell.querySelector("[data-sf-column-resizer]"); // After the menu has given the focus back to its opener.
+
+        requestAnimationFrame(() => edge?.focus({
+          preventScroll: true
+        }));
+        return;
+      }
+
+      if (id === "fit") this.fitColumnToContent(context.key);else if (id === "default") this.resetColumnWidth(context.key);
+      requestAnimationFrame(() => {
+        const cell = this.refs.table?.value?.querySelector(`thead th[data-key="${this.escapeColumnKey(context.key)}"]`);
+        const again = this.headStopOf(cell) ?? stop;
+        if (again?.isConnected) this.focusHeadStop(again);
+      });
+    });
+    (this.closest("dialog[open]") || document.body).append(menu);
+    this._columnMenu = menu;
+    return menu;
+  } // «По содержимому»: the column as wide as its head and the values shown
+  // want on one line, up to the cap of a content width, read the way the
+  // table measures its content widths (sf-table-measuring: auto layout at
+  // max-content, for one read), and kept as the person's width.
+
+
+  fitColumnToContent(key) {
+    const table = this.refs.table?.value;
+    if (!(table instanceof HTMLTableElement) || !key) return this;
+    const column = this.getColumns().find(item => String(item?.key) === String(key));
+    const th = table.querySelector(`thead th[data-key="${this.escapeColumnKey(key)}"]`);
+    if (!column || !th) return this;
+    let width = 0;
+    table.classList.add("sf-table-measuring");
+
+    try {
+      if (getComputedStyle(table).tableLayout === "auto") width = th.getBoundingClientRect().width;
+    } finally {
+      table.classList.remove("sf-table-measuring");
+    }
+
+    if (!width) return this;
+    const {
+      minWidth,
+      maxWidth
+    } = this.getColumnResizeLimits(column, width);
+    const fitted = Math.min(Math.max(contentStep(width), minWidth), maxWidth, Math.max(minWidth, this.columnWidthCap()));
+    const frozen = this.freezeColumnsWidthForResize(table);
+    return this.applyColumnResizeWidths(key, fitted, frozen);
+  } // ─── the list's keyboard (VT-3; C146 (8) as in the grid) ────────────────
+  // The list of records is one Tab stop, as the table is: the record the
+  // person was on (or its control), else the current one, else the first.
+  // ↑↓ walk the records from the record or any of its controls, ←→ walk a
+  // record's own controls (box, «≡», title, actions); Home/End and Enter,
+  // Space keep their row meaning (handleRowKeydown). 27 stops for 8 rows
+  // and 39 for 12 before (the study's now-admin at 390).
+
+
+  listItems(list = this.querySelector(":scope .sf-table-list")) {
+    return list ? [...list.querySelectorAll(":scope > li.sf-table-list-item[data-row-id]")] : [];
+  }
+
+  listControls(item) {
+    return [item, ...[...item.querySelectorAll("a[href], button:not([disabled]), input:not([disabled]):not([type=hidden])")].filter(element => !element.closest(".sf-tooltip, [hidden]"))];
+  }
+
+  syncListStops() {
+    const list = this.isList ? this.querySelector(":scope .sf-table-list") : null;
+
+    if (!list) {
+      this._listAbort?.abort();
+      this._listBound = null;
+      return;
+    }
+
+    this.bindListKeys(list);
+    const items = this.listItems(list);
+    const stops = items.flatMap(item => this.listControls(item));
+    let stop = this._listStop?.isConnected && stops.includes(this._listStop) ? this._listStop : null;
+    stop ??= list.querySelector(":scope > li[data-current]") ?? items[0] ?? null;
+
+    for (const element of stops) {
+      const index = element === stop ? "0" : "-1";
+      if (element.getAttribute("tabindex") !== index) element.setAttribute("tabindex", index);
+    }
+
+    this._listStop = stop;
+  }
+
+  bindListKeys(list) {
+    if (this._listBound === list) return;
+    this._listAbort?.abort();
+    this._listAbort = new AbortController();
+    this._listBound = list;
+    const {
+      signal
+    } = this._listAbort;
+    list.addEventListener("focusin", event => {
+      const target = event.target instanceof Element ? event.target : null;
+      if (!target || target === this._listStop || !this.listItems(list).some(item => item.contains(target))) return;
+      this._listStop = target;
+      this.syncListStops();
+    }, {
+      signal
+    });
+    list.addEventListener("keydown", event => {
+      if (event.defaultPrevented || event.altKey || event.metaKey) return;
+      const target = event.target instanceof Element ? event.target : null;
+      const items = this.listItems(list);
+      const item = items.find(one => one.contains(target));
+      if (!item || target.closest("textarea, select, [contenteditable]") || target.matches("input") && !/^(checkbox|radio)$/u.test(target.type)) return;
+      const controls = this.listControls(item);
+      const at = controls.indexOf(target);
+      let next = null;
+
+      if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+        const forward = event.key === "ArrowRight" !== this.isRightToLeft();
+        next = controls[at + (forward ? 1 : -1)] ?? null;
+      } else if ((event.key === "ArrowDown" || event.key === "ArrowUp") && target !== item && !target.matches(".sf-table-title-link")) {
+        // From a control: the same place in the next record (from the
+        // record itself and its title the row's own keys move).
+        const other = items[items.indexOf(item) + (event.key === "ArrowDown" ? 1 : -1)];
+        const list2 = other ? this.listControls(other) : [];
+        next = list2[Math.min(Math.max(at, 0), list2.length - 1)] ?? null;
+      } else {
+        return;
+      }
+
+      if (!next || next === target) return;
+      event.preventDefault();
+      this._listStop = next;
+      this.syncListStops();
+      next.focus({
+        preventScroll: false
+      });
+    }, {
+      signal
+    });
+    let queued = 0;
+    const observer = new MutationObserver(records => {
+      if (queued || !records.some(record => [...record.addedNodes].some(node => node.nodeType === 1))) return;
+      queued = requestAnimationFrame(() => {
+        queued = 0;
+        if (this._listBound === list) this.syncListStops();
+      });
+    });
+    observer.observe(list, {
+      childList: true,
+      subtree: true
+    });
+    signal.addEventListener("abort", () => {
+      observer.disconnect();
+      if (queued) cancelAnimationFrame(queued);
+    });
   }
 
   gridRows(table = this.refs.table?.value) {
@@ -13153,8 +16851,13 @@ class SfTable extends TableElement {
 
     if (!this.isTree()) {
       if (grid) table.setAttribute("role", "grid");else if (table.getAttribute("role") === "grid") table.removeAttribute("role");
-    }
+    } // Several rows may be marked (VT-4): said on the grid, not on a plain table.
+    // Read from the drawn head: no column setting is asked outside a draw.
 
+
+    const many = grid && Boolean(table.querySelector(':scope > thead th[data-key="select"]'));
+    if (many) table.setAttribute("aria-multiselectable", "true");else table.removeAttribute("aria-multiselectable");
+    this.syncHeadStops(table);
     if (!grid) return;
     const rows = this.gridRows(table);
     const stops = rows.flatMap(row => this.gridControls(row)); // The one stop: the control the person was on, else the row the
@@ -13191,25 +16894,22 @@ class SfTable extends TableElement {
     }, {
       signal
     });
+    this.bindHeadMenu(table, signal);
     table.addEventListener("keydown", event => this.handleGridKeydown(event, table), {
       signal
-    }); // The right button on a row opens the row's «≡» menu (C146 (5),
-    // variant В; C164 (2): the same list), at the pointer (C164 (1)).
-    // Shift keeps the browser's own menu, and so do a link (open in a
-    // new tab) and a field.
+    }); // A double press on a short field the record lets this person write
+    // edits it at the cell (C296); it does not open the record. Caught on
+    // the way down, before the row's own double press.
 
-    table.addEventListener("contextmenu", event => {
-      if (event.shiftKey) return;
-      const target = event.target instanceof Element ? event.target : null;
-      if (!target || keepsBrowserMenu(target)) return;
-      const row = target.closest("tbody > tr[data-row-id]");
-      if (!row || !table.contains(row)) return;
-      if (this.openRowMenuOf(row, target, {
-        x: event.clientX,
-        y: event.clientY
-      })) event.preventDefault();
+    table.addEventListener("dblclick", event => {
+      const edit = this.cellEditTarget(event);
+      if (!edit) return;
+      event.preventDefault();
+      event.stopPropagation();
+      this.openCellEditor(edit.row, edit.column, edit.cell);
     }, {
-      signal
+      signal,
+      capture: true
     }); // A row's buttons come after the draw: the «Действия» buttons of the
     // row a person is on, and a Smart button's own <button>, which its
     // element draws once defined. Each new control leaves the Tab order
@@ -13240,16 +16940,9 @@ class SfTable extends TableElement {
     return rows.find((row, index) => String(this.getRowKey(row, index)) === key) ?? null;
   } // The rows a context menu over `row` acts on (C164): a selected row
   // speaks for the whole selection; a row outside it becomes the selection
-  // first. ids is null for the row alone.
-  //
-  // The table's own context wiring (the contextmenu listener and the menu
-  // key in handleGridKeydown, both through openRowMenuOf) stands in for the
-  // SIMAI Framework engine, sf-menu-context 1.21.0 `for="<table id>"` with
-  // its cancellable `open` event (ui-source fix/context-menu-c164). Once a
-  // pair carries it, the switch is: bind the row menu with `for`, drop the
-  // two triggers, and in the `open` handler take `targets` as the ids and
-  // fill the entries with openRowMenu's list -- this function and the entry
-  // building stay.
+  // first. ids is null for the row alone. Asked by the row menu's `open`
+  // question (rowMenu), whatever way the menu was opened: the rows carry no
+  // aria-selected of their own, so the engine leaves the selection to this.
 
 
   rowMenuTargets(row) {
@@ -13268,97 +16961,32 @@ class SfTable extends TableElement {
       ids: null,
       reselected: true
     };
-  } // Opens a row's «≡» menu as its button would, under the button; a table
-  // without the button (settings="false") opens it under the cell. pointer
-  // ({x, y}, a right click) opens it at the pointer instead.
-
-
-  openRowMenuOf(rowElement, from, pointer = null) {
-    const row = this.rowOfElement(rowElement);
-    if (!row || !this.getActionRowItems(row).length) return false;
-    const cellKey = from?.closest?.("td")?.dataset.key;
-    return this.openRowContextMenu(rowElement, row, "tbody > tr[data-row-id]", drawn => ({
-      anchor: drawn.querySelector("[data-sf-row-menu]") ?? (cellKey ? drawn.querySelector(`td[data-key="${CSS.escape(cellKey)}"]`) : null) ?? drawn
-    }), pointer);
-  } // A list row's menu (C164 (2)): the list its own button opens -- the
-  // «≡» of a plain list every action, the «⋯» of a list with quick actions
-  // what its row does not show (all of them while the narrow list folds
-  // the quick ones away) -- at the pointer for a right click, else at that
-  // button. A row without the button keeps the browser's menu. Over several
-  // selected rows it is the table's menu (C164 (3)): every action they all
-  // offer, under «Выбрано N» -- a quick button acts on its row alone.
-  // Answers whether it opened.
-
-
-  openListRowMenu(item, pointer = null) {
-    const row = this.rowOfElement(item);
-    const button = item.querySelector(LIST_ROW_MENU_BUTTON);
-    if (!row || !button) return false;
-    let only = null;
-    const actions = button.closest(".sf-table-resource-actions");
-
-    if (actions) {
-      const {
-        quick,
-        rest
-      } = this.listRowActions(row);
-      const box = actions.querySelector(".sf-table-resource-quick");
-      const folded = Boolean(box) && getComputedStyle(box).display === "none";
-      only = folded ? [...quick, ...rest] : rest;
-      if (!only.length) return false;
-    } else if (!this.getActionRowItems(row).length) return false;
-
-    return this.openRowContextMenu(item, row, "li.sf-table-list-item[data-row-id]", (drawn, ids) => ({
-      anchor: drawn.querySelector(LIST_ROW_MENU_BUTTON) ?? button,
-      only: ids?.length > 1 ? null : only
-    }), pointer);
-  } // The one path of a row's context menu, table row and list row alike
-  // (C164 (3)): the selection rule (rowMenuTargets), then the menu on the
-  // row as drawn after it -- a row outside the selection becomes the
-  // selection and is drawn again first. place(drawn, ids) gives the anchor
-  // and the entries (only) on that drawn row. Answers true: it opens.
-
-
-  openRowContextMenu(rowElement, row, rowSelector, place, pointer = null) {
-    const key = rowElement.dataset.rowId; // The menu key sends a keydown and then a contextmenu: the second
-    // must not close what the first opened, or is opening.
-
-    if (this._rowMenuPending === key) return true;
-    if (this._rowMenu?.isOpen && String(this._rowMenuContext?.row?.id) === String(row.id)) return true;
-    const {
-      ids,
-      reselected
-    } = this.rowMenuTargets(row);
-
-    const open = () => {
-      if (this._rowMenuPending === key) this._rowMenuPending = null; // The selection redraws the row: anchor on the row drawn now.
-
-      const drawn = [...this.querySelectorAll(rowSelector)].find(element => element.dataset.rowId === key) ?? rowElement;
-      const {
-        anchor,
-        only = null
-      } = place(drawn, ids);
-      this.openRowMenu({
-        currentTarget: anchor,
-        target: anchor
-      }, this.rowOfElement(drawn) ?? row, only, {
-        ids,
-        at: pointer ? menuPointAt(pointer) : null
-      });
-    };
-
-    if (reselected) {
-      this._rowMenuPending = key;
-      requestAnimationFrame(open);
-    } else open();
-
-    return true;
   }
 
   handleGridKeydown(event, table) {
-    if (event.defaultPrevented || !this.isGrid) return;
+    if (event.defaultPrevented || !this.isGrid) return; // Alt+Down / Alt+Up are not the grid's: a data view steps the record
+    // card open beside the list with them (C305 (4), VR2-3).
+
+    if (event.altKey && (event.key === "ArrowDown" || event.key === "ArrowUp")) return;
     const target = event.target instanceof Element ? event.target : null;
-    if (!target) return; // A field keeps its own keys.
+    if (!target) return; // F2 edits the short cell under the focus, or the row's first one.
+
+    if (event.key === "F2") {
+      const tr = target.closest("tbody tr[data-row-id]");
+      const record = tr && this.rowOfElement(tr);
+      const columns = this.getTableData().columns || [];
+      const cells = tr ? [...tr.querySelectorAll(":scope > td[data-key]")] : [];
+      const own = target.closest("td[data-key]");
+      const cell = [own, ...cells].find(one => one && record && this.cellShortEditable(record, columns.find(c => String(c.key) === one.dataset.key) ?? {}));
+
+      if (cell) {
+        event.preventDefault();
+        this.openCellEditor(record, columns.find(c => String(c.key) === cell.dataset.key), cell);
+      }
+
+      return;
+    } // A field keeps its own keys.
+
 
     if (target.closest("textarea, select, [contenteditable]") || target.matches("input") && !/^(checkbox|radio)$/u.test(target.type)) return; // An edge that sets a width keeps its arrows, Home and End.
 
@@ -13367,12 +16995,6 @@ class SfTable extends TableElement {
     const rowIndex = rows.findIndex(row => row === target || row.contains(target));
     if (rowIndex < 0) return;
     const row = rows[rowIndex];
-
-    if (isMenuKey(event) && row.parentElement?.tagName === "TBODY") {
-      if (this.openRowMenuOf(row, target)) event.preventDefault();
-      return;
-    }
-
     const controls = this.gridControls(row);
     const at = controls.indexOf(target); // The row's own keys (handleRowKeydown) move between rows from the
     // row itself, drawn or not; these move from a control, and across.
@@ -13453,74 +17075,6 @@ class SfTable extends TableElement {
 
 (0,_js_manifest_actions_js__WEBPACK_IMPORTED_MODULE_2__.settingSetters)(SfTable, _component_json__WEBPACK_IMPORTED_MODULE_3__);
 SfTable.define("sf-view-table");
-__webpack_async_result__();
-} catch(e) { __webpack_async_result__(e); } });
-
-/***/ },
-
-/***/ "2f31b00ad99a"
-(module, __webpack_exports__, __webpack_require__) {
-
-__webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   DATE_TYPES: () => (/* binding */ DATE_TYPES),
-/* harmony export */   formatDateValue: () => (/* binding */ formatDateValue)
-/* harmony export */ });
-/* harmony import */ var _core_js_format_date_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("e577837dd70a");
-var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_core_js_format_date_js__WEBPACK_IMPORTED_MODULE_0__]);
-var __webpack_async_dependencies_result__ = (__webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
-_core_js_format_date_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_async_dependencies_result__[0];
- // A date, a date and time or a time of day in the page's language, through
-// the SIMAI Framework's format-date module, for a value the host did not
-// format (formatFieldValue). The host's own text still wins; without one, a
-// date read «2026-11-02» where a person expects «2 нояб. 2026 г.».
-//
-// The forms are read as a host stores them: a day «YYYY-MM-DD» is that day on
-// the reader's calendar (not UTC midnight, which is the day before west of
-// Greenwich); a date and time with a zone is that moment in the reader's zone
-// and one without a zone is the wall clock as written; a time «hh:mm[:ss]» is
-// a time of day. Anything else is left for the caller to print as it came.
-
-const DAY = /^(\d{4})-(\d{2})-(\d{2})$/u;
-const TIME = /^(\d{2}):(\d{2})(?::(\d{2})(?:\.\d+)?)?$/u;
-const DATE_TIME = /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})(?::(\d{2})(?:\.\d+)?)?(Z|[+-]\d{2}:?\d{2})?$/u;
-const DATE_TYPES = new Set(['date', 'datetime', 'time']);
-
-function readMoment(type, text) {
-  const day = DAY.exec(text);
-  if (day) return new Date(Number(day[1]), Number(day[2]) - 1, Number(day[3]));
-  const time = TIME.exec(text);
-  if (time) return type === 'time' ? new Date(2000, 0, 1, Number(time[1]), Number(time[2]), Number(time[3] ?? 0)) : null;
-  const stamp = DATE_TIME.exec(text);
-  if (!stamp) return null;
-
-  if (stamp[7]) {
-    const moment = new Date(text.replace(' ', 'T'));
-    return Number.isNaN(moment.getTime()) ? null : moment;
-  }
-
-  return new Date(Number(stamp[1]), Number(stamp[2]) - 1, Number(stamp[3]), Number(stamp[4]), Number(stamp[5]), Number(stamp[6] ?? 0));
-} // The text for a value of a date type, or '' when it is not one this reads.
-
-
-function formatDateValue(type, value, node) {
-  if (!DATE_TYPES.has(type) || typeof value !== 'string' || !value.trim()) return '';
-  const text = value.trim();
-  const moment = readMoment(type, text);
-  if (!moment) return '';
-  const hasTime = type !== 'date' && !DAY.test(text);
-  if (type === 'time') return (0,_core_js_format_date_js__WEBPACK_IMPORTED_MODULE_0__.formatDate)(moment, {
-    date: null,
-    time: 'short',
-    node
-  });
-  return (0,_core_js_format_date_js__WEBPACK_IMPORTED_MODULE_0__.formatDate)(moment, {
-    date: 'medium',
-    time: hasTime ? 'short' : null,
-    node
-  });
-}
 __webpack_async_result__();
 } catch(e) { __webpack_async_result__(e); } });
 
@@ -13736,7 +17290,7 @@ function renderListToolbar(context) {
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
         <div class="sf-table-toolbar sf-table-toolbar--list flex flex-col gap-1/3 flex-none"
              data-sf-filter-tags="${active.length ? '1' : '0'}">
-            <div class="flex items-cross-center gap-1/3 min-w-0">
+            <div class="sf-table-list-search flex items-cross-center gap-1 min-w-0">
                 <sf-input
                         size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                         root-class="sf-search-input flex-1 min-w-0"
@@ -13744,27 +17298,37 @@ function renderListToolbar(context) {
                         value="${value}"
                         placeholder=${context.searchPlaceholder}
                         name="sf_table_search"
+                        input-type="search"
+                        icon-start="search"
+                        clearable
                         aria-label=${context.searchPlaceholder}
                         @input=${e => context.component.searchChange({
     value: getEventInputValue(e, value)
   })}
                         @keydown=${e => context.component.handleSearchKeyDown(e)}
                         @keyup=${e => context.component.handleSearchKeyUp(e)}
-                        hint-icon="search"
                 ></sf-input>
+                <!-- C144: filter and sort are one group of neighbours (H5,
+                     --sf-space-1/3); the field before them and «Создать»
+                     after them stand a group apart (H6, --sf-space-1). -->
+                ${context.component.offersFilter(active.length) || context.component.getColumns().some(column => column?.sortable && !column.system) ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<div class="sf-table-list-view-buttons flex items-cross-center gap-1/3">
                 ${context.component.offersFilter(active.length) ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-table-list-filter">
+                    <!-- The count of active conditions is the icon's own badge
+                         (sf-button-icon badge-count, simai/ui-source#12): it
+                         joins the button's name in the page language. -->
                     <sf-button-icon
                             size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                             appearance=${active.length ? 'default' : 'outline'}
                             scheme="primary"
                             icon="filter_list"
-                            aria-label=${active.length ? context.component.text('listFilterLabel').replace('{count}', String(active.length)) : context.filterText}
+                            badge-count=${active.length || lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                            badge-label=${active.length ? context.component.text('filterBadgeLabel') : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                            aria-label=${context.filterText}
                             @click=${e => context.component.openContextMenu(e, {
     type: 'bottom',
     menu: 'filter-settings'
   })}
                     ></sf-button-icon>
-                    ${active.length ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-table-list-filter-count" aria-hidden="true">${active.length}</span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                 </span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                 ${context.component.getColumns().some(column => column?.sortable && !column.system) ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
                     <sf-button-icon
@@ -13779,6 +17343,7 @@ function renderListToolbar(context) {
     menu: 'list-sort'
   })}
                     ></sf-button-icon>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                </div>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                 ${context.actions && context.creatable ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
                     <sf-button-icon
                             size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
@@ -13793,14 +17358,21 @@ function renderListToolbar(context) {
                     ></sf-button-icon>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
             </div>
             ${active.length ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+                <!-- Chips are neighbours 4 apart (C105 H5, --sf-space-1/4); the
+                     «Сбросить» after them is a button, 8 from the chips. -->
                 <div class="sf-table-list-tags flex items-cross-center gap-1/3">
-                    ${active.map(([k, tag]) => {
+                    <div class="sf-table-chips flex items-cross-center gap-1/4">
+                    ${active.map(([k, written]) => {
+    // A date chip says its condition (C293 DF-4).
+    const tag = { ...written,
+      label: context.component.filterChipText(k, written)
+    };
     const filterValue = filterValues?.[k] || {};
     const count = Array.isArray(filterValue.values) ? filterValue.values.length : tag.count || '';
     return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
-                            <sf-tag type="default" size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing} text='${tag.label}' interactive closable :key=${k}
-                                    root-class="active" count='${count}'
-                                    @close="${() => context.component.removeFilterTag(k)}"
+                            <sf-tag kind="default" size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing} text='${tag.label}' interactive closable :key=${k}
+                                    active count='${count}'
+                                    @sf-tag-close="${() => context.component.removeFilterTag(k)}"
                                     @click=${e => context.component.openContextMenu(e, {
       type: 'bottom',
       menu: 'tag-settings',
@@ -13809,6 +17381,7 @@ function renderListToolbar(context) {
     })}
                             ></sf-tag>`;
   })}
+                    </div>
                     <sf-button size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing} appearance="ghost" scheme="on-surface" text=${context.clearText}
                                @click="${() => context.component.removeFilterTag()}"></sf-button>
                 </div>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
@@ -13853,7 +17426,7 @@ function renderToolbar(context) {
                             size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                             appearance="default"
                             scheme="primary"
-                            aria-label="Сохранить шаблон фильтра"
+                            aria-label=${context.component.text('saveFilterTemplateLabel')}
                             ?disabled=${!activeFilterTags.length}
                             segment="end"
                             icon="bookmark_add"
@@ -13866,21 +17439,29 @@ function renderToolbar(context) {
   }}
                     ></sf-button-icon>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                 </div>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
-                ${activeFilterTags.map(([k, tag]) => {
+                ${activeFilterTags.length ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+                <!-- Chips are neighbours 4 apart (C105 H5, --sf-space-1/4); the
+                     buttons around them keep the toolbar's 8. -->
+                <div class="sf-table-chips flex items-cross-center gap-1/4 flex-wrap min-w-0">
+                ${activeFilterTags.map(([k, written]) => {
+    // A date chip says its condition (C293 DF-4).
+    const tag = { ...written,
+      label: context.component.filterChipText(k, written)
+    };
     const filterValue = filterValues?.[k] || {};
     const hasFilteredValues = Object.prototype.hasOwnProperty.call(filterValues || {}, k);
     const count = Array.isArray(filterValue.values) ? filterValue.values.length : tag.count || '';
     return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
                         <div class="sf-table-tags">
                             <sf-tag
-                                    type="default"
+                                    kind="default"
                                     size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                                     text='${tag.label}'
                                     interactive
                                     closable
                                     :key=${k}
-                                    root-class="${hasFilteredValues ? 'active' : ''}"
-                                    @close="${() => {
+                                    ?active=${hasFilteredValues}
+                                    @sf-tag-close="${() => {
       context.component.removeFilterTag(k);
     }}"
                                     @click=${e => {
@@ -13895,13 +17476,14 @@ function renderToolbar(context) {
                             ></sf-tag>
                         </div>`;
   })}
+                </div>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                 ${activeFilterTags.length || hasUnsavedFilterDataChanges ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
                     ${hasUnsavedFilterDataChanges ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
                         <sf-button
                                 size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                                 appearance="default"
                                 scheme="primary"
-                                text="Сохранить"
+                                text=${context.component.text('saveText')}
                                 @click="${() => context.component.saveCurrentFilterTemplateData()}"
                         ></sf-button>
                     ` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
@@ -13925,6 +17507,10 @@ function renderToolbar(context) {
                         value="${value}"
                         placeholder=${context.searchPlaceholder}
                         name="sf_table_search"
+                        input-type="search"
+                        icon-start="search"
+                        clearable
+                        aria-label=${context.searchPlaceholder}
                         @input=${e => {
     context.component.searchChange({
       value: getEventInputValue(e, value)
@@ -13936,27 +17522,7 @@ function renderToolbar(context) {
                         @keyup=${e => {
     context.component.handleSearchKeyUp(e);
   }}
-                        hint-icon="search"
-                >
-          <span slot="right">
-                <sf-button-icon
-                        size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
-                        appearance="ghost"
-                        scheme="on-surface"
-                        icon=${value.length ? 'close' : 'search'}
-                        aria-label=${value.length ? 'Очистить поиск' : 'Поиск'}
-                        @click=${e => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!value.length) return false;
-    context.component.updateSearchState({
-      value: ''
-    });
-  }}
-                ></sf-button-icon>
-
-          </span>
-                </sf-input>
+                ></sf-input>
 
                 ${context.layoutSwitch ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
                     <sf-segmented class="sf-table-layout-switch" size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
@@ -13982,10 +17548,10 @@ function renderToolbar(context) {
                                     <sf-button-icon
                                             size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                                             appearance="outline"
-                                            scheme="primary"
+                                            scheme="on-surface"
                                             segment="end"
                                             icon="keyboard_arrow_down"
-                                            aria-label="Дополнительные действия создания"
+                                            aria-label=${context.component.text('createMoreLabel')}
                                             aria-haspopup="menu"
                                             @click=${e => {
     context.component.openContextMenu(e, {
@@ -14006,9 +17572,9 @@ function renderToolbar(context) {
                             <sf-button-icon
                                     size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                                     appearance="outline"
-                                    scheme="primary"
+                                    scheme="on-surface"
                                     icon="more_horiz"
-                                    aria-label="Действия с представлением"
+                                    aria-label=${context.component.text('contextViewActionsLabel')}
                                     aria-haspopup="menu"
                                     @click=${e => {
     context.component.openContextMenu(e, {
@@ -14030,8 +17596,12 @@ function renderToolbar(context) {
 
 
 function renderEmptyState(context, dataState) {
-  const component = context.component;
-  if (component?.hasSlotContent?.('empty')) return component.getSlotContent('empty');
+  const component = context.component; // The page's own state (C296): slot="empty" for no records, slot="error"
+  // for a failed load; an error without one falls back to the empty slot
+  // as before, then to the Framework's sf-empty-state.
+
+  const slot = dataState === 'error' && component?.hasSlotContent?.('error') ? 'error' : 'empty';
+  if (component?.hasSlotContent?.(slot)) return component.getSlotContent(slot);
   const brick = component.emptyBrick(dataState);
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<sf-empty-state kind=${brick.kind} size=${brick.size} heading-level=${brick.headingLevel}
                                 icon=${brick.icon || lit__WEBPACK_IMPORTED_MODULE_0__.nothing} heading=${brick.title || lit__WEBPACK_IMPORTED_MODULE_0__.nothing} text=${brick.text || lit__WEBPACK_IMPORTED_MODULE_0__.nothing} live=${brick.live || lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
@@ -14123,8 +17693,9 @@ function renderHead(context) {
                                          still a button with its name and its
                                          arrows. It is no Tab stop of its own
                                          (owner decision C146 (8), the resizer
-                                         study RS-10): the table is one stop,
-                                         and a width is set by the pointer. -->
+                                         study RS-10): the table is one stop;
+                                         the keyboard reaches it from the head's
+                                         menu, «Изменить ширину» (C158 (5)). -->
                                     <button type="button"
                                             tabindex="-1"
                                             role="separator"
@@ -14132,8 +17703,8 @@ function renderHead(context) {
                                             class="sf-table-column-resizer"
                                             id=${context.component.getColumnResizerId(column.key)}
                                             data-sf-column-resizer=${column.key}
-                                            aria-label="Изменить ширину столбца: ${column.label || column.key}"
-                                            aria-keyshortcuts="ArrowLeft ArrowRight Home End Enter"
+                                            aria-label="${context.component.text('columnResizeLabel')}: ${column.label || column.key}"
+                                            aria-keyshortcuts="ArrowLeft ArrowRight Home End Enter Escape"
                                     ></button>
                                 </div>`}
                             </th>`);
@@ -14218,9 +17789,10 @@ function columnStyle(component, column) {
 }
 
 function renderColgroup(context) {
-  const columns = context.component?.getColumns?.() || [];
+  const columns = context.component?.getColumns?.() || []; // A keyed table on a phone (C259) lays its few cells out by their
+  // content: the name takes what the others leave (default.css).
 
-  if (!columns.length) {
+  if (!columns.length || context.keyedNarrow) {
     return lit__WEBPACK_IMPORTED_MODULE_0__.nothing;
   }
 
@@ -14326,17 +17898,25 @@ function renderLinkCell(value) {
 
   if (!cell) {
     return lit__WEBPACK_IMPORTED_MODULE_0__.nothing;
-  }
+  } // The link is the SIMAI Framework's sf-reference-link on the cell's text
+  // line, as the field renderers draw a reference in a cell (VF-10); the
+  // supporting line under it stays the list's own text. Without a safe href
+  // the words are plain text: a link that leads nowhere is not drawn as one.
 
-  const content = (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
-        <span class="sf-table-link-cell-content flex flex-col min-w-0">
-            <span class="sf-table-link-cell-text">${cell.text}</span>
+
+  return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+        <span class="sf-table-link-cell flex flex-col min-w-0">
+            ${cell.href ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<sf-reference-link
+                    line="1/2"
+                    appearance="plain"
+                    icon=""
+                    label=${cell.text}
+                    href=${cell.href}></sf-reference-link>` : (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-table-link-cell-text">${cell.text}</span>`}
             ${cell.subtext === null ? lit__WEBPACK_IMPORTED_MODULE_0__.nothing : (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
                 <span class="sf-table-link-cell-subtext sf-text-1/2">${cell.subtext}</span>
             `}
         </span>
     `;
-  return cell.href ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<a class="sf-table-link-cell" href=${cell.href}>${content}</a>` : (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-table-link-cell">${content}</span>`;
 } // A row's markup, composed per arrangement of its cells (standard 1.3.8
 // §18.4, simai/ui-pro#2). A row of plain cells is one Lit template with no
 // part per cell: its strings are made once for each sequence of cell kinds
@@ -14395,7 +17975,7 @@ function rowStrings(kinds) {
   const signature = kinds.join("|");
   const known = ROW_STRINGS.get(signature);
   if (known) return known;
-  const pieces = ['<tr data-selected=', ROW_HOLE, ' draggable=', ROW_HOLE, ' aria-level=', ROW_HOLE, ' aria-expanded=', ROW_HOLE, ' aria-setsize=', ROW_HOLE, ' aria-posinset=', ROW_HOLE, ' aria-busy=', ROW_HOLE, ' aria-rowindex=', ROW_HOLE, ' data-row-id=', ROW_HOLE, ' data-current=', ROW_HOLE, ' aria-current=', ROW_HOLE, ' tabindex="-1" @mousedown=', ROW_HOLE, ' @click=', ROW_HOLE, ' @dblclick=', ROW_HOLE, ' @keydown=', ROW_HOLE, '>'];
+  const pieces = ['<tr data-selected=', ROW_HOLE, ' aria-selected=', ROW_HOLE, ' draggable=', ROW_HOLE, ' aria-level=', ROW_HOLE, ' aria-expanded=', ROW_HOLE, ' aria-setsize=', ROW_HOLE, ' aria-posinset=', ROW_HOLE, ' aria-busy=', ROW_HOLE, ' aria-rowindex=', ROW_HOLE, ' data-row-id=', ROW_HOLE, ' data-current=', ROW_HOLE, ' aria-current=', ROW_HOLE, ' tabindex="-1" @mousedown=', ROW_HOLE, ' @click=', ROW_HOLE, ' @dblclick=', ROW_HOLE, ' @keydown=', ROW_HOLE, '>'];
 
   for (const kind of kinds) {
     pieces.push('<td data-key=', ROW_HOLE, ' data-item=', ROW_HOLE, ' data-sf-cell=', ROW_HOLE, ' data-sf-pinned=', ROW_HOLE, ' style=', ROW_HOLE); // The actions cell's buttons are bound on the cell (actionsCell).
@@ -14412,6 +17992,9 @@ function rowStrings(kinds) {
       pieces.push('<button type="button" class=', ROW_HOLE, ' aria-label=', ROW_HOLE, ' value="menu" data-sf-row-menu @click=', ROW_HOLE, '><i class="sf-icon sf-icon--weight-regular pointer-event-none" aria-hidden="true">menu</i></button>');
     } else if (kind === 'text') {
       pieces.push('<span class=', ROW_HOLE, ' title=', ROW_HOLE, ' .textContent=', ROW_HOLE, '></span>');
+    } else if (kind === 'time') {
+      // A date (C40, PD-9): a time element with the record's own day.
+      pieces.push('<time class=', ROW_HOLE, ' datetime=', ROW_HOLE, ' .textContent=', ROW_HOLE, '></time>');
     } else if (kind === 'node') {
       pieces.push(ROW_HOLE);
     }
@@ -14557,10 +18140,13 @@ function renderTableTemplate(context) {
       column
     }) => column);
 
-    const filled = value => !(value === null || value === undefined || value === '' || Array.isArray(value) && !value.length);
+    const filled = value => !(value === null || value === undefined || value === '' || Array.isArray(value) && !value.length); // A record list (C259, VT-2): «≡» right after the box, where the
+    // table has it; the quick actions of a resource list (C31) keep the end.
 
-    return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
-            <ul class="sf-table-list" role="list" aria-label=${context.ariaLabel || lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+
+    const record = !context.quickActionIds?.length;
+    return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`${renderListHead(select)}
+            <ul class="sf-table-list" role="list" id=${`${context.rowAreaId}-list`} aria-label=${context.ariaLabel || lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                 aria-busy=${dataState === 'loading' ? 'true' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}>
                 ${rows.map((row, rowIndex) => row.__tree?.more ? (0,lit_directives_keyed_js__WEBPACK_IMPORTED_MODULE_2__.keyed)(`item:${row.id}`, (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
                         <li class="sf-table-list-more" style=${`--sf-table-tree--level: ${row.__tree.level}`}>
@@ -14568,6 +18154,7 @@ function renderTableTemplate(context) {
                                        @click=${() => context.component.requestTreeMore(row)}></sf-button>
                         </li>`) : (0,lit_directives_keyed_js__WEBPACK_IMPORTED_MODULE_2__.keyed)(`item:${context.component.rowsGeneration?.() ?? 0}:${row.id ?? rowIndex}`, (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
                         <li class="sf-table-list-item"
+                            data-sf-record=${record && menu ? '' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                             data-row-id=${context.component.getRowKey(row, rowIndex)}
                             data-selected=${row.select?.component?.props?.checked === true ? '' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                             data-current=${context.component.isCursorRow(row, rowIndex) ? '' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
@@ -14580,6 +18167,7 @@ function renderTableTemplate(context) {
                             @dblclick=${event => context.component.handleRowOpen(event, row)}
                             @keydown=${event => context.component.handleRowKeydown(event, row)}>
                             ${select ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-table-list-select">${renderCellValue(row, select)}</span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                            ${record && menu ? renderListMenu(row) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                             <div class="sf-table-list-main">
                                 <div class="sf-table-list-title">${title ? row.__tree || row.path ? renderTreeCell(context, row, listTitle(row)) : listTitle(row) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}</div>
                                 ${fields.some(column => filled(row[column.key])) ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
@@ -14591,9 +18179,46 @@ function renderTableTemplate(context) {
                                             </span>`)}
                                     </div>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                             </div>
-                            ${context.quickActionIds?.length ? renderListActions(row, menu) : menu ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-table-list-menu">${renderCellValue(row, menu)}</span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                            ${context.quickActionIds?.length ? renderListActions(row, menu) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                         </li>`))}
             </ul>`;
+  } // The page's box over a phone list (VT-2, BA-6): the head's box, with its
+  // words, so a whole page is marked in one press as in the table.
+
+
+  function renderListHead(select) {
+    if (!select) return lit__WEBPACK_IMPORTED_MODULE_0__.nothing;
+    return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<div class="sf-table-list-head" data-sf-list-all>
+            ${renderHeadLabel(context, select)}
+            <span class="sf-table-list-head-text" aria-hidden="true">${context.component.text('listSelectPage')}</span>
+        </div>`;
+  } // A record row's «≡» (C259 (3), C146 (5)): the row's one menu, every
+  // action of the row; the same menu the right button and a long press open.
+
+
+  function renderListMenu(row) {
+    const component = context.component;
+    if (!component.listRowActions(row).rest.length && !component.listRowActions(row).quick.length) return lit__WEBPACK_IMPORTED_MODULE_0__.nothing;
+    const size = context.size === '1/2' ? '1/2' : '1';
+    const name = component.getRowNameText(row);
+    return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-table-list-menu"><button type="button"
+                class=${`sf-icon-button sf-icon-button--size-${size} sf-icon-button--icon sf-icon-button--ghost sf-icon-button--on-surface flex items-cross-center`}
+                aria-label=${name ? `${component.text('contextRowActionsLabel')}: ${name}` : component.text('contextRowActionsLabel')}
+                aria-haspopup="menu" data-sf-row-menu
+                @click=${event => {
+      event.stopPropagation();
+      component.openRowMenu(event, row);
+    }}><i class="sf-icon sf-icon--weight-regular pointer-event-none" aria-hidden="true">menu</i></button></span>`;
+  } // The amount of a record row (C259): the first money (else number)
+  // column's value, as its cell shows it.
+
+
+  function listAmountColumn(columns) {
+    const data = columns.filter(column => column?.key && !SYSTEM_COLUMNS.has(column.key) && !column.system && column.visible !== false);
+
+    const type = column => column.propertyType ?? column.property_type ?? column.type;
+
+    return data.find(column => type(column) === 'money') ?? data.find(column => context.component.isNumberColumn?.(column) && column.list !== 'hidden') ?? null;
   } // ─── the list of resources (owner decision C31) ─────────────────────────
   // A row is the status dot, the title over a supporting line («domain ·
   // kind»), the facts as badges without labels in columns of one width,
@@ -14611,15 +18236,19 @@ function renderTableTemplate(context) {
     const title = roles.title ?? data.find(column => column.role === 'title' && column.list !== 'hidden') ?? data.find(column => !column.list) ?? data[0];
     const supporting = roles.supporting.filter(visible);
     const facts = roles.facts.filter(visible);
-    const opensRow = component.getAttribute('row-open') === 'row';
+    const opensRow = component.getAttribute('row-open') === 'row'; // A record list (C259, VT-2): no quick actions -- «≡» after the box,
+    // the title over its second line, then every fact and the amount.
+
+    const record = !context.quickActionIds?.length;
+    const amount = record ? listAmountColumn(columns) : null;
 
     const titleOf = row => {
       const text = component.listText(title, row[title?.key]);
       return title?.role === 'title' || roles.title || opensRow ? renderTitleLink(context, row, text) : text;
     };
 
-    return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
-            <ul class="sf-table-list sf-table-list--resource" role="list" aria-label=${context.ariaLabel || lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+    return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`${renderListHead(select)}
+            <ul class="sf-table-list sf-table-list--resource" role="list" id=${`${context.rowAreaId}-list`} aria-label=${context.ariaLabel || lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                 aria-busy=${dataState === 'loading' ? 'true' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                 style=${`--sf-table-resource--actions: ${Math.max(1, (context.quickActionIds?.length ?? 0) + (menu ? 1 : 0))}`}>
                 ${rows.map((row, rowIndex) => {
@@ -14639,6 +18268,7 @@ function renderTableTemplate(context) {
       const lead = state?.dot === 'neutral' ? state.word : '';
       return (0,lit_directives_keyed_js__WEBPACK_IMPORTED_MODULE_2__.keyed)(`item:${component.rowsGeneration?.() ?? 0}:${row.id ?? rowIndex}`, (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
                         <li class="sf-table-list-item sf-table-resource"
+                            data-sf-record=${record && menu ? '' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                             data-row-id=${component.getRowKey(row, rowIndex)}
                             data-selected=${row.select?.component?.props?.checked === true ? '' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                             data-current=${component.isCursorRow(row, rowIndex) ? '' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
@@ -14653,6 +18283,7 @@ function renderTableTemplate(context) {
                             @dblclick=${event => component.handleRowOpen(event, row)}
                             @keydown=${event => component.handleRowKeydown(event, row)}>
                             ${select ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-table-list-select">${renderCellValue(row, select)}</span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                            ${record && menu ? renderListMenu(row) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                             ${status ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-table-resource-status">${state ? tooltip((0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
                                 <span class="sf-dot sf-dot--${state.dot}" data-tooltip="" data-status=${state.value}>
                                     <span class="sf-dot-item"></span>
@@ -14662,12 +18293,21 @@ function renderTableTemplate(context) {
                                 <span class="sf-table-resource-title">${title ? row.__tree || row.path ? renderTreeCell(context, row, titleOf(row)) : titleOf(row) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}</span>
                                 ${lead || words.length ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-table-resource-supporting">${lead ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-table-resource-lead">${lead}</span>${words.length ? ' · ' : ''}` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}${words.join(' · ')}</span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                             </span>
+                            ${record && menu ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-table-list-end">
+                                ${shown.filter(({
+        fact
+      }) => fact).map(({
+        column,
+        fact
+      }) => (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-table-resource-fact">${renderFact(column, fact)}</span>`)}
+                                ${amount && row[amount.key] !== undefined && row[amount.key] !== null && row[amount.key] !== '' ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-table-list-amount"><span class="sf-table-visually-hidden">${amount.label ?? amount.key}: </span>${renderCellValue(row, amount)}</span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                            </span>` : (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
                             ${facts.length ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-table-resource-facts">${shown.map(({
         column,
         fact
       }) => (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
                                 <span class="sf-table-resource-fact" data-worst=${fact && worst?.column === column && fact.level > 0 ? '' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}>${fact ? renderFact(column, fact) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}</span>`)}</span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
-                            ${renderListActions(row, menu)}
+                            ${renderListActions(row, menu)}`}
                         </li>`);
     })}
             </ul>`;
@@ -14683,7 +18323,7 @@ function renderTableTemplate(context) {
   function renderFactBadge(fact) {
     const size = context.size === '1/2' ? '1/3' : '1/2';
     const badge = (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<sf-badge size=${size} appearance="tonal"
-                scheme=${fact.status ? lit__WEBPACK_IMPORTED_MODULE_0__.nothing : 'neutral'} status=${fact.status || lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                scheme=${fact.status ? lit__WEBPACK_IMPORTED_MODULE_0__.nothing : fact.scheme || 'neutral'} status=${fact.status || lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                 text=${fact.text} data-tooltip=${fact.tip ? '' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}></sf-badge>`;
     return fact.tip ? tooltip(badge, fact.tip) : badge;
   } // The Framework's tooltip: the trigger and its surface in one anchor
@@ -14693,9 +18333,8 @@ function renderTableTemplate(context) {
   function tooltip(trigger, text) {
     return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-tooltip-anchor">${trigger}<span class="sf-tooltip sf-tooltip--dark sf-tooltip--size-1/3 sf-tooltip--arrow-bottom-center" hidden><span class="sf-tooltip-content"><span class="sf-tooltip-text">${text}</span></span></span></span>`;
   } // A list row's actions (C31): up to three quick ones as icon buttons,
-  // always shown, then «more» (more_horiz) with the rest -- and, on a
-  // narrow list, the quick ones too: the sheet folds them away, and the
-  // menu asks it what is shown.
+  // always shown (folded away on a narrow list), then «more» (more_horiz),
+  // whose menu holds every action of the row (C259 (3)).
 
 
   function renderListActions(row, menu) {
@@ -14723,13 +18362,12 @@ function renderTableTemplate(context) {
                         @click=${press(action)}><i class="sf-icon" aria-hidden="true">${iconOf(action)}</i></button>`, action.name ?? action.id) : (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<sf-button size=${size} appearance="ghost" scheme="on-surface-variant" data-quick-action=${action.id}
                         text=${action.name ?? action.id} @click=${press(action)}></sf-button>`)}</span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
             <button type="button" class=${`${button} sf-icon-button--size-${size} sf-table-resource-more`}
-                    aria-label=${component.text('moreActionsLabel')} aria-haspopup="menu" data-sf-row-menu
+                    aria-label=${component.getRowNameText(row) ? `${component.text('moreActionsLabel')}: ${component.getRowNameText(row)}` : component.text('moreActionsLabel')} aria-haspopup="menu" data-sf-row-menu
                     @click=${event => {
-      event.stopPropagation();
-      const item = event.currentTarget.closest('.sf-table-resource-actions');
-      const box = item?.querySelector('.sf-table-resource-quick');
-      const folded = Boolean(box) && getComputedStyle(box).display === 'none';
-      component.openRowMenu(event, row, folded ? [...quick, ...rest] : rest);
+      event.stopPropagation(); // Every action of the row, the quick ones too (C259 (3),
+      // C164 (2)): the list the right button opens.
+
+      component.openRowMenu(event, row);
     }}><i class="sf-icon" aria-hidden="true">more_horiz</i></button>
         </span>`;
   } // The title opens its record with one click (owner, 2026-10-14): the
@@ -14740,10 +18378,27 @@ function renderTableTemplate(context) {
 
   function renderTitleLink(context, row, value) {
     if (!context.component.canOpenRow?.(row) || row?.id == null) return value;
-    return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<a class="sf-table-title-link" href=${row.href ?? row.url ?? '#'}
+    const address = row.href ?? row.url ?? ''; // A record without an address opens through the view and is a button:
+    // a link to «#» opened the same page in a new tab (VT-9).
+
+    if (!address) {
+      return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<button type="button" class="sf-table-title-link"
+                @click=${event => {
+        event.preventDefault();
+        event.stopPropagation();
+        if (event.detail > 1) return;
+        context.component.requestOpen?.(row, false);
+        context.component.requestActionIntent('view', [row.id]);
+      }}>${value}</button>`;
+    }
+
+    return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<a class="sf-table-title-link" href=${address}
                 @click=${event => {
       if (event.button > 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
-        if (row.href ?? row.url) return;
+        if (row.href ?? row.url) {
+          context.component.requestOpen?.(row, true);
+          return;
+        }
       }
 
       event.preventDefault();
@@ -14751,6 +18406,7 @@ function renderTableTemplate(context) {
       // opened once, not twice.
 
       if (event.detail > 1) return;
+      context.component.requestOpen?.(row, false);
       context.component.requestActionIntent('view', [row.id]);
     }}>${value}</a>`;
   } // repeat, not keyed: a sort moves the rows it already drew. keyed at each
@@ -14784,16 +18440,28 @@ function renderTableTemplate(context) {
     const offset = slice ? slice.first : 0;
     const span = String(Math.max(columns.length, 1));
     const draggable = component.hasAttribute('drag-rows') || component.getAttribute('row-reorder') === 'true';
+    const selectable = columns.some(column => column?.key === 'select');
     const sticky = columns.map((column, index) => component.getStickyCellStyle(columns, index) || lit__WEBPACK_IMPORTED_MODULE_0__.nothing);
     const cellKinds = columns.map(column => cellKind(component, column, columns));
-    const pinned = columns.map(column => component.isPinnedColumn(column) ? '' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing); // The stripes are nth-child: a spacer of no height keeps the parity of
+    const pinned = columns.map(column => component.isPinnedColumn(column) ? '' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing);
+    const lined = columns.map(column => Boolean(component.keyLineOf?.(column))); // The stripes are nth-child: a spacer of no height keeps the parity of
     // the drawn rows the parity they have in the whole list.
 
     const spacer = (height, key) => (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<tr class="sf-table-window-spacer" aria-hidden="true" data-sf-window-spacer=${key}><td colspan=${span} style=${`block-size: ${Math.max(0, Math.round(height))}px`}></td></tr>`;
 
     const fullCell = (row, column, kind) => {
-      const value = column.key === titleColumn ? renderTitleLink(context, row, renderCellValue(row, column)) : renderCellValue(row, column); // The name's two lines (C146 (7)) are its cell's text, by the
+      const value = column.key === titleColumn ? renderTitleLink(context, row, renderCellValue(row, column)) : renderCellValue(row, column); // A key cell's second line on a phone (C259): the value of the
+      // column the host names in key_line, quiet, one line.
+
+      const line = component.keyLineOf?.(column);
+
+      if (line) {
+        const raw = row?.[line];
+        const text = String((raw !== null && typeof raw === 'object' ? raw.text ?? raw.label ?? raw.value : raw) ?? '');
+        return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-table-key-name">${value}</span>${text ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-table-key-line">${text}</span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}`;
+      } // The name's two lines (C146 (7)) are its cell's text, by the
       // cell's data-sf-cell="title": no element around it.
+
 
       if (column.key === treeColumn) return renderTreeCell(context, row, value);
       return value;
@@ -14804,11 +18472,14 @@ function renderTableTemplate(context) {
       const current = component.isCurrentRow(row, index);
       const cursor = component.isCursorRow(row, index);
       const kinds = [];
-      const values = [row.select?.component?.props?.checked === true ? '' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing, draggable && !row.__tree?.more ? 'true' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing, row.__tree ? String(row.__tree.level + 1) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing, row.__tree?.hasChildren ? String(row.__tree.expanded === true) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing, row.__tree ? String(row.__tree.setsize) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing, row.__tree ? String(row.__tree.posinset) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing, row.__tree?.loading ? 'true' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing, slice ? String(index + 2) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing, component.getRowKey(row, index), cursor ? '' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing, current ? 'true' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing, component.rowPointerDown, event => component.handleRowClick(event, row, index), event => component.handleRowOpen(event, row), event => component.handleRowKeydown(event, row)];
+      const marked = row.select?.component?.props?.checked === true;
+      const values = [row.select?.component?.props?.checked === true ? '' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing, // The grid's selection, read by a screen reader (VT-4): every
+      // row of a selectable grid says whether it is marked.
+      selectable ? String(marked) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing, draggable && !row.__tree?.more ? 'true' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing, row.__tree ? String(row.__tree.level + 1) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing, row.__tree?.hasChildren ? String(row.__tree.expanded === true) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing, row.__tree ? String(row.__tree.setsize) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing, row.__tree ? String(row.__tree.posinset) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing, row.__tree?.loading ? 'true' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing, component.ariaRowIndex?.(index, Boolean(slice)) ?? (slice ? String(index + 2) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing), component.getRowKey(row, index), cursor ? '' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing, current ? 'true' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing, component.rowPointerDown, event => component.handleRowClick(event, row, index), event => component.handleRowOpen(event, row), event => component.handleRowKeydown(event, row)];
       columns.forEach((column, cellIndex) => {
         // The main field of a row that opens is its link, not markup.
         const opens = column.key === titleColumn && component.canOpenRow?.(row) && row?.id != null;
-        const mark = opens ? null : component.rowMarkupCell?.(row, column) ?? null;
+        const mark = opens || lined[cellIndex] ? null : component.rowMarkupCell?.(row, column) ?? null;
         values.push(column.key, `${row.id}_${column.key}`, cellKinds[cellIndex], pinned[cellIndex], sticky[cellIndex]);
 
         if (cellKinds[cellIndex] === 'title' && mark?.kind === 'text') {
@@ -14820,10 +18491,13 @@ function renderTableTemplate(context) {
           values.push(`sf-checkbox sf-checkbox--size-${mark.size} flex content-main-between cursor-pointer`, mark.value, mark.checked, mark.label, mark.change, mark.checked ? 'check' : '');
         } else if (mark?.kind === 'menu') {
           kinds.push('menu');
-          values.push(`sf-icon-button sf-icon-button--size-${mark.size} sf-icon-button--icon sf-icon-button--link flex items-cross-center sf-icon-button--on-surface`, mark.label, mark.click);
+          values.push(`sf-icon-button sf-icon-button--size-${mark.size} sf-icon-button--icon sf-icon-button--ghost flex items-cross-center sf-icon-button--on-surface`, mark.label, mark.click);
         } else if (mark?.kind === 'text') {
           kinds.push('text');
           values.push(mark.className, mark.title ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing, mark.text);
+        } else if (mark?.kind === 'time') {
+          kinds.push('time');
+          values.push(mark.className, mark.datetime, mark.text);
         } else if (mark?.kind === 'empty') {
           kinds.push('empty');
         } else if (column.key === 'actions') {
@@ -14969,10 +18643,10 @@ function renderTableTemplate(context) {
           type: "button-icon",
           props: {
             size: "1",
-            appearance: "link",
+            appearance: "ghost",
             scheme: "on-surface",
             icon: "menu",
-            ariaLabel: "Меню",
+            ariaLabel: context.component.text('menuLabel'),
             value: "menu"
           }
         }, context.component);
@@ -15002,7 +18676,7 @@ function renderTableTemplate(context) {
     const carriesHostComponent = typeof value === "object" && !Array.isArray(value) && Boolean(value.component?.type);
 
     if (!carriesHostComponent) {
-      const typed = context.component?.getTypedCellValue?.(column, value);
+      const typed = context.component?.cellValue?.(column, value);
 
       if (typed !== null && typeof typed !== "undefined") {
         // Badges and tags from the renderer set wrap onto the next line,
@@ -15026,6 +18700,8 @@ function renderTableTemplate(context) {
           return renderCellValues(typed, context.component);
         }
 
+        const datetime = typeof typed === "string" ? context.component?.cellDateTime?.(column, value) : "";
+        if (datetime) return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<time datetime=${datetime}>${typed}</time>`;
         return renderCellItem(typed, context.component);
       }
     }
@@ -15075,6 +18751,29 @@ function renderTableTemplate(context) {
 
     const text = String(value);
     return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-table-cell-text" title=${text.length > 80 ? text : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}>${text}</span>`;
+  } // The totals at the foot (owner decision C296, q-totals B): a row for the
+  // page and one for everything under the filter, each when the host gives
+  // it; the numbers are the host's (totals), drawn as their cells are, in
+  // the columns marked `total`; the words stand in the first data column.
+
+
+  function renderFoot() {
+    const component = context.component;
+    const totals = component.totals;
+    if (!totals || resolvedDataState(context) !== 'populated') return lit__WEBPACK_IMPORTED_MODULE_0__.nothing;
+    const columns = component.getColumns?.() || [];
+    const sides = [['page', 'totalsPage'], ['all', 'totalsAll']].filter(([side]) => totals[side]);
+    const marked = columns.filter(column => column?.total === true);
+    if (!sides.length || !marked.length) return lit__WEBPACK_IMPORTED_MODULE_0__.nothing;
+    const labelAt = columns.findIndex(column => column?.key && !SYSTEM_COLUMNS.has(column.key) && !column.system && column.total !== true);
+    return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<tfoot class="sf-table-totals">${sides.map(([side, word]) => (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<tr data-sf-totals=${side}>${columns.map((column, index) => {
+      const sticky = component.getStickyCellStyle(columns, index) || lit__WEBPACK_IMPORTED_MODULE_0__.nothing;
+      if (index === labelAt) return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<th scope="row" data-key=${column.key} style=${sticky}>${component.text(word)}</th>`;
+      const value = column.total === true ? totals[side]?.[column.key] : undefined;
+      if (value === undefined || value === null || value === '') return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<td data-key=${column.key} style=${sticky}></td>`;
+      const typed = component.cellValue?.(column, value) ?? String(value);
+      return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<td data-key=${column.key} data-sf-cell=${cellKind(component, column, columns)} style=${sticky}>${typeof typed === 'string' || typeof typed === 'number' ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-table-cell-bare">${typed}</span>` : renderCellItem(typed, component)}</td>`;
+    })}</tr>`)}</tfoot>`;
   } // The name is the table's (or the list's) alone: a named section is a
   // region, and the data view around the table names its own region by the
   // list's heading, so a second one of the same name only repeats it to a
@@ -15110,18 +18809,21 @@ function renderTableTemplate(context) {
                     ${context.list ? renderList() : (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
                     <table
                             ${(0,lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_4__.ref)(context.component.refs.table)}
-                            class="table border-separate border-spacing-0 min-w-full ${context.component?.contentSized ? 'sf-table-content-sized' : 'w-max'} table-fixed transition"
+                            id=${context.rowAreaId}
+                            class="table border-separate border-spacing-0 min-w-full ${context.keyedNarrow ? 'sf-table-keyed' : `${context.component?.contentSized ? 'sf-table-content-sized' : 'w-max'} table-fixed`} transition"
                             role=${context.component.isTree?.() ? 'treegrid' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                             aria-label=${context.ariaLabel || lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
-                            aria-rowcount=${context.component.windowRowCount?.() ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                            aria-rowcount=${context.component.ariaRowCount?.() ?? context.component.windowRowCount?.() ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                     >
                         ${renderColgroup(context)}
                         ${renderHead(context)}
                         ${renderBody(context)}
+                        ${renderFoot()}
                     </table>`}
                 </div>
                 ${context.verticalScroll === 'page' && !context.list ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<div class="sf-table-rail" aria-hidden="true" hidden ${(0,lit_directives_ref_js__WEBPACK_IMPORTED_MODULE_4__.ref)(context.component.refs.rail)}>
                             <div class="sf-table-rail-track"></div></div>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                ${context.component.renderBulkActions('after')}
 
                 ${context.pagin ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
                             <sf-pagination
@@ -16220,6 +19922,28 @@ function richTextFromPlainText(text, {mode = 'value'} = {}) {
 
 /***/ },
 
+/***/ "354525e80715"
+(__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__),
+/* harmony export */   files: () => (/* binding */ files)
+/* harmony export */ });
+/* harmony import */ var _en_json__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("f050502c25f8");
+// Written by scripts/build-language-packs.mjs from src/core/lang/built-in.json
+// (owner decision C282); do not edit. The words this bundle carries: the
+// built-in languages' (en); every other language comes from
+// a language file (core/lang/<code>.js or its parts).
+
+
+const files = { en: { runtime: _en_json__WEBPACK_IMPORTED_MODULE_0__.runtime } };
+
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({ en: _en_json__WEBPACK_IMPORTED_MODULE_0__.runtime });
+
+
+/***/ },
+
 /***/ "4f56033a1eae"
 (__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) {
 
@@ -16249,31 +19973,38 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ },
 
+/***/ "f050502c25f8"
+(module) {
+
+module.exports = /*#__PURE__*/JSON.parse('{"runtime":{"yes":"Yes","no":"No","searchInList":"Find in the list","containsText":"Contains…","fileKind_image":"Images","fileKind_document":"Documents","fileKind_archive":"Archives","fileKind_other":"Other files","operator":"Operator","rangeFrom":"From","rangeTo":"To","condition":"Condition","numberOperator_eq":"Equals","numberOperator_neq":"Not equal","numberOperator_gt":"Greater than","numberOperator_gte":"At least","numberOperator_lt":"Less than","numberOperator_lte":"At most","numberOperator_between":"Between","numberOperator_empty":"Empty","numberOperator_not-empty":"Not empty","filterNumber":"Number","filterAmount":"Amount","filterPercent":"Percent","dateCondition":"Condition","dateByDayIn":"Compared by day, time zone {zone}","dateGroup_date":"Date","dateGroup_period":"Period","dateGroup_filled":"Filled","dateGroup_range":"The record\'s period","dateCondition_eq":"Exact date","dateCondition_between":"Between","dateCondition_lt":"Before","dateCondition_gt":"After","dateCondition_gte":"On or after","dateCondition_lte":"On or before","dateCondition_lastDays":"Last N days","dateCondition_nextDays":"Next N days","dateCondition_empty":"Empty","dateCondition_notEmpty":"Not empty","dateCondition_overlaps":"Runs in","dateCondition_within":"Entirely in","dateCondition_starts":"Starts in","dateCondition_ends":"Ends in","dateCondition_contains":"Runs on the day","datePeriod_today":"Today","datePeriod_yesterday":"Yesterday","datePeriod_thisWeek":"This week","datePeriod_lastWeek":"Last week","datePeriod_last7Days":"Last 7 days","datePeriod_thisMonth":"This month","datePeriod_lastMonth":"Last month","datePeriod_thisYear":"This year","datePeriod_tomorrow":"Tomorrow","datePeriod_nextWeek":"Next week","datePeriod_nextMonth":"Next month","datePeriodIn_today":"today","datePeriodIn_yesterday":"yesterday","datePeriodIn_thisWeek":"this week","datePeriodIn_lastWeek":"last week","datePeriodIn_last7Days":"in the last 7 days","datePeriodIn_thisMonth":"this month","datePeriodIn_lastMonth":"last month","datePeriodIn_thisYear":"this year","datePeriodIn_tomorrow":"tomorrow","datePeriodIn_nextWeek":"next week","datePeriodIn_nextMonth":"next month","dateChip":"{field}: {condition}","dateChip_lt":"before {date}","dateChip_gt":"after {date}","dateChip_gte":"on or after {date}","dateChip_lte":"on or before {date}","dateChip_lastDays":{"one":"in the last day","other":"in the last {n} days"},"dateChip_nextDays":{"one":"in the next day","other":"in the next {n} days"},"dateChip_empty":"empty","dateChip_notEmpty":"not empty","dateChip_overlaps":"runs {when}","dateChip_within":"entirely {when}","dateChip_withinDays":"entirely within {when}","dateChip_starts":"starts {when}","dateChip_ends":"ends {when}","dateChip_contains":"runs on {date}","dateCountLast":"Days, today included","dateCountNext":"Days ahead, today included","dateCountUnit":"days","dateValueDate":"Date","dateValueDay":"Day","dateValuePeriod":"Period","dateWhen":"When","dateOwnDays":"Own dates","loadingOptions":"Loading the options","optionsError":"The options could not be loaded","pickRecord":"Choose a record","pickFromList":"Choose from the list","searchRecords":"Find a record","loadingRecords":"Loading records","recordsError":"The records could not be loaded","retry":"Try again","loadMore":"Load more","removeFile":"Remove","fileRemoved":"File removed","undo":"Undo","passwordSet":"Set","passwordUnset":"Not set","phoneExtension":"ext.","passwordKeep":"Set; type a new one to replace it","maskIncomplete":"Complete the field","notNumber":"Enter a number","precisionMax":{"one":"At most {n} digit after the point","other":"At most {n} digits after the point"},"fractionNone":"A whole amount, no digits after the point","boundBetween":"From {min} to {max}","boundAtLeast":"At least {min}","boundAtMost":"At most {max}","currency":"Currency","chooseCurrency":"Choose a currency","rowCount":{"one":"{n} row","other":"{n} rows"},"type-string":"String","variant-string-phone":"Phone","variant-string-password":"Password","type-text":"Text","type-html":"Formatted text","type-integer":"Integer","variant-integer-stepper":"With steppers","type-number":"Number","variant-number-scale":"Scale 0–100","variant-number-meter":"Share of a limit","variant-number-stepper":"With steppers","type-date":"Date","type-datetime":"Date and time","type-time":"Time","type-boolean":"Yes or no","type-choice":"One of a list","variant-choice-buttons":"As buttons","type-choices":"Several of a list","variant-choices-badges":"As badges","variant-choices-checklist":"As a checklist","variant-choices-select":"As a dropdown","type-user":"User","type-record":"Record","type-relation":"Relation","type-lookup":"From a reference list","type-file":"File","variant-file-image":"Image","variant-file-image-card":"Image card","variant-file-image-list":"Image list","type-color":"Colour","type-include":"Code","type-money":"Money","type-percent":"Percent","type-items":"Rows","type-compound":"Compound","type-ru.requisites":"Requisites (Russia)"}}');
+
+/***/ },
+
 /***/ "f8651e83c6c6"
 (module) {
 
-module.exports = /*#__PURE__*/JSON.parse('{"$comment":"Dated aliases of sf-view-table for the shim (core/js/aliases.js, standard §16 item 20, vocabulary §9). mode: same-detail (the shim sends the new and the old name), detail-adds (the old name gets the larger new detail), split (the old detail from the element\'s adapter, sfAliasAdapters), host-attribute (no shim).","component":"sf-view-table","since":"2026-10-27","remove_after":"2026-12-01","aliases":[{"from":"aria-label","to":null,"kind":"attribute","component":"sf-view-table","since":"2026-10-27","remove_after":"2026-12-01","mode":"host-attribute","section":"§3.1, §4.8","note":"stays a host attribute, read for the accessible name; no shim"},{"from":"sf-table-action-intent","to":"sf-table-apply","kind":"event","component":"sf-view-table","since":"2026-10-27","remove_after":"2026-12-01","mode":"split","cancelable":false,"section":"§8, §16 item 20, vocabulary §9","note":"vocabulary §5 apply {action, scope, ids, revisions}; the old detail {action_id, record_ids} is made by the element\'s adapter (vocabulary §9: sf-table-action-intent → sf-table-apply)"},{"from":"sf-table-create-intent","to":"sf-table-create","kind":"event","component":"sf-view-table","since":"2026-10-27","remove_after":"2026-12-01","mode":"same-detail","cancelable":false,"section":"§8, §16 item 20, vocabulary §9","note":"vocabulary §5 create; the detail {item} is unchanged"},{"from":"sf-port-output","to":"sf-table-select","kind":"event","component":"sf-view-table","since":"2026-10-27","remove_after":"2026-12-01","mode":"split","cancelable":false,"section":"§8, §16 item 20, vocabulary §9","note":"vocabulary §5 select {ids}; the composition port\'s old detail {port: selection, value} is made by the element\'s adapter"},{"from":"sf-table-query-intent","to":"sf-table-query","kind":"event","component":"sf-view-table","since":"2026-10-27","remove_after":"2026-12-01","mode":"same-detail","cancelable":false,"section":"§8, §16 item 20, vocabulary §9","note":"vocabulary §5.1: sf-table-query-intent → sf-table-query; the detail {reason, context, sequence} is unchanged"},{"from":"sf-table-retry","to":"sf-table-refresh","kind":"event","component":"sf-view-table","since":"2026-10-27","remove_after":"2026-12-01","mode":"same-detail","cancelable":false,"section":"§8, §16 item 20, vocabulary §9","note":"vocabulary §5 refresh (table-retry)"},{"from":"sf-table-tree-toggle","to":"sf-table-expand","kind":"event","component":"sf-view-table","since":"2026-10-27","remove_after":"2026-12-01","mode":"same-detail","cancelable":false,"section":"§8, §16 item 20, vocabulary §9","note":"vocabulary §5 expand; the detail {id, expanded} is unchanged"},{"from":"sf-table-tree-more","to":"sf-table-load-more","kind":"event","component":"sf-view-table","since":"2026-10-27","remove_after":"2026-12-01","mode":"detail-adds","cancelable":false,"section":"§8, §16 item 20, vocabulary §9","note":"vocabulary §5 load-more; the new detail adds direction: after to {parent, cursor}"},{"from":"sf-table-rows-reorder","to":"sf-table-move","kind":"event","component":"sf-view-table","since":"2026-10-27","remove_after":"2026-12-01","mode":"same-detail","cancelable":false,"section":"§8, §16 item 20, vocabulary §9","note":"vocabulary §5 move; the detail {ids, before, order} is unchanged"},{"from":"sf-table-column-settings-change","to":"sf-table-save","kind":"event","component":"sf-view-table","since":"2026-10-27","remove_after":"2026-12-01","mode":"detail-adds","cancelable":false,"section":"§8, §16 item 20, vocabulary §9","note":"vocabulary §5 save {kind: columns}; the new detail adds kind to {reason, columnSettings, tableSettingsKey}","when":{"kind":"columns"}},{"from":"sf-table:column-settings-change","to":"sf-table-save","kind":"event","component":"sf-view-table","since":"2026-10-27","remove_after":"2026-12-01","mode":"detail-adds","cancelable":false,"section":"§8, §16 item 20, vocabulary §9","note":"vocabulary §5.1: sf-table:column-settings-change → sf-table-save {kind: columns}; a colon name (§8)","when":{"kind":"columns"}},{"from":"onColumnSettingsChange","to":"sf-table-save","kind":"event","component":"sf-view-table","since":"2026-10-27","remove_after":"2026-12-01","mode":"detail-adds","cancelable":false,"section":"§8, §16 item 20, vocabulary §9","note":"a camelCase name outside §8 (simai/ui-pro#1); ui-admin listens to it (src/main.ts, src/smart-component-catalog.ts)","when":{"kind":"columns"}},{"from":"onSearchEnd","to":"sf-table-search-change","kind":"event","component":"sf-view-table","since":"2026-10-27","remove_after":"2026-12-01","mode":"split","cancelable":false,"section":"§8, §16 item 20, vocabulary §9","note":"a camelCase name outside §8 (simai/ui-pro#1); its detail was the search text itself, made by the element\'s adapter; ui-admin listens to it (src/main.ts, src/smart-component-catalog.ts)"},{"from":"onTemplateSave","to":"sf-view-table-template-save","kind":"event","component":"sf-view-table","since":"2026-10-27","remove_after":"2026-12-01","mode":"split","cancelable":false,"section":"§8, §16 item 20, vocabulary §9","note":"a camelCase name outside §8 (simai/ui-pro#1); ui-admin listens to it; its detail was the template object or the array of them, made by the element\'s adapter since template-save carries {templates} (1.16.0)"},{"from":"onFilterUpdate","to":"sf-table-filter-change","kind":"event","component":"sf-view-table","since":"2026-10-27","remove_after":"2026-12-01","mode":"same-detail","cancelable":false,"section":"§8, §16 item 20, vocabulary §9","note":"a camelCase name outside §8 (simai/ui-pro#1); ui-admin listens to it"},{"from":"sf-table","to":"sf-view-table","kind":"tag","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","section":"rename plan R2 (ui-control RENAME-PLAN-2026-11-03), naming decision 2026-11-02","note":"the element is sf-view-table; sf-table is a subclass defined beside it until the date"},{"from":"sf-table-select","to":"sf-view-table-select","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-apply","to":"sf-view-table-apply","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-save","to":"sf-view-table-save","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-column-settings-reset","to":"sf-view-table-column-settings-reset","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-create","to":"sf-view-table-create","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-filter-change","to":"sf-view-table-filter-change","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-query","to":"sf-view-table-query","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-refresh","to":"sf-view-table-refresh","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-search-change","to":"sf-view-table-search-change","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-sort-change","to":"sf-view-table-sort-change","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-template-delete","to":"sf-view-table-template-delete","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-template-save","to":"sf-view-table-template-save","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"split","section":"§8","note":"the event name carries the tag; its detail was the template object or the array of them, made by the element\'s adapter since template-save carries {templates} (1.16.0)"},{"from":"sf-table-template-select","to":"sf-view-table-template-select","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-toolbar-action","to":"sf-view-table-toolbar-action","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-reference-open","to":"sf-view-table-reference-open","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-expand","to":"sf-view-table-expand","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-load-more","to":"sf-view-table-load-more","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-rows-drag","to":"sf-view-table-rows-drag","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-move","to":"sf-view-table-move","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-cell-set","to":"sf-view-table-cell-set","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-view-change","to":"sf-view-table-view-change","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-window","to":"sf-view-table-window","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"}]}');
+module.exports = /*#__PURE__*/JSON.parse('{"$comment":"Dated aliases of sf-view-table for the shim (core/js/aliases.js, standard §16 item 20, vocabulary §9). mode: same-detail (the shim sends the new and the old name), detail-adds (the old name gets the larger new detail), split (the old detail from the element\'s adapter, sfAliasAdapters), host-attribute (no shim).","component":"sf-view-table","since":"2026-10-27","remove_after":"2027-01-01","aliases":[{"from":"aria-label","to":null,"kind":"attribute","component":"sf-view-table","since":"2026-10-27","remove_after":"2027-01-01","mode":"host-attribute","section":"§3.1, §4.8","note":"stays a host attribute, read for the accessible name; no shim"},{"from":"sf-table-action-intent","to":"sf-table-apply","kind":"event","component":"sf-view-table","since":"2026-10-27","remove_after":"2027-01-01","mode":"split","cancelable":false,"section":"§8, §16 item 20, vocabulary §9","note":"vocabulary §5 apply {action, scope, ids, revisions}; the old detail {action_id, record_ids} is made by the element\'s adapter (vocabulary §9: sf-table-action-intent → sf-table-apply)"},{"from":"sf-table-create-intent","to":"sf-table-create","kind":"event","component":"sf-view-table","since":"2026-10-27","remove_after":"2027-01-01","mode":"same-detail","cancelable":false,"section":"§8, §16 item 20, vocabulary §9","note":"vocabulary §5 create; the detail {item} is unchanged"},{"from":"sf-port-output","to":"sf-table-select","kind":"event","component":"sf-view-table","since":"2026-10-27","remove_after":"2027-01-01","mode":"split","cancelable":false,"section":"§8, §16 item 20, vocabulary §9","note":"vocabulary §5 select {ids}; the composition port\'s old detail {port: selection, value} is made by the element\'s adapter"},{"from":"sf-table-query-intent","to":"sf-table-query","kind":"event","component":"sf-view-table","since":"2026-10-27","remove_after":"2027-01-01","mode":"same-detail","cancelable":false,"section":"§8, §16 item 20, vocabulary §9","note":"vocabulary §5.1: sf-table-query-intent → sf-table-query; the detail {reason, context, sequence} is unchanged"},{"from":"sf-table-retry","to":"sf-table-refresh","kind":"event","component":"sf-view-table","since":"2026-10-27","remove_after":"2027-01-01","mode":"same-detail","cancelable":false,"section":"§8, §16 item 20, vocabulary §9","note":"vocabulary §5 refresh (table-retry)"},{"from":"sf-table-tree-toggle","to":"sf-table-expand","kind":"event","component":"sf-view-table","since":"2026-10-27","remove_after":"2027-01-01","mode":"same-detail","cancelable":false,"section":"§8, §16 item 20, vocabulary §9","note":"vocabulary §5 expand; the detail {id, expanded} is unchanged"},{"from":"sf-table-tree-more","to":"sf-table-load-more","kind":"event","component":"sf-view-table","since":"2026-10-27","remove_after":"2027-01-01","mode":"detail-adds","cancelable":false,"section":"§8, §16 item 20, vocabulary §9","note":"vocabulary §5 load-more; the new detail adds direction: after to {parent, cursor}"},{"from":"sf-table-rows-reorder","to":"sf-table-move","kind":"event","component":"sf-view-table","since":"2026-10-27","remove_after":"2027-01-01","mode":"same-detail","cancelable":false,"section":"§8, §16 item 20, vocabulary §9","note":"vocabulary §5 move; the detail {ids, before, order} is unchanged"},{"from":"sf-table-column-settings-change","to":"sf-table-save","kind":"event","component":"sf-view-table","since":"2026-10-27","remove_after":"2027-01-01","mode":"detail-adds","cancelable":false,"section":"§8, §16 item 20, vocabulary §9","note":"vocabulary §5 save {kind: columns}; the new detail adds kind to {reason, columnSettings, tableSettingsKey}","when":{"kind":"columns"}},{"from":"sf-table:column-settings-change","to":"sf-table-save","kind":"event","component":"sf-view-table","since":"2026-10-27","remove_after":"2027-01-01","mode":"detail-adds","cancelable":false,"section":"§8, §16 item 20, vocabulary §9","note":"vocabulary §5.1: sf-table:column-settings-change → sf-table-save {kind: columns}; a colon name (§8)","when":{"kind":"columns"}},{"from":"onColumnSettingsChange","to":"sf-table-save","kind":"event","component":"sf-view-table","since":"2026-10-27","remove_after":"2027-01-01","mode":"detail-adds","cancelable":false,"section":"§8, §16 item 20, vocabulary §9","note":"a camelCase name outside §8 (simai/ui-pro#1); ui-admin listens to it (src/main.ts, src/smart-component-catalog.ts)","when":{"kind":"columns"}},{"from":"onSearchEnd","to":"sf-table-search-change","kind":"event","component":"sf-view-table","since":"2026-10-27","remove_after":"2027-01-01","mode":"split","cancelable":false,"section":"§8, §16 item 20, vocabulary §9","note":"a camelCase name outside §8 (simai/ui-pro#1); its detail was the search text itself, made by the element\'s adapter; ui-admin listens to it (src/main.ts, src/smart-component-catalog.ts)"},{"from":"onTemplateSave","to":"sf-view-table-template-save","kind":"event","component":"sf-view-table","since":"2026-10-27","remove_after":"2027-01-01","mode":"split","cancelable":false,"section":"§8, §16 item 20, vocabulary §9","note":"a camelCase name outside §8 (simai/ui-pro#1); ui-admin listens to it; its detail was the template object or the array of them, made by the element\'s adapter since template-save carries {templates} (1.16.0)"},{"from":"onFilterUpdate","to":"sf-table-filter-change","kind":"event","component":"sf-view-table","since":"2026-10-27","remove_after":"2027-01-01","mode":"same-detail","cancelable":false,"section":"§8, §16 item 20, vocabulary §9","note":"a camelCase name outside §8 (simai/ui-pro#1); ui-admin listens to it"},{"from":"sf-table","to":"sf-view-table","kind":"tag","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","section":"rename plan R2 (ui-control RENAME-PLAN-2026-11-03), naming decision 2026-11-02","note":"the element is sf-view-table; sf-table is a subclass defined beside it until the date"},{"from":"sf-table-select","to":"sf-view-table-select","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-apply","to":"sf-view-table-apply","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-save","to":"sf-view-table-save","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-column-settings-reset","to":"sf-view-table-column-settings-reset","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-create","to":"sf-view-table-create","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-filter-change","to":"sf-view-table-filter-change","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-query","to":"sf-view-table-query","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-refresh","to":"sf-view-table-refresh","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-search-change","to":"sf-view-table-search-change","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-sort-change","to":"sf-view-table-sort-change","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-template-delete","to":"sf-view-table-template-delete","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-template-save","to":"sf-view-table-template-save","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"split","section":"§8","note":"the event name carries the tag; its detail was the template object or the array of them, made by the element\'s adapter since template-save carries {templates} (1.16.0)"},{"from":"sf-table-template-select","to":"sf-view-table-template-select","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-toolbar-action","to":"sf-view-table-toolbar-action","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-reference-open","to":"sf-view-table-reference-open","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-expand","to":"sf-view-table-expand","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-load-more","to":"sf-view-table-load-more","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-rows-drag","to":"sf-view-table-rows-drag","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-move","to":"sf-view-table-move","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-cell-set","to":"sf-view-table-cell-set","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-view-change","to":"sf-view-table-view-change","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-table-window","to":"sf-view-table-window","kind":"event","component":"sf-view-table","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"toolbar","to":null,"kind":"attribute","component":"sf-view-table","since":"2026-11-18","remove_after":"2027-01-01","mode":"host-attribute","section":"C296, C295 (VT-13)","note":"the container\'s job (sf-view, sf-pagination, sf-bulk-actions); read by the table as before until the date, noted in SF.deprecations once on a table standing alone; no shim"},{"from":"pagin","to":null,"kind":"attribute","component":"sf-view-table","since":"2026-11-18","remove_after":"2027-01-01","mode":"host-attribute","section":"C296, C295 (VT-13)","note":"the container\'s job (sf-view, sf-pagination, sf-bulk-actions); read by the table as before until the date, noted in SF.deprecations once on a table standing alone; no shim"},{"from":"filter-templates","to":null,"kind":"attribute","component":"sf-view-table","since":"2026-11-18","remove_after":"2027-01-01","mode":"host-attribute","section":"C296, C295 (VT-13)","note":"the container\'s job (sf-view, sf-pagination, sf-bulk-actions); read by the table as before until the date, noted in SF.deprecations once on a table standing alone; no shim"},{"from":"filter-text","to":null,"kind":"attribute","component":"sf-view-table","since":"2026-11-18","remove_after":"2027-01-01","mode":"host-attribute","section":"C296, C295 (VT-13)","note":"the container\'s job (sf-view, sf-pagination, sf-bulk-actions); read by the table as before until the date, noted in SF.deprecations once on a table standing alone; no shim"},{"from":"clear-text","to":null,"kind":"attribute","component":"sf-view-table","since":"2026-11-18","remove_after":"2027-01-01","mode":"host-attribute","section":"C296, C295 (VT-13)","note":"the container\'s job (sf-view, sf-pagination, sf-bulk-actions); read by the table as before until the date, noted in SF.deprecations once on a table standing alone; no shim"},{"from":"search-placeholder","to":null,"kind":"attribute","component":"sf-view-table","since":"2026-11-18","remove_after":"2027-01-01","mode":"host-attribute","section":"C296, C295 (VT-13)","note":"the container\'s job (sf-view, sf-pagination, sf-bulk-actions); read by the table as before until the date, noted in SF.deprecations once on a table standing alone; no shim"},{"from":"create-text","to":null,"kind":"attribute","component":"sf-view-table","since":"2026-11-18","remove_after":"2027-01-01","mode":"host-attribute","section":"C296, C295 (VT-13)","note":"the container\'s job (sf-view, sf-pagination, sf-bulk-actions); read by the table as before until the date, noted in SF.deprecations once on a table standing alone; no shim"},{"from":"creatable","to":null,"kind":"attribute","component":"sf-view-table","since":"2026-11-18","remove_after":"2027-01-01","mode":"host-attribute","section":"C296, C295 (VT-13)","note":"the container\'s job (sf-view, sf-pagination, sf-bulk-actions); read by the table as before until the date, noted in SF.deprecations once on a table standing alone; no shim"},{"from":"pagination-total","to":null,"kind":"attribute","component":"sf-view-table","since":"2026-11-18","remove_after":"2027-01-01","mode":"host-attribute","section":"C296, C295 (VT-13)","note":"the container\'s job (sf-view, sf-pagination, sf-bulk-actions); read by the table as before until the date, noted in SF.deprecations once on a table standing alone; no shim"},{"from":"pagination-page-size","to":null,"kind":"attribute","component":"sf-view-table","since":"2026-11-18","remove_after":"2027-01-01","mode":"host-attribute","section":"C296, C295 (VT-13)","note":"the container\'s job (sf-view, sf-pagination, sf-bulk-actions); read by the table as before until the date, noted in SF.deprecations once on a table standing alone; no shim"},{"from":"page-sizes","to":null,"kind":"attribute","component":"sf-view-table","since":"2026-11-18","remove_after":"2027-01-01","mode":"host-attribute","section":"C296, C295 (VT-13)","note":"the container\'s job (sf-view, sf-pagination, sf-bulk-actions); read by the table as before until the date, noted in SF.deprecations once on a table standing alone; no shim"},{"from":"filter-apply-text","to":null,"kind":"attribute","component":"sf-view-table","since":"2026-11-18","remove_after":"2027-01-01","mode":"host-attribute","section":"C296, C295 (VT-13)","note":"the container\'s job (sf-view, sf-pagination, sf-bulk-actions); read by the table as before until the date, noted in SF.deprecations once on a table standing alone; no shim"},{"from":"layout-switch","to":null,"kind":"attribute","component":"sf-view-table","since":"2026-11-18","remove_after":"2027-01-01","mode":"host-attribute","section":"C296, C295 (VT-13)","note":"the container\'s job (sf-view, sf-pagination, sf-bulk-actions); read by the table as before until the date, noted in SF.deprecations once on a table standing alone; no shim"}]}');
 
 /***/ },
 
 /***/ "c1f17ed5a348"
 (module) {
 
-module.exports = /*#__PURE__*/JSON.parse('{"id":"smart.view-table","tag":"sf-view-table","version":"1.19.6","kind":"leaf","settings":{"selectable":{"type":"boolean","default":true},"settings":{"type":"boolean","default":true},"actions":{"type":"boolean","default":true},"row-actions":{"type":"boolean","default":true},"creatable":{"type":"boolean","default":true},"filter-templates":{"type":"boolean","default":true},"settings-menu":{"type":"boolean","default":true},"pagin":{"type":"boolean","default":false},"filter-text":{"type":"string","default-from":"runtime.filter-text"},"clear-text":{"type":"string","default-from":"runtime.clear-text"},"search-placeholder":{"type":"string","default-from":"runtime.search-placeholder"},"create-text":{"type":"string","default-from":"runtime.create-text"},"pagination-total":{"type":"number","default":10,"integer":true,"min":0},"pagination-page-size":{"type":"number","default":10,"integer":true,"min":1,"max":100},"page-sizes":{"type":"string","default":"10,20,30,40"},"context-menu-columns":{"type":"number","default":1,"integer":true,"min":1,"max":4},"remember-widths":{"type":"boolean","default":false},"table-settings-key":{"type":"string","default":""},"data-state":{"type":"enum","values":["auto","loading","ready","populated","empty","error"],"default":"auto","x-alias":{"populated":"ready"}},"loading-text":{"type":"string","default-from":"runtime.loading-text"},"empty-text":{"type":"string","default-from":"runtime.empty-text"},"empty-description":{"type":"string"},"error-text":{"type":"string","default-from":"runtime.error-text"},"retry-text":{"type":"string","default-from":"runtime.retry-text"},"toolbar":{"type":"boolean","default":true},"stripes":{"type":"boolean","default":false},"pin-column-label":{"type":"string","default-from":"runtime.pin-column-label"},"unpin-column-label":{"type":"string","default-from":"runtime.unpin-column-label"},"column-move-label":{"type":"string","default-from":"runtime.column-move-label"},"column-search-placeholder":{"type":"string","default-from":"runtime.column-search-placeholder"},"column-search-empty-text":{"type":"string","default-from":"runtime.column-search-empty-text"},"vertical-scroll":{"type":"enum","values":["self","page"],"default":"self"},"filter-apply-text":{"type":"string","default-from":"runtime.filter-apply-text"},"layout":{"type":"enum","values":["auto","table","list"],"default":"auto"},"layout-switch":{"type":"boolean","default":false},"list-below":{"type":"number","default":600},"list-fields":{"type":"number","default":3},"quick-actions":{"type":"string","default":""},"row-open":{"type":"enum","values":["title","row"],"default":"title"},"size":{"type":"enum","values":["1/2","1"],"default":"1"},"preferences-key":{"type":"string","default":""},"row-actions-visible":{"type":"enum","values":["hover","always"],"default":"hover"},"drag-rows":{"type":"boolean","default":false},"row-reorder":{"type":"boolean","default":false},"inline-edit":{"type":"boolean","default":false},"active-filter-fields":{"type":"list","entries":{"key":"id"}},"bulk-actions":{"type":"list"},"columns":{"type":"list","of":{"key":"string","label":"string"}},"create-items":{"type":"list"},"filter-fields":{"type":"list"},"rows":{"type":"list","entries":{"key":"id","changes":"revision"},"of":{"id":"id","revision":{"type":"string","optional":true}}},"table-data":{"type":"object"},"table-settings":{"type":"object"},"templates":{"type":"list"},"toolbar-actions":{"type":"list"},"sort":{"type":"list","of":{"key":"string","direction":{"type":"enum","values":["asc","desc"]}},"controlled":true},"current":{"type":"string","default":""}},"values":{"selected":{"type":"id","optional":true},"selection":{"type":"list","default":[]}},"events":{"select":{"carries":{"ids":"list"}},"apply":{"carries":{"action":"string","scope":{"type":"enum","values":["entry","selection","filter"]},"ids":"list","revisions":{"type":"object","optional":true}}},"save":{"carries":{"kind":{"type":"enum","values":["columns"]},"reason":"string","column-settings":{"type":"object"},"table-settings-key":{"type":"string"}}},"column-settings-reset":{"carries":{"target":{"type":"enum","values":["personal"]},"table-settings-key":{"type":"string","nullable":true}},"own-verb":true},"create":{"carries":{"item":{"type":"string","nullable":true,"optional":true}}},"filter-change":{"carries":{"template-key":{"type":"string"},"template-label":{"type":"string"},"values":{"type":"object"},"tags":{"type":"object"}},"own-verb":true},"query":{"carries":{"reason":"string","context":"object","sequence":{"type":"number","integer":true}}},"refresh":{"carries":{}},"search-change":{"carries":{"search":"string"},"own-verb":true},"sort-change":{"carries":{"key":{"type":"string","schema":{"minLength":1}},"direction":{"type":"enum","values":["asc","desc",null],"nullable":true}},"own-verb":true},"template-delete":{"carries":{"key":{"type":"string","schema":{"minLength":1}}},"own-verb":true},"template-save":{"carries":{"templates":{"type":"list","of":{"key":"string","label":"string","selected":"boolean","data":"object","settings":"object"},"schema":{"items":{"type":"object","required":["key","label","settings"],"properties":{"key":{"type":"string"},"label":{"type":"string"},"selected":{"type":"boolean"},"data":{"type":"object"},"settings":{"type":"object","properties":{"filter_fields":{"type":"array","items":{"type":"string"}}}}}},"minItems":1}}},"own-verb":true},"template-select":{"carries":{"key":{"type":"string","schema":{"minLength":1}}},"own-verb":true},"toolbar-action":{"carries":{"action":"string","href":{"type":"string","nullable":true,"optional":true}},"cancelable":true,"own-verb":true},"reference-open":{"carries":{"field":"string","value":"object","href":"string"},"cancelable":true,"own-verb":true},"expand":{"carries":{"id":"id","expanded":{"type":"boolean","optional":true}}},"load-more":{"carries":{"direction":{"type":"enum","values":["after"]},"parent":{"type":"id","nullable":true},"cursor":{"type":"string","nullable":true}}},"rows-drag":{"carries":{"ids":{"type":"list","schema":{"items":{"type":"string"},"minItems":1}},"source":{"type":"string","nullable":true}},"own-verb":true},"move":{"carries":{"ids":"list","before":{"type":"id","nullable":true},"order":"list"}},"cell-set":{"carries":{"id":"object","key":"string","value":"object","revision":"object"},"own-verb":true},"view-change":{"carries":{"view":"object","everywhere":"boolean"},"own-verb":true},"window":{"carries":{"first":{"type":"number","integer":true},"last":{"type":"number","integer":true}},"own-verb":true},"layout-change":{"carries":{"layout":{"type":"enum","values":["list","table"]}},"own-verb":true}},"actions":{"add-rows":{"with":{"rows":"list"}},"apply-query-result":{"with":{"sequence":{"type":"number","integer":true,"schema":{"minimum":1}},"rows":"list"}},"clear-selection":{},"request-action-intent":{"with":{"action-id":{"type":"string","schema":{"minLength":1}},"record-ids":{"type":"list","schema":{"items":{"type":["string","integer"],"minLength":1},"minItems":1}}},"emits":"apply"},"request-create-intent":{"with":{"item-id":{"type":"string","optional":true,"nullable":true}},"emits":"create"},"request-retry":{"emits":"refresh"},"set-sort":{"with":{"key":{"type":"string","nullable":true},"direction":{"type":"enum","values":["asc","desc"],"nullable":true}}},"toggle-tree-row":{"with":{"row":"object"},"emits":"expand"},"request-tree-more":{"with":{"row":"object"},"emits":"load-more"},"focus-row":{"with":{"id":"id"}},"set-layout":{"with":{"layout":{"type":"enum","values":["list","table"]}},"emits":"layout-change"}},"port":{"id":"simai.dataview-port","version":"1.0.0","contract":"src/core/contracts/ports/simai.dataview-port/1.0.0/port.json"},"presentation":{"skeleton":{"late":["rows"]}},"host-states":{"data-sf-view-stripes":"boolean","data-sf-page-scroll":"boolean"},"css-variables":{"--sf-table-row-block-size-1/2":{"type":"length","state":"default"},"--sf-table-row-block-size-1":{"type":"length","state":"default"},"--sf-table-row-2-lines-block-size-1/2":{"type":"length","state":"default"},"--sf-table-row-2-lines-block-size-1":{"type":"length","state":"default"},"--sf-table-head-block-size-1/2":{"type":"length","state":"default"},"--sf-table-head-block-size-1":{"type":"length","state":"default"},"--sf-table-toolbar-block-size-1/2":{"type":"length","state":"default"},"--sf-table-toolbar-block-size-1":{"type":"length","state":"default"},"--sf-table-toolbar-gap":{"type":"length","state":"default"},"--sf-table-head--background-color":{"type":"color","state":"default"},"--sf-table-row--background-color":{"type":"color","state":"default"},"--sf-table--cell-spacing":{"type":"length","state":"default"},"--sf-table-cell--line-clamp":{"type":"number","state":"default"},"--sf-table-context-menu--z-index":{"type":"number","state":"open"},"--sf-table-context-menu--max-width":{"type":"length","state":"open"}}}');
+module.exports = /*#__PURE__*/JSON.parse('{"id":"smart.view-table","tag":"sf-view-table","version":"1.25.1","kind":"leaf","settings":{"selectable":{"type":"boolean","default":true},"settings":{"type":"boolean","default":true},"actions":{"type":"boolean","default":true},"row-actions":{"type":"boolean","default":true},"creatable":{"type":"boolean","default":true},"filter-templates":{"type":"boolean","default":true},"settings-menu":{"type":"boolean","default":true},"pagin":{"type":"boolean","default":false},"filter-text":{"type":"string","default-from":"runtime.filter-text"},"clear-text":{"type":"string","default-from":"runtime.clear-text"},"search-placeholder":{"type":"string","default-from":"runtime.search-placeholder"},"create-text":{"type":"string","default-from":"runtime.create-text"},"pagination-total":{"type":"number","default":10,"integer":true,"min":0},"pagination-page-size":{"type":"number","default":10,"integer":true,"min":1,"max":100},"page-sizes":{"type":"string","default":"10,20,30,40"},"context-menu-columns":{"type":"number","default":1,"integer":true,"min":1,"max":4},"remember-widths":{"type":"boolean","default":false},"table-settings-key":{"type":"string","default":""},"data-state":{"type":"enum","values":["auto","loading","ready","populated","empty","error"],"default":"auto","x-alias":{"populated":"ready"}},"loading-text":{"type":"string","default-from":"runtime.loading-text"},"empty-text":{"type":"string","default-from":"runtime.empty-text"},"empty-description":{"type":"string"},"error-text":{"type":"string","default-from":"runtime.error-text"},"retry-text":{"type":"string","default-from":"runtime.retry-text"},"toolbar":{"type":"boolean","default":true},"stripes":{"type":"boolean","default":false},"pin-column-label":{"type":"string","default-from":"runtime.pin-column-label"},"unpin-column-label":{"type":"string","default-from":"runtime.unpin-column-label"},"column-move-label":{"type":"string","default-from":"runtime.column-move-label"},"column-search-placeholder":{"type":"string","default-from":"runtime.column-search-placeholder"},"column-search-empty-text":{"type":"string","default-from":"runtime.column-search-empty-text"},"vertical-scroll":{"type":"enum","values":["self","page"],"default":"self"},"filter-apply-text":{"type":"string","default-from":"runtime.filter-apply-text"},"layout":{"type":"enum","values":["auto","table","list"],"default":"auto"},"layout-switch":{"type":"boolean","default":false},"list-below":{"type":"number","default":600},"list-fields":{"type":"number","default":3},"quick-actions":{"type":"string","default":""},"row-open":{"type":"enum","values":["title","row"],"default":"title"},"size":{"type":"enum","values":["1/2","1"],"default":"1"},"preferences-key":{"type":"string","default":""},"row-actions-visible":{"type":"enum","values":["hover","always"],"default":"hover"},"drag-rows":{"type":"boolean","default":false},"row-reorder":{"type":"boolean","default":false},"inline-edit":{"type":"boolean","default":false},"total":{"type":"number","default":0},"row-offset":{"type":"number","default":0},"active-filter-fields":{"type":"list","entries":{"key":"id"}},"bulk-actions":{"type":"list"},"columns":{"type":"list","of":{"key":"string","label":"string"}},"create-items":{"type":"list"},"filter-fields":{"type":"list"},"rows":{"type":"list","entries":{"key":"id","changes":"revision"},"of":{"id":"id","revision":{"type":"string","optional":true}}},"table-data":{"type":"object"},"table-settings":{"type":"object"},"templates":{"type":"list"},"toolbar-actions":{"type":"list"},"sort":{"type":"list","of":{"key":"string","direction":{"type":"enum","values":["asc","desc"]}},"controlled":true},"totals":{"type":"object"},"current":{"type":"string","default":""}},"values":{"selected":{"type":"id","optional":true},"selection":{"type":"list","default":[]}},"events":{"select":{"carries":{"ids":"list"}},"apply":{"carries":{"action":"string","scope":{"type":"enum","values":["entry","selection","filter"]},"ids":"list","revisions":{"type":"object","optional":true}}},"save":{"carries":{"kind":{"type":"enum","values":["columns"]},"reason":"string","column-settings":{"type":"object"},"table-settings-key":{"type":"string"}}},"column-settings-reset":{"carries":{"target":{"type":"enum","values":["personal"]},"table-settings-key":{"type":"string","nullable":true}},"own-verb":true},"create":{"carries":{"item":{"type":"string","nullable":true,"optional":true}}},"filter-change":{"carries":{"template-key":{"type":"string"},"template-label":{"type":"string"},"values":{"type":"object"},"tags":{"type":"object"}},"own-verb":true},"query":{"carries":{"reason":"string","context":"object","sequence":{"type":"number","integer":true}}},"refresh":{"carries":{}},"search-change":{"carries":{"search":"string"},"own-verb":true},"sort-change":{"carries":{"key":{"type":"string","schema":{"minLength":1}},"direction":{"type":"enum","values":["asc","desc",null],"nullable":true}},"own-verb":true},"template-delete":{"carries":{"key":{"type":"string","schema":{"minLength":1}}},"own-verb":true},"template-save":{"carries":{"templates":{"type":"list","of":{"key":"string","label":"string","selected":"boolean","data":"object","settings":"object"},"schema":{"items":{"type":"object","required":["key","label","settings"],"properties":{"key":{"type":"string"},"label":{"type":"string"},"selected":{"type":"boolean"},"data":{"type":"object"},"settings":{"type":"object","properties":{"filter_fields":{"type":"array","items":{"type":"string"}}}}}},"minItems":1}}},"own-verb":true},"template-select":{"carries":{"key":{"type":"string","schema":{"minLength":1}}},"own-verb":true},"toolbar-action":{"carries":{"action":"string","href":{"type":"string","nullable":true,"optional":true}},"cancelable":true,"own-verb":true},"reference-open":{"carries":{"field":"string","value":"object","href":"string"},"cancelable":true,"own-verb":true},"expand":{"carries":{"id":"id","expanded":{"type":"boolean","optional":true}}},"load-more":{"carries":{"direction":{"type":"enum","values":["after"]},"parent":{"type":"id","nullable":true},"cursor":{"type":"string","nullable":true}}},"rows-drag":{"carries":{"ids":{"type":"list","schema":{"items":{"type":"string"},"minItems":1}},"source":{"type":"string","nullable":true}},"own-verb":true},"move":{"carries":{"ids":"list","before":{"type":"id","nullable":true},"order":"list"}},"cell-set":{"carries":{"id":"object","key":"string","value":"object","revision":"object"},"own-verb":true},"view-change":{"carries":{"view":"object","everywhere":"boolean"},"own-verb":true},"window":{"carries":{"first":{"type":"number","integer":true},"last":{"type":"number","integer":true}},"own-verb":true},"layout-change":{"carries":{"layout":{"type":"enum","values":["list","table"]}},"own-verb":true},"open":{"carries":{"id":"id","newTab":"boolean"},"own-verb":true}},"actions":{"add-rows":{"with":{"rows":"list"}},"apply-query-result":{"with":{"sequence":{"type":"number","integer":true,"schema":{"minimum":1}},"rows":"list"}},"clear-selection":{},"request-action-intent":{"with":{"action-id":{"type":"string","schema":{"minLength":1}},"record-ids":{"type":"list","schema":{"items":{"type":["string","integer"],"minLength":1},"minItems":1}}},"emits":"apply"},"request-create-intent":{"with":{"item-id":{"type":"string","optional":true,"nullable":true}},"emits":"create"},"request-retry":{"emits":"refresh"},"set-sort":{"with":{"key":{"type":"string","nullable":true},"direction":{"type":"enum","values":["asc","desc"],"nullable":true}}},"toggle-tree-row":{"with":{"row":"object"},"emits":"expand"},"request-tree-more":{"with":{"row":"object"},"emits":"load-more"},"focus-row":{"with":{"id":"id"}},"set-layout":{"with":{"layout":{"type":"enum","values":["list","table"]}},"emits":"layout-change"},"scroll-to-row":{"with":{"id":"id"}}},"port":{"id":"simai.dataview-port","version":"1.0.0","contract":"src/core/contracts/ports/simai.dataview-port/1.0.0/port.json"},"presentation":{"skeleton":{"late":["rows"]}},"host-states":{"data-sf-view-stripes":"boolean","data-sf-page-scroll":"boolean"},"css-variables":{"--sf-view-table-row-block-size":{"type":"length","state":"default"},"--sf-view-table-head-block-size":{"type":"length","state":"default"},"--sf-view-table-edge":{"type":"length","state":"default"},"--sf-view-table-line-color":{"type":"color","state":"default"},"--sf-view-table-head-color":{"type":"color","state":"default"},"--sf-view-table-row-background-color":{"type":"color","state":"default"},"--sf-view-table-selected-background-color":{"type":"color","state":"default"},"--sf-view-table-title-lines":{"type":"integer","state":"default"},"--sf-table-row-block-size-1/2":{"type":"length","state":"default"},"--sf-table-row-block-size-1":{"type":"length","state":"default"},"--sf-table-row-2-lines-block-size-1/2":{"type":"length","state":"default"},"--sf-table-row-2-lines-block-size-1":{"type":"length","state":"default"},"--sf-table-head-block-size-1/2":{"type":"length","state":"default"},"--sf-table-head-block-size-1":{"type":"length","state":"default"},"--sf-table-toolbar-block-size-1/2":{"type":"length","state":"default"},"--sf-table-toolbar-block-size-1":{"type":"length","state":"default"},"--sf-table-toolbar-gap":{"type":"length","state":"default"},"--sf-table-head--background-color":{"type":"color","state":"default"},"--sf-table-row--background-color":{"type":"color","state":"default"},"--sf-table--cell-spacing":{"type":"length","state":"default"},"--sf-table-cell--line-clamp":{"type":"number","state":"default"},"--sf-table-context-menu--z-index":{"type":"number","state":"open"},"--sf-table-context-menu--max-width":{"type":"length","state":"open"}}}');
 
 /***/ },
 
 /***/ "678dc07d76bf"
 (module) {
 
-module.exports = /*#__PURE__*/JSON.parse('{"title":"Table","events":{"column-settings-reset":{"label":"Column settings reset"},"filter-change":{"label":"Filter changed"},"search-change":{"label":"Search changed"},"sort-change":{"label":"Order changed"},"template-delete":{"label":"Template deleted"},"template-save":{"label":"Template saved"},"template-select":{"label":"Template chosen"},"toolbar-action":{"label":"Toolbar action"},"reference-open":{"label":"Open the linked record"},"rows-drag":{"label":"Rows dragged"},"cell-set":{"label":"Cell value changed"},"view-change":{"label":"Table view changed"},"window":{"label":"Rows shown"}},"runtime":{"actions-column-label":"Actions","apply-text":"Apply","clear-text":"Clear","close-text":"Close","column-move-label":"Move the column","column-search-empty-text":"No field matches","column-search-placeholder":"Search the fields","context-create-options-label":"Ways to create","context-field-filter-label":"Filtering by","context-filter-settings-label":"Filter settings","context-row-actions-label":"Row actions","context-save-template-label":"Saving the filter as a template","context-table-settings-label":"Table settings","context-template-actions-label":"Template actions","context-view-actions-label":"View actions","create-options-label":"Ways to create","create-text":"Create","default-template-text":"Default","delete-action-text":"Delete","edit-action-text":"Edit","empty-text":"No data","error-text":"The data could not be loaded","field-word-text":"field","fields-tab-text":"Fields","filter-apply-text":"Apply","filter-settings-label":"Filter settings","filter-text":"Filter","layout-list":"List","layout-switch-label":"Layout","layout-table":"Table","list-filter-label":"Filter, {count} active","loading-text":"Loading","make-default-label":"Make it the default","menu-label":"Menu","more-actions-label":"More actions","operator-any":"Any date","operator-between":"Range","operator-contains":"Contains","operator-eq":"Exactly","operator-gt":"Greater than","operator-gte":"Greater or equal","operator-in":"In the list","operator-lt":"Less than","operator-lte":"Less or equal","operator-month":"This month","operator-starts-with":"Starts with","operator-today":"Today","operator-week":"This week","pin-column-label":"Pin the column","rename-text":"Rename","reset-both-text":"Reset the search and filters","reset-filters-text":"Reset the filters","reset-search-text":"Clear the search","reset-text":"Reset","restore-text":"Restore","retry-text":"Try again","row-actions-label":"Row actions","save-for-everyone-label":"Save for everyone","save-template-label":"Save the filter as a template","search-placeholder":"Search","select-all-label":"Select every row","select-row-label":"Select the row","settings-column-label":"Settings","settings-fields-tab":"Fields","settings-view-tab":"View","sort-ascending":"ascending","sort-descending":"descending","sort-label":"Sort","sort-none":"As the host orders it","status-error":"Error","status-ok":"Working","status-stopped":"Stopped","status-warning":"Needs attention","template-actions-label":"Template actions","template-move-label":"Move the template","template-name-placeholder":"Name","template-pin-label":"Keep the template at the top","templates-tab-text":"Templates","tree-collapse":"Collapse","tree-expand":"Expand","tree-more":"Show more","unpin-column-label":"Unpin the column","untitled-template-text":"All records","view-action-text":"View","view-density":"Rows","view-density-compact":"Compact","view-density-normal":"Normal","view-density-spacious":"Spacious","view-everywhere":"For all my tables","view-lines":"Lines between columns","view-reset":"Reset the view","view-single-line":"Text on one line","view-sticky-head":"Keep the filter and the head in view","view-stripes":"Alternate rows","selected-rows-heading":"Selected"}}');
+module.exports = /*#__PURE__*/JSON.parse('{"title":"Table","events":{"column-settings-reset":{"label":"Column settings reset"},"filter-change":{"label":"Filter changed"},"search-change":{"label":"Search changed"},"sort-change":{"label":"Order changed"},"template-delete":{"label":"Template deleted"},"template-save":{"label":"Template saved"},"template-select":{"label":"Template chosen"},"toolbar-action":{"label":"Toolbar action"},"reference-open":{"label":"Open the linked record"},"rows-drag":{"label":"Rows dragged"},"cell-set":{"label":"Cell value changed"},"view-change":{"label":"Table view changed"},"window":{"label":"Rows shown"}},"runtime":{"actions-column-label":"Actions","apply-text":"Apply","cell-edit-apply":"Save","cell-edit-cancel":"Cancel","cell-edit-label":"Change","cell-edit-no":"No","cell-edit-yes":"Yes","clear-text":"Clear","close-text":"Close","column-all":"All columns…","column-hide":"Hide the column","column-menu-label":"Column","column-move-label":"Move the column","column-pin":"Pin","column-resize-label":"Resize the column","column-search-empty-text":"No field matches","column-search-placeholder":"Search the fields","column-sort-asc":"Sort ascending","column-sort-desc":"Sort descending","column-unpin":"Unpin","column-width-change-text":"Change the width","column-width-default-text":"Default width","column-width-fit-text":"Fit to content","column-width-value":"{n}%","context-create-options-label":"Ways to create","context-field-filter-label":"Filtering by","context-filter-settings-label":"Filter settings","context-row-actions-label":"Row actions","context-save-template-label":"Saving the filter as a template","context-table-settings-label":"Table settings","context-template-actions-label":"Template actions","context-view-actions-label":"View actions","create-more-label":"More ways to create","create-options-label":"Ways to create","create-text":"Create","default-template-text":"Default","delete-action-text":"Delete","edit-action-text":"Edit","empty-text":"No data","error-text":"The data could not be loaded","field-word-text":"field","fields-tab-text":"Fields","filter-apply-text":"Apply","filter-badge-label":"{count} condition|{count} conditions","filter-settings-label":"Filter settings","filter-text":"Filter","layout-list":"List","layout-switch-label":"Layout","layout-table":"Table","list-select-page":"All on the page","loading-text":"Loading","make-default-label":"Make it the default","menu-label":"Menu","more-actions-label":"More actions","operator-after":"After","operator-any":"Any date","operator-before":"Before","operator-between":"Range","operator-contains":"Contains","operator-eq":"Exactly","operator-gt":"Greater than","operator-gte":"Greater or equal","operator-in":"In the list","operator-lt":"Less than","operator-lte":"Less or equal","operator-month":"This month","operator-on-or-after":"On or after","operator-on-or-before":"On or before","operator-starts-with":"Starts with","operator-today":"Today","operator-week":"This week","pin-column-label":"Pin the column","rename-text":"Rename","reset-both-text":"Reset the search and filters","reset-filters-text":"Reset the filters","reset-search-text":"Clear the search","reset-text":"Reset","restore-text":"Restore","retry-text":"Try again","row-actions-label":"Row actions","save-filter-template-label":"Save the filter as a template","save-for-everyone-label":"Save for everyone","save-template-label":"Save the filter as a template","save-text":"Save","search-placeholder":"Search","select-all-label":"Select every row","select-row-label":"Select the row","selected-rows-heading":"Selected","settings-column-label":"Settings","settings-fields-tab":"Fields","settings-view-tab":"View","sort-ascending":"ascending","sort-descending":"descending","sort-label":"Sort","sort-none":"As the host orders it","status-error":"Error","status-ok":"Working","status-stopped":"Stopped","status-warning":"Needs attention","template-actions-label":"Template actions","template-move-label":"Move the template","template-name-placeholder":"Name","template-pin-label":"Keep the template at the top","templates-tab-text":"Templates","totals-all":"Total","totals-page":"On this page","tree-collapse":"Collapse","tree-expand":"Expand","tree-more":"Show more","unpin-column-label":"Unpin the column","untitled-template-text":"All records","view-action-text":"View","view-density":"Rows","view-density-compact":"Compact","view-density-normal":"Normal","view-density-spacious":"Spacious","view-everywhere":"For all my tables","view-lines":"Lines between columns","view-reset":"Reset the view","view-single-line":"Text on one line","view-sticky-head":"Keep the filter and the head in view","view-stripes":"Alternate rows"}}');
 
 /***/ },
 
 /***/ "32294b89604f"
 (module) {
 
-module.exports = /*#__PURE__*/JSON.parse('{"title":"Таблица","events":{"column-settings-reset":{"label":"Настройки столбцов сброшены"},"filter-change":{"label":"Фильтр изменён"},"search-change":{"label":"Поиск изменён"},"sort-change":{"label":"Порядок изменён"},"template-delete":{"label":"Шаблон удалён"},"template-save":{"label":"Шаблон сохранён"},"template-select":{"label":"Шаблон выбран"},"toolbar-action":{"label":"Действие панели"},"reference-open":{"label":"Открыть связанную запись"},"rows-drag":{"label":"Строки перетащены"},"cell-set":{"label":"Значение в ячейке изменено"},"view-change":{"label":"Вид таблицы изменён"},"window":{"label":"Показаны строки"}},"runtime":{"actions-column-label":"Действия","apply-text":"Применить","clear-text":"Очистить","close-text":"Закрыть","column-move-label":"Переместить столбец","column-search-empty-text":"Поля не найдены","column-search-placeholder":"Поиск по полям","context-create-options-label":"Варианты создания","context-field-filter-label":"Настройка фильтра","context-filter-settings-label":"Настройки фильтра","context-row-actions-label":"Действия со строкой","context-save-template-label":"Сохранение шаблона фильтра","context-table-settings-label":"Настройки таблицы","context-template-actions-label":"Действия с шаблоном","context-view-actions-label":"Действия с представлением","create-options-label":"Варианты создания","create-text":"Создать","default-template-text":"По умолчанию","delete-action-text":"Удалить","edit-action-text":"Редактировать","empty-text":"Нет данных","error-text":"Не удалось загрузить данные","field-word-text":"поле","fields-tab-text":"Поля","filter-apply-text":"Применить","filter-settings-label":"Настройки фильтра","filter-text":"Фильтр","layout-list":"Список","layout-switch-label":"Вид","layout-table":"Таблица","list-filter-label":"Фильтр, активных условий: {count}","loading-text":"Загрузка данных","make-default-label":"Сделать по умолчанию","menu-label":"Меню","more-actions-label":"Ещё действия","operator-any":"Любая дата","operator-between":"Диапазон","operator-contains":"Содержит","operator-eq":"Точно","operator-gt":"Больше чем","operator-gte":"Больше или равно","operator-in":"В списке","operator-lt":"Меньше чем","operator-lte":"Меньше или равно","operator-month":"Месяц","operator-starts-with":"Начинается с","operator-today":"Сегодня","operator-week":"Неделя","pin-column-label":"Закрепить столбец","rename-text":"Переименовать","reset-both-text":"Сбросить поиск и фильтры","reset-filters-text":"Сбросить фильтры","reset-search-text":"Очистить поиск","reset-text":"Сбросить","restore-text":"Восстановить","retry-text":"Повторить","row-actions-label":"Действия со строкой","save-for-everyone-label":"Сохранить для всех","save-template-label":"Сохранение шаблона фильтра","search-placeholder":"Поиск","select-all-label":"Выбрать все строки","select-row-label":"Выбрать строку","settings-column-label":"Настройки","settings-fields-tab":"Поля","settings-view-tab":"Вид","sort-ascending":"по возрастанию","sort-descending":"по убыванию","sort-label":"Сортировка","sort-none":"Как задано источником","status-error":"Ошибка","status-ok":"Работает","status-stopped":"Остановлен","status-warning":"Есть замечания","template-actions-label":"Действия с шаблоном","template-move-label":"Переместить шаблон","template-name-placeholder":"Название","template-pin-label":"Закрепить шаблон сверху","templates-tab-text":"Шаблоны","tree-collapse":"Свернуть","tree-expand":"Развернуть","tree-more":"Показать ещё","unpin-column-label":"Открепить столбец","untitled-template-text":"Все записи","view-action-text":"Посмотреть","view-density":"Строки","view-density-compact":"Компактно","view-density-normal":"Обычно","view-density-spacious":"Просторно","view-everywhere":"Для всех моих таблиц","view-lines":"Линии между столбцами","view-reset":"Сбросить вид","view-single-line":"Текст в одну строку","view-sticky-head":"Закреплять фильтр и шапку","view-stripes":"Чередовать строки","selected-rows-heading":"Выбрано"}}');
+module.exports = /*#__PURE__*/JSON.parse('{"title":"Таблица","events":{"column-settings-reset":{"label":"Настройки столбцов сброшены"},"filter-change":{"label":"Фильтр изменён"},"search-change":{"label":"Поиск изменён"},"sort-change":{"label":"Порядок изменён"},"template-delete":{"label":"Шаблон удалён"},"template-save":{"label":"Шаблон сохранён"},"template-select":{"label":"Шаблон выбран"},"toolbar-action":{"label":"Действие панели"},"reference-open":{"label":"Открыть связанную запись"},"rows-drag":{"label":"Строки перетащены"},"cell-set":{"label":"Значение в ячейке изменено"},"view-change":{"label":"Вид таблицы изменён"},"window":{"label":"Показаны строки"}},"runtime":{"actions-column-label":"Действия","apply-text":"Применить","cell-edit-apply":"Сохранить","cell-edit-cancel":"Отмена","cell-edit-label":"Изменить","cell-edit-no":"Нет","cell-edit-yes":"Да","clear-text":"Очистить","close-text":"Закрыть","column-all":"Все колонки…","column-hide":"Скрыть колонку","column-menu-label":"Колонка","column-move-label":"Переместить столбец","column-pin":"Закрепить","column-resize-label":"Изменить ширину столбца","column-search-empty-text":"Поля не найдены","column-search-placeholder":"Поиск по полям","column-sort-asc":"По возрастанию","column-sort-desc":"По убыванию","column-unpin":"Открепить","column-width-change-text":"Изменить ширину","column-width-default-text":"По умолчанию","column-width-fit-text":"По содержимому","column-width-value":"{n} %","context-create-options-label":"Варианты создания","context-field-filter-label":"Настройка фильтра","context-filter-settings-label":"Настройки фильтра","context-row-actions-label":"Действия со строкой","context-save-template-label":"Сохранение шаблона фильтра","context-table-settings-label":"Настройки таблицы","context-template-actions-label":"Действия с шаблоном","context-view-actions-label":"Действия с представлением","create-more-label":"Дополнительные действия создания","create-options-label":"Варианты создания","create-text":"Создать","default-template-text":"По умолчанию","delete-action-text":"Удалить","edit-action-text":"Редактировать","empty-text":"Нет данных","error-text":"Не удалось загрузить данные","field-word-text":"поле","fields-tab-text":"Поля","filter-apply-text":"Применить","filter-badge-label":"{count} условие|{count} условия|{count} условий","filter-settings-label":"Настройки фильтра","filter-text":"Фильтр","layout-list":"Список","layout-switch-label":"Вид","layout-table":"Таблица","list-select-page":"Все на странице","loading-text":"Загрузка данных","make-default-label":"Сделать по умолчанию","menu-label":"Меню","more-actions-label":"Ещё действия","operator-after":"Позже","operator-any":"Любая дата","operator-before":"Раньше","operator-between":"Диапазон","operator-contains":"Содержит","operator-eq":"Точно","operator-gt":"Больше чем","operator-gte":"Больше или равно","operator-in":"В списке","operator-lt":"Меньше чем","operator-lte":"Меньше или равно","operator-month":"Месяц","operator-on-or-after":"Не раньше","operator-on-or-before":"Не позже","operator-starts-with":"Начинается с","operator-today":"Сегодня","operator-week":"Неделя","pin-column-label":"Закрепить столбец","rename-text":"Переименовать","reset-both-text":"Сбросить поиск и фильтры","reset-filters-text":"Сбросить фильтры","reset-search-text":"Очистить поиск","reset-text":"Сбросить","restore-text":"Восстановить","retry-text":"Повторить","row-actions-label":"Действия со строкой","save-filter-template-label":"Сохранить шаблон фильтра","save-for-everyone-label":"Сохранить для всех","save-template-label":"Сохранение шаблона фильтра","save-text":"Сохранить","search-placeholder":"Поиск","select-all-label":"Выбрать все строки","select-row-label":"Выбрать строку","selected-rows-heading":"Выбрано","settings-column-label":"Настройки","settings-fields-tab":"Поля","settings-view-tab":"Вид","sort-ascending":"по возрастанию","sort-descending":"по убыванию","sort-label":"Сортировка","sort-none":"Как задано источником","status-error":"Ошибка","status-ok":"Работает","status-stopped":"Остановлен","status-warning":"Есть замечания","template-actions-label":"Действия с шаблоном","template-move-label":"Переместить шаблон","template-name-placeholder":"Название","template-pin-label":"Закрепить шаблон сверху","templates-tab-text":"Шаблоны","totals-all":"Всего по фильтру","totals-page":"На странице","tree-collapse":"Свернуть","tree-expand":"Развернуть","tree-more":"Показать ещё","unpin-column-label":"Открепить столбец","untitled-template-text":"Все записи","view-action-text":"Посмотреть","view-density":"Строки","view-density-compact":"Компактно","view-density-normal":"Обычно","view-density-spacious":"Просторно","view-everywhere":"Для всех моих таблиц","view-lines":"Линии между столбцами","view-reset":"Сбросить вид","view-single-line":"Текст в одну строку","view-sticky-head":"Закреплять фильтр и шапку","view-stripes":"Чередовать строки"}}');
 
 /***/ }
 

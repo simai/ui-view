@@ -95,6 +95,81 @@ function normalizeBadgeContract({
 
 /***/ },
 
+/***/ "e081a020262e"
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   copyText: () => (/* binding */ copyText),
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+// Copying text, with the fallback (reuse audit 2026-11-02, finding 11). The
+// clipboard class component and sf-copy-button each wrote this, and
+// chat-message a third time; the order is theirs: the Clipboard API on a
+// secure page, and execCommand('copy') over a hidden field where the API is
+// absent or refused. A secure page whose clipboard permission is denied -- a
+// policy, an embedded frame, a browser that asked and was answered no -- has
+// the API and still refuses it; reading "present" as "allowed" left the
+// fallback that exists for exactly this unreached (component/clipboard,
+// 2026-10).
+
+/**
+ * Copies `text`. Settles with how it was copied, 'native' or 'legacy', or
+ * rejects: Error('copy_unsupported') when the fallback copied nothing, or the
+ * platform's own error (NotAllowedError, SecurityError) when it threw.
+ * `document` is the document whose body holds the fallback field: the
+ * element's own, for a component in another frame.
+ */
+async function copyText(text, {
+  document: documentRef = globalThis.document
+} = {}) {
+  const value = String(text ?? '');
+  const view = documentRef?.defaultView ?? globalThis;
+
+  if (view.isSecureContext && view.navigator?.clipboard?.writeText) {
+    try {
+      await view.navigator.clipboard.writeText(value);
+      return 'native';
+    } catch {// Refused: the fallback is for exactly this.
+    }
+  }
+
+  if (!documentRef?.body || typeof documentRef.execCommand !== 'function') throw new Error('copy_unsupported');
+  const area = documentRef.createElement('textarea'); // The class is the clipboard component's (its sheet hides it); the inline
+  // style keeps the field out of sight on a page without that sheet.
+
+  area.className = 'sf-clipboard-fallback';
+  area.value = value;
+  area.setAttribute('readonly', '');
+  area.setAttribute('aria-hidden', 'true');
+  area.style.cssText = 'position:fixed;inset-inline-start:-9999px;inset-block-start:0;opacity:0';
+  documentRef.body.append(area);
+  area.select(); // iOS selects nothing on select() alone.
+
+  area.setSelectionRange?.(0, value.length);
+  let copied = false;
+
+  try {
+    copied = documentRef.execCommand('copy');
+  } finally {
+    area.remove();
+  }
+
+  if (!copied) throw new Error('copy_unsupported');
+  return 'legacy';
+} // Core publishes the helper; component bundles that carry their own copy reuse
+// an already published one instead of replacing it. SF.Clipboard (capital C)
+// is the clipboard component's script API; this is the bare function.
+
+if (typeof globalThis !== 'undefined') {
+  globalThis.SF = globalThis.SF || {};
+  if (!globalThis.SF.copyText) globalThis.SF.copyText = copyText;
+}
+
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (copyText);
+
+/***/ },
+
 /***/ "1412c5875b4d"
 (__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
@@ -106,6 +181,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   followDensity: () => (/* binding */ followDensity),
 /* harmony export */   markRelativeSizes: () => (/* binding */ markRelativeSizes),
 /* harmony export */   noteAuthored: () => (/* binding */ noteAuthored),
+/* harmony export */   sizeOf: () => (/* binding */ sizeOf),
+/* harmony export */   sizeStep: () => (/* binding */ sizeStep),
 /* harmony export */   sizedBefore: () => (/* binding */ sizedBefore)
 /* harmony export */ });
 // Density (owner decision C22, 2026-11-09). data-sf-density="compact" on the
@@ -202,6 +279,40 @@ function densityOf(from) {
   }
 
   return null;
+} // The size step of the control a popup opens from (owner remark 2026-11-15:
+// the row menu of a table of size 1 opened at 1/2). A popup a component
+// builds outside itself -- a menu on <body> or in the open dialog -- stood on
+// the default step whatever opened it. The step is the first size written
+// from the opener up: the opener's own (a row's «⋯», the native button an
+// sf-button draws), else its component's, else the Smart component that
+// holds it (sf-view-table size="1"). A size a template gave a part it draws
+// (data-sf-size-relative) follows its host, so the walk goes on past it. It
+// ends on the default step (null) at the second custom element without a
+// size: the opener's own component may stand on its default, the host
+// holding it decides.
+
+function sizeOf(from) {
+  let own = true;
+
+  for (let node = from; node?.nodeType === 1; node = node.parentElement) {
+    if (node.hasAttribute('size')) {
+      if (!node.hasAttribute(RELATIVE)) return node.getAttribute('size');
+      continue;
+    }
+
+    if (!node.localName.includes('-')) continue;
+    if (!own) return null;
+    own = false;
+  }
+
+  return null;
+} // A size step as a number of the ladder ("1/2" is 0.5, "2" is 2); NaN for
+// anything else.
+
+function sizeStep(size) {
+  const [top, bottom = '1'] = String(size ?? '').trim().split('/');
+  const step = Number(top) / Number(bottom);
+  return top !== '' && Number.isFinite(step) && step > 0 ? step : Number.NaN;
 }
 
 /***/ },
@@ -214,7 +325,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   calendarDayOffset: () => (/* binding */ calendarDayOffset),
 /* harmony export */   formatDate: () => (/* binding */ formatDate),
+/* harmony export */   knownTimeZone: () => (/* binding */ knownTimeZone),
 /* harmony export */   msUntilNextDay: () => (/* binding */ msUntilNextDay),
+/* harmony export */   timeZoneOffset: () => (/* binding */ timeZoneOffset),
 /* harmony export */   toDate: () => (/* reexport safe */ _format_intl_js__WEBPACK_IMPORTED_MODULE_0__.toDate)
 /* harmony export */ });
 /* harmony import */ var _format_intl_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("15b4e93ff6ed");
@@ -243,8 +356,10 @@ function hasDateStyle(style) {
  *
  * `date` and `time` are Intl styles (short, medium, long, full); `intl` gives
  * Intl.DateTimeFormat options outright, for a form the styles do not name (a
- * chart's tick, «14:05» with two-digit hours). Anything that is not a date is
- * `gap`, '' by default.
+ * chart's tick, «14:05» with two-digit hours). `timeZone` (an IANA name,
+ * Europe/Moscow) writes the moment on that zone's clock instead of the
+ * reader's (owner decision C183 (3): a product that knows the person's zone).
+ * Anything that is not a date is `gap`, '' by default.
  */
 
 
@@ -252,6 +367,7 @@ function formatDate(value, {
   date = 'medium',
   time = null,
   intl = null,
+  timeZone = '',
   gap = '',
   ...where
 } = {}) {
@@ -266,23 +382,107 @@ function formatDate(value, {
     if (!options.dateStyle && !options.timeStyle) options.dateStyle = 'medium';
   }
 
+  if (knownTimeZone(timeZone)) options = { ...options,
+    timeZone
+  };
   return (0,_format_intl_js__WEBPACK_IMPORTED_MODULE_0__.intlFormatter)('DateTimeFormat', (0,_format_intl_js__WEBPACK_IMPORTED_MODULE_0__.formatLocale)(where), options).format(moment);
 }
 /**
- * Calendar days from `now` to the value in the reader's time zone: 0 today,
- * -1 yesterday, 1 tomorrow; NaN when the value is no date. Counted on
- * calendar dates, not 24-hour spans, so 23:59 yesterday is -1 at 00:01 and a
- * day of a clock change is still one day.
+ * Whether the platform knows an IANA time zone name (Europe/Moscow, UTC). An
+ * empty or unknown name is the reader's own zone everywhere here.
+ */
+
+function knownTimeZone(timeZone) {
+  const name = String(timeZone ?? '').trim();
+  if (!name) return false;
+  const root = typeof globalThis !== 'undefined' ? globalThis : {};
+  if (!(root.__sfTimeZones instanceof Map)) root.__sfTimeZones = new Map();
+  if (root.__sfTimeZones.has(name)) return root.__sfTimeZones.get(name);
+  let known = true;
+
+  try {
+    new Intl.DateTimeFormat('en', {
+      timeZone: name
+    });
+  } catch {
+    known = false;
+  }
+
+  if (root.__sfTimeZones.size < 64) root.__sfTimeZones.set(name, known);
+  return known;
+} // The calendar date and the clock of a moment in a zone, as numbers: the
+// reader's own when the zone is none.
+
+function wallClock(moment, timeZone) {
+  if (!knownTimeZone(timeZone)) {
+    return {
+      year: moment.getFullYear(),
+      month: moment.getMonth(),
+      day: moment.getDate(),
+      hour: moment.getHours(),
+      minute: moment.getMinutes(),
+      second: moment.getSeconds()
+    };
+  }
+
+  const parts = {};
+
+  for (const part of (0,_format_intl_js__WEBPACK_IMPORTED_MODULE_0__.intlFormatter)('DateTimeFormat', 'en-US', {
+    timeZone,
+    hourCycle: 'h23',
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: 'numeric',
+    second: 'numeric'
+  }).formatToParts(moment)) {
+    if (part.type !== 'literal') parts[part.type] = Number(part.value);
+  }
+
+  return {
+    year: parts.year,
+    month: parts.month - 1,
+    day: parts.day,
+    hour: parts.hour % 24,
+    minute: parts.minute,
+    second: parts.second
+  };
+}
+/**
+ * The zone's offset from UTC at a moment, in minutes (Moscow +180, New York
+ * -300 in winter); the reader's own when the zone is none.
+ */
+
+
+function timeZoneOffset(value, {
+  timeZone = ''
+} = {}) {
+  const moment = (0,_format_intl_js__WEBPACK_IMPORTED_MODULE_0__.toDate)(value);
+  if (!moment) return Number.NaN;
+  if (!knownTimeZone(timeZone)) return -moment.getTimezoneOffset();
+  const clock = wallClock(moment, timeZone);
+  const asUtc = Date.UTC(clock.year, clock.month, clock.day, clock.hour, clock.minute, clock.second);
+  return Math.round((asUtc - Math.floor(moment.getTime() / 1000) * 1000) / 60000);
+}
+/**
+ * Calendar days from `now` to the value in the reader's time zone (or
+ * `timeZone`'s): 0 today, -1 yesterday, 1 tomorrow; NaN when the value is no
+ * date. Counted on calendar dates, not 24-hour spans, so 23:59 yesterday is
+ * -1 at 00:01 and a day of a clock change is still one day.
  */
 
 function calendarDayOffset(value, {
-  now = new Date()
+  now = new Date(),
+  timeZone = ''
 } = {}) {
   const moment = (0,_format_intl_js__WEBPACK_IMPORTED_MODULE_0__.toDate)(value);
   const today = (0,_format_intl_js__WEBPACK_IMPORTED_MODULE_0__.toDate)(now);
   if (!moment || !today) return Number.NaN;
-  const day = Date.UTC(moment.getFullYear(), moment.getMonth(), moment.getDate());
-  const base = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
+  const at = wallClock(moment, timeZone);
+  const from = wallClock(today, timeZone);
+  const day = Date.UTC(at.year, at.month, at.day);
+  const base = Date.UTC(from.year, from.month, from.day);
   return Math.round((day - base) / DAY_MS);
 }
 /**
@@ -292,10 +492,26 @@ function calendarDayOffset(value, {
  * draws them again; «сегодня» said yesterday is wrong by morning.
  */
 
-function msUntilNextDay(now = new Date()) {
+function msUntilNextDay(now = new Date(), {
+  timeZone = ''
+} = {}) {
   const today = (0,_format_intl_js__WEBPACK_IMPORTED_MODULE_0__.toDate)(now) ?? new Date();
-  const next = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
-  return next.getTime() - today.getTime();
+
+  if (!knownTimeZone(timeZone)) {
+    const next = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+    return next.getTime() - today.getTime();
+  } // In a named zone: the time left on its clock until 24:00, corrected by a
+  // change of its offset before then (a clock change at night).
+
+
+  const clock = wallClock(today, timeZone);
+  const left = DAY_MS - ((clock.hour * 60 + clock.minute) * 60 + clock.second) * 1000 - today.getMilliseconds();
+  const shift = timeZoneOffset(today, {
+    timeZone
+  }) - timeZoneOffset(new Date(today.getTime() + left), {
+    timeZone
+  });
+  return Math.max(1, left + shift * 60000);
 }
 __webpack_async_result__();
 } catch(e) { __webpack_async_result__(e); } });
@@ -384,9 +600,159 @@ __webpack_async_result__();
 
 /***/ },
 
-/***/ "1b42c5117087"
-(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+/***/ "c9ce0852ac73"
+(module, __webpack_exports__, __webpack_require__) {
 
+__webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   formatNumber: () => (/* binding */ formatNumber),
+/* harmony export */   numberOptions: () => (/* binding */ numberOptions),
+/* harmony export */   percentSign: () => (/* binding */ percentSign),
+/* harmony export */   percentText: () => (/* binding */ percentText)
+/* harmony export */ });
+/* harmony import */ var _format_intl_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("15b4e93ff6ed");
+var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_format_intl_js__WEBPACK_IMPORTED_MODULE_0__]);
+var __webpack_async_dependencies_result__ = (__webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
+_format_intl_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_async_dependencies_result__[0];
+// Numbers in the page's language by a format word: formatNumber and
+// numberOptions alone, with no top-level side effects (format-intl.js). The
+// same functions as core/js/format.js and SF.format.number; a bundle that
+// formats numbers only imports them from here.
+
+/**
+ * The Intl options of a number format word (ui-chart's words, kept so a page
+ * writes a format as an attribute):
+ *
+ *   number (default)  1 234,5   as many digits as `step` needs, at most 6; 2 without one
+ *   integer           1 235
+ *   decimal-<n>       n digits after the point, always (0 to 20)
+ *   share             a share 0..1 as 12 % (0.125 is 12,5 %)
+ *   percent           the same share: the charts' word, kept
+ *   unit-percent      a value that already is the percent (12.5 is 12,5 %),
+ *                     as the property type `percent` stores it
+ *   compact           1,2 тыс.  /  1.2K
+ *   currency-<CODE>   1 234,50 ₽ (an ISO 4217 code)
+ *   unit-<unit>       45,3 ГБ (an Intl unit: gigabyte, megabit-per-second)
+ *
+ * Anything else reads as number. Words join with a space: a kind (currency-,
+ * unit-, percent) and a precision (integer, decimal-<n>, compact), so
+ * «currency-RUB integer» is 1 235 ₽, «currency-RUB decimal-2» 1 234,50 ₽ and
+ * «currency-RUB compact» 1,1 млн ₽. The precision wins whatever the order.
+ */
+
+function numberOptions(format = 'number', step = 0) {
+  const words = String(format || 'number').trim().split(/\s+/u).filter(Boolean);
+
+  if (words.length > 1) {
+    const PRECISION = /^(?:integer|compact|decimal-\d{1,2})$/u;
+    const kinds = words.filter(one => !PRECISION.test(one));
+    const precision = words.filter(one => PRECISION.test(one));
+    return [...kinds, ...precision].reduce((options, one) => ({ ...options,
+      ...numberOptions(one, step)
+    }), {});
+  }
+
+  const word = words[0] ?? 'number';
+  if (word === 'integer') return {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }; // Two meanings of «percent» met in the Framework (C294, MP-4): this word
+  // multiplies a share by 100, while the property type `percent` holds the
+  // percent itself. `share` says which one it is; `percent` stays its alias for
+  // the charts that write it, and `unit-percent` is the percent itself.
+
+  if (word === 'share' || word === 'percent') return {
+    style: 'percent',
+    maximumFractionDigits: 1
+  };
+  if (word === 'compact') return {
+    notation: 'compact',
+    maximumFractionDigits: 1
+  };
+  const decimal = /^decimal-(\d{1,2})$/u.exec(word);
+
+  if (decimal) {
+    const digits = Math.min(20, Number(decimal[1]));
+    return {
+      minimumFractionDigits: digits,
+      maximumFractionDigits: digits
+    };
+  }
+
+  const unit = /^unit-([a-z]+(?:-per-[a-z]+)?)$/u.exec(word);
+  if (unit) return {
+    style: 'unit',
+    unit: unit[1],
+    unitDisplay: 'short',
+    maximumFractionDigits: 1
+  };
+  const currency = /^currency-([A-Z]{3})$/u.exec(word);
+  if (currency) return {
+    style: 'currency',
+    currency: currency[1]
+  };
+  const digits = step > 0 && step < 1 ? Math.min(6, Math.ceil(-Math.log10(step) - 1e-9)) : 2;
+  return {
+    maximumFractionDigits: digits
+  };
+}
+/**
+ * A number in the locale by a format word (numberOptions). `grouping: false`
+ * writes it without thousands marks («2026»), `step` sets the digits of
+ * `number`, and a value that is not a finite number is `gap`, '' by default
+ * (a chart passes '—').
+ */
+
+function formatNumber(value, format = 'number', {
+  step = 0,
+  gap = '',
+  grouping = true,
+  ...where
+} = {}) {
+  const number = typeof value === 'string' && value.trim() !== '' ? Number(value) : value;
+  if (typeof number !== 'number' || !Number.isFinite(number)) return gap;
+  const options = numberOptions(format, step);
+  if (grouping === false) options.useGrouping = false;
+  const text = (0,_format_intl_js__WEBPACK_IMPORTED_MODULE_0__.intlFormatter)('NumberFormat', (0,_format_intl_js__WEBPACK_IMPORTED_MODULE_0__.formatLocale)(where), options).format(number);
+  return options.style === 'percent' || options.unit === 'percent' ? percentSign(text) : text;
+}
+/**
+ * One spelling of a per cent in every language (owner decision C203 (3), DEV
+ * msg-913fd9e4, 2026-11-15): the number, a no-break space (U+00A0) and «%» --
+ * «72 %», «12,5 %», and «72 %» in English too, where Intl writes «72%». A
+ * language that writes the sign first («%72») keeps its order.
+ */
+
+function percentSign(text) {
+  // A right-to-left language writes direction marks around the sign («12.5‎%‎»
+  // in Arabic); they go with the space it had, and the number keeps the mark
+  // it starts with (C294).
+  return String(text).replace(/[\s\u00a0\u202f\u200e\u200f\u061c]*%[\u200e\u200f\u061c]*$/u, '\u00a0%');
+}
+/**
+ * A value that already is a per cent (0..100, «72», «72.5») as the progress
+ * family shows and says it (owner decision C203 (3), IM-3): the number in the
+ * language of the node's part of the page, as many digits as it has (up to
+ * 2), a no-break space and «%» -- «72 %», «72,5 %».
+ */
+
+function percentText(value, node) {
+  const number = Number(value);
+  return percentSign(`${formatNumber(Number.isFinite(number) ? number : 0, 'number', {
+    node,
+    grouping: false
+  })}%`);
+}
+__webpack_async_result__();
+} catch(e) { __webpack_async_result__(e); } });
+
+/***/ },
+
+/***/ "1b42c5117087"
+(module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   ICON_CHOICES: () => (/* binding */ ICON_CHOICES),
@@ -394,6 +760,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__),
 /* harmony export */   iconWords: () => (/* binding */ iconWords)
 /* harmony export */ });
+/* harmony import */ var _page_language_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("43090d1c8307");
+/* harmony import */ var _lang_icon_search_index_mjs__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__("4bd9c3b168e0");
+var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_page_language_js__WEBPACK_IMPORTED_MODULE_0__]);
+var __webpack_async_dependencies_result__ = (__webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
+_page_language_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_async_dependencies_result__[0];
+/* harmony import */ var _page_language_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_page_language_js__WEBPACK_IMPORTED_MODULE_0__);
 // The glyphs a person may mark a part of an interface with -- a section of a
 // record, a row of a menu, a tile of a dashboard. A hundred and twenty names
 // from the Framework's own icon set, the ones products actually reach for,
@@ -409,492 +781,40 @@ __webpack_require__.r(__webpack_exports__);
 // (C151 point 8). The choice
 // itself is drawn by sf-dropdown with options of kind icon (layout grid,
 // search), as sf-view-properties and sf-admin-menu do.
-// The words a person searches the choice by (owner decision C151 point 8): a
+
+ // The words a person searches the choice by (owner decision C151 point 8): a
 // Russian and an English word or two for each glyph, the name's own words
 // among the English ones. sf-dropdown matches its icon options against them
 // in either language, so «папка» finds folder and «folder» still does.
-const ICON_CHOICE_WORDS = Object.freeze({
-  folder: {
-    ru: ["папка", "каталог"],
-    en: ["folder", "directory"]
-  },
-  folder_open: {
-    ru: ["открытая", "папка"],
-    en: ["open", "folder"]
-  },
-  topic: {
-    ru: ["тема", "раздел"],
-    en: ["topic", "section"]
-  },
-  home: {
-    ru: ["главная", "дом"],
-    en: ["home", "main"]
-  },
-  dashboard: {
-    ru: ["панель", "сводка"],
-    en: ["dashboard", "overview"]
-  },
-  apartment: {
-    ru: ["здание", "организация"],
-    en: ["building", "organisation"]
-  },
-  store: {
-    ru: ["магазин"],
-    en: ["store", "shop"]
-  },
-  storefront: {
-    ru: ["витрина", "магазин"],
-    en: ["storefront", "shop"]
-  },
-  business_center: {
-    ru: ["портфель", "бизнес"],
-    en: ["business", "briefcase"]
-  },
-  work: {
-    ru: ["работа", "портфель"],
-    en: ["work", "briefcase"]
-  },
-  badge: {
-    ru: ["пропуск", "удостоверение"],
-    en: ["badge", "pass", "id"]
-  },
-  person: {
-    ru: ["человек", "пользователь"],
-    en: ["person", "user"]
-  },
-  group: {
-    ru: ["группа", "люди"],
-    en: ["group", "people"]
-  },
-  groups: {
-    ru: ["группы", "сообщество"],
-    en: ["groups", "community"]
-  },
-  account_circle: {
-    ru: ["профиль", "аккаунт"],
-    en: ["account", "profile"]
-  },
-  manage_accounts: {
-    ru: ["управление", "пользователями"],
-    en: ["manage", "accounts", "users"]
-  },
-  supervisor_account: {
-    ru: ["руководитель", "команда"],
-    en: ["supervisor", "team"]
-  },
-  contacts: {
-    ru: ["контакты"],
-    en: ["contacts"]
-  },
-  school: {
-    ru: ["обучение", "школа"],
-    en: ["school", "learning"]
-  },
-  menu_book: {
-    ru: ["книга", "справочник"],
-    en: ["book", "manual"]
-  },
-  assignment: {
-    ru: ["задание"],
-    en: ["assignment"]
-  },
-  task: {
-    ru: ["задача"],
-    en: ["task"]
-  },
-  description: {
-    ru: ["документ", "описание"],
-    en: ["document", "description"]
-  },
-  article: {
-    ru: ["статья"],
-    en: ["article"]
-  },
-  note_alt: {
-    ru: ["заметка"],
-    en: ["note"]
-  },
-  edit_note: {
-    ru: ["правка", "заметки"],
-    en: ["edit", "note"]
-  },
-  draft: {
-    ru: ["черновик"],
-    en: ["draft"]
-  },
-  receipt: {
-    ru: ["чек", "квитанция"],
-    en: ["receipt"]
-  },
-  receipt_long: {
-    ru: ["счёт", "чек"],
-    en: ["bill", "receipt"]
-  },
-  request_quote: {
-    ru: ["смета", "предложение"],
-    en: ["quote", "estimate"]
-  },
-  inventory_2: {
-    ru: ["архив", "склад"],
-    en: ["archive", "inventory"]
-  },
-  category: {
-    ru: ["категории"],
-    en: ["category"]
-  },
-  label: {
-    ru: ["метка", "ярлык"],
-    en: ["label", "tag"]
-  },
-  sell: {
-    ru: ["цена", "продажа"],
-    en: ["price", "sell"]
-  },
-  local_offer: {
-    ru: ["скидка", "предложение"],
-    en: ["offer", "discount"]
-  },
-  shopping_cart: {
-    ru: ["корзина"],
-    en: ["shopping", "cart"]
-  },
-  shopping_bag: {
-    ru: ["покупки", "сумка"],
-    en: ["shopping", "bag"]
-  },
-  payments: {
-    ru: ["оплата", "деньги"],
-    en: ["payments", "money"]
-  },
-  savings: {
-    ru: ["сбережения", "копилка"],
-    en: ["savings"]
-  },
-  credit_card: {
-    ru: ["карта", "оплата"],
-    en: ["credit", "card"]
-  },
-  account_balance: {
-    ru: ["банк"],
-    en: ["bank", "account"]
-  },
-  calculate: {
-    ru: ["калькулятор", "расчёт"],
-    en: ["calculator"]
-  },
-  percent: {
-    ru: ["процент"],
-    en: ["percent"]
-  },
-  trending_up: {
-    ru: ["рост", "тренд"],
-    en: ["trend", "growth"]
-  },
-  analytics: {
-    ru: ["аналитика"],
-    en: ["analytics"]
-  },
-  insights: {
-    ru: ["выводы", "инсайты"],
-    en: ["insights"]
-  },
-  monitoring: {
-    ru: ["мониторинг"],
-    en: ["monitoring"]
-  },
-  bar_chart: {
-    ru: ["диаграмма", "график"],
-    en: ["bar", "chart"]
-  },
-  pie_chart: {
-    ru: ["круговая", "диаграмма"],
-    en: ["pie", "chart"]
-  },
-  table_chart: {
-    ru: ["таблица"],
-    en: ["table"]
-  },
-  schedule: {
-    ru: ["время", "часы", "расписание"],
-    en: ["time", "clock", "schedule"]
-  },
-  event: {
-    ru: ["событие"],
-    en: ["event"]
-  },
-  today: {
-    ru: ["сегодня"],
-    en: ["today"]
-  },
-  calendar_month: {
-    ru: ["календарь"],
-    en: ["calendar"]
-  },
-  date_range: {
-    ru: ["период", "даты"],
-    en: ["date", "range"]
-  },
-  history: {
-    ru: ["история"],
-    en: ["history"]
-  },
-  alarm: {
-    ru: ["будильник", "напоминание"],
-    en: ["alarm"]
-  },
-  timer: {
-    ru: ["таймер"],
-    en: ["timer"]
-  },
-  update: {
-    ru: ["обновление"],
-    en: ["update"]
-  },
-  hourglass_top: {
-    ru: ["ожидание", "песочные", "часы"],
-    en: ["hourglass", "waiting"]
-  },
-  mail: {
-    ru: ["почта", "письмо"],
-    en: ["mail", "email", "letter"]
-  },
-  outgoing_mail: {
-    ru: ["исходящие", "отправка"],
-    en: ["outgoing", "mail"]
-  },
-  chat: {
-    ru: ["чат", "сообщение"],
-    en: ["chat", "message"]
-  },
-  forum: {
-    ru: ["обсуждение", "форум"],
-    en: ["forum", "discussion"]
-  },
-  sms: {
-    ru: ["смс", "сообщение"],
-    en: ["sms", "text"]
-  },
-  call: {
-    ru: ["звонок", "телефон"],
-    en: ["call", "phone"]
-  },
-  phone_in_talk: {
-    ru: ["разговор"],
-    en: ["phone", "call", "talk"]
-  },
-  contact_support: {
-    ru: ["поддержка"],
-    en: ["support", "help"]
-  },
-  campaign: {
-    ru: ["рассылка", "объявление"],
-    en: ["campaign", "announcement"]
-  },
-  notifications: {
-    ru: ["уведомления"],
-    en: ["notifications"]
-  },
-  language: {
-    ru: ["язык", "мир"],
-    en: ["language", "world"]
-  },
-  public: {
-    ru: ["сайт", "мир", "интернет"],
-    en: ["public", "web", "world"]
-  },
-  place: {
-    ru: ["место"],
-    en: ["place"]
-  },
-  map: {
-    ru: ["карта"],
-    en: ["map"]
-  },
-  location_on: {
-    ru: ["адрес", "место"],
-    en: ["location", "address"]
-  },
-  travel_explore: {
-    ru: ["поиск", "по", "миру"],
-    en: ["travel", "explore"]
-  },
-  flight: {
-    ru: ["перелёт", "самолёт"],
-    en: ["flight", "plane"]
-  },
-  local_shipping: {
-    ru: ["доставка"],
-    en: ["shipping", "delivery"]
-  },
-  route: {
-    ru: ["маршрут"],
-    en: ["route"]
-  },
-  directions: {
-    ru: ["направление"],
-    en: ["directions"]
-  },
-  settings: {
-    ru: ["настройки"],
-    en: ["settings"]
-  },
-  tune: {
-    ru: ["фильтр", "параметры"],
-    en: ["tune", "filter"]
-  },
-  build: {
-    ru: ["инструменты", "сборка"],
-    en: ["build", "tools"]
-  },
-  construction: {
-    ru: ["стройка"],
-    en: ["construction"]
-  },
-  handyman: {
-    ru: ["ремонт", "мастер"],
-    en: ["handyman", "repair"]
-  },
-  code: {
-    ru: ["код"],
-    en: ["code"]
-  },
-  terminal: {
-    ru: ["терминал", "консоль"],
-    en: ["terminal", "console"]
-  },
-  data_object: {
-    ru: ["объект", "данные"],
-    en: ["data", "object"]
-  },
-  api: {
-    ru: ["интерфейс", "api"],
-    en: ["api"]
-  },
-  bug_report: {
-    ru: ["ошибка", "баг"],
-    en: ["bug"]
-  },
-  database: {
-    ru: ["база", "данных"],
-    en: ["database"]
-  },
-  storage: {
-    ru: ["хранилище"],
-    en: ["storage"]
-  },
-  cloud: {
-    ru: ["облако"],
-    en: ["cloud"]
-  },
-  backup: {
-    ru: ["резервная", "копия"],
-    en: ["backup"]
-  },
-  sync: {
-    ru: ["синхронизация"],
-    en: ["sync"]
-  },
-  folder_zip: {
-    ru: ["архив", "zip"],
-    en: ["zip", "archive"]
-  },
-  upload_file: {
-    ru: ["загрузка", "файла"],
-    en: ["upload", "file"]
-  },
-  download: {
-    ru: ["скачать"],
-    en: ["download"]
-  },
-  attach_file: {
-    ru: ["вложение", "скрепка"],
-    en: ["attach", "file"]
-  },
-  link: {
-    ru: ["ссылка"],
-    en: ["link"]
-  },
-  lock: {
-    ru: ["замок", "доступ"],
-    en: ["lock"]
-  },
-  lock_open: {
-    ru: ["открытый", "доступ"],
-    en: ["unlock", "open"]
-  },
-  shield: {
-    ru: ["защита"],
-    en: ["shield", "protection"]
-  },
-  verified_user: {
-    ru: ["проверено", "безопасность"],
-    en: ["verified", "user"]
-  },
-  key: {
-    ru: ["ключ"],
-    en: ["key"]
-  },
-  admin_panel_settings: {
-    ru: ["администрирование"],
-    en: ["admin"]
-  },
-  policy: {
-    ru: ["правила", "политика"],
-    en: ["policy"]
-  },
-  gavel: {
-    ru: ["закон", "право"],
-    en: ["law", "gavel"]
-  },
-  fingerprint: {
-    ru: ["отпечаток"],
-    en: ["fingerprint"]
-  },
-  visibility: {
-    ru: ["видимость", "просмотр"],
-    en: ["visibility", "view"]
-  },
-  palette: {
-    ru: ["палитра", "цвет"],
-    en: ["palette", "colour", "color"]
-  },
-  format_paint: {
-    ru: ["оформление", "кисть"],
-    en: ["format", "paint"]
-  },
-  image: {
-    ru: ["картинка", "изображение"],
-    en: ["image", "picture"]
-  },
-  photo_library: {
-    ru: ["фото", "галерея"],
-    en: ["photos", "gallery"]
-  },
-  collections: {
-    ru: ["коллекции"],
-    en: ["collections"]
-  },
-  movie: {
-    ru: ["видео", "фильм"],
-    en: ["movie", "video"]
-  },
-  play_circle: {
-    ru: ["воспроизведение"],
-    en: ["play"]
-  },
-  mic: {
-    ru: ["микрофон"],
-    en: ["microphone"]
-  },
-  headphones: {
-    ru: ["наушники", "звук"],
-    en: ["headphones", "audio"]
-  },
-  brush: {
-    ru: ["кисть", "рисование"],
-    en: ["brush"]
+// The words live in core's language files (owner decision C282):
+// src/core/js/lang/icon-search/<code>.json, a glyph's words joined by commas.
+// English is built in; Russian (and any other language) is the words its
+// language file registered for sf-icon-search, its icon-search part, fetched
+// the first time a search asks for them. ICON_CHOICE_WORDS keeps its shape,
+// {name: {ru: [...], en: [...]}}: ru reads the registered words when it is read.
+
+const splitWords = text => String(text ?? '').split(',').map(word => word.trim()).filter(Boolean);
+
+function languageWords(code, name) {
+  const own = _lang_icon_search_index_mjs__WEBPACK_IMPORTED_MODULE_1__["default"][code]?.[name];
+  if (own !== undefined) return splitWords(own); // localeText asks core for the language's icon-search part when it is not
+  // here yet (and says the English words meanwhile); only a word registered
+  // for the language itself counts.
+
+  (0,_page_language_js__WEBPACK_IMPORTED_MODULE_0__.localeText)(_lang_icon_search_index_mjs__WEBPACK_IMPORTED_MODULE_1__["default"], name, code, 'sf-icon-search');
+  return splitWords(globalThis.__sfPageLanguage?.registered?.get?.('sf-icon-search')?.get?.(code)?.[name]);
+}
+
+const ICON_CHOICE_WORDS = /* @__PURE__ */Object.freeze(Object.fromEntries(Object.keys(_lang_icon_search_index_mjs__WEBPACK_IMPORTED_MODULE_1__["default"].en).map(name => [name, Object.freeze(Object.defineProperties({}, {
+  ru: {
+    enumerable: true,
+    get: () => languageWords('ru', name)
+  },
+  en: {
+    enumerable: true,
+    value: Object.freeze(splitWords(_lang_icon_search_index_mjs__WEBPACK_IMPORTED_MODULE_1__["default"].en[name]))
   }
-}); // The words of any glyph name: the choice's words, or the name read as words
+}))]))); // The words of any glyph name: the choice's words, or the name read as words
 // (folder_open -> folder open) for a glyph outside the choice.
 
 function iconWords(name) {
@@ -919,6 +839,536 @@ if (typeof globalThis !== 'undefined') {
 }
 
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (ICON_CHOICES);
+__webpack_async_result__();
+} catch(e) { __webpack_async_result__(e); } });
+
+/***/ },
+
+/***/ "c11c730f061a"
+(module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   DATE_FUTURE_PERIODS: () => (/* binding */ DATE_FUTURE_PERIODS),
+/* harmony export */   DATE_PERIODS: () => (/* binding */ DATE_PERIODS),
+/* harmony export */   LEGACY_DATE_OPERATORS: () => (/* binding */ LEGACY_DATE_OPERATORS),
+/* harmony export */   LEGACY_DATE_OPERATORS_UNTIL: () => (/* binding */ LEGACY_DATE_OPERATORS_UNTIL),
+/* harmony export */   buildFilterRequest: () => (/* binding */ buildFilterRequest),
+/* harmony export */   dateConditionLabel: () => (/* binding */ dateConditionLabel),
+/* harmony export */   dateConditionOf: () => (/* binding */ dateConditionOf),
+/* harmony export */   dateConditionPhrase: () => (/* binding */ dateConditionPhrase),
+/* harmony export */   dateConditionValue: () => (/* binding */ dateConditionValue),
+/* harmony export */   dateFilterChipText: () => (/* binding */ dateFilterChipText),
+/* harmony export */   dateFilterConditions: () => (/* binding */ dateFilterConditions),
+/* harmony export */   dateFilterKind: () => (/* binding */ dateFilterKind),
+/* harmony export */   dateGroupLabel: () => (/* binding */ dateGroupLabel),
+/* harmony export */   filterRequestContext: () => (/* binding */ filterRequestContext),
+/* harmony export */   isEmptyFilterEntry: () => (/* binding */ isEmptyFilterEntry),
+/* harmony export */   normalizeFilterEntry: () => (/* binding */ normalizeFilterEntry),
+/* harmony export */   resolveDatePeriod: () => (/* binding */ resolveDatePeriod)
+/* harmony export */ });
+/* harmony import */ var _core_js_page_language_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("43090d1c8307");
+/* harmony import */ var _core_js_deprecations_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__("d3818183b14c");
+/* harmony import */ var _input_date_js_locale_calendar_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__("c4779e51fee1");
+/* harmony import */ var _lang_index_mjs__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__("354525e80715");
+var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_core_js_page_language_js__WEBPACK_IMPORTED_MODULE_0__, _core_js_deprecations_js__WEBPACK_IMPORTED_MODULE_1__]);
+([_core_js_page_language_js__WEBPACK_IMPORTED_MODULE_0__, _core_js_deprecations_js__WEBPACK_IMPORTED_MODULE_1__] = __webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
+/* harmony import */ var _core_js_page_language_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_core_js_page_language_js__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _core_js_deprecations_js__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_core_js_deprecations_js__WEBPACK_IMPORTED_MODULE_1__);
+// The date filter's conditions, its server contract and its words (owner
+// decision C293, 2026-11-17; study ui-control
+// prototypes/date-filter-conditions-study.html, notes
+// control/research/2026-11-17-date-filter/README.md).
+//
+// A field holds one date (a date, or a date and time) or a period (a start and
+// an end). The filter is a condition first and then exactly what the condition
+// needs: nothing, one day, two days, a number of days, or -- for a period
+// field -- a period by name or two days. One condition per field travels to the
+// server as {operator, value}:
+//
+//   one date    eq, lt, gt, gte, lte          value: "yyyy-mm-dd"
+//               between                       value: ["yyyy-mm-dd", "yyyy-mm-dd"], both days in
+//               period                        value: a period's name (DATE_PERIODS)
+//               last-days, next-days          value: a whole number of days, today counted
+//   a period    overlaps, within, starts, ends   value: a period's name or two days
+//               contains                      value: "yyyy-mm-dd"
+//   both        empty, not-empty              value: true
+//
+// The request carries the context the server resolves the periods in,
+// {timeZone, weekStart} (weekStart 0 Sunday .. 6 Saturday, as Date#getDay
+// counts): «this week» is the server's to work out, by name, so a saved view
+// stays «this week» and the browser's clock is not trusted. A date and time is
+// compared by its day in that time zone.
+//
+// The operators today, week and month (fix/date-pd) are read as the periods
+// today, this-week and this-month until 2027-01-01 (contracts/changes/journal.json
+// value-date-filter-period-operators).
+//
+// No DOM here and no Lit: the table, a record view and a server-side test read
+// the same rules.
+
+
+
+
+const SET_NAME = 'sf-field-renderers'; // Whole calendar periods (this week is Monday to Sunday where the week starts
+// on Monday, this month to its last day, this year to 31 December) and the
+// rolling «last 7 days», today and the six days before it.
+
+const DATE_PERIODS = Object.freeze(['today', 'yesterday', 'this-week', 'last-week', 'last-7-days', 'this-month', 'last-month', 'this-year']); // A deadline field (filter.future: true) also looks forward. «Overdue» is not
+// a date condition: it depends on the record's status.
+
+const DATE_FUTURE_PERIODS = Object.freeze(['tomorrow', 'next-week', 'next-month']);
+const LEGACY_DATE_OPERATORS = Object.freeze({
+  today: 'today',
+  week: 'this-week',
+  month: 'this-month'
+});
+const LEGACY_DATE_OPERATORS_UNTIL = '2027-01-01'; // What a condition needs: none | day | days | count | when (a period's name or
+// two days).
+
+const DAY_OPERATORS = ['eq', 'lt', 'gt', 'gte', 'lte'];
+const PERIOD_FIELD_OPERATORS = ['overlaps', 'within', 'starts', 'ends'];
+
+function condition(operator, need, group, period = '') {
+  return Object.freeze({
+    key: period ? `period:${period}` : operator,
+    operator,
+    need,
+    group,
+    ...(period ? {
+      period
+    } : {})
+  });
+}
+
+function singleConditions(future) {
+  return [condition('eq', 'day', 'date'), condition('between', 'days', 'date'), condition('lt', 'day', 'date'), condition('gt', 'day', 'date'), condition('gte', 'day', 'date'), condition('lte', 'day', 'date'), ...DATE_PERIODS.map(name => condition('period', 'none', 'period', name)), condition('last-days', 'count', 'period'), ...(future ? [condition('period', 'none', 'period', 'tomorrow'), condition('period', 'none', 'period', 'next-week'), condition('next-days', 'count', 'period'), condition('period', 'none', 'period', 'next-month')] : []), condition('empty', 'none', 'filled'), condition('not-empty', 'none', 'filled')];
+}
+
+function periodFieldConditions() {
+  return [...PERIOD_FIELD_OPERATORS.map(operator => condition(operator, 'when', 'range')), condition('contains', 'day', 'range'), condition('empty', 'none', 'filled'), condition('not-empty', 'none', 'filled')];
+} // A field is a period when it says so: its property type or control is
+// `period`, or its filter's kind is. Every other date field holds one date.
+
+
+function dateFilterKind(field = {}) {
+  const asked = [field.filter?.kind, field.filter?.control, field.propertyType, field.type];
+  return asked.includes('period') ? 'period' : 'date';
+}
+
+function isDueField(field = {}) {
+  return field.filter?.future === true || field.future === true;
+} // The conditions the field's filter offers, in the order of the list. A host's
+// filter.operators narrows them: an operator it names stays, `period` keeps
+// every period, and the old today, week and month keep every period and «last
+// N days» (they were the list's periods).
+
+
+function dateFilterConditions(field = {}) {
+  const all = dateFilterKind(field) === 'period' ? periodFieldConditions() : singleConditions(isDueField(field));
+  const asked = field.filter?.operators;
+  if (!Array.isArray(asked) || !asked.length) return all;
+  const names = new Set();
+
+  for (const operator of asked) {
+    const name = String(operator);
+
+    if (LEGACY_DATE_OPERATORS[name]) {
+      names.add('period');
+      names.add('last-days');
+      names.add('next-days');
+    } else names.add(name);
+  }
+
+  const kept = all.filter(one => names.has(one.operator));
+  return kept.length ? kept : all;
+}
+
+function isDay(value) {
+  return typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/u.test(value);
+}
+
+function dayOf(value) {
+  if (typeof value !== 'string') return '';
+  const day = value.slice(0, 10);
+  return isDay(day) ? day : '';
+}
+
+function isTwoDays(value) {
+  return Array.isArray(value) && value.length === 2 && isDay(dayOf(value[0])) && isDay(dayOf(value[1]));
+}
+
+function isPeriodName(value) {
+  return typeof value === 'string' && (DATE_PERIODS.includes(value) || DATE_FUTURE_PERIODS.includes(value));
+}
+
+function isCount(value) {
+  const number = Number(value);
+  return value !== '' && value !== null && value !== true && Number.isInteger(number) && number > 0;
+} // The old operators as the new periods, noted once per page in
+// SF.deprecations until LEGACY_DATE_OPERATORS_UNTIL.
+
+
+function normalizeFilterEntry(entry) {
+  if (!entry || typeof entry !== 'object' || Array.isArray(entry)) return entry;
+  const period = LEGACY_DATE_OPERATORS[entry.operator];
+  if (!period) return entry;
+  (0,_core_js_deprecations_js__WEBPACK_IMPORTED_MODULE_1__.noteDeprecated)({
+    component: SET_NAME,
+    kind: 'value',
+    attribute: 'filter operator',
+    from: entry.operator,
+    to: `period ${period}`,
+    since: '2026-11-17',
+    remove_after: LEGACY_DATE_OPERATORS_UNTIL
+  });
+  return { ...entry,
+    operator: 'period',
+    value: period
+  };
+}
+
+function isBlank(value) {
+  if (value === null || value === undefined) return true;
+  if (Array.isArray(value)) return value.every(isBlank);
+  if (typeof value === 'string') return value.trim() === '';
+  if (typeof value === 'object') return Object.values(value).every(isBlank);
+  return false;
+} // Whether a filter entry says nothing yet, so the table drops it with its
+// chip. It reads the operator (DF-1): a period, «empty» and «not empty» are
+// whole by themselves, and a condition that needs a day is empty without one.
+// An entry of any other field keeps the old reading: empty when its value or
+// values are.
+
+
+function isEmptyFilterEntry(entry) {
+  if (!entry || typeof entry !== 'object' || Array.isArray(entry)) return isBlank(entry);
+  const one = LEGACY_DATE_OPERATORS[entry.operator] ? normalizeFilterEntry(entry) : entry;
+  const {
+    operator,
+    value
+  } = one;
+
+  switch (operator) {
+    case 'empty':
+    case 'not-empty':
+      return false;
+
+    case 'period':
+      return !isPeriodName(value);
+
+    case 'last-days':
+    case 'next-days':
+      return !isCount(value);
+
+    case 'overlaps':
+    case 'within':
+    case 'starts':
+    case 'ends':
+      return !(isPeriodName(value) || isTwoDays(value));
+
+    default:
+      break;
+  }
+
+  if (Object.prototype.hasOwnProperty.call(one, 'values')) return isBlank(one.values);
+  if (Object.prototype.hasOwnProperty.call(one, 'value')) return isBlank(one.value);
+  return Object.entries(one).filter(([key]) => !['operator', 'control', 'type'].includes(key)).every(([, item]) => isBlank(item));
+} // The value a condition starts with when it is chosen: the stale day of the
+// condition before is not carried into a period (DF-2), but a day stays a day
+// and two days stay two days.
+
+function dateConditionValue(next, previous = {}) {
+  const before = previous?.value;
+
+  switch (next.need) {
+    case 'none':
+      return next.period || true;
+
+    case 'day':
+      return isDay(dayOf(before)) ? dayOf(before) : null;
+
+    case 'days':
+      return isTwoDays(before) ? before.map(dayOf) : null;
+
+    case 'count':
+      return isCount(before) ? Number(before) : 30;
+
+    case 'when':
+      return isPeriodName(before) || isTwoDays(before) ? before : 'this-week';
+
+    default:
+      return null;
+  }
+} // The condition an entry stands for, in the field's list.
+
+function dateConditionOf(field, entry) {
+  const list = dateFilterConditions(field);
+  const one = normalizeFilterEntry(entry || {});
+  if (one?.operator === 'period') return list.find(item => item.period === one.value) ?? null;
+  return list.find(item => item.operator === one?.operator) ?? null;
+} // The context a request carries: the time zone and the first day of the week
+// the server resolves the periods in. A host that knows the person's own
+// (monday.com takes them from the profile) passes them; otherwise the
+// browser's zone and the page language's week.
+
+function filterRequestContext(node = null, {
+  timeZone,
+  weekStart
+} = {}) {
+  let zone = typeof timeZone === 'string' && timeZone ? timeZone : '';
+
+  if (!zone) {
+    try {
+      zone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+    } catch {
+      zone = 'UTC';
+    }
+  }
+
+  const start = Number.isInteger(weekStart) && weekStart >= 0 && weekStart <= 7 ? weekStart % 7 : (0,_input_date_js_locale_calendar_js__WEBPACK_IMPORTED_MODULE_2__.localeWeekStart)((0,_core_js_page_language_js__WEBPACK_IMPORTED_MODULE_0__.pageLocale)(node));
+  return {
+    timeZone: zone,
+    weekStart: start
+  };
+} // A filter's values as the server is asked for them: the old operators read as
+// periods, empty entries left out, and the context beside them.
+
+function buildFilterRequest(values = {}, {
+  node = null,
+  context
+} = {}) {
+  const out = {};
+
+  for (const [key, entry] of Object.entries(values || {})) {
+    if (isEmptyFilterEntry(entry)) continue;
+    out[key] = normalizeFilterEntry(entry);
+  }
+
+  return {
+    values: out,
+    context: filterRequestContext(node, context || {})
+  };
+} // A period's first and last day for a given today, as the server is asked to
+// resolve it (a reference for a host's server and for the tests). `today` is
+// yyyy-mm-dd in the request's time zone.
+
+function resolveDatePeriod(name, {
+  today,
+  weekStart = 1
+} = {}) {
+  if (!isDay(today)) return null;
+  const [y, m, d] = today.split('-').map(Number);
+
+  const at = (year, month, day) => {
+    const date = new Date(Date.UTC(year, month - 1, day));
+    return date.toISOString().slice(0, 10);
+  };
+
+  const shift = days => at(y, m, d + days);
+
+  const dow = new Date(Date.UTC(y, m - 1, d)).getUTCDay();
+  const back = (dow - weekStart % 7 + 7) % 7;
+
+  switch (name) {
+    case 'today':
+      return [today, today];
+
+    case 'yesterday':
+      return [shift(-1), shift(-1)];
+
+    case 'tomorrow':
+      return [shift(1), shift(1)];
+
+    case 'this-week':
+      return [shift(-back), shift(6 - back)];
+
+    case 'last-week':
+      return [shift(-back - 7), shift(-back - 1)];
+
+    case 'next-week':
+      return [shift(7 - back), shift(13 - back)];
+
+    case 'last-7-days':
+      return [shift(-6), today];
+
+    case 'this-month':
+      return [at(y, m, 1), at(y, m + 1, 0)];
+
+    case 'last-month':
+      return [at(y, m - 1, 1), at(y, m, 0)];
+
+    case 'next-month':
+      return [at(y, m + 1, 1), at(y, m + 2, 0)];
+
+    case 'this-year':
+      return [at(y, 1, 1), at(y, 12, 31)];
+
+    default:
+      return null;
+  }
+} // ---- Words ----
+
+const camel = text => String(text).replace(/-([a-z0-9])/gu, (_, letter) => letter.toUpperCase());
+
+function word(node, key, vars, count) {
+  return (0,_core_js_page_language_js__WEBPACK_IMPORTED_MODULE_0__.pageWord)(_lang_index_mjs__WEBPACK_IMPORTED_MODULE_3__["default"], key, node, {
+    component: SET_NAME,
+    vars,
+    count
+  });
+} // A condition's name in the list: «Точная дата», «Прошлый месяц», «Пусто».
+
+
+function dateConditionLabel(node, item) {
+  if (!item) return '';
+  if (item.period) return word(node, `datePeriod_${camel(item.period)}`);
+  return word(node, `dateCondition_${camel(item.operator)}`);
+}
+function dateGroupLabel(node, group) {
+  return word(node, `dateGroup_${group}`);
+}
+
+function currentYear(timeZone) {
+  try {
+    return new Intl.DateTimeFormat('en-CA', {
+      timeZone,
+      year: 'numeric'
+    }).format(new Date());
+  } catch {
+    return String(new Date().getFullYear());
+  }
+}
+
+function dayDate(day) {
+  const [y, m, d] = day.split('-').map(Number);
+  return new Date(Date.UTC(y, m - 1, d, 12));
+} // A day as the chip says it: «17 ноября», «20 января 2025» -- the year only when
+// it is not this year.
+
+
+function dayText(node, day, timeZone) {
+  if (!isDay(day)) return '…';
+  const withYear = day.slice(0, 4) !== currentYear(timeZone);
+
+  try {
+    return new Intl.DateTimeFormat((0,_core_js_page_language_js__WEBPACK_IMPORTED_MODULE_0__.pageLocale)(node), {
+      day: 'numeric',
+      month: 'long',
+      ...(withYear ? {
+        year: 'numeric'
+      } : {}),
+      timeZone: 'UTC'
+    }).format(dayDate(day));
+  } catch {
+    return day;
+  }
+} // Two days as one span: «1–15 ноября», «28 октября – 3 ноября».
+
+
+function spanText(node, from, to, timeZone) {
+  const a = dayOf(from);
+  const b = dayOf(to);
+  if (!isDay(a) || !isDay(b)) return dayText(node, a || b, timeZone);
+  if (a === b) return dayText(node, a, timeZone);
+  const year = currentYear(timeZone);
+  const withYear = a.slice(0, 4) !== year || b.slice(0, 4) !== year;
+
+  try {
+    const format = new Intl.DateTimeFormat((0,_core_js_page_language_js__WEBPACK_IMPORTED_MODULE_0__.pageLocale)(node), {
+      day: 'numeric',
+      month: 'long',
+      ...(withYear ? {
+        year: 'numeric'
+      } : {}),
+      timeZone: 'UTC'
+    });
+    return format.formatRange(dayDate(a), dayDate(b));
+  } catch {
+    return `${dayText(node, a, timeZone)} – ${dayText(node, b, timeZone)}`;
+  }
+}
+
+function periodPhrase(node, name) {
+  return word(node, `datePeriodIn_${camel(name)}`);
+} // What a condition says after the field's name on its chip: «в прошлом
+// месяце», «не позже 17 ноября», «идёт на этой неделе», «пусто» (DF-4).
+
+
+function dateConditionPhrase(field, entry, node = null, {
+  timeZone
+} = {}) {
+  const one = normalizeFilterEntry(entry || {});
+  const zone = timeZone || filterRequestContext(node).timeZone;
+  const {
+    operator,
+    value
+  } = one || {};
+
+  const when = () => isPeriodName(value) ? periodPhrase(node, value) : isTwoDays(value) ? spanText(node, value[0], value[1], zone) : '…';
+
+  switch (operator) {
+    case 'eq':
+      return dayText(node, dayOf(value), zone);
+
+    case 'between':
+      return Array.isArray(value) ? spanText(node, value[0], value[1], zone) : '…';
+
+    case 'lt':
+    case 'gt':
+    case 'gte':
+    case 'lte':
+      return word(node, `dateChip_${operator}`, {
+        date: dayText(node, dayOf(value), zone)
+      });
+
+    case 'period':
+      return isPeriodName(value) ? periodPhrase(node, value) : '…';
+
+    case 'last-days':
+    case 'next-days':
+      return word(node, `dateChip_${camel(operator)}`, undefined, isCount(value) ? Number(value) : 0);
+
+    case 'empty':
+    case 'not-empty':
+      return word(node, `dateChip_${camel(operator)}`);
+
+    case 'overlaps':
+    case 'starts':
+    case 'ends':
+      return word(node, `dateChip_${operator}`, {
+        when: when()
+      });
+
+    case 'within':
+      return isPeriodName(value) ? word(node, 'dateChip_within', {
+        when: when()
+      }) : word(node, 'dateChip_withinDays', {
+        when: when()
+      });
+
+    case 'contains':
+      return word(node, 'dateChip_contains', {
+        date: dayText(node, dayOf(value), zone)
+      });
+
+    default:
+      return '';
+  }
+} // The chip of a date filter: «Дата оплаты: в прошлом месяце». A condition the
+// set does not know keeps the field's name alone.
+
+function dateFilterChipText(field = {}, entry, node = null, options = {}) {
+  const name = String(field.label ?? field.key ?? '');
+  const phrase = dateConditionPhrase(field, entry, node, options);
+  return phrase ? word(node, 'dateChip', {
+    field: name,
+    condition: phrase
+  }) : name;
+}
+__webpack_async_result__();
+} catch(e) { __webpack_async_result__(e); } });
 
 /***/ },
 
@@ -1088,31 +1538,50 @@ function composeTime(original, text) {
 __webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   CURRENCY_DISPLAYS: () => (/* binding */ CURRENCY_DISPLAYS),
+/* harmony export */   addDecimal: () => (/* binding */ addDecimal),
+/* harmony export */   compareDecimal: () => (/* binding */ compareDecimal),
+/* harmony export */   currencyCodes: () => (/* binding */ currencyCodes),
+/* harmony export */   currencyDisplayOf: () => (/* binding */ currencyDisplayOf),
+/* harmony export */   currencyOf: () => (/* binding */ currencyOf),
+/* harmony export */   editableDecimal: () => (/* binding */ editableDecimal),
 /* harmony export */   formatDecimal: () => (/* binding */ formatDecimal),
 /* harmony export */   formatMoney: () => (/* binding */ formatMoney),
 /* harmony export */   formatPercent: () => (/* binding */ formatPercent),
 /* harmony export */   fractionDigits: () => (/* binding */ fractionDigits),
+/* harmony export */   isRtlLocale: () => (/* binding */ isRtlLocale),
+/* harmony export */   minorUnits: () => (/* binding */ minorUnits),
 /* harmony export */   moneyParts: () => (/* binding */ moneyParts),
-/* harmony export */   readDecimal: () => (/* binding */ readDecimal)
+/* harmony export */   moneyTotals: () => (/* binding */ moneyTotals),
+/* harmony export */   readDecimal: () => (/* binding */ readDecimal),
+/* harmony export */   readTypedDecimal: () => (/* binding */ readTypedDecimal),
+/* harmony export */   restingDecimal: () => (/* binding */ restingDecimal)
 /* harmony export */ });
 /* harmony import */ var _core_js_format_intl_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("15b4e93ff6ed");
-var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_core_js_format_intl_js__WEBPACK_IMPORTED_MODULE_0__]);
-var __webpack_async_dependencies_result__ = (__webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
-_core_js_format_intl_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_async_dependencies_result__[0];
+/* harmony import */ var _core_js_format_number_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__("c9ce0852ac73");
+var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_core_js_format_intl_js__WEBPACK_IMPORTED_MODULE_0__, _core_js_format_number_js__WEBPACK_IMPORTED_MODULE_1__]);
+([_core_js_format_intl_js__WEBPACK_IMPORTED_MODULE_0__, _core_js_format_number_js__WEBPACK_IMPORTED_MODULE_1__] = __webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
 // Decimal numbers as strings, never as floats (simai.property-view-port
 // 1.18.0; Larena property types standard, notes of 2026-11-03: «Never a float
 // on the wire»). What a person typed is read into a canonical decimal string,
 // and a decimal, a money amount and a percent are shown in the page's language
 // through Intl, which formats a string by its digits: «1500.10» never passes
 // through a float on the way to «1 500,10 ₽». Pure, so the unit suite reads it
-// without a browser; the View set draws the editors of money, percent and
-// items with its own copy of the same rules.
+// without a browser. Money and percent are the Framework's in every mode
+// (owner decision C291 (2)) and their display, paste and totals follow owner
+// decision C294 (2026-11-17, MP-1..MP-12): the standard sign, never the
+// narrow one; a minus and nothing else for a negative; the amount and its
+// sign never broken apart; a direction mark on a right-to-left page; what a
+// person pastes («1 234,50 ₽», «$1,234.50») read as a decimal string. The
+// View set's items, compound and ru.requisites call these functions instead
+// of keeping a copy.
+
 
 const TYPED = /^([+-]?)(\d*)(?:[.,](\d*))?$/u; // Spaces a person or a formatter puts between groups of digits: the plain
 // space, the no-break space and the narrow no-break space ru-RU writes, and
 // the apostrophe some locales group with.
 
-const GROUP_SPACES = /[\s  ']/gu;
+const GROUP_SPACES = /[\s\u00a0\u202f']/gu;
 /**
  * What a person typed, read as a decimal: `{ok: true, value}` with the
  * canonical string (an optional minus, the integer digits without leading
@@ -1164,24 +1633,76 @@ function fractionDigits(value) {
   const at = String(value ?? '').indexOf('.');
   return at === -1 ? 0 : String(value).length - at - 1;
 } // A float a host sent anyway is shown, not refused: a cell is not the place to
-// argue with a stored value. Only what reads as a decimal is formatted.
+// argue with a stored value. Only what reads as a decimal is formatted. A
+// float that is not a whole number is rounded to `digits` when they are given
+// (a currency's minor units, a percent's six) -- 0.1 + 0.2 roubles are
+// «0,30 ₽», never «0,30000000000000004 ₽» (MP-2) -- and the page hears it once
+// in the console: the value should have been a decimal string.
 
-function decimalOf(value) {
-  if (typeof value === 'number') return Number.isFinite(value) ? String(value) : null;
+const FLOAT_WARNED = new Set();
+
+function warnFloat(kind) {
+  if (FLOAT_WARNED.has(kind)) return;
+  FLOAT_WARNED.add(kind);
+  globalThis.console?.warn?.(`SF.fieldRenderers: a ${kind} value came as a number; send a decimal string ("1500.5"), a float loses digits.`);
+}
+
+function decimalOf(value, digits = null, kind = 'number') {
+  if (typeof value === 'number') {
+    if (!Number.isFinite(value)) return null;
+    if (Number.isInteger(value)) return Number.isSafeInteger(value) ? String(value) : BigInt(value).toString();
+    if (!Number.isInteger(digits)) return String(value);
+    warnFloat(kind);
+    return readDecimal(value.toFixed(Math.min(20, digits)).replace(/(\.\d*?)0+$/u, '$1').replace(/\.$/u, '')).value;
+  }
+
   const read = readDecimal(value);
   return read.ok ? read.value : null;
-}
-/** A decimal string in the locale's digits, with every digit it has: «1 500,5». */
+} // Right-to-left languages: a number drawn there starts with the right-to-left
+// mark, so a minus, a sign or a «%» never jumps to the other end of the line
+// (C294, MP-9). Intl writes the mark for a negative already; the positive
+// amount had none.
 
 
-function formatDecimal(value, locale) {
-  const decimal = decimalOf(value);
+const RTL_LANGUAGES = new Set(['ar', 'he', 'iw', 'fa', 'ur', 'ps', 'yi', 'dv', 'ckb', 'sd', 'ug']);
+const DIRECTION_MARKS = /[\u200e\u200f\u061c\u2066-\u2069]/gu;
+function isRtlLocale(locale) {
+  return RTL_LANGUAGES.has(String(locale || '').toLowerCase().split(/[-_]/u)[0]);
+} // On a right-to-left page a sign that ends in a neutral mark («US$», «CA$»)
+// is isolated left to right (U+2066 .. U+2069), or the browser draws «$US»; a
+// percent is held left to right as a whole («12.5 %»), as Intl's Arabic
+// pattern holds «12.5%» with its marks.
+
+function directed(text, locale, {
+  wholeLtr = false
+} = {}) {
+  if (!text || !isRtlLocale(locale)) return text;
+  if (wholeLtr) return `\u200f\u200e${text.replace(DIRECTION_MARKS, '')}\u200e`;
+  const glued = text.replace(/[A-Za-z]+[^\sA-Za-z\d\u00a0\u202f\u200e\u200f\u061c\u2066-\u2069.,\u066b\u066c-]+/gu, '\u2066$&\u2069');
+  return glued.startsWith('\u200f') ? glued : `\u200f${glued}`;
+} // The amount and its sign stay on one line: every plain space Intl leaves
+// between them becomes a no-break one (ru, de write U+00A0 already).
+
+
+const unbroken = text => text.replace(/ /gu, '\u00a0');
+/**
+ * A decimal string in the locale's digits and groups, with every digit it has
+ * and at least `minDigits`: «1 500,5», «1 234 567,5» (the Number type, MP-5;
+ * money and percent use the same groups). A float that is not whole keeps at
+ * most six digits.
+ */
+
+
+function formatDecimal(value, locale, {
+  minDigits = 0
+} = {}) {
+  const decimal = decimalOf(value, 6);
   if (decimal === null) return '';
-  const digits = Math.min(20, fractionDigits(decimal));
-  return (0,_core_js_format_intl_js__WEBPACK_IMPORTED_MODULE_0__.intlFormatter)('NumberFormat', locale, {
+  const digits = Math.min(20, Math.max(minDigits, fractionDigits(decimal)));
+  return directed(unbroken((0,_core_js_format_intl_js__WEBPACK_IMPORTED_MODULE_0__.intlFormatter)('NumberFormat', locale, {
     minimumFractionDigits: digits,
     maximumFractionDigits: digits
-  }).format(decimal);
+  }).format(decimal)), locale);
 }
 /** A money value as {amount, currency}; a field that fixes the currency takes a bare amount. */
 
@@ -1203,11 +1724,38 @@ function moneyParts(value, fixed) {
     amount: value,
     currency
   };
+} // How a field names its currency (C294, q-mp-sign): Intl's standard sign
+// (`symbol`, the default) -- «₽» on a Russian page, «$» for the US dollar on an
+// English one and «CA$» for the Canadian dollar, so two currencies never read
+// the same -- or the code (`code`, for accounting and exports) or the name
+// (`name`). The narrow sign wrote USD, CAD and AUD all as «$» (MP-3): a field
+// asking for it gets the standard sign.
+
+const CURRENCY_DISPLAYS = Object.freeze(['symbol', 'code', 'name']);
+function currencyDisplayOf(field = {}) {
+  return CURRENCY_DISPLAYS.includes(field?.currencyDisplay) ? field.currencyDisplay : 'symbol';
+}
+/** ISO 4217 minor units of a currency (RUB 2, JPY 0, KWD 3); 2 for a code Intl does not know. */
+
+function minorUnits(currency) {
+  try {
+    return new Intl.NumberFormat('en', {
+      style: 'currency',
+      currency
+    }).resolvedOptions().maximumFractionDigits ?? 2;
+  } catch {
+    return 2;
+  }
 }
 /**
- * An amount with its currency, as a person reads it: «1 500,50 ₽», «$1,500.50».
- * The digits after the point are at least the currency's minor units (ISO
- * 4217) and every digit the amount has. Without a currency, the amount alone.
+ * An amount with its currency, as a person reads it: «1 500,50 ₽», «$1,500.50»,
+ * «CA$10.00» (C294). The digits after the point are at least the currency's
+ * minor units (ISO 4217) and every digit the amount has; a float is rounded
+ * to the minor units, with one console warning. A negative amount has the
+ * minus where the language writes it and nothing else -- no colour, no
+ * brackets (q-mp-negative). The amount and the sign never break apart, and a
+ * right-to-left page gets the direction mark. Without a currency, the amount
+ * alone.
  */
 
 function formatMoney(value, field = {}, locale = 'en') {
@@ -1215,34 +1763,316 @@ function formatMoney(value, field = {}, locale = 'en') {
     amount,
     currency
   } = moneyParts(value, field.currency);
-  const decimal = decimalOf(amount);
+  const minor = currency ? minorUnits(currency) : 2;
+  const decimal = decimalOf(amount, minor, 'money');
   if (decimal === null) return '';
   if (!currency) return formatDecimal(decimal, locale);
-  const minor = (0,_core_js_format_intl_js__WEBPACK_IMPORTED_MODULE_0__.intlFormatter)('NumberFormat', locale, {
-    style: 'currency',
-    currency
-  }).resolvedOptions().maximumFractionDigits ?? 2;
   const digits = Math.min(20, Math.max(minor, fractionDigits(decimal)));
-  return (0,_core_js_format_intl_js__WEBPACK_IMPORTED_MODULE_0__.intlFormatter)('NumberFormat', locale, {
+  return directed(unbroken((0,_core_js_format_intl_js__WEBPACK_IMPORTED_MODULE_0__.intlFormatter)('NumberFormat', locale, {
     style: 'currency',
     currency,
-    currencyDisplay: 'narrowSymbol',
+    currencyDisplay: currencyDisplayOf(field),
     minimumFractionDigits: digits,
     maximumFractionDigits: digits
-  }).format(decimal);
+  }).format(decimal)), locale);
 }
-/** A percent, «12,5 %» or «12.5%»: the value is the percent ("20" is 20 %), never the share. */
+/**
+ * A percent, «12,5 %» and «12.5 %»: the value is the percent ("20" is 20 %),
+ * never the share -- the share is SF.format's word `share` (MP-4). One
+ * spelling in every language (C203 (3)): the number, a no-break space, «%».
+ * A float keeps at most six digits, with one console warning.
+ */
 
 function formatPercent(value, locale = 'en') {
-  const decimal = decimalOf(value);
+  const decimal = decimalOf(value, 6, 'percent');
   if (decimal === null) return '';
   const digits = Math.min(20, fractionDigits(decimal));
-  return (0,_core_js_format_intl_js__WEBPACK_IMPORTED_MODULE_0__.intlFormatter)('NumberFormat', locale, {
+  return directed((0,_core_js_format_number_js__WEBPACK_IMPORTED_MODULE_1__.percentSign)((0,_core_js_format_intl_js__WEBPACK_IMPORTED_MODULE_0__.intlFormatter)('NumberFormat', locale, {
     style: 'unit',
     unit: 'percent',
     minimumFractionDigits: digits,
     maximumFractionDigits: digits
-  }).format(decimal);
+  }).format(decimal)), locale, {
+    wholeLtr: true
+  });
+}
+/** The sum of decimal strings, by their digits (a column total): "1500.5" + "0.75" is "1501.25"; null when one is not a decimal. */
+
+function addDecimal(...values) {
+  let scale = 0;
+  const read = [];
+
+  for (const value of values.flat()) {
+    if (value === null || value === undefined || value === '') continue;
+    const one = decimalOf(value, 20);
+    if (one === null) return null;
+    read.push(one);
+    scale = Math.max(scale, fractionDigits(one));
+  }
+
+  let total = 0n;
+
+  for (const one of read) {
+    const negative = one.startsWith('-');
+    const [whole, fraction = ''] = one.replace('-', '').split('.');
+    const units = BigInt(whole + fraction.padEnd(scale, '0'));
+    total += negative ? -units : units;
+  }
+
+  const negative = total < 0n;
+  const digits = (negative ? -total : total).toString().padStart(scale + 1, '0');
+  const whole = digits.slice(0, digits.length - scale) || '0';
+  const fraction = scale ? digits.slice(-scale).replace(/0+$/u, '') : '';
+  const zero = /^0*$/u.test(whole + fraction);
+  return `${negative && !zero ? '-' : ''}${whole}${fraction ? `.${fraction}` : ''}`;
+}
+/**
+ * A money column's total (C294): the amounts added by their digits, one sum
+ * per currency, in the order the currencies first appear -- a column of
+ * dollars and euros is two sums, never one. [{currency, amount, text}];
+ * values that are not money are left out.
+ */
+
+function moneyTotals(values = [], field = {}, locale = 'en') {
+  const sums = new Map();
+
+  for (const value of values) {
+    const {
+      amount,
+      currency
+    } = moneyParts(value, field.currency);
+    const decimal = decimalOf(amount, currency ? minorUnits(currency) : null);
+    if (decimal === null) continue;
+    const key = currency ?? '';
+    sums.set(key, addDecimal(sums.get(key) ?? '0', decimal));
+  }
+
+  return [...sums].map(([currency, amount]) => ({
+    currency: currency || null,
+    amount,
+    text: formatMoney(currency ? {
+      amount,
+      currency
+    } : amount, {
+      currencyDisplay: field.currencyDisplay
+    }, locale)
+  }));
+} // What a person pastes or types, read as a decimal (C294, MP-8). Arabic-Indic
+// digits and separators are read as ASCII; the currency's signs and code,
+// «%», spaces, apostrophes and direction marks are dropped; a minus may stand
+// before or after the digits. With both a point and a comma the last one
+// separates the fraction; a separator that repeats groups; a single one is
+// the fraction, unless it is the page's group separator followed by exactly
+// three digits -- «1,234» on an English page is 1234, on a Russian one 1,234.
+
+const CURRENCY_MARKS = /[$€£¥₽₸₴₺₹₩₪₦₱฿₫¤]/gu;
+
+function signsOf(currency, locale) {
+  if (typeof currency !== 'string' || !/^[A-Z]{3}$/u.test(currency)) return [];
+  const signs = new Set([currency]);
+
+  for (const display of ['symbol', 'narrowSymbol', 'code', 'name']) {
+    try {
+      for (const part of new Intl.NumberFormat(locale, {
+        style: 'currency',
+        currency,
+        currencyDisplay: display
+      }).formatToParts(2)) {
+        if (part.type === 'currency') signs.add(part.value);
+      }
+    } catch {// A code Intl does not know keeps its letters only.
+    }
+  }
+
+  return [...signs].sort((a, b) => b.length - a.length);
+}
+
+function separatorsOf(locale) {
+  try {
+    const parts = new Intl.NumberFormat(locale).formatToParts(1234567.5);
+    return {
+      group: parts.find(part => part.type === 'group')?.value ?? ',',
+      decimal: parts.find(part => part.type === 'decimal')?.value ?? '.'
+    };
+  } catch {
+    return {
+      group: ',',
+      decimal: '.'
+    };
+  }
+}
+/**
+ * `{ok: true, value, typedDigits}` for what reads as a number -- the canonical
+ * decimal string (no groups, a point, no trailing zeros after it; null for
+ * nothing typed) and how many digits were typed after the separator -- or
+ * `{ok: false}`. `currency` names the code whose signs may stand in the text.
+ */
+
+
+function readTypedDecimal(text, {
+  locale = 'en',
+  currency = null
+} = {}) {
+  if (text === null || text === undefined) return {
+    ok: true,
+    value: null,
+    typedDigits: 0
+  };
+
+  if (typeof text === 'number') {
+    const read = readDecimal(Number.isInteger(text) ? text : String(text));
+    return read.ok ? {
+      ok: true,
+      value: read.value,
+      typedDigits: fractionDigits(read.value ?? '')
+    } : {
+      ok: false
+    };
+  }
+
+  let plain = String(text).replace(/[\u0660-\u0669]/gu, digit => String(digit.charCodeAt(0) - 0x660)).replace(/[\u06f0-\u06f9]/gu, digit => String(digit.charCodeAt(0) - 0x6f0)).replace(/\u066b/gu, '.').replace(/\u066c/gu, '');
+
+  for (const sign of signsOf(currency, locale)) plain = plain.split(sign).join('');
+
+  plain = plain.replace(CURRENCY_MARKS, '').replace(/[%\u066a]/gu, '').replace(DIRECTION_MARKS, '').replace(/[\s\u00a0\u202f'\u2019]/gu, '').replace(/[\u2212\u2013]/gu, '-');
+  if (plain === '') return {
+    ok: true,
+    value: null,
+    typedDigits: 0
+  };
+  let negative = false;
+
+  if (plain.startsWith('-')) {
+    negative = true;
+    plain = plain.slice(1);
+  } else if (plain.startsWith('+')) {
+    plain = plain.slice(1);
+  } else if (plain.endsWith('-')) {
+    negative = true;
+    plain = plain.slice(0, -1);
+  }
+
+  const dots = (plain.match(/\./gu) || []).length;
+  const commas = (plain.match(/,/gu) || []).length;
+
+  if (dots && commas) {
+    const mark = plain.charAt(Math.max(plain.lastIndexOf('.'), plain.lastIndexOf(',')));
+    plain = plain.split(mark === '.' ? ',' : '.').join('');
+    if (mark === ',') plain = plain.replace(',', '.');
+  } else if (dots + commas > 1) {
+    plain = plain.split(dots ? '.' : ',').join('');
+  } else if (dots + commas === 1) {
+    const mark = dots ? '.' : ',';
+    const after = plain.length - plain.indexOf(mark) - 1;
+    if (mark === separatorsOf(locale).group && after === 3) plain = plain.replace(mark, '');else plain = plain.replace(',', '.');
+  }
+
+  if (!/^\d*(?:\.\d*)?$/u.test(plain) || !/\d/u.test(plain)) return {
+    ok: false
+  };
+  const [whole = '', fraction = ''] = plain.split('.');
+  const integer = whole.replace(/^0+(?=\d)/u, '') || '0';
+  const digits = fraction.replace(/0+$/u, '');
+  const zero = /^0*$/u.test(integer + digits);
+  return {
+    ok: true,
+    value: `${negative && !zero ? '-' : ''}${integer}${digits ? `.${digits}` : ''}`,
+    typedDigits: fraction.length
+  };
+}
+/** A decimal at rest in an edit field: the locale's groups and point, at least `minDigits` after it, no sign («1 500,50»). */
+
+function restingDecimal(value, locale = 'en', minDigits = 0) {
+  const read = readDecimal(value);
+  if (!read.ok || read.value === null) return '';
+  const digits = Math.min(20, Math.max(minDigits, fractionDigits(read.value)));
+  return unbroken((0,_core_js_format_intl_js__WEBPACK_IMPORTED_MODULE_0__.intlFormatter)('NumberFormat', locale, {
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits
+  }).format(read.value));
+}
+/** Every ISO 4217 code the browser knows, for a currency field that names no list; the ten offered codes where Intl cannot list them. */
+
+function currencyCodes(fallback = []) {
+  try {
+    const codes = Intl.supportedValuesOf?.('currency');
+    if (Array.isArray(codes) && codes.length) return codes;
+  } catch {// An older engine: the offered list.
+  }
+
+  return [...fallback];
+} // What the editors of money and percent need (owner decision C291 (2): the two
+// types are the Framework's in every mode, the View set's editors were the
+// reference): the sign and minor units of a currency, two decimals compared by
+// their digits, and a decimal as it is typed back in an input.
+
+/**
+ * A currency in a locale: {sign, before, minor} -- the sign the locale writes
+ * by the field's `currencyDisplay` (the standard sign by default: «₽», «$»,
+ * «CA$»; C294), whether it stands before the amount, and its ISO 4217 minor
+ * units (RUB 2, JPY 0, KWD 3). A code Intl does not know keeps its letters,
+ * after the amount, with two minor digits.
+ */
+
+function currencyOf(code, locale = 'en', display = 'symbol') {
+  const fallback = {
+    sign: String(code ?? ''),
+    before: false,
+    minor: 2
+  };
+  if (typeof code !== 'string' || !/^[A-Z]{3}$/u.test(code)) return fallback;
+
+  try {
+    const format = new Intl.NumberFormat(locale, {
+      style: 'currency',
+      currency: code,
+      currencyDisplay: CURRENCY_DISPLAYS.includes(display) ? display : 'symbol'
+    });
+    const parts = format.formatToParts(1);
+    const at = parts.findIndex(part => part.type === 'currency');
+    if (at === -1) return fallback;
+    return {
+      sign: parts[at].value,
+      before: at < parts.findIndex(part => part.type === 'integer'),
+      minor: format.resolvedOptions().maximumFractionDigits ?? 2
+    };
+  } catch {
+    return fallback;
+  }
+}
+/** -1, 0 or 1: two decimals (canonical strings or integers) compared by their digits, never as floats; null when either is not a decimal. */
+
+function compareDecimal(a, b) {
+  const left = readDecimal(a);
+  const right = readDecimal(b);
+  if (!left.ok || !right.ok || left.value === null || right.value === null) return null;
+  const scale = Math.max(fractionDigits(left.value), fractionDigits(right.value));
+
+  const units = value => {
+    const negative = value.startsWith('-');
+    const [whole, fraction = ''] = value.replace('-', '').split('.');
+    const digits = BigInt(whole + fraction.padEnd(scale, '0'));
+    return negative ? -digits : digits;
+  };
+
+  const x = units(left.value);
+  const y = units(right.value);
+  return x === y ? 0 : x < y ? -1 : 1;
+}
+/** A decimal as typed back into an input: the locale's point, no groups («1500,5» on a Russian page); '' for nothing or not a decimal. */
+
+function editableDecimal(value, locale = 'en') {
+  const read = readDecimal(value);
+  if (!read.ok || read.value === null) return '';
+  let point = '.';
+
+  try {
+    point = (0,_core_js_format_intl_js__WEBPACK_IMPORTED_MODULE_0__.intlFormatter)('NumberFormat', locale, {}).formatToParts(1.5).find(part => part.type === 'decimal')?.value || '.';
+  } catch {
+    point = '.';
+  }
+
+  return read.value.replace('.', point);
 }
 __webpack_async_result__();
 } catch(e) { __webpack_async_result__(e); } });
@@ -1299,14 +2129,26 @@ function htmlText(value) {
 __webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   DATE_FUTURE_PERIODS: () => (/* reexport safe */ _date_filter_js__WEBPACK_IMPORTED_MODULE_13__.DATE_FUTURE_PERIODS),
+/* harmony export */   DATE_PERIODS: () => (/* reexport safe */ _date_filter_js__WEBPACK_IMPORTED_MODULE_13__.DATE_PERIODS),
 /* harmony export */   FILTER_RENDERERS: () => (/* binding */ FILTER_RENDERERS),
+/* harmony export */   NUMBER_FILTER_OPERATORS: () => (/* binding */ NUMBER_FILTER_OPERATORS),
 /* harmony export */   PROPERTY_TYPES: () => (/* reexport safe */ _registry_js__WEBPACK_IMPORTED_MODULE_5__.PROPERTY_TYPES),
+/* harmony export */   buildFilterRequest: () => (/* reexport safe */ _date_filter_js__WEBPACK_IMPORTED_MODULE_13__.buildFilterRequest),
+/* harmony export */   dateFilterChipText: () => (/* reexport safe */ _date_filter_js__WEBPACK_IMPORTED_MODULE_13__.dateFilterChipText),
+/* harmony export */   dateFilterConditions: () => (/* reexport safe */ _date_filter_js__WEBPACK_IMPORTED_MODULE_13__.dateFilterConditions),
 /* harmony export */   dateTimeAttribute: () => (/* binding */ dateTimeAttribute),
+/* harmony export */   filterRequestContext: () => (/* reexport safe */ _date_filter_js__WEBPACK_IMPORTED_MODULE_13__.filterRequestContext),
+/* harmony export */   isEmptyFilterEntry: () => (/* reexport safe */ _date_filter_js__WEBPACK_IMPORTED_MODULE_13__.isEmptyFilterEntry),
+/* harmony export */   isNumericType: () => (/* binding */ isNumericType),
+/* harmony export */   normalizeFilterEntry: () => (/* reexport safe */ _date_filter_js__WEBPACK_IMPORTED_MODULE_13__.normalizeFilterEntry),
 /* harmony export */   propertyModes: () => (/* binding */ propertyModes),
 /* harmony export */   renderCellField: () => (/* binding */ renderCellField),
 /* harmony export */   renderEditField: () => (/* binding */ renderEditField),
 /* harmony export */   renderFilterField: () => (/* binding */ renderFilterField),
-/* harmony export */   renderViewField: () => (/* binding */ renderViewField)
+/* harmony export */   renderTotalField: () => (/* binding */ renderTotalField),
+/* harmony export */   renderViewField: () => (/* binding */ renderViewField),
+/* harmony export */   resolveDatePeriod: () => (/* reexport safe */ _date_filter_js__WEBPACK_IMPORTED_MODULE_13__.resolveDatePeriod)
 /* harmony export */ });
 /* harmony import */ var lit__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("2a080a730149");
 /* harmony import */ var lit_directives_unsafe_html_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__("073f05ff1a81");
@@ -1319,8 +2161,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _html_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__("01ae054f01b4");
 /* harmony import */ var _core_js_deprecations_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__("d3818183b14c");
 /* harmony import */ var _decimal_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__("ab3947ea3647");
-var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([lit__WEBPACK_IMPORTED_MODULE_0__, lit_directives_unsafe_html_js__WEBPACK_IMPORTED_MODULE_1__, _core_js_page_language__WEBPACK_IMPORTED_MODULE_3__, _core_js_format_date_js__WEBPACK_IMPORTED_MODULE_4__, _core_js_deprecations_js__WEBPACK_IMPORTED_MODULE_9__, _decimal_js__WEBPACK_IMPORTED_MODULE_10__]);
-([lit__WEBPACK_IMPORTED_MODULE_0__, lit_directives_unsafe_html_js__WEBPACK_IMPORTED_MODULE_1__, _core_js_page_language__WEBPACK_IMPORTED_MODULE_3__, _core_js_format_date_js__WEBPACK_IMPORTED_MODULE_4__, _core_js_deprecations_js__WEBPACK_IMPORTED_MODULE_9__, _decimal_js__WEBPACK_IMPORTED_MODULE_10__] = __webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
+/* harmony import */ var _phone_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__("25be1c2df717");
+/* harmony import */ var _lang_index_mjs__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__("354525e80715");
+/* harmony import */ var _date_filter_js__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__("c11c730f061a");
+var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([lit__WEBPACK_IMPORTED_MODULE_0__, lit_directives_unsafe_html_js__WEBPACK_IMPORTED_MODULE_1__, _core_js_page_language__WEBPACK_IMPORTED_MODULE_3__, _core_js_format_date_js__WEBPACK_IMPORTED_MODULE_4__, _core_js_deprecations_js__WEBPACK_IMPORTED_MODULE_9__, _decimal_js__WEBPACK_IMPORTED_MODULE_10__, _date_filter_js__WEBPACK_IMPORTED_MODULE_13__]);
+([lit__WEBPACK_IMPORTED_MODULE_0__, lit_directives_unsafe_html_js__WEBPACK_IMPORTED_MODULE_1__, _core_js_page_language__WEBPACK_IMPORTED_MODULE_3__, _core_js_format_date_js__WEBPACK_IMPORTED_MODULE_4__, _core_js_deprecations_js__WEBPACK_IMPORTED_MODULE_9__, _decimal_js__WEBPACK_IMPORTED_MODULE_10__, _date_filter_js__WEBPACK_IMPORTED_MODULE_13__] = __webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
 /* harmony import */ var lit__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(lit__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var lit_directives_unsafe_html_js__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(lit_directives_unsafe_html_js__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var _core_js_page_language__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__);
@@ -1333,6 +2178,11 @@ var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([lit_
 
 
 
+
+
+
+ // The set's words and the property types' names live in its language files
+// (localization study LC-5), as a Smart component keeps them.
 
 
  // The Framework's field renderers, addressed by a property type and a template
@@ -1420,7 +2270,7 @@ function renderRangeFilterControl(field, host) {
             </div>
             <sf-dropdown
                     size=${filterSize(host)}
-                    appearance="outlined"
+                    appearance="bordered"
                     mode="select"
                     placeholder="${setText(host, 'operator')}"
                     root-class="flex-1"
@@ -1444,134 +2294,416 @@ function renderRangeFilterControl(field, host) {
             </sf-dropdown>
         </div>
     `;
+} // The number filter (owner decision C294, MP-6, MP-7; the same order as the
+// date filter): the condition comes first and under it exactly what it needs
+// -- one number, two («Между», both ends included) or nothing («Пусто», «Не
+// пусто», whose value is true). The nine conditions are the ones AG Grid, MUI
+// X and spreadsheets agree on; a field's `filter.operators` may name fewer.
+// The value is typed with the decimal keyboard and the sign in the field (a
+// fixed currency's sign where the language writes it, «%» after a percent),
+// pasted text is read as a person means it («1 234,50 ₽», «$1,234.50») and
+// the request carries a decimal string, never the typed text. A money field
+// whose currency lives in the value adds a currency choice (q-mp-mix): the
+// request carries `currency` and compares amounts within it. A new condition
+// of another shape drops the old value.
+
+
+const NUMBER_FILTER_OPERATORS = Object.freeze(['eq', 'neq', 'gt', 'gte', 'lt', 'lte', 'between', 'empty', 'not-empty']);
+const NUMBER_NO_VALUE_OPERATORS = new Set(['empty', 'not-empty']);
+
+const operatorShape = operator => NUMBER_NO_VALUE_OPERATORS.has(operator) ? 'none' : operator === 'between' ? 'two' : 'one';
+
+function numberOperatorLabel(host, operator) {
+  return NUMBER_FILTER_OPERATORS.includes(operator) ? setText(host, `numberOperator_${operator}`) : host.getFilterOperatorLabel(operator);
 }
 
-function renderNumberFilterControl(field, host) {
-  const control = host.getFilterControlValue(field.key);
-  const operators = field.filter?.operators || ['eq'];
+function renderNumberFilterControl(field, host, look = {}) {
+  const control = host.getFilterControlValue(field.key) || {};
+  const locale = (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(host ?? null);
+  const operators = field.filter?.operators || NUMBER_FILTER_OPERATORS;
   const selectedOperator = control.operator || field.filter?.defaultOperator || operators[0];
-  const isBetween = selectedOperator === 'between';
+  const shape = operatorShape(selectedOperator);
   const rawValue = control.value;
-  const rangeValue = Array.isArray(rawValue) ? rawValue : [rawValue || '', ''];
+  const rangeValue = Array.isArray(rawValue) ? rawValue : [rawValue ?? '', ''];
+  const currencies = look.currencies || null;
+  const currency = currencies ? currencies.includes(control.currency) ? control.currency : currencies[0] : look.currency || null;
+  const sign = look.money && currency ? (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.currencyOf)(currency, locale, (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.currencyDisplayOf)(field)) : null;
+  const textStart = sign?.before ? sign.sign : '';
+  const textEnd = look.percent ? '%' : sign && !sign.before ? sign.sign : '';
+  const minDigits = look.money && currency ? (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.currencyOf)(currency, locale).minor : 0;
 
-  const patchNumberValue = (index, nextInputValue) => {
-    if (!isBetween) {
-      host.patchTempFilterValue(field.key, {
-        value: nextInputValue || '',
-        operator: selectedOperator
+  const shown = value => (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.restingDecimal)(value, locale, value === '' || value === null || value === undefined ? 0 : minDigits);
+
+  const withCurrency = patch => currencies ? { ...patch,
+    currency
+  } : patch;
+
+  const patch = next => host.patchTempFilterValue(field.key, withCurrency({
+    operator: selectedOperator,
+    ...next
+  }));
+
+  const typed = (index, event) => {
+    const input = event.currentTarget ?? event.target;
+    const text = String(input?.value ?? '');
+    const read = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.readTypedDecimal)(text, {
+      locale,
+      currency
+    });
+
+    if (input) {
+      input.toggleAttribute('invalid', !read.ok);
+      if (read.ok) input.removeAttribute('error-message');else input.setAttribute('error-message', setText(host, 'notNumber'));
+    }
+
+    if (!read.ok) return;
+    const value = read.value ?? '';
+
+    if (shape !== 'two') {
+      patch({
+        value
       });
       return;
     }
 
-    const nextValue = [...rangeValue];
-    nextValue[index] = nextInputValue || '';
-    host.patchTempFilterValue(field.key, {
-      value: nextValue,
-      operator: selectedOperator
+    const next = [...rangeValue];
+    next[index] = value;
+    patch({
+      value: next
     });
   };
 
+  const input = (index, label, value) => (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+        <sf-input
+                size=${filterSize(host)}
+                appearance="bordered"
+                root-class="flex-1 min-w-0"
+                label=${label}
+                value=${shown(value)}
+                inputmode=${look.integer ? 'numeric' : 'decimal'}
+                text-start=${textStart || lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                text-end=${textEnd || lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                name="sf_filter_${field.key || 'number'}${index ? '_second' : ''}"
+                @change=${event => typed(index, event)}
+        ></sf-input>`;
+
+  const valueWord = setText(host, look.money ? 'filterAmount' : look.percent ? 'filterPercent' : 'filterNumber');
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
         <div class="flex gap-1/3 flex-col">
-            <div class="sf-filter-operator-inputs flex gap-1/3 items-cross-center">
-                <sf-input
-                        size=${filterSize(host)}
-                        appearance="bordered"
-                        root-class="flex-1 min-w-0"
-                        label="${isBetween ? setText(host, 'rangeFrom') : host.getFilterOperatorLabel(selectedOperator)}"
-                        value="${isBetween ? rangeValue[0] || '' : rawValue || ''}"
-                        name="sf_filter_${field.key || 'number'}"
-                        @change=${event => {
-    patchNumberValue(0, event.target?.value);
-  }}
-                ></sf-input>
-                ${isBetween ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
-                    <sf-input
-                            size=${filterSize(host)}
-                            appearance="bordered"
-                            label="${setText(host, 'rangeTo')}"
-                            root-class="flex-1 min-w-0"
-                            value="${rangeValue[1] || ''}"
-                            name="sf_filter_${field.key || 'number'}_second"
-                            @change=${event => {
-    patchNumberValue(1, event.target?.value);
-  }}
-                    ></sf-input>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
-            </div>
             <sf-dropdown
                     size=${filterSize(host)}
-                    appearance="outlined"
+                    appearance="bordered"
                     mode="select"
-                    placeholder="${setText(host, 'operator')}"
+                    label=${setText(host, 'condition')}
+                    placeholder=${setText(host, 'condition')}
                     root-class="flex-1"
                     search="false"
+                    data-sf-filter-part="operator"
                     @change=${event => {
+    if (event.target !== event.currentTarget) return;
     const operator = event.detail?.values?.[0] || event.detail?.value || selectedOperator;
-    host.patchTempFilterValue(field.key, {
-      operator
-    });
+    if (operator === selectedOperator) return;
+    const next = operatorShape(operator); // A new condition of another shape drops the old value:
+    // one amount and two amounts are not the same question.
+
+    const value = next === 'none' ? true : next === shape ? rawValue : next === 'two' ? ['', ''] : '';
+    host.patchTempFilterValue(field.key, withCurrency({
+      operator,
+      value
+    }));
   }}
             >
                 ${operators.map(operator => (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
                     <sf-list-item
                             kind="text"
                             size=${filterSize(host)}
-                            text="${host.getFilterOperatorLabel(operator)}"
+                            text="${numberOperatorLabel(host, operator)}"
                             value="${operator}"
                             ?selected=${operator === selectedOperator}
                     ></sf-list-item>
                 `)}
             </sf-dropdown>
+            ${shape === 'none' ? lit__WEBPACK_IMPORTED_MODULE_0__.nothing : shape === 'two' ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+                <div class="sf-filter-operator-inputs flex gap-1/3 items-cross-start">
+                    ${input(0, setText(host, 'rangeFrom'), rangeValue[0])}
+                    ${input(1, setText(host, 'rangeTo'), rangeValue[1])}
+                </div>` : (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+                <div class="sf-filter-operator-inputs flex gap-1/3 items-cross-start">
+                    ${input(0, valueWord, Array.isArray(rawValue) ? rawValue[0] : rawValue)}
+                </div>`}
+            ${currencies && shape !== 'none' ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+                <sf-dropdown
+                        size=${filterSize(host)}
+                        appearance="bordered"
+                        mode="select"
+                        label=${setText(host, 'currency')}
+                        root-class="flex-1"
+                        search=${currencies.length > 12 ? 'true' : 'false'}
+                        data-sf-filter-part="currency"
+                        .options=${currencies.map(code => ({
+    type: 'text',
+    size: filterSize(host),
+    value: code,
+    text: code,
+    selected: code === currency
+  }))}
+                        @change=${event => {
+    if (event.target !== event.currentTarget) return;
+    const code = event.detail?.values?.[0] || event.detail?.value;
+    if (!code || code === currency) return;
+    host.patchTempFilterValue(field.key, {
+      operator: selectedOperator,
+      value: rawValue,
+      currency: code
+    });
+  }}
+                ></sf-dropdown>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
         </div>
     `;
 }
 
+function renderIntegerFilterControl(field, host) {
+  return renderNumberFilterControl(field, host, {
+    integer: true
+  });
+} // Money and percent are filtered as numbers with their own sign in the field
+// (owner decisions C291 (2), C294): «%» after a percent, a fixed currency's
+// sign where the locale writes it. A money field whose currency lives in the
+// value chooses the currency in the filter, from the field's `currencies`.
+
+
+function renderMoneyFilterControl(field, host) {
+  const fixed = fixedCurrency(field);
+  return renderNumberFilterControl(field, host, {
+    money: true,
+    currency: fixed,
+    currencies: fixed ? null : fieldCurrencies(field)
+  });
+}
+
+function renderPercentFilterControl(field, host) {
+  return renderNumberFilterControl(field, host, {
+    percent: true
+  });
+} // The date filter (owner decision C293, 2026-11-17; it replaces the operator
+// words and quick ranges of PD-6/PD-7). A condition first, then exactly what it
+// needs: nothing (a period by name, «Пусто», «Не пусто»), one day, two days (a
+// range calendar whose quick ranges are the whole periods; pressing one makes
+// the condition that period by name), a number of days, or -- for a period
+// field -- «when»: a period by name or two days of one's own. The list is
+// grouped: Дата, Период, Заполнено (a period field: Период записи,
+// Заполнено). Choosing a condition writes its own starting value, so a stale
+// day never travels with a period (DF-2); a period, «Пусто» and «Не пусто»
+// carry a value of their own, so the table keeps them (DF-1). The rules and
+// the words are date-filter.js; this draws them. The day controls keep PD-4,
+// PD-5 and PD-8: the table's size, the page's language, the condition above.
+
+
+function dateFilterPresets(field) {
+  const presets = field.filter?.presets;
+
+  if (presets === undefined || presets === null) {
+    return [..._date_filter_js__WEBPACK_IMPORTED_MODULE_13__.DATE_PERIODS, ...(field.filter?.future === true ? _date_filter_js__WEBPACK_IMPORTED_MODULE_13__.DATE_FUTURE_PERIODS : [])].join(',');
+  }
+
+  return Array.isArray(presets) ? presets : String(presets);
+}
+
+function defaultDateCondition(field, list) {
+  const asked = field.filter?.defaultOperator;
+
+  if (asked) {
+    const one = (0,_date_filter_js__WEBPACK_IMPORTED_MODULE_13__.dateConditionOf)(field, {
+      operator: asked,
+      value: _date_filter_js__WEBPACK_IMPORTED_MODULE_13__.LEGACY_DATE_OPERATORS[asked] || asked
+    });
+    const named = list.find(item => item.key === asked);
+    if (named || one) return named || one;
+  } // One date: «Между» (the list's second, after the exact day); a period
+  // field: «Идёт в».
+
+
+  return list.find(item => item.operator === ((0,_date_filter_js__WEBPACK_IMPORTED_MODULE_13__.dateFilterKind)(field) === 'period' ? 'overlaps' : 'between')) ?? list[0];
+}
+
+function dateFilterContext(host) {
+  return (0,_date_filter_js__WEBPACK_IMPORTED_MODULE_13__.filterRequestContext)(host ?? null, host?.getFilterContext?.() || {});
+}
+
 function renderDateFilterControl(field, host) {
-  const control = host.getFilterControlValue(field.key);
-  const operators = field.filter?.operators || ['eq'];
-  const selectedOperator = control.operator || field.filter?.defaultOperator || operators[0];
-  const isBetween = selectedOperator === 'between';
-  const dateValue = isBetween && Array.isArray(control.value) ? control.value : isBetween ? ['', ''] : control.value || '';
+  const control = host.getFilterControlValue(field.key) || {};
+  const list = (0,_date_filter_js__WEBPACK_IMPORTED_MODULE_13__.dateFilterConditions)(field);
+  const asked = control.operator ? (0,_date_filter_js__WEBPACK_IMPORTED_MODULE_13__.dateConditionOf)(field, control) : null;
+  const current = asked ?? defaultDateCondition(field, list);
+  const value = asked ? (0,_date_filter_js__WEBPACK_IMPORTED_MODULE_13__.normalizeFilterEntry)(control).value : control.value;
+  const size = filterSize(host);
+
+  const patch = next => host.patchTempFilterValue(field.key, next);
+
+  const isDateTime = (field.propertyType || field.type) === 'datetime';
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
         <div class="flex flex-col gap-1/3">
-            <sf-input-date
-                    .value=${dateValue}
-                    ?range=${isBetween}
-                    name="sf_filter_${field.key || 'date'}"
-                    locale="ru-Ru"
-                    @change=${event => {
-    host.patchTempFilterValue(field.key, {
-      value: event.detail.value,
-      operator: selectedOperator
-    });
-  }}
-            ></sf-input-date>
             <sf-dropdown
-                    size=${filterSize(host)}
-                    appearance="outlined"
+                    size=${size}
+                    appearance="bordered"
                     mode="select"
-                    placeholder="${setText(host, 'operator')}"
+                    label="${setText(host, 'dateCondition')}"
+                    .value=${current.key}
+                    hint=${isDateTime ? setWord(host, 'dateByDayIn', {
+    zone: dateFilterContext(host).timeZone
+  }) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                     root-class="flex-1"
                     search="false"
                     @change=${event => {
-    const operator = event.detail?.values?.[0] || event.detail?.value || selectedOperator;
-    host.patchTempFilterValue(field.key, {
-      operator
+    const key = event.detail?.values?.[0] || event.detail?.value || current.key;
+    const next = list.find(item => item.key === key); // The condition shown before any is chosen is the default;
+    // choosing it writes it, with its own starting value.
+
+    if (!next || asked && next.key === current.key) return;
+    patch({
+      operator: next.operator,
+      value: (0,_date_filter_js__WEBPACK_IMPORTED_MODULE_13__.dateConditionValue)(next, {
+        value
+      })
     });
   }}
             >
-                ${operators.map(operator => (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+                ${list.map(item => (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
                     <sf-list-item
                             kind="text"
-                            size=${filterSize(host)}
-                            text="${host.getFilterOperatorLabel(operator)}"
-                            value="${operator}"
-                            ?selected=${operator === selectedOperator}
+                            size=${size}
+                            group=${(0,_date_filter_js__WEBPACK_IMPORTED_MODULE_13__.dateGroupLabel)(host, item.group)}
+                            text="${(0,_date_filter_js__WEBPACK_IMPORTED_MODULE_13__.dateConditionLabel)(host, item)}"
+                            value="${item.key}"
+                            ?selected=${item.key === current.key}
                     ></sf-list-item>
                 `)}
             </sf-dropdown>
+            ${renderDateConditionValue(field, host, current, value, patch)}
         </div>
     `;
+}
+
+function renderDateConditionValue(field, host, current, value, patch) {
+  const size = filterSize(host);
+  const name = `sf_filter_${field.key || 'date'}`;
+  if (current.need === 'none') return lit__WEBPACK_IMPORTED_MODULE_0__.nothing;
+
+  if (current.need === 'count') {
+    return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+            <sf-input-quantity
+                    size=${size}
+                    label="${setText(host, current.operator === 'next-days' ? 'dateCountNext' : 'dateCountLast')}"
+                    min="1"
+                    max="366"
+                    unit="${setText(host, 'dateCountUnit')}"
+                    name="${name}_count"
+                    .value=${Number(value) > 0 ? Number(value) : 30}
+                    @change=${event => {
+      if (event.target !== event.currentTarget) return;
+      const count = Math.round(Number(event.detail?.value));
+      patch({
+        operator: current.operator,
+        value: count > 0 ? count : null
+      });
+    }}
+            ></sf-input-quantity>`;
+  }
+
+  if (current.need === 'day') {
+    return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+            <sf-input-date
+                    size=${size}
+                    label="${setText(host, current.operator === 'contains' ? 'dateValueDay' : 'dateValueDate')}"
+                    .value=${typeof value === 'string' ? value.slice(0, 10) : ''}
+                    name="${name}"
+                    @change=${event => {
+      if (event.target !== event.currentTarget) return;
+      patch({
+        operator: current.operator,
+        value: event.detail?.value || null
+      });
+    }}
+            ></sf-input-date>`;
+  }
+
+  if (current.need === 'days') return renderDateRangeValue(field, host, current, value, patch); // «when» (a period field): a period by name, or two days of one's own.
+
+  const own = Array.isArray(value);
+  const periods = [..._date_filter_js__WEBPACK_IMPORTED_MODULE_13__.DATE_PERIODS, ...(field.filter?.future === true ? _date_filter_js__WEBPACK_IMPORTED_MODULE_13__.DATE_FUTURE_PERIODS : [])];
+  return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+        <sf-dropdown
+                size=${size}
+                appearance="bordered"
+                mode="select"
+                label="${setText(host, 'dateWhen')}"
+                .value=${own ? 'own' : typeof value === 'string' ? value : ''}
+                root-class="flex-1"
+                search="false"
+                @change=${event => {
+    const key = event.detail?.values?.[0] || event.detail?.value;
+    if (!key) return;
+
+    if (key === 'own') {
+      if (!own) patch({
+        operator: current.operator,
+        value: ['', '']
+      });
+      return;
+    }
+
+    if (key !== value) patch({
+      operator: current.operator,
+      value: key
+    });
+  }}
+        >
+            ${periods.map(period => (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+                <sf-list-item kind="text" size=${size} text="${(0,_date_filter_js__WEBPACK_IMPORTED_MODULE_13__.dateConditionLabel)(host, {
+    period
+  })}" value="${period}"
+                        ?selected=${!own && value === period}></sf-list-item>
+            `)}
+            <sf-list-item kind="text" size=${size} text="${setText(host, 'dateOwnDays')}" value="own" ?selected=${own}></sf-list-item>
+        </sf-dropdown>
+        ${own ? renderDateRangeValue(field, host, current, value, patch) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}`;
+} // Two days on a range calendar. Its quick ranges are the whole periods: one
+// pressed is the period by name -- in «Между» the condition becomes that
+// period (C293 (4)), in a period field's «when» the value is its name.
+
+
+function renderDateRangeValue(field, host, current, value, patch) {
+  const days = Array.isArray(value) ? value.map(day => typeof day === 'string' ? day.slice(0, 10) : '') : ['', ''];
+  return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+        <sf-input-date
+                size=${filterSize(host)}
+                range
+                label="${setText(host, 'dateValuePeriod')}"
+                .value=${days}
+                .presets=${dateFilterPresets(field)}
+                name="sf_filter_${field.key || 'date'}"
+                @change=${event => {
+    if (event.target !== event.currentTarget) return;
+    const preset = event.detail?.preset?.id;
+
+    if (preset && (_date_filter_js__WEBPACK_IMPORTED_MODULE_13__.DATE_PERIODS.includes(preset) || _date_filter_js__WEBPACK_IMPORTED_MODULE_13__.DATE_FUTURE_PERIODS.includes(preset))) {
+      patch(current.operator === 'between' ? {
+        operator: 'period',
+        value: preset
+      } : {
+        operator: current.operator,
+        value: preset
+      });
+      return;
+    }
+
+    const next = Array.isArray(event.detail?.value) ? event.detail.value : [event.detail?.startValue || '', event.detail?.endValue || ''];
+    patch({
+      operator: current.operator,
+      value: next
+    });
+  }}
+        ></sf-input-date>`;
 }
 
 function renderMultiSelectFilterControl(field, host) {
@@ -1677,11 +2809,14 @@ const FILTER_RENDERERS = {
   text: renderTextFilterControl,
   string: renderTextFilterControl,
   number: renderNumberFilterControl,
-  integer: renderNumberFilterControl,
+  integer: renderIntegerFilterControl,
   date: renderDateFilterControl,
   datetime: renderDateFilterControl,
   range: renderRangeFilterControl,
   'date-range': renderDateFilterControl,
+  // A period field (a start and an end, C293): its own conditions -- overlaps,
+  // within, starts, ends, contains a day.
+  period: renderDateFilterControl,
   'multi-select': renderMultiSelectFilterControl,
   'single-select': renderMultiSelectFilterControl,
   choice: renderMultiSelectFilterControl,
@@ -1695,14 +2830,17 @@ const FILTER_RENDERERS = {
   lookup: renderEntityMultiSelectFilterControl,
   file: renderFileFilterControl,
   color: renderColorFilterControl,
-  // The types a component set draws (property-view port 1.18.0): a money
-  // amount and a percent are filtered as numbers (the host compares the
-  // amount, as a decimal), and an items field by its number of rows.
-  money: renderNumberFilterControl,
-  percent: renderNumberFilterControl,
-  items: renderNumberFilterControl
+  // A money amount and a percent are filtered as decimals with their sign
+  // (C291 (2)); an items field, which the View set draws, by its number of
+  // rows (property-view port 1.18.0).
+  money: renderMoneyFilterControl,
+  percent: renderPercentFilterControl,
+  items: renderIntegerFilterControl
 }; // What a field asks to be filtered by: its own declared control if it has one,
 // otherwise its property type, otherwise text.
+// The date filter's rules for a host that builds the request or draws the
+// chips itself (sf-view-table): the same functions as SF.fieldRenderers.dateFilter.
+
 
 function renderFilterField(field = {}, host) {
   const asked = field.filter?.control || field.propertyType || field.type || field.dataType || 'text';
@@ -1779,12 +2917,14 @@ function renderColorCell(field, value) {
 
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
         <sf-input-color size="1/2" appearance="plain" value=${String(hex)}
-                  aria-label=${field.label || field.key || ''} disabled></sf-input-color>
+                  aria-label=${field.label || field.key || ''} readonly></sf-input-color>
     `;
 } // Reads what port 1.8.0 declares: `inherited` says a value comes from somewhere
 // else, `inheritedValue` says what it is. A view that drew the inherited colour as
 // the value would make «not set» and «set to the same colour» look identical, and
-// only the first follows the theme when the theme moves.
+// only the first follows the theme when the theme moves. The view and the cell
+// draw the field read-only (sf-input-color 1.17.0): the value in the text's ink;
+// disabled drew it in the disabled ink, as a field nobody may use.
 
 
 function renderColorView(field, value) {
@@ -1798,7 +2938,7 @@ function renderColorView(field, value) {
                 value=${hex ? String(hex) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                 inherited-value=${inherited ? String(inherited) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                 aria-label=${field.label || field.key || ''}
-                disabled
+                readonly
         ></sf-input-color>
     `;
 }
@@ -1815,7 +2955,7 @@ function renderColorEdit(field, value, host) {
                 inherited-value=${inherited ? String(inherited) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                 swatches=${field.swatches ? String(field.swatches) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                 ?clearable=${Boolean(inherited) || field.required !== true}
-                ?disabled=${field.readonly === true}
+                ?readonly=${field.readonly === true}
                 aria-label=${field.label || field.key || ''}
                 @change=${event => host.setFieldValue(field, event.detail?.value ?? '')}
         ></sf-input-color>
@@ -2062,17 +3202,44 @@ function renderDateCell(field, value, host) {
   const formatted = renderHostFormattedCell(field, value, host);
   if (formatted !== null) return formatted;
   return defaultDateText(field, value, host);
+} // A share of a limit (owner decision C203 (5), IM-8): the `meter` variant of a
+// number 0..100 is the inline sf-progress-bar meter -- a 64 track, the number
+// «72 %» before it -- named by the field's label. The scale stays for levels
+// («4 из 5», C185 (5)). Out of range it is left as text, as the scale is.
+
+
+function meterProps(field, number) {
+  const name = typeof field.label === 'string' ? field.label : field.key || '';
+  return {
+    inline: true,
+    meter: true,
+    value: String(number),
+    ...(name ? {
+      label: name
+    } : {})
+  };
 }
 
 function renderNumericCell(field, value, host) {
   const variant = field.variant || field.filter?.variant;
   const number = Number(scalarValue(value));
 
-  if (variant !== 'scale' || !Number.isFinite(number)) {
-    return renderHostFormattedCell(field, value, host);
+  if (variant !== 'scale' && variant !== 'meter' || !Number.isFinite(number)) {
+    // The host's text first; else the number in the page's language, as
+    // the view prints it («12,5»), where the table printed «12.5».
+    const formatted = renderHostFormattedCell(field, value, host);
+    if (formatted !== null) return formatted;
+    if (carriesText(value)) return value.text || null;
+    return (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.formatDecimal)(scalarValue(value), (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(host ?? null)) || null;
   }
 
   if (number < 0 || number > 100) return null;
+  if (variant === 'meter') return {
+    component: {
+      type: 'progress-bar',
+      props: meterProps(field, number)
+    }
+  };
   return {
     component: {
       type: 'progress-scale',
@@ -2171,7 +3338,7 @@ function renderCellField(field = {}, value, host) {
 // value control reports a committed change as `change` on its host, once per
 // change the user makes, with each older name kept as an alias the manifest
 // marks `alias_of`. So the set binds the canonical name for all of them --
-// sf-input, sf-textarea, sf-switch, sf-dropdown, sf-button-group and
+// sf-input, sf-textarea, sf-switch, sf-checkbox, sf-dropdown, sf-segmented and
 // sf-datepicker -- where it bound three different alias names before. The one
 // event this file still binds under its own name is sf-file-upload:select,
 // which is not a value change but a selection; the `change` on that component
@@ -2200,7 +3367,9 @@ const EDIT_RENDERERS = {
   choices: renderChoicesEdit,
   file: renderFileEdit,
   color: renderColorEdit,
-  include: renderIncludeEdit
+  include: renderIncludeEdit,
+  money: renderMoneyEdit,
+  percent: renderPercentEdit
 };
 
 function fieldName(field) {
@@ -2209,22 +3378,64 @@ function fieldName(field) {
 // already has a control that knows country codes, dial prefixes and masks, so a
 // `string` whose variant is `phone` gets it and everything else about a string
 // stays true. Counted on a running Larena site, which declares one.
+//
+// What it writes is E.164, `+79161234567` (FL-1): the control's own form value,
+// whatever the box shows -- `+7 916 123-45-67` written back changed a stored
+// number on every save. It reads E.164 and the formatted strings stored before.
+//
+// An extension (`;ext=12`) is not the control's to edit: the number goes to
+// it alone and the extension is written back after it, so a save keeps it.
+//
+// The country an empty field starts on (FL-7): `defaultCountry` (ISO 3166
+// alpha-2, "RU") where the field names one, else the page's (ru is Russia,
+// en-GB Britain; sf-input-country's own rule). A stored number names its own
+// country, so the setting is passed only while the field is empty.
 
 
 function renderPhoneEdit(field, value, host) {
+  const {
+    number: stored,
+    extension
+  } = (0,_phone_js__WEBPACK_IMPORTED_MODULE_11__.splitPhone)(scalarValue(value) ?? '');
+  const preferred = String(field.defaultCountry ?? '').trim().toUpperCase();
+  const iso2 = /^[A-Z]{2}$/u.test(preferred) && !String(stored).trim() ? preferred : lit__WEBPACK_IMPORTED_MODULE_0__.nothing;
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
         <sf-input-country
                 size=${EDIT_SIZE}
                 name=${fieldName(field)}
-                value=${scalarValue(value) ?? ''}
+                value=${stored}
+                iso2=${iso2}
                 aria-label=${field.label || field.key || ''}
                 ?required=${Boolean(field.required)}
                 ?disabled=${field.readonly === true}
                 use-mask="true"
                 show-code="true"
-                @change=${event => host.setFieldValue(field, event.detail?.value ?? event.target?.value ?? '')}
+                @change=${event => host.setFieldValue(field, phoneWritten(event, extension))}
         ></sf-input-country>
     `;
+} // The control's form value (E.164; nothing for the dial code alone), or the
+// box's text brought to E.164 where the element is not defined yet.
+
+
+function phoneWritten(event, extension = '') {
+  const control = event.currentTarget;
+  const number = typeof control?.sfFormValue === 'function' ? control.sfFormValue() ?? '' : (0,_phone_js__WEBPACK_IMPORTED_MODULE_11__.phoneE164)(event.detail?.value ?? event.target?.value ?? '');
+  return number && extension ? `${number};ext=${extension}` : number;
+}
+
+function isPhoneField(field) {
+  return String(field.variant ?? '') === 'phone';
+} // A phone shown: the host's text first (formatFieldValue, or {value, text}),
+// as for any string; else the number
+// laid out by its country, left to right on a right-to-left page too (an
+// Arabic page drew the groups in reverse order).
+
+
+function phoneText(field, value, host) {
+  const formatted = host?.formatFieldValue?.(field, value);
+  if (typeof formatted === 'string') return formatted;
+  if (carriesText(value)) return value.text;
+  return (0,_phone_js__WEBPACK_IMPORTED_MODULE_11__.formatPhone)(scalarValue(value), setText(host, 'phoneExtension'));
 } // A password is a string the set never shows (owner, 2026-10-19; Larena's
 // storage settings). The host never sends one: the value of a `password`
 // variant is {set: true} or {set: false}, and null or an absent value reads as
@@ -2290,11 +3501,22 @@ function renderPasswordEdit(field, value, host) {
 }
 
 function renderStringCell(field, value, host) {
+  if (isPhoneField(field)) {
+    const text = phoneText(field, value, host);
+    return text ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<bdi dir="ltr">${text}</bdi>` : null;
+  }
+
   return isPasswordField(field) ? passwordState(host, value) : null;
 }
 
 function renderStringView(field, value, host) {
   if (isPasswordField(field)) return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-field-view">${passwordState(host, value)}</span>`;
+
+  if (isPhoneField(field)) {
+    const text = phoneText(field, value, host);
+    return text ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-field-view"><bdi dir="ltr">${text}</bdi></span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing;
+  }
+
   return renderTextView(field, value, host);
 } // A file shown as what it is. The site keeps logos, so a file whose variant says
 // image is drawn as the image rather than as a row with a paperclip -- the same
@@ -2642,6 +3864,335 @@ function renderNumberEdit(field, value, host) {
                 @change=${event => write(event, true)}
         ></sf-input>
     `;
+} // Money and percent are the Framework's in every mode (owner decision C291
+// (2), 2026-11-17; set boundary study BQ-2): the View set's editors were the
+// reference, its option names kept -- `currency` (a fixed ISO 4217 code),
+// `min`, `max`, `precision` (a percent's digits; money's are its currency's
+// minor units, ISO 4217) and `placeholder`, as simai.property-view-port 1.18.0
+// declares them. Every value is a decimal string, never a float:
+//
+//   percent   "12.5" -- the percent, not the share; 0 to 100 unless the
+//             field bounds it otherwise
+//   money     {amount: "1500.50", currency: "RUB"}; a field with a fixed
+//             currency also reads a bare amount, and writes the pair
+//
+// One sf-input with the decimal keyboard and the sign in the field («%», a
+// fixed currency's «₽» after the amount or «$» before it, as the page's
+// language writes it); a money field without a fixed currency has a currency
+// dropdown beside the amount. What is typed is read with a comma or a point
+// and written canonical; the input shows it back in the page's language
+// («1500,5»). An entry that is not a value yet -- text that is not a number,
+// more digits after the point than allowed, a bound crossed, an amount without
+// a currency -- is written as typed and said through setFieldError, which holds
+// a save (port 1.16.0, as a masked string's), and under the field once the
+// person leaves it. A host without setFieldError hears undefined, as for a
+// number.
+// The codes a currency choice offers when a field names no `currencies` and
+// the browser cannot list ISO 4217 (Intl.supportedValuesOf).
+
+
+const OFFERED_CURRENCIES = ['RUB', 'USD', 'EUR', 'CNY', 'KZT', 'BYN', 'AED', 'TRY', 'GBP', 'JPY']; // A field's `currencies` (C294, MP-10): an array of ISO 4217 codes or a
+// comma-separated string; absent, every code the browser knows.
+
+function fieldCurrencies(field) {
+  const asked = Array.isArray(field?.currencies) ? field.currencies : typeof field?.currencies === 'string' ? field.currencies.split(',') : [];
+  const codes = asked.map(code => String(code).trim().toUpperCase()).filter(code => /^[A-Z]{3}$/u.test(code));
+  return codes.length ? [...new Set(codes)] : (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.currencyCodes)(OFFERED_CURRENCIES);
+} // What a person is typing, per host and field: the value written is
+// canonical («12.5»), and drawn back as such it would move the caret under
+// «12,50» or swallow the comma of «12,». The typed text is shown while it
+// still reads as the value, and forgotten when the field is left.
+
+
+const DECIMAL_DRAFTS = new WeakMap();
+
+function draftOf(host, key) {
+  return host && typeof host === 'object' ? DECIMAL_DRAFTS.get(host)?.get(key) : undefined;
+}
+
+function keepDraft(host, key, text) {
+  if (!host || typeof host !== 'object') return;
+  let drafts = DECIMAL_DRAFTS.get(host);
+
+  if (!drafts) {
+    drafts = new Map();
+    DECIMAL_DRAFTS.set(host, drafts);
+  }
+
+  if (text === undefined) drafts.delete(key);else drafts.set(key, text);
+} // At rest the amount shows its groups and at least `minDigits` after the
+// point («1 500,50»); while it is typed, as typed (C294).
+
+
+function decimalShown(host, key, value, {
+  currency = null,
+  minDigits = 0
+} = {}) {
+  if (value === null || value === undefined || value === '') return '';
+  const locale = (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(host ?? null);
+  const read = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.readTypedDecimal)(value, {
+    locale: 'en',
+    currency
+  });
+  if (!read.ok) return String(value);
+  const draft = draftOf(host, key);
+
+  if (typeof draft === 'string') {
+    const typed = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.readTypedDecimal)(draft, {
+      locale,
+      currency
+    });
+    if (typed.ok && typed.value === read.value) return draft;
+  }
+
+  return (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.restingDecimal)(read.value, locale, minDigits);
+}
+
+const hasBound = bound => bound !== null && bound !== undefined && bound !== '' && (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.readDecimal)(bound).ok; // What is wrong with a typed decimal, or '': not a number, more digits after
+// the point than `digits` (never rounded away: «1500,555» is an error, while
+// «1500,500» is 1500.5), outside min..max.
+
+
+function decimalError(host, text, {
+  digits = null,
+  min = null,
+  max = null,
+  currency = null
+} = {}) {
+  const read = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.readTypedDecimal)(text, {
+    locale: (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(host ?? null),
+    currency
+  });
+  if (!read.ok) return setText(host, 'notNumber');
+  if (read.value === null) return '';
+
+  if (Number.isInteger(digits) && (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.fractionDigits)(read.value) > digits) {
+    return digits === 0 ? setText(host, 'fractionNone') : (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageWord)(SET_TEXT, 'precisionMax', host ?? null, {
+      component: SET_NAME,
+      count: digits
+    });
+  }
+
+  const low = hasBound(min) && (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.compareDecimal)(read.value, min) === -1;
+  const high = hasBound(max) && (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.compareDecimal)(read.value, max) === 1;
+  if (!low && !high) return '';
+  const locale = (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(host ?? null);
+  const vars = {
+    min: hasBound(min) ? (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.formatDecimal)(min, locale) : '',
+    max: hasBound(max) ? (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.formatDecimal)(max, locale) : ''
+  };
+  if (hasBound(min) && hasBound(max)) return setWord(host, 'boundBetween', vars);
+  return low ? setWord(host, 'boundAtLeast', vars) : setWord(host, 'boundAtMost', vars);
+} // The value goes to the host with what is wrong with it: a value that is not
+// one yet is written as typed while setFieldError holds the save.
+
+
+function writeDecimal(field, host, value, message) {
+  if (message) {
+    if (typeof host.setFieldError === 'function') {
+      host.setFieldError(field, message);
+      host.setFieldValue(field, value);
+    } else {
+      host.setFieldValue(field, undefined);
+    }
+
+    return;
+  }
+
+  host.setFieldError?.(field, null);
+  host.setFieldValue(field, value);
+}
+
+function decimalInput(field, value, host, {
+  key,
+  check,
+  write,
+  currency = null,
+  minDigits = 0,
+  textStart = '',
+  textEnd = '',
+  rootClass = ''
+}) {
+  const own = EDIT_ERROR;
+  const locale = (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(host ?? null);
+
+  const typed = (event, left) => {
+    const input = event.currentTarget ?? event.target;
+    const text = String(input?.value ?? '');
+    keepDraft(host, key, left ? undefined : text);
+    const message = check(text);
+
+    if (input && !own) {
+      if (message && left) {
+        input.setAttribute('error-message', message);
+        input.toggleAttribute('invalid', true);
+      } else if (!message && input.hasAttribute?.('invalid') && !input.hasAttribute('data-sf-form-invalid')) {
+        input.toggleAttribute('invalid', false);
+        input.removeAttribute('error-message');
+      }
+    }
+
+    const read = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.readTypedDecimal)(text, {
+      locale,
+      currency
+    });
+    write(read.ok ? read.value : text, message);
+  };
+
+  return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+        <sf-input
+                size=${EDIT_SIZE}
+                appearance="bordered"
+                name=${fieldName(field)}
+                value=${decimalShown(host, key, value, {
+    currency,
+    minDigits
+  })}
+                inputmode="decimal"
+                text-start=${textStart || lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                text-end=${textEnd || lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                placeholder=${field.placeholder || lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                root-class=${rootClass || lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                ?required=${Boolean(field.required)}
+                ?invalid=${Boolean(own)}
+                error-message=${own || lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                aria-label=${field.label || field.key || ''}
+                @input=${event => typed(event, false)}
+                @change=${event => typed(event, true)}
+        ></sf-input>
+    `;
+}
+
+function fixedCurrency(field) {
+  return typeof field?.currency === 'string' && /^[A-Z]{3}$/u.test(field.currency) ? field.currency : null;
+} // A percent's digits after the point: `precision`, else the digits its
+// `step` has («0.1» is one), else as many as typed.
+
+
+function percentDigits(field) {
+  if (Number.isInteger(field.precision)) return field.precision;
+  const step = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.readDecimal)(field.step);
+  return step.ok && step.value !== null && Number(step.value) > 0 ? (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.fractionDigits)(step.value) : null;
+} // A percent is the percent itself, «12.5» is 12,5 % (C294); it is bounded
+// only by the field's min and max -- a growth of 150 % or a change of −5 % is
+// a percent too (MP-11: the View set bounded it 0..100 without saying why).
+
+
+function renderPercentEdit(field, value, host) {
+  const key = String(field.key ?? '');
+  const min = hasBound(field.min) ? field.min : null;
+  const max = hasBound(field.max) ? field.max : null;
+  const digits = percentDigits(field);
+  return decimalInput(field, scalarValue(value), host, {
+    key,
+    textEnd: '%',
+    check: text => decimalError(host, text, {
+      digits,
+      min,
+      max
+    }),
+    write: (next, message) => writeDecimal(field, host, next, message)
+  });
+}
+
+function renderMoneyEdit(field, value, host) {
+  const locale = (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(host ?? null);
+  const key = String(field.key ?? '');
+  const fixed = fixedCurrency(field);
+  const display = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.currencyDisplayOf)(field);
+  const parts = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.moneyParts)(scalarValue(value), fixed); // A currency chosen before an amount is typed waits here: a value is an
+  // amount and its currency, never a currency alone.
+
+  const currencyKey = `${key}#currency`;
+  const currency = parts.currency || draftOf(host, currencyKey) || null;
+  const min = hasBound(field.min) ? field.min : null;
+  const max = hasBound(field.max) ? field.max : null;
+
+  const check = (text, code) => {
+    const message = decimalError(host, text, {
+      digits: code ? (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.currencyOf)(code, locale).minor : null,
+      min,
+      max,
+      currency: code
+    });
+    if (message) return message;
+    return (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.readTypedDecimal)(text, {
+      locale,
+      currency: code
+    }).value !== null && !code ? setText(host, 'chooseCurrency') : '';
+  };
+
+  const write = (amount, message, code) => writeDecimal(field, host, amount === null || amount === '' ? null : {
+    amount,
+    currency: code ?? null
+  }, message);
+
+  const sign = fixed ? (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.currencyOf)(fixed, locale, display) : null;
+  const amount = decimalInput(field, parts.amount, host, {
+    key,
+    currency,
+    minDigits: currency ? (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.currencyOf)(currency, locale).minor : 0,
+    textStart: sign?.before ? sign.sign : '',
+    textEnd: sign && !sign.before ? sign.sign : '',
+    rootClass: fixed ? '' : 'flex-1 min-w-0',
+    check: text => check(text, currency),
+    write: (next, message) => write(next, message, currency)
+  });
+  if (fixed) return amount; // The field's `currencies`, the value's own currency first when the list
+  // lacks it; without a list, every ISO 4217 code with a search.
+
+  const listed = fieldCurrencies(field);
+  const offered = [...new Set([...(currency ? [currency] : []), ...listed])];
+  const name = setText(host, 'currency');
+  return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+        <div class="flex gap-1/3 items-cross-start min-w-0 w-full">
+            ${amount}
+            <sf-dropdown
+                    size=${EDIT_SIZE}
+                    appearance="bordered"
+                    mode="select"
+                    search=${offered.length > 12 ? 'true' : 'false'}
+                    root-class="basis-1/3 min-w-0"
+                    name=${`${fieldName(field)}_currency`}
+                    value=${currency ?? ''}
+                    placeholder=${name}
+                    aria-label=${name}
+                    .options=${offered.map(code => {
+    const {
+      sign: mark
+    } = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.currencyOf)(code, locale, display);
+    return {
+      type: 'text',
+      size: '1',
+      value: code,
+      text: mark === code ? code : `${code} ${mark}`,
+      selected: code === currency
+    };
+  })}
+                    @change=${event => {
+    const code = event.detail?.values?.[0] || event.detail?.value || null;
+    keepDraft(host, currencyKey, code ?? undefined);
+    const typed = parts.amount; // The dropdown shows the code itself; a value is written
+    // only with an amount.
+    // The stored amount is checked as the page would show it.
+
+    if (typed !== null && typed !== undefined && typed !== '') write(typed, check((0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.restingDecimal)(typed, locale), code), code);
+  }}
+            ></sf-dropdown>
+        </div>
+    `;
+}
+
+function renderPercentView(field, value, host) {
+  const formatted = host?.formatFieldValue?.(field, value);
+  const text = typeof formatted === 'string' ? formatted : carriesText(value) ? value.text : (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.formatPercent)(scalarValue(value), (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(host ?? null)) || viewText(field, value, null);
+  return text ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-field-view">${text}</span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing;
+}
+
+function renderMoneyView(field, value, host) {
+  const formatted = host?.formatFieldValue?.(field, value);
+  const text = typeof formatted === 'string' ? formatted : carriesText(value) ? value.text : (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.formatMoney)(scalarValue(value), field, (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(host ?? null));
+  return text ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-field-view">${text}</span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing;
 } // A date control has no clock. `sf-input-date` declares a format and a date,
 // and its parser is anchored (`^\d{4}-\d{2}-\d{2}$`), so a datetime value
 // falls through to a loose digit scan that reads `2026-11-27T13:26:00` as day
@@ -2670,6 +4221,14 @@ function splitDateTime(value) {
     date: match[1],
     suffix: `T${match[2]}${match[3] || ''}`
   };
+} // min and max bound the day (PD-2, as a datetime's do): an ISO date, or the
+// day of an ISO date and time; the calendar disables the days outside them
+// and a typed day outside them is put back. The host still validates.
+
+
+function dayBound(bound) {
+  const match = typeof bound === 'string' ? bound.trim().match(/^\d{4}-\d{2}-\d{2}/u) : null;
+  return match ? match[0] : '';
 }
 
 function renderDateEdit(field, value, host) {
@@ -2678,13 +4237,19 @@ function renderDateEdit(field, value, host) {
     date,
     suffix
   } = splitDateTime(value);
+  const min = dayBound(field.min);
+  const max = dayBound(field.max);
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
         <sf-input-date
                 size=${EDIT_SIZE}
                 name=${fieldName(field)}
                 value=${date ?? ''}
+                min-date=${min || lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                max-date=${max || lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                 aria-label=${field.label || field.key || ''}
                 ?required=${Boolean(field.required)}
+                ?invalid=${Boolean(EDIT_ERROR)}
+                error-message=${EDIT_ERROR || lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                 @change=${event => {
     const next = event.detail?.value ?? event.target?.value ?? null;
     host.setFieldValue(field, next && suffix ? `${next}${suffix}` : next);
@@ -2738,6 +4303,8 @@ function renderDateTimeEdit(field, value, host) {
                 minute-step=${step || lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                 aria-label=${field.label || field.key || ''}
                 ?required=${Boolean(field.required)}
+                ?invalid=${Boolean(EDIT_ERROR)}
+                error-message=${EDIT_ERROR || lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                 @change=${event => {
     // The picker's own change, not a native one from its field.
     if (event.target !== event.currentTarget) return;
@@ -2775,6 +4342,8 @@ function renderTimeEdit(field, value, host) {
                 minute-step=${step || lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                 aria-label=${field.label || field.key || ''}
                 ?required=${Boolean(field.required)}
+                ?invalid=${Boolean(EDIT_ERROR)}
+                error-message=${EDIT_ERROR || lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                 @change=${event => {
     if (event.target !== event.currentTarget) return;
     const result = (0,_datetime_js__WEBPACK_IMPORTED_MODULE_6__.composeTime)(stored, String(event.detail?.value ?? ''));
@@ -2784,17 +4353,23 @@ function renderTimeEdit(field, value, host) {
   }}
         ></sf-input-date>
     `;
-} // A required boolean is a switch: two states are all it has. An optional one is
-// a pair of buttons with nothing chosen while the value is absent -- the
-// consumer owner's decision of 2026-10-06, and the reason is that a switch
-// cannot say «не задано»: rendering one over an absent value would write false
-// on the first save, a value nobody chose.
+} // A required boolean has two states and nothing else. In a form saved with a
+// button it is a checkbox, and a switch only where the change acts at once
+// (owner decision C165 (4), form study FM-6): a switch says «on now», which a
+// form that has not been saved has not done. The host says it acts at once with
+// renderEditField(…, {apply: 'instant'}). The checkbox carries no `required`:
+// a required yes/no is one with a value, and an unticked box is «Нет», not an
+// empty answer. An optional one is a pair of buttons with nothing chosen while
+// the value is absent -- the consumer owner's decision of 2026-10-06, and the
+// reason is that neither a switch nor a checkbox can say «не задано»: rendering
+// one over an absent value would write false on the first save, a value nobody
+// chose.
 
 
 function renderBooleanEdit(field, value, host) {
   const optional = field.required !== true;
 
-  if (!optional) {
+  if (!optional && EDIT_APPLY === 'instant') {
     return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
             <sf-switch
                     size=${EDIT_SIZE}
@@ -2803,6 +4378,18 @@ function renderBooleanEdit(field, value, host) {
                     aria-label=${field.label || field.key || ''}
                     @change=${event => host.setFieldValue(field, Boolean(event.target?.checked))}
             ></sf-switch>
+        `;
+  }
+
+  if (!optional) {
+    return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+            <sf-checkbox
+                    size=${EDIT_SIZE}
+                    name=${fieldName(field)}
+                    ?checked=${value === true}
+                    aria-label=${field.label || field.key || ''}
+                    @change=${event => host.setFieldValue(field, Boolean(event.target?.checked ?? event.detail?.checked))}
+            ></sf-checkbox>
         `;
   }
 
@@ -2934,7 +4521,7 @@ function renderChoiceButtons(field, value, host) {
                 class="sf-field-choice-buttons"
                 appearance="track"
                 size=${size}
-                root-class=${locked ? 'flex-wrap pointer-event-none' : 'flex-wrap'}
+                root-class=${locked ? 'flex-wrap pointer-events-none' : 'flex-wrap'}
                 name=${fieldName(field)}
                 items=${JSON.stringify(items)}
                 value=${chosen || lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
@@ -2957,7 +4544,7 @@ function renderChoiceEdit(field, value, host) {
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
         <sf-dropdown
                 size=${EDIT_SIZE}
-                appearance="outlined"
+                appearance="bordered"
                 mode="select"
                 search="false"
                 name=${fieldName(field)}
@@ -3011,7 +4598,7 @@ function renderChoicesEdit(field, value, host) {
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
         <sf-dropdown
                 size=${EDIT_SIZE}
-                appearance="outlined"
+                appearance="bordered"
                 mode="select"
                 multiple
                 search="false"
@@ -3055,81 +4642,7 @@ function renderChoicesEdit(field, value, host) {
 // keeps exactly what was published.
 
 
-const SET_TEXT = {
-  en: {
-    yes: 'Yes',
-    no: 'No',
-    searchInList: 'Find in the list',
-    // A text filter is a text the value contains, not a list to search.
-    containsText: 'Contains…',
-    fileKind_image: 'Images',
-    fileKind_document: 'Documents',
-    fileKind_archive: 'Archives',
-    fileKind_other: 'Other files',
-    operator: 'Operator',
-    rangeFrom: 'From',
-    rangeTo: 'To',
-    loadingOptions: 'Loading the options',
-    optionsError: 'The options could not be loaded',
-    pickRecord: 'Choose a record',
-    pickFromList: 'Choose from the list',
-    searchRecords: 'Find a record',
-    loadingRecords: 'Loading records',
-    recordsError: 'The records could not be loaded',
-    retry: 'Try again',
-    loadMore: 'Load more',
-    removeFile: 'Remove',
-    fileRemoved: 'File removed',
-    undo: 'Undo',
-    passwordSet: 'Set',
-    passwordUnset: 'Not set',
-    passwordKeep: 'Set; type a new one to replace it',
-    maskIncomplete: 'Complete the field',
-    notNumber: 'Enter a number',
-    precisionMax: 'At most {n} digits after the point',
-    rowCount: {
-      one: '{n} row',
-      other: '{n} rows'
-    }
-  },
-  ru: {
-    yes: 'Да',
-    no: 'Нет',
-    searchInList: 'Найти в списке',
-    containsText: 'Содержит…',
-    fileKind_image: 'Изображения',
-    fileKind_document: 'Документы',
-    fileKind_archive: 'Архивы',
-    fileKind_other: 'Прочие файлы',
-    operator: 'Оператор',
-    rangeFrom: 'От',
-    rangeTo: 'До',
-    loadingOptions: 'Загрузка вариантов',
-    optionsError: 'Не удалось загрузить варианты',
-    pickRecord: 'Выберите запись',
-    pickFromList: 'Выберите из списка',
-    searchRecords: 'Найти запись',
-    loadingRecords: 'Загрузка записей',
-    recordsError: 'Не удалось загрузить записи',
-    retry: 'Повторить',
-    loadMore: 'Загрузить ещё',
-    removeFile: 'Убрать',
-    fileRemoved: 'Файл убран',
-    undo: 'Вернуть',
-    passwordSet: 'Задан',
-    passwordUnset: 'Не задан',
-    passwordKeep: 'Задан; введите новый, чтобы заменить',
-    maskIncomplete: 'Заполните поле полностью',
-    notNumber: 'Введите число',
-    precisionMax: 'Не больше {n} знаков после запятой',
-    rowCount: {
-      one: '{n} строка',
-      few: '{n} строки',
-      many: '{n} строк',
-      other: '{n} строки'
-    }
-  }
-}; // The host's word wins, as it always did; the set's own fallback now follows
+const SET_TEXT = _lang_index_mjs__WEBPACK_IMPORTED_MODULE_12__["default"]; // The host's word wins, as it always did; the set's own fallback now follows
 // the page's language instead of being Russian whatever the page is. `host` is
 // the component that called the set, which is the node the rule reads from.
 // The set is not an element, so it is named here rather than taken from the
@@ -3140,6 +4653,20 @@ const SET_NAME = 'sf-field-renderers';
 
 function setText(host, key) {
   return host?.getFieldText?.(key) ?? (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageText)(SET_TEXT, key, host ?? null, SET_NAME);
+} // A word with places in it ({zone}, {n}): the host's word wins, as setText's.
+
+
+function setWord(host, key, vars) {
+  const own = host?.getFieldText?.(key);
+
+  if (own !== undefined && own !== null) {
+    return String(own).replace(/\{([a-z][\w-]*)\}/giu, (whole, name) => vars && name in vars ? String(vars[name]) : whole);
+  }
+
+  return (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageWord)(SET_TEXT, key, host ?? null, {
+    component: SET_NAME,
+    vars
+  });
 } // One job, one component (owner decision C139 (1), 2026-11-14): a record, a
 // relation, a user and a paged lookup are chosen with sf-input-lookup -- the
 // search the host answers, its rows with a picture and a caption, its states
@@ -3353,7 +4880,7 @@ function renderRecordPicker(field, value, host) {
         <div class="sf-field-picker flex flex-col gap-1/3" data-field-picker=${field.key || lit__WEBPACK_IMPORTED_MODULE_0__.nothing}>
             <sf-dropdown
                     size=${EDIT_SIZE}
-                    appearance="outlined"
+                    appearance="bordered"
                     mode="select"
                     search="true"
                     name=${fieldName(field)}
@@ -3498,7 +5025,7 @@ function renderLookupEdit(field, value, host) {
         <div class="sf-field-picker flex flex-col gap-1/3" data-field-picker=${field.key || lit__WEBPACK_IMPORTED_MODULE_0__.nothing}>
             <sf-dropdown
                     size=${EDIT_SIZE}
-                    appearance="outlined"
+                    appearance="bordered"
                     mode="select"
                     ?multiple=${multiple}
                     search="true"
@@ -3714,10 +5241,24 @@ function renderFileEdit(field, value, host) {
 // type yet.
 
 
-const sizeOption = options => options?.size === '1/2' ? '1/2' : '1'; // A control that stays a control when it may not be changed: a choice as
+const sizeOption = options => options?.size === '1/2' ? '1/2' : '1'; // `options.density`: 'compact' or 'normal', the density the control is drawn in
+// (owner decision C22; form study FM-5). Without it the control follows the
+// region it stands in, as every component does; with it the host sets the
+// region for this field alone -- a compact panel asks for 'compact' instead of
+// shrinking the field with size '1/2', which C22 forbids. Anything else is no
+// density at all.
+
+
+const DENSITIES = new Set(['compact', 'normal']);
+
+const densityOption = options => DENSITIES.has(options?.density) ? options.density : ''; // `options.apply`: 'instant' when a change acts at once (a settings panel, the
+// parameters of a block), anything else for a form saved with a button. Read by
+// the yes/no field only: a switch at once, a checkbox in a form (C165 (4)).
+
+
+let EDIT_APPLY = ''; // A control that stays a control when it may not be changed: a choice as
 // buttons shows which button is chosen, which is what it is for, where the
 // view's badge would show a different thing (port 1.16.0).
-
 
 const keepsControlWhenLocked = (asked, field) => asked === 'choice' && isChoiceButtons(field); // `options.disabled`: the control is drawn disabled, not read-only -- a field a
 // condition turns off for now (port 1.14.0 `when.enabled`), which the host
@@ -3725,7 +5266,15 @@ const keepsControlWhenLocked = (asked, field) => asked === 'choice' && isChoiceB
 // differently; for every other one a disabled field is a read-only one.
 
 
-let EDIT_DISABLED = false;
+let EDIT_DISABLED = false; // `options.error`: what is wrong with the field now, a sentence, or empty (PD-1,
+// property type study «Дата»). A control that says its own error (sf-input-date
+// for a date, a datetime and a time) is drawn invalid with the sentence under
+// it, the error-message of the field family, so a host that is not sf-form --
+// a record card -- marks the field itself instead of writing a line under a
+// field with a normal border. sf-form keeps setting invalid on the controls it
+// draws, as before.
+
+let EDIT_ERROR = '';
 function renderEditField(field = {}, value, host, options = {}) {
   const asked = field.propertyType || field.type || field.dataType;
   const disabled = options?.disabled === true; // A field the person may not change is shown, not offered as a control that
@@ -3741,19 +5290,35 @@ function renderEditField(field = {}, value, host, options = {}) {
   const outer = EDIT_SIZE;
   const outerDisabled = EDIT_DISABLED;
   const outerPicker = EDIT_PICKER;
+  const outerApply = EDIT_APPLY;
+  const outerError = EDIT_ERROR;
   EDIT_SIZE = sizeOption(options);
+  EDIT_ERROR = typeof options?.error === 'string' ? options.error.trim() : '';
   EDIT_DISABLED = disabled; // `options.picker: 'dropdown'`: the record, relation, user and paged lookup
   // fields drawn as before C139, a searchable sf-dropdown (until 2027-01-01).
 
   EDIT_PICKER = options?.picker === 'dropdown' ? 'dropdown' : '';
+  EDIT_APPLY = options?.apply === 'instant' ? 'instant' : '';
 
   try {
-    return renderer(field, value, host);
+    return inDensity(renderer(field, value, host), densityOption(options));
   } finally {
     EDIT_SIZE = outer;
     EDIT_DISABLED = outerDisabled;
     EDIT_PICKER = outerPicker;
+    EDIT_APPLY = outerApply;
+    EDIT_ERROR = outerError;
   }
+} // A density asked for one field is a region around it that draws no box of its
+// own: the variables of the density rules (core/scss/_sf_css__density.scss)
+// stand on it and every part of the control inherits them, the popups it opens
+// read it (core/js/density.js densityOf), and the control lays out in the
+// host's flex or grid as if the wrapper were not there. No density, no wrapper:
+// what a host had is unchanged.
+
+function inDensity(content, density) {
+  if (!density || content == null) return content;
+  return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<div class="sf-field-density" style="display: contents" data-sf-density=${density}>${content}</div>`;
 } // The view template: a field shown and not edited, which is the fourth of the
 // four the assignment names and the last one the set was missing.
 //
@@ -3770,6 +5335,7 @@ function renderEditField(field = {}, value, host, options = {}) {
 // has no visual size at all, its `size` being a legacy name for the file's size
 // as text.
 // The line a viewed value is drawn on: 1, or 1/2 with {size: '1/2'}, as above.
+
 
 let VIEW_LINE = '1'; // A scalar may arrive as the value itself or as {value, text}: the data and the
 // host's own formatting of it. The consumer asked for the second and they are
@@ -3807,6 +5373,18 @@ function renderTextView(field, value, host) {
 function renderHtmlView(field, value) {
   const clean = (0,_html_js__WEBPACK_IMPORTED_MODULE_8__.cleanHtml)(value);
   return clean ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<div class="sf-field-view sf-field-html">${(0,lit_directives_unsafe_html_js__WEBPACK_IMPORTED_MODULE_1__.unsafeHTML)(clean)}</div>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing;
+} // A number in the page's language (set boundary study, 2026-11-17): «12,5 кг»
+// on a Russian page, «12.5 kg» on an English one, through Intl with every
+// digit the value has (decimal.js formatDecimal, never through a float on the
+// way). The host's formatFieldValue and a value's own text still win; what is
+// not a number is shown as it came.
+
+
+function numberText(field, value, host) {
+  const formatted = host?.formatFieldValue?.(field, value);
+  if (typeof formatted === 'string') return formatted;
+  if (carriesText(value)) return value.text;
+  return (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.formatDecimal)(scalarValue(value), (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(host ?? null)) || viewText(field, value, null);
 } // A number carries its unit when the field declares one, and nothing when it
 // does not -- the set does not guess at a unit, and «42» with an invented «шт»
 // beside it is a worse answer than «42».
@@ -3822,7 +5400,14 @@ function renderNumberView(field, value, host) {
     return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<sf-progress-scale size="1" value=${String(number)}></sf-progress-scale>`;
   }
 
-  const text = viewText(field, value, host);
+  if (variant === 'meter' && Number.isFinite(number) && number >= 0 && number <= 100) {
+    const {
+      label
+    } = meterProps(field, number);
+    return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<sf-progress-bar inline meter value=${String(number)} label=${label || lit__WEBPACK_IMPORTED_MODULE_0__.nothing}></sf-progress-bar>`;
+  }
+
+  const text = numberText(field, value, host);
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-field-view">${field.unit ? `${text} ${field.unit}` : text}</span>`;
 } // A date is the host's to format first: formatFieldValue wins, and so does a
 // value that carries its own text. Without it the set used to print the stored
@@ -3835,17 +5420,22 @@ function renderNumberView(field, value, host) {
 // reads them as written, in the host's zone): nothing is moved to the reader's
 // time zone, which would show a different day near midnight. A value that is
 // not a date at all is shown as it came, never guessed at.
+//
+// `format` is the field's display setting (PD-3): the length of the date,
+// Intl's dateStyle in the page's language -- short «17.11.2026» / «11/17/26»,
+// medium (the default) «17 нояб. 2026 г.» / «Nov 17, 2026», long «17 ноября
+// 2026 г.» / «November 17, 2026», full with the weekday. A datetime keeps its
+// clock beside it. It is read by the view and the cell; the edit control
+// types the locale's digits whatever it says. Any other value is medium, and
+// the host's formatFieldValue or text still wins.
 
 
-const DATE_VIEW = {
-  dateStyle: 'medium',
-  timeZone: 'UTC'
-};
-const DATETIME_VIEW = {
-  dateStyle: 'medium',
-  timeStyle: 'short',
-  timeZone: 'UTC'
-};
+const DATE_FORMATS = new Set(['short', 'medium', 'long', 'full']);
+
+function dateFormatOf(field) {
+  const format = String(field?.format ?? '').trim();
+  return DATE_FORMATS.has(format) ? format : 'medium';
+}
 
 function defaultDateText(field, value, host) {
   if (carriesText(value)) return null;
@@ -3858,14 +5448,22 @@ function defaultDateText(field, value, host) {
     const date = new Date(0);
     date.setUTCFullYear(year, month - 1, day);
     const type = field?.propertyType || field?.type || field?.dataType;
+    const dateStyle = dateFormatOf(field);
     if (type !== 'datetime' || !parts.time) return (0,_core_js_format_date_js__WEBPACK_IMPORTED_MODULE_4__.formatDate)(date, {
-      intl: DATE_VIEW,
+      intl: {
+        dateStyle,
+        timeZone: 'UTC'
+      },
       locale
     }) || null;
     const [hours, minutes] = parts.time.split(':').map(Number);
     date.setUTCHours(hours, minutes, 0, 0);
     return (0,_core_js_format_date_js__WEBPACK_IMPORTED_MODULE_4__.formatDate)(date, {
-      intl: DATETIME_VIEW,
+      intl: {
+        dateStyle,
+        timeStyle: 'short',
+        timeZone: 'UTC'
+      },
       locale
     }) || null;
   } catch {
@@ -4042,11 +5640,40 @@ const VIEW_RENDERERS = {
   lookup: renderLookupView,
   file: renderFileView,
   color: renderColorView,
-  include: renderIncludeView
+  include: renderIncludeView,
+  money: renderMoneyView,
+  percent: renderPercentView
 }; // A field shown rather than edited. `host` is optional and used for one thing
 // only -- formatFieldValue, where a consumer's own formatting of a number or a
 // date belongs. Null when the set has no view for that type.
+// A column total (owner decision C294, MP-12): the table owns its totals
+// row, the set gives the sum by the digits and its display. Money is summed
+// per currency -- a column of dollars and euros is two lines, never one
+// number -- and a number or an integer is one sum; a percent, a choice or a
+// text has no total (null). `values` are the column's stored values; what is
+// not a number is left out.
 
+function renderTotalField(field = {}, values = [], host) {
+  const type = field.propertyType || field.type || field.dataType;
+  const locale = (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(host ?? null);
+  const list = (Array.isArray(values) ? values : []).map(value => scalarValue(value));
+
+  if (type === 'money') {
+    const totals = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.moneyTotals)(list, field, locale);
+    return totals.length ? totals.map(total => total.text) : null;
+  }
+
+  if (type !== 'number' && type !== 'integer') return null;
+  const numbers = list.filter(value => value !== null && value !== undefined && value !== '' && (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.readTypedDecimal)(value).ok);
+  if (!numbers.length) return null;
+  const sum = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.addDecimal)(numbers);
+  return sum === null ? null : [(0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.formatDecimal)(sum, locale)];
+} // Whether a type is a number a table aligns to the end of the line with
+// figures of one width (the registry's `numeric`, C294 MP-12).
+
+function isNumericType(type) {
+  return Boolean(_registry_js__WEBPACK_IMPORTED_MODULE_5__.PROPERTY_TYPES.find(entry => entry.type === type)?.numeric);
+}
 function propertyModes(type) {
   return (0,_registry_js__WEBPACK_IMPORTED_MODULE_5__.modesOf)(type, {
     view: VIEW_RENDERERS,
@@ -4064,7 +5691,7 @@ function renderViewField(field = {}, value, host, options = {}) {
   VIEW_LINE = sizeOption(options);
 
   try {
-    return renderer(field, value, host);
+    return inDensity(renderer(field, value, host), densityOption(options));
   } finally {
     VIEW_LINE = outer;
   }
@@ -4086,7 +5713,44 @@ if (typeof window !== 'undefined') {
     renderEditField,
     renderFilterField,
     renderViewField,
+    renderTotalField,
     FILTER_RENDERERS,
+    // The nine number conditions in the filter's order (C294).
+    NUMBER_FILTER_OPERATORS,
+    isNumericType,
+    // Decimal strings as the set reads and shows them (C294): the View
+    // set's items, compound and ru.requisites call these instead of
+    // keeping a copy. format(value), money(value, field), percent(value)
+    // take a locale (the page's when absent); read(text, {locale,
+    // currency}) reads what a person typed or pasted; add(...values) and
+    // compare(a, b) work by the digits; totals(values, field) sums money
+    // per currency; currency(code, locale, display) is {sign, before, minor}.
+    decimal: {
+      format: (value, locale) => (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.formatDecimal)(value, locale || (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(null)),
+      money: (value, field = {}, locale) => (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.formatMoney)(value, field, locale || (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(null)),
+      percent: (value, locale) => (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.formatPercent)(value, locale || (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(null)),
+      read: (text, options = {}) => (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.readTypedDecimal)(text, {
+        locale: (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(null),
+        ...options
+      }),
+      add: _decimal_js__WEBPACK_IMPORTED_MODULE_10__.addDecimal,
+      compare: _decimal_js__WEBPACK_IMPORTED_MODULE_10__.compareDecimal,
+      totals: (values, field = {}, locale) => (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.moneyTotals)(values, field, locale || (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(null)),
+      currency: (code, locale, display) => (0,_decimal_js__WEBPACK_IMPORTED_MODULE_10__.currencyOf)(code, locale || (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__.pageLocale)(null), display)
+    },
+    // The date filter's rules (C293): the chip's words, when an entry is
+    // empty, the request with its context, a period's days.
+    dateFilter: {
+      conditions: _date_filter_js__WEBPACK_IMPORTED_MODULE_13__.dateFilterConditions,
+      chipText: _date_filter_js__WEBPACK_IMPORTED_MODULE_13__.dateFilterChipText,
+      isEmptyEntry: _date_filter_js__WEBPACK_IMPORTED_MODULE_13__.isEmptyFilterEntry,
+      normalizeEntry: _date_filter_js__WEBPACK_IMPORTED_MODULE_13__.normalizeFilterEntry,
+      requestContext: _date_filter_js__WEBPACK_IMPORTED_MODULE_13__.filterRequestContext,
+      buildRequest: _date_filter_js__WEBPACK_IMPORTED_MODULE_13__.buildFilterRequest,
+      resolvePeriod: _date_filter_js__WEBPACK_IMPORTED_MODULE_13__.resolveDatePeriod,
+      periods: _date_filter_js__WEBPACK_IMPORTED_MODULE_13__.DATE_PERIODS,
+      futurePeriods: _date_filter_js__WEBPACK_IMPORTED_MODULE_13__.DATE_FUTURE_PERIODS
+    },
     // A datetime's value read and written back, for a host that draws its
     // own control: split(value), compose(stored, {date, time}),
     // normalizeTime(text); and a time of day's: splitTime(value),
@@ -4232,6 +5896,133 @@ function maskState(text, pattern, placeholder = '_') {
 
 /***/ },
 
+/***/ "25be1c2df717"
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   formatPhone: () => (/* binding */ formatPhone),
+/* harmony export */   phoneDialCode: () => (/* binding */ phoneDialCode),
+/* harmony export */   phoneE164: () => (/* binding */ phoneE164),
+/* harmony export */   splitPhone: () => (/* binding */ splitPhone)
+/* harmony export */ });
+// A telephone number, stored and shown (FL-1, FL-7 of the property page study,
+// 2026-11-17). Larena keeps a phone in E.164 -- `+79161234567`, a plus and the
+// digits, nothing else (Larena decision 2026-10-24) -- and so does every form
+// that submits sf-input-country (standard simai.smart-component §17.1 item 2).
+// The edit control used to write the text as the box showed it,
+// `+7 916 123-45-67`, so opening a record and saving it changed the stored
+// value. Edit writes E.164 now; view and cell lay the number out by its
+// country, as the box does, and read the formatted strings stored before.
+// The national part of each dial code's number, laid out as sf-input-country
+// lays it out (its `formatByPattern`): `0` is a digit, anything else is
+// written as it stands. Derived from src/component/country-code/data/countries.json
+// -- each dial code's pattern without its own code; where countries share a
+// code, the country the code means (+7 Russia, +1 the United States, +44
+// Britain) -- and held equal to it by tests/phone-e164-fl.contract.test.mjs,
+// so the set carries 2 KB instead of the 54 KB table.
+const PATTERNS = [['0 00 00 00', '46'], ['0 00 00 00 00', '33 212 237'], ['0 000 00 00', '386'], ['0 000 000', '95 248 265 291 359 961 967 975'], ['0 000 0000', '36 64 66 389 599 850 962 964 970 971'], ['0 0000 000', '385'], ['0 0000 0000', '61 63 886'], ['0 000000', '252'], ['0 0000000', '51 53 591'], ['0 00000000', '20'], ['0 000000000', '43'], ['0-000-0000', '82 593 972'], ['0-0000 0000', '60'], ['0-0000-0000', '81'], ['0-0000000', '880 977'], ['0/000 000 00', '421'], ['00 00 0 00000', '225'], ['00 00 00', '299 508 681'], ['00 00 00 00', '32 45 47 213 222 223 224 226 227 228 235 236 241 253 257 352 377 689'], ['00 00 00 00 00', '229'], ['00 00 000 00', '261'], ['00 00 0000', '509'], ['00 00-00-00', '993'], ['00 000', '682 688'], ['00 000 00 00', '41 48 221 994 995 998'], ['00 000 000', '216 231 258 264 355 371 373 382 383 855 856'], ['00 000 0000', '27 31 40 93 233 242 249 251 255 351 595 963 966'], ['00 000-000', '387'], ['00 0000', '672'], ['00 0000 0000', '30 39 86 98'], ['00 0000-0000', '54 55'], ['00 00000', '243 263 353'], ['00 000000', '49 232 357 374 381 968'], ['00 0000000', '62 254 256 358'], ['00 00000000', '92'], ['00-000', '676'], ['00-0000000', '218'], ['00.00.00', '687'], ['000 00 00', '238 269 423'], ['000 00 00 00', '34 262 590 594 596'], ['000 00 0000', '992'], ['000 00-00-00', '375'], ['000 000', '376'], ['000 000 00 00', '90'], ['000 000 000', '56 94 211 240 244 245 250 260 420 996'], ['000 000 0000', '44 52'], ['000 000-00-00', '7'], ['000 0000', '220 239 246 267 297 354 372 592 670 673 674 675 679 680 691'], ['000 0000 000', '84'], ['000 00000', '350 370'], ['000 0000000', '57'], ['000-000', '597'], ['000-000-0000', '1'], ['000-0000', '501 507 692 960'], ['000-0000000', '58'], ['0000', '683 690'], ['0000 00 0000', '234'], ['0000 0000', '65 230 266 268 356 502 503 505 506 598 852 853 965 973 974 976'], ['0000 00000', '380'], ['0000 000000', '378'], ['0000-0000', '504'], ['00000', '290 500 677 678 685 686'], ['00000 00000', '91'], ['000000', '298']];
+const NATIONAL = new Map();
+
+for (const [pattern, codes] of PATTERNS) for (const code of codes.split(' ')) NATIONAL.set(code, pattern);
+
+const digitsOf = text => String(text ?? '').replace(/\D/gu, ''); // An extension rides after the number: Larena writes `+73472468500;ext=12`
+// (RFC 3966), and a person may have typed «доб. 12» or «ext. 12». Its digits
+// are not the number's: read into the number they made `+7347246850012`.
+
+
+const EXTENSION = /\s*(?:;\s*ext\s*=\s*|,?\s*(?:ext|доб)\.?\s*)(\d+)\s*$/iu;
+/** The number and its extension apart: {number, extension}; extension '' for none. */
+
+function splitPhone(value) {
+  const text = String(value ?? '').trim();
+  const match = text.match(EXTENSION);
+  if (!match || !/\d/u.test(text.slice(0, match.index))) return {
+    number: text,
+    extension: ''
+  };
+  return {
+    number: text.slice(0, match.index).trim(),
+    extension: match[1]
+  };
+}
+
+function numberE164(text) {
+  const digits = digitsOf(text);
+  if (!digits) return '';
+  if (text.startsWith('+')) return `+${digits}`;
+  if (/^00[1-9]/u.test(text.replace(/[\s\-().]/gu, ''))) return `+${digits.slice(2)}`;
+  return text;
+}
+/**
+ * The number in E.164: `+` and the digits. A text that starts with `+` (or the
+ * international `00`) is a full number, laid out however it was:
+ * `+7 916 123-45-67`, `+7 (916) 123 45 67` and `+79161234567` are one number.
+ * A text without a country code is returned as it came, trimmed: which country
+ * it belongs to is not the renderer's to guess. Empty for no digits. An
+ * extension is kept as `;ext=<digits>`: `+7 347 246-85-00 доб. 12` is
+ * `+73472468500;ext=12`.
+ */
+
+
+function phoneE164(value) {
+  const {
+    number,
+    extension
+  } = splitPhone(value);
+  const e164 = numberE164(number);
+  return extension && e164.startsWith('+') ? `${e164};ext=${extension}` : extension ? String(value ?? '').trim() : e164;
+}
+/** The dial code (digits) an E.164 number starts with: the longest one known. */
+
+function phoneDialCode(e164) {
+  const digits = digitsOf(e164);
+
+  for (let length = Math.min(4, digits.length); length > 0; length -= 1) {
+    if (NATIONAL.has(digits.slice(0, length))) return digits.slice(0, length);
+  }
+
+  return '';
+}
+/**
+ * The number as a person reads it: `+79161234567` reads `+7 916 123-45-67`,
+ * by the country its code names. Digits beyond the pattern stay at the end, a
+ * number is never cut; an unknown code reads `+<digits>`; a number without a
+ * country code is shown as it came. An extension follows the number after the
+ * page language's word for it (`extensionWord`, «доб.» on a Russian page).
+ */
+
+function formatPhone(value, extensionWord = 'ext.') {
+  const {
+    number,
+    extension
+  } = splitPhone(value);
+  const main = formatNumber(number);
+  if (!extension || !main.startsWith('+')) return extension && !main.startsWith('+') ? String(value ?? '').trim() : main;
+  return `${main} ${extensionWord} ${extension}`;
+}
+
+function formatNumber(value) {
+  const e164 = numberE164(String(value ?? '').trim());
+  if (!e164.startsWith('+')) return e164;
+  const digits = e164.slice(1);
+  const code = phoneDialCode(e164);
+  if (!code) return e164;
+  const rest = digits.slice(code.length);
+  if (!rest) return `+${code}`;
+  let out = '',
+      index = 0;
+
+  for (const char of NATIONAL.get(code)) {
+    if (index >= rest.length) break;
+    out += char === '0' ? rest[index++] : char;
+  }
+
+  return `+${code} ${out}${rest.slice(index)}`.trimEnd();
+}
+
+/***/ },
+
 /***/ "fc654eb7fab0"
 (__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
@@ -4240,6 +6031,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   PROPERTY_TYPES: () => (/* binding */ PROPERTY_TYPES),
 /* harmony export */   modesOf: () => (/* binding */ modesOf)
 /* harmony export */ });
+/* harmony import */ var _lang_index_mjs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("354525e80715");
 // The registry of universal properties (owner, 2026-10-15): every property
 // type the Framework renders, or a component set renders beside it (`set`),
 // its variants and the parameters a field of it reads -- one list a host
@@ -4254,28 +6046,39 @@ __webpack_require__.r(__webpack_exports__);
 // what is read). A record, a relation and a user hold one value and take their
 // candidates from the host, not from `options`; a constraint other than a
 // choice's options is the host's to enforce, not a renderer's.
+// The names of the types and variants live in the set's language files
+// (localization study LC-5); `label` keeps its {ru, en} shape for the hosts
+// that read it. English is built in; the Russian name is read from the words
+// the ru language file registered for sf-field-renderers (owner decision
+// C282), English until it is on the page.
+
+
+const registeredName = (code, key) => globalThis.__sfPageLanguage?.registered?.get?.('sf-field-renderers')?.get?.(code)?.[key];
+
+const typeLabel = key => Object.freeze(Object.defineProperties({}, {
+  ru: {
+    enumerable: true,
+    get: () => _lang_index_mjs__WEBPACK_IMPORTED_MODULE_0__["default"].ru?.[key] ?? registeredName('ru', key) ?? _lang_index_mjs__WEBPACK_IMPORTED_MODULE_0__["default"].en[key]
+  },
+  en: {
+    enumerable: true,
+    value: _lang_index_mjs__WEBPACK_IMPORTED_MODULE_0__["default"].en[key]
+  }
+}));
+
 const PROPERTY_TYPES = Object.freeze([{
   type: 'string',
-  label: {
-    ru: 'Строка',
-    en: 'String'
-  },
+  label: typeLabel('type-string'),
   // password: write-only. The host never sends the password; the value it
   // sends is {set: true} or {set: false} (null reads as not set), and the
   // set shows only «задан»/«не задан». An edit writes the typed text through
   // setFieldValue and writes nothing for a field nobody typed in.
   variants: [{
     id: 'phone',
-    label: {
-      ru: 'Телефон',
-      en: 'Phone'
-    }
+    label: typeLabel('variant-string-phone')
   }, {
     id: 'password',
-    label: {
-      ru: 'Пароль',
-      en: 'Password'
-    },
+    label: typeLabel('variant-string-password'),
     writeOnly: true
   }],
   // mask (property-view port 1.16.0): the Framework mask grammar of
@@ -4283,13 +6086,12 @@ const PROPERTY_TYPES = Object.freeze([{
   // included, and an incomplete one is reported, not written as a value.
   // nullable: false makes a cleared masked field write "" instead of null.
   // Read by the plain string alone: phone and password keep their controls.
-  params: ['placeholder', 'mask', 'nullable', 'required', 'readonly']
+  // defaultCountry (FL-7): the phone variant's country while it is empty,
+  // ISO 3166 alpha-2; without it, the page's.
+  params: ['placeholder', 'mask', 'nullable', 'defaultCountry', 'required', 'readonly']
 }, {
   type: 'text',
-  label: {
-    ru: 'Текст',
-    en: 'Text'
-  },
+  label: typeLabel('type-text'),
   variants: [],
   params: ['placeholder', 'required', 'readonly']
 }, // html (property-view port 1.17.0): formatted text, an HTML string of
@@ -4297,81 +6099,65 @@ const PROPERTY_TYPES = Object.freeze([{
 // component's own rule, a cell its text on one line, filtered as text.
 {
   type: 'html',
-  label: {
-    ru: 'Форматированный текст',
-    en: 'Formatted text'
-  },
+  label: typeLabel('type-html'),
   variants: [],
   params: ['placeholder', 'required', 'readonly']
 }, // stepper: edited with sf-quantity, «−» and «+» and the arrow keys; min,
 // max and step (and a number's precision) are read by that variant alone.
+// numeric (C294, MP-12): a number a table aligns to the end of the line
+// with figures of one width -- integer, number, money and percent -- read
+// from here by any table instead of each keeping its own list.
 {
   type: 'integer',
-  label: {
-    ru: 'Целое число',
-    en: 'Integer'
-  },
+  label: typeLabel('type-integer'),
+  numeric: true,
   variants: [{
     id: 'stepper',
-    label: {
-      ru: 'Кнопками «−» и «+»',
-      en: 'With steppers'
-    }
+    label: typeLabel('variant-integer-stepper')
   }],
   params: ['unit', 'min', 'max', 'step', 'required', 'readonly']
 }, {
   type: 'number',
-  label: {
-    ru: 'Число',
-    en: 'Number'
-  },
+  label: typeLabel('type-number'),
+  numeric: true,
   variants: [{
     id: 'scale',
-    label: {
-      ru: 'Шкала 0–100',
-      en: 'Scale 0–100'
-    }
+    label: typeLabel('variant-number-scale')
+  }, // meter (owner decision C203 (5)): a share of a limit, 0..100, as
+  // the inline sf-progress-bar meter; the scale stays for levels.
+  {
+    id: 'meter',
+    label: typeLabel('variant-number-meter')
   }, {
     id: 'stepper',
-    label: {
-      ru: 'Кнопками «−» и «+»',
-      en: 'With steppers'
-    }
+    label: typeLabel('variant-number-stepper')
   }],
   params: ['unit', 'min', 'max', 'step', 'precision', 'required', 'readonly']
-}, {
+}, // date (PD-2, PD-3): min and max bound the day, an ISO date (the day of a
+// date and time is read); format is the length the view and the cell print
+// the date in, Intl's dateStyle: short, medium (the default), long, full.
+{
   type: 'date',
-  label: {
-    ru: 'Дата',
-    en: 'Date'
-  },
+  label: typeLabel('type-date'),
   variants: [],
-  params: ['required', 'readonly']
+  params: ['min', 'max', 'format', 'required', 'readonly']
 }, // datetime and time: sf-input-date in mode datetime and time (1.4.0). min
 // and max bound the value -- an ISO date or date and time for a datetime,
-// hh:mm for a time -- and step is the minute step, 1 to 60.
+// hh:mm for a time -- and step is the minute step, 1 to 60. A datetime's
+// format is its date's length, as a date's; the clock stays short.
 {
   type: 'datetime',
-  label: {
-    ru: 'Дата и время',
-    en: 'Date and time'
-  },
+  label: typeLabel('type-datetime'),
   variants: [],
-  params: ['min', 'max', 'step', 'required', 'readonly']
+  params: ['min', 'max', 'step', 'format', 'required', 'readonly']
 }, {
   type: 'time',
-  label: {
-    ru: 'Время',
-    en: 'Time'
-  },
+  label: typeLabel('type-time'),
   variants: [],
   params: ['min', 'max', 'step', 'required', 'readonly']
 }, {
   type: 'boolean',
-  label: {
-    ru: 'Да или нет',
-    en: 'Yes or no'
-  },
+  label: typeLabel('type-boolean'),
   variants: [],
   params: ['trueText', 'falseText', 'required', 'readonly']
 }, // buttons (property-view port 1.16.0): one segmented button group, a
@@ -4380,68 +6166,41 @@ const PROPERTY_TYPES = Object.freeze([{
 // required. The dropdown stays the default.
 {
   type: 'choice',
-  label: {
-    ru: 'Одно из списка',
-    en: 'One of a list'
-  },
+  label: typeLabel('type-choice'),
   variants: [{
     id: 'buttons',
-    label: {
-      ru: 'Кнопками',
-      en: 'As buttons'
-    }
+    label: typeLabel('variant-choice-buttons')
   }],
   params: ['options', 'badgeAppearance', 'size', 'required', 'readonly']
 }, {
   type: 'choices',
-  label: {
-    ru: 'Несколько из списка',
-    en: 'Several of a list'
-  },
+  label: typeLabel('type-choices'),
   // badges: the view; checklist and select: the edit control (a list of
   // 13 or more is a checklist unless select is asked for).
   variants: [{
     id: 'badges',
-    label: {
-      ru: 'Значками',
-      en: 'As badges'
-    }
+    label: typeLabel('variant-choices-badges')
   }, {
     id: 'checklist',
-    label: {
-      ru: 'Флажками',
-      en: 'As a checklist'
-    }
+    label: typeLabel('variant-choices-checklist')
   }, {
     id: 'select',
-    label: {
-      ru: 'Выпадающим списком',
-      en: 'As a dropdown'
-    }
+    label: typeLabel('variant-choices-select')
   }],
   params: ['options', 'badgeAppearance', 'required', 'readonly']
 }, {
   type: 'user',
-  label: {
-    ru: 'Пользователь',
-    en: 'User'
-  },
+  label: typeLabel('type-user'),
   variants: [],
   params: ['placeholder', 'searchPlaceholder', 'required', 'readonly']
 }, {
   type: 'record',
-  label: {
-    ru: 'Запись',
-    en: 'Record'
-  },
+  label: typeLabel('type-record'),
   variants: [],
   params: ['placeholder', 'searchPlaceholder', 'required', 'readonly']
 }, {
   type: 'relation',
-  label: {
-    ru: 'Связь',
-    en: 'Relation'
-  },
+  label: typeLabel('type-relation'),
   variants: [],
   params: ['placeholder', 'searchPlaceholder', 'required', 'readonly']
 }, // lookup: a value chosen from a reference list the host keeps -- a country,
@@ -4452,105 +6211,79 @@ const PROPERTY_TYPES = Object.freeze([{
 // host reads and no renderer does).
 {
   type: 'lookup',
-  label: {
-    ru: 'Из справочника',
-    en: 'From a reference list'
-  },
+  label: typeLabel('type-lookup'),
   variants: [],
   params: ['options', 'multiple', 'placeholder', 'searchPlaceholder', 'required', 'readonly']
 }, {
   type: 'file',
-  label: {
-    ru: 'Файл',
-    en: 'File'
-  },
+  label: typeLabel('type-file'),
   variants: [{
     id: 'image',
-    label: {
-      ru: 'Изображение',
-      en: 'Image'
-    }
+    label: typeLabel('variant-file-image')
   }, {
     id: 'image-card',
-    label: {
-      ru: 'Изображение карточкой',
-      en: 'Image card'
-    }
+    label: typeLabel('variant-file-image-card')
   }, {
     id: 'image-list',
-    label: {
-      ru: 'Изображения списком',
-      en: 'Image list'
-    }
+    label: typeLabel('variant-file-image-list')
   }],
   // required: read by the image variant alone, whose control is
   // sf-image-field -- a required, empty one keeps its form from submitting.
   params: ['accept', 'multiple', 'formats', 'uploadText', 'uploadSupportingText', 'uploadHint', 'required', 'readonly']
 }, {
   type: 'color',
-  label: {
-    ru: 'Цвет',
-    en: 'Colour'
-  },
+  label: typeLabel('type-color'),
   variants: [],
   params: ['swatches', 'required', 'readonly']
 }, {
   type: 'include',
-  label: {
-    ru: 'Код',
-    en: 'Code'
-  },
+  label: typeLabel('type-include'),
   variants: [],
   params: ['language', 'required', 'readonly']
-}, // The types a component set draws (property-view port 1.18.0; Larena
-// property types standard, notes of 2026-11-03): `set` names the set whose
-// components show and edit them -- the View set's sf-view-properties and
-// sf-view-flow -- and the Framework draws their table cells and filters
-// (money and percent as numbers, items by its number of rows). `params` are
-// the keys the type reads, in the set's renderers and in these. Every
-// number is a decimal string, never a float.
+}, // money and percent (owner decisions C291 (2) and C294, 2026-11-17): the
+// Framework's in every mode -- view, cell, edit and filter. Every number
+// is a decimal string, never a float. money is {amount, currency}:
+// `currency` fixes an ISO 4217 code (a bare amount is then read in it, and
+// no currency is offered); `currencies` lists the codes a value may carry
+// (absent: every ISO 4217 code, with a search); `currencyDisplay` is how
+// the currency is written -- symbol (default: «₽», «$», «CA$»), code or
+// name; the digits after the point are at most the currency's minor units
+// (more is a field error, never rounded); min and max bound the amount.
+// percent is the percent ("12.5" is 12,5 %), bounded only by min and max;
+// its digits after the point are `precision`, else those of `step`.
 {
   type: 'money',
-  label: {
-    ru: 'Деньги',
-    en: 'Money'
-  },
-  set: 'view',
+  label: typeLabel('type-money'),
+  numeric: true,
   variants: [],
-  params: ['currency', 'min', 'max', 'required', 'readonly']
+  params: ['currency', 'currencies', 'currencyDisplay', 'min', 'max', 'placeholder', 'required', 'readonly']
 }, {
   type: 'percent',
-  label: {
-    ru: 'Процент',
-    en: 'Percent'
-  },
-  set: 'view',
+  label: typeLabel('type-percent'),
+  numeric: true,
   variants: [],
-  params: ['min', 'max', 'required', 'readonly']
-}, {
+  params: ['min', 'max', 'step', 'precision', 'placeholder', 'required', 'readonly']
+}, // The types a component set draws (property-view port 1.18.0; Larena
+// property types standard, notes of 2026-11-03): `set` names the set whose
+// components show and edit them -- the View set's sf-view-properties -- and
+// the Framework draws their table cells and filters (items by its number
+// of rows). `params` are the keys the type reads, in the set's renderers
+// and in these.
+{
   type: 'items',
-  label: {
-    ru: 'Строки',
-    en: 'Rows'
-  },
+  label: typeLabel('type-items'),
   set: 'view',
   variants: [],
   params: ['columns', 'minRows', 'maxRows', 'required', 'readonly']
 }, {
   type: 'compound',
-  label: {
-    ru: 'Составное',
-    en: 'Compound'
-  },
+  label: typeLabel('type-compound'),
   set: 'view',
   variants: [],
   params: ['parts', 'required', 'readonly']
 }, {
   type: 'ru.requisites',
-  label: {
-    ru: 'Реквизиты',
-    en: 'Requisites (Russia)'
-  },
+  label: typeLabel('type-ru.requisites'),
   set: 'view',
   variants: [],
   params: ['parts', 'required', 'readonly']
@@ -4698,6 +6431,163 @@ function optionBadgeProps(option = {}) {
 
 /***/ },
 
+/***/ "c4779e51fee1"
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   formatPlaceholder: () => (/* binding */ formatPlaceholder),
+/* harmony export */   localeDateFormat: () => (/* binding */ localeDateFormat),
+/* harmony export */   localeWeekStart: () => (/* binding */ localeWeekStart),
+/* harmony export */   localeWeekend: () => (/* binding */ localeWeekend),
+/* harmony export */   weekendDays: () => (/* binding */ weekendDays)
+/* harmony export */ });
+// What a locale says about its calendar, read from Intl once per locale: the
+// first day of the week and the days off (Intl.Locale#getWeekInfo, the older
+// weekInfo getter where a browser still has that). No DOM, so the rules are
+// unit-tested as they are (tests/datepicker-c62.contract.test.mjs).
+//
+// Days are numbered as Date#getDay numbers them, 0 Sunday to 6 Saturday; Intl
+// numbers them 1 Monday to 7 Sunday, so 7 is read as Sunday too.
+const weekInfos = new Map();
+
+function weekInfo(code) {
+  if (weekInfos.has(code)) return weekInfos.get(code);
+  let info = null;
+
+  try {
+    const locale = new Intl.Locale(code);
+    info = (typeof locale.getWeekInfo === 'function' ? locale.getWeekInfo() : locale.weekInfo) || null;
+  } catch {// An unknown locale keeps the defaults below.
+  }
+
+  weekInfos.set(code, info);
+  return info;
+} // The first day of the locale's week, read once per locale: the grid asks it
+// several times a render. Monday where the locale does not say.
+
+
+function localeWeekStart(code) {
+  const first = weekInfo(code)?.firstDay;
+  return Number.isInteger(first) ? first % 7 : 1;
+}
+const SATURDAY_SUNDAY = Object.freeze([6, 0]); // The locale's days off: Saturday and Sunday in ru, de and en-US, Friday and
+// Saturday in ar-EG and he-IL. Saturday and Sunday where the locale does not say.
+
+function localeWeekend(code) {
+  const days = weekInfo(code)?.weekend;
+  if (!Array.isArray(days) || !days.length) return SATURDAY_SUNDAY;
+  return Object.freeze(days.map(day => day % 7));
+} // The `weekend` setting (owner decision C62: days off are red, and a product
+// whose weekends are working days says so). Empty: the locale's days off.
+// "none": no day is a day off. Otherwise the days, comma or space separated,
+// 0 or 7 Sunday, 1 Monday to 6 Saturday ("6,7" as Intl writes Saturday and
+// Sunday, "5,6" for Friday and Saturday). Anything else in the list is left
+// out; a list with nothing left falls back to the locale.
+
+function weekendDays(setting, code) {
+  const text = String(setting ?? '').trim().toLowerCase();
+  if (!text) return new Set(localeWeekend(code));
+  if (text === 'none') return new Set();
+  const days = text.split(/[\s,]+/u).filter(part => /^[0-7]$/u.test(part)).map(part => Number(part) % 7);
+  return new Set(days.length ? days : localeWeekend(code));
+} // The date format of a locale, in the component's tokens (owner decision C62:
+// typing follows the language and the country, not a fixed «ДД.ММ.ГГГГ»). The
+// parts' order and the signs between them come from Intl alone:
+// formatToParts of a two-digit day and month and a numeric year gives
+// DD.MM.YYYY for ru and de, MM/DD/YYYY for en-US, DD/MM/YYYY for en-GB and fr,
+// YYYY-MM-DD for sv-SE and en-CA. A sign before the first part or after the
+// last («12.11.2026 г.» in bg, the closing dot of hu and ko) is left out: it is
+// not between two numbers, and a person does not type it. Right-to-left marks
+// are left out of the signs too. A locale Intl refuses, or a sign that is not
+// one a date is typed with (. / - , or a space), keeps DD.MM.YYYY.
+
+const DEFAULT_DATE_FORMAT = 'DD.MM.YYYY';
+const PART_TOKENS = {
+  day: 'DD',
+  month: 'MM',
+  year: 'YYYY'
+};
+const dateFormats = new Map();
+function localeDateFormat(code) {
+  if (dateFormats.has(code)) return dateFormats.get(code);
+  let format = DEFAULT_DATE_FORMAT;
+
+  try {
+    const parts = new Intl.DateTimeFormat(code, {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    }).formatToParts(new Date(2026, 10, 12));
+    const tokens = [];
+    const signs = [];
+    let sign = '';
+
+    for (const part of parts) {
+      if (part.type === 'literal') {
+        sign += part.value.replace(/[\u200e\u200f\u061c]/gu, '');
+      } else if (PART_TOKENS[part.type]) {
+        if (tokens.length) signs.push(sign);
+        tokens.push(PART_TOKENS[part.type]);
+        sign = '';
+      }
+    }
+
+    const whole = tokens.length === 3 && new Set(tokens).size === 3 && signs.every(one => /^[\s./,-]+$/u.test(one));
+    if (whole) format = tokens.reduce((text, token, index) => text + (index ? signs[index - 1] : '') + token, '');
+  } catch {// An unknown locale keeps the default.
+  }
+
+  dateFormats.set(code, format);
+  return format;
+} // The hint in an empty field: the format written with the letters of the
+// locale's own names for the parts (Intl.DisplayNames, type dateTimeField):
+// ДД.ММ.ГГГГ in ru, MM/DD/YYYY in en-US, TT.MM.JJJJ in de, JJ/MM/AAAA in fr.
+// A name in a script without letter case or initials (日, 年) gives the Latin
+// D, M, Y, H instead.
+
+const LATIN_LETTERS = {
+  DD: 'D',
+  MM: 'M',
+  YYYY: 'Y',
+  YY: 'Y',
+  HH: 'H',
+  mm: 'M'
+};
+const FIELD_NAMES = {
+  DD: 'day',
+  MM: 'month',
+  YYYY: 'year',
+  YY: 'year',
+  HH: 'hour',
+  mm: 'minute'
+};
+const INITIAL_RE = /^[\p{Script=Latin}\p{Script=Cyrillic}\p{Script=Greek}]/u;
+const placeholders = new Map();
+
+function letterOf(token, code) {
+  try {
+    const name = new Intl.DisplayNames(code, {
+      type: 'dateTimeField'
+    }).of(FIELD_NAMES[token]) || '';
+    const first = name.trim().charAt(0);
+    if (INITIAL_RE.test(first)) return first.toLocaleUpperCase(code);
+  } catch {// No names for this locale: the Latin letter below.
+  }
+
+  return LATIN_LETTERS[token];
+}
+
+function formatPlaceholder(format, code) {
+  const key = `${code}|${format}`;
+  if (placeholders.has(key)) return placeholders.get(key);
+  const text = String(format || '').replace(/YYYY|YY|MM|DD|HH|mm/gu, token => letterOf(token, code).repeat(token.length));
+  placeholders.set(key, text);
+  return text;
+}
+
+/***/ },
+
 /***/ "7623a90f1816"
 (module, __webpack_exports__, __webpack_require__) {
 
@@ -4718,15 +6608,20 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _core_js_page_language__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__("43090d1c8307");
 /* harmony import */ var _core_js_layer_stack__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__("18003344cff0");
 /* harmony import */ var _core_js_density_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__("1412c5875b4d");
-/* harmony import */ var _js_templates_default__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__("40b137e60526");
-/* harmony import */ var _js_conditions_js__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__("844bdc4d24eb");
-/* harmony import */ var _view_table_js_format_value_js__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__("2f31b00ad99a");
-var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_core_js_smart_base__WEBPACK_IMPORTED_MODULE_0__, _core_js_element_manifest__WEBPACK_IMPORTED_MODULE_1__, _core_js_page_language__WEBPACK_IMPORTED_MODULE_8__, _core_js_layer_stack__WEBPACK_IMPORTED_MODULE_9__, _js_templates_default__WEBPACK_IMPORTED_MODULE_11__, _view_table_js_format_value_js__WEBPACK_IMPORTED_MODULE_13__]);
-([_core_js_smart_base__WEBPACK_IMPORTED_MODULE_0__, _core_js_element_manifest__WEBPACK_IMPORTED_MODULE_1__, _core_js_page_language__WEBPACK_IMPORTED_MODULE_8__, _core_js_layer_stack__WEBPACK_IMPORTED_MODULE_9__, _js_templates_default__WEBPACK_IMPORTED_MODULE_11__, _view_table_js_format_value_js__WEBPACK_IMPORTED_MODULE_13__] = __webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
+/* harmony import */ var _core_js_clipboard_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__("e081a020262e");
+/* harmony import */ var _core_js_deprecations_js__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__("d3818183b14c");
+/* harmony import */ var _js_templates_default__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__("40b137e60526");
+/* harmony import */ var _js_conditions_js__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__("844bdc4d24eb");
+/* harmony import */ var _js_set_fields_js__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__("db94c32f22be");
+/* harmony import */ var _field_renderers_index_js__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__("e5483002f3ea");
+/* harmony import */ var _js_history_js__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__("f8f76dff9bfe");
+var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_core_js_smart_base__WEBPACK_IMPORTED_MODULE_0__, _core_js_element_manifest__WEBPACK_IMPORTED_MODULE_1__, _core_js_icon_choices_js__WEBPACK_IMPORTED_MODULE_7__, _core_js_page_language__WEBPACK_IMPORTED_MODULE_8__, _core_js_layer_stack__WEBPACK_IMPORTED_MODULE_9__, _core_js_deprecations_js__WEBPACK_IMPORTED_MODULE_12__, _js_templates_default__WEBPACK_IMPORTED_MODULE_13__, _js_set_fields_js__WEBPACK_IMPORTED_MODULE_15__, _field_renderers_index_js__WEBPACK_IMPORTED_MODULE_16__, _js_history_js__WEBPACK_IMPORTED_MODULE_17__]);
+([_core_js_smart_base__WEBPACK_IMPORTED_MODULE_0__, _core_js_element_manifest__WEBPACK_IMPORTED_MODULE_1__, _core_js_icon_choices_js__WEBPACK_IMPORTED_MODULE_7__, _core_js_page_language__WEBPACK_IMPORTED_MODULE_8__, _core_js_layer_stack__WEBPACK_IMPORTED_MODULE_9__, _core_js_deprecations_js__WEBPACK_IMPORTED_MODULE_12__, _js_templates_default__WEBPACK_IMPORTED_MODULE_13__, _js_set_fields_js__WEBPACK_IMPORTED_MODULE_15__, _field_renderers_index_js__WEBPACK_IMPORTED_MODULE_16__, _js_history_js__WEBPACK_IMPORTED_MODULE_17__] = __webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
 /* harmony import */ var _core_js_smart_base__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_core_js_smart_base__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _core_js_element_manifest__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_core_js_element_manifest__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var _core_js_page_language__WEBPACK_IMPORTED_MODULE_8___default = /*#__PURE__*/__webpack_require__.n(_core_js_page_language__WEBPACK_IMPORTED_MODULE_8__);
 /* harmony import */ var _core_js_layer_stack__WEBPACK_IMPORTED_MODULE_9___default = /*#__PURE__*/__webpack_require__.n(_core_js_layer_stack__WEBPACK_IMPORTED_MODULE_9__);
+/* harmony import */ var _core_js_deprecations_js__WEBPACK_IMPORTED_MODULE_12___default = /*#__PURE__*/__webpack_require__.n(_core_js_deprecations_js__WEBPACK_IMPORTED_MODULE_12__);
 // One object's fields, shown and edited. The pair to sf-view: that one is a
 // set of records in any layout, this one is a single object -- a storage record,
 // a related record, site settings, a profile. Named for the property rather than
@@ -4756,8 +6651,12 @@ var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_cor
 
 
 
+
+
  // The day-and-time reading is the field renderers' (A-14): this view kept a
 // copy from before it was lifted into the Framework.
+
+
 
 
  // Every port version this composite accepts, in one place, the way sf-view
@@ -4770,7 +6669,10 @@ const SUPPORTED_PORT_VERSIONS = ["1.0.0", "1.1.0", "1.2.0", "1.3.0", "1.4.0", "1
 // open at once, one save. create: an empty object of the collection, every
 // field open, one create.
 
-const MODES = ["view", "auto", "edit", "create"]; // The most candidates a picker asks for at once, from a host on port 1.14.0 or
+const MODES = ["view", "auto", "edit", "create"]; // How long an opened panel waits for its title before leaving the first focus
+// where the drawer put it: the drawer's own wait for a late field (two seconds).
+
+const TITLE_FOCUS_WAIT_MS = 2000; // The most candidates a picker asks for at once, from a host on port 1.14.0 or
 // later (an earlier port's field.options payload is closed and would refuse
 // it). Twenty is the page the record picker was built and measured against
 // with the consumer's 448 targets; the host may answer fewer, and says which
@@ -4832,7 +6734,50 @@ const DRAWER_CLOSE_REASONS = {
 // through `--sf-property-view--sections-width`, which the component passes to
 // the panel and sets on the layout it draws in place.
 
-const SECTIONS_WIDTH = "14rem"; // How long the copy control shows its tick. The Framework's own clipboard holds
+const SECTIONS_WIDTH = "var(--sf-view-properties-sections-width, 12rem)"; // How the record is edited (C305 (1), RC-1): a group with its Save, plus the
+// short fields in a window at their value (the table's cell edit, C296), or
+// nothing. A short field is one choice, a date, a time, a yes/no, a person or
+// a number: one control, nothing to read around it.
+
+const EDIT_MODES = ["group", "group+quick", "none"];
+const QUICK_TYPES = new Set(["choice", "enum", "select", "dropdown", "date", "datetime", "time", "boolean", "user", "number", "integer"]); // The types sf-form cannot draw for the card (C182): the set's own (money,
+// percent, rows, compound), a file or an image that uploads through the host,
+// and a reference picked from the host's pages. A group holding one keeps the
+// card's own form until sf-form takes a host for them (order FO-C305-1).
+
+const FORMLESS_TYPES = new Set(["file", "files", "image", "images", "record", "relation", "lookup", "user"]); // From 80rem the full screen keeps the history in a column of its own (C305 (3)).
+
+const SIDE_MEDIA_QUERY = "(min-width: 80rem)"; // From 64rem a panel is a docked column beside the list (C305 (4)); narrower
+// it floats over a scrim.
+
+const DOCK_BREAKPOINT = "64rem";
+const HISTORY_PAGE = 20; // The panel's widths are sf-drawer's ladder and nothing else (C157 (2), C289
+// (2)): 20, 24 and 30rem and the whole screen. `panel-width` is the dated
+// former name (until 2027-01-01): a width it asks for lands on the nearest
+// step, and anything wider than the widest step on that step -- Larena's 40rem
+// and ui-admin's 44rem take 30rem. A record that needs more room opens on the
+// whole screen, where its sections stand in a column.
+
+const PANEL_STEPS = [["1/2", 20], ["1", 24], ["2", 30]];
+const PANEL_WIDTH_UNTIL = "2027-01-01";
+
+const nearestPanelStep = width => {
+  const found = /^\s*(\d+(?:\.\d+)?)\s*(rem|em|px)\s*$/u.exec(String(width ?? ""));
+  if (!found) return "2";
+  const rem = found[2] === "px" ? Number(found[1]) / 16 : Number(found[1]);
+  let best = PANEL_STEPS[0];
+
+  for (const step of PANEL_STEPS) if (Math.abs(step[1] - rem) < Math.abs(best[1] - rem)) best = step;
+
+  return best[0];
+}; // The tags the card draws, asked of the Loader before they are needed
+// (component-set standard draft 1.1 §7.11, VF-16): a page that defined none of
+// them -- a chat message, a card printed into a page by itself -- gets the
+// whole card, not its markup. The rule's relations name most of them; asking
+// costs nothing for a tag already defined.
+
+
+const DRAWN_TAGS = ["sf-drawer", "sf-button", "sf-button-icon", "sf-button-close", "sf-tabs", "sf-list", "sf-list-description", "sf-help-mark", "sf-empty-state", "sf-confirm", "sf-menu-context", "sf-badge", "sf-icon", "sf-popover", "sf-form", "sf-list-timeline", "sf-menu"]; // How long the copy control shows its tick. The Framework's own clipboard holds
 // its tick for this long, and two controls that say «copied» for two different
 // lengths are two conventions where there is one act.
 
@@ -4869,7 +6814,20 @@ const PROPERTY_VIEW_TEXT = {
   en: camelWords(_lang_en_json__WEBPACK_IMPORTED_MODULE_5__.runtime),
   ru: camelWords(_lang_ru_json__WEBPACK_IMPORTED_MODULE_6__.runtime)
 };
-const SECTION_ICONS = _core_js_icon_choices_js__WEBPACK_IMPORTED_MODULE_7__.ICON_CHOICES; // sf-view-properties from its component.json (standard simai.smart-component
+const SECTION_ICONS = _core_js_icon_choices_js__WEBPACK_IMPORTED_MODULE_7__.ICON_CHOICES; // The refusal codes of a view write (port 1.22.0; Larena backend c311-reply)
+// and the pack's words for them.
+
+const VIEW_REFUSALS = {
+  view_invalid: "viewRefusedInvalidText",
+  admin_record_view_changed: "viewChangedText",
+  admin_record_layout_shared_denied: "viewRefusedSharedDeniedText",
+  admin_record_view_own: "viewRefusedOwnText",
+  admin_record_view_unknown: "viewRefusedUnknownText",
+  admin_record_view_required: "viewRefusedRequiredText",
+  admin_record_layout_lock_invalid: "viewRefusedLockInvalidText",
+  admin_record_layout_head_invalid: "viewRefusedHeadInvalidText",
+  admin_record_layout_icon_invalid: "viewRefusedIconInvalidText"
+}; // sf-view-properties from its component.json (standard simai.smart-component
 // 1.3.8 §3, §4, §8, §11): its own props below keep their parsers; what they
 // do not name is the manifest's. The actions answer outcomes
 // (../table/js/manifest-actions.js), the events take the vocabulary's
@@ -4886,6 +6844,12 @@ const PropertyViewElement = (0,_core_js_element_manifest__WEBPACK_IMPORTED_MODUL
 });
 
 class SfPropertyView extends PropertyViewElement {
+  // The history adapter for a host that stores a snapshot per revision
+  // (js/history.js): record.history answered from neighbouring revisions.
+  static historyFromRevisions(revisions, options) {
+    return (0,_js_history_js__WEBPACK_IMPORTED_MODULE_17__.historyFromRevisions)(revisions, options);
+  }
+
   static get props() {
     return {
       templateName: {
@@ -5202,6 +7166,20 @@ class SfPropertyView extends PropertyViewElement {
       inheritedText: {
         attribute: "inherited-text",
         default: "by default"
+      },
+      // C305 (1)-(4): how the record is edited, whether it shows its
+      // history, and whether a panel is a column beside the list.
+      edit: {
+        default: "group+quick",
+        values: EDIT_MODES
+      },
+      history: {
+        default: "auto",
+        values: ["auto", "off"]
+      },
+      modal: {
+        default: "auto",
+        values: ["auto", "true"]
       }
     };
   }
@@ -5219,10 +7197,7 @@ class SfPropertyView extends PropertyViewElement {
     // written until it is confirmed, so an area keeps its name while a
     // person is still deciding on another.
 
-    this.renaming = null; // Whether a new view's name is being typed. A view is a host record, so
-    // it is made only once it has a name, never as a placeholder to rename.
-
-    this.namingView = false; // What the arrangement was when the mode was entered, and whether a
+    this.renaming = null; // What the arrangement was when the mode was entered, and whether a
     // reset has been asked for and is waiting to be confirmed.
 
     this.arrangementEntered = null;
@@ -5301,7 +7276,29 @@ class SfPropertyView extends PropertyViewElement {
     this.wideMedia = null; // On a phone the sections are a list and a section is the next screen.
     // Null is the list; a key is that section's screen.
 
-    this.phoneSection = null;
+    this.phoneSection = null; // A short field edited in a window at its value (C305 (1)):
+    // {section, group, key} while it is open. Its entry is held in
+    // `changed` as a group's is, and saved as group.save with that one value.
+
+    this.quick = null; // The field the last save wrote, marked for a moment (the saved colour).
+
+    this.savedKeys = new Set(); // The whole record opened from «⋯ → Изменить всё» (mode edit for a while).
+
+    this.editAll = false; // A close (or a step to the next record) asked over unsaved entries
+    // (C159 (6)): {kind: close|step, reason|direction} until answered.
+
+    this.leaveAsk = null; // The record's history (C305 (2)): open as a level of the panel, or in
+    // the full screen's side column; its events as the port answered them.
+
+    this.historyOpen = false;
+    this.historyFeed = null;
+    this.historyEpoch = 0;
+    this.sideWide = false;
+    this.sideMedia = null; // The group drawn by sf-form while it is edited: its fields and saved
+    // value, kept for the edit so a render never resets the form.
+
+    this.formEdit = null;
+    this._focusFieldAfterRender = null;
   } // Declaring a prop does not create an accessor for it: `static get props()`
   // tells the template context and the manifest what the component takes, and
   // every component writes the getters it reads itself. Without these,
@@ -5373,8 +7370,12 @@ class SfPropertyView extends PropertyViewElement {
   // the port means by a null group.
 
 
-  moveFieldToUnplaced(fieldKey, index) {
-    if (!this.configuring || !this.layerDraft) return false;
+  moveFieldToUnplaced(fieldKey, index, {
+    save = true
+  } = {}) {
+    if (!this.configuring || !this.layerDraft) return false; // «Стадия» the admin locked stays shown (port 1.22.0 view.locked).
+
+    if (this.lockedForMe(`fields.${String(fieldKey)}.hidden`)) return false;
     let moved = null;
     let fromGroup = null;
 
@@ -5405,7 +7406,7 @@ class SfPropertyView extends PropertyViewElement {
       group: String(fromGroup.key)
     });
     this.requestComponentUpdate("view-move");
-    return this.saveView();
+    return save ? this.saveView() : true;
   }
 
   get recordActions() {
@@ -5506,10 +7507,51 @@ class SfPropertyView extends PropertyViewElement {
 
   get section() {
     return this.selectedSection ?? "";
-  }
+  } // The step the drawer is drawn at (C289 (2)): panel-size when it names a
+  // step; else the step nearest the width a former `panel-width` asked for.
+  // Not a getter named panelSize: the declared property of that name is the
+  // attribute's own accessor and wins over a getter, so a panel-width alone
+  // was drawn at the default step 1.
 
-  get panelSize() {
-    return this.getAttribute("panel-size") || "1";
+
+  get drawerStep() {
+    const size = this.getAttribute("panel-size");
+    if (["1/2", "1", "2", "full"].includes(size)) return size;
+    const width = this.panelWidth;
+    return width ? nearestPanelStep(width) : "1";
+  } // How the sections are laid out (C289 (1), (5); R250): the component
+  // decides by width and the person does not set it. A panel on a phone is
+  // the list of sections, each opening as a level with «←»; a panel on the
+  // whole screen keeps a column on the left; any narrower panel draws a line
+  // of tabs under its head, what does not fit in «Ещё (n)». In place (not a
+  // panel) a wide page keeps `sections-as`.
+
+
+  get sectionsLayout() {
+    if (!this.wide) return "phone"; // Arranging keeps the rail of sections beside the groups, each its own
+    // scroller, in a panel of any step: the sections are dragged there.
+
+    if (this.panel) return this.drawerStep === "full" || this.configuring ? "column" : "tabs";
+    return this.sectionsAs === "tabs" ? "tabs" : "column";
+  } // Once per element: a former `panel-width` is said in the console with
+  // the step it lands on, and noted in SF.deprecations.
+
+
+  _notePanelWidth() {
+    const width = this.panelWidth;
+    if (!width || this.hasAttribute("panel-size") || this._panelWidthNoted === width) return;
+    this._panelWidthNoted = width;
+    const step = nearestPanelStep(width);
+    (0,_core_js_deprecations_js__WEBPACK_IMPORTED_MODULE_12__.noteDeprecated)({
+      component: "sf-view-properties",
+      kind: "attribute",
+      from: "panel-width",
+      to: "panel-size",
+      since: "2026-11-17",
+      remove_after: PANEL_WIDTH_UNTIL,
+      package: "view"
+    });
+    globalThis.console?.info?.(`[SIMAI Framework] sf-view-properties: panel-width="${width}" is a former name until ${PANEL_WIDTH_UNTIL}; the panel is drawn at the step panel-size="${step}" (C157 (2), C289 (2)).`);
   }
 
   get panelLabel() {
@@ -5544,7 +7586,7 @@ class SfPropertyView extends PropertyViewElement {
 
 
   get mayEdit() {
-    if (this.mode === "view") return false;
+    if (this.mode === "view" || this.editMode === "none") return false;
     if (this.mode === "create") return true;
     if (!versionAtLeast(this.hostPort?.version, "1.12.0")) return true;
     return this.recordActions.includes("record.edit");
@@ -5552,7 +7594,60 @@ class SfPropertyView extends PropertyViewElement {
 
 
   get openAll() {
-    return this.mode === "create" || this.mode === "edit" && this.mayEdit;
+    return this.mode === "create" || (this.mode === "edit" || this.editAll) && this.mayEdit;
+  } // C305 (1): group | group+quick | none; group+quick by default wherever
+  // the record may be edited, the same short fields the table edits at the
+  // cell (C296).
+
+
+  get editMode() {
+    const value = this.getAttribute("edit");
+    return EDIT_MODES.includes(value) ? value : "group+quick";
+  } // The window at a value is SIMAI Framework sf-popover: where the page has
+  // not defined it yet, a short field goes through its group as before.
+
+
+  get quickEdit() {
+    return this.editMode === "group+quick" && this.mayEdit && !this.openAll && !this.configuring && Boolean(globalThis.customElements?.get?.("sf-popover"));
+  } // A short field: one control at its value, by its type. A list of several,
+  // a set type, a condition and a read-only field go through the group. (A
+  // field's own say -- a port field key -- is ordered with the port edition.)
+
+
+  isQuickField(field) {
+    if (!field || field.readonly === true || field.when || field.multiple === true) return false;
+    const type = String(field.propertyType || field.type || "");
+    if (!QUICK_TYPES.has(type) || (0,_js_set_fields_js__WEBPACK_IMPORTED_MODULE_15__.drawsSetField)(field)) return false; // A person picked from the host's pages needs the picker's host.
+
+    if (type === "user" && !this.canPickRecords) return false;
+    return true;
+  } // C305 (2): the history is offered where the host answers record.history
+  // (capability record-history) and the page did not turn it off.
+
+
+  get historyOffered() {
+    return this.getAttribute("history") !== "off" && this.mode !== "create" && Boolean(this.recordId) && Boolean(this.hostPort?.capabilities?.includes?.("record-history"));
+  } // C305 (3): the full screen keeps the history in a column of its own
+  // from 80rem; narrower it is a level of the panel, as in a panel.
+
+
+  get historySide() {
+    return this.historyOffered && this.sideWide && this.sectionsLayout === "column" && !this.configuring && (this.drawerStep === "full" || !this.panel);
+  } // C305 (4): a panel narrower than the screen is a column beside the list
+  // from 64rem (sf-drawer docked), the list usable; below it, and with
+  // modal="true", it floats over a scrim.
+  // A panel opened over another card's panel (a related record, C289 (6))
+  // stays a window over the one below, which the Framework's overlay dims.
+
+
+  get docked() {
+    if (!this.panel || this.getAttribute("modal") === "true" || this.drawerStep === "full") return false; // Only a panel below counts: the one under a related record stays docked.
+
+    const own = this._ownDrawer();
+
+    const cards = (0,_core_js_layer_stack__WEBPACK_IMPORTED_MODULE_9__.openLayers)("panel").filter(owner => owner?.parentElement?.localName === this.localName);
+    const at = cards.indexOf(own);
+    return at === -1 ? cards.length === 0 : at === 0;
   } // What the drawer is told to be. `size` is a ladder and its widest step short
   // of full measured 391px on a consumer's screen, which is too narrow for two
   // columns -- labels wrapped and a record title broke over three lines. `width`
@@ -5586,38 +7681,9 @@ class SfPropertyView extends PropertyViewElement {
 
 
   get drawerWidth() {
-    const width = this.panelWidth;
-    if (!width) return null;
-    if (!this.wide) return width; // The rail is drawn while the view is arranged even with one section,
-    // because that is where a second one is made.
-
-    const railed = this.sectionsAs === "list" && ((this.sections ?? []).length >= 2 || this.configuring);
-    const wanted = railed ? `calc(${width} + ${SECTIONS_WIDTH} + var(--sf-space-4))` : width; // Never wider than the window: grown by the rail, a 40rem panel ran past
-    // the left edge and its sections were cut off (owner, 2026-10-14).
-
-    return `min(${wanted}, calc(100vw - ${this.edgeRoom}))`;
-  } // One edge control: an sf-button-icon of the panel's size is its text
-  // height and the ladder's padding on each side, the same sum the button
-  // draws itself with (40px at size 1 on a desktop, 36px on a phone).
-
-
-  get edgeControlWidth() {
-    const step = this.size === "1/2" ? "1\\/2" : "1";
-    return `calc(var(--sf-text-height-${step}) + 2 * var(--sf-ui-${step}--space-y-tightness-default))`;
-  } // What the strip beside a wide panel takes from the window: the drawer's
-  // step between the panel and the strip (space-1/2), one control, and the
-  // same step again to the window's edge.
-
-
-  get edgeRoom() {
-    return `calc(${this.edgeControlWidth} + 2 * var(--sf-space-1\\/2))`;
-  } // How many controls the strip carries: copy-link with an address,
-  // open-full when the host can open the record as a page. The close is in
-  // the panel's head since 1.16.0 (C14, C157 (6)).
-
-
-  get edgeControlCount() {
-    return (this.address ? 1 : 0) + (this.canOpenFullPage ? 1 : 0);
+    // The panel never grows and never takes a width of its own (C289 (2)):
+    // the drawer is drawn at a step of its ladder.
+    return null;
   }
 
   get closeLabel() {
@@ -6014,6 +8080,50 @@ class SfPropertyView extends PropertyViewElement {
     }
 
     return items;
+  } // What the «⋯» holds for the record itself (C289 (3), (6); C180 (2)):
+  // copy its address and open it as a page -- they stood outside the panel
+  // on the scrim and drew a white glyph on a white plate -- and, last and
+  // apart, deleting it. A reading panel has no foot for one delete.
+
+
+  get recordMenuItems() {
+    const items = []; // «Изменить всё» (C305 (1)): every group open at once, one Save -- in
+    // the panel's head; an inline view has its groups' «Изменить» and no
+    // row of its own for it (the skeleton keeps the first group in place).
+
+    if (this.panel && this.mayEdit && !this.openAll && !this.configuring && this.mode !== "create" && (this.sections ?? []).some(section => (section.groups ?? []).some(group => group.kind !== "related" && group.editable !== false))) {
+      items.push({
+        id: "edit-all",
+        name: (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_8__.pageText)(PROPERTY_VIEW_TEXT, "editAllText", this),
+        icon: "edit"
+      });
+    } // «История изменений» (C305 (2)): a level of the panel; the full
+    // screen from 80rem shows it in its own column instead.
+
+
+    if (this.historyOffered && !this.historySide) {
+      items.push({
+        id: "history",
+        name: (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_8__.pageText)(PROPERTY_VIEW_TEXT, "historyText", this),
+        icon: "history"
+      });
+    }
+
+    if (this.address) items.push({
+      id: "copy-link",
+      name: this.copyLinkLabel,
+      icon: "link"
+    });
+    if (this.canOpenFullPage) items.push({
+      id: "open-full",
+      name: this.openFullLabel,
+      icon: "open_in_full"
+    });
+    return items;
+  }
+
+  get canDeleteRecord() {
+    return this.mode !== "view" && this.mode !== "create" && this.recordActions.includes("record.delete") && !this.configuring;
   } // ─── the standard menu (owner, 2026-10-12) ──────────────────────────────
   // The «⋯» and the view chooser open the Framework's standard menu: one
   // sf-menu-context beside the page, filled for whichever control asked.
@@ -6057,38 +8167,65 @@ class SfPropertyView extends PropertyViewElement {
     return menu.openFor(anchor, {
       align
     });
-  } // The views as radio rows: which one is in use, and whose it is.
-
-
-  viewProfileEntries() {
-    const current = this.viewProfile;
-    return this.viewProfiles.map(profile => ({
-      id: `view-profile:${profile.id}`,
-      text: profile.label,
-      kind: "radio",
-      checked: profile.id === current,
-      icon: profile.shared ? "group" : "person",
-      caption: profile.shared ? this.sharedLayerText : this.personalLayerText
-    }));
   }
 
   openPanelMenu(anchor) {
-    const entries = [];
-    const profiles = this.viewProfiles; // The view is chosen from the menu as the admin menu's profile is: a
-    // submenu of the views, beside what can be done to the view (owner,
-    // 2026-10-12). While arranging, the bar at the foot carries the choice.
-
-    if (profiles.length > 1 && !this.configuring) {
-      const current = profiles.find(profile => profile.id === this.viewProfile);
-      entries.push({
-        id: "view-profile",
-        text: this.viewProfileLabel,
-        icon: "view_sidebar",
-        value: current?.label ?? "",
-        submenu: this.viewProfileEntries()
+    // The history level's «⋯»: which events it shows.
+    if (this.historyOpen && !this.historySide) {
+      const fieldsOnly = JSON.stringify(this.historyFeed?.kinds ?? null) === JSON.stringify(["update"]);
+      return this.openStandardMenu(anchor, {
+        label: this.menuLabel,
+        entries: [{
+          id: "history-kinds:update",
+          text: (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_8__.pageText)(PROPERTY_VIEW_TEXT, "historyFieldsText", this),
+          kind: "radio",
+          checked: fieldsOnly,
+          icon: "edit_note"
+        }, {
+          id: "history-kinds:all",
+          text: (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_8__.pageText)(PROPERTY_VIEW_TEXT, "historyAllText", this),
+          kind: "radio",
+          checked: !fieldsOnly,
+          icon: "list"
+        }],
+        select: id => this._chooseStandardEntry(id)
       });
     }
 
+    const entries = [];
+    const profiles = this.viewProfiles; // The profile is chosen in sf-profile-picker only (C163 (1), C311 (5),
+    // RC-6): outside the mode one row «Вид: <name>» enters it with the
+    // picker open. A person who cannot arrange the view chooses in the
+    // select-only picker above the fields; the menu has no views submenu
+    // for anyone (the dispatcher's call on C311 (5)).
+
+    if (profiles.length > 1 && !this.configuring && this.canConfigureView) {
+      const current = profiles.find(profile => profile.id === this.viewProfile);
+      entries.push({
+        id: "view-profile-picker",
+        text: `${this.viewProfileLabel}: ${current?.label ?? ""}`,
+        icon: "view_sidebar"
+      });
+    } // «Сохранить как моё» in the head «⋯» while arranging (C311 (5)).
+
+
+    if (this.canSaveAsMine) {
+      entries.push({
+        id: "save-as-mine",
+        text: (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_8__.pageText)(PROPERTY_VIEW_TEXT, "saveAsMineText", this),
+        icon: "person"
+      });
+    }
+
+    const record = this.recordMenuItems;
+    if (entries.length && record.length) entries.push({
+      type: "separator"
+    });
+    entries.push(...record.map(item => ({
+      id: item.id,
+      text: item.name,
+      icon: item.icon
+    })));
     const items = this.panelMenuItems;
     if (entries.length && items.length) entries.push({
       type: "separator"
@@ -6103,19 +8240,23 @@ class SfPropertyView extends PropertyViewElement {
       type: "separator"
     });
     entries.push(...hosted);
+
+    if (this.canDeleteRecord) {
+      if (entries.length) entries.push({
+        type: "separator"
+      });
+      entries.push({
+        id: "delete",
+        text: this.deleteText,
+        icon: "delete",
+        danger: true
+      });
+    }
+
     if (!entries.length) return null;
     return this.openStandardMenu(anchor, {
       label: this.menuLabel,
       entries,
-      select: id => this._chooseStandardEntry(id)
-    });
-  }
-
-  openViewProfileMenu(anchor) {
-    return this.openStandardMenu(anchor, {
-      label: this.viewProfileLabel,
-      entries: this.viewProfileEntries(),
-      align: "start",
       select: id => this._chooseStandardEntry(id)
     });
   } // The host's own menu items, as rows of the standard menu: its text, its
@@ -6154,14 +8295,45 @@ class SfPropertyView extends PropertyViewElement {
       return true;
     }
 
-    if (value.startsWith("view-profile:")) return this.selectViewProfile(value.slice("view-profile:".length));
+    if (value.startsWith("history-kinds:")) {
+      const kinds = value.slice("history-kinds:".length);
+      return this.setHistoryKinds(kinds === "all" ? null : [kinds]);
+    }
+
     return this.chooseMenuItem(value);
   }
 
   chooseMenuItem(id) {
     if (id === "configure") return this.startConfiguringView();
+    if (id === "save-as-mine") return this.saveAsMine();
+
+    if (id === "view-profile-picker") {
+      if (!this.configuring && !this.startConfiguringView()) return false;
+      this.whenRendered?.(() => requestAnimationFrame(() => {
+        const picker = (this.panelContent?.() ?? this).querySelector?.('sf-profile-picker[data-action="view-profile"]');
+        (picker?.querySelector?.("button") ?? picker)?.click?.();
+      }), {
+        next: true
+      });
+      return true;
+    }
+
     if (id === "reset") return this.resetView();
     if (id === "show-rare") return this.toggleShowRare();
+    if (id === "copy-link") return this.copyAddress();
+    if (id === "open-full") return this.openFullPage();
+    if (id === "delete") return this.deleteRecord();
+    if (id === "history") return this.openHistory();
+
+    if (id === "edit-all") {
+      this.quick = null;
+      this.editing = null;
+      this.formEdit = null;
+      this.editAll = true;
+      this.requestComponentUpdate("editing");
+      return true;
+    }
+
     return false;
   }
 
@@ -6205,13 +8377,59 @@ class SfPropertyView extends PropertyViewElement {
 
     if (name === "record-id" && this.hostPort) this.load("record-id-changed");
     if (name === "hidden" || name === "open" || name === "full") this.syncPanelOpen();
+  } // Every tag the card draws, asked of the Loader once per connection
+  // (§7.11, VF-16); the card draws again once they are defined, so a part
+  // drawn before its definition upgrades in place.
+
+
+  _askForDrawnTags() {
+    const registry = globalThis.customElements;
+    const loader = globalThis.SF?.Loader;
+    if (typeof registry?.get !== "function" || typeof loader?.ensure !== "function") return;
+    const missing = DRAWN_TAGS.filter(tag => !registry.get(tag));
+    if (!missing.length) return;
+    Promise.resolve(loader.ensure(missing, {
+      timeout: 10000
+    })).catch(() => null).then(() => {
+      if (this.isConnected) this.requestComponentUpdate("parts-defined");
+    });
+  } // Every other tag the view has drawn -- a field's control, a host's
+  // renderer, a part a template draws only sometimes -- asked for once it is
+  // in the view and not defined (C289 (10), VF-16): a page that defines
+  // nothing of its own still gets the whole card.
+
+
+  _askForUndefinedTags() {
+    const registry = globalThis.customElements;
+    const loader = globalThis.SF?.Loader;
+    if (typeof registry?.get !== "function" || typeof loader?.ensure !== "function") return;
+    this._askedTags ??= new Set(DRAWN_TAGS);
+    const missing = new Set();
+
+    for (const node of this.querySelectorAll(":not(:defined)")) {
+      const tag = node.localName;
+      if (tag.startsWith("sf-") && !this._askedTags.has(tag) && !registry.get(tag)) missing.add(tag);
+    }
+
+    if (!missing.size) return;
+
+    for (const tag of missing) this._askedTags.add(tag);
+
+    Promise.resolve(loader.ensure([...missing], {
+      timeout: 10000
+    })).catch(() => null);
   }
 
   onConnected() {
-    super.onConnected?.(); // Born loading. The first render comes before the host is asked, and
+    super.onConnected?.();
+
+    this._notePanelWidth();
+
+    this._askForDrawnTags(); // Born loading. The first render comes before the host is asked, and
     // drawn with no state it was the empty body -- one frame of «nothing
     // here» before the skeleton, the flash the table had (rules of the
     // road, rule 2: loading is drawn as the skeleton, from the first frame).
+
 
     if (!this.hasAttribute("data-state") && !this.record) {
       this.setAttribute("data-state", "loading");
@@ -6233,7 +8451,97 @@ class SfPropertyView extends PropertyViewElement {
       this.closePanel(DRAWER_CLOSE_REASONS[event.detail?.reason] ?? "api");
     };
 
-    this.addEventListener("sf-drawer-close", this._onDrawerClose); // The drop is sf-sortable's to report and the component's to apply or
+    this.addEventListener("sf-drawer-close", this._onDrawerClose); // The first focus of the panel (Pro joint pass PRO-ADM-16): the drawer
+    // gives it to the first field of its content, else its first control
+    // -- for a record shown to read, the favourite star in the head, whose
+    // tooltip then stood over the title. A record to read starts on its
+    // title (the heading takes the focus without becoming a Tab stop); a
+    // record with a field keeps the field the drawer chose (C159 (9)). The
+    // panel is drawn open and its record comes later, so sf-drawer-opened
+    // is not sent and the drawer's pick lands frames after the open: the
+    // panel watches the focus from its open until the title is drawn, the
+    // person acts or two seconds pass.
+
+    this._onPanelFocusIn = () => this._focusTitleFirst();
+
+    this._onPanelAct = event => {
+      const root = this._ownDrawerRoot();
+
+      if (root && event.composedPath?.().includes(root)) this._endTitleFocus();
+    };
+
+    this._offAfterRender = this.onAfterRender?.(() => {
+      const open = this.panelOpen;
+      if (open && !this._panelWasOpen) this._startTitleFocus();
+      if (!open) this._endTitleFocus();
+      this._panelWasOpen = open;
+      if (this._titleFocusUntil) requestAnimationFrame(() => this._focusTitleFirst());
+    }); // Every render, not once (onAfterRender runs a callback once unless
+    // told otherwise): the errors to focus after a refused Save, the tags
+    // to ask the Loader for, the back line of a related record.
+
+    this._offEveryRender = this.onAfterRender?.(() => {
+      if (this._focusErrorsAfterRender) {
+        this._focusErrorsAfterRender = false;
+        requestAnimationFrame(() => this._focusErrors());
+      } // A long field's value pressed: its group opens with the focus on
+      // it (VP-21); sf-form gives it once its controls are drawn.
+
+
+      if (this._focusFieldAfterRender && this.editing) {
+        const key = this._focusFieldAfterRender;
+        this._focusFieldAfterRender = null; // sf-form may draw before or after this hook, and its control is
+        // defined lazily: wait (60 frames at most) until the control has
+        // something to focus.
+
+        const formed = Boolean(this.formEdit);
+        const FOCUSABLE = "input:not([type=hidden]), textarea, select, button, [tabindex]:not([tabindex='-1'])";
+        let frames = 0;
+
+        const give = () => {
+          const form = formed ? this._formOf(this.editing?.group) : null;
+          const control = form?.controlOf?.(key);
+          const ready = !formed || Boolean(control && (!control.localName.includes("-") || customElements.get(control.localName)) && (control.focusDelegate?.() || control.querySelector?.(FOCUSABLE)));
+          if (!ready && frames++ < 60) return requestAnimationFrame(give);
+          if (form?.focusField) form.focusField(key);else this.focusField(key);
+        };
+
+        requestAnimationFrame(give);
+      }
+
+      if (this._focusAfterStep && this.record && this.getAttribute("data-state") !== "loading") {
+        this._focusAfterStep = false;
+        requestAnimationFrame(() => {
+          const root = this.panel ? this.panelContent?.() : this;
+          const active = document.activeElement;
+          if (root && active && root.contains(active) && active !== document.body) return;
+          root?.querySelector?.(".sf-property-view-title")?.focus?.({
+            preventScroll: true
+          });
+        });
+      } // The full screen's history column reads its first page itself.
+
+
+      if (this.historySide && (!this.historyFeed || this.historyFeed.record !== this.recordId) && this.record && !this._sideAsked) {
+        this._sideAsked = true;
+        Promise.resolve().then(() => this.loadHistory()).finally(() => {
+          this._sideAsked = false;
+        });
+      }
+
+      this._askForUndefinedTags(); // The panel's level for a related record (C289 (6)): whether this
+      // panel's drawer is drawn inside another one is known once it is open.
+
+
+      const nested = this._nestedLabel();
+
+      if (nested !== this._nestedUnderLabel) {
+        this._nestedUnderLabel = nested;
+        this.requestComponentUpdate("nested");
+      }
+    }, {
+      once: false
+    }); // The drop is sf-sortable's to report and the component's to apply or
     // refuse -- that is the seam the mechanism already publishes, so no drag
     // is implemented here. The lists name themselves `field:<group>` and
     // `group:<section>`, which is what `to` carries.
@@ -6304,7 +8612,37 @@ class SfPropertyView extends PropertyViewElement {
       this.requestComponentUpdate("viewport");
     };
 
-    this.wideMedia?.addEventListener?.("change", this._onWideChange); // A view placed before it is told its record (an assembly binds
+    this.wideMedia?.addEventListener?.("change", this._onWideChange);
+    this.sideMedia = typeof globalThis.matchMedia === "function" ? globalThis.matchMedia(SIDE_MEDIA_QUERY) : null;
+    this.sideWide = Boolean(this.sideMedia?.matches);
+
+    this._onSideChange = event => {
+      this.sideWide = event.matches;
+      this.requestComponentUpdate("viewport");
+    };
+
+    this.sideMedia?.addEventListener?.("change", this._onSideChange); // Alt+↓ / Alt+↑: the next or the previous record of the view (C305 (4)).
+    // The panel is portalled out of the element, so the keys are read on
+    // the document for a press inside this card's panel.
+
+    this._onStepKey = event => {
+      if (!event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+      if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+      const root = this.panel ? this.panelContent() : this; // A press on the panel itself counts: the drawer gives its panel
+      // the focus when the card covers the list (phone), and the keys
+      // went nowhere from there (VR2-3).
+
+      const path = event.composedPath?.() ?? [];
+      const own = this.panel ? this._ownDrawerRoot() : null;
+      if (!root || !(path.includes(root) || own && path.includes(own)) || this.panel && !this.isTopPanel) return;
+      event.preventDefault(); // The next record redraws the panel: the focus comes back to its
+      // title so the keys go on stepping.
+
+      this._focusAfterStep = true;
+      this.step(event.key === "ArrowDown" ? "next" : "previous");
+    };
+
+    document.addEventListener("keydown", this._onStepKey); // A view placed before it is told its record (an assembly binds
     // record-id after it places the part) asks the host nothing yet: the
     // record-id it is given reads it (attributeChangedCallback).
 
@@ -6344,7 +8682,15 @@ class SfPropertyView extends PropertyViewElement {
 
     this._portRequested = false;
     if (this._onDrawerClose) this.removeEventListener("sf-drawer-close", this._onDrawerClose);
-    this._onDrawerClose = null; // The settings surface listens on the document, so a panel that goes away
+    this._onDrawerClose = null;
+
+    this._endTitleFocus();
+
+    this._offAfterRender?.();
+    this._offAfterRender = null;
+    this._offEveryRender?.();
+    this._offEveryRender = null;
+    this._panelWasOpen = false; // The settings surface listens on the document, so a panel that goes away
     // while it is open takes that listener with it.
 
     this.configuring = false;
@@ -6365,6 +8711,12 @@ class SfPropertyView extends PropertyViewElement {
 
     this._onDocumentSortableIntent = null;
     if (this._onWideChange) this.wideMedia?.removeEventListener?.("change", this._onWideChange);
+    if (this._onSideChange) this.sideMedia?.removeEventListener?.("change", this._onSideChange);
+    this._onSideChange = null;
+    this.sideMedia = null;
+    if (this._onStepKey) document.removeEventListener("keydown", this._onStepKey);
+    this._onStepKey = null;
+    clearTimeout(this._savedTimer);
     this._onWideChange = null;
     this.wideMedia = null;
     super.onDisconnected?.();
@@ -6401,7 +8753,7 @@ class SfPropertyView extends PropertyViewElement {
     return (Array.isArray(entries) ? entries : []).filter(entry => entry && entry.hidden !== true).filter(entry => this.showRare || entry.rare !== true) // A field its condition hides is not drawn (port 1.14.0). Not while
     // the view is arranged -- the template lists every entry then -- and
     // not by the view: `hidden` is the arrangement's, `when` the values'.
-    .filter(entry => !values || !entry.when || (0,_js_conditions_js__WEBPACK_IMPORTED_MODULE_12__.fieldConditions)(entry, values).visible);
+    .filter(entry => !values || !entry.when || (0,_js_conditions_js__WEBPACK_IMPORTED_MODULE_14__.fieldConditions)(entry, values).visible);
   } // Every field's value as it stands on screen: what the record holds, or what
   // the person changed it to and has not saved. The conditions read these, so
   // a field appears the moment the value it waits for is chosen, before any
@@ -6431,7 +8783,7 @@ class SfPropertyView extends PropertyViewElement {
 
   conditionedField(field, values = this.fieldValues()) {
     if (!field?.when) return field;
-    const decided = (0,_js_conditions_js__WEBPACK_IMPORTED_MODULE_12__.fieldConditions)(field, values);
+    const decided = (0,_js_conditions_js__WEBPACK_IMPORTED_MODULE_14__.fieldConditions)(field, values);
     return { ...field,
       required: decided.required,
       readonly: field.readonly === true || !decided.enabled
@@ -6444,7 +8796,7 @@ class SfPropertyView extends PropertyViewElement {
     const hidden = new Set();
 
     const check = field => {
-      if (field?.when && !(0,_js_conditions_js__WEBPACK_IMPORTED_MODULE_12__.fieldConditions)(field, values).visible) hidden.add(String(field.key));
+      if (field?.when && !(0,_js_conditions_js__WEBPACK_IMPORTED_MODULE_14__.fieldConditions)(field, values).visible) hidden.add(String(field.key));
     };
 
     for (const section of this.sections ?? []) {
@@ -6480,9 +8832,7 @@ class SfPropertyView extends PropertyViewElement {
     Object.assign(view, {
       formatFieldValue: (field, value) => {
         const own = host?.formatFieldValue?.(field, value);
-        if (typeof own === "string") return own;
-        const type = field?.propertyType ?? field?.property_type ?? field?.type ?? field?.dataType;
-        return (0,_view_table_js_format_value_js__WEBPACK_IMPORTED_MODULE_13__.formatDateValue)(type, value, this) || undefined;
+        return typeof own === "string" ? own : undefined;
       }
     });
     this._viewHost = {
@@ -6490,6 +8840,410 @@ class SfPropertyView extends PropertyViewElement {
       view
     };
     return view;
+  } // ─── C305: quick edit, a field's group, the history, the next record ─────
+  // Where a field stands: its section, its group and its descriptor.
+
+
+  fieldAt(key) {
+    const wanted = String(key ?? "");
+
+    for (const section of this.sections ?? []) {
+      for (const group of section.groups ?? []) {
+        const field = (group.fields ?? []).find(one => String(one.key ?? "") === wanted);
+        if (field) return {
+          section: String(section.key ?? ""),
+          group: String(group.key ?? ""),
+          field
+        };
+      }
+    }
+
+    return null;
+  } // A short field opened in its window (C305 (1), C296): the entry is held
+  // as a group's is, nothing is written until Save.
+
+
+  startQuick(section, group, key) {
+    if (!this.quickEdit || this.editing) return false;
+    this.quick = {
+      section: String(section),
+      group: String(group),
+      key: String(key)
+    };
+    this.changed.clear();
+
+    this._clearInputs();
+
+    this.errors.clear();
+    this.conflict = null;
+    this.confirmation = null;
+    this.requestComponentUpdate("quick");
+    return true;
+  }
+
+  endQuick(key = null) {
+    if (!this.quick || key !== null && this.quick.key !== key) return false;
+    this.quick = null;
+    this.changed.clear();
+
+    this._clearInputs();
+
+    this.errors.clear();
+    this.conflict = null;
+    this.confirmation = null;
+    this.requestComponentUpdate("quick");
+    return true;
+  }
+
+  _quickPopover(key) {
+    const root = this.panel ? this.panelContent() : this;
+    return root?.querySelector?.(`sf-popover[data-quick-pop="${CSS.escape(String(key))}"]`) ?? null;
+  } // One value per save: group.save of the field's group with that value,
+  // the same revision and the same confirmation as a group's save.
+
+
+  async saveQuick({
+    confirm = null
+  } = {}) {
+    const quick = this.quick;
+    if (!quick) return null;
+
+    if (!this.changed.has(quick.key) && !this.inputErrors.size) {
+      this._quickPopover(quick.key)?.close?.();
+      this.endQuick();
+      return null;
+    }
+
+    return this.saveGroup({
+      confirm
+    });
+  } // The saved fields are marked for a moment (--sf-view-properties-saved-background-color).
+
+
+  markSaved(keys) {
+    this.savedKeys = new Set([...keys].map(String));
+    this.requestComponentUpdate("saved-mark");
+    clearTimeout(this._savedTimer);
+    this._savedTimer = setTimeout(() => {
+      this.savedKeys = new Set();
+      this.requestComponentUpdate("saved-mark");
+    }, 1600);
+  } // RC-6 editField(key): a short field opens its window, any other its
+  // group with the focus on it (VP-19, VP-21).
+
+
+  editField(key) {
+    const at = this.fieldAt(key);
+    if (!at || !this.mayEdit) return false;
+
+    if (this.isQuickField(at.field) && this.quickEdit) {
+      const pop = this._quickPopover(at.field.key);
+
+      if (pop?.show) {
+        pop.show();
+        return true;
+      }
+    }
+
+    if (this.selectedSection !== at.section) this.selectSection(at.section);
+    this.editGroup(at.section, at.group, {
+      focus: at.field.key
+    });
+    return true;
+  } // sf-form draws a group's edit (C182) when it draws every field of it.
+
+
+  formDraws(group) {
+    const fields = this.visible(group?.fields, {
+      conditions: false
+    }); // sf-form where the page has it defined; else the card's own form, as before.
+
+    if (!fields.length || !globalThis.customElements?.get?.("sf-form")) return false;
+    return fields.every(field => {
+      const type = String(field.propertyType || field.type || "");
+      if (field.when || (0,_js_set_fields_js__WEBPACK_IMPORTED_MODULE_15__.drawsSetField)(field) || FORMLESS_TYPES.has(type)) return false;
+      const modes = (0,_field_renderers_index_js__WEBPACK_IMPORTED_MODULE_16__.propertyModes)(type);
+      return Boolean(modes?.edit || field.readonly === true && modes?.view);
+    });
+  } // The fields and the saved value an sf-form gets for one group's edit.
+
+
+  _formEditOf(section, group) {
+    const current = this.sections.find(entry => String(entry.key) === String(section));
+    const found = this.visible(current?.groups).find(entry => String(entry.key) === String(group));
+    if (!found || !this.formDraws(found)) return null;
+    const fields = this.visible(found.fields, {
+      conditions: false
+    }).map(field => {
+      const {
+        value,
+        width,
+        ...rest
+      } = field;
+      return { ...rest,
+        key: String(field.key ?? "")
+      };
+    });
+    const value = Object.fromEntries(this.visible(found.fields, {
+      conditions: false
+    }).filter(field => field.value !== undefined && field.value !== null).map(field => [String(field.key ?? ""), field.value]));
+    return {
+      section: String(section),
+      group: String(group),
+      fields,
+      value
+    };
+  } // sf-form's Save: what differs from the record is the save; the form waits
+  // for the host's answer (the submit is cancelled) and takes its errors.
+
+
+  submitForm(event) {
+    event?.preventDefault?.();
+    if (!this.formEdit || !this.editing) return null;
+    const value = event?.detail?.value ?? {};
+
+    for (const field of this.formEdit.fields) {
+      const at = this.fieldAt(field.key);
+      if (!at) continue;
+      const next = value[field.key];
+      const same = JSON.stringify(next ?? null) === JSON.stringify(at.field.value ?? null);
+      if (same || next === undefined) this.changed.delete(field.key);else this.changed.set(field.key, next);
+    }
+
+    return this.saveGroup();
+  }
+
+  _formOf(groupKey) {
+    const root = this.panel ? this.panelContent() : this;
+    return root?.querySelector?.(`[data-group="${CSS.escape(String(groupKey))}"] sf-form`) ?? null;
+  } // The way out of unsaved entries asks first (C159 (6)): a close, or a step
+  // to the next record, waits for «Закрыть без сохранения».
+
+
+  answerLeave(accepted) {
+    const ask = this.leaveAsk;
+    this.leaveAsk = null;
+    if (!ask) return null;
+
+    if (!accepted) {
+      this.requestComponentUpdate("leave");
+      return null;
+    }
+
+    this._dropEntries();
+
+    if (ask.kind === "step") return this._emitStep(ask.direction);
+    return this.closePanel(ask.reason, {
+      asked: true
+    });
+  }
+
+  _dropEntries() {
+    this.editing = null;
+    this.quick = null;
+    this.editAll = false;
+    this.formEdit = null;
+    this.changed.clear();
+
+    this._clearInputs();
+
+    this.errors.clear();
+    this.conflict = null;
+    this.confirmation = null;
+    this.requestComponentUpdate("editing");
+  } // RC-5, RC-6 step(direction): the next or the previous record in the
+  // order of the view the panel was opened from. The card never reads the
+  // list: it asks (sf-view-properties-step {direction}) and the page opens the
+  // neighbour in the same panel (sf-view recordBeside gives it).
+
+
+  step(direction) {
+    const dir = direction === "previous" || direction === -1 ? "previous" : "next";
+
+    this._commitFocusedEntry();
+
+    if (this.unsavedFields) {
+      this.leaveAsk = {
+        kind: "step",
+        direction: dir
+      };
+      this.requestComponentUpdate("leave");
+      return {
+        outcome: "refused",
+        reason: "unsaved"
+      };
+    }
+
+    return this._emitStep(dir);
+  } // The next record: a host that announces record-neighbours names it over
+  // its current view (filters, search, sort; Larena: {listed, previous:
+  // {record_id}, next: {record_id}}), and the card opens it in the same panel
+  // unless the page takes the step (preventDefault). Without it the page
+  // finds the neighbour itself (sf-view recordBeside) and sets record-id.
+
+
+  async _emitStep(direction) {
+    let next = null;
+
+    if (this.hostPort?.capabilities?.includes?.("record-neighbours") && this.recordId) {
+      const answer = await this._raise("record.neighbours", {
+        record_id: this.recordId,
+        collection: this.collection || null
+      });
+
+      if (answer?.answer === "applied") {
+        const id = answer[direction]?.record_id;
+        if (id === undefined || id === null || id === "") return {
+          outcome: "refused",
+          reason: "no-neighbour"
+        };
+        next = String(id);
+      }
+    }
+
+    const allowed = this.sfEmit("step", {
+      direction,
+      record_id: this.recordId || null,
+      ...(next ? {
+        next_record_id: next
+      } : {})
+    }, {
+      cancelable: true
+    });
+    if (!allowed) return {
+      outcome: "refused",
+      reason: "prevented"
+    };
+    if (next) this.setAttribute("record-id", next);
+    return {
+      outcome: "applied"
+    };
+  } // RC-3, RC-6 openHistory(): the history as a level of the same panel, the
+  // C289 head over it («← <запись>», the title, «⋯», the close).
+
+
+  openHistory() {
+    if (!this.historyOffered) return {
+      outcome: "refused",
+      reason: "unavailable"
+    };
+    this.historyOpen = true;
+    this.phoneSection = null;
+    this.sfEmit("history", {
+      record_id: this.recordId || null
+    });
+    this.requestComponentUpdate("history");
+    if (!this.historyFeed || this.historyFeed.record !== this.recordId) this.loadHistory();
+    return {
+      outcome: "applied"
+    };
+  }
+
+  closeHistory() {
+    if (!this.historyOpen) return false;
+    this.historyOpen = false;
+    this.requestComponentUpdate("history");
+    return true;
+  } // «Только изменения полей» / «Все события» (the history's «⋯»).
+
+
+  setHistoryKinds(kinds) {
+    const next = Array.isArray(kinds) && kinds.length ? kinds.map(String) : null;
+    if (JSON.stringify(next) === JSON.stringify(this.historyFeed?.kinds ?? null) && this.historyFeed) return false;
+    this.historyFeed = {
+      record: this.recordId,
+      kinds: next,
+      events: [],
+      items: [],
+      cursor: null,
+      hasMore: false,
+      loading: false,
+      failed: false
+    };
+    this.loadHistory();
+    return true;
+  } // One page of record.history; «Показать ещё» asks for the next one with
+  // the cursor the host gave.
+
+
+  async loadHistory({
+    more = false
+  } = {}) {
+    if (!this.historyOffered) return null;
+    const kinds = this.historyFeed?.kinds ?? null;
+
+    if (!more || !this.historyFeed || this.historyFeed.record !== this.recordId) {
+      this.historyFeed = {
+        record: this.recordId,
+        kinds,
+        events: [],
+        items: [],
+        cursor: null,
+        hasMore: false,
+        loading: true,
+        failed: false
+      };
+    } else {
+      this.historyFeed = { ...this.historyFeed,
+        loading: true
+      };
+    }
+
+    this.requestComponentUpdate("history");
+    const epoch = ++this.historyEpoch;
+    const last = this.historyFeed.events.at(-1);
+    const answer = await this._raise("record.history", {
+      record_id: this.recordId || null,
+      collection: this.collection || null,
+      cursor: more ? this.historyFeed.cursor ?? (last ? String(last.id) : null) : null,
+      kinds,
+      limit: HISTORY_PAGE
+    }, {
+      stale: () => epoch !== this.historyEpoch
+    });
+    if (!answer) return null;
+
+    if (answer.answer !== "applied") {
+      this.historyFeed = { ...this.historyFeed,
+        loading: false,
+        failed: true,
+        hasMore: false
+      }; // A refused history is no state of the record: the record stays ready.
+
+      if (this.getAttribute("data-state") === "error" && this.record) this._setState("ready");
+      this.requestComponentUpdate("history");
+      return answer;
+    }
+
+    const events = [...this.historyFeed.events, ...(Array.isArray(answer.events) ? answer.events : [])];
+    this.historyFeed = { ...this.historyFeed,
+      events,
+      loading: false,
+      failed: false,
+      hasMore: answer.has_more === true,
+      cursor: answer.cursor ?? null,
+      items: (0,_js_history_js__WEBPACK_IMPORTED_MODULE_17__.timelineItems)(events, {
+        words: this.historyWords,
+        fieldOf: key => this.fieldAt(key)?.field ?? null,
+        host: this.viewHost
+      })
+    };
+    this.requestComponentUpdate("history");
+    return answer;
+  }
+
+  get historyWords() {
+    const word = key => (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_8__.pageText)(PROPERTY_VIEW_TEXT, key, this);
+
+    return {
+      historyCreate: word("historyCreateText"),
+      historyDelete: word("historyDeleteText"),
+      historyRestore: word("historyRestoreText"),
+      historyPublish: word("historyPublishText"),
+      historyChangedOne: word("historyChangedOneText"),
+      historyChangedMany: word("historyChangedManyText"),
+      historySealed: word("historySealedText")
+    };
   }
 
   templateContext() {
@@ -6513,8 +9267,9 @@ class SfPropertyView extends PropertyViewElement {
       panel: this.panel,
       panelOpen: this.panelOpen,
       // The record's own name heads a panel the page gave no label: the
-      // host answers it with the record (port 1.14.0 record.label).
-      recordLabel: this.record?.label ? String(this.record.label) : "",
+      // host answers it with the record (port 1.14.0 record.label); the
+      // reference host and most pages send record.title, read as well.
+      recordLabel: this._recordName(this.record),
       loadFailure: this.record ? null : this.loadFailure ?? null,
       editText: this.editText,
       saveText: this.saveText,
@@ -6533,7 +9288,6 @@ class SfPropertyView extends PropertyViewElement {
       // An entry that is not a value yet holds both saves (port 1.16.0):
       // Save is drawn disabled while there is one, with the count of what
       // is wrong beside it and each message under its field.
-      inputsInvalid: this.inputErrors.size > 0,
       controlErrors: this.controlErrors,
       canPickRecords: this.canPickRecords,
       canUploadFiles: this.canUploadFiles,
@@ -6615,7 +9369,6 @@ class SfPropertyView extends PropertyViewElement {
       newGroupTitle: this.newGroupTitle,
       newSectionTitle: this.newSectionTitle,
       renaming: this.renaming,
-      namingView: this.namingView,
       noMatchText: this.noMatchText,
       unplacedHintText: this.unplacedHintText,
       panelMenuItems: this.panelMenuItems,
@@ -6641,16 +9394,48 @@ class SfPropertyView extends PropertyViewElement {
       openFullLabel: this.openFullLabel,
       inheritedText: this.inheritedText,
       wide: this.wide,
-      edgeControlWidth: this.edgeControlWidth,
-      edgeControlCount: this.edgeControlCount,
       phoneSection: this.phoneSection,
       phoneSectionLabel: this.phoneSectionLabel,
-      backLabel: this.backLabel
+      backLabel: this.backLabel,
+      drawerStep: this.drawerStep,
+      sectionsLayout: this.sectionsLayout,
+      nestedUnder: this._nestedUnderLabel || "",
+      canDeleteRecord: this.canDeleteRecord,
+      recordMenuItems: this.recordMenuItems,
+      errorList: this.errorList,
+      requiredErrorText: this.requiredErrorText,
+      // C305
+      quickEdit: this.quickEdit,
+      quick: this.quick,
+      isQuickField: field => this.isQuickField(field),
+      savedKeys: this.savedKeys,
+      editAll: this.editAll,
+      leaveAsk: this.leaveAsk,
+      formEdit: this.formEdit,
+      historyOffered: this.historyOffered,
+      historyOpen: this.historyOpen && !this.historySide,
+      historySide: this.historySide,
+      history: this.historyFeed,
+      docked: this.docked,
+      dockBreakpoint: DOCK_BREAKPOINT,
+      // VP-26: sf-tabs vertical once it places its box by its own column;
+      // until then sf-menu, and sf-tabs where sf-menu is not defined.
+      sectionColumnTabs: typeof globalThis.customElements?.get?.("sf-tabs")?.prototype?.placeBox === "function" || !globalThis.customElements?.get?.("sf-menu"),
+      word: key => (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_8__.pageText)(PROPERTY_VIEW_TEXT, key, this),
+      // C311: levels, locks, the head, the tabs' and fields' menus.
+      canWriteShared: this.canWriteShared,
+      viewRequired: this.viewRequired,
+      requiredEdits: Boolean(this.requiredEdits),
+      hasPersonalEdits: this.hasPersonalEdits,
+      isLocked: path => this.isLocked(path),
+      lockedForMe: path => this.lockedForMe(path),
+      headLine: this.headLine,
+      fieldMenuEntries: key => this.configuring ? this.fieldMenuEntries(key) : []
     });
   }
 
   template() {
-    return (0,_js_templates_default__WEBPACK_IMPORTED_MODULE_11__.renderPropertyViewTemplate)(this.templateContext());
+    return (0,_js_templates_default__WEBPACK_IMPORTED_MODULE_13__.renderPropertyViewTemplate)(this.templateContext());
   } // A printed skeleton (data-sf-first-paint="skeleton", skeleton.html) stays
   // until the record comes through the port (standard 1.3.8 §5.4): the first
   // render then draws the record over it in one frame. A panel draws in its
@@ -6660,6 +9445,15 @@ class SfPropertyView extends PropertyViewElement {
   sfAwaitingData() {
     if (this.getAttribute("data-sf-first-paint") !== "skeleton" || this.panel) return false;
     return !this.record && !this.loadFailure && this.getAttribute("data-state") !== "error";
+  } // A view refusal in words (port 1.22.0, Larena backend c311-reply): the
+  // host's message if it sends one, else the pack's words for its code;
+  // a machine code is never shown to a person.
+
+
+  viewRefusalText(answer, fallback = this.viewDeniedText) {
+    if (answer?.message) return String(answer.message);
+    const key = VIEW_REFUSALS[String(answer?.reason ?? answer?.code ?? "")];
+    return key ? (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_8__.pageText)(PROPERTY_VIEW_TEXT, key, this) : fallback;
   }
 
   _setState(state, message = "") {
@@ -6716,8 +9510,14 @@ class SfPropertyView extends PropertyViewElement {
         globalThis.SF?.Composition?.publishEffects?.(answer.effects, {
           origin: this
         });
-      }
+      } // A save over a revision that moved (Larena: refused revision_moved,
+      // with the current revision, nothing written) is a conflict: the
+      // card says so, keeps what was typed and reads the record again.
 
+
+      if (answer.answer === "refused" && answer.reason === "revision_moved") return { ...answer,
+        answer: "conflict"
+      };
       return answer;
     } catch (error) {
       if (!this.isConnected || stale()) return null;
@@ -6741,6 +9541,17 @@ class SfPropertyView extends PropertyViewElement {
   }
 
   async load(reason = "requested") {
+    // Another record in the same panel (C305 (4)): what was open for the
+    // last one is not this one's.
+    if (reason === "record-id-changed") {
+      this._dropEntries();
+
+      this.leaveAsk = null;
+      this.historyFeed = null;
+      this.historyOpen = false;
+      this.phoneSection = null;
+    }
+
     this._setState("loading", (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_8__.pageText)(PROPERTY_VIEW_TEXT, "stateLoading", this));
 
     this.loadFailure = null;
@@ -7082,6 +9893,76 @@ class SfPropertyView extends PropertyViewElement {
   // portals its content, not itself).
 
 
+  _ownDrawerRoot() {
+    const drawer = this._ownDrawer();
+
+    return drawer?.getDrawerRoot?.() ?? drawer;
+  }
+
+  _startTitleFocus() {
+    if (this._titleFocusUntil) return;
+    this._titleFocusUntil = performance.now() + TITLE_FOCUS_WAIT_MS;
+    document.addEventListener("focusin", this._onPanelFocusIn, true);
+    document.addEventListener("pointerdown", this._onPanelAct, true);
+    document.addEventListener("keydown", this._onPanelAct, true);
+  }
+
+  _endTitleFocus() {
+    this._titleFocusUntil = 0;
+    if (this._onPanelFocusIn) document.removeEventListener("focusin", this._onPanelFocusIn, true);
+
+    if (this._onPanelAct) {
+      document.removeEventListener("pointerdown", this._onPanelAct, true);
+      document.removeEventListener("keydown", this._onPanelAct, true);
+    }
+  } // Gives the title the focus the drawer handed out on its own: the panel
+  // itself (waiting for content) or its first control. A field it chose, a
+  // focus the person moved, or a focus still outside the panel stays.
+
+
+  _focusTitleFirst() {
+    if (!this._titleFocusUntil) return;
+    if (performance.now() > this._titleFocusUntil) return this._endTitleFocus();
+
+    const drawer = this._ownDrawer();
+
+    const root = this._ownDrawerRoot();
+
+    const panel = root?.querySelector?.("[data-sf-drawer-panel]");
+    const title = panel?.querySelector?.(".sf-property-view-panel .sf-property-view-title");
+    const active = document.activeElement;
+    if (!panel || !title || !active || !panel.contains(active)) return;
+    if (active.closest?.("input, textarea, select, [contenteditable], sf-input, sf-select, sf-textarea")) return this._endTitleFocus();
+    if (active !== panel && active !== drawer?.firstFocusIn?.(panel)) return this._endTitleFocus();
+
+    this._endTitleFocus();
+
+    title.tabIndex = -1;
+    title.focus({
+      preventScroll: true
+    });
+  } // The record this panel was opened from, when its drawer is drawn inside
+  // another panel at the same edge (sf-drawer's nesting, C157 (6)): that
+  // panel's title, for the «← <Запись>» line over this one's.
+
+
+  _recordName(record) {
+    const name = record?.label || record?.title;
+    return name ? String(name) : "";
+  }
+
+  _nestedLabel() {
+    const below = this.panel ? this._ownDrawer()?.nestedUnder?.() : null;
+    if (!below) return "";
+    const owner = below.parentElement;
+
+    if (owner && owner !== this && typeof owner.panelLabel === "string") {
+      return owner.panelLabel || this._recordName(owner.record) || owner.recordId || this.backLabel;
+    }
+
+    return below.getAttribute("heading") || below.getAttribute("label") || this.backLabel;
+  }
+
   _ownDrawer() {
     return [...this.children].find(child => child.localName === "sf-drawer") ?? null;
   } // Read from the layer stack, not kept: how many panels of this component
@@ -7107,16 +9988,33 @@ class SfPropertyView extends PropertyViewElement {
   // whether it may close over unsaved edits, belongs to whoever placed it.
 
 
-  closePanel(reason = "close") {
+  closePanel(reason = "close", {
+    asked = false
+  } = {}) {
     this._commitFocusedEntry();
 
-    const unsaved = this.unsavedFields; // A cancelable request (vocabulary §5 close, standard 1.3.8 §19.3): the
+    const unsaved = this.unsavedFields; // Unsaved entries are asked about first (C159 (6)); a delete and a
+    // cancel of a create surface are the host's to decide.
+
+    if (unsaved && !asked && reason !== "deleted" && !(this.openAll && !this.editAll)) {
+      this.leaveAsk = {
+        kind: "close",
+        reason
+      };
+      this.requestComponentUpdate("leave");
+      return {
+        outcome: "refused",
+        reason: "unsaved"
+      };
+    } // A cancelable request (vocabulary §5 close, standard 1.3.8 §19.3): the
     // page decides whether it closes; a listener may refuse it.
+
 
     const allowed = this.sfEmit("close", {
       reason,
       record_id: this.recordId || null,
-      unsaved_fields: unsaved
+      unsaved_fields: unsaved,
+      asked: Boolean(asked)
     }, {
       cancelable: true
     });
@@ -7162,20 +10060,18 @@ class SfPropertyView extends PropertyViewElement {
     } catch {
       return String(address);
     }
-  } // Copying is sf-button-copy's (owner, 2026-10-14): one implementation of
-  // the act, its tick and its spoken result, with the Framework's fallback
-  // for a browser that refuses the clipboard. The view keeps only what it
-  // says about it.
-  // The control stands on the drawer's outer edge, which may be outside this
-  // element, so it carries the view it belongs to.
+  } // Copying is the Framework's clipboard (core/js/clipboard.js, with its
+  // fallback for a browser that refuses the clipboard); the «⋯» row that
+  // asks for it says the result in the panel's status line, read out
+  // politely, and the event carries it to the host.
 
 
   copyControl() {
-    return [...document.querySelectorAll('sf-button-copy[data-action="copy-link"]')].find(control => control.propertyView === this) ?? null;
+    return null;
   }
 
   get addressCopied() {
-    return this.copyControl()?.state?.phase === "success";
+    return this._addressCopied === true;
   }
 
   announceAddressCopy(copied) {
@@ -7195,9 +10091,29 @@ class SfPropertyView extends PropertyViewElement {
 
   async copyAddress() {
     if (!this.address) return null;
-    const control = this.copyControl();
-    if (!control?.copy) return null;
-    return Boolean(await control.copy());
+    let copied = false;
+
+    try {
+      copied = Boolean(await (0,_core_js_clipboard_js__WEBPACK_IMPORTED_MODULE_11__.copyText)(this.addressUrl ?? String(this.address)));
+    } catch {
+      copied = false;
+    }
+
+    this._addressCopied = copied;
+
+    if (copied) {
+      this.message = this.linkCopiedLabel;
+      this.requestComponentUpdate("address-copied");
+      clearTimeout(this._copiedTimer);
+      this._copiedTimer = setTimeout(() => {
+        this._addressCopied = false;
+        if (this.message === this.linkCopiedLabel) this.message = "";
+        this.requestComponentUpdate("address-copied");
+      }, COPY_FEEDBACK_MS);
+    }
+
+    this.announceAddressCopy(copied);
+    return copied;
   }
 
   openFullPage() {
@@ -7399,18 +10315,7 @@ class SfPropertyView extends PropertyViewElement {
 
 
   fieldDisabled(field, values = this.fieldValues()) {
-    return Boolean(field?.when) && !(0,_js_conditions_js__WEBPACK_IMPORTED_MODULE_12__.fieldConditions)(field, values).enabled;
-  } // An entry that is not a value yet stops a save, and says so where it is.
-
-
-  _inputsInvalid() {
-    if (!this.inputErrors.size) return null;
-    this.requestComponentUpdate("errors");
-    return {
-      answer: "refused",
-      reason: "input_invalid",
-      errors: Object.fromEntries(this.inputErrors)
-    };
+    return Boolean(field?.when) && !(0,_js_conditions_js__WEBPACK_IMPORTED_MODULE_14__.fieldConditions)(field, values).enabled;
   } // Which fields in a group are picked from a list the host pages rather than
   // typed. A lookup that brought its list inline is chosen from in place and
   // asks for nothing. A field its condition hides now still has its first page
@@ -7426,12 +10331,19 @@ class SfPropertyView extends PropertyViewElement {
     }).filter(field => PAGED_TYPES.includes(field.propertyType || field.type)).filter(field => !((field.propertyType || field.type) === "lookup" && Array.isArray(field.options) && field.options.length > 0));
   }
 
-  editGroup(section, group) {
+  editGroup(section, group, {
+    focus = null
+  } = {}) {
     if (!this.mayEdit) return this;
+    this.quick = null;
     this.editing = {
       section: String(section),
       group: String(group)
-    };
+    }; // sf-form draws the group when it draws every field (C182, VP-19);
+    // its fields and saved value are kept for the whole edit.
+
+    this.formEdit = this._formEditOf(section, group);
+    this._focusFieldAfterRender = focus === null || focus === undefined ? null : String(focus);
     this.changed.clear();
 
     this._clearInputs();
@@ -7460,9 +10372,29 @@ class SfPropertyView extends PropertyViewElement {
   }
 
   cancelEdit() {
-    // Cancel drops what was typed and writes nothing. Data is saved by the
+    if (this.quick) {
+      this._quickPopover(this.quick.key)?.close?.();
+      return this.endQuick() && this;
+    } // «Изменить всё» opened from the menu goes back to reading.
+
+
+    if (this.editAll) {
+      this._dropEntries();
+
+      this.dispatchEvent(new CustomEvent("sf-view-properties-cancel", {
+        bubbles: true,
+        composed: true,
+        detail: {
+          mode: "edit",
+          scope: "record"
+        }
+      }));
+      return this;
+    } // Cancel drops what was typed and writes nothing. Data is saved by the
     // button alone, so there is nothing to undo. On a surface open all at
     // once the host decides where cancelling leads (a panel closes).
+
+
     if (this.openAll) {
       this.dispatchEvent(new CustomEvent("sf-view-properties-cancel", {
         bubbles: true,
@@ -7499,6 +10431,7 @@ class SfPropertyView extends PropertyViewElement {
 
     const group = this.editing;
     this.editing = null;
+    this.formEdit = null;
     this.changed.clear();
 
     this._clearInputs();
@@ -7540,6 +10473,110 @@ class SfPropertyView extends PropertyViewElement {
       id,
       revision: revision === null ? "" : String(revision)
     });
+  } // The fields a save covers: the group being edited, or on a surface open
+  // all at once every editable group shown.
+
+
+  _editedFields() {
+    const out = [];
+
+    for (const section of this.sections ?? []) {
+      for (const group of this.visible(section?.groups)) {
+        if (group.kind === "related" || group.editable === false) continue;
+        const edited = this.openAll || this.editing && String(section.key) === this.editing.section && String(group.key) === this.editing.group;
+        if (!edited) continue;
+
+        for (const field of this.visible(group.fields)) {
+          out.push(field.when ? this.conditionedField(field) : field);
+        }
+      }
+    }
+
+    return out;
+  } // A required field left empty is said at the field before anything is sent
+  // (C182 (6)); the host's own refusal is said the same way.
+
+
+  _missingRequired() {
+    const missing = new Map();
+    const values = this.fieldValues();
+
+    for (const field of this._editedFields()) {
+      if (!field.required || field.readonly === true || this.fieldDisabled(field)) continue;
+      const key = String(field.key ?? "");
+      const value = values.get(key);
+      const empty = value === undefined || value === null || value === "" || Array.isArray(value) && value.length === 0;
+      if (empty) missing.set(key, this.requiredErrorText);
+    }
+
+    return missing;
+  }
+
+  get requiredErrorText() {
+    return this.getAttribute("required-error-text") || (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_8__.pageText)(PROPERTY_VIEW_TEXT, "requiredErrorText", this);
+  } // Save is never drawn disabled (C182 (7)): pressed with something wrong it
+  // shows every error at its field and, from two, a summary with a link to
+  // each, which takes the focus; one error takes the focus to its field.
+
+
+  _refuseWithErrors(errors) {
+    for (const [key, message] of errors) if (!this.errors.has(key) && !this.inputErrors.has(key)) this.errors.set(key, message);
+
+    this._focusErrorsAfterRender = true;
+    this.requestComponentUpdate("errors");
+    return {
+      answer: "refused",
+      reason: this.inputErrors.size ? "input_invalid" : "required",
+      errors: Object.fromEntries(new Map([...this.inputErrors, ...errors]))
+    };
+  } // The errors of the surface in the order their fields stand.
+
+
+  get errorList() {
+    const all = this.inputErrors.size ? new Map([...this.errors, ...this.inputErrors]) : this.errors;
+    if (!all.size) return [];
+    const labels = new Map();
+
+    for (const section of this.sections ?? []) for (const group of section?.groups ?? []) {
+      for (const field of group?.fields ?? []) labels.set(String(field.key ?? ""), String(field.label ?? field.key ?? ""));
+    }
+
+    const order = [...labels.keys()];
+    return [...all.entries()].sort(([a], [b]) => (order.indexOf(a) + 1 || 1e9) - (order.indexOf(b) + 1 || 1e9)).map(([key, message]) => ({
+      key,
+      label: labels.get(key) ?? key,
+      message
+    }));
+  } // The field a summary link points to: its first control.
+
+
+  focusField(key) {
+    const root = this._ownDrawerRoot?.() ?? this;
+    const scope = (this.panel ? root : this) ?? this;
+    const field = scope?.querySelector?.(`[data-field="${CSS.escape(String(key))}"]`);
+    const target = field?.querySelector?.("input:not([type=hidden]), textarea, select, button, [tabindex]:not([tabindex='-1'])");
+    (target ?? field)?.focus?.({
+      preventScroll: false
+    });
+    field?.scrollIntoView?.({
+      block: "nearest"
+    });
+    return Boolean(target ?? field);
+  }
+
+  _focusErrors() {
+    const list = this.errorList;
+    if (!list.length) return;
+
+    if (list.length === 1) {
+      this.focusField(list[0].key);
+      return;
+    }
+
+    const scope = this.panel ? this._ownDrawerRoot?.() ?? this : this;
+    scope?.querySelector?.(".sf-property-view-error-summary")?.focus?.({
+      preventScroll: false
+    });
   }
 
   async saveGroup({
@@ -7547,9 +10584,23 @@ class SfPropertyView extends PropertyViewElement {
   } = {}) {
     if (this.openAll) return this.saveAll({
       confirm
-    });
-    if (this.editing && this.inputErrors.size) return this._inputsInvalid();
-    if (!this.editing || this.changed.size === 0) return null;
+    }); // A short field's window saves as its group does, with its one value.
+
+    const target = this.editing ?? this.quick;
+    if (!target) return null;
+    const missing = this.quick ? new Set() : this._missingRequired();
+    if (this.inputErrors.size || missing.size) return this._refuseWithErrors(missing); // Nothing changed: Save leaves the group as it is (Save is never
+    // disabled, C182 (7)).
+
+    if (this.changed.size === 0) {
+      if (this.quick) return this.saveQuick();
+      this.formEdit = null;
+      this.editing = null;
+      this.errors.clear();
+      this.conflict = null;
+      this.requestComponentUpdate("editing");
+      return null;
+    }
 
     const values = this._savedValues();
 
@@ -7559,8 +10610,8 @@ class SfPropertyView extends PropertyViewElement {
     const answer = await this._raise("group.save", {
       record_id: this.recordId || null,
       collection: this.collection || null,
-      section: this.editing.section,
-      group: this.editing.group,
+      section: target.section,
+      group: target.group,
       values,
       revision: this.record?.revision ?? null,
       ...(confirm ? {
@@ -7581,7 +10632,11 @@ class SfPropertyView extends PropertyViewElement {
 
       this._takeSections(this.record);
 
+      const written = Object.keys(values);
+      if (this.quick) this._quickPopover(this.quick.key)?.close?.();
       this.editing = null;
+      this.quick = null;
+      this.formEdit = null;
       this.changed.clear();
 
       this._clearInputs();
@@ -7591,7 +10646,13 @@ class SfPropertyView extends PropertyViewElement {
 
       this._setState("ready");
 
-      this.announceSaved(answer);
+      this.markSaved(written);
+      this.announceSaved(answer); // The history the panel holds is older than this save.
+
+      if (this.historyFeed) this.historyFeed = { ...this.historyFeed,
+        record: null
+      };
+      if (this.historySide) this.loadHistory();
       return answer;
     }
 
@@ -7612,7 +10673,13 @@ class SfPropertyView extends PropertyViewElement {
     }
 
     if (answer.answer === "refused") {
-      this.errors = new Map(Object.entries(answer.errors ?? {}).map(([key, value]) => [key, String(value)]));
+      this.errors = new Map(Object.entries(answer.errors ?? {}).map(([key, value]) => [key, String(value)])); // An sf-form edit shows the host's errors at its fields and in its
+      // summary (set-errors); the card's own form focuses them itself.
+
+      const form = this.formEdit ? this._formOf(target.group) : null;
+      if (form?.setErrors) form.setErrors({
+        errors: Object.fromEntries(this.errors)
+      });else this._focusErrorsAfterRender = this.errors.size > 0;
       this.requestComponentUpdate("errors");
       return answer;
     }
@@ -7628,7 +10695,9 @@ class SfPropertyView extends PropertyViewElement {
   async saveAll({
     confirm = null
   } = {}) {
-    if (this.inputErrors.size) return this._inputsInvalid();
+    const missing = this._missingRequired();
+
+    if (this.inputErrors.size || missing.size) return this._refuseWithErrors(missing);
     if (this.mode !== "create" && this.changed.size === 0) return null;
     const creating = this.mode === "create";
 
@@ -7658,12 +10727,18 @@ class SfPropertyView extends PropertyViewElement {
     if (!creating && this._askedToConfirm(answer)) return answer;
 
     if (answer.answer === "applied") {
+      const written = Object.keys(values);
       this.changed.clear();
 
       this._clearInputs();
 
       this.errors.clear();
       this.conflict = null;
+
+      if (this.editAll) {
+        this.editAll = false;
+        this.markSaved(written);
+      }
 
       if (creating) {
         const id = answer.record_id ?? answer.record?.record_id ?? null;
@@ -7715,6 +10790,7 @@ class SfPropertyView extends PropertyViewElement {
 
     if (answer.answer === "refused") {
       this.errors = new Map(Object.entries(answer.errors ?? {}).map(([key, value]) => [key, String(value)]));
+      this._focusErrorsAfterRender = this.errors.size > 0;
       if (!this.errors.size && answer.message) this.conflict = answer.message;
       this.requestComponentUpdate("errors");
       return answer;
@@ -7817,31 +10893,11 @@ class SfPropertyView extends PropertyViewElement {
   } = {}) {
     const name = String(label ?? "").trim();
     if (!name) return null;
-
-    if (this.namingView) {
-      this.namingView = false;
-      this.requestComponentUpdate("view-naming");
-    }
-
     return this._viewProfileIntent("view.create", {
       label: name,
       shared: Boolean(shared),
       view: this.layerDraft ?? this._layerCopy(this.viewTarget)
     });
-  } // «Add a view» asks for the name first. Making «New view» at once wrote a
-  // view nobody had named, switched to it, and left a placeholder behind
-  // when the person did not rename it (simai.main QA, 2026-10-27).
-
-
-  startNamingView() {
-    this.namingView = true;
-    this.requestComponentUpdate("view-naming");
-    return true;
-  }
-
-  cancelNamingView() {
-    this.namingView = false;
-    this.requestComponentUpdate("view-naming");
   } // A rename changes the label. The id is permanent, so anything pointing at
   // the view keeps pointing at it.
 
@@ -7879,7 +10935,7 @@ class SfPropertyView extends PropertyViewElement {
     if (!answer) return null;
 
     if (answer.answer !== "applied") {
-      this._setState("error", answer.message || this.viewDeniedText);
+      this._setState("error", this.viewRefusalText(answer));
 
       return answer;
     }
@@ -7917,7 +10973,7 @@ class SfPropertyView extends PropertyViewElement {
     if (!answer) return null;
 
     if (answer.answer !== "applied") {
-      this._setState("error", answer.message || this.viewDeniedText);
+      this._setState("error", this.viewRefusalText(answer));
 
       return answer;
     }
@@ -7984,15 +11040,71 @@ class SfPropertyView extends PropertyViewElement {
     const anyRare = entries => (entries ?? []).some(entry => entry?.rare === true);
 
     return (this.sections ?? []).some(section => section?.rare === true || anyRare(section?.groups) || (section?.groups ?? []).some(group => anyRare(group?.fields)));
-  } // The layer a view is written to is the view's own: a shared view is the
-  // shared layer, a personal one the personal layer, when this person may
-  // write it.
+  } // The layer a person's own edits are written to: the personal layer of the
+  // chosen profile, at once, whatever the profile is (C298, C311 (5)). «For
+  // everyone» is a separate act, view.publish, offered to those who may
+  // write the shared layer (RC-1: a shared profile was written for everyone
+  // on every move). A host that offers no personal layer keeps the 1.18.0
+  // way: the shared layer of a shared profile.
 
 
   _layerOfProfile() {
+    if (this.editableLayers.includes("personal")) return "personal";
     const profile = this.viewProfiles.find(item => item.id === this.viewProfile);
     const wanted = profile?.shared ? "shared" : "personal";
     return this.editableLayers.includes(wanted) ? wanted : this.viewTarget;
+  } // Whether the host speaks port 1.22.0 (view.publish, view.lock): the
+  // contract is in ui-source and rides the next pair. A 1.21.0 host (group
+  // build 13: 1.20.0 type templates, 1.21.0 form fields), a 1.19.0 host
+  // (group build 12: money C294) and earlier hosts are offered neither. The
+  // C311 edition was called 1.19.0 on its ui-source branch until GB12 took
+  // the number, then 1.20.0 here; group build 13 numbers it 1.22.0.
+
+
+  get hostSpeaksCardSettings() {
+    const [major, minor] = String(this.hostPort?.version ?? "").split(".").map(Number);
+    return major > 1 || major === 1 && minor >= 22;
+  } // Whether this person may write the shared layer: «Сохранить для всех»,
+  // the locks and the head's fields are theirs (C298, C311 (2), (5)).
+
+
+  get canWriteShared() {
+    return this.editableLayers.includes("shared") && this.hostSpeaksCardSettings;
+  } // A required profile (port 1.22.0 profiles[].required): it cannot be
+  // changed, and edits live until the page is left -- nothing is written
+  // (C298, RC-2).
+
+
+  get viewRequired() {
+    const profile = this.viewProfiles.find(item => item.id === this.viewProfile);
+    return profile?.required === true;
+  } // The paths the lower layers cannot change (port 1.22.0 view.locked):
+  // fields.<key>.hidden, fields.<key>.group, sections.<key>, sections.order,
+  // head. A person who may write the shared layer is the one who locked
+  // them and may still change them.
+
+
+  get viewLocked() {
+    const locked = this.view?.locked;
+    return new Set(Array.isArray(locked) ? locked.map(String) : []);
+  }
+
+  isLocked(path) {
+    return this.viewLocked.has(String(path));
+  }
+
+  lockedForMe(path) {
+    return this.isLocked(path) && !this.canWriteShared;
+  } // Whether the personal layer of the chosen profile holds anything: what
+  // «Сохранить для всех» would publish. The required profile's edits are
+  // the page's only (requiredEdits).
+
+
+  get hasPersonalEdits() {
+    const layer = this.view?.layers?.personal;
+    const view = layer?.view;
+    if (!view) return false;
+    return ["sections", "groups", "fields"].some(bucket => Object.keys(view[bucket] ?? {}).length > 0) || Boolean(view.head);
   }
 
   startConfiguringView() {
@@ -8008,6 +11120,7 @@ class SfPropertyView extends PropertyViewElement {
       view: this._layerCopy(this.viewTarget)
     };
     this.resetAsked = false;
+    this.requiredEdits = false;
     this.layerDraft = this._layerCopy(this.viewTarget);
 
     this._bindSectionDropTarget();
@@ -8018,7 +11131,7 @@ class SfPropertyView extends PropertyViewElement {
 
     this._readShownGroups("started");
 
-    this._focusAfterRender(['.sf-property-view-configure-bar [data-action="view-profile"]', ".sf-property-view-configure-bar"]);
+    this._focusAfterRender(['.sf-property-view-configure-top [data-action="view-profile"]', ".sf-property-view-configure-bar"]);
 
     return true;
   }
@@ -8094,7 +11207,16 @@ class SfPropertyView extends PropertyViewElement {
 
 
   async cancelConfiguringView() {
-    if (!this.configuring) return false;
+    if (!this.configuring) return false; // A required view wrote nothing: what was drawn is read again.
+
+    if (this.viewRequired) {
+      const edited = this.requiredEdits;
+      this.requiredEdits = false;
+      if (edited) await this.load("view-cancel");
+      this.stopConfiguringView();
+      return true;
+    }
+
     const entered = this.arrangementEntered;
 
     if (!entered || entered.kind !== this.viewTarget) {
@@ -8153,6 +11275,9 @@ class SfPropertyView extends PropertyViewElement {
 
 
   canChangeVisibility(entry) {
+    // A setting the admin locked (port 1.22.0 view.locked).
+    const key = entry?.key != null ? String(entry.key) : null;
+    if (key && (this.lockedForMe(`fields.${key}.hidden`) || this.lockedForMe(`sections.${key}`))) return false;
     const hiddenBy = entry?.hiddenBy ?? null;
     if (!hiddenBy) return true;
     if (hiddenBy === "package") return false;
@@ -8291,6 +11416,7 @@ class SfPropertyView extends PropertyViewElement {
 
   moveField(fieldKey, toGroupKey, index) {
     if (!this.configuring || !this.layerDraft) return false;
+    if (this.lockedForMe(`fields.${String(fieldKey)}.group`)) return false;
 
     const target = this._locateGroup(toGroupKey);
 
@@ -8394,8 +11520,11 @@ class SfPropertyView extends PropertyViewElement {
     if (!this.configuring || !this.layerDraft) return false; // `label` is this view's name for the field, the same way a section and
     // an area carry one: the collection keeps its own, and resetting the
     // layer gives it back.
+    // The template (variant) is the field's own, chosen once in the field
+    // (C302 (2), C311 (6), RC-9): the card view writes none. A layer that
+    // holds one is still read until 2027-01-01.
 
-    const allowed = ["width", "variant", "hint", "label"];
+    const allowed = ["width", "hint", "label"];
     const change = Object.fromEntries(Object.entries(patch).filter(([key]) => allowed.includes(key)));
     if (!Object.keys(change).length) return false;
     const key = String(fieldKey);
@@ -8521,9 +11650,10 @@ class SfPropertyView extends PropertyViewElement {
     if (section) section.groups = (section.groups ?? []).filter(group => group !== target.group);
     this.requestComponentUpdate("view-remove-group");
     return this.saveView();
-  } // A section is removed the same way, and every area it held goes with it:
-  // the areas are kept, moved to the section that remains, so an arrangement
-  // is not thrown away by removing the tab it sat behind.
+  } // A tab is removed and its fields go to «Скрытые поля» (C311 (4)), where
+  // the eye or a drag brings each back: one way to not show a field (C106
+  // (1)). Its areas are hidden with it. It moved the areas to the tab that
+  // remained before.
 
 
   removeSection(sectionKey) {
@@ -8535,7 +11665,17 @@ class SfPropertyView extends PropertyViewElement {
     const into = this.sections.find(part => part !== section);
 
     for (const group of [...(section.groups ?? [])]) {
-      this.moveGroup(String(group.key), String(into.key), Number.MAX_SAFE_INTEGER);
+      if (group.kind !== "related") {
+        for (const field of [...(group.fields ?? [])]) this.moveFieldToUnplaced(String(field.key), undefined, {
+          save: false
+        });
+      }
+
+      const groupName = String(group.key);
+      this.layerDraft.groups[groupName] = { ...(this.layerDraft.groups[groupName] ?? {}),
+        hidden: true
+      };
+      group.hidden = true;
     }
 
     this.layerDraft.sections[name] = { ...(this.layerDraft.sections[name] ?? {}),
@@ -8553,6 +11693,7 @@ class SfPropertyView extends PropertyViewElement {
 
   moveSection(sectionKey, index) {
     if (!this.configuring || !this.layerDraft) return false;
+    if (this.lockedForMe("sections.order")) return false;
     const name = String(sectionKey);
     const at = this.sections.findIndex(part => String(part.key) === name);
     if (at < 0) return false;
@@ -8609,19 +11750,40 @@ class SfPropertyView extends PropertyViewElement {
     };
     this.requestComponentUpdate("view-add-group");
     return this.saveView();
-  }
+  } // A new tab comes with a «Поля» area (C311 (4)), so a field can be moved to
+  // it at once from its «⋯ → На вкладку …».
+
 
   addSection() {
     if (!this.configuring || !this.layerDraft) return false;
 
     const key = this._newEntryKey("section");
 
+    const groupKey = this._newEntryKey("group");
+
+    const fieldsTitle = (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_8__.pageText)(PROPERTY_VIEW_TEXT, "newTabGroupTitle", this);
+    const group = {
+      key: groupKey,
+      label: fieldsTitle,
+      columns: 1,
+      fields: [],
+      hidden: false,
+      rare: false,
+      editable: true
+    };
     const section = {
       key,
       label: this.newSectionTitle,
-      groups: [],
+      groups: [group],
       hidden: false,
       rare: false
+    };
+    this.layerDraft.groups[groupKey] = {
+      label: fieldsTitle,
+      section: key,
+      columns: 1,
+      hidden: false,
+      order: 1
     };
     this.sections = [...this.sections, section];
 
@@ -8715,7 +11877,18 @@ class SfPropertyView extends PropertyViewElement {
   }
 
   async _saveViewNow() {
-    if (!this.canConfigureView || !this.layerDraft) return null;
+    if (!this.canConfigureView || !this.layerDraft) return null; // A required view: the edit is drawn and kept until the page is left,
+    // and never written (C298).
+
+    if (this.viewRequired) {
+      this.requiredEdits = true;
+      this.requestComponentUpdate("view-required");
+      return {
+        answer: "applied",
+        local: true
+      };
+    }
+
     const kind = this.viewTarget;
     const epoch = ++this.viewEpoch;
     const answer = await this._raise("view.save", {
@@ -8760,14 +11933,433 @@ class SfPropertyView extends PropertyViewElement {
     }
 
     if (answer.answer === "refused") {
-      this.entryErrors = new Map(Object.entries(answer.entry_errors ?? {}).map(([key, value]) => [key, String(value)]));
-      await this.load("view-refused");
+      const errors = Object.entries(answer.entry_errors ?? {});
+      this.entryErrors = new Map(errors.map(([key, value]) => [key, this.viewRefusalText({
+        code: value
+      }, String(value))]));
+      await this.load("view-refused"); // An error of the head or of no entry on screen is said as the card's message.
+
+      const loose = errors.find(([key]) => !key.includes(":"));
+      if (loose || !errors.length) this.message = this.viewRefusalText(loose ? {
+        code: loose[1]
+      } : answer, (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_8__.pageText)(PROPERTY_VIEW_TEXT, "viewSaveFailedText", this));
       return answer;
     }
 
     this._setState("error", answer.message || (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_8__.pageText)(PROPERTY_VIEW_TEXT, "viewSaveFailedText", this));
 
     return answer;
+  } // «Сохранить для всех» (port 1.22.0 view.publish; C298, C311 (5), RC-1):
+  // the host merges the personal layer into the profile's shared layer and
+  // clears the personal one, in one write. A conflict carries the newer
+  // shared layer: the card redraws and says «Вид изменился».
+
+
+  async publishView() {
+    if (!this.configuring || !this.canWriteShared || this.viewRequired) return null;
+    await (this._viewWriting ?? Promise.resolve());
+    const epoch = ++this.viewEpoch;
+    const answer = await this._raise("view.publish", {
+      record_id: null,
+      collection: this.collection || null,
+      profile: this.viewProfile,
+      personal_revision: this._layerRevision("personal"),
+      shared_revision: this._layerRevision("shared")
+    }, {
+      stale: () => epoch !== this.viewEpoch
+    });
+    if (!answer) return null;
+
+    if (answer.answer === "applied" || answer.answer === "conflict") {
+      const shared = answer.shared ?? null;
+      if (shared) this._storeLayer("shared", shared.revision ?? null, shared.view ?? null);
+
+      if (answer.answer === "applied") {
+        this._storeLayer("personal", answer.personal?.revision ?? null, null);
+
+        this.message = (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_8__.pageText)(PROPERTY_VIEW_TEXT, "viewPublishedText", this);
+      } else {
+        // A conflict carries both newer layers: the next publish asks with them.
+        if (answer.personal) this._storeLayer("personal", answer.personal.revision ?? null, answer.personal.view ?? null);
+        this.message = this.viewRefusalText(answer, (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_8__.pageText)(PROPERTY_VIEW_TEXT, "viewChangedText", this));
+      }
+
+      this.layerDraft = this._layerCopy(this.viewTarget); // What «Отменить» puts back is now what everyone has.
+
+      this.arrangementEntered = {
+        kind: this.viewTarget,
+        revision: this._layerRevision(this.viewTarget),
+        view: this._layerCopy(this.viewTarget)
+      };
+      await this.load(answer.answer === "applied" ? "view-published" : "view-conflict");
+      return answer;
+    }
+
+    this._setState("error", this.viewRefusalText(answer, (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_8__.pageText)(PROPERTY_VIEW_TEXT, "viewSaveFailedText", this)));
+
+    return answer;
+  } // «Закрыть для изменений» (port 1.22.0 view.lock; C298, RC-2): one setting
+  // the lower layers cannot change, for a person who may write the shared
+  // layer. The host answers the locked list and the shared revision.
+
+
+  async lockViewPath(path, locked = !this.isLocked(path)) {
+    if (!this.configuring || !this.canWriteShared) return null;
+    const epoch = ++this.viewEpoch;
+    const answer = await this._raise("view.lock", {
+      record_id: null,
+      collection: this.collection || null,
+      profile: this.viewProfile,
+      path: String(path),
+      locked: Boolean(locked),
+      revision: this._layerRevision("shared")
+    }, {
+      stale: () => epoch !== this.viewEpoch
+    });
+    if (!answer) return null;
+
+    if ((answer.answer === "applied" || answer.answer === "conflict") && this.view) {
+      if (Array.isArray(answer.locked)) this.view.locked = answer.locked.map(String); // Larena's path "required" answers whether the profile is now required.
+
+      if (typeof answer.required === "boolean" && Array.isArray(this.view.profiles)) {
+        this.view.profiles = this.view.profiles.map(item => item.id === this.viewProfile ? { ...item,
+          required: answer.required
+        } : item);
+      }
+
+      const shared = this.view.layers?.shared;
+      if (shared && answer.revision) this.view.layers = { ...this.view.layers,
+        shared: { ...shared,
+          revision: String(answer.revision)
+        }
+      };
+      if (answer.answer === "conflict") this.message = this.viewRefusalText(answer, (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_8__.pageText)(PROPERTY_VIEW_TEXT, "viewChangedText", this));
+      this.requestComponentUpdate("view-lock");
+      return answer;
+    }
+
+    this._setState("error", this.viewRefusalText(answer, (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_8__.pageText)(PROPERTY_VIEW_TEXT, "viewSaveFailedText", this)));
+
+    return answer;
+  } // «Сохранить как моё» (C311 (5), RC-3): a personal profile from what is on
+  // screen, for a view whose settings are locked. Not in a required view.
+
+
+  get canSaveAsMine() {
+    return this.configuring && !this.viewRequired && this.editableLayers.includes("personal");
+  }
+
+  saveAsMine() {
+    if (!this.canSaveAsMine) return null;
+    const current = this.viewProfiles.find(profile => profile.id === this.viewProfile);
+    const label = (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_8__.pageText)(PROPERTY_VIEW_TEXT, "saveAsMineLabelText", this).replace("{name}", current?.label ?? "");
+    return this.createViewProfile(label, {
+      shared: false
+    });
+  } // The card head (port 1.22.0 view.head; C289 (6), C311 (2)): the title,
+  // under it up to two fields, and the stage as a tonal badge. What the
+  // draft layer says wins over what the host resolved.
+
+
+  get viewHead() {
+    const layered = this.configuring ? this.layerDraft?.head : null;
+    const head = layered ?? this.view?.head ?? null;
+    if (!head || typeof head !== "object") return {
+      subtitle: [],
+      status: null
+    };
+    const subtitle = Array.isArray(head.subtitle) ? head.subtitle.map(String).filter(Boolean).slice(0, 2) : [];
+    return {
+      subtitle,
+      status: typeof head.status === "string" && head.status ? head.status : null
+    };
+  } // What the head draws under the title: the subtitle fields' values, and
+  // the stage's option with its scheme for the tonal badge.
+
+
+  get headLine() {
+    const head = this.viewHead;
+    const subtitle = head.subtitle.map(key => {
+      const field = this.headField(key);
+      const value = this.changed?.has?.(key) ? this.changed.get(key) : field?.value;
+      const text = field ? (0,_js_history_js__WEBPACK_IMPORTED_MODULE_17__.valueText)(field, value, this.viewHost) : "";
+      return text ? {
+        key,
+        text
+      } : null;
+    }).filter(Boolean);
+    let status = null;
+    const stage = head.status ? this.headField(head.status) : null;
+
+    if (stage) {
+      const value = stage.value && typeof stage.value === "object" ? stage.value.value ?? stage.value.id : stage.value;
+      const option = (stage.options ?? []).find(item => String(item?.value ?? item?.id ?? item) === String(value ?? ""));
+      const text = option ? String(option.label ?? option.text ?? option.value ?? "") : (0,_js_history_js__WEBPACK_IMPORTED_MODULE_17__.valueText)(stage, stage.value, this.viewHost);
+      if (text) status = {
+        key: String(stage.key),
+        text,
+        scheme: option?.scheme ?? option?.color ?? "secondary"
+      };
+    }
+
+    return {
+      subtitle,
+      status
+    };
+  }
+
+  _writeHead(next) {
+    // A 1.18.0 layer holds sections, groups and fields only.
+    if (!this.configuring || !this.layerDraft || !this.hostSpeaksCardSettings || this.lockedForMe("head")) return false;
+    this.layerDraft.head = {
+      subtitle: next.subtitle.slice(0, 2),
+      status: next.status ?? null
+    }; // Drawn after the mode too, before the next read brings the host's.
+
+    if (this.view) this.view.head = copy(this.layerDraft.head);
+    this.requestComponentUpdate("view-head");
+    return this.saveView();
+  }
+
+  toggleHeadSubtitle(fieldKey) {
+    const head = this.viewHead;
+    const key = String(fieldKey);
+    const subtitle = head.subtitle.includes(key) ? head.subtitle.filter(item => item !== key) : [...head.subtitle, key].slice(-2);
+    return this._writeHead({ ...head,
+      subtitle
+    });
+  }
+
+  setHeadStatus(fieldKey) {
+    const head = this.viewHead;
+    const key = fieldKey == null ? null : String(fieldKey);
+    return this._writeHead({ ...head,
+      status: head.status === key ? null : key
+    });
+  } // The field the head names, wherever it stands (hidden ones too).
+
+
+  headField(key) {
+    const name = String(key);
+
+    for (const section of this.sections ?? []) {
+      for (const group of section.groups ?? []) {
+        for (const field of group.fields ?? []) if (String(field.key) === name) return field;
+      }
+    }
+
+    return (this.unplaced ?? []).find(field => String(field.key) === name) ?? null;
+  } // «Добавить поле» is structure, not view (C311 (1)): it opens the data
+  // owner's field editor. The card says which collection and where; the
+  // host opens its editor.
+
+
+  openStructureEditor(groupKey = null) {
+    const located = groupKey ? this._locateGroup(groupKey) : null;
+    return this.sfEmit?.("structure", {
+      collection: this.collection || null,
+      section: located ? String(located.section.key) : this.selectedSection || null,
+      group: groupKey ? String(groupKey) : null
+    }, {
+      cancelable: true
+    }) ?? null;
+  } // The eye of a field in «Скрытые поля» (C311 (5)): back into the open
+  // tab's first area that takes fields.
+
+
+  showHiddenField(fieldKey) {
+    if (!this.configuring) return false;
+    const sections = this.sections ?? [];
+    const section = sections.find(part => String(part.key) === this.selectedSection) ?? sections[0];
+    const group = (section?.groups ?? []).find(candidate => candidate.kind !== "related" && !candidate.hidden);
+    if (!group) return false; // A field a layer hid comes back shown, not only placed.
+
+    const key = String(fieldKey);
+    if (this.layerDraft) this.layerDraft.fields[key] = { ...(this.layerDraft.fields[key] ?? {}),
+      hidden: false
+    };
+    const waiting = (this.record?.unplaced ?? []).find(field => String(field.key) === key);
+    if (waiting) waiting.hidden = false;
+    return this.moveField(key, String(group.key), (group.fields ?? []).length);
+  } // A tab's «⋯» (C311 (4), TB-1): name, icon, up, down, hide, delete, and
+  // the lock for those who may write the shared layer.
+
+
+  tabMenuEntries(sectionKey) {
+    const at = this.sections.findIndex(section => String(section.key) === String(sectionKey));
+    const section = this.sections[at];
+    if (!section) return [];
+
+    const word = key => (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_8__.pageText)(PROPERTY_VIEW_TEXT, key, this);
+
+    const path = `sections.${String(section.key)}`;
+    const mine = !this.lockedForMe(path);
+    const entries = [{
+      id: "tab-rename",
+      text: word("tabRenameText"),
+      icon: "edit",
+      disabled: !mine
+    }, {
+      id: "tab-icon",
+      text: word("tabIconText"),
+      icon: "category",
+      disabled: !mine
+    }, {
+      id: "tab-up",
+      text: word("tabUpText"),
+      icon: "arrow_upward",
+      disabled: at === 0 || this.lockedForMe("sections.order")
+    }, {
+      id: "tab-down",
+      text: word("tabDownText"),
+      icon: "arrow_downward",
+      disabled: at === this.sections.length - 1 || this.lockedForMe("sections.order")
+    }, {
+      type: "separator"
+    }, {
+      id: "tab-hide",
+      text: word(section.hidden ? "tabShowText" : "tabHideText"),
+      icon: section.hidden ? "visibility" : "visibility_off",
+      disabled: !mine
+    }, {
+      id: "tab-delete",
+      text: word("tabDeleteText"),
+      icon: "delete",
+      danger: true,
+      disabled: !mine || this.sections.length < 2
+    }];
+
+    if (this.canWriteShared) {
+      entries.push({
+        type: "separator"
+      });
+      entries.push(this.isLocked(path) ? {
+        id: "tab-lock",
+        text: word("unlockText"),
+        icon: "lock_open"
+      } : {
+        id: "tab-lock",
+        text: word("lockText"),
+        icon: "lock"
+      });
+    }
+
+    return entries;
+  }
+
+  openTabMenu(anchor, sectionKey) {
+    const key = String(sectionKey);
+    return this.openStandardMenu(anchor, {
+      label: (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_8__.pageText)(PROPERTY_VIEW_TEXT, "tabMenuText", this).replace("{name}", String(this.sections.find(section => String(section.key) === key)?.label ?? key)),
+      entries: this.tabMenuEntries(key),
+      select: id => this.chooseTabEntry(key, id)
+    });
+  }
+
+  chooseTabEntry(sectionKey, id) {
+    const key = String(sectionKey);
+    const at = this.sections.findIndex(section => String(section.key) === key);
+    if (at < 0) return false;
+    if (id === "tab-rename") return this.startRenaming("section", key);
+
+    if (id === "tab-icon") {
+      this.selectSection(key);
+      this.whenRendered?.(() => (this.panelContent?.() ?? this).querySelector?.(`[data-icon-for="${CSS.escape(key)}"] [data-action="section-icon"] button, [data-icon-for="${CSS.escape(key)}"] [data-action="section-icon"]`)?.click?.(), {
+        next: true
+      });
+      return true;
+    }
+
+    if (id === "tab-up") return this.moveSection(key, at - 1);
+    if (id === "tab-down") return this.moveSection(key, at + 1);
+    if (id === "tab-hide") return this.toggleEntryHidden("section", key);
+    if (id === "tab-delete") return this.removeSection(key);
+    if (id === "tab-lock") return this.lockViewPath(`sections.${key}`);
+    return false;
+  } // A field's «⋯» in the arranging mode (C311 (2), (4)): the head's fields
+  // and stage for the admin, «На вкладку …» at every width, the lock.
+
+
+  fieldMenuEntries(fieldKey) {
+    const key = String(fieldKey);
+    const field = this.headField(key);
+
+    const word = name => (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_8__.pageText)(PROPERTY_VIEW_TEXT, name, this);
+
+    const entries = [];
+    const head = this.viewHead;
+
+    if (this.canWriteShared && !this.lockedForMe("head")) {
+      entries.push({
+        id: "head-subtitle",
+        text: word(head.subtitle.includes(key) ? "headSubtitleOffText" : "headSubtitleOnText"),
+        icon: "title"
+      });
+
+      if (Array.isArray(field?.options) && field.options.length) {
+        entries.push({
+          id: "head-status",
+          text: word(head.status === key ? "headStatusOffText" : "headStatusOnText"),
+          icon: "label"
+        });
+      }
+    }
+
+    const here = this.sections.find(section => (section.groups ?? []).some(group => (group.fields ?? []).some(item => String(item.key) === key)));
+    const others = this.sections.filter(section => section !== here && (section.groups ?? []).some(group => group.kind !== "related"));
+
+    if (others.length && !this.lockedForMe(`fields.${key}.group`)) {
+      if (entries.length) entries.push({
+        type: "separator"
+      });
+
+      for (const section of others) {
+        entries.push({
+          id: `to-tab:${String(section.key)}`,
+          text: word("toTabText").replace("{name}", String(section.label ?? section.key)),
+          icon: "drive_file_move"
+        });
+      }
+    }
+
+    if (this.canWriteShared) {
+      if (entries.length) entries.push({
+        type: "separator"
+      });
+      const path = `fields.${key}.hidden`;
+      entries.push(this.isLocked(path) ? {
+        id: "field-lock",
+        text: word("unlockText"),
+        icon: "lock_open"
+      } : {
+        id: "field-lock",
+        text: word("lockText"),
+        icon: "lock"
+      });
+    }
+
+    return entries;
+  }
+
+  openFieldMenu(anchor, fieldKey) {
+    const key = String(fieldKey);
+    const entries = this.fieldMenuEntries(key);
+    if (!entries.length) return null;
+    return this.openStandardMenu(anchor, {
+      label: (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_8__.pageText)(PROPERTY_VIEW_TEXT, "fieldMenuText", this).replace("{name}", String(this.headField(key)?.label ?? key)),
+      entries,
+      select: id => this.chooseFieldEntry(key, id)
+    });
+  }
+
+  chooseFieldEntry(fieldKey, id) {
+    const key = String(fieldKey);
+    const value = String(id ?? "");
+    if (value === "head-subtitle") return this.toggleHeadSubtitle(key);
+    if (value === "head-status") return this.setHeadStatus(key);
+    if (value === "field-lock") return this.lockViewPath(`fields.${key}.hidden`);
+    if (value.startsWith("to-tab:")) return this.moveFieldToSection(key, value.slice("to-tab:".length));
+    return false;
   }
 
   _storeLayer(kind, revision, view) {
@@ -8789,8 +12381,11 @@ class SfPropertyView extends PropertyViewElement {
     this.resetAsked = false; // Behind the same queue as a save: a reset racing a save in flight would
     // clear a layer and then store the save's revision over the cleared one.
 
-    await (this._viewWriting ?? Promise.resolve());
-    const kind = this.viewTarget;
+    await (this._viewWriting ?? Promise.resolve()); // «Вернуть как у всех» clears the person's own layer and nothing else
+    // (C311 (5), RC-3): it cleared the layer of the profile, the shared one
+    // included. A shared reset is the picker row's, for the admin.
+
+    const kind = this.editableLayers.includes("personal") ? "personal" : this.viewTarget;
     const epoch = ++this.viewEpoch;
     const answer = await this._raise("view.reset", {
       record_id: null,
@@ -9274,9 +12869,247 @@ __webpack_async_result__();
 
 /***/ },
 
-/***/ "d69ebe7e288e"
+/***/ "eebd0e5026e8"
 (__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   HISTORY_KINDS: () => (/* binding */ HISTORY_KINDS),
+/* harmony export */   HISTORY_PAGE_MAX: () => (/* binding */ HISTORY_PAGE_MAX),
+/* harmony export */   cellText: () => (/* binding */ cellText),
+/* harmony export */   historyFromRevisions: () => (/* binding */ historyFromRevisions)
+/* harmony export */ });
+// The record's change history (owner decision C305 (2), RC-3; VP-18).
+//
+// The port: the card raises record.history {record_id, collection, cursor,
+// kinds} and the host answers {answer: "applied", events, has_more, cursor}:
+//
+//   events    newest first, each {id, time, actor, kind, changes}
+//     id        the event's id (a revision makes a good one)
+//     time      ISO 8601 with its offset
+//     actor     the person's name as the host resolved it, or {name, system}
+//     kind      create | update | delete | restore | publish (another word is
+//               read as update)
+//     changes   [{field, label, before, after}] -- field is the field's key, so
+//               the card draws before and after by that field's template; the
+//               label is the host's when the field is not in the arrangement.
+//               A field the person may not read (encrypted, closed by rights)
+//               comes as {field, label, sealed: true} with no values: the card
+//               says the value is hidden and draws no before or after
+//   has_more  whether «Показать ещё» asks for another page
+//   cursor    what the next ask carries (the oldest event's revision); absent,
+//             the last event's id is sent
+//
+// kinds narrows the events: ["update"] is «Только изменения полей», null is
+// every event. The host pages (20 by default, 50 at most); the card never asks
+// for the whole history.
+//
+// Larena (storage 4915505, Root ee49efc9) answers this shape: newest first,
+// pages of 20 (max 50), cursor = revision, labels from the version schema,
+// actor a resolved name, time ISO 8601 with its zone, sealed fields as above;
+// publications are not in its record versions yet (a publish filter is empty).
+//
+// This module holds no imports so a host (and the unit tests) can load it
+// alone; js/history.js draws the values by the field templates.
+//
+// historyFromRevisions is the adapter for a host that stores a full snapshot
+// of the values per revision (Larena: operation, created_by, created_at,
+// revision): an event is the difference of two neighbouring revisions. It is
+// published on the element class (SfPropertyView.historyFromRevisions) so a
+// host's port answers record.history with it, and the probes and the docs'
+// demo source drive the same code.
+const HISTORY_KINDS = ['create', 'update', 'delete', 'restore', 'publish'];
+
+const same = (a, b) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null); // The largest page a host gives (Larena: 50).
+
+
+const HISTORY_PAGE_MAX = 50;
+/**
+ * The port's answer to record.history from stored revisions. `revisions` are
+ * [{revision, operation, created_by, created_at, values}] in any order; `fields`
+ * the record's field descriptors (their order and labels); `cursor` the revision
+ * the next page starts below (null: the newest); `kinds` null or a list of the
+ * kinds to keep; `limit` the page size (50 at most); `sealed` the keys of the
+ * fields the reader may not see.
+ */
+
+function historyFromRevisions(revisions, {
+  fields = [],
+  cursor = null,
+  kinds = null,
+  limit = 20,
+  sealed = []
+} = {}) {
+  const list = (Array.isArray(revisions) ? revisions : []).filter(one => one && one.revision !== undefined && one.revision !== null).slice().sort((a, b) => Number(a.revision) - Number(b.revision));
+  const order = fields.map(field => String(field.key ?? '')).filter(Boolean);
+  const labels = new Map(fields.map(field => [String(field.key ?? ''), String(field.label ?? field.key ?? '')])); // Fields the reader may not see: their change is said, never their values.
+
+  const closed = new Set((Array.isArray(sealed) ? sealed : []).map(String));
+  const events = [];
+
+  for (let at = list.length - 1; at >= 0; at -= 1) {
+    const one = list[at];
+    const before = at > 0 ? list[at - 1].values ?? {} : {};
+    const after = one.values ?? {};
+    const kind = HISTORY_KINDS.includes(one.operation) ? one.operation : 'update';
+    const keys = [...new Set([...order, ...Object.keys(after), ...Object.keys(before)])];
+    const changes = kind === 'update' ? keys.filter(key => !same(before[key], after[key])).map(key => closed.has(key) ? {
+      field: key,
+      label: labels.get(key) ?? key,
+      sealed: true
+    } : {
+      field: key,
+      label: labels.get(key) ?? key,
+      before: before[key] ?? null,
+      after: after[key] ?? null
+    }) : [];
+    if (kind === 'update' && !changes.length) continue;
+    events.push({
+      id: `revision-${one.revision}`,
+      revision: one.revision,
+      time: one.created_at ?? null,
+      actor: one.created_by ?? null,
+      kind,
+      changes
+    });
+  }
+
+  const below = cursor === null || cursor === undefined || cursor === '' ? Infinity : Number(cursor);
+  const wanted = Array.isArray(kinds) && kinds.length ? new Set(kinds) : null;
+  const left = events.filter(event => Number(event.revision) < below && (!wanted || wanted.has(event.kind)));
+  const page = left.slice(0, Math.min(HISTORY_PAGE_MAX, Math.max(1, Number(limit) || 20)));
+  const more = left.length > page.length;
+  return {
+    answer: 'applied',
+    events: page.map(({
+      revision,
+      ...event
+    }) => event),
+    has_more: more,
+    cursor: more ? String(page.at(-1).revision) : null
+  };
+} // A value as its template draws it in the compact place (C302: the table's
+// cell, «Кратко»), read as text: sf-change takes text (C279). The compact
+// template answers the host's cell shape -- a string, {component: {type,
+// props}}, a link {href, text} or a list of those; a part's text is its
+// props' text (a badge), else nothing (an avatar beside the name).
+
+function cellText(shape) {
+  if (shape === null || shape === undefined || shape === false) return '';
+  if (typeof shape === 'string' || typeof shape === 'number') return String(shape);
+  if (Array.isArray(shape)) return shape.map(cellText).filter(Boolean).join(' ');
+
+  if (typeof shape === 'object') {
+    const props = shape.component?.props ?? shape.props ?? null;
+    if (shape.component && shape.component.type === 'avatar') return '';
+    if (props) return String(props.text ?? props.label ?? props.value ?? '');
+    return String(shape.text ?? shape.label ?? '');
+  }
+
+  return '';
+}
+
+/***/ },
+
+/***/ "f8f76dff9bfe"
+(module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   HISTORY_KINDS: () => (/* reexport safe */ _history_port_js__WEBPACK_IMPORTED_MODULE_1__.HISTORY_KINDS),
+/* harmony export */   historyFromRevisions: () => (/* reexport safe */ _history_port_js__WEBPACK_IMPORTED_MODULE_1__.historyFromRevisions),
+/* harmony export */   timelineItems: () => (/* binding */ timelineItems),
+/* harmony export */   valueText: () => (/* binding */ valueText)
+/* harmony export */ });
+/* harmony import */ var _field_renderers_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("e5483002f3ea");
+/* harmony import */ var _history_port_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__("eebd0e5026e8");
+var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_field_renderers_index_js__WEBPACK_IMPORTED_MODULE_0__]);
+var __webpack_async_dependencies_result__ = (__webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
+_field_renderers_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_async_dependencies_result__[0];
+
+
+ // The record's change history drawn as sf-list-timeline items (C305 (2),
+// RC-3); the port and its adapter are in js/history-port.js.
+
+function valueText(field, value, host) {
+  if (value === null || value === undefined || value === '') return '';
+  const own = typeof value === 'object' ? String(value.label ?? value.name ?? value.text ?? '') : String(value);
+  if (!field) return own;
+  let drawn = null;
+
+  try {
+    drawn = (0,_field_renderers_index_js__WEBPACK_IMPORTED_MODULE_0__.renderCellField)(field, value, host);
+  } catch {
+    drawn = null;
+  }
+
+  const text = (0,_history_port_js__WEBPACK_IMPORTED_MODULE_1__.cellText)(drawn).replace(/\s+/gu, ' ').trim();
+  return text || own;
+}
+/**
+ * The port's events as sf-list-timeline items: the actor, the time, a title by
+ * kind, and every change's before and after drawn by its field's template.
+ * `words` are the card's (historyCreate…), `fieldOf(key)` finds a descriptor.
+ */
+
+function timelineItems(events, {
+  words,
+  fieldOf,
+  host
+}) {
+  return (Array.isArray(events) ? events : []).filter(event => event && event.id !== undefined).map(event => {
+    const kind = _history_port_js__WEBPACK_IMPORTED_MODULE_1__.HISTORY_KINDS.includes(event.kind) ? event.kind : 'update';
+    const all = Array.isArray(event.changes) ? event.changes : []; // A sealed field (encrypted, closed by rights) is named, never drawn.
+
+    const sealed = all.filter(change => change && change.sealed === true).map(change => String(change.label ?? fieldOf(String(change.field ?? ''))?.label ?? change.field ?? ''));
+    const changes = all.filter(change => change && change.sealed !== true).map(change => {
+      const field = fieldOf(String(change.field ?? ''));
+      return {
+        label: String(change.label ?? field?.label ?? change.field ?? ''),
+        before: valueText(field, change.before, host),
+        after: valueText(field, change.after, host)
+      };
+    });
+    const actor = event.actor && typeof event.actor === 'object' ? event.actor : event.actor ? {
+      name: String(event.actor)
+    } : null;
+    const count = changes.length + sealed.length;
+    const title = kind === 'update' ? count === 1 ? words.historyChangedOne.replace('{field}', changes[0]?.label ?? sealed[0]) : words.historyChangedMany.replace('{n}', String(count)) : words[`history${kind[0].toUpperCase()}${kind.slice(1)}`];
+    return {
+      id: String(event.id),
+      ...(event.time ? {
+        time: String(event.time)
+      } : {}),
+      ...(actor ? {
+        actor
+      } : {}),
+      title,
+      ...(kind === 'delete' ? {
+        status: 'error'
+      } : kind === 'publish' || kind === 'restore' ? {
+        status: 'success'
+      } : {}),
+      ...(changes.length === 1 ? {
+        change: changes[0]
+      } : changes.length > 1 ? {
+        changes
+      } : {}),
+      ...(sealed.length ? {
+        text: words.historySealed.replace('{fields}', sealed.join(', '))
+      } : {})
+    };
+  });
+}
+__webpack_async_result__();
+} catch(e) { __webpack_async_result__(e); } });
+
+/***/ },
+
+/***/ "d69ebe7e288e"
+(module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   currencyOf: () => (/* binding */ currencyOf),
@@ -9285,6 +13118,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   percentText: () => (/* binding */ percentText)
 /* harmony export */ });
 /* harmony import */ var _decimal_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("f44b979883f0");
+/* harmony import */ var _field_renderers_decimal_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__("ab3947ea3647");
+var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_field_renderers_decimal_js__WEBPACK_IMPORTED_MODULE_1__]);
+var __webpack_async_dependencies_result__ = (__webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
+_field_renderers_decimal_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_async_dependencies_result__[0];
+
  // Money and percent as a person reads them, from decimal strings, never a
 // float: the currency's sign and minor units come from Intl, the digits from
 // ./decimal.js. Pure, so the unit suite reads it without a browser.
@@ -9356,23 +13194,16 @@ function moneyParts(value, fixed) {
     amount: value,
     currency: fixed || null
   };
-}
+} // The set writes a percent as the SIMAI Framework's renderer does (C203 (3),
+// msg-e78f2e51): the page's decimal separator and one spelling in every
+// language, «12,5 %», «12.5 %». It used to read the space from Intl and wrote
+// «12.5%» in English beside the renderer's «12.5 %».
+
 function percentText(value, locale) {
-  const number = (0,_decimal_js__WEBPACK_IMPORTED_MODULE_0__.formatDecimal)(value, locale);
-  if (!number) return ''; // ru-RU writes «12,5 %», en «12.5%»: the space is the locale's, read from Intl.
-
-  let spaced = false;
-
-  try {
-    spaced = new Intl.NumberFormat(locale, {
-      style: 'percent'
-    }).formatToParts(0.5).some(part => part.type === 'literal' && /\s/u.test(part.value));
-  } catch {
-    spaced = false;
-  }
-
-  return `${number}${spaced ? ' ' : ''}%`;
+  return (0,_field_renderers_decimal_js__WEBPACK_IMPORTED_MODULE_1__.formatPercent)(value, locale);
 }
+__webpack_async_result__();
+} catch(e) { __webpack_async_result__(e); } });
 
 /***/ },
 
@@ -9472,8 +13303,9 @@ function requisiteErrors(value, parts = REQUISITE_PARTS) {
 /***/ },
 
 /***/ "ebc72103d8b6"
-(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+(module, __webpack_exports__, __webpack_require__) {
 
+__webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   NUMERIC: () => (/* binding */ NUMERIC),
@@ -9487,6 +13319,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var _decimal_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("f44b979883f0");
 /* harmony import */ var _money_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__("d69ebe7e288e");
+var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_money_js__WEBPACK_IMPORTED_MODULE_1__]);
+var __webpack_async_dependencies_result__ = (__webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
+_money_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_async_dependencies_result__[0];
 
  // Rows over columns (Larena property types standard, notes of 2026-11-03,
 // `items@1`): the columns as the set reads them, the computed cells of a row
@@ -9610,6 +13445,8 @@ function rowTotals(rows, columns) {
 
   return totals;
 }
+__webpack_async_result__();
+} catch(e) { __webpack_async_result__(e); } });
 
 /***/ },
 
@@ -9632,8 +13469,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _money_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__("d69ebe7e288e");
 /* harmony import */ var _rows_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__("ebc72103d8b6");
 /* harmony import */ var _requisites_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__("06dfc7b3b9d9");
-var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([lit__WEBPACK_IMPORTED_MODULE_0__, _field_renderers_index_js__WEBPACK_IMPORTED_MODULE_2__, _core_js_page_language__WEBPACK_IMPORTED_MODULE_3__]);
-([lit__WEBPACK_IMPORTED_MODULE_0__, _field_renderers_index_js__WEBPACK_IMPORTED_MODULE_2__, _core_js_page_language__WEBPACK_IMPORTED_MODULE_3__] = __webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
+var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([lit__WEBPACK_IMPORTED_MODULE_0__, _field_renderers_index_js__WEBPACK_IMPORTED_MODULE_2__, _core_js_page_language__WEBPACK_IMPORTED_MODULE_3__, _money_js__WEBPACK_IMPORTED_MODULE_5__, _rows_js__WEBPACK_IMPORTED_MODULE_6__]);
+([lit__WEBPACK_IMPORTED_MODULE_0__, _field_renderers_index_js__WEBPACK_IMPORTED_MODULE_2__, _core_js_page_language__WEBPACK_IMPORTED_MODULE_3__, _money_js__WEBPACK_IMPORTED_MODULE_5__, _rows_js__WEBPACK_IMPORTED_MODULE_6__] = __webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
 /* harmony import */ var lit__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(lit__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _core_js_page_language__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(_core_js_page_language__WEBPACK_IMPORTED_MODULE_3__);
 
@@ -9991,7 +13828,7 @@ function renderMoneyEdit(field, value, host, ctx) {
             <sf-dropdown
                     class="sf-view-fields-currency"
                     size=${ctx.size}
-                    appearance="outlined"
+                    appearance="bordered"
                     mode="select"
                     search="false"
                     value=${currency ?? ''}
@@ -10265,7 +14102,7 @@ function renderItemsTable(field, rows, columns, ctx, {
     [next[index + 1], next[index]] = [next[index], next[index + 1]];
     reshape(next);
   }}></sf-button-icon>
-            <sf-button-icon size="1/2" appearance="link" scheme="secondary" icon="delete"
+            <sf-button-icon size="1/2" appearance="ghost" scheme="secondary" icon="delete"
                     data-action="row-remove" ?disabled=${drawn.length <= minRows || index >= rows.length}
                     title=${word(node, 'removeRow')} aria-label=${word(node, 'removeRow')}
                     @click=${() => reshape(rows.filter((_row, at) => at !== index))}></sf-button-icon>
@@ -10585,12 +14422,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   renderPropertyViewTemplate: () => (/* binding */ renderPropertyViewTemplate)
 /* harmony export */ });
 /* harmony import */ var lit__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("2a080a730149");
-/* harmony import */ var _default_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__("9e9dad7bcc09");
-/* harmony import */ var _field_renderers_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__("e5483002f3ea");
-/* harmony import */ var _field_value_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__("62c5c417c97d");
-var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([lit__WEBPACK_IMPORTED_MODULE_0__, _field_renderers_index_js__WEBPACK_IMPORTED_MODULE_2__, _field_value_js__WEBPACK_IMPORTED_MODULE_3__]);
-([lit__WEBPACK_IMPORTED_MODULE_0__, _field_renderers_index_js__WEBPACK_IMPORTED_MODULE_2__, _field_value_js__WEBPACK_IMPORTED_MODULE_3__] = __webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
+/* harmony import */ var lit_directives_guard_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__("fc5ce1a4b1d8");
+/* harmony import */ var _default_css__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__("9e9dad7bcc09");
+/* harmony import */ var _field_renderers_index_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__("e5483002f3ea");
+/* harmony import */ var _field_value_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__("62c5c417c97d");
+var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([lit__WEBPACK_IMPORTED_MODULE_0__, _field_renderers_index_js__WEBPACK_IMPORTED_MODULE_3__, _field_value_js__WEBPACK_IMPORTED_MODULE_4__]);
+([lit__WEBPACK_IMPORTED_MODULE_0__, _field_renderers_index_js__WEBPACK_IMPORTED_MODULE_3__, _field_value_js__WEBPACK_IMPORTED_MODULE_4__] = __webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
 /* harmony import */ var lit__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(lit__WEBPACK_IMPORTED_MODULE_0__);
+
 
 
 
@@ -10615,96 +14454,123 @@ function listed(context, entries) {
 // 2026-10-08), where saving, cancelling and deleting live when a group is being
 // edited: the foot is where a mode's own answers belong, and a band of them
 // under the head pushed the record down by a row it did not need.
+// The arranging mode (C311 (1), (5), RC-10): over the fields a bar with the
+// profile picker (C163; «Вернуть как у всех» at its foot, resettable) and one
+// line that says where an edit goes; at the foot the mode's answers in the
+// C157 (3) order -- «Готово» first, «Сохранить для всех» for those who may
+// write the shared layer when there is something of their own to publish,
+// «Отменить». The picker stood in the foot, last of four, before.
 
 
-function renderConfigureBar(context) {
-  if (!context.canConfigureView) return lit__WEBPACK_IMPORTED_MODULE_0__.nothing; // Not configuring: nothing is drawn. Entering is the «⋯» menu's, as the mockup
-  // has it -- a standalone «Настроить вид» link stood as its own band under the
-  // head and was one of the two empty-looking rows the owner saw.
+function configureHint(context) {
+  if (context.viewRequired) return context.word('configureRequiredHintText');
+  return context.canWriteShared ? context.word('configureAdminHintText') : context.word('configurePersonalHintText');
+}
 
-  if (!context.configuring) return lit__WEBPACK_IMPORTED_MODULE_0__.nothing; // One row of controls and nothing else: the view being arranged and the
-  // way out. Whose copy is written follows from the view itself -- a view
-  // for everyone is written for everyone, a personal one for its person --
-  // so the «Персональный / Для всех» toggle that stood beside the chooser
-  // said the same thing twice and is gone (owner, 2026-10-14).
-  // Which named view is being arranged, chosen, made, renamed and removed in
-  // the Framework's profile picker (owner, 2026-10-14) -- the one the admin
-  // menu's profiles use.
-
+function renderConfigureTop(context) {
+  if (!context.canConfigureView || !context.configuring) return lit__WEBPACK_IMPORTED_MODULE_0__.nothing;
   const writable = context.editableLayers ?? [];
-  const chooser = (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
-        <sf-profile-picker
-                size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
-                data-action="view-profile"
-                label=${context.viewProfileLabel}
-                current=${context.viewProfile ?? ''}
-                .profiles=${(context.viewProfiles ?? []).map(profile => ({
+  const required = context.viewRequired;
+  return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+        <div class="sf-property-view-configure-top flex items-cross-center gap-1/3 flex-wrap"
+             data-configuring="true" role="group" aria-label=${context.configureText}>
+            <sf-profile-picker
+                    size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                    data-action="view-profile"
+                    label=${context.viewProfileLabel}
+                    current=${context.viewProfile ?? ''}
+                    ?disabled=${required}
+                    ?resettable=${!required && writable.includes('personal')}
+                    .profiles=${(context.viewProfiles ?? []).map(profile => ({
     id: profile.id,
     label: profile.label,
     shared: Boolean(profile.shared),
     editable: writable.includes(profile.shared ? 'shared' : 'personal') && (!profile.shared || context.canDeleteViewProfile(profile.id))
   }))}
-                .rights=${{
+                    .rights=${{
     create: {
-      personal: writable.includes('personal'),
-      shared: writable.includes('shared')
+      personal: !required && writable.includes('personal'),
+      shared: !required && writable.includes('shared')
     }
   }}
-                @sf-profile-picker-select=${event => context.component.selectViewProfile(event.detail.id)}
-                @sf-profile-picker-create=${event => context.component.createViewProfile(event.detail.label, {
+                    @sf-profile-picker-select=${event => context.component.selectViewProfile(event.detail.id)}
+                    @sf-profile-picker-create=${event => context.component.createViewProfile(event.detail.label, {
     shared: event.detail.shared
   })}
-                @sf-profile-picker-rename=${event => context.component.renameViewProfile(event.detail.id, event.detail.label)}
-                @sf-profile-picker-delete=${event => context.component.deleteViewProfile(event.detail.id)}
-        ></sf-profile-picker>`;
+                    @sf-profile-picker-rename=${event => context.component.renameViewProfile(event.detail.id, event.detail.label)}
+                    @sf-profile-picker-delete=${event => context.component.deleteViewProfile(event.detail.id)}
+                    @sf-profile-picker-reset=${() => context.component.resetView()}
+            ></sf-profile-picker>
+            <span class="sf-property-view-configure-hint color-on-surface-variant min-w-0">${configureHint(context)}</span>
+        </div>
+    `;
+} // A person who cannot arrange the card chooses between the views in the same
+// picker, select-only, above the fields (C311 (5), the dispatcher's call on
+// RC-6): no «⋯ → Вид» submenu for anyone. Nothing is made, renamed, removed
+// or reset here; one view, no picker. A required view is the only one the
+// host lets anyone read (Larena c311-reply): the picker shows it, disabled.
+
+
+function renderViewChooser(context) {
+  const profiles = context.viewProfiles ?? [];
+  if (context.canConfigureView || context.configuring || profiles.length < 2) return lit__WEBPACK_IMPORTED_MODULE_0__.nothing;
+  return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+        <div class="sf-property-view-configure-top flex items-cross-center gap-1/3 flex-wrap" data-chooser="true">
+            <sf-profile-picker
+                    size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                    data-action="view-profile"
+                    label=${context.viewProfileLabel}
+                    current=${context.viewProfile ?? ''}
+                    ?disabled=${context.viewRequired}
+                    .profiles=${profiles.map(profile => ({
+    id: profile.id,
+    label: profile.label,
+    shared: Boolean(profile.shared),
+    editable: false
+  }))}
+                    .rights=${{
+    create: {
+      personal: false,
+      shared: false
+    }
+  }}
+                    @sf-profile-picker-select=${event => context.component.selectViewProfile(event.detail.id)}
+            ></sf-profile-picker>
+        </div>
+    `;
+}
+
+function renderConfigureBar(context) {
+  if (!context.canConfigureView || !context.configuring) return lit__WEBPACK_IMPORTED_MODULE_0__.nothing;
+  const required = context.viewRequired;
+  const publish = context.canWriteShared && !required && context.hasPersonalEdits;
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
         <div class="sf-property-view-actions sf-property-view-configure-bar flex items-cross-center gap-1/3 flex-wrap"
              data-configuring="true" role="group"
              aria-label=${context.configureText}>
-            ${chooser}
-            <span class="grow"></span>
-            ${context.resetAsked ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
-                        <span class="sf-property-view-reset-ask color-error">${context.resetViewAskText}</span>
-                        <sf-button
-                                appearance="ghost"
-                                size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
-                                status="danger"
-                                text=${context.resetViewText}
-                                data-action="reset-view-confirm"
-                                @click=${() => context.component.resetView()}
-                        ></sf-button>
-                        <sf-button
-                                appearance="outline"
-                                size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
-                                text=${context.cancelConfiguringText}
-                                data-action="reset-view-cancel"
-                                @click=${() => context.component.cancelReset()}
-                        ></sf-button>` : (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
-                        <!-- Reset, cancel, done: the further a control reaches, the
-                             quieter it is drawn. Reset takes the whole layer away
-                             and asks first; cancel puts back the arrangement this
-                             mode was entered with; done keeps what is there. -->
-                        <sf-button
-                                appearance="ghost"
-                                size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
-                                text=${context.resetViewText}
-                                data-action="reset-view"
-                                @click=${() => context.component.askReset()}
-                        ></sf-button>
-                        <sf-button
-                                appearance="outline"
-                                size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
-                                text=${context.cancelConfiguringText}
-                                data-action="cancel-configuring"
-                                @click=${() => context.component.cancelConfiguringView()}
-                        ></sf-button>
-                        <sf-button
-                                appearance="default"
-                                size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
-                                text=${context.doneConfiguringText}
-                                data-action="done-configuring"
-                                @click=${() => context.component.stopConfiguringView()}
-                        ></sf-button>`}
+            <sf-button
+                    appearance="default"
+                    size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                    text=${context.doneConfiguringText}
+                    data-action="done-configuring"
+                    @click=${() => context.component.stopConfiguringView()}
+            ></sf-button>
+            ${publish ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<sf-button
+                    appearance="outline"
+                    scheme="primary"
+                    size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                    text=${context.word('publishViewText')}
+                    data-action="publish-view"
+                    @click=${() => context.component.publishView()}
+            ></sf-button>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+            <sf-button
+                    appearance="ghost"
+                    scheme="on-surface"
+                    size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                    text=${required && context.requiredEdits ? context.word('undoMineText') : context.cancelConfiguringText}
+                    data-action="cancel-configuring"
+                    @click=${() => context.component.cancelConfiguringView()}
+            ></sf-button>
         </div>
     `;
 } // Width, template variant and hint sit behind the field's own settings rather
@@ -10714,7 +14580,8 @@ function renderConfigureBar(context) {
 
 
 function renderFieldSettings(context, field, key) {
-  const variants = Array.isArray(field.variantOptions) ? field.variantOptions : [];
+  // The template (variant) is chosen once in the field (C302 (2), C311 (6),
+  // RC-9): the card view no longer offers it.
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
         <sf-popover placement="bottom-end" width="16rem" label=${context.fieldSettingsText}
                     data-settings-for=${key}>
@@ -10757,28 +14624,6 @@ function renderFieldSettings(context, field, key) {
   })}
                     ></sf-input>
                 </label>
-                ${variants.length ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
-                            <label class="sf-property-view-settings-row flex items-cross-center justify-between gap-1">
-                                <span class="sf-property-view-settings-label color-on-surface-variant">${context.variantText}</span>
-                                <sf-dropdown
-                                        size="1/2"
-                                        appearance="outlined"
-                                        mode="select"
-                                        search="false"
-                                        data-action="variant"
-                                        aria-label=${context.variantText}
-                                        value=${String(field.variant ?? '')}
-                                        .options=${variants.map(variant => ({
-    type: 'text',
-    text: variant.label ?? variant.text ?? String(variant.value ?? variant),
-    value: String(variant.value ?? variant),
-    selected: String(field.variant ?? '') === String(variant.value ?? variant)
-  }))}
-                                        @change=${event => context.component.setFieldView(key, {
-    variant: event.detail?.value ?? null
-  })}
-                                ></sf-dropdown>
-                            </label>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                 <label class="sf-property-view-settings-row flex items-cross-center justify-between gap-1">
                     <span class="sf-property-view-settings-label color-on-surface-variant">${context.widthText}</span>
                     <sf-switch
@@ -10809,22 +14654,48 @@ function renderFieldSettings(context, field, key) {
 // this layer is drawn with its reason and cannot be taken out from here.
 
 
-function renderFieldActions(context, field, key) {
+function renderFieldActions(context, field, key, {
+  hidden = false
+} = {}) {
   const locked = !context.canChangeVisibility(field);
+  const name = String(field.label ?? key);
+  const marked = context.isLocked(`fields.${key}.hidden`);
+  const menu = context.fieldMenuEntries(key).length > 0; // A field a layer hid in its area (hidden: true) is shown again by the
+  // same eye; one in «Скрытые поля» goes back to the open tab.
+
+  const off = hidden || field.hidden === true;
+
+  const show = () => hidden ? context.component.showHiddenField(key) : context.component.toggleEntryHidden('field', key); // One way to not show a field (C106 (1), C311 (5), RC-7): the eye moves it
+  // to «Скрытые поля» and back. It was a cross «Убрать из области».
+
+
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
         <div class="sf-property-view-field-actions flex items-cross-center gap-1/4">
+            ${marked ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<i class="sf-icon sf-property-view-lock color-on-surface-variant" role="img"
+                    data-lock=${`fields.${key}.hidden`}
+                    aria-label=${context.word('lockedText')} title=${context.word('lockedText')}>lock</i>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
             <sf-button-icon
                     size="1/2"
                     appearance="ghost"
                     scheme="on-surface-variant"
-                    icon=${field.hidden ? 'visibility_off' : 'close'}
-                    data-action="remove-field"
+                    icon=${off ? 'visibility_off' : 'visibility'}
+                    data-action=${off ? 'show-field' : 'remove-field'}
                     ?disabled=${locked}
-                    title=${locked ? context.layerDenied('shared') || context.hiddenText : context.removeFieldText}
-                    aria-label=${context.removeFieldText}
-                    @click=${() => context.component.moveFieldToUnplaced(key)}
+                    title=${locked ? marked ? context.word('lockedText') : context.layerDenied('shared') || context.hiddenText : context.word(off ? 'showFieldText' : 'hideFieldText').replace('{name}', name)}
+                    aria-label=${context.word(off ? 'showFieldText' : 'hideFieldText').replace('{name}', name)}
+                    @click=${() => off ? show() : context.component.moveFieldToUnplaced(key)}
             ></sf-button-icon>
             ${renderFieldSettings(context, field, key)}
+            ${menu ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<sf-button-icon
+                    size="1/2"
+                    appearance="ghost"
+                    scheme="on-surface-variant"
+                    icon="more_horiz"
+                    data-action="field-menu"
+                    aria-haspopup="menu"
+                    aria-label=${context.word('fieldMenuText').replace('{name}', name)}
+                    @click=${event => context.component.openFieldMenu(event.currentTarget.querySelector('button') ?? event.currentTarget, key)}
+            ></sf-button-icon>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
         </div>
     `;
 } // A name that can be changed, where it stands. In the arranging mode the title
@@ -10923,7 +14794,109 @@ function renderEntryName(context, kind, key, label, titleClass) {
 // What a press inside a field's value may land on that acts on its own.
 
 
-const INNER_CONTROL = 'a[href], button, input, select, textarea, [role="button"], [role="link"]';
+const INNER_CONTROL = 'a[href], button, input, select, textarea, [role="button"], [role="link"]'; // A field read (C289 (4), C180 (3)): a row of sf-list-description's parts --
+// the label in the list's label column, the value beside it from a list of
+// 22rem, over it in a narrower list and on a phone. The list's sheet draws the
+// row on one rung of the ladder (a one-line row is the rung's control height,
+// 40 at size 1), so a property takes a row, not a card's 84 px. The value is
+// the field renderers' as before; a value that opens its group for editing is
+// a button of the line's height, 24 at the least (VW-7, §8.9).
+
+function renderReadRow(context, field, sectionKey, groupKey) {
+  if (field.when) field = context.conditionedField(field);
+  const key = String(field.key ?? '');
+  const error = context.controlErrors?.has(key) ? null : context.errors.get(key);
+  const opens = !(field.readonly === true || !context.mayEdit || context.openAll);
+  const quick = opens && context.quickEdit && context.isQuickField(field);
+  const current = context.quick?.key === key;
+  return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+        <div class="sf-list-description-row sf-property-view-field sf-property-view-row" data-field=${key}
+             data-current=${current ? 'true' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+             data-saved=${context.savedKeys?.has(key) ? 'true' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}>
+            <dt class="sf-list-description-label sf-property-view-field-label" id=${`sf-property-view-label-${context.recordId || 'record'}-${key}`}>${String(field.label ?? key)}${field.hint ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<sf-help-mark class="sf-list-description-help sf-property-view-hint" size=${context.size === '1/2' ? '1/3' : '1/2'}
+                                         label=${String(field.hint)} text=${String(field.hint)}></sf-help-mark>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}${field.rare ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)` <span class="sf-property-view-rare color-on-surface-variant">${context.rareText}</span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}${field.inherited ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)` <span class="sf-property-view-inherited color-on-surface-variant">${context.inheritedText}</span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}</dt>
+            <dd class="sf-list-description-value">
+                <span class="sf-list-description-line">
+                    ${quick ? renderQuickValue(context, field, sectionKey, groupKey) : opens ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<button
+                                    type="button"
+                                    class="sf-property-view-field-value sf-property-view-field-open min-w-0 text-start cursor-pointer"
+                                    data-open-group=${groupKey}
+                                    title=${context.editText}
+                                    @click=${event => {
+    const path = event.composedPath();
+    const inner = path.slice(0, Math.max(0, path.indexOf(event.currentTarget)));
+    if (inner.some(node => node.matches?.(INNER_CONTROL))) return; // A long field's value opens its group with the
+    // focus on it (C305 (1), VP-21).
+
+    context.component.editGroup(sectionKey, groupKey, {
+      focus: key
+    });
+  }}
+                            >${(0,_field_value_js__WEBPACK_IMPORTED_MODULE_4__.renderFieldValue)(context, field, false)}<i class="sf-icon sf-icon--size-1/2 sf-property-view-pen" aria-hidden="true">edit</i></button>` : (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-property-view-field-value min-w-0">${(0,_field_value_js__WEBPACK_IMPORTED_MODULE_4__.renderFieldValue)(context, field, false)}</span>`}
+                </span>
+                ${error && !current ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-property-view-field-error color-error" role="alert">${error}</span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+            </dd>
+        </div>
+    `;
+} // A short field edited in a window at its value (C305 (1), as the table's
+// cell, C296): sf-popover with the value as its trigger, the field's own
+// control, Save first and a quiet Cancel. One value per save -- group.save of
+// the field's group with that value, the same revision and confirmation.
+
+
+function renderQuickValue(context, field, sectionKey, groupKey) {
+  const key = String(field.key ?? '');
+  const open = context.quick?.key === key;
+  const error = open ? context.errors.get(key) ?? context.conflict ?? null : null;
+  const label = String(field.label ?? key);
+  return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<sf-popover class="sf-property-view-quick" placement="bottom-start" width="18rem"
+            label=${label}
+            data-quick-pop=${key}
+            ?unsaved=${open && context.changed.has(key)}
+            @sf-popover-open=${event => {
+    if (event.target !== event.currentTarget) return;
+    if (!context.component.startQuick(sectionKey, groupKey, key)) event.preventDefault?.();
+  }}
+            @sf-popover-close=${event => {
+    if (event.target !== event.currentTarget) return;
+    context.component.endQuick(key);
+  }}>
+        <button slot="trigger" type="button"
+                class="sf-property-view-field-value sf-property-view-field-open sf-property-view-quick-value min-w-0 text-start cursor-pointer"
+                data-quick=${key}
+                aria-haspopup="dialog"
+                aria-label=${`${label}: ${context.editText}`}
+        >${(0,_field_value_js__WEBPACK_IMPORTED_MODULE_4__.renderFieldValue)(context, field, false)}<i class="sf-icon sf-icon--size-1/2 sf-property-view-pen" aria-hidden="true">edit</i></button>
+        <div slot="content" class="sf-property-view-quick-editor" data-quick-editor=${key}
+             @keydown=${event => {
+    if (event.key === 'Enter' && !event.shiftKey && !event.isComposing && event.target?.localName !== 'textarea' && !event.defaultPrevented && !event.target?.closest?.('[role="listbox"], [role="menu"], .sf-datepicker')) {
+      event.preventDefault();
+      context.component.saveQuick();
+    }
+  }}>
+            <span class="sf-property-view-quick-label">${label}</span>
+            ${open ? (0,_field_value_js__WEBPACK_IMPORTED_MODULE_4__.renderFieldValue)(context, field, true) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+            ${error ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-property-view-field-error color-error" role="alert">${error}</span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+            ${open && context.confirmation ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<sf-confirm
+                    appearance="inline"
+                    size="1/2"
+                    question=${context.confirmation.text}
+                    confirm-id="save"
+                    accept-text=${context.confirmSaveText}
+                    decline-text=${context.keepEditingText}
+                    @sf-confirm-answer=${event => {
+    event.preventDefault?.();
+    if (event.detail?.accepted) context.component.confirmSave();else context.component.cancelConfirmation();
+  }}
+            ></sf-confirm>` : (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<div class="sf-property-view-quick-actions">
+                <sf-button size="1/2" text=${context.saveText} data-action="quick-save"
+                           @click=${() => context.component.saveQuick()}></sf-button>
+                <sf-button size="1/2" appearance="ghost" scheme="on-surface" text=${context.cancelText} data-action="quick-cancel"
+                           @click=${() => context.component.cancelEdit()}></sf-button>
+            </div>`}
+        </div>
+    </sf-popover>`;
+}
 
 function renderField(context, field, editing, sectionKey = '', groupKey = '') {
   // A field as its conditions make it now (port 1.14.0): required or not,
@@ -10965,7 +14938,7 @@ function renderField(context, field, editing, sectionKey = '', groupKey = '') {
                 ${field.rare ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-property-view-rare color-on-surface-variant">${context.rareText}</span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                 ${field.inherited && !editing ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-property-view-inherited color-on-surface-variant">${context.inheritedText}</span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
             </div>
-            ${editing || context.configuring || field.readonly === true || !context.mayEdit || context.openAll ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<div class="sf-property-view-field-value min-w-0 flex items-cross-center gap-2 flex-wrap">${(0,_field_value_js__WEBPACK_IMPORTED_MODULE_3__.renderFieldValue)(context, field, editing, {
+            ${editing || context.configuring || field.readonly === true || !context.mayEdit || context.openAll ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<div class="sf-property-view-field-value min-w-0 flex items-cross-center gap-2 flex-wrap">${(0,_field_value_js__WEBPACK_IMPORTED_MODULE_4__.renderFieldValue)(context, field, editing, {
     disabled
   })}</div>` : (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
                         <button
@@ -10987,7 +14960,7 @@ function renderField(context, field, editing, sectionKey = '', groupKey = '') {
     context.component.editGroup(sectionKey, groupKey);
   }}
                         >
-                            ${(0,_field_value_js__WEBPACK_IMPORTED_MODULE_3__.renderFieldValue)(context, field, editing)}
+                            ${(0,_field_value_js__WEBPACK_IMPORTED_MODULE_4__.renderFieldValue)(context, field, editing)}
                             <i class="sf-icon sf-icon--size-1/2 sf-property-view-pen" aria-hidden="true">edit</i>
                         </button>`}
             ${context.configuring ? renderFieldActions(context, field, key) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
@@ -11112,19 +15085,79 @@ function renderGroup(context, section, group) {
   // busy, until its read answers -- never as an empty group.
 
   const waiting = !Array.isArray(group.fields) || group.fields.length === 0 ? Number.isInteger(group.field_count) && group.field_count > 0 ? group.field_count : 0 : 0;
-  const reading = waiting > 0 || Boolean(context.component.isGroupReading?.(groupKey));
+  const reading = waiting > 0 || Boolean(context.component.isGroupReading?.(groupKey)); // A group the host names '' has no head of its own (a record of one group,
+  // a property shown alone): an empty heading took a row (36 px read, 29 px
+  // edited) and named nothing to a screen reader. Its «Изменить», the rare
+  // mark and the arranging tools still bring the head back.
+
+  const titled = String(group.label ?? groupKey) !== '' || Boolean(group.rare);
+  const readEdit = context.mayEdit && !context.openAll && group.editable !== false;
+  const cardEdit = !configuring && !editing && context.mayEdit && !context.openAll && group.kind !== 'related' && group.editable !== false; // Read, the group is a section of the record's description list: its name
+  // a list section heading with «Изменить» as its action, its fields rows of
+  // the list (C289 (4)). Edited, arranged or holding related records it stays
+  // the card it was.
+
+  if (!editing && !configuring && group.kind !== 'related') {
+    const readRows = waiting > 0 ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`${Array.from({
+      length: waiting
+    }, (_, at) => (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<div class="sf-list-description-row sf-property-view-row" aria-hidden="true"><dt class="sf-list-description-label"><div class="sf-skeleton sf-skeleton--animation-pulse"><div class="sf-skeleton-text sf-skeleton-text--size-1 w-2/3"></div></div></dt><dd class="sf-list-description-value"><div class="sf-skeleton sf-skeleton--animation-pulse"><div class="sf-skeleton-text sf-skeleton-text--size-1 ${SKELETON_WIDTHS[at % SKELETON_WIDTHS.length]}"></div></div></dd></div>`)}` : (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`${fields.map(field => renderReadRow(context, field, String(section.key ?? ''), groupKey))}`;
+    return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+            <section class="sf-property-view-group sf-property-view-group--list" data-group=${groupKey} aria-busy=${reading ? 'true' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}>
+                ${titled || readEdit ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<div class="sf-list-description-head sf-property-view-group-header">
+                    <div class="sf-list-description-title sf-property-view-group-title" role="heading" aria-level="3">${String(group.label ?? groupKey)}${group.rare ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)` <span class="sf-property-view-rare color-on-surface-variant">${context.rareText}</span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}</div>
+                    ${readEdit ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-list-description-action"><sf-button
+                                    appearance="ghost"
+                                    size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                                    text=${context.editText}
+                                    data-action="edit"
+                                    @click=${() => context.component.editGroup(String(section.key ?? ''), groupKey)}
+                            ></sf-button></span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                </div>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                ${fields.length || waiting ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<dl class="sf-list-description-part sf-property-view-group-fields" aria-label=${String(group.label ?? groupKey)}>${readRows}</dl>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+            </section>
+        `;
+  } // Edited by sf-form (C182, C305 (1); VP-19, VP-27): the label above in a
+  // panel, beside on the full screen; «Сохранить» first, a quiet «Отмена»;
+  // every field the group's whole width. The form's value and fields are
+  // the edit's own (formEdit), so a render of the card never resets it.
+
+
+  const form = context.formEdit;
+
+  if (editing && !configuring && form && form.group === groupKey && form.section === String(section.key ?? '')) {
+    return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+            <section class="sf-property-view-group sf-property-view-group--editing sf-property-view-group--form" data-group=${groupKey}>
+                ${titled ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<header class="sf-property-view-group-header flex items-cross-center justify-between gap-2">
+                    <div class="sf-property-view-group-title" role="heading" aria-level="3">${String(group.label ?? groupKey)}</div>
+                </header>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                <sf-form class="sf-property-view-form"
+                         label=${String(group.label ?? groupKey)}
+                         labels=${context.sectionsLayout === 'column' ? 'start' : 'top'}
+                         footer=${context.panel || context.sectionsLayout === 'phone' ? 'sticky' : 'static'}
+                         .fields=${(0,lit_directives_guard_js__WEBPACK_IMPORTED_MODULE_1__.guard)([form], () => form.fields)}
+                         .value=${(0,lit_directives_guard_js__WEBPACK_IMPORTED_MODULE_1__.guard)([form], () => form.value)}
+                         @sf-form-submit=${event => context.component.submitForm(event)}
+                         @sf-form-cancel=${() => context.component.cancelEdit()}
+                         @sf-form-input=${event => {
+      const at = context.component.fieldAt(event.detail?.key);
+      if (at) context.component.changeField(at.field, event.detail?.value);
+    }}
+                ></sf-form>
+            </section>`;
+  }
+
   const rows = waiting > 0 ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`${Array.from({
     length: waiting
   }, (_, at) => (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<div class="sf-skeleton sf-skeleton--animation-pulse" aria-hidden="true">
             <div class="sf-skeleton-text sf-skeleton-text--size-1 ${SKELETON_WIDTHS[at % SKELETON_WIDTHS.length]}"></div></div>`)}` : (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`${fields.map(field => renderField(context, field, editing, String(section.key ?? ''), groupKey))}`;
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
-        <section class="sf-property-view-group bg-surface-page flex flex-col gap-2 ${editing ? 'sf-property-view-group--editing' : ''}"
+        <section class="sf-property-view-group bg-surface-page flex flex-col gap-2 ${editing ? 'sf-property-view-group--editing' : ''} ${group.kind === 'related' && !editing && !configuring ? 'sf-property-view-group--related' : ''}"
                  data-group=${groupKey}
                  aria-busy=${reading ? 'true' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                  data-sf-sortable-item=${configuring ? groupKey : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                  data-hidden=${configuring && group.hidden ? 'true' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                  data-columns=${group.columns === 2 ? '2' : '1'}>
-            <header class="sf-property-view-group-header flex items-cross-center justify-between gap-2">
+            ${titled || configuring || cardEdit ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<header class="sf-property-view-group-header flex items-cross-center justify-between gap-2">
                 ${configuring ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<i class="sf-icon sf-property-view-grip items-cross-center" data-sf-sortable-handle
                                   aria-hidden="true">drag_indicator</i>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                 ${renderEntryName(context, 'group', groupKey, String(group.label ?? groupKey), 'sf-property-view-group-title')}
@@ -11166,7 +15199,7 @@ function renderGroup(context, section, group) {
                                     @click=${() => context.component.removeGroup(groupKey)}
                             ></sf-button-icon>
                             </span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
-                ${!configuring && !editing && context.mayEdit && !context.openAll && group.kind !== 'related' && group.editable !== false ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+                ${cardEdit ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
                             <sf-button
                                     appearance="ghost"
                                     size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
@@ -11174,7 +15207,7 @@ function renderGroup(context, section, group) {
                                     data-action="edit"
                                     @click=${() => context.component.editGroup(String(section.key ?? ''), groupKey)}
                             ></sf-button>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
-            </header>
+            </header>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
             ${groupError ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<div class="sf-property-view-group-error" role="alert">${groupError}</div>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
             ${group.kind === 'related' ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<div class="sf-property-view-group-related">${renderRelatedList(context, group, groupKey)}</div>` : configuring ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
                                 <sf-sortable
@@ -11193,20 +15226,27 @@ function renderGroup(context, section, group) {
 
 
 function renderPhoneSectionList(context, sections) {
+  // The rows are sf-list's (C289 (5), C148 (4)): a section opens as a level
+  // of the panel, «←» in its head (C157 (6)).
+  const items = sections.map(section => ({
+    id: String(section.key),
+    text: String(section.label ?? section.key),
+    ...(section.icon ? {
+      icon: String(section.icon)
+    } : {})
+  }));
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
-        <nav class="sf-property-view-phone-sections flex flex-col" aria-label=${context.sectionsLabel}>
-            ${sections.map(section => (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
-                <button
-                        type="button"
-                        class="sf-property-view-phone-section flex items-cross-center justify-between gap-1"
-                        data-phone-section=${String(section.key)}
-                        @click=${() => context.component.openPhoneSection(String(section.key))}
-                >
-                    <span class="sf-property-view-phone-section-label">${String(section.label ?? section.key)}</span>
-                    <i class="sf-icon" aria-hidden="true">chevron_right</i>
-                </button>
-            `)}
-        </nav>
+        <sf-list
+                class="sf-property-view-phone-sections"
+                label=${context.sectionsLabel}
+                size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                divided
+                .items=${items}
+                @sf-list-open=${event => {
+    const id = event.detail?.id;
+    if (id !== undefined && id !== null) context.component.openPhoneSection(String(id));
+  }}
+        ></sf-list>
     `;
 } // The second screen's head: back to the list, and the name of where you are.
 
@@ -11235,9 +15275,13 @@ function renderSectionList(context, sections) {
   // navigation. Arranged, the column is this component's own rows.
 
   if (!context.configuring) {
+    // C305 (3): the column is sf-menu (the C96 (5) menu column) until the
+    // pair's sf-tabs judges a lone tab column by its wrapper (VP-26,
+    // sf-tabs 1.4.4): this pair's vertical tabs fold any column under
+    // 48rem into the line with «Ещё (n)», full screen at 1440 too.
     return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
             <div class="sf-property-view-sections self-cross-stretch flex flex-col min-w-0">
-                ${renderSectionVerticalTabs(context, sections)}
+                ${context.sectionColumnTabs ? renderSectionVerticalTabs(context, sections) : renderSectionMenu(context, sections)}
             </div>
         `;
   }
@@ -11288,6 +15332,30 @@ function renderSectionVerticalTabs(context, sections) {
   }}
         ></sf-tabs>
     `;
+}
+
+function renderSectionMenu(context, sections) {
+  const selected = sections.some(section => String(section.key) === context.selectedSection) ? context.selectedSection : String(sections[0]?.key ?? '');
+  const items = sections.map(section => ({
+    id: String(section.key),
+    label: sectionName(context, section),
+    href: `#${String(section.key)}`,
+    current: String(section.key) === selected,
+    ...(section.icon ? {
+      icon: String(section.icon)
+    } : {})
+  }));
+  return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+        <sf-menu class="sf-property-view-section-list sf-property-view-section-menu"
+                 label=${context.sectionsLabel}
+                 .items=${items}
+                 @sf-menu-navigate=${event => {
+    event.preventDefault();
+    const id = event.detail?.id ?? String(event.detail?.href ?? '').replace(/^#/u, '');
+    if (id !== undefined && id !== null && id !== '') context.component.selectSection(String(id));
+  }}
+        ></sf-menu>
+    `;
 } // Arranging: the same tabs, in an order a drag can change, and each one still a
 // place to drop a field or an area. Tabs cannot be reordered by a pointer --
 // sf-tabs owns its tab buttons -- so while the view is arranged
@@ -11296,29 +15364,59 @@ function renderSectionVerticalTabs(context, sections) {
 
 
 function renderSectionTabsArranged(context, sections) {
+  // «Вкладки» (C311 (4), TB-1): the tabs as a list with handles over the
+  // fields (a column beside them on the full screen); each row selects its
+  // tab, says when it is hidden or locked, and has one «⋯» with the name,
+  // the icon, up and down, hide, delete and the admin's lock.
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+        <div class="sf-property-view-tabs-head flex flex-col">
+            <span class="sf-property-view-tabs-title">${context.word('tabsTitle')}</span>
+            <span class="sf-property-view-tabs-hint color-on-surface-variant">${context.word('tabsHintText')}</span>
+        </div>
         <sf-sortable
                 class="sf-property-view-section-tabs flex flex-col"
                 group="section"
                 accepts="section"
                 id="section:all"
-                label=${context.sectionsLabel}
+                label=${context.word('tabsTitle')}
         >
-            ${sections.map(section => (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
-                <button
-                        type="button"
-                        class="sf-property-view-section-tab flex items-cross-center gap-1/3 min-w-0 text-start cursor-pointer"
-                        data-section-tab=${String(section.key)}
-                        data-sf-sortable-item=${String(section.key)}
-                        aria-current=${String(section.key) === context.selectedSection ? 'true' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
-                        @click=${() => context.component.selectSection(String(section.key))}
-                >
+            ${sections.map(section => {
+    const key = String(section.key);
+    const locked = context.isLocked(`sections.${key}`);
+    const mine = !context.lockedForMe(`sections.${key}`);
+    return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+                <div class="sf-property-view-section-tab flex items-cross-center gap-1/3 min-w-0"
+                     data-section-tab=${key}
+                     data-sf-sortable-item=${key}
+                     data-hidden=${section.hidden ? 'true' : 'false'}
+                     aria-current=${key === context.selectedSection ? 'true' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}>
                     <i class="sf-icon sf-property-view-section-grip color-on-surface-variant" data-sf-sortable-handle
                        aria-hidden="true">drag_indicator</i>
-                    ${section.icon ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<i class="sf-icon" aria-hidden="true">${String(section.icon)}</i>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
-                    <span class="sf-property-view-section-tab-label flex-auto min-w-0">${sectionName(context, section)}</span>
-                </button>
-            `)}
+                    <button type="button"
+                            class="sf-property-view-section-tab-select flex items-cross-center gap-1/3 flex-auto min-w-0 text-start cursor-pointer"
+                            data-action="select-tab"
+                            aria-pressed=${key === context.selectedSection ? 'true' : 'false'}
+                            @click=${() => context.component.selectSection(key)}>
+                        ${section.icon ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<i class="sf-icon" aria-hidden="true">${String(section.icon)}</i>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                        <span class="sf-property-view-section-tab-label flex-auto min-w-0">${sectionName(context, section)}</span>
+                    </button>
+                    ${locked ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<i class="sf-icon sf-property-view-lock color-on-surface-variant" role="img" data-lock=${`sections.${key}`}
+                            aria-label=${context.word('lockedText')} title=${context.word('lockedText')}>lock</i>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                    ${section.hidden ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<i class="sf-icon color-on-surface-variant" role="img"
+                            aria-label=${context.word('tabHiddenText')} title=${context.word('tabHiddenText')}>visibility_off</i>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                    <sf-button-icon
+                            size="1/2"
+                            appearance="ghost"
+                            scheme="on-surface-variant"
+                            icon="more_horiz"
+                            data-action="tab-menu"
+                            aria-haspopup="menu"
+                            ?disabled=${!mine && !context.canWriteShared}
+                            aria-label=${context.word('tabMenuText').replace('{name}', String(section.label ?? key))}
+                            @click=${event => context.component.openTabMenu(event.currentTarget.querySelector('button') ?? event.currentTarget, key)}
+                    ></sf-button-icon>
+                </div>`;
+  })}
         </sf-sortable>
     `;
 } // A rare section says so in its own name. A tab takes a label string and draws
@@ -11360,6 +15458,9 @@ function renderSectionTabs(context, sections) {
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
         <sf-tabs
                 class="sf-property-view-tabs"
+                type="underline"
+                overflow="more"
+                ?sticky=${context.panel}
                 size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                 active-index=${String(at)}
                 aria-label=${context.sectionsLabel}
@@ -11388,26 +15489,23 @@ function sizeStyle(context) {
 
 
 function renderConfirmation(context) {
+  // The Framework's question in place (C289, C182; sf-confirm inline, C166):
+  // the host's words and the two answers where Save was pressed. It was a bar
+  // of this component's own.
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
-        <div class="sf-property-view-actions flex items-cross-center gap-1/3 flex-wrap" role="group"
-             data-confirming="true">
-            <span class="sf-property-view-confirm-text" role="alert">${context.confirmation.text}</span>
-            <span class="grow"></span>
-            <sf-button
-                    appearance="default"
+        <div class="sf-property-view-actions sf-property-view-confirm" data-confirming="true">
+            <sf-confirm
+                    appearance="inline"
                     size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
-                    text=${context.confirmSaveText}
-                    data-action="confirm-save"
-                    @click=${() => context.component.confirmSave()}
-            ></sf-button>
-            <sf-button
-                    appearance="ghost"
-                    scheme="on-surface"
-                    size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
-                    text=${context.keepEditingText}
-                    data-action="keep-editing"
-                    @click=${() => context.component.cancelConfirmation()}
-            ></sf-button>
+                    question=${context.confirmation.text}
+                    confirm-id="save"
+                    accept-text=${context.confirmSaveText}
+                    decline-text=${context.keepEditingText}
+                    @sf-confirm-answer=${event => {
+    event.preventDefault?.();
+    if (event.detail?.accepted) context.component.confirmSave();else context.component.cancelConfirmation();
+  }}
+            ></sf-confirm>
         </div>
     `;
 } // The foot of a surface open all at once: Create or Save, and Cancel, with
@@ -11424,7 +15522,6 @@ function renderOpenAllBar(context) {
                     size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                     text=${creating ? context.createText : context.saveText}
                     data-action=${creating ? 'create' : 'save'}
-                    ?disabled=${!creating && context.changed.size === 0 || context.inputsInvalid}
                     @click=${() => context.component.saveAll()}
             ></sf-button>
             <sf-button
@@ -11439,36 +15536,57 @@ function renderOpenAllBar(context) {
             ${context.conflict ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-property-view-conflict color-error" role="alert">${context.conflict}</span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
         </div>
     `;
+} // Closing (or stepping to the next record) over unsaved entries asks first
+// (C159 (6)): sf-confirm in the foot, «Закрыть без сохранения» or back.
+
+
+function renderLeaveAsk(context) {
+  return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+        <div class="sf-property-view-actions sf-property-view-confirm" data-leaving="true">
+            <sf-confirm
+                    appearance="inline"
+                    size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                    question=${context.word('closeUnsavedText')}
+                    confirm-id="leave"
+                    accept-text=${context.leaveAsk.kind === 'step' ? context.word('leaveUnsavedText') : context.word('closeUnsavedAcceptText')}
+                    decline-text=${context.keepEditingText}
+                    @sf-confirm-answer=${event => {
+    event.preventDefault?.();
+    context.component.answerLeave(Boolean(event.detail?.accepted));
+  }}
+            ></sf-confirm>
+        </div>
+    `;
 }
 
 function renderActions(context, {
   panel = false
 } = {}) {
-  // A surface placed to show the object has no footer of its own (owner,
+  if (context.leaveAsk) return renderLeaveAsk(context); // A surface placed to show the object has no footer of its own (owner,
   // 2026-10-14): a reader sees values, not controls that would refuse.
+
   if (context.mode === 'view') return lit__WEBPACK_IMPORTED_MODULE_0__.nothing;
-  if (context.openAll) return renderOpenAllBar(context);
-  const removable = context.mode !== 'create' && context.recordActions.includes('record.delete'); // While the view is arranged the foot carries that mode's controls instead:
+  if (context.openAll) return renderOpenAllBar(context); // While the view is arranged the foot carries that mode's controls instead:
   // saving a record and arranging the view it is read in are two modes, and a
   // bar holding both would offer a save for something nobody was editing.
 
   if (context.configuring) return renderConfigureBar(context);
-  if (context.editing && context.confirmation) return renderConfirmation(context); // A panel's foot holds every action on the record -- the host's own, slotted
-  // as `footer`, and the delete -- in one bar under the fields (owner,
-  // 2026-10-14). They were drawn in the scrolling body, the delete as one more
-  // section of it.
+  if (context.editing && context.confirmation) return renderConfirmation(context); // A panel's foot holds the host's own actions, slotted as `footer`, and
+  // the group's Save and Cancel. Deleting is a row of the head's «⋯» (C289
+  // (3), C180 (2)): a foot stands for two actions or more, never for one delete.
 
-  const hosted = panel && context.hasHostSlot('footer');
-  if (!context.editing && !removable && !hosted) return lit__WEBPACK_IMPORTED_MODULE_0__.nothing;
+  const hosted = panel && context.hasHostSlot('footer'); // sf-form carries its own Save and Cancel.
+
+  const own = context.editing && !context.formEdit;
+  if (!own && !hosted && !(context.editing && context.conflict)) return lit__WEBPACK_IMPORTED_MODULE_0__.nothing;
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
         <div class="sf-property-view-actions flex items-cross-center gap-1/3 flex-wrap" role="group">
-            ${context.editing ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+            ${own ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
                         <sf-button
                                 appearance="default"
                                 size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                                 text=${context.saveText}
                                 data-action="save"
-                                ?disabled=${context.changed.size === 0 || context.inputsInvalid}
                                 @click=${() => context.component.saveGroup()}
                         ></sf-button>
                         <sf-button
@@ -11479,21 +15597,10 @@ function renderActions(context, {
                                 data-action="cancel"
                                 @click=${() => context.component.cancelEdit()}
                         ></sf-button>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
-            ${context.errors.size ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-property-view-errors color-error">${context.errorsText}: ${context.errors.size}</span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+            ${own && context.errors.size ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-property-view-errors color-error">${context.errorsText}: ${context.errors.size}</span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
             ${context.conflict ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-property-view-conflict color-error" role="alert">${context.conflict}</span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
             <span class="grow"></span>
             ${hosted ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<div class="sf-property-view-host-footer flex flex-wrap items-cross-center gap-1/3">${context.hostSlot('footer')}</div>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
-            ${removable ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
-                        <sf-button-icon
-                                appearance="ghost"
-                                status="danger"
-                                size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
-                                icon="delete"
-                                data-action="delete"
-                                title=${context.deleteText}
-                                aria-label=${context.deleteText}
-                                @click=${() => context.component.deleteRecord()}
-                        ></sf-button-icon>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
         </div>
     `;
 } // An unplaced field is being arranged, not read: it shows its name and a handle
@@ -11511,8 +15618,11 @@ function renderUnplacedField(context, field) {
              data-arranging="true">
             <i class="sf-icon sf-property-view-grip items-cross-center" data-sf-sortable-handle aria-hidden="true">drag_indicator</i>
             <div class="sf-property-view-field-label flex items-cross-center gap-1/3 color-on-surface-variant">
-                ${String(field.label ?? key)}
+                <span class="flex-auto min-w-0">${String(field.label ?? key)}</span>
                 ${field.rare ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-property-view-rare color-on-surface-variant">${context.rareText}</span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                ${renderFieldActions(context, field, key, {
+    hidden: true
+  })}
             </div>
         </div>
     `;
@@ -11524,7 +15634,10 @@ function renderUnplacedField(context, field) {
 
 function renderUnplaced(context) {
   if (!context.configuring) return lit__WEBPACK_IMPORTED_MODULE_0__.nothing;
-  const fields = context.unplaced; // The Framework's own accordion rather than a fold built here: the owner
+  const fields = context.unplaced; // The count beside the bin's title is a count, read and never pressed: the
+  // grey tonal badge (C140 (3); accordion AC-3, tags TG-5). It was a tag in
+  // the retired appearance surface.
+  // The Framework's own accordion rather than a fold built here: the owner
   // asked for it by name, and a second thing that opens and closes is a
   // second thing to keep looking right (owner, 2026-10-09).
   //
@@ -11548,21 +15661,19 @@ function renderUnplaced(context) {
                         type="button"
                         class="sf-accordion-trigger"
                         data-action="toggle-unplaced"
-                        aria-expanded="false"
+                        aria-expanded="true"
                 >
                     <span class="sf-accordion-title flex items-cross-center gap-1/3">
                         ${context.unplacedTitle}
-                        ${fields.length ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<sf-tag
-                                    kind="default"
+                        ${fields.length ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<sf-badge
                                     size="1/3"
-                                    appearance="surface"
                                     text=${String(fields.length)}
-                            ></sf-tag>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                            ></sf-badge>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                     </span>
                     <sf-icon icon="chevron_right" size="1/2"></sf-icon>
                 </button>
             </h3>
-            <div class="sf-accordion-content" role="region" hidden>
+            <div class="sf-accordion-content" role="region">
                 <sf-sortable
                         class="sf-property-view-group-fields sf-property-view-unplaced"
                         group="field"
@@ -11595,7 +15706,8 @@ function renderMenuControl(context) {
   // reason for it to stand even with nothing else in it.
 
   const views = !context.configuring && (context.viewProfiles?.length ?? 0) > 1;
-  if (!items.length && !host && !views) return lit__WEBPACK_IMPORTED_MODULE_0__.nothing; // Always the menu, never the one item drawn in its place. The place is the
+  const record = (context.recordMenuItems?.length ?? 0) > 0 || context.canDeleteRecord;
+  if (!items.length && !host && !views && !record) return lit__WEBPACK_IMPORTED_MODULE_0__.nothing; // Always the menu, never the one item drawn in its place. The place is the
   // panel's own: what belongs in it depends on the task, and a consumer that
   // slots its items into `menu` finds the same «\u2026» wherever it looks --
   // which it could not when one item meant a different glyph in that corner
@@ -11610,7 +15722,7 @@ function renderMenuControl(context) {
         <sf-button-icon
                 appearance="ghost"
                 scheme="on-surface"
-                size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                size=${context.panel ? '1/3' : context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                 icon="more_horiz"
                 data-action="menu"
                 aria-haspopup="menu"
@@ -11636,11 +15748,44 @@ function renderMenuControl(context) {
 
 function renderPanelHead(context) {
   const level = phoneLevel(context);
+  const record = context.panelLabel || context.recordLabel || context.recordId || ''; // The history is a level of the same panel (C305 (2)): the C289 head with
+  // the back line to the record over its title.
+
+  const history = context.historyOpen; // One row of the ladder's step 2 (48 at a desktop; C289 (6), R254), its
+  // buttons the head's 1/3 as sf-drawer draws its own (C180 (2)). A related
+  // record opened from this one is drawn inside the same panel (sf-drawer
+  // C157 (6)); its way back is the line «← <Запись>» over the title, on the
+  // drawer's own back part (data-sf-drawer-back), so the title does not move
+  // and the close still closes the whole chain.
+
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
-        <header class="sf-property-view-head flex flex-col gap-1">
+        <header class="sf-property-view-head flex flex-col">
+            ${history ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<div class="sf-property-view-back">
+                <sf-button
+                        appearance="ghost"
+                        scheme="on-surface"
+                        size="1/3"
+                        icon-start="arrow_back"
+                        text=${record}
+                        aria-label=${`${context.backLabel}: ${record}`}
+                        data-action="history-back"
+                        @click=${() => context.component.closeHistory()}
+                ></sf-button>
+            </div>` : context.nestedUnder ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<div class="sf-property-view-back">
+                <sf-button
+                        appearance="ghost"
+                        scheme="on-surface"
+                        size="1/3"
+                        icon-start="arrow_back"
+                        text=${context.nestedUnder}
+                        aria-label=${`${context.backLabel}: ${context.nestedUnder}`}
+                        data-action="nested-back"
+                        data-sf-drawer-back
+                ></sf-button>
+            </div>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
             <div class="sf-property-view-title-row">
                 ${level ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<sf-button-icon
-                        size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                        size="1/3"
                         appearance="ghost"
                         scheme="on-surface"
                         icon="arrow_back"
@@ -11649,18 +15794,11 @@ function renderPanelHead(context) {
                         title=${context.backLabel}
                         @click=${() => context.component.closePhoneSection()}
                 ></sf-button-icon>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
-                <h2 class="sf-property-view-title min-w-0 overflow-hidden">${level ? context.phoneSectionLabel : context.panelLabel || context.recordLabel || context.recordId || ''}</h2>
-                <!-- One glyph, filled when the record is a favourite and outlined
-                     when it is not: a star that changes shape as well as fill
-                     says two things where one will do (owner, 2026-10-08). The
-                     press raises the component's own event; whether the record
-                     is a favourite stays the host's to decide and to answer.
-                     A record being created is not one yet and cannot be a
-                     favourite: no star until it has an id (Larena storage
-                     review, 2026-10-28). -->
-                ${context.recordId && context.mode !== 'create' ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<sf-button-icon
+                <h2 class="sf-property-view-title min-w-0 overflow-hidden" tabindex="-1">${history ? context.word('historyText') : level ? context.phoneSectionLabel : record}</h2>
+                ${context.recordId && context.mode !== 'create' && !history ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<sf-button-icon
                         appearance="ghost"
-                        size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                        scheme="on-surface"
+                        size="1/3"
                         icon="star"
                         ?filled=${context.favourite}
                         data-action="favourite"
@@ -11672,79 +15810,36 @@ function renderPanelHead(context) {
                 ${context.hasHostSlot('actions') ? context.hostSlot('actions') : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                 ${renderMenuControl(context)}
                 <sf-button-close
-                        size=${context.controlSize ?? '1'}
+                        size="1/3"
                         aria-label=${context.closeLabel}
                         data-action="close"
                         @click=${() => context.component.closePanel('close')}
                 ></sf-button-close>
             </div>
+            ${history || level ? lit__WEBPACK_IMPORTED_MODULE_0__.nothing : renderHeadLine(context)}
         </header>
+    `;
+} // The line under the title (C289 (6), C311 (2)): the stage as a tonal badge,
+// then up to two fields' values joined by « · ». Nothing when the head names
+// none: the title alone, as before.
+
+
+function renderHeadLine(context) {
+  const line = context.headLine;
+  if (!line || !line.status && !line.subtitle.length) return lit__WEBPACK_IMPORTED_MODULE_0__.nothing;
+  return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+        <div class="sf-property-view-head-line flex items-cross-center gap-1/3 min-w-0" data-head-line>
+            ${line.status ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<sf-badge size="1/2" appearance="tonal" scheme=${line.status.scheme}
+                    text=${line.status.text} data-head-status=${line.status.key}></sf-badge>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+            ${line.subtitle.length ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-property-view-head-subtitle color-on-surface-variant min-w-0 overflow-hidden"
+                    data-head-subtitle>${line.subtitle.map(item => item.text).join(' · ')}</span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+        </div>
     `;
 } // A section opened on a phone, inside a panel: a level of the panel (C157 (6)).
 
 
 function phoneLevel(context) {
   return Boolean(context.panel && !context.wide && (context.sections?.length ?? 0) > 1 && context.phoneSection !== null);
-} // The edge controls stand on a raised surface, elevation 3 as a menu does: its
-// own fill and shadow, and the text role that goes with it. On --sf-surface-page
-// they were the page's darkest colour on a dimmed page in the dark theme and
-// could hardly be found (owner, 2026-10-13). Inline, because the button's own
-// appearance rule outranks any selector this sheet could write.
-
-
-const EDGE_SURFACE = '--sf-icon-button--background-color: var(--sf-surface-popup); --sf-on-surface-variant: var(--sf-on-surface-popup-variant); box-shadow: var(--sf-shadow-popup)'; // Round, and on the panel's outer edge rather than inside its head: in a stack
-// each panel keeps its own set visible past the one above it, which is what the
-// mockup shows and what a row inside the head cannot do.
-//
-// A panel filling the screen has no outside, and the drawer brings the strip in
-// along the top of it, at its inline start. There the controls stand in a row,
-// as the drawer lays its own edge out, and the head keeps their room
-// (panelFills): a column there stood over the record's name and the first rows
-// on a phone (docs review, round 4, 2026-10-20).
-
-function panelFills(context) {
-  return !context.wide || context.panelSize === 'full';
-}
-
-function renderPanelControls(context) {
-  // The close is in the head (C14, C157 (6)); the strip keeps copy-link and
-  // open-full, and is hidden when the host gives neither. It is drawn from the
-  // first render all the same: sf-drawer takes a slot="edge" child into its
-  // edge area when it renders or when one is added to it directly, not when
-  // one appears later deeper in its content, so a strip drawn only once the
-  // record said it has an address stayed in the panel's body, over the record.
-  const shown = Boolean(context.edgeControlCount);
-  return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
-        <div class="sf-property-view-edge ${shown ? `flex ${panelFills(context) ? 'flex-row' : 'flex-col'} gap-1/2` : ''}" slot="edge" ?hidden=${!shown}>
-            ${context.address ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
-                        <sf-button-copy
-                                appearance="tonal"
-                                root-style=${EDGE_SURFACE}
-                                size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
-                                icon="link"
-                                value=${context.addressUrl}
-                                label=${context.copyLinkLabel}
-                                success-text=${context.linkCopiedLabel}
-                                duration=${String(context.copyFeedbackMs)}
-                                data-action="copy-link"
-                                .propertyView=${context.component}
-                                @sf-copy-button-copied=${() => context.component.announceAddressCopy(true)}
-                                @sf-copy-button-copy-failed=${() => context.component.announceAddressCopy(false)}
-                        ></sf-button-copy>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
-            ${context.canOpenFullPage ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
-                        <sf-button-icon
-                                appearance="tonal"
-                                scheme="on-surface"
-                                root-style=${EDGE_SURFACE}
-                                size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
-                                icon="open_in_full"
-                                aria-label=${context.openFullLabel}
-                                title=${context.openFullLabel}
-                                data-action="open-full"
-                                @click=${() => context.component.openFullPage()}
-                        ></sf-button-icon>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
-        </div>
-    `;
 } // The phone's list screen: below the breakpoint, with more than one section and
 // none of them opened. Named once rather than written out at each of the three
 // places that ask it -- the first version repeated the expression and the third
@@ -11753,7 +15848,9 @@ function renderPanelControls(context) {
 
 
 function onPhoneSectionList(context, sections) {
-  return !context.wide && sections.length > 1 && context.phoneSection === null;
+  // Arranging draws «Вкладки» over the fields at every width (C311 (4)): the
+  // phone's list screen is a way to read, not to arrange.
+  return !context.configuring && !context.wide && sections.length > 1 && context.phoneSection === null;
 } // The section being arranged, named where its areas are. The section list is
 // drawn by sf-tabs, whose tabs take a label as a string and nothing else, so
 // neither a pencil nor a field can stand in the list
@@ -11770,7 +15867,7 @@ function renderSectionBar(context, section, count) {
             ${renderEntryName(context, 'section', String(section.key), String(section.label ?? section.key), 'sf-property-view-section-title min-w-0')}
             <sf-button-icon
                     size="1/2"
-                    appearance="link"
+                    appearance="ghost"
                     scheme="secondary"
                     icon="delete"
                     data-action="remove-section"
@@ -11841,114 +15938,7 @@ function renderSectionIcon(context, section) {
 // «Add an area» takes the ladder's size 1, the size the panel's own controls
 // use; «add a section» stays a step below it, which is where it sits in the
 // rail (owner, 2026-10-09).
-// Keeping the list of named views, under the arrangement they belong to --
-// the same place a new area and a new section are made, because making a box is
-// one act whatever the box is (owner, 2026-10-09).
-//
-// A view is named the moment it is made, like an area and a section: a view
-// called «Новый вид» among four real ones is one nobody can tell from the
-// others. Removing is offered per view and not at all for the last shared one:
-// a scope with no shared view has nothing for a person who has made none of
-// their own, and the host refuses it anyway.
 
-
-function renderViewProfiles(context) {
-  const profiles = context.viewProfiles ?? [];
-  if (!profiles.length) return lit__WEBPACK_IMPORTED_MODULE_0__.nothing;
-  return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
-        <section class="sf-property-view-profiles flex flex-col gap-1/3">
-            <h3 class="sf-property-view-profiles-title">${context.viewProfileLabel}</h3>
-            ${profiles.map(profile => (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
-                <div class="sf-property-view-profile flex items-cross-center gap-1/3" data-profile=${profile.id}>
-                    <sf-input
-                            size="1/2"
-                            appearance="bordered"
-                            class="flex-auto min-w-0"
-                            value=${profile.label}
-                            aria-label=${profile.label}
-                            data-action="rename-profile"
-                            @change=${event => context.component.renameViewProfile(profile.id, event.detail?.value ?? event.target?.value ?? '')}
-                    ></sf-input>
-                    <span class="sf-property-view-profile-scope color-on-surface-variant">
-                        ${profile.shared ? context.sharedLayerText : context.personalLayerText}
-                    </span>
-                    <sf-button-icon
-                            size="1/2"
-                            appearance="ghost"
-                            scheme="on-surface-variant"
-                            icon="close"
-                            data-action="delete-profile"
-                            ?disabled=${!context.canDeleteViewProfile(profile.id)}
-                            title=${context.canDeleteViewProfile(profile.id) ? context.deleteViewText : context.lastSharedViewText}
-                            aria-label=${context.deleteViewText}
-                            @click=${() => context.component.deleteViewProfile(profile.id)}
-                    ></sf-button-icon>
-                </div>
-            `)}
-            ${context.namingView ? renderNewViewName(context) : (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
-                <sf-button
-                        appearance="outline"
-                        scheme="on-surface"
-                        size="1/2"
-                        text=${context.addViewText}
-                        data-action="add-profile"
-                        @click=${() => context.component.startNamingView()}
-                ></sf-button>`}
-        </section>
-    `;
-} // The name of a view about to be made, in the row the rename of an area uses.
-// Nothing is written until it is confirmed with a name.
-
-
-function renderNewViewName(context) {
-  const commit = event => {
-    const input = event.target?.closest?.('.sf-property-view-rename')?.querySelector('sf-input');
-    context.component.createViewProfile(input?.value ?? '');
-  };
-
-  return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
-        <span class="sf-property-view-rename flex items-cross-center gap-1/4 min-w-0" data-action="new-profile">
-            <sf-input
-                    size="1/2"
-                    appearance="bordered"
-                    autofocus
-                    root-class="flex-auto min-w-0"
-                    data-action="new-profile-input"
-                    aria-label=${context.addViewText}
-                    placeholder=${context.newViewText}
-                    @keydown=${event => {
-    if (event.key === 'Enter') commit(event); // Escape here leaves the naming row and nothing else: the
-    // layer stack passes over a press a control took.
-
-    if (event.key === 'Escape') {
-      event.preventDefault();
-      context.component.cancelNamingView();
-    }
-  }}
-            ></sf-input>
-            <sf-button-icon
-                    size="1/2"
-                    appearance="ghost"
-                    scheme="on-surface"
-                    icon="check"
-                    data-action="new-profile-save"
-                    title=${context.saveNameText}
-                    aria-label=${context.saveNameText}
-                    @click=${commit}
-            ></sf-button-icon>
-            <sf-button-icon
-                    size="1/2"
-                    appearance="ghost"
-                    scheme="on-surface"
-                    icon="close"
-                    data-action="new-profile-cancel"
-                    title=${context.cancelNameText}
-                    aria-label=${context.cancelNameText}
-                    @click=${() => context.component.cancelNamingView()}
-            ></sf-button-icon>
-        </span>
-    `;
-}
 
 function renderArrangementAdditions(context, section) {
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
@@ -11961,8 +15951,15 @@ function renderArrangementAdditions(context, section) {
                     data-action="add-group"
                     @click=${() => context.component.addGroup(section ? String(section.key) : '')}
             ></sf-button>
-            ${sidebarDrawn(context) ? lit__WEBPACK_IMPORTED_MODULE_0__.nothing : renderAddSection(context)}
-            ${renderViewProfiles(context)}
+            <sf-button
+                    appearance="outline"
+                    scheme="on-surface"
+                    size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                    icon-start="add"
+                    text=${context.word('newFieldText')}
+                    data-action="new-field"
+                    @click=${() => context.component.openStructureEditor()}
+            ></sf-button>
         </div>
     `;
 } // A new section is made at the end of the sections (owner, 2026-10-08), which is
@@ -11971,12 +15968,14 @@ function renderArrangementAdditions(context, section) {
 
 
 function renderAddSection(context) {
+  // «+ Вкладка» makes a tab with a «Поля» area (C311 (4)).
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
         <sf-button
                 appearance="outline"
                 scheme="on-surface"
                 size="1/2"
-                text=${context.addSectionText}
+                icon-start="add"
+                text=${context.word('addTabText')}
                 data-action="add-section"
                 @click=${() => context.component.addSection()}
         ></sf-button>
@@ -11989,7 +15988,72 @@ function renderAddSection(context) {
 
 function sidebarDrawn(context) {
   const sections = listed(context, context.sections);
-  return Boolean(context.wide && context.sectionsAs === 'list' && (sections.length > 1 || context.configuring));
+  return Boolean(context.sectionsLayout === 'column' && (sections.length > 1 || context.configuring));
+} // The line of tabs under the head (C289 (1)): a panel narrower than the whole
+// screen, or a page that asked for tabs, with more than one section. While the
+// view is arranged the sections are rows that take a drop, drawn over the
+// groups instead (sectionsStacked).
+
+
+function lineTabsDrawn(context, sections) {
+  return context.sectionsLayout === 'tabs' && sections.length > 1 && !context.configuring;
+} // While arranging, «Вкладки» stand over the fields wherever the sections are
+// not a column beside them -- tabs, and a narrow card (C311 (4)).
+
+
+function sectionsStacked(context) {
+  return context.configuring && (context.sectionsLayout === 'tabs' || context.sectionsLayout === 'phone');
+} // The errors of a save, from two of them (C182 (6)): a summary over the
+// fields with a link to each, which takes the focus; one error takes the
+// focus to its field. The look is sf-form's summary (the quiet error
+// container), so a record and a form say it the same way.
+
+
+function renderErrorSummary(context) {
+  const list = context.errorList ?? [];
+  if (list.length < 2 || !(context.editing || context.openAll)) return lit__WEBPACK_IMPORTED_MODULE_0__.nothing;
+  return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<div class="sf-property-view-error-summary" role="alert" tabindex="-1">
+        <p class="sf-property-view-error-summary-title">${context.errorsText}: ${list.length}</p>
+        <ul class="sf-property-view-error-summary-list">${list.map(error => (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<li><a href=${`#${error.key}`}
+            data-field-link=${error.key}
+            @click=${event => {
+    event.preventDefault();
+    context.component.focusField(error.key);
+  }}>${error.label}: ${error.message}</a></li>`)}</ul>
+    </div>`;
+} // The record's history (C305 (2), RC-3): sf-list-timeline by day, newest
+// first, each change's before and after drawn by its field's template, the
+// author and the time; «Показать ещё» asks the host for the next page.
+
+
+function renderHistoryFeed(context) {
+  const feed = context.history;
+  const items = feed?.items ?? [];
+  const loading = !feed || feed.loading;
+  return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+        <sf-list-timeline class="sf-property-view-history"
+                group="day"
+                label=${context.word('historyText')}
+                .items=${items}
+                ?has-more=${Boolean(feed?.hasMore)}
+                ?loading=${loading}
+                empty-text=${feed?.failed ? context.word('historyFailedText') : context.word('historyEmptyText')}
+                @sf-list-timeline-load-more=${() => context.component.loadHistory({
+    more: true
+  })}
+        ></sf-list-timeline>
+    `;
+} // The full screen from 80rem: the history in a column of its own beside the
+// fields (C305 (3), VP-22), --sf-view-properties-side-width (24rem).
+
+
+function renderHistorySide(context) {
+  return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+        <aside class="sf-property-view-side min-w-0" aria-label=${context.word('historyText')}>
+            <div class="sf-property-view-side-title" role="heading" aria-level="3">${context.word('historyText')}</div>
+            ${renderHistoryFeed(context)}
+        </aside>
+    `;
 } // The record on its way: the arrangement's shape in the Framework's skeleton
 // -- a sentence in its place said nothing about it (owner, 2026-10-14). Each
 // group is the card a group read by itself draws until its fields come
@@ -12017,7 +16081,7 @@ function renderLoading(context) {
   // The root is not .sf-tabs: that class is the tabs script's to bind.
 
 
-  const tabs = (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<div class="sf-property-view-tabs sf-property-view-tabs--skeleton" aria-hidden="true" data-sf-skeleton="tabs" data-sections-as=${context.sectionsAs} data-size=${context.size}><div class="sf-tabs-top-container"><div class="sf-property-view-tabs-skeleton-strip flex items-cross-center gap-2">${[0, 1, 2].map(at => (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<div class="flex-none" style="inline-size: 6rem">${bar(at + 3)}</div>`)}</div></div><div class="sf-tabs-main-container"></div></div>`;
+  const tabs = (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<div class="sf-property-view-tabs sf-property-view-tabs--skeleton" aria-hidden="true" data-sf-skeleton="tabs" data-sections-as=${context.sectionsLayout === 'tabs' ? 'tabs' : 'list'} data-size=${context.size}><div class="sf-tabs-top-container"><div class="sf-property-view-tabs-skeleton-strip flex items-cross-center gap-2">${[0, 1, 2].map(at => (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<div class="flex-none" style="inline-size: 6rem">${bar(at + 3)}</div>`)}</div></div><div class="sf-tabs-main-container"></div></div>`;
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`${tabs}<div class="sf-property-view-loading flex flex-col gap-4" data-state="loading">${Array.from({
     length: SKELETON_GROUPS
   }, (_, group) => (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<section class="sf-property-view-group bg-surface-page flex flex-col gap-2" aria-busy="true"><header class="sf-property-view-group-header flex items-cross-center content-main-between gap-2"><div class="flex-1">${bar(group)}</div></header>${Array.from({
@@ -12037,9 +16101,27 @@ function renderLoadFailure(context) {
 
 function renderBody(context, railOutside = false, withActions = true) {
   if (context.loading) return renderLoading(context);
-  if (context.loadFailure) return renderLoadFailure(context); // Sections are listed the same way fields and groups are while the view is
+  if (context.loadFailure) return renderLoadFailure(context); // In place, the history level stands where the record was, its back line
+  // over it (a panel draws it under its head).
+
+  if (!context.panel && context.historyOpen) {
+    const record = context.panelLabel || context.recordLabel || context.recordId || '';
+    return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+            <div class="sf-property-view-back">
+                <sf-button appearance="ghost" scheme="on-surface" size="1/3" icon-start="arrow_back" text=${record}
+                           aria-label=${`${context.backLabel}: ${record}`} data-action="history-back"
+                           @click=${() => context.component.closeHistory()}></sf-button>
+            </div>
+            <div class="sf-property-view-history-head flex items-cross-center gap-1">
+                <div class="sf-property-view-side-title flex-auto" role="heading" aria-level="2">${context.word('historyText')}</div>
+                ${renderMenuControl(context)}
+            </div>
+            ${renderHistoryFeed(context)}
+        `;
+  } // Sections are listed the same way fields and groups are while the view is
   // being configured: a hidden section filtered out here would be a section
   // nobody could ever show again.
+
 
   const sections = listed(context, context.sections);
   const current = sections.find(section => String(section.key) === context.selectedSection) ?? sections[0] ?? null;
@@ -12047,23 +16129,28 @@ function renderBody(context, railOutside = false, withActions = true) {
         <div class="sf-property-view-status" role="status" aria-live="polite" ?hidden=${!context.message}>
             ${context.message}
         </div>
-        ${!context.panel && (context.hasHostSlot('actions') || context.hasHostSlot('menu') || context.panelMenuItems.length) ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+        ${!context.panel && (context.hasHostSlot('actions') || context.hasHostSlot('menu') || context.panelMenuItems.length || context.canDeleteRecord || (context.recordMenuItems?.length ?? 0) > 0) ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
                     <div class="sf-property-view-host-actions flex flex-wrap items-cross-center justify-end gap-1">
                         ${context.hasHostSlot('actions') ? context.hostSlot('actions') : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                         ${renderMenuControl(context)}
                     </div>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+        ${context.panel ? lit__WEBPACK_IMPORTED_MODULE_0__.nothing : renderHeadLine(context)}
         ${onPhoneSectionList(context, sections) ? renderPhoneSectionList(context, sections) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
-        ${context.wide && context.sectionsAs === 'tabs' && sections.length > 1 ? renderSectionTabs(context, sections) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+        ${lineTabsDrawn(context, sections) ? renderSectionTabs(context, sections) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
         <div class="sf-property-view-layout"
              style=${`--sf-property-view--sections-width: ${context.sectionsWidth};${context.panel ? '' : sizeStyle(context)}`}
              data-sections=${String(sections.length)}
-             data-screen=${onPhoneSectionList(context, sections) ? 'sections' : 'groups'}>
-            ${!context.panel && !context.wide && sections.length > 1 && context.phoneSection !== null ? renderPhoneSectionHead(context) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
-            ${sidebarDrawn(context) && !railOutside ? renderSectionList(context, sections) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+             data-screen=${onPhoneSectionList(context, sections) ? 'sections' : 'groups'}
+             data-stacked=${sectionsStacked(context) ? 'true' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}>
+            ${!context.panel && !context.wide && !context.configuring && sections.length > 1 && context.phoneSection !== null ? renderPhoneSectionHead(context) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+            ${onPhoneSectionList(context, sections) ? renderViewChooser(context) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+            ${sectionsStacked(context) ? renderConfigureTop(context) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+            ${sidebarDrawn(context) && !railOutside || sectionsStacked(context) ? renderSectionList(context, sections) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
             ${context.isEmptyRecord && !context.configuring ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<p class="sf-property-view-empty-record color-on-surface-variant"
                               role="status">${context.emptyRecordText}</p>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
             ${onPhoneSectionList(context, sections) ? lit__WEBPACK_IMPORTED_MODULE_0__.nothing : context.configuring ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
                         <div class="sf-property-view-body flex-auto min-w-0 flex flex-col gap-4">
+                            ${sectionsStacked(context) ? lit__WEBPACK_IMPORTED_MODULE_0__.nothing : renderConfigureTop(context)}
                             ${renderSectionBar(context, current, sections.length)}
                             <sf-sortable
                                     class="sf-property-view-groups flex flex-col gap-4"
@@ -12076,8 +16163,13 @@ function renderBody(context, railOutside = false, withActions = true) {
                             ${renderUnplaced(context)}
                         </div>` : (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
                         <div class="sf-property-view-body flex-auto min-w-0 flex flex-col gap-4">
-                            ${context.visible(current?.groups).map(group => renderGroup(context, current, group))}
+                            ${renderViewChooser(context)}
+                            ${renderErrorSummary(context)}
+                            <div class="sf-list-description sf-list-description--size-${context.size === '1/2' ? 'half' : '1'} sf-list-description--layout-auto sf-list-description--sections sf-property-view-list">
+                                <div class="sf-list-description-list">${context.visible(current?.groups).map(group => renderGroup(context, current, group))}</div>
+                            </div>
                         </div>`}
+            ${!context.panel && context.historySide ? renderHistorySide(context) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
         </div>
         ${withActions && context.hasHostSlot('footer') ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<div class="sf-property-view-host-footer flex flex-wrap items-cross-center gap-1/3">${context.hostSlot('footer')}</div>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
         ${withActions ? renderActions(context) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
@@ -12136,26 +16228,29 @@ function renderPropertyViewTemplate(context) {
                 placement="inline-end"
                 modal="true"
                 overlay="true"
-                size=${context.wide ? context.panelSize : 'full'}
-                width=${context.wide ? context.drawerWidth || lit__WEBPACK_IMPORTED_MODULE_0__.nothing : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                ?docked=${context.docked}
+                dock-breakpoint=${context.docked ? context.dockBreakpoint : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                size=${context.wide ? context.drawerStep : 'full'}
                 gutter="var(--sf-space-1)"
                 panel-style=${`--sf-drawer-background: var(--sf-surface-area); --sf-property-view--sections-width: ${context.sectionsWidth}; scrollbar-gutter: auto;${sizeStyle(context)}`}
                 show-close="false"
                 close-label=${context.closeLabel}
-                label=${context.panelLabel || context.recordId || ''}
+                label=${context.panelLabel || context.recordLabel || context.recordId || ''}
         >
-            ${renderPanelControls(context)}
-            <div class="sf-property-view-panel relative flex flex-col gap-2${rail ? ' sf-property-view-panel--railed' : ''}${panelFills(context) && context.edgeControlCount ? ' sf-property-view-panel--fills' : ''}"
-                 style=${panelFills(context) && context.edgeControlCount ? `--sf-property-view--edge-room: calc(${context.edgeControlCount} * ${context.edgeControlWidth} + ${context.edgeControlCount - 1} * var(--sf-space-1\\/2));` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+            <div class="sf-property-view-panel relative flex flex-col gap-2${rail ? ' sf-property-view-panel--railed' : ''}"
                  data-record-id=${context.recordId || ''}
+                 data-sections-layout=${context.sectionsLayout}
+                 data-nested=${context.nestedUnder ? 'true' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
             >
                 ${renderPanelHead(context)}
-                <div class="sf-property-view-scroll flex-auto min-h-0 ${rail ? 'flex' : 'flex flex-col'}">
-                    ${rail ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+                <div class="sf-property-view-scroll flex-auto min-h-0 ${rail && !context.historyOpen ? 'flex' : 'flex flex-col'}"
+                     data-history=${context.historyOpen ? 'level' : context.historySide ? 'side' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}>
+                    ${context.historyOpen ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<div class="sf-property-view-frame flex-auto min-w-0 flex flex-col gap-2">${renderHistoryFeed(context)}</div>` : rail ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
                                 ${renderSectionList(context, listed(context, context.sections))}
                                 <div class="sf-property-view-frame flex-auto min-w-0 flex flex-col gap-2">
                                     ${renderBody(context, true, false)}
-                                </div>` : renderBody(context, false, false)}
+                                </div>
+                                ${context.historySide ? renderHistorySide(context) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}` : renderBody(context, false, false)}
                 </div>
                 ${renderActions(context, {
     panel: true
@@ -12163,74 +16258,6 @@ function renderPropertyViewTemplate(context) {
             </div>
         </sf-drawer>
     `;
-}
-__webpack_async_result__();
-} catch(e) { __webpack_async_result__(e); } });
-
-/***/ },
-
-/***/ "2f31b00ad99a"
-(module, __webpack_exports__, __webpack_require__) {
-
-__webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   DATE_TYPES: () => (/* binding */ DATE_TYPES),
-/* harmony export */   formatDateValue: () => (/* binding */ formatDateValue)
-/* harmony export */ });
-/* harmony import */ var _core_js_format_date_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("e577837dd70a");
-var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_core_js_format_date_js__WEBPACK_IMPORTED_MODULE_0__]);
-var __webpack_async_dependencies_result__ = (__webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
-_core_js_format_date_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_async_dependencies_result__[0];
- // A date, a date and time or a time of day in the page's language, through
-// the SIMAI Framework's format-date module, for a value the host did not
-// format (formatFieldValue). The host's own text still wins; without one, a
-// date read «2026-11-02» where a person expects «2 нояб. 2026 г.».
-//
-// The forms are read as a host stores them: a day «YYYY-MM-DD» is that day on
-// the reader's calendar (not UTC midnight, which is the day before west of
-// Greenwich); a date and time with a zone is that moment in the reader's zone
-// and one without a zone is the wall clock as written; a time «hh:mm[:ss]» is
-// a time of day. Anything else is left for the caller to print as it came.
-
-const DAY = /^(\d{4})-(\d{2})-(\d{2})$/u;
-const TIME = /^(\d{2}):(\d{2})(?::(\d{2})(?:\.\d+)?)?$/u;
-const DATE_TIME = /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})(?::(\d{2})(?:\.\d+)?)?(Z|[+-]\d{2}:?\d{2})?$/u;
-const DATE_TYPES = new Set(['date', 'datetime', 'time']);
-
-function readMoment(type, text) {
-  const day = DAY.exec(text);
-  if (day) return new Date(Number(day[1]), Number(day[2]) - 1, Number(day[3]));
-  const time = TIME.exec(text);
-  if (time) return type === 'time' ? new Date(2000, 0, 1, Number(time[1]), Number(time[2]), Number(time[3] ?? 0)) : null;
-  const stamp = DATE_TIME.exec(text);
-  if (!stamp) return null;
-
-  if (stamp[7]) {
-    const moment = new Date(text.replace(' ', 'T'));
-    return Number.isNaN(moment.getTime()) ? null : moment;
-  }
-
-  return new Date(Number(stamp[1]), Number(stamp[2]) - 1, Number(stamp[3]), Number(stamp[4]), Number(stamp[5]), Number(stamp[6] ?? 0));
-} // The text for a value of a date type, or '' when it is not one this reads.
-
-
-function formatDateValue(type, value, node) {
-  if (!DATE_TYPES.has(type) || typeof value !== 'string' || !value.trim()) return '';
-  const text = value.trim();
-  const moment = readMoment(type, text);
-  if (!moment) return '';
-  const hasTime = type !== 'date' && !DAY.test(text);
-  if (type === 'time') return (0,_core_js_format_date_js__WEBPACK_IMPORTED_MODULE_0__.formatDate)(moment, {
-    date: null,
-    time: 'short',
-    node
-  });
-  return (0,_core_js_format_date_js__WEBPACK_IMPORTED_MODULE_0__.formatDate)(moment, {
-    date: 'medium',
-    time: hasTime ? 'short' : null,
-    node
-  });
 }
 __webpack_async_result__();
 } catch(e) { __webpack_async_result__(e); } });
@@ -12437,6 +16464,85 @@ module.exports = (globalThis.SF && globalThis.SF.runtimeModule ? globalThis.SF.r
 (module) {
 
 module.exports = (globalThis.SF && globalThis.SF.runtimeModule ? globalThis.SF.runtimeModule("smart-base", 1) : new Promise((resolve, reject) => globalThis.addEventListener("sf-runtime-ready", () => globalThis.SF.runtimeModule("smart-base", 1).then(resolve, reject), { once: true })));
+
+/***/ },
+
+/***/ "0e2a9b296d0b"
+(__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   Directive: () => (/* binding */ i),
+/* harmony export */   PartType: () => (/* binding */ t),
+/* harmony export */   directive: () => (/* binding */ e)
+/* harmony export */ });
+/**
+ * @license
+ * Copyright 2017 Google LLC
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+const t={ATTRIBUTE:1,CHILD:2,PROPERTY:3,BOOLEAN_ATTRIBUTE:4,EVENT:5,ELEMENT:6},e=t=>(...e)=>({_$litDirective$:t,values:e});class i{constructor(t){}get _$AU(){return this._$AM._$AU}_$AT(t,e,i){this._$Ct=t,this._$AM=e,this._$Ci=i}_$AS(t,e){return this.update(t,e)}update(t,e){return this.render(...e)}}
+//# sourceMappingURL=directive.js.map
+
+
+/***/ },
+
+/***/ "a3820f08234c"
+(__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   guard: () => (/* binding */ i)
+/* harmony export */ });
+/* harmony import */ var _lit_html_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("f550d360fd36");
+/* harmony import */ var _directive_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__("0e2a9b296d0b");
+
+/**
+ * @license
+ * Copyright 2018 Google LLC
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+const e={},i=(0,_directive_js__WEBPACK_IMPORTED_MODULE_1__.directive)(class extends _directive_js__WEBPACK_IMPORTED_MODULE_1__.Directive{constructor(){super(...arguments),this.ot=e}render(r,t){return t()}update(t,[s,e]){if(Array.isArray(s)){if(Array.isArray(this.ot)&&this.ot.length===s.length&&s.every((r,t)=>r===this.ot[t]))return _lit_html_js__WEBPACK_IMPORTED_MODULE_0__.noChange}else if(this.ot===s)return _lit_html_js__WEBPACK_IMPORTED_MODULE_0__.noChange;return this.ot=Array.isArray(s)?Array.from(s):s,this.render(s,e)}});
+//# sourceMappingURL=guard.js.map
+
+
+/***/ },
+
+/***/ "f550d360fd36"
+(__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   _$LH: () => (/* binding */ j),
+/* harmony export */   html: () => (/* binding */ b),
+/* harmony export */   mathml: () => (/* binding */ T),
+/* harmony export */   noChange: () => (/* binding */ E),
+/* harmony export */   nothing: () => (/* binding */ A),
+/* harmony export */   render: () => (/* binding */ D),
+/* harmony export */   svg: () => (/* binding */ w)
+/* harmony export */ });
+/**
+ * @license
+ * Copyright 2017 Google LLC
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+const t=globalThis,i=t=>t,s=t.trustedTypes,e=s?s.createPolicy("lit-html",{createHTML:t=>t}):void 0,h="$lit$",o=`lit$${Math.random().toFixed(9).slice(2)}$`,n="?"+o,r=`<${n}>`,l=document,c=()=>l.createComment(""),a=t=>null===t||"object"!=typeof t&&"function"!=typeof t,u=Array.isArray,d=t=>u(t)||"function"==typeof t?.[Symbol.iterator],f="[ \t\n\f\r]",v=/<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g,_=/-->/g,m=/>/g,p=RegExp(`>|${f}(?:([^\\s"'>=/]+)(${f}*=${f}*(?:[^ \t\n\f\r"'\`<>=]|("|')|))|$)`,"g"),g=/'/g,$=/"/g,y=/^(?:script|style|textarea|title)$/i,x=t=>(i,...s)=>({_$litType$:t,strings:i,values:s}),b=x(1),w=x(2),T=x(3),E=Symbol.for("lit-noChange"),A=Symbol.for("lit-nothing"),C=new WeakMap,P=l.createTreeWalker(l,129);function V(t,i){if(!u(t)||!t.hasOwnProperty("raw"))throw Error("invalid template strings array");return void 0!==e?e.createHTML(i):i}const N=(t,i)=>{const s=t.length-1,e=[];let n,l=2===i?"<svg>":3===i?"<math>":"",c=v;for(let i=0;i<s;i++){const s=t[i];let a,u,d=-1,f=0;for(;f<s.length&&(c.lastIndex=f,u=c.exec(s),null!==u);)f=c.lastIndex,c===v?"!--"===u[1]?c=_:void 0!==u[1]?c=m:void 0!==u[2]?(y.test(u[2])&&(n=RegExp("</"+u[2],"g")),c=p):void 0!==u[3]&&(c=p):c===p?">"===u[0]?(c=n??v,d=-1):void 0===u[1]?d=-2:(d=c.lastIndex-u[2].length,a=u[1],c=void 0===u[3]?p:'"'===u[3]?$:g):c===$||c===g?c=p:c===_||c===m?c=v:(c=p,n=void 0);const x=c===p&&t[i+1].startsWith("/>")?" ":"";l+=c===v?s+r:d>=0?(e.push(a),s.slice(0,d)+h+s.slice(d)+o+x):s+o+(-2===d?i:x)}return[V(t,l+(t[s]||"<?>")+(2===i?"</svg>":3===i?"</math>":"")),e]};class S{constructor({strings:t,_$litType$:i},e){let r;this.parts=[];let l=0,a=0;const u=t.length-1,d=this.parts,[f,v]=N(t,i);if(this.el=S.createElement(f,e),P.currentNode=this.el.content,2===i||3===i){const t=this.el.content.firstChild;t.replaceWith(...t.childNodes)}for(;null!==(r=P.nextNode())&&d.length<u;){if(1===r.nodeType){if(r.hasAttributes())for(const t of r.getAttributeNames())if(t.endsWith(h)){const i=v[a++],s=r.getAttribute(t).split(o),e=/([.?@])?(.*)/.exec(i);d.push({type:1,index:l,name:e[2],strings:s,ctor:"."===e[1]?I:"?"===e[1]?L:"@"===e[1]?z:H}),r.removeAttribute(t)}else t.startsWith(o)&&(d.push({type:6,index:l}),r.removeAttribute(t));if(y.test(r.tagName)){const t=r.textContent.split(o),i=t.length-1;if(i>0){r.textContent=s?s.emptyScript:"";for(let s=0;s<i;s++)r.append(t[s],c()),P.nextNode(),d.push({type:2,index:++l});r.append(t[i],c())}}}else if(8===r.nodeType)if(r.data===n)d.push({type:2,index:l});else{let t=-1;for(;-1!==(t=r.data.indexOf(o,t+1));)d.push({type:7,index:l}),t+=o.length-1}l++}}static createElement(t,i){const s=l.createElement("template");return s.innerHTML=t,s}}function M(t,i,s=t,e){if(i===E)return i;let h=void 0!==e?s._$Co?.[e]:s._$Cl;const o=a(i)?void 0:i._$litDirective$;return h?.constructor!==o&&(h?._$AO?.(!1),void 0===o?h=void 0:(h=new o(t),h._$AT(t,s,e)),void 0!==e?(s._$Co??=[])[e]=h:s._$Cl=h),void 0!==h&&(i=M(t,h._$AS(t,i.values),h,e)),i}class R{constructor(t,i){this._$AV=[],this._$AN=void 0,this._$AD=t,this._$AM=i}get parentNode(){return this._$AM.parentNode}get _$AU(){return this._$AM._$AU}u(t){const{el:{content:i},parts:s}=this._$AD,e=(t?.creationScope??l).importNode(i,!0);P.currentNode=e;let h=P.nextNode(),o=0,n=0,r=s[0];for(;void 0!==r;){if(o===r.index){let i;2===r.type?i=new k(h,h.nextSibling,this,t):1===r.type?i=new r.ctor(h,r.name,r.strings,this,t):6===r.type&&(i=new Z(h,this,t)),this._$AV.push(i),r=s[++n]}o!==r?.index&&(h=P.nextNode(),o++)}return P.currentNode=l,e}p(t){let i=0;for(const s of this._$AV)void 0!==s&&(void 0!==s.strings?(s._$AI(t,s,i),i+=s.strings.length-2):s._$AI(t[i])),i++}}class k{get _$AU(){return this._$AM?._$AU??this._$Cv}constructor(t,i,s,e){this.type=2,this._$AH=A,this._$AN=void 0,this._$AA=t,this._$AB=i,this._$AM=s,this.options=e,this._$Cv=e?.isConnected??!0}get parentNode(){let t=this._$AA.parentNode;const i=this._$AM;return void 0!==i&&11===t?.nodeType&&(t=i.parentNode),t}get startNode(){return this._$AA}get endNode(){return this._$AB}_$AI(t,i=this){t=M(this,t,i),a(t)?t===A||null==t||""===t?(this._$AH!==A&&this._$AR(),this._$AH=A):t!==this._$AH&&t!==E&&this._(t):void 0!==t._$litType$?this.$(t):void 0!==t.nodeType?this.T(t):d(t)?this.k(t):this._(t)}O(t){return this._$AA.parentNode.insertBefore(t,this._$AB)}T(t){this._$AH!==t&&(this._$AR(),this._$AH=this.O(t))}_(t){this._$AH!==A&&a(this._$AH)?this._$AA.nextSibling.data=t:this.T(l.createTextNode(t)),this._$AH=t}$(t){const{values:i,_$litType$:s}=t,e="number"==typeof s?this._$AC(t):(void 0===s.el&&(s.el=S.createElement(V(s.h,s.h[0]),this.options)),s);if(this._$AH?._$AD===e)this._$AH.p(i);else{const t=new R(e,this),s=t.u(this.options);t.p(i),this.T(s),this._$AH=t}}_$AC(t){let i=C.get(t.strings);return void 0===i&&C.set(t.strings,i=new S(t)),i}k(t){u(this._$AH)||(this._$AH=[],this._$AR());const i=this._$AH;let s,e=0;for(const h of t)e===i.length?i.push(s=new k(this.O(c()),this.O(c()),this,this.options)):s=i[e],s._$AI(h),e++;e<i.length&&(this._$AR(s&&s._$AB.nextSibling,e),i.length=e)}_$AR(t=this._$AA.nextSibling,s){for(this._$AP?.(!1,!0,s);t!==this._$AB;){const s=i(t).nextSibling;i(t).remove(),t=s}}setConnected(t){void 0===this._$AM&&(this._$Cv=t,this._$AP?.(t))}}class H{get tagName(){return this.element.tagName}get _$AU(){return this._$AM._$AU}constructor(t,i,s,e,h){this.type=1,this._$AH=A,this._$AN=void 0,this.element=t,this.name=i,this._$AM=e,this.options=h,s.length>2||""!==s[0]||""!==s[1]?(this._$AH=Array(s.length-1).fill(new String),this.strings=s):this._$AH=A}_$AI(t,i=this,s,e){const h=this.strings;let o=!1;if(void 0===h)t=M(this,t,i,0),o=!a(t)||t!==this._$AH&&t!==E,o&&(this._$AH=t);else{const e=t;let n,r;for(t=h[0],n=0;n<h.length-1;n++)r=M(this,e[s+n],i,n),r===E&&(r=this._$AH[n]),o||=!a(r)||r!==this._$AH[n],r===A?t=A:t!==A&&(t+=(r??"")+h[n+1]),this._$AH[n]=r}o&&!e&&this.j(t)}j(t){t===A?this.element.removeAttribute(this.name):this.element.setAttribute(this.name,t??"")}}class I extends H{constructor(){super(...arguments),this.type=3}j(t){this.element[this.name]=t===A?void 0:t}}class L extends H{constructor(){super(...arguments),this.type=4}j(t){this.element.toggleAttribute(this.name,!!t&&t!==A)}}class z extends H{constructor(t,i,s,e,h){super(t,i,s,e,h),this.type=5}_$AI(t,i=this){if((t=M(this,t,i,0)??A)===E)return;const s=this._$AH,e=t===A&&s!==A||t.capture!==s.capture||t.once!==s.once||t.passive!==s.passive,h=t!==A&&(s===A||e);e&&this.element.removeEventListener(this.name,this,s),h&&this.element.addEventListener(this.name,this,t),this._$AH=t}handleEvent(t){"function"==typeof this._$AH?this._$AH.call(this.options?.host??this.element,t):this._$AH.handleEvent(t)}}class Z{constructor(t,i,s){this.element=t,this.type=6,this._$AN=void 0,this._$AM=i,this.options=s}get _$AU(){return this._$AM._$AU}_$AI(t){M(this,t)}}const j={M:h,P:o,A:n,C:1,L:N,R,D:d,V:M,I:k,H,N:L,U:z,B:I,F:Z},B=t.litHtmlPolyfillSupport;B?.(S,k),(t.litHtmlVersions??=[]).push("3.3.3");const D=(t,i,s)=>{const e=s?.renderBefore??i;let h=e._$litPart$;if(void 0===h){const t=s?.renderBefore??null;e._$litPart$=h=new k(i.insertBefore(c(),t),t,void 0,s??{})}return h._$AI(t),h};
+//# sourceMappingURL=lit-html.js.map
+
+
+/***/ },
+
+/***/ "fc5ce1a4b1d8"
+(__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   guard: () => (/* reexport safe */ lit_html_directives_guard_js__WEBPACK_IMPORTED_MODULE_0__.guard)
+/* harmony export */ });
+/* harmony import */ var lit_html_directives_guard_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("a3820f08234c");
+
+//# sourceMappingURL=guard.js.map
+
 
 /***/ },
 
@@ -13352,6 +17458,50 @@ function richTextFromPlainText(text, {mode = 'value'} = {}) {
 
 /***/ },
 
+/***/ "4bd9c3b168e0"
+(__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__),
+/* harmony export */   files: () => (/* binding */ files)
+/* harmony export */ });
+/* harmony import */ var _en_json__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("4bc232cd5c70");
+// Written by scripts/build-language-packs.mjs from src/core/lang/built-in.json
+// (owner decision C282); do not edit. The words this bundle carries: the
+// built-in languages' (en); every other language comes from
+// a language file (core/lang/<code>.js or its parts).
+
+
+const files = { en: { runtime: _en_json__WEBPACK_IMPORTED_MODULE_0__.runtime } };
+
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({ en: _en_json__WEBPACK_IMPORTED_MODULE_0__.runtime });
+
+
+/***/ },
+
+/***/ "354525e80715"
+(__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__),
+/* harmony export */   files: () => (/* binding */ files)
+/* harmony export */ });
+/* harmony import */ var _en_json__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("f050502c25f8");
+// Written by scripts/build-language-packs.mjs from src/core/lang/built-in.json
+// (owner decision C282); do not edit. The words this bundle carries: the
+// built-in languages' (en); every other language comes from
+// a language file (core/lang/<code>.js or its parts).
+
+
+const files = { en: { runtime: _en_json__WEBPACK_IMPORTED_MODULE_0__.runtime } };
+
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({ en: _en_json__WEBPACK_IMPORTED_MODULE_0__.runtime });
+
+
+/***/ },
+
 /***/ "4f56033a1eae"
 (__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) {
 
@@ -13381,31 +17531,45 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ },
 
+/***/ "4bc232cd5c70"
+(module) {
+
+module.exports = /*#__PURE__*/JSON.parse('{"runtime":{"folder":"folder, directory","folder_open":"open, folder","topic":"topic, section","home":"home, main","dashboard":"dashboard, overview","apartment":"building, organisation","store":"store, shop","storefront":"storefront, shop","business_center":"business, briefcase","work":"work, briefcase","badge":"badge, pass, id","person":"person, user","group":"group, people","groups":"groups, community","account_circle":"account, profile","manage_accounts":"manage, accounts, users","supervisor_account":"supervisor, team","contacts":"contacts","school":"school, learning","menu_book":"book, manual","assignment":"assignment","task":"task","description":"document, description","article":"article","note_alt":"note","edit_note":"edit, note","draft":"draft","receipt":"receipt","receipt_long":"bill, receipt","request_quote":"quote, estimate","inventory_2":"archive, inventory","category":"category","label":"label, tag","sell":"price, sell","local_offer":"offer, discount","shopping_cart":"shopping, cart","shopping_bag":"shopping, bag","payments":"payments, money","savings":"savings","credit_card":"credit, card","account_balance":"bank, account","calculate":"calculator","percent":"percent","trending_up":"trend, growth","analytics":"analytics","insights":"insights","monitoring":"monitoring","bar_chart":"bar, chart","pie_chart":"pie, chart","table_chart":"table","schedule":"time, clock, schedule","event":"event","today":"today","calendar_month":"calendar","date_range":"date, range","history":"history","alarm":"alarm","timer":"timer","update":"update","hourglass_top":"hourglass, waiting","mail":"mail, email, letter","outgoing_mail":"outgoing, mail","chat":"chat, message","forum":"forum, discussion","sms":"sms, text","call":"call, phone","phone_in_talk":"phone, call, talk","contact_support":"support, help","campaign":"campaign, announcement","notifications":"notifications","language":"language, world","public":"public, web, world","place":"place","map":"map","location_on":"location, address","travel_explore":"travel, explore","flight":"flight, plane","local_shipping":"shipping, delivery","route":"route","directions":"directions","settings":"settings","tune":"tune, filter","build":"build, tools","construction":"construction","handyman":"handyman, repair","code":"code","terminal":"terminal, console","data_object":"data, object","api":"api","bug_report":"bug","database":"database","storage":"storage","cloud":"cloud","backup":"backup","sync":"sync","folder_zip":"zip, archive","upload_file":"upload, file","download":"download","attach_file":"attach, file","link":"link","lock":"lock","lock_open":"unlock, open","shield":"shield, protection","verified_user":"verified, user","key":"key","admin_panel_settings":"admin","policy":"policy","gavel":"law, gavel","fingerprint":"fingerprint","visibility":"visibility, view","palette":"palette, colour, color","format_paint":"format, paint","image":"image, picture","photo_library":"photos, gallery","collections":"collections","movie":"movie, video","play_circle":"play","mic":"microphone","headphones":"headphones, audio","brush":"brush"}}');
+
+/***/ },
+
+/***/ "f050502c25f8"
+(module) {
+
+module.exports = /*#__PURE__*/JSON.parse('{"runtime":{"yes":"Yes","no":"No","searchInList":"Find in the list","containsText":"Contains…","fileKind_image":"Images","fileKind_document":"Documents","fileKind_archive":"Archives","fileKind_other":"Other files","operator":"Operator","rangeFrom":"From","rangeTo":"To","condition":"Condition","numberOperator_eq":"Equals","numberOperator_neq":"Not equal","numberOperator_gt":"Greater than","numberOperator_gte":"At least","numberOperator_lt":"Less than","numberOperator_lte":"At most","numberOperator_between":"Between","numberOperator_empty":"Empty","numberOperator_not-empty":"Not empty","filterNumber":"Number","filterAmount":"Amount","filterPercent":"Percent","dateCondition":"Condition","dateByDayIn":"Compared by day, time zone {zone}","dateGroup_date":"Date","dateGroup_period":"Period","dateGroup_filled":"Filled","dateGroup_range":"The record\'s period","dateCondition_eq":"Exact date","dateCondition_between":"Between","dateCondition_lt":"Before","dateCondition_gt":"After","dateCondition_gte":"On or after","dateCondition_lte":"On or before","dateCondition_lastDays":"Last N days","dateCondition_nextDays":"Next N days","dateCondition_empty":"Empty","dateCondition_notEmpty":"Not empty","dateCondition_overlaps":"Runs in","dateCondition_within":"Entirely in","dateCondition_starts":"Starts in","dateCondition_ends":"Ends in","dateCondition_contains":"Runs on the day","datePeriod_today":"Today","datePeriod_yesterday":"Yesterday","datePeriod_thisWeek":"This week","datePeriod_lastWeek":"Last week","datePeriod_last7Days":"Last 7 days","datePeriod_thisMonth":"This month","datePeriod_lastMonth":"Last month","datePeriod_thisYear":"This year","datePeriod_tomorrow":"Tomorrow","datePeriod_nextWeek":"Next week","datePeriod_nextMonth":"Next month","datePeriodIn_today":"today","datePeriodIn_yesterday":"yesterday","datePeriodIn_thisWeek":"this week","datePeriodIn_lastWeek":"last week","datePeriodIn_last7Days":"in the last 7 days","datePeriodIn_thisMonth":"this month","datePeriodIn_lastMonth":"last month","datePeriodIn_thisYear":"this year","datePeriodIn_tomorrow":"tomorrow","datePeriodIn_nextWeek":"next week","datePeriodIn_nextMonth":"next month","dateChip":"{field}: {condition}","dateChip_lt":"before {date}","dateChip_gt":"after {date}","dateChip_gte":"on or after {date}","dateChip_lte":"on or before {date}","dateChip_lastDays":{"one":"in the last day","other":"in the last {n} days"},"dateChip_nextDays":{"one":"in the next day","other":"in the next {n} days"},"dateChip_empty":"empty","dateChip_notEmpty":"not empty","dateChip_overlaps":"runs {when}","dateChip_within":"entirely {when}","dateChip_withinDays":"entirely within {when}","dateChip_starts":"starts {when}","dateChip_ends":"ends {when}","dateChip_contains":"runs on {date}","dateCountLast":"Days, today included","dateCountNext":"Days ahead, today included","dateCountUnit":"days","dateValueDate":"Date","dateValueDay":"Day","dateValuePeriod":"Period","dateWhen":"When","dateOwnDays":"Own dates","loadingOptions":"Loading the options","optionsError":"The options could not be loaded","pickRecord":"Choose a record","pickFromList":"Choose from the list","searchRecords":"Find a record","loadingRecords":"Loading records","recordsError":"The records could not be loaded","retry":"Try again","loadMore":"Load more","removeFile":"Remove","fileRemoved":"File removed","undo":"Undo","passwordSet":"Set","passwordUnset":"Not set","phoneExtension":"ext.","passwordKeep":"Set; type a new one to replace it","maskIncomplete":"Complete the field","notNumber":"Enter a number","precisionMax":{"one":"At most {n} digit after the point","other":"At most {n} digits after the point"},"fractionNone":"A whole amount, no digits after the point","boundBetween":"From {min} to {max}","boundAtLeast":"At least {min}","boundAtMost":"At most {max}","currency":"Currency","chooseCurrency":"Choose a currency","rowCount":{"one":"{n} row","other":"{n} rows"},"type-string":"String","variant-string-phone":"Phone","variant-string-password":"Password","type-text":"Text","type-html":"Formatted text","type-integer":"Integer","variant-integer-stepper":"With steppers","type-number":"Number","variant-number-scale":"Scale 0–100","variant-number-meter":"Share of a limit","variant-number-stepper":"With steppers","type-date":"Date","type-datetime":"Date and time","type-time":"Time","type-boolean":"Yes or no","type-choice":"One of a list","variant-choice-buttons":"As buttons","type-choices":"Several of a list","variant-choices-badges":"As badges","variant-choices-checklist":"As a checklist","variant-choices-select":"As a dropdown","type-user":"User","type-record":"Record","type-relation":"Relation","type-lookup":"From a reference list","type-file":"File","variant-file-image":"Image","variant-file-image-card":"Image card","variant-file-image-list":"Image list","type-color":"Colour","type-include":"Code","type-money":"Money","type-percent":"Percent","type-items":"Rows","type-compound":"Compound","type-ru.requisites":"Requisites (Russia)"}}');
+
+/***/ },
+
 /***/ "4284cc8c32e1"
 (module) {
 
-module.exports = /*#__PURE__*/JSON.parse('{"$comment":"Dated aliases of sf-view-properties for the shim (core/js/aliases.js, standard §16 item 20).","component":"sf-view-properties","since":"2026-10-27","remove_after":"2026-12-01","aliases":[{"from":"aria-label","to":null,"kind":"attribute","component":"sf-view-properties","since":"2026-10-27","remove_after":"2026-12-01","mode":"host-attribute","section":"§3.1, §4.8","note":"stays a host attribute, read for the accessible name; no shim"},{"from":"sf-property-view-open-record","to":"sf-property-view-open","kind":"event","component":"sf-view-properties","since":"2026-10-27","remove_after":"2026-12-01","mode":"same-detail","cancelable":false,"section":"§8, vocabulary §5 open","note":"ui-admin listens to it (src/polygon.ts:124); the detail {field, value, answer} is unchanged"},{"from":"sf-property-view-delete-record","to":"sf-property-view-delete","kind":"event","component":"sf-view-properties","since":"2026-10-27","remove_after":"2026-12-01","mode":"same-detail","cancelable":false,"section":"§8, vocabulary §5 delete","note":"the detail {record_id, collection, revision, answer} is unchanged"},{"from":"sf-property-view","to":"sf-view-properties","kind":"tag","component":"sf-view-properties","since":"2026-11-03","remove_after":"2027-01-01","section":"rename plan R2 (ui-control RENAME-PLAN-2026-11-03), naming decision 2026-11-02","note":"the element is sf-view-properties; sf-property-view is a subclass defined beside it until the date"},{"from":"sf-property-view-close","to":"sf-view-properties-close","kind":"event","component":"sf-view-properties","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-property-view-open-full","to":"sf-view-properties-open-full","kind":"event","component":"sf-view-properties","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-property-view-saved","to":"sf-view-properties-saved","kind":"event","component":"sf-view-properties","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-property-view-failed","to":"sf-view-properties-failed","kind":"event","component":"sf-view-properties","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-property-view-open","to":"sf-view-properties-open","kind":"event","component":"sf-view-properties","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-property-view-delete","to":"sf-view-properties-delete","kind":"event","component":"sf-view-properties","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-property-view-created","to":"sf-view-properties-created","kind":"event","component":"sf-view-properties","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-property-view-cancel","to":"sf-view-properties-cancel","kind":"event","component":"sf-view-properties","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-property-view-state","to":"sf-view-properties-state","kind":"event","component":"sf-view-properties","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-property-view-address-copy","to":"sf-view-properties-address-copy","kind":"event","component":"sf-view-properties","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-property-view-favourite","to":"sf-view-properties-favourite","kind":"event","component":"sf-view-properties","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"}]}');
+module.exports = /*#__PURE__*/JSON.parse('{"$comment":"Dated aliases of sf-view-properties for the shim (core/js/aliases.js, standard §16 item 20).","component":"sf-view-properties","since":"2026-10-27","remove_after":"2027-01-01","aliases":[{"from":"aria-label","to":null,"kind":"attribute","component":"sf-view-properties","since":"2026-10-27","remove_after":"2027-01-01","mode":"host-attribute","section":"§3.1, §4.8","note":"stays a host attribute, read for the accessible name; no shim"},{"from":"sf-property-view-open-record","to":"sf-property-view-open","kind":"event","component":"sf-view-properties","since":"2026-10-27","remove_after":"2027-01-01","mode":"same-detail","cancelable":false,"section":"§8, vocabulary §5 open","note":"ui-admin listens to it (src/polygon.ts:124); the detail {field, value, answer} is unchanged"},{"from":"sf-property-view-delete-record","to":"sf-property-view-delete","kind":"event","component":"sf-view-properties","since":"2026-10-27","remove_after":"2027-01-01","mode":"same-detail","cancelable":false,"section":"§8, vocabulary §5 delete","note":"the detail {record_id, collection, revision, answer} is unchanged"},{"from":"sf-property-view","to":"sf-view-properties","kind":"tag","component":"sf-view-properties","since":"2026-11-03","remove_after":"2027-01-01","section":"rename plan R2 (ui-control RENAME-PLAN-2026-11-03), naming decision 2026-11-02","note":"the element is sf-view-properties; sf-property-view is a subclass defined beside it until the date"},{"from":"sf-property-view-close","to":"sf-view-properties-close","kind":"event","component":"sf-view-properties","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-property-view-open-full","to":"sf-view-properties-open-full","kind":"event","component":"sf-view-properties","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-property-view-saved","to":"sf-view-properties-saved","kind":"event","component":"sf-view-properties","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-property-view-failed","to":"sf-view-properties-failed","kind":"event","component":"sf-view-properties","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-property-view-open","to":"sf-view-properties-open","kind":"event","component":"sf-view-properties","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-property-view-delete","to":"sf-view-properties-delete","kind":"event","component":"sf-view-properties","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-property-view-created","to":"sf-view-properties-created","kind":"event","component":"sf-view-properties","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-property-view-cancel","to":"sf-view-properties-cancel","kind":"event","component":"sf-view-properties","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-property-view-state","to":"sf-view-properties-state","kind":"event","component":"sf-view-properties","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-property-view-address-copy","to":"sf-view-properties-address-copy","kind":"event","component":"sf-view-properties","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"sf-property-view-favourite","to":"sf-view-properties-favourite","kind":"event","component":"sf-view-properties","since":"2026-11-03","remove_after":"2027-01-01","mode":"same-detail","section":"§8","note":"the event name carries the tag"},{"from":"panel-width","to":null,"kind":"attribute","component":"sf-view-properties","since":"2026-11-17","remove_after":"2027-01-01","mode":"host-attribute","section":"C289 (2), C157 (2)","note":"read by the view itself: a length is mapped to the nearest drawer step (1/2, 1, 2) when panel-size is not set, with a console notice; no shim; use panel-size"},{"from":"--sf-property-view--sections-width","to":"--sf-view-properties-sections-width","kind":"css-variable","component":"sf-view-properties","since":"2026-11-18","remove_after":"2027-01-01","section":"C305 (6)","note":"read under the new name until the date"}]}');
 
 /***/ },
 
 /***/ "3ea81f4c3c20"
 (module) {
 
-module.exports = /*#__PURE__*/JSON.parse('{"id":"smart.view-properties","tag":"sf-view-properties","version":"1.20.2","kind":"leaf","implements":["record-view@1"],"settings":{"add-field-text":{"type":"string","default-from":"runtime.add-field-text"},"add-group-text":{"type":"string","default-from":"runtime.add-group-text"},"add-section-text":{"type":"string","default-from":"runtime.add-section-text"},"back-label":{"type":"string","default-from":"runtime.back-label"},"cancel-configuring-text":{"type":"string","default-from":"runtime.cancel-configuring-text"},"cancel-name-text":{"type":"string","default-from":"runtime.cancel-name-text"},"cancel-text":{"type":"string","default-from":"runtime.cancel-text"},"changed-text":{"type":"string","default-from":"runtime.changed-text"},"close-label":{"type":"string","default-from":"runtime.close-label"},"collection":{"type":"string","default":""},"collection-icon":{"type":"icon","default":""},"collection-label":{"type":"string","default":""},"configure-hint-narrow-text":{"type":"string","default-from":"runtime.configure-hint-narrow-text"},"configure-hint-text":{"type":"string","default-from":"runtime.configure-hint-text"},"configure-text":{"type":"string","default-from":"runtime.configure-text"},"conflict-text":{"type":"string","default-from":"runtime.conflict-text"},"copy-link-label":{"type":"string","default-from":"runtime.copy-link-label"},"delete-text":{"type":"string","default-from":"runtime.delete-text"},"done-configuring-text":{"type":"string","default-from":"runtime.done-configuring-text"},"edit-text":{"type":"string","default-from":"runtime.edit-text"},"empty-record-text":{"type":"string","default-from":"runtime.empty-record-text"},"empty-text":{"type":"string","default-from":"runtime.empty-text"},"errors-text":{"type":"string","default-from":"runtime.errors-text"},"favourite":{"type":"boolean","default":false},"favourite-label":{"type":"string","default-from":"runtime.favourite-label"},"field-label-text":{"type":"string","default-from":"runtime.field-label-text"},"field-settings-text":{"type":"string","default-from":"runtime.field-settings-text"},"hidden-text":{"type":"string","default-from":"runtime.hidden-text"},"hide-rare-text":{"type":"string","default-from":"runtime.hide-rare-text"},"hint-text":{"type":"string","default-from":"runtime.hint-text"},"in-this-group-text":{"type":"string","default-from":"runtime.in-this-group-text"},"inherited-text":{"type":"string","default-from":"runtime.inherited-text"},"link-copied-label":{"type":"string","default-from":"runtime.link-copied-label"},"menu-label":{"type":"string","default-from":"runtime.menu-label"},"move-down-text":{"type":"string","default-from":"runtime.move-down-text"},"move-up-text":{"type":"string","default-from":"runtime.move-up-text"},"new-group-title":{"type":"string","default-from":"runtime.new-group-title"},"new-section-title":{"type":"string","default-from":"runtime.new-section-title"},"no-match-text":{"type":"string","default-from":"runtime.no-match-text"},"open-full-label":{"type":"string","default-from":"runtime.open-full-label"},"panel":{"type":"boolean","default":false},"panel-label":{"type":"string","default":""},"panel-size":{"type":"enum","values":["1/2","1","2","full"],"default":"1"},"size":{"type":"enum","values":["1","1/2"],"default":"1"},"mode":{"type":"enum","values":["view","auto","edit","create"],"default":"auto"},"panel-width":{"type":"string","default":""},"personal-layer-text":{"type":"string","default-from":"runtime.personal-layer-text"},"rare-text":{"type":"string","default-from":"runtime.rare-text"},"record-id":{"type":"id","default":""},"remove-field-text":{"type":"string","default-from":"runtime.remove-field-text"},"remove-group-text":{"type":"string","default-from":"runtime.remove-group-text"},"remove-section-text":{"type":"string","default-from":"runtime.remove-section-text"},"rename-text":{"type":"string","default-from":"runtime.rename-text"},"reset-view-ask-text":{"type":"string","default-from":"runtime.reset-view-ask-text"},"reset-view-text":{"type":"string","default-from":"runtime.reset-view-text"},"save-name-text":{"type":"string","default-from":"runtime.save-name-text"},"save-text":{"type":"string","default-from":"runtime.save-text"},"section-icon-text":{"type":"string","default-from":"runtime.section-icon-text"},"section-icons":{"type":"string","default":""},"sections-as":{"type":"enum","values":["list","tabs"],"default":"list"},"sections-label":{"type":"string","default-from":"runtime.sections-label"},"shared-layer-text":{"type":"string","default-from":"runtime.shared-layer-text"},"show-rare":{"type":"boolean","default":false},"show-rare-text":{"type":"string","default-from":"runtime.show-rare-text"},"shown-text":{"type":"string","default-from":"runtime.shown-text"},"unplaced-hint-text":{"type":"string","default-from":"runtime.unplaced-hint-text"},"unplaced-title":{"type":"string","default-from":"runtime.unplaced-title"},"variant-text":{"type":"string","default-from":"runtime.variant-text"},"view-conflict-text":{"type":"string","default-from":"runtime.view-conflict-text"},"view-denied-text":{"type":"string","default-from":"runtime.view-denied-text"},"width-text":{"type":"string","default-from":"runtime.width-text"},"view-profile-label":{"type":"string","default-from":"runtime.view-profile-label"},"add-view-text":{"type":"string","default-from":"runtime.add-view-text"},"new-view-text":{"type":"string","default-from":"runtime.new-view-text"},"delete-view-text":{"type":"string","default-from":"runtime.delete-view-text"},"last-shared-view-text":{"type":"string","default-from":"runtime.last-shared-view-text"},"full":{"type":"boolean","default":false},"open":{"type":"boolean","default":true}},"values":{"revision":{"type":"string"},"section":{"type":"string"}},"events":{"close":{"carries":{"reason":{"type":"enum","values":["close","escape","outside","cancelled","deleted","api"]},"record_id":{"type":"id","nullable":true},"unsaved_fields":{"type":"list"}},"cancelable":true},"open-full":{"carries":{"id":"id","address":"string","record_id":{"type":"id","nullable":true}}},"saved":{"carries":{"id":"id","revision":{"type":"string","optional":true}}},"failed":{"carries":{"reason":"string","message":{"type":"string","optional":true}}},"open":{"carries":{"field":"string","value":"object","answer":"string"}},"delete":{"carries":{"collection":"string","revision":"string","answer":"string","record_id":{"type":"id","nullable":true}}},"created":{"carries":{"collection":{"type":"string","nullable":true},"record_id":{"type":"id","nullable":true}}},"cancel":{"carries":{"mode":{"type":"enum","values":["auto","edit","create"]},"scope":{"type":"enum","values":["group"],"optional":true},"section":{"type":"string","optional":true},"group":{"type":"string","optional":true}}},"state":{"carries":{"state":"string","message":"string"},"own-verb":true},"address-copy":{"carries":{},"own-verb":true},"favourite":{"carries":{"collection":{"type":"string","nullable":true},"favourite":"boolean","record_id":{"type":"id","nullable":true}},"own-verb":true}},"actions":{"refresh":{},"load":{"with":{"reason":{"type":"string","optional":true}}},"edit-group":{"with":{"section":"string","group":"string"}},"cancel-edit":{},"save-group":{"with":{"options":{"type":"object","optional":true}},"concurrency":"drop"},"select-section":{"with":{"key":"string"}},"close-panel":{"with":{"reason":{"type":"string","optional":true}}},"copy-address":{},"open-full-page":{},"confirm-save":{},"cancel-confirmation":{}},"port":{"id":"simai.property-view-port","version":"1.18.0","contract":"src/core/contracts/ports/simai.property-view-port/1.18.0/port.json"},"presentation":{"skeleton":{"file":"skeleton.html","late":[]}},"css-variables":{"--sf-property-view--sections-width":{"type":"length","state":"default"},"--sf-property-view--title-size":{"type":"length","state":"default"},"--sf-property-view--label-size":{"type":"length","state":"default"},"--sf-property-view--value-size":{"type":"length","state":"default"},"--sf-property-view--group-size":{"type":"length","state":"default"},"--sf-property-view--edge-room":{"type":"length","state":"open"}},"host-states":{"data-state":"string","aria-busy":"string"}}');
+module.exports = /*#__PURE__*/JSON.parse('{"id":"smart.view-properties","tag":"sf-view-properties","version":"1.21.0","kind":"leaf","implements":["record-view@1"],"settings":{"add-field-text":{"type":"string","default-from":"runtime.add-field-text"},"add-group-text":{"type":"string","default-from":"runtime.add-group-text"},"add-section-text":{"type":"string","default-from":"runtime.add-section-text"},"back-label":{"type":"string","default-from":"runtime.back-label"},"cancel-configuring-text":{"type":"string","default-from":"runtime.cancel-configuring-text"},"cancel-name-text":{"type":"string","default-from":"runtime.cancel-name-text"},"cancel-text":{"type":"string","default-from":"runtime.cancel-text"},"changed-text":{"type":"string","default-from":"runtime.changed-text"},"close-label":{"type":"string","default-from":"runtime.close-label"},"collection":{"type":"string","default":""},"collection-icon":{"type":"icon","default":""},"collection-label":{"type":"string","default":""},"configure-hint-narrow-text":{"type":"string","default-from":"runtime.configure-hint-narrow-text"},"configure-hint-text":{"type":"string","default-from":"runtime.configure-hint-text"},"configure-text":{"type":"string","default-from":"runtime.configure-text"},"conflict-text":{"type":"string","default-from":"runtime.conflict-text"},"copy-link-label":{"type":"string","default-from":"runtime.copy-link-label"},"delete-text":{"type":"string","default-from":"runtime.delete-text"},"done-configuring-text":{"type":"string","default-from":"runtime.done-configuring-text"},"edit-text":{"type":"string","default-from":"runtime.edit-text"},"empty-record-text":{"type":"string","default-from":"runtime.empty-record-text"},"empty-text":{"type":"string","default-from":"runtime.empty-text"},"errors-text":{"type":"string","default-from":"runtime.errors-text"},"favourite":{"type":"boolean","default":false},"favourite-label":{"type":"string","default-from":"runtime.favourite-label"},"field-label-text":{"type":"string","default-from":"runtime.field-label-text"},"field-settings-text":{"type":"string","default-from":"runtime.field-settings-text"},"hidden-text":{"type":"string","default-from":"runtime.hidden-text"},"hide-rare-text":{"type":"string","default-from":"runtime.hide-rare-text"},"hint-text":{"type":"string","default-from":"runtime.hint-text"},"in-this-group-text":{"type":"string","default-from":"runtime.in-this-group-text"},"inherited-text":{"type":"string","default-from":"runtime.inherited-text"},"link-copied-label":{"type":"string","default-from":"runtime.link-copied-label"},"menu-label":{"type":"string","default-from":"runtime.menu-label"},"move-down-text":{"type":"string","default-from":"runtime.move-down-text"},"move-up-text":{"type":"string","default-from":"runtime.move-up-text"},"new-group-title":{"type":"string","default-from":"runtime.new-group-title"},"new-section-title":{"type":"string","default-from":"runtime.new-section-title"},"no-match-text":{"type":"string","default-from":"runtime.no-match-text"},"open-full-label":{"type":"string","default-from":"runtime.open-full-label"},"panel":{"type":"boolean","default":false},"panel-label":{"type":"string","default":""},"panel-size":{"type":"enum","values":["1/2","1","2","full"],"default":"1"},"size":{"type":"enum","values":["1","1/2"],"default":"1"},"mode":{"type":"enum","values":["view","auto","edit","create"],"default":"auto"},"panel-width":{"type":"string","default":""},"personal-layer-text":{"type":"string","default-from":"runtime.personal-layer-text"},"rare-text":{"type":"string","default-from":"runtime.rare-text"},"record-id":{"type":"id","default":""},"remove-field-text":{"type":"string","default-from":"runtime.remove-field-text"},"remove-group-text":{"type":"string","default-from":"runtime.remove-group-text"},"remove-section-text":{"type":"string","default-from":"runtime.remove-section-text"},"rename-text":{"type":"string","default-from":"runtime.rename-text"},"reset-view-ask-text":{"type":"string","default-from":"runtime.reset-view-ask-text"},"reset-view-text":{"type":"string","default-from":"runtime.reset-view-text"},"save-name-text":{"type":"string","default-from":"runtime.save-name-text"},"save-text":{"type":"string","default-from":"runtime.save-text"},"section-icon-text":{"type":"string","default-from":"runtime.section-icon-text"},"section-icons":{"type":"string","default":""},"sections-as":{"type":"enum","values":["list","tabs"],"default":"list"},"sections-label":{"type":"string","default-from":"runtime.sections-label"},"shared-layer-text":{"type":"string","default-from":"runtime.shared-layer-text"},"show-rare":{"type":"boolean","default":false},"show-rare-text":{"type":"string","default-from":"runtime.show-rare-text"},"shown-text":{"type":"string","default-from":"runtime.shown-text"},"unplaced-hint-text":{"type":"string","default-from":"runtime.unplaced-hint-text"},"unplaced-title":{"type":"string","default-from":"runtime.unplaced-title"},"variant-text":{"type":"string","default-from":"runtime.variant-text"},"view-conflict-text":{"type":"string","default-from":"runtime.view-conflict-text"},"view-denied-text":{"type":"string","default-from":"runtime.view-denied-text"},"width-text":{"type":"string","default-from":"runtime.width-text"},"view-profile-label":{"type":"string","default-from":"runtime.view-profile-label"},"add-view-text":{"type":"string","default-from":"runtime.add-view-text"},"new-view-text":{"type":"string","default-from":"runtime.new-view-text"},"delete-view-text":{"type":"string","default-from":"runtime.delete-view-text"},"last-shared-view-text":{"type":"string","default-from":"runtime.last-shared-view-text"},"full":{"type":"boolean","default":false},"open":{"type":"boolean","default":true},"edit":{"type":"enum","values":["group","group+quick","none"],"default":"group+quick"},"history":{"type":"enum","values":["auto","off"],"default":"auto"},"modal":{"type":"enum","values":["auto","true"],"default":"auto"}},"values":{"revision":{"type":"string"},"section":{"type":"string"}},"events":{"close":{"carries":{"reason":{"type":"enum","values":["close","escape","outside","cancelled","deleted","api"]},"record_id":{"type":"id","nullable":true},"unsaved_fields":{"type":"list"},"asked":{"type":"boolean"}},"cancelable":true},"open-full":{"carries":{"id":"id","address":"string","record_id":{"type":"id","nullable":true}}},"saved":{"carries":{"id":"id","revision":{"type":"string","optional":true}}},"failed":{"carries":{"reason":"string","message":{"type":"string","optional":true}}},"open":{"carries":{"field":"string","value":"object","answer":"string"}},"delete":{"carries":{"collection":"string","revision":"string","answer":"string","record_id":{"type":"id","nullable":true}}},"created":{"carries":{"collection":{"type":"string","nullable":true},"record_id":{"type":"id","nullable":true}}},"cancel":{"carries":{"mode":{"type":"enum","values":["auto","edit","create"]},"scope":{"type":"enum","values":["group"],"optional":true},"section":{"type":"string","optional":true},"group":{"type":"string","optional":true}}},"state":{"carries":{"state":"string","message":"string"},"own-verb":true},"address-copy":{"carries":{},"own-verb":true},"favourite":{"carries":{"collection":{"type":"string","nullable":true},"favourite":"boolean","record_id":{"type":"id","nullable":true}},"own-verb":true},"step":{"carries":{"direction":{"type":"enum","values":["next","previous"]},"record_id":{"type":"id","nullable":true},"next_record_id":{"type":"id","nullable":true}},"cancelable":true,"own-verb":true},"history":{"carries":{"record_id":{"type":"id","nullable":true}},"own-verb":true},"structure":{"carries":{"collection":{"type":"string","nullable":true},"section":{"type":"string","nullable":true},"group":{"type":"string","nullable":true}},"own-verb":true,"cancelable":true}},"actions":{"refresh":{},"load":{"with":{"reason":{"type":"string","optional":true}}},"edit-group":{"with":{"section":"string","group":"string","options":{"type":"object","optional":true}}},"cancel-edit":{},"save-group":{"with":{"options":{"type":"object","optional":true}},"concurrency":"drop"},"select-section":{"with":{"key":"string"}},"close-panel":{"with":{"reason":{"type":"string","optional":true}}},"copy-address":{},"open-full-page":{},"confirm-save":{},"cancel-confirmation":{},"open-history":{},"edit-field":{"with":{"key":"string"}},"step":{"with":{"direction":{"type":"enum","values":["next","previous"]}}}},"port":{"id":"simai.property-view-port","version":"1.18.0","contract":"src/core/contracts/ports/simai.property-view-port/1.18.0/port.json"},"presentation":{"skeleton":{"file":"skeleton.html","late":[]}},"css-variables":{"--sf-view-properties-label-width":{"type":"length","state":"default","x-default":"10rem"},"--sf-view-properties-row-gap":{"type":"length","state":"default","x-default":"8px (--sf-space-1/3)"},"--sf-view-properties-group-gap":{"type":"length","state":"default","x-default":"24px (--sf-space-1)"},"--sf-view-properties-sections-width":{"type":"length","state":"default","x-default":"12rem"},"--sf-view-properties-side-width":{"type":"length","state":"default","x-default":"24rem"},"--sf-view-properties-current-background-color":{"type":"color","state":"default","x-default":"--sf-surface-container"},"--sf-view-properties-saved-background-color":{"type":"color","state":"default","x-default":"--sf-success-container"},"--sf-property-view--sections-width":{"type":"length","state":"default"},"--sf-property-view--title-size":{"type":"length","state":"default"},"--sf-property-view--label-size":{"type":"length","state":"default"},"--sf-property-view--value-size":{"type":"length","state":"default"},"--sf-property-view--group-size":{"type":"length","state":"default"},"--sf-property-view--edge-room":{"type":"length","state":"open"}},"host-states":{"data-state":"string","aria-busy":"string"}}');
 
 /***/ },
 
 /***/ "99fb492b7fba"
 (module) {
 
-module.exports = /*#__PURE__*/JSON.parse('{"title":"Property view","events":{"state":{"label":"Record state"},"address-copy":{"label":"Address copied"},"favourite":{"label":"Favourite"}},"runtime":{"add-field-text":"Add a field","add-group-text":"Add an area","add-section-text":"Add a section","add-view-text":"Add a view","back-label":"Back","cancel-configuring-text":"Cancel","cancel-name-text":"Leave the name","cancel-text":"Cancel","changed-text":"Fields changed","close-label":"Close","configure-hint-narrow-text":"Drag fields between groups. Applied at once.","configure-hint-text":"Drag fields between groups and onto a section on the left. Applied at once.","configure-text":"Arrange the view","confirm-save-text":"Confirm and save","conflict-text":"The record changed; read it again","copy-link-label":"Copy link","create-text":"Create","delete-text":"Delete","delete-view-text":"Remove the view","done-configuring-text":"Done","edit-text":"Edit","empty-record-text":"This record has nothing to show","empty-text":"not filled in","errors-text":"Errors","favourite-label":"Favourite","field-label-text":"Name","field-settings-text":"Field settings","hidden-text":"Hide","hide-rare-text":"Hide rare fields","hint-text":"Hint","in-this-group-text":"In this area","inherited-text":"by default","keep-editing-text":"Keep editing","last-shared-view-text":"The only view everyone has","link-copied-label":"Link copied","menu-label":"More","move-down-text":"Move down","move-up-text":"Move up","new-group-title":"New area","new-section-title":"New section","new-view-text":"New view","no-match-text":"Nothing matches","open-full-label":"Open as a page","personal-layer-text":"Personal","rare-text":"rare","read-only-text":"You can only view this record","remove-field-text":"Remove from this area","remove-group-text":"Remove this area","remove-section-text":"Remove this section","rename-text":"Rename","reset-view-ask-text":"Reset the whole view?","reset-view-text":"Reset","save-failed-text":"The save failed","save-name-text":"Save the name","save-text":"Save","section-icon-text":"Section glyph","sections-label":"Sections","shared-layer-text":"Everyone\'s","show-rare-text":"Show rare fields","shown-text":"Shown","state-load-failed":"The record could not be read","state-loading":"Reading the record","state-port-not-connected":"The record port is not connected","state-unavailable":"The record is unavailable","unplaced-hint-text":"Fields this view does not show. Drag one into a group to place it, or drag a field here to take it out.","unplaced-title":"Not placed","variant-text":"Template","view-conflict-text":"The view changed and was read again","view-denied-text":"You may not change this layer","view-profile-label":"View","view-reset-failed-text":"The view could not be reset","view-save-failed-text":"The view could not be saved","width-text":"Full width"}}');
+module.exports = /*#__PURE__*/JSON.parse('{"title":"Property view","events":{"state":{"label":"Record state"},"address-copy":{"label":"Address copied"},"favourite":{"label":"Favourite"}},"runtime":{"add-field-text":"Add a field","add-group-text":"Add an area","add-section-text":"Add a section","add-view-text":"Add a view","back-label":"Back","cancel-configuring-text":"Cancel","cancel-name-text":"Leave the name","cancel-text":"Cancel","changed-text":"Fields changed","close-label":"Close","close-unsaved-accept-text":"Close without saving","close-unsaved-text":"There are unsaved changes","configure-hint-narrow-text":"Drag fields between groups. Applied at once.","configure-hint-text":"Drag fields between groups and onto a section on the left. Applied at once.","configure-text":"Arrange the view","confirm-save-text":"Confirm and save","conflict-text":"The record changed; read it again","copy-link-label":"Copy link","create-text":"Create","delete-text":"Delete","delete-view-text":"Remove the view","done-configuring-text":"Done","edit-all-text":"Edit all","edit-text":"Edit","empty-record-text":"This record has nothing to show","empty-text":"not filled in","errors-text":"Errors","favourite-label":"Favourite","field-label-text":"Name","field-settings-text":"Field settings","hidden-text":"Hide","hide-rare-text":"Hide rare fields","hint-text":"Hint","history-all-text":"All events","history-changed-many-text":"changed {n} fields","history-changed-one-text":"changed «{field}»","history-create-text":"created the record","history-delete-text":"deleted the record","history-empty-text":"No changes yet","history-failed-text":"The history could not be loaded","history-fields-text":"Field changes only","history-publish-text":"published the record","history-restore-text":"restored the record","history-sealed-text":"Value hidden: {fields}","history-text":"Change history","in-this-group-text":"In this area","inherited-text":"by default","keep-editing-text":"Keep editing","last-shared-view-text":"The only view everyone has","leave-unsaved-text":"Go on without saving","link-copied-label":"Link copied","menu-label":"More","move-down-text":"Move down","move-up-text":"Move up","new-group-title":"New area","new-section-title":"New section","new-view-text":"New view","no-match-text":"Nothing matches","open-full-label":"Open as a page","personal-layer-text":"Personal","rare-text":"rare","read-only-text":"You can only view this record","remove-field-text":"Remove from this area","remove-group-text":"Remove this area","remove-section-text":"Remove this section","rename-text":"Rename","required-error-text":"Fill in this field","reset-view-ask-text":"Reset the whole view?","reset-view-text":"Back to everyone\'s","save-failed-text":"The save failed","save-name-text":"Save the name","save-text":"Save","section-icon-text":"Section glyph","sections-label":"Sections","shared-layer-text":"Everyone\'s","show-rare-text":"Show rare fields","shown-text":"Shown","state-load-failed":"The record could not be read","state-loading":"Reading the record","state-port-not-connected":"The record port is not connected","state-unavailable":"The record is unavailable","unplaced-hint-text":"Fields this view does not show. Drag a field into an area or press the eye to show it.","unplaced-title":"Hidden fields","variant-text":"Template","view-conflict-text":"The view changed and was read again","view-denied-text":"You may not change this layer","view-profile-label":"View","view-reset-failed-text":"The view could not be reset","view-save-failed-text":"The view could not be saved","width-text":"Full width","view-published-text":"Saved for everyone","view-changed-text":"The view changed","save-as-mine-text":"Save as mine","save-as-mine-label-text":"{name} (mine)","publish-view-text":"Save for everyone","undo-mine-text":"Undo my edits","tab-rename-text":"Name…","tab-icon-text":"Icon…","tab-up-text":"Up","tab-down-text":"Down","tab-hide-text":"Hide the tab","tab-show-text":"Show the tab","tab-delete-text":"Delete the tab…","tab-menu-text":"Settings of the tab «{name}»","tab-hidden-text":"The tab is hidden","tabs-title":"Tabs","tabs-hint-text":"Drag by the handle to change the order","add-tab-text":"Tab","new-tab-group-title":"Fields","lock-text":"Lock for changes","unlock-text":"Unlock for changes","locked-text":"Locked by the administrator","field-menu-text":"Settings of the field «{name}»","head-subtitle-on-text":"Show in the head","head-subtitle-off-text":"Remove from the head","head-status-on-text":"As the stage in the head","head-status-off-text":"Remove the stage from the head","to-tab-text":"To the tab «{name}»","hide-field-text":"Hide «{name}»","show-field-text":"Show «{name}»","configure-personal-hint-text":"Your edits are saved at once, for you only.","configure-admin-hint-text":"Your edits are saved at once, for you only. For everyone, with the button below.","configure-required-hint-text":"This view is required. Edits stay until you leave the page.","new-field-text":"New field…","view-refused-invalid-text":"The view was not saved: its settings do not fit","view-refused-shared-denied-text":"You may not set the view for everyone","view-refused-own-text":"This is a person\'s own view, not a view for everyone","view-refused-unknown-text":"This view no longer exists","view-refused-required-text":"This card has a required view: it cannot be changed or replaced","view-refused-lock-invalid-text":"This setting cannot be locked","view-refused-head-invalid-text":"The head takes up to two fields, and the status is a field with a list of values","view-refused-icon-invalid-text":"This tab icon is unknown"}}');
 
 /***/ },
 
 /***/ "d614908e644f"
 (module) {
 
-module.exports = /*#__PURE__*/JSON.parse('{"title":"Запись","events":{"state":{"label":"Состояние записи"},"address-copy":{"label":"Адрес скопирован"},"favourite":{"label":"Избранное"}},"runtime":{"add-field-text":"Добавить поле","add-group-text":"Добавить область","add-section-text":"Добавить раздел","add-view-text":"Добавить вид","back-label":"Назад","cancel-configuring-text":"Отменить","cancel-name-text":"Оставить название","cancel-text":"Отмена","changed-text":"Изменено полей","close-label":"Закрыть","configure-hint-narrow-text":"Перетаскивайте поля между группами. Применяется сразу.","configure-hint-text":"Перетаскивайте поля между группами и на разделы слева. Применяется сразу.","configure-text":"Настроить вид","confirm-save-text":"Подтвердить и сохранить","conflict-text":"Запись изменилась, обновите её","copy-link-label":"Копировать ссылку","create-text":"Создать","delete-text":"Удалить","delete-view-text":"Удалить вид","done-configuring-text":"Готово","edit-text":"Изменить","empty-record-text":"В этой записи нечего показать","empty-text":"не заполнено","errors-text":"Ошибок","favourite-label":"В избранное","field-label-text":"Название","field-settings-text":"Настройки поля","hidden-text":"Скрыть","hide-rare-text":"Скрыть редкие поля","hint-text":"Подсказка","in-this-group-text":"В этой области","inherited-text":"по умолчанию","keep-editing-text":"Вернуться к правке","last-shared-view-text":"Единственный общий вид","link-copied-label":"Ссылка скопирована","menu-label":"Ещё","move-down-text":"Ниже","move-up-text":"Выше","new-group-title":"Новая область","new-section-title":"Новый раздел","new-view-text":"Новый вид","no-match-text":"Ничего не найдено","open-full-label":"Открыть на всю страницу","personal-layer-text":"Персональный","rare-text":"редкое","read-only-text":"Эту запись можно только смотреть","remove-field-text":"Убрать из области","remove-group-text":"Удалить область","remove-section-text":"Удалить раздел","rename-text":"Переименовать","reset-view-ask-text":"Сбросить весь вид?","reset-view-text":"Сбросить","save-failed-text":"Не удалось сохранить","save-name-text":"Сохранить название","save-text":"Сохранить","section-icon-text":"Значок раздела","sections-label":"Разделы","shared-layer-text":"Для всех","show-rare-text":"Показать редкие поля","shown-text":"Показывать","state-load-failed":"Не удалось загрузить запись","state-loading":"Загрузка записи","state-port-not-connected":"Порт записи не подключён","state-unavailable":"Запись недоступна","unplaced-hint-text":"Поля, которых нет в этом виде. Перетащите поле в группу, чтобы разместить, или сюда, чтобы убрать.","unplaced-title":"Не размещённые","variant-text":"Вид","view-conflict-text":"Вид изменился, он перезагружен","view-denied-text":"Нет права менять этот слой","view-profile-label":"Вид","view-reset-failed-text":"Не удалось сбросить вид","view-save-failed-text":"Не удалось сохранить вид","width-text":"На всю ширину"}}');
+module.exports = /*#__PURE__*/JSON.parse('{"title":"Запись","events":{"state":{"label":"Состояние записи"},"address-copy":{"label":"Адрес скопирован"},"favourite":{"label":"Избранное"}},"runtime":{"add-field-text":"Добавить поле","add-group-text":"Добавить область","add-section-text":"Добавить раздел","add-view-text":"Добавить вид","back-label":"Назад","cancel-configuring-text":"Отменить","cancel-name-text":"Оставить название","cancel-text":"Отмена","changed-text":"Изменено полей","close-label":"Закрыть","close-unsaved-accept-text":"Закрыть без сохранения","close-unsaved-text":"Есть несохранённые изменения","configure-hint-narrow-text":"Перетаскивайте поля между группами. Применяется сразу.","configure-hint-text":"Перетаскивайте поля между группами и на разделы слева. Применяется сразу.","configure-text":"Настроить вид","confirm-save-text":"Подтвердить и сохранить","conflict-text":"Запись изменилась, обновите её","copy-link-label":"Копировать ссылку","create-text":"Создать","delete-text":"Удалить","delete-view-text":"Удалить вид","done-configuring-text":"Готово","edit-all-text":"Изменить всё","edit-text":"Изменить","empty-record-text":"В этой записи нечего показать","empty-text":"не заполнено","errors-text":"Ошибок","favourite-label":"В избранное","field-label-text":"Название","field-settings-text":"Настройки поля","hidden-text":"Скрыть","hide-rare-text":"Скрыть редкие поля","hint-text":"Подсказка","history-all-text":"Все события","history-changed-many-text":"изменение полей: {n}","history-changed-one-text":"изменение поля «{field}»","history-create-text":"создание записи","history-delete-text":"удаление записи","history-empty-text":"Изменений пока нет","history-failed-text":"Историю не удалось загрузить","history-fields-text":"Только изменения полей","history-publish-text":"публикация записи","history-restore-text":"восстановление записи","history-sealed-text":"Значение скрыто: {fields}","history-text":"История изменений","in-this-group-text":"В этой области","inherited-text":"по умолчанию","keep-editing-text":"Вернуться к правке","last-shared-view-text":"Единственный общий вид","leave-unsaved-text":"Перейти без сохранения","link-copied-label":"Ссылка скопирована","menu-label":"Ещё","move-down-text":"Ниже","move-up-text":"Выше","new-group-title":"Новая область","new-section-title":"Новый раздел","new-view-text":"Новый вид","no-match-text":"Ничего не найдено","open-full-label":"Открыть на всю страницу","personal-layer-text":"Персональный","rare-text":"редкое","read-only-text":"Эту запись можно только смотреть","remove-field-text":"Убрать из области","remove-group-text":"Удалить область","remove-section-text":"Удалить раздел","rename-text":"Переименовать","required-error-text":"Заполните поле","reset-view-ask-text":"Сбросить весь вид?","reset-view-text":"Вернуть как у всех","save-failed-text":"Не удалось сохранить","save-name-text":"Сохранить название","save-text":"Сохранить","section-icon-text":"Значок раздела","sections-label":"Разделы","shared-layer-text":"Для всех","show-rare-text":"Показать редкие поля","shown-text":"Показывать","state-load-failed":"Не удалось загрузить запись","state-loading":"Загрузка записи","state-port-not-connected":"Порт записи не подключён","state-unavailable":"Запись недоступна","unplaced-hint-text":"Поля, которые этот вид не показывает. Перетащите поле в группу или нажмите на глаз, чтобы показать.","unplaced-title":"Скрытые поля","variant-text":"Вид","view-conflict-text":"Вид изменился, он перезагружен","view-denied-text":"Нет права менять этот слой","view-profile-label":"Вид","view-reset-failed-text":"Не удалось сбросить вид","view-save-failed-text":"Не удалось сохранить вид","width-text":"На всю ширину","view-published-text":"Сохранено для всех","view-changed-text":"Вид изменился","save-as-mine-text":"Сохранить как моё","save-as-mine-label-text":"{name} (моё)","publish-view-text":"Сохранить для всех","undo-mine-text":"Отменить мои правки","tab-rename-text":"Название…","tab-icon-text":"Значок…","tab-up-text":"Выше","tab-down-text":"Ниже","tab-hide-text":"Скрыть вкладку","tab-show-text":"Показать вкладку","tab-delete-text":"Удалить вкладку…","tab-menu-text":"Настройки вкладки «{name}»","tab-hidden-text":"Вкладка скрыта","tabs-title":"Вкладки","tabs-hint-text":"Перетащите за ручку, чтобы поменять порядок","add-tab-text":"Вкладка","new-tab-group-title":"Поля","lock-text":"Закрыть для изменений","unlock-text":"Открыть для изменений","locked-text":"Закрыто администратором","field-menu-text":"Настройки поля «{name}»","head-subtitle-on-text":"Показать в шапке","head-subtitle-off-text":"Убрать из шапки","head-status-on-text":"Стадией в шапке","head-status-off-text":"Убрать стадию из шапки","to-tab-text":"На вкладку «{name}»","hide-field-text":"Скрыть «{name}»","show-field-text":"Показать «{name}»","configure-personal-hint-text":"Ваши правки сохраняются сразу, только для вас.","configure-admin-hint-text":"Ваши правки сохраняются сразу, только для вас. Для всех — кнопкой внизу.","configure-required-hint-text":"Вид обязательный. Правки видны до ухода со страницы.","new-field-text":"Новое поле…","view-refused-invalid-text":"Вид не сохранён: настройки не подходят","view-refused-shared-denied-text":"Нет права настраивать вид для всех","view-refused-own-text":"Это личный вид, а не вид для всех","view-refused-unknown-text":"Такого вида больше нет","view-refused-required-text":"У этой карточки обязательный вид: его нельзя менять или заменить","view-refused-lock-invalid-text":"Эту настройку нельзя закрыть","view-refused-head-invalid-text":"В заголовке не больше двух полей, а статус — поле со списком значений","view-refused-icon-invalid-text":"Неизвестный значок вкладки"}}');
 
 /***/ }
 

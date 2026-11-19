@@ -2,7 +2,129 @@
   "$comment": "sf-table from its component.json (standard simai.smart-component 1.3.8, vocabulary 1.1.5), migrated from ui-control control/smart-architecture/migration/out/table (convert-1.3.8.mjs over ui-pro 9cbe061); every x-todo decided in x-decisions.",
   "id": "smart.view-table",
   "tag": "sf-view-table",
-  "version": "1.19.6",
+  "version": "1.25.1",
+  "x-history": [
+    {
+      "version": "1.25.1",
+      "kind": "patch",
+      "recorded_on": "2026-11-18",
+      "consumer": "Nothing to change. The column head menu's separators draw as separators: they are passed as {type: \"separator\"}, the key sf-menu-context reads ({kind: \"separator\"} drew an empty focusable item, VR3-2).",
+      "evidence": "control/evidence/2026-11-18-view-r4/README.md"
+    },
+    {
+      "version": "1.25.0",
+      "kind": "minor",
+      "recorded_on": "2026-11-18",
+      "consumer": "Nothing to change. New: row-offset (with total, aria-rowindex of a later page); the open record (aria-current) has the primary 12 % fill in the grid as in the list; Alt+Down / Alt+Up are left to a data view.",
+      "evidence": "control/evidence/2026-11-18-view-returns/README.md"
+    },
+    {
+      "version": "1.24.0",
+      "kind": "minor",
+      "recorded_on": "2026-11-18",
+      "consumer": "Nothing breaks: every former setting and name keeps working until 2027-01-01. A host that wants the new contract passes total (the count under the filter), sort=\"key:dir\", totals {page, all} for the columns marked total, listens to sf-view-table-open, and moves the toolbar, paging and group actions of a table standing alone to sf-view, sf-pagination and sf-bulk-actions (C295, C296). A page that styled the table through --sf-table-* moves to the eight --sf-view-table-* variables.",
+      "evidence": "control/evidence/2026-11-18-view-r2-table/README.md"
+    },
+    {
+      "version": "1.23.1",
+      "kind": "patch",
+      "recorded_on": "2026-11-17",
+      "consumer": "Nothing to change for a host: only the SIMAI Framework file it builds in moved with the repin.",
+      "evidence": "https://github.com/simai/ui-view/commit/72efdf758ad42334369aa418dc0e1b149f457fd9"
+    },
+    {
+      "version": "1.23.0",
+      "kind": "minor",
+      "recorded_on": "2026-11-17",
+      "consumer": "A page that recoloured the table's toolbar (Larena admin-shell.css:286-290) or fixed its menu tabs (:294-295) no longer needs it; create, view actions, sort and a saved view's «⋯» open the SIMAI Framework's shared menu at their button's start edge.",
+      "evidence": "https://github.com/simai/ui-view/commit/548b6e88425ee85c7d642f69b089165aa18de268"
+    },
+    {
+      "version": "1.22.0",
+      "kind": "minor",
+      "recorded_on": "2026-11-17",
+      "consumer": "Nothing to change for a host: the gear's window is SIMAI Framework sf-settings look=\"panel\"; the columns and view settings apply at once, as before.",
+      "evidence": "https://github.com/simai/ui-view/commit/1c125c5c49024e09b88af5444c800ca779e624ed"
+    },
+    {
+      "version": "1.21.4",
+      "kind": "patch",
+      "recorded_on": "2026-11-17",
+      "consumer": "Nothing to change for a host: the same look, asked for as ghost instead of its former name link.",
+      "evidence": "https://github.com/simai/ui-view/commit/da5de52ef022bfcd6da197ee6963675ded22ef08"
+    },
+    {
+      "version": "1.21.3",
+      "kind": "patch",
+      "recorded_on": "2026-11-17",
+      "consumer": "Nothing to change for a host: former names that ended 2026-12-01 now end 2027-01-01 and keep coming as before.",
+      "evidence": "https://github.com/simai/ui-view/commit/fa0ee5e8a1ee42a718079a2430cc9b36df8b93c6"
+    },
+    {
+      "version": "1.21.2",
+      "kind": "patch",
+      "recorded_on": "2026-11-17",
+      "consumer": "Nothing to change for a host: only the SIMAI Framework file it builds in moved with the repin.",
+      "evidence": "https://github.com/simai/ui-view/commit/12a1f16bf2063fb522fe6c6074049a0fd08e1886"
+    },
+    {
+      "version": "1.21.1",
+      "kind": "patch",
+      "recorded_on": "2026-11-17",
+      "consumer": "Nothing to change for a host: filter chips, search fields and the row menu use the Framework's current names and spacing.",
+      "evidence": "https://github.com/simai/ui-view/commit/15af7a0972a5625f9df050e3c8ed55acf71fcff0"
+    },
+    {
+      "version": "1.21.0",
+      "kind": "minor",
+      "recorded_on": "2026-11-17",
+      "consumer": "Nothing to change for a host; people can set a column's width from the keyboard, and the width they choose is kept as before.",
+      "evidence": "https://github.com/simai/ui-view/commit/4c1a3e3c70de704ecd5f95f99fdbc7d6a5ab944e"
+    },
+    {
+      "version": "1.20.3",
+      "kind": "patch",
+      "recorded_on": "2026-11-17",
+      "consumer": "Nothing to change for a host: a resource row's more button names its record.",
+      "evidence": "https://github.com/simai/ui-view/commit/e1ef6090bb2e3c80e15211949b77d0cb032fb03d"
+    },
+    {
+      "version": "1.20.2",
+      "kind": "patch",
+      "recorded_on": "2026-11-16",
+      "consumer": "Nothing to change for a host: the utility classes come with the component, so the first paint no longer shifts.",
+      "evidence": "https://github.com/simai/ui-view/commit/cc73a1fa9632a29db947dde22160a9016bfee4ed"
+    },
+    {
+      "version": "1.20.1",
+      "kind": "patch",
+      "recorded_on": "2026-11-16",
+      "consumer": "Nothing to change for a host: the list toolbar's three groups stand --sf-space-1 apart.",
+      "evidence": "https://github.com/simai/ui-view/commit/2f3c8571f96002ef0092886077f24ebd6981d502"
+    },
+    {
+      "version": "1.20.0",
+      "kind": "minor",
+      "recorded_on": "2026-11-16",
+      "consumer": "A host may name key columns (columns[].key_cell, key_line) to choose what a phone row keeps; row menus follow the host's row actions, so a page that set the menu through row-actions passes them as row actions.",
+      "evidence": "https://github.com/simai/ui-view/commit/6fbaf50f70987175cbbaba7c2d5d298852a94c7f"
+    },
+    {
+      "version": "1.19.9",
+      "kind": "patch",
+      "recorded_on": "2026-11-16",
+      "consumer": "Nothing to change for a host: only the SIMAI Framework file it builds in moved with the repin.",
+      "evidence": "https://github.com/simai/ui-view/commit/e214dd608fdcf39cea527676fc522afd718922d4"
+    }
+  ],
+  "x-framework-first": {
+    "$comment": "Copies of Framework parts kept knowingly, part id (docs/FRAMEWORK-FIRST.md) to the Framework order (FO) each waits for (set standard draft 1.1 §7.3). The repin that brings an order removes its copy.",
+    "waits": {
+      "T-21": "FO-4",
+      "T-22": "FO-5",
+      "T-33": "FO-2"
+    }
+  },
   "kind": "leaf",
   "family": "table",
   "settings": {
@@ -25,12 +147,12 @@
     "creatable": {
       "type": "boolean",
       "default": true,
-      "summary": "The create button and its menu of kinds, inside actions. A data view turns it off for a host on port 1.10.0 that does not announce create-record."
+      "summary": "The create button and its menu of kinds, inside actions. A data view turns it off for a host on port 1.10.0 that does not announce create-record. A dated former setting of the table (C296, C295): the container's job -- sf-view, sf-pagination, sf-bulk-actions. It keeps working as before until 2027-01-01; on a table standing alone it is noted in SF.deprecations once."
     },
     "filter-templates": {
       "type": "boolean",
       "default": true,
-      "summary": "The button that saves the filter as a template. A data view turns it off when the host keeps no saved views."
+      "summary": "The button that saves the filter as a template. A data view turns it off when the host keeps no saved views. A dated former setting of the table (C296, C295): the container's job -- sf-view, sf-pagination, sf-bulk-actions. It keeps working as before until 2027-01-01; on a table standing alone it is noted in SF.deprecations once."
     },
     "settings-menu": {
       "type": "boolean",
@@ -39,40 +161,48 @@
     },
     "pagin": {
       "type": "boolean",
-      "default": false
+      "default": false,
+      "summary": "A dated former setting of the table (C296, C295): the container's job -- sf-view, sf-pagination, sf-bulk-actions. It keeps working as before until 2027-01-01; on a table standing alone it is noted in SF.deprecations once."
     },
     "filter-text": {
       "type": "string",
-      "default-from": "runtime.filter-text"
+      "default-from": "runtime.filter-text",
+      "summary": "A dated former setting of the table (C296, C295): the container's job -- sf-view, sf-pagination, sf-bulk-actions. It keeps working as before until 2027-01-01; on a table standing alone it is noted in SF.deprecations once."
     },
     "clear-text": {
       "type": "string",
-      "default-from": "runtime.clear-text"
+      "default-from": "runtime.clear-text",
+      "summary": "A dated former setting of the table (C296, C295): the container's job -- sf-view, sf-pagination, sf-bulk-actions. It keeps working as before until 2027-01-01; on a table standing alone it is noted in SF.deprecations once."
     },
     "search-placeholder": {
       "type": "string",
-      "default-from": "runtime.search-placeholder"
+      "default-from": "runtime.search-placeholder",
+      "summary": "A dated former setting of the table (C296, C295): the container's job -- sf-view, sf-pagination, sf-bulk-actions. It keeps working as before until 2027-01-01; on a table standing alone it is noted in SF.deprecations once."
     },
     "create-text": {
       "type": "string",
-      "default-from": "runtime.create-text"
+      "default-from": "runtime.create-text",
+      "summary": "A dated former setting of the table (C296, C295): the container's job -- sf-view, sf-pagination, sf-bulk-actions. It keeps working as before until 2027-01-01; on a table standing alone it is noted in SF.deprecations once."
     },
     "pagination-total": {
       "type": "number",
       "default": 10,
       "integer": true,
-      "min": 0
+      "min": 0,
+      "summary": "A dated former setting of the table (C296, C295): the container's job -- sf-view, sf-pagination, sf-bulk-actions. It keeps working as before until 2027-01-01; on a table standing alone it is noted in SF.deprecations once."
     },
     "pagination-page-size": {
       "type": "number",
       "default": 10,
       "integer": true,
       "min": 1,
-      "max": 100
+      "max": 100,
+      "summary": "A dated former setting of the table (C296, C295): the container's job -- sf-view, sf-pagination, sf-bulk-actions. It keeps working as before until 2027-01-01; on a table standing alone it is noted in SF.deprecations once."
     },
     "page-sizes": {
       "type": "string",
-      "default": "10,20,30,40"
+      "default": "10,20,30,40",
+      "summary": "A dated former setting of the table (C296, C295): the container's job -- sf-view, sf-pagination, sf-bulk-actions. It keeps working as before until 2027-01-01; on a table standing alone it is noted in SF.deprecations once."
     },
     "context-menu-columns": {
       "type": "number",
@@ -129,7 +259,7 @@
     "toolbar": {
       "type": "boolean",
       "default": true,
-      "summary": "Show the built-in toolbar; a composite can provide its own toolbar slot."
+      "summary": "Show the built-in toolbar; a composite can provide its own toolbar slot. A dated former setting of the table (C296, C295): the container's job -- sf-view, sf-pagination, sf-bulk-actions. It keeps working as before until 2027-01-01; on a table standing alone it is noted in SF.deprecations once."
     },
     "stripes": {
       "type": "boolean",
@@ -173,7 +303,7 @@
     "filter-apply-text": {
       "type": "string",
       "default-from": "runtime.filter-apply-text",
-      "summary": "Label of the filter window’s commit button; the number of conditions a press would change is appended to it while a draft is pending."
+      "summary": "Label of the filter window’s commit button; the number of conditions a press would change is appended to it while a draft is pending. A dated former setting of the table (C296, C295): the container's job -- sf-view, sf-pagination, sf-bulk-actions. It keeps working as before until 2027-01-01; on a table standing alone it is noted in SF.deprecations once."
     },
     "layout": {
       "type": "enum",
@@ -188,7 +318,7 @@
     "layout-switch": {
       "type": "boolean",
       "default": false,
-      "summary": "A list/table switch (sf-segmented, two icons) in the toolbar before Create (owner decision C31). The choice is the person's: kept with the table's preferences (preferences-key, table-settings-key or remember-widths, else for the page) and in the settings of a saved view; with it, layout table reads as auto. Below list-below there is only the list and no switch."
+      "summary": "A list/table switch (sf-segmented, two icons) in the toolbar before Create (owner decision C31). The choice is the person's: kept with the table's preferences (preferences-key, table-settings-key or remember-widths, else for the page) and in the settings of a saved view; with it, layout table reads as auto. Below list-below there is only the list and no switch. A dated former setting of the table (C296, C295): the container's job -- sf-view, sf-pagination, sf-bulk-actions. It keeps working as before until 2027-01-01; on a table standing alone it is noted in SF.deprecations once."
     },
     "list-below": {
       "type": "number",
@@ -250,7 +380,17 @@
     "inline-edit": {
       "type": "boolean",
       "default": false,
-      "summary": "A boolean cell the record names in `editable` is a checkbox; pressing it emits sf-table-cell-set {id, key, value, revision} and the cell waits for the host. A data view sets it when the host offers inline-edit."
+      "summary": "The author lets the person edit at the cell. A boolean the record names in `editable` is a checkbox; a short field -- a choice, a person given options, a date, a number or money -- opens at the cell on a double press or F2: a menu of the choices, or a small popover with the field of its type and Save / Cancel (C296). Either emits sf-view-table-cell-set {id, key, value, revision}, and the cell waits for the host. Longer fields are the record card's. A data view sets it when the host offers inline-edit."
+    },
+    "total": {
+      "type": "number",
+      "default": 0,
+      "summary": "How many records are under the filter, as the host knows it (C296, VT-4): the grid's aria-rowcount says total + 1 (the head), and a group actions bar offers «all N». 0 or absent: the rows drawn are all there is."
+    },
+    "row-offset": {
+      "type": "number",
+      "default": 0,
+      "summary": "How many records of the filter come before the first row drawn (page 2 and on of a data view, VR2-8): with total, each row's aria-rowindex is its place in the list. 0: the rows drawn start the list. sf-view writes it with total."
     },
     "active-filter-fields": {
       "type": "list",
@@ -259,7 +399,8 @@
       }
     },
     "bulk-actions": {
-      "type": "list"
+      "type": "list",
+      "summary": "The group actions of a table standing alone ({id, name}). Where the page's pair carries sf-bulk-actions, the table places that bar after its rows with the count, clear and «all N» (C295, C296); without it, the former outline buttons above the rows. Inside sf-view the view draws the bar. setBulkActions is a former name of the bar's actions until 2027-01-01."
     },
     "columns": {
       "type": "list",
@@ -267,7 +408,7 @@
         "key": "string",
         "label": "string"
       },
-      "x-shape": "columns[].key and columns[].label are the package's (ui-pro 9cbe061 table/smart.manifest.json item_contract.package_owned); width, order, visibility and pinning are a person's column settings; constant columns in a manifest give only the key, the label lives in lang roles.<role>.columns.<key> (standard 1.3.8 §11.3); columns[].list is the column's place in a list row (owner decision C31): status (a leading .sf-dot from ok, warning, error or stopped, or an option's status; the word is its tooltip and accessible text), title, supporting (joined with « · » into the second line), fact (an sf-badge without its label, in a column of one width, quiet when fine, warning or error when not) or hidden; a column with a role makes the list a list of resources, and a column without one is left to the record panel there"
+      "x-shape": "columns[].key and columns[].label are the package's (ui-pro 9cbe061 table/smart.manifest.json item_contract.package_owned); width, order, visibility and pinning are a person's column settings; constant columns in a manifest give only the key, the label lives in lang roles.<role>.columns.<key> (standard 1.3.8 §11.3); columns[].list is the column's place in a list row (owner decision C31): status (a leading .sf-dot from ok, warning, error or stopped, or an option's status; the word is its tooltip and accessible text), title, supporting (joined with « · » into the second line), fact (an sf-badge without its label, in a column of one width, quiet when fine, warning or error when not) or hidden; a column with a role makes the list a list of resources, and a column without one is left to the record panel there; columns[].key_cell (true) marks a key column and columns[].key_line names the column whose value is the key cell's second line: below 44rem a table with row actions keeps the select box, the row menu and its key columns alone, without sideways scroll (owner decision C259); columns[].total (true) marks a column the totals row fills from the host's totals; columns[].options make a choice or person cell editable at the cell (inline-edit)"
     },
     "create-items": {
       "type": "list"
@@ -315,7 +456,12 @@
         }
       },
       "controlled": true,
-      "x-shape": "vocabulary 1.1.5 §2.1 sort: [{key, direction}], the host's echo; a person's click is the event sort-change"
+      "x-shape": "vocabulary 1.1.5 §2.1 sort: [{key, direction}], the host's echo; a person's click is the event sort-change; also written as an attribute in its short form sort=\"key:asc|desc\" (C296), or as JSON"
+    },
+    "totals": {
+      "type": "object",
+      "x-shape": "{page?: {<column key>: value}, all?: {<column key>: value}}: the host's sums for the columns marked total: true, drawn as a totals row at the foot -- «На странице» and «Всего по фильтру» -- through the column's own cell format (C296). The table sums nothing itself.",
+      "summary": "The totals row at the foot, from the host."
     },
     "current": {
       "type": "string",
@@ -341,7 +487,7 @@
       "carries": {
         "ids": "list"
       },
-      "summary": "The marked rows changed, vocabulary §5 select {ids}: once per change of the explicit selection, clearing included. The old name sf-port-output follows once with its old detail until 2026-12-01 (aliases.json)."
+      "summary": "The marked rows changed, vocabulary §5 select {ids}: once per change of the explicit selection, clearing included. The old name sf-port-output follows once with its old detail until 2027-01-01 (aliases.json)."
     },
     "apply": {
       "carries": {
@@ -360,7 +506,7 @@
           "optional": true
         }
       },
-      "summary": "A row's or the selection's action, vocabulary §5 apply: {action, scope: entry | selection, ids, revisions}. The host decides; emission is not success. The old name sf-table-action-intent follows once with its old detail until 2026-12-01 (aliases.json)."
+      "summary": "A row's or the selection's action, vocabulary §5 apply: {action, scope: entry | selection, ids, revisions}. The host decides; emission is not success. The old name sf-table-action-intent follows once with its old detail until 2027-01-01 (aliases.json)."
     },
     "save": {
       "carries": {
@@ -380,7 +526,7 @@
           "summary": "The table's settings key."
         }
       },
-      "summary": "The person's column settings, vocabulary §5 save {kind: columns, reason, columnSettings, tableSettingsKey}. The old name sf-table-column-settings-change follows once with its old detail until 2026-12-01 (aliases.json)."
+      "summary": "The person's column settings, vocabulary §5 save {kind: columns, reason, columnSettings, tableSettingsKey}. The old name sf-table-column-settings-change follows once with its old detail until 2027-01-01 (aliases.json)."
     },
     "column-settings-reset": {
       "carries": {
@@ -408,7 +554,7 @@
           "optional": true
         }
       },
-      "summary": "The create button or one of its kinds, vocabulary §5 create {item}. The old name sf-table-create-intent follows once with its old detail until 2026-12-01 (aliases.json)."
+      "summary": "The create button or one of its kinds, vocabulary §5 create {item}. The old name sf-table-create-intent follows once with its old detail until 2027-01-01 (aliases.json)."
     },
     "filter-change": {
       "carries": {
@@ -442,11 +588,11 @@
           "integer": true
         }
       },
-      "summary": "A context query of the composition input port, vocabulary §5.1 query {reason, context, sequence}. The old name sf-table-query-intent follows once with its old detail until 2026-12-01 (aliases.json)."
+      "summary": "A context query of the composition input port, vocabulary §5.1 query {reason, context, sequence}. The old name sf-table-query-intent follows once with its old detail until 2027-01-01 (aliases.json)."
     },
     "refresh": {
       "carries": {},
-      "summary": "The retry button of a failed list, vocabulary §5 refresh. The old name sf-table-retry follows once with its old detail until 2026-12-01 (aliases.json)."
+      "summary": "The retry button of a failed list, vocabulary §5 refresh. The old name sf-table-retry follows once with its old detail until 2027-01-01 (aliases.json)."
     },
     "search-change": {
       "carries": {
@@ -590,7 +736,7 @@
           "optional": true
         }
       },
-      "summary": "A tree row opened or closed, vocabulary §5 expand {id, expanded}. The old name sf-table-tree-toggle follows once with its old detail until 2026-12-01 (aliases.json)."
+      "summary": "A tree row opened or closed, vocabulary §5 expand {id, expanded}. The old name sf-table-tree-toggle follows once with its old detail until 2027-01-01 (aliases.json)."
     },
     "load-more": {
       "carries": {
@@ -609,7 +755,7 @@
           "nullable": true
         }
       },
-      "summary": "The next page of a tree level, vocabulary §5 load-more {direction: after, parent, cursor}. The old name sf-table-tree-more follows once with its old detail until 2026-12-01 (aliases.json)."
+      "summary": "The next page of a tree level, vocabulary §5 load-more {direction: after, parent, cursor}. The old name sf-table-tree-more follows once with its old detail until 2027-01-01 (aliases.json)."
     },
     "rows-drag": {
       "carries": {
@@ -641,7 +787,7 @@
         },
         "order": "list"
       },
-      "summary": "Rows put in another order, vocabulary §5 move {ids, before, order}. The old name sf-table-rows-reorder follows once with its old detail until 2026-12-01 (aliases.json)."
+      "summary": "Rows put in another order, vocabulary §5 move {ids, before, order}. The old name sf-table-rows-reorder follows once with its old detail until 2027-01-01 (aliases.json)."
     },
     "cell-set": {
       "carries": {
@@ -651,7 +797,7 @@
         "revision": "object"
       },
       "own-verb": true,
-      "summary": "A checkable cell was pressed: the record, the field, the new value and the record's revision."
+      "summary": "A cell was edited at its place: a checkbox pressed, or a short field chosen in its menu or saved in its popover (C296): the record, the field, the new value and the record's revision."
     },
     "view-change": {
       "carries": {
@@ -686,6 +832,14 @@
       },
       "own-verb": true,
       "summary": "The person chose the list or the table with the layout switch (or set-layout was called); the choice is already kept. sf-view keeps it with the view."
+    },
+    "open": {
+      "carries": {
+        "id": "id",
+        "newTab": "boolean"
+      },
+      "own-verb": true,
+      "summary": "The person opened a record: its title pressed, the row double pressed or Enter (newTab false), or the title with a modifier or the middle button where the record has an address (newTab true). Said beside the view intent; the host opens the record card or follows the address (C296)."
     }
   },
   "actions": {
@@ -796,7 +950,8 @@
     "focus-row": {
       "with": {
         "id": "id"
-      }
+      },
+      "summary": "Bring a row into view and give it the focus (the grid's one Tab stop)."
     },
     "set-layout": {
       "with": {
@@ -810,6 +965,20 @@
       },
       "emits": "layout-change",
       "summary": "Choose the list or the table for this person, as the layout switch does: kept with the table's preferences and drawn. Refused for another value; unchanged when it is the choice already."
+    },
+    "scroll-to-row": {
+      "with": {
+        "id": "id"
+      },
+      "summary": "Bring a row into view inside the table's own scroll, drawing it first when the window has not (C296); the focus stays where it was. Answers applied, or rejected for an unknown id."
+    }
+  },
+  "slots": {
+    "empty": {
+      "summary": "Shown in place of the built-in empty state when there are no rows (C296)."
+    },
+    "error": {
+      "summary": "Shown in place of the built-in error state; absent, the empty slot or the built-in error (C296)."
     }
   },
   "selection": "many",
@@ -829,7 +998,8 @@
       "Home": "focus:first",
       "End": "focus:last",
       "Enter": "open",
-      "Space": "toggle:selected"
+      "Space": "toggle:selected",
+      "F2": "edit:cell"
     }
   },
   "port": {
@@ -906,7 +1076,14 @@
       "name": "cl-tabs",
       "lazy": true,
       "$comment": [
-        "The gear's tabs, «Поля» and «Вид» (owner, 2026-10-14)."
+        "The filter window's tabs, «Шаблоны» and «Поля» (owner, 2026-10-14)."
+      ]
+    },
+    {
+      "name": "cl-settings",
+      "lazy": true,
+      "$comment": [
+        "The gear's window is sf-settings in its panel look, «Поля» and «Вид» (owner decision C106)."
       ]
     },
     {
@@ -970,6 +1147,96 @@
       "$comment": [
         "The layout switch in the toolbar (C31)."
       ]
+    },
+    {
+      "name": "align-items/default",
+      "$comment": [
+        "The utility classes its templates write, asked for with the component (SIMAI Framework loader: a Framework component gets them from template-utilities.generated.json, a package component names them here); fetched after the first paint, they moved the drawn parts -- the bulk band's gap came 0 -> 8 and the band 8 px down some 150 ms in (View 1.8.1 acceptance, queue #172). The list is scripts/generate-template-utilities.mjs run over the overlay."
+      ]
+    },
+    {
+      "name": "border-collapse/default"
+    },
+    {
+      "name": "border-spacing/default"
+    },
+    {
+      "name": "cursor/default"
+    },
+    {
+      "name": "display/default"
+    },
+    {
+      "name": "element-position/default"
+    },
+    {
+      "name": "flex-direction/default"
+    },
+    {
+      "name": "flex-wrap/default"
+    },
+    {
+      "name": "flex/default"
+    },
+    {
+      "name": "gap/default"
+    },
+    {
+      "name": "height/default"
+    },
+    {
+      "name": "justify-content/default"
+    },
+    {
+      "name": "margin/default"
+    },
+    {
+      "name": "max-width/default"
+    },
+    {
+      "name": "min-height/default"
+    },
+    {
+      "name": "min-width/default"
+    },
+    {
+      "name": "overflow/default"
+    },
+    {
+      "name": "padding/default"
+    },
+    {
+      "name": "pointer-events/default"
+    },
+    {
+      "name": "position/default"
+    },
+    {
+      "name": "table-layout/default"
+    },
+    {
+      "name": "table/default"
+    },
+    {
+      "name": "text-max-width/default"
+    },
+    {
+      "name": "text-overflow/default"
+    },
+    {
+      "name": "transition-property/default"
+    },
+    {
+      "name": "user-select/default"
+    },
+    {
+      "name": "visibility/default"
+    },
+    {
+      "name": "width/default"
+    },
+    {
+      "name": "z-index/default"
     }
   ],
   "templates": {
@@ -1005,7 +1272,8 @@
       "Home": "focus:first",
       "End": "focus:last",
       "Enter": "open",
-      "Space": "toggle:selected"
+      "Space": "toggle:selected",
+      "F2": "edit:cell"
     },
     "announces": {}
   },
@@ -1014,80 +1282,126 @@
     "data-sf-page-scroll": "boolean"
   },
   "css-variables": {
+    "--sf-view-table-row-block-size": {
+      "type": "length",
+      "state": "default",
+      "x-summary": "read by a page: the row's box at the table's size (size 1 or 1/2), so a page keeps the place before the first paint; set by the sheet (C296; public, eight --sf-view-table-*)"
+    },
+    "--sf-view-table-head-block-size": {
+      "type": "length",
+      "state": "default",
+      "x-summary": "read by a page: the head row's box at the table's size; set by the sheet (C296; public, eight --sf-view-table-*)"
+    },
+    "--sf-view-table-edge": {
+      "type": "length",
+      "state": "default",
+      "x-summary": "the author's: the inline inset of the first and last cell (default --sf-space-1) (C296; public, eight --sf-view-table-*)"
+    },
+    "--sf-view-table-line-color": {
+      "type": "color",
+      "state": "default",
+      "x-summary": "the author's: the colour of the lines between rows and under the head (default the table's outline) (C296; public, eight --sf-view-table-*)"
+    },
+    "--sf-view-table-head-color": {
+      "type": "color",
+      "state": "default",
+      "x-summary": "the author's: the head's ink (default --sf-on-surface-variant) (C296; public, eight --sf-view-table-*)"
+    },
+    "--sf-view-table-row-background-color": {
+      "type": "color",
+      "state": "default",
+      "x-summary": "the author's: a row's own fill, a zebra with data-sf-view-stripes (default the page surface) (C296; public, eight --sf-view-table-*)"
+    },
+    "--sf-view-table-selected-background-color": {
+      "type": "color",
+      "state": "default",
+      "x-summary": "the author's: a selected row's fill (default --sf-primary-container) (C296; public, eight --sf-view-table-*)"
+    },
+    "--sf-view-table-title-lines": {
+      "type": "integer",
+      "state": "default",
+      "x-summary": "the author's: how many lines a title cell takes before it is cut (default 2) (C296; public, eight --sf-view-table-*)"
+    },
     "--sf-table-row-block-size-1/2": {
       "type": "length",
       "state": "default",
-      "x-summary": "published on :root, set by the sheet, read by a page: a one-line row at the step, size 1/2 (docs.md, the list's box)"
+      "x-summary": "published on :root, set by the sheet, read by a page: a one-line row at the step, size 1/2 (docs.md, the list's box); a former public name until 2027-01-01 beside the eight --sf-view-table-* (C296)"
     },
     "--sf-table-row-block-size-1": {
       "type": "length",
       "state": "default",
-      "x-summary": "published on :root, set by the sheet, read by a page: a one-line row at the step, size 1 (docs.md, the list's box)"
+      "x-summary": "published on :root, set by the sheet, read by a page: a one-line row at the step, size 1 (docs.md, the list's box); a former public name until 2027-01-01 beside the eight --sf-view-table-* (C296)"
     },
     "--sf-table-row-2-lines-block-size-1/2": {
       "type": "length",
       "state": "default",
-      "x-summary": "published on :root, set by the sheet, read by a page: a row whose text takes two lines, size 1/2 (docs.md, the list's box)"
+      "x-summary": "published on :root, set by the sheet, read by a page: a row whose text takes two lines, size 1/2 (docs.md, the list's box); a former public name until 2027-01-01 beside the eight --sf-view-table-* (C296)"
     },
     "--sf-table-row-2-lines-block-size-1": {
       "type": "length",
       "state": "default",
-      "x-summary": "published on :root, set by the sheet, read by a page: a row whose text takes two lines, size 1 (docs.md, the list's box)"
+      "x-summary": "published on :root, set by the sheet, read by a page: a row whose text takes two lines, size 1 (docs.md, the list's box); a former public name until 2027-01-01 beside the eight --sf-view-table-* (C296)"
     },
     "--sf-table-head-block-size-1/2": {
       "type": "length",
       "state": "default",
-      "x-summary": "published on :root, set by the sheet, read by a page: the head row, size 1/2 (docs.md, the list's box)"
+      "x-summary": "published on :root, set by the sheet, read by a page: the head row, size 1/2 (docs.md, the list's box); a former public name until 2027-01-01 beside the eight --sf-view-table-* (C296)"
     },
     "--sf-table-head-block-size-1": {
       "type": "length",
       "state": "default",
-      "x-summary": "published on :root, set by the sheet, read by a page: the head row, size 1 (docs.md, the list's box)"
+      "x-summary": "published on :root, set by the sheet, read by a page: the head row, size 1 (docs.md, the list's box); a former public name until 2027-01-01 beside the eight --sf-view-table-* (C296)"
     },
     "--sf-table-toolbar-block-size-1/2": {
       "type": "length",
       "state": "default",
-      "x-summary": "published on :root, set by the sheet, read by a page: the toolbar on one line, size 1/2 (docs.md, the list's box)"
+      "x-summary": "published on :root, set by the sheet, read by a page: the toolbar on one line, size 1/2 (docs.md, the list's box); a former public name until 2027-01-01 beside the eight --sf-view-table-* (C296)"
     },
     "--sf-table-toolbar-block-size-1": {
       "type": "length",
       "state": "default",
-      "x-summary": "published on :root, set by the sheet, read by a page: the toolbar on one line, size 1 (docs.md, the list's box)"
+      "x-summary": "published on :root, set by the sheet, read by a page: the toolbar on one line, size 1 (docs.md, the list's box); a former public name until 2027-01-01 beside the eight --sf-view-table-* (C296)"
     },
     "--sf-table-toolbar-gap": {
       "type": "length",
       "state": "default",
-      "x-summary": "published on :root, set by the sheet, read by a page: the gap between the toolbar and the head (docs.md, the list's box)"
+      "x-summary": "published on :root, set by the sheet, read by a page: the gap between the toolbar and the head (docs.md, the list's box); a former public name until 2027-01-01 beside the eight --sf-view-table-* (C296)"
     },
     "--sf-table-head--background-color": {
       "type": "color",
-      "state": "default"
+      "state": "default",
+      "x-summary": "; a former public name until 2027-01-01 beside the eight --sf-view-table-* (C296)"
     },
     "--sf-table-row--background-color": {
       "type": "color",
-      "state": "default"
+      "state": "default",
+      "x-summary": "; a former public name until 2027-01-01 beside the eight --sf-view-table-* (C296)"
     },
     "--sf-table--cell-spacing": {
       "type": "length",
-      "state": "default"
+      "state": "default",
+      "x-summary": "; a former public name until 2027-01-01 beside the eight --sf-view-table-* (C296)"
     },
     "--sf-table-cell--line-clamp": {
       "type": "number",
-      "state": "default"
+      "state": "default",
+      "x-summary": "; a former public name until 2027-01-01 beside the eight --sf-view-table-* (C296)"
     },
     "--sf-table-context-menu--z-index": {
       "type": "number",
-      "state": "open"
+      "state": "open",
+      "x-summary": "; a former public name until 2027-01-01 beside the eight --sf-view-table-* (C296)"
     },
     "--sf-table-context-menu--max-width": {
       "type": "length",
-      "state": "open"
+      "state": "open",
+      "x-summary": "; a former public name until 2027-01-01 beside the eight --sf-view-table-* (C296)"
     }
   },
   "aliases": {
     "$comment": "Dated aliases of sf-view-table for the shim (core/js/aliases.js, standard §16 item 20, vocabulary §9). mode: same-detail (the shim sends the new and the old name), detail-adds (the old name gets the larger new detail), split (the old detail from the element's adapter, sfAliasAdapters), host-attribute (no shim).",
     "since": "2026-10-27",
-    "remove-after": "2026-12-01",
+    "remove-after": "2027-01-01",
     "rows": [
       {
         "from": "aria-label",
@@ -1470,6 +1784,136 @@
         "mode": "same-detail",
         "section": "§8",
         "note": "the event name carries the tag"
+      },
+      {
+        "from": "toolbar",
+        "to": null,
+        "kind": "attribute",
+        "since": "2026-11-18",
+        "remove_after": "2027-01-01",
+        "mode": "host-attribute",
+        "section": "C296, C295 (VT-13)",
+        "note": "the container's job (sf-view, sf-pagination, sf-bulk-actions); read by the table as before until the date, noted in SF.deprecations once on a table standing alone; no shim"
+      },
+      {
+        "from": "pagin",
+        "to": null,
+        "kind": "attribute",
+        "since": "2026-11-18",
+        "remove_after": "2027-01-01",
+        "mode": "host-attribute",
+        "section": "C296, C295 (VT-13)",
+        "note": "the container's job (sf-view, sf-pagination, sf-bulk-actions); read by the table as before until the date, noted in SF.deprecations once on a table standing alone; no shim"
+      },
+      {
+        "from": "filter-templates",
+        "to": null,
+        "kind": "attribute",
+        "since": "2026-11-18",
+        "remove_after": "2027-01-01",
+        "mode": "host-attribute",
+        "section": "C296, C295 (VT-13)",
+        "note": "the container's job (sf-view, sf-pagination, sf-bulk-actions); read by the table as before until the date, noted in SF.deprecations once on a table standing alone; no shim"
+      },
+      {
+        "from": "filter-text",
+        "to": null,
+        "kind": "attribute",
+        "since": "2026-11-18",
+        "remove_after": "2027-01-01",
+        "mode": "host-attribute",
+        "section": "C296, C295 (VT-13)",
+        "note": "the container's job (sf-view, sf-pagination, sf-bulk-actions); read by the table as before until the date, noted in SF.deprecations once on a table standing alone; no shim"
+      },
+      {
+        "from": "clear-text",
+        "to": null,
+        "kind": "attribute",
+        "since": "2026-11-18",
+        "remove_after": "2027-01-01",
+        "mode": "host-attribute",
+        "section": "C296, C295 (VT-13)",
+        "note": "the container's job (sf-view, sf-pagination, sf-bulk-actions); read by the table as before until the date, noted in SF.deprecations once on a table standing alone; no shim"
+      },
+      {
+        "from": "search-placeholder",
+        "to": null,
+        "kind": "attribute",
+        "since": "2026-11-18",
+        "remove_after": "2027-01-01",
+        "mode": "host-attribute",
+        "section": "C296, C295 (VT-13)",
+        "note": "the container's job (sf-view, sf-pagination, sf-bulk-actions); read by the table as before until the date, noted in SF.deprecations once on a table standing alone; no shim"
+      },
+      {
+        "from": "create-text",
+        "to": null,
+        "kind": "attribute",
+        "since": "2026-11-18",
+        "remove_after": "2027-01-01",
+        "mode": "host-attribute",
+        "section": "C296, C295 (VT-13)",
+        "note": "the container's job (sf-view, sf-pagination, sf-bulk-actions); read by the table as before until the date, noted in SF.deprecations once on a table standing alone; no shim"
+      },
+      {
+        "from": "creatable",
+        "to": null,
+        "kind": "attribute",
+        "since": "2026-11-18",
+        "remove_after": "2027-01-01",
+        "mode": "host-attribute",
+        "section": "C296, C295 (VT-13)",
+        "note": "the container's job (sf-view, sf-pagination, sf-bulk-actions); read by the table as before until the date, noted in SF.deprecations once on a table standing alone; no shim"
+      },
+      {
+        "from": "pagination-total",
+        "to": null,
+        "kind": "attribute",
+        "since": "2026-11-18",
+        "remove_after": "2027-01-01",
+        "mode": "host-attribute",
+        "section": "C296, C295 (VT-13)",
+        "note": "the container's job (sf-view, sf-pagination, sf-bulk-actions); read by the table as before until the date, noted in SF.deprecations once on a table standing alone; no shim"
+      },
+      {
+        "from": "pagination-page-size",
+        "to": null,
+        "kind": "attribute",
+        "since": "2026-11-18",
+        "remove_after": "2027-01-01",
+        "mode": "host-attribute",
+        "section": "C296, C295 (VT-13)",
+        "note": "the container's job (sf-view, sf-pagination, sf-bulk-actions); read by the table as before until the date, noted in SF.deprecations once on a table standing alone; no shim"
+      },
+      {
+        "from": "page-sizes",
+        "to": null,
+        "kind": "attribute",
+        "since": "2026-11-18",
+        "remove_after": "2027-01-01",
+        "mode": "host-attribute",
+        "section": "C296, C295 (VT-13)",
+        "note": "the container's job (sf-view, sf-pagination, sf-bulk-actions); read by the table as before until the date, noted in SF.deprecations once on a table standing alone; no shim"
+      },
+      {
+        "from": "filter-apply-text",
+        "to": null,
+        "kind": "attribute",
+        "since": "2026-11-18",
+        "remove_after": "2027-01-01",
+        "mode": "host-attribute",
+        "section": "C296, C295 (VT-13)",
+        "note": "the container's job (sf-view, sf-pagination, sf-bulk-actions); read by the table as before until the date, noted in SF.deprecations once on a table standing alone; no shim"
+      },
+      {
+        "from": "layout-switch",
+        "to": null,
+        "kind": "attribute",
+        "since": "2026-11-18",
+        "remove_after": "2027-01-01",
+        "mode": "host-attribute",
+        "section": "C296, C295 (VT-13)",
+        "note": "the container's job (sf-view, sf-pagination, sf-bulk-actions); read by the table as before until the date, noted in SF.deprecations once on a table standing alone; no shim"
       }
     ]
   },
@@ -1541,10 +1985,10 @@
   ],
   "x-decisions": {
     "shape": "leaf, with reasons (§7, the smaller mechanism). Its toolbar, filter, column settings and row menus are controls of its own state with no rule between them, and §18.4 asks the opposite of parts for its cells: a cell that only shows a value is class markup, a Smart element only while edited. Its rows are entries (§18), not roles. Stand 24 placed a table of this interface as a leaf inside the record browser; nothing it measured needs the table to be an assembly.",
-    "version": "1.9.0 → 1.10.0, a minor while the old event names hold dated aliases (§4.10); the major when they expire on 2026-12-01.",
+    "version": "1.9.0 → 1.10.0, a minor while the old event names hold dated aliases (§4.10); the major when they expire on 2027-01-01.",
     "events": "named by vocabulary 1.1.5: select {ids} (was sf-port-output {port, value}), apply {action, scope, ids, revisions} (was sf-table-action-intent {action_id, record_ids}), save {kind: columns, …} (was sf-table-column-settings-change, sf-table:column-settings-change, onColumnSettingsChange), create (was -create-intent), query (was -query-intent), refresh (was -retry), expand (was -tree-toggle), load-more (was -tree-more), move (was -rows-reorder). Each old name follows once through aliases.json, split rows through sfAliasAdapters with their old detail, and is noted in SF.deprecations when a listener reads it. The alias table's sf-table-action-intent → sf-table-apply is taken (vocabulary §9); the converter's sf-port-output → sf-table-port-output is not: the selection is the vocabulary's select.",
     "own-verb-words": "search-change, sort-change, filter-change, template-save, template-select, template-delete, column-settings-reset, toolbar-action, reference-open, rows-drag, cell-set, view-change and window keep their DOM names and are verbs of the table alone; their words are lang events.<verb>.label.",
-    "camelCase-events": "simai/ui-pro#1: onSearchEnd, onTemplateSave, onFilterUpdate and onColumnSettingsChange are no longer sent by the table; they are dated aliases of search-change, template-save, filter-change and save (ui-admin src/main.ts and src/smart-component-catalog.ts listen to them until 2026-12-01). search-change carries {search} now (§8: detail is an object); onSearchEnd keeps the bare text through its adapter.",
+    "camelCase-events": "simai/ui-pro#1: onSearchEnd, onTemplateSave, onFilterUpdate and onColumnSettingsChange are no longer sent by the table; they are dated aliases of search-change, template-save, filter-change and save (ui-admin src/main.ts and src/smart-component-catalog.ts listen to them until 2027-01-01). search-change carries {search} now (§8: detail is an object); onSearchEnd keeps the bare text through its adapter.",
     "column-settings": "simai/ui-pro#1: getColumnSettings() merges the host's and the person's settings once per change of either and answers from the memo while drawing; the system columns and the column a box is named by are read once per list, not per row.",
     "window": "§18.4, simai/ui-pro#2: window: true. From 300 rows (quality profile 1.3.6-1 window_from_entries) the table draws the rows in view and 20 more on each side, between two spacer rows of the rest's height; aria-rowcount and aria-rowindex keep the whole count. The range follows any scroll box and the page, and is reported as the fact window {first, last}. The arrows, Home and End move between all rows, drawing an undrawn one first. One changed row (updateRowByKey) is drawn again in place and measures no width.",
     "cells": "§18.4: a cell that only shows a value is class markup: the row's box is the checkbox's class markup over a native input, the row menu the icon button's class markup over a native button, a value a span. A row's template is composed once per arrangement of its cells, so a drawn row holds no Lit marker per cell: 27 nodes a row where it held 108. Host components, typed values, links, trees and editable cells keep the full renderer.",
@@ -1566,7 +2010,8 @@
     "framework-tag-renames": "version 1.13.6: the Framework elements it draws, finds and listens to are named by their new tags (Smart component naming of 2026-11-02, sf-[set]-<block>): the row and column menus are sf-menu-context (its sf-menu-context-* events), the icon buttons sf-button-icon, the typed cells and editors sf-input-color, sf-input-country, sf-input-date and sf-slider-range; a component type that names a former tag (a host's {type: 'icon-button'}) draws the element under its current tag (canonicalTag of the Smart base). The rule relations and the registry ids follow (cl-<new>, smart.<new>; the package reference pro.package.json of the pair). The former tags stay dated aliases of the Framework until 2027-01-01; public CSS variables and classes keep their names. No visible change. Needs the SIMAI Framework pair with the tag renames (core.runtime 1.21.0).",
     "tag-rename": "version 1.14.0: the tag is sf-view-table (naming decision 2026-11-02: sf-[set]-<block>[-<variant>]; rename plan R2); the folder view-table, the id smart.view-table and the bundle cl-view-table follow it. sf-table stays a dated alias until 2027-01-01: a subclass the Smart base defines beside the new tag, listed in the package rule, in sheets as :is(sf-view-table, sf-table), its events named after the tag followed by their former names (ui-source change journal tag-sf-table-to-sf-view-table, path-smart-table-to-view-table).",
     "cell-formats": "version 1.15.0: four cells read as what they hold (the Fields page and Larena, 2026-11-05). A date, date and time or time of day the host did not format (formatFieldValue) reads in the page's language through SIMAI Framework's format-date (js/format-value.js); the host's text still wins. Formatted text (html) is its text on the row's one line, never its markup, on both the class-markup path and the full renderer (field-renderers/html.js htmlText). Several files are each their name with their kind's icon, wrapping and folding into «+N» as several tags do; a column of documents drew nothing. The settings column is drawn only when it has something to open: the gear (settings-menu), a row menu with actions, or row reordering; a list with none of them had a column of «≡» that opened an empty menu.",
-    "event-detail": "version 1.16.0: Event detail that is not a flat object (decision 2026-11-09, control/evidence/2026-11-09-pro-queue): a non-flat detail is a flat carries map whose fields carry the nesting -- §4.2 types, `of` for a list's entries and `schema` for what the manifest checks; a detail that is not an object (§8) is carried in a named field, and its old shape stays on the dated alias names with mode split and the element's adapter. template-save carries templates, a list of one or more templates; sf-table-template-save and onTemplateSave keep the 1.3 detail (the template object, or the array of them) through sfAliasAdapters."
+    "event-detail": "version 1.16.0: Event detail that is not a flat object (decision 2026-11-09, control/evidence/2026-11-09-pro-queue): a non-flat detail is a flat carries map whose fields carry the nesting -- §4.2 types, `of` for a list's entries and `schema` for what the manifest checks; a detail that is not an object (§8) is carried in a named field, and its old shape stays on the dated alias names with mode split and the element's adapter. template-save carries templates, a list of one or more templates; sf-table-template-save and onTemplateSave keep the 1.3 detail (the template object, or the array of them) through sfAliasAdapters.",
+    "pro-copy-versions": "Version line (draft set standard §5.7, VS1.r2, VW-3; view round 1 B2): version numbers of sf-view-table are assigned only in this set. ui-pro's copy shipped its own 1.17.1 (the pinned-edge shadow; this set's 1.17.1, the head row on the ladder, has other content and was never in a set release), 1.19.7, 1.19.8 and 1.20.4 (rebuilds and patches of its own); none is a version of this set. The set's next version is above every number a copy shipped (1.21.x)."
   },
   "x-registry": {
     "kind": "composite",
@@ -2437,6 +2882,118 @@
           "to": "1.19.6",
           "changes": [
             "A table with selection boxes asks the Loader for the tick («check») and the head's «remove» with its first icon font (SF.Loader.preloadIcons, as sf-segmented and sf-input ask for the glyphs they will draw). An unchecked row's glyph is empty, so the page's font never had the tick and the first box checked waited for a second font before its tick showed (0.6 s on a fast line, longer on a slow one; DEV recipes p1, owner remark). Nothing to change for a host."
+          ]
+        },
+        {
+          "from": "1.19.6",
+          "to": "1.19.9",
+          "changes": [
+            "Over SIMAI Framework ui-078a4b4c6f6e (ui-source 10145e63b9dc) the Framework file it builds in, src/smart/pagination/index.js (sf-pagination 1.7: «Show more» within reach, C167; a deleting action listed last, C116), moved; the provenance and the version follow. Nothing of its own; nothing to change for a host. 1.19.7 and 1.19.8 are ui-pro's own patched copies, never this set's."
+          ]
+        },
+        {
+          "from": "1.19.9",
+          "to": "1.20.0",
+          "changes": [
+            "C259: below 44rem a table with row actions keeps the select box, the row menu and its key columns (columns[].key_cell) alone without sideways scroll, the key cell carries a second line (columns[].key_line); one row menu (sf-menu-context for=) over table and list rows, every action of the row in it; row menus follow the host's row actions, not row-actions"
+          ]
+        },
+        {
+          "from": "1.20.0",
+          "to": "1.20.1",
+          "changes": [
+            "C144: the list toolbar's field, view buttons (filter and sort, 1/3 apart) and Создать are three groups --sf-space-1 apart (12 on a phone, was 8)"
+          ]
+        },
+        {
+          "from": "1.20.1",
+          "to": "1.20.2",
+          "changes": [
+            "#172: the utility classes its templates write are its relations, asked for with the component; fetched after the first paint they moved the drawn parts (the bulk band 0 -> 8 gap, 8 px down)"
+          ]
+        },
+        {
+          "from": "1.20.2",
+          "to": "1.20.3",
+          "changes": [
+            "PRO-ADM-9: a resource row's more button names its record (Ещё действия: <name>), as the row menu button does (Действия: <name>)"
+          ]
+        },
+        {
+          "from": "1.20.3",
+          "to": "1.21.0",
+          "changes": [
+            "C158 (5): a column's width from the keyboard -- the table stays one Tab stop, the arrows walk the heads (a head with an edge and no sort button is a stop itself), Enter, Shift+F10, the menu key or the right button on a head with an edge opens «Изменить ширину · По содержимому · По умолчанию»; «Изменить ширину» takes the focus to the edge, whose arrows set the width through SIMAI Framework SF.Resizer.attach (sf-resizer 1.3.0), Enter or Escape go back to the head; «По содержимому» fits the column to its head and values on one line, kept as the person's width; «По умолчанию» drops it, as a double click on the edge still does. The edge's name and value («27 %») are words of the language files. Space on a sort button still sorts."
+          ]
+        },
+        {
+          "from": "1.21.0",
+          "to": "1.21.1",
+          "changes": [
+            "SIMAI Pro follow-ups: filter chips stand --sf-space-1/4 apart (C105 H5; were 8) and are written with their current names (kind=default, active, sf-tag-close; were type, root-class=active and the dated close); the search fields carry the glass at the start, the field's own clear and a name (icon-start, clearable, aria-label; C123, C153 (6), TI-10); a group action's button and a host action with menu row-settings open the one standard row menu (C164 (2), CM-8) -- the hand-drawn second row menu is gone."
+          ]
+        },
+        {
+          "from": "1.21.1",
+          "to": "1.21.2",
+          "changes": [
+            "Over SIMAI Framework ui-24d64b7f6eb7 (ui-source 40541c0c4fba, core.runtime 1.59.0) the Framework file it builds in, src/smart/pagination/index.js, moved; the provenance and the version follow. Nothing of its own; nothing to change for a host."
+          ]
+        },
+        {
+          "from": "1.21.2",
+          "to": "1.21.3",
+          "changes": [
+            "Former names (aliases.json, every alias that ended 2026-12-01) now end 2027-01-01 (draft set standard §13.4, view round 1 G1): no alias may end before the main consumer moves to the set, Larena on data-sf-sets=\"admin view\" on 2026-12-15, with at least two weeks' margin. The old names keep coming as before; nothing to change for a host."
+          ]
+        },
+        {
+          "from": "1.21.3",
+          "to": "1.21.4",
+          "changes": [
+            "Over SIMAI Framework ui-24d64b7f6eb7: its icon buttons and buttons ask for the look ghost where they asked for link, ghost's former name (component.icon-buttons 1.14.0, sf-button-icon 1.13.3, sf-button 1.16.3, RG-IB-1..3, C213); the printed row menu wrote sf-icon-button--link, which the pair answers with a console warning. The same look; nothing to change for a host."
+          ]
+        },
+        {
+          "from": "1.21.4",
+          "to": "1.22.0",
+          "changes": [
+            "C106: the gear's window is SIMAI Framework sf-settings look=\"panel\" (sf-settings 1.6.3), not sf-menu-context tabs with rows drawn by the table. «Поля» is its fields list -- a column shown or not (the theme's light fill and a check at the end), its order (the handle at the start, a drag or Alt+arrows, the position said), pinned on top (the Framework pin button), the panel's search -- and «Вид» its density choice (the fill alone) and switches (lines, one line, the held head, «Для всех моих таблиц» after a line). Every change applies at once as before (save {kind: columns} with reason column-visibility, column-pin or column-order; view-change); «Сбросить» puts the fields back as the window opened with them or the view to its defaults, by the tab it stands on; the window reopens on the tab it was closed on. The panel takes the gear's density (C22): the hand-set 1/2 handles and pins are gone, a size is passed only when the host wrote one; on a phone it is the bottom sheet (C106 (8), C157 (5)). The host labels column-move-label, pin-column-label, unpin-column-label, column-search-placeholder and column-search-empty-text are no longer read by the gear: sf-settings speaks its own words in the page language. The filter window keeps its tabs (its templates need what sf-settings does not offer)."
+          ]
+        },
+        {
+          "from": "1.22.0",
+          "to": "1.23.0",
+          "changes": [
+            "View round 1 (D1, D3, D5-D8, PD-9): the create, view-actions, list-sort and saved-view menus open the SIMAI Framework's shared menu (SF.menu.open); the panel footers put the main action first; the toolbar's button groups are roving.js groups; every toolbar word is in lang/; the filter count is sf-button-icon badge-count; the Create row is one scheme; dates are the field renderers' reading in a time element with its machine value (format-value.js is gone); the link cell is sf-reference-link; date operators of a chip read Позже, Не раньше, Раньше, Не позже."
+          ]
+        },
+        {
+          "from": "1.23.0",
+          "to": "1.23.1",
+          "changes": [
+            "Over the SIMAI Framework pair ui-1ed6b6c9a040: src/smart/pagination/index.js, which the table builds in, takes its words from the pagination's language module (C282); provenance only, nothing of the table's own."
+          ]
+        },
+        {
+          "from": "1.23.1",
+          "to": "1.24.0",
+          "changes": [
+            "C296 (view round 2, VT-1..VT-18): the table draws columns and rows. The column head menu is sort, pin, hide and «Все колонки» (then the width entries); the columns window is the sf-settings panel at the gear without the table's full-screen portal (VT-12). Short fields (choice, a person with options, date, number, money) edit at the cell on a double press or F2 when inline-edit is on: a SIMAI Framework menu or a popover with the field of its type, emitting cell-set. A totals row at the foot from the host's totals (columns[].total). New: total (aria-rowcount, «all N»), sort=\"key:dir\", the open event {id, newTab}, scrollToRow, the empty and error slots, eight public --sf-view-table-* variables (the --sf-table-* names stay until 2027-01-01). aria-selected and aria-multiselectable (VT-4); a title without an address is a button, not href=\"#\" (VT-9); hover at the 8 % state (VT-7); a status badge is at most the row less 8 and takes its option's scheme (VT-8, VT-18); the width grip is a 24 zone (VT-10); air under the empty-state action (VT-11); numbers in the page language (VT-14); head cells never wrap letter by letter (VT-15); the phone list after C259 with one Tab stop (VT-2, VT-3). The toolbar, search, filter, templates, create, layout switch, pagin and setBulkActions are dated former settings until 2027-01-01 (VT-13, noted in SF.deprecations on a table standing alone); where the pair carries sf-bulk-actions a table standing alone places that bar after its rows, and where the pair carries SF.fieldRenderers.dateFilter the table reads date filters through it (C293 DF-1, DF-4, DF-6)."
+          ]
+        },
+        {
+          "from": "1.24.0",
+          "to": "1.25.0",
+          "changes": [
+            "View returns: row-offset {number, 0}: with total, every row's aria-rowindex is its place in the list (VT-4, VR2-8); the grid's open record row (aria-current) takes --sf-primary-container (12 % light, 24 % dark) as the phone list does (C305 (4), VR2-3); the grid keys ignore Alt+Down / Alt+Up; under a data view's list head (data-sf-view-columns=\"head\") the column head menu keeps pin, hide and «Все колонки…», which opens the view's «Настроить вид» (C296, VR2-1)."
+          ]
+        },
+        {
+          "from": "1.25.0",
+          "to": "1.25.1",
+          "changes": [
+            "DEV's round 3 return VR3-2 (round/view-r4): the column head menu (columnMenuEntries) passes its separators as {type: \"separator\"}, the key sf-menu-context reads; {kind: \"separator\"} drew each as an empty focusable menu item."
           ]
         }
       ]

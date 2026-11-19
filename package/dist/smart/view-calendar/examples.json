@@ -1,0 +1,774 @@
+{
+  "examples": [
+    {
+      "name": "reference",
+      "title": "Доставки за ноябрь",
+      "settings": {
+        "aria-label": "Доставки",
+        "fields": [
+          {
+            "key": "title",
+            "label": "Заказ",
+            "propertyType": "string"
+          },
+          {
+            "key": "start",
+            "label": "Доставка с",
+            "propertyType": "datetime"
+          },
+          {
+            "key": "end",
+            "label": "Доставка до",
+            "propertyType": "datetime"
+          },
+          {
+            "key": "status",
+            "label": "Статус",
+            "propertyType": "choice",
+            "options": [
+              {
+                "value": "new",
+                "label": "Новый",
+                "scheme": "primary"
+              },
+              {
+                "value": "wait",
+                "label": "Ждёт оплаты",
+                "status": "warning"
+              },
+              {
+                "value": "paid",
+                "label": "Оплачен",
+                "status": "success"
+              },
+              {
+                "value": "sent",
+                "label": "Отправлен",
+                "scheme": "neutral"
+              }
+            ]
+          },
+          {
+            "key": "client",
+            "label": "Клиент",
+            "propertyType": "string"
+          },
+          {
+            "key": "amount",
+            "label": "Сумма",
+            "propertyType": "money",
+            "currency": "RUB"
+          }
+        ],
+        "records": [
+          {
+            "id": "o1001",
+            "title": "Заказ № 1001",
+            "start": "2026-11-10T10:00",
+            "end": "2026-11-10T12:00",
+            "status": "sent",
+            "client": "ООО «Северный склад»",
+            "amount": "418000.00",
+            "revision": 1,
+            "can": {
+              "update": false,
+              "reason": "Отправленный заказ не переносится"
+            }
+          },
+          {
+            "id": "o1002",
+            "title": "Заказ № 1002",
+            "start": "2026-11-12T14:00",
+            "end": "2026-11-12T15:00",
+            "status": "sent",
+            "client": "Кафе «Лето»",
+            "amount": "5070.00",
+            "revision": 1,
+            "can": {
+              "update": false,
+              "reason": "Отправленный заказ не переносится"
+            }
+          },
+          {
+            "id": "o1003",
+            "title": "Заказ № 1003",
+            "start": "2026-11-18T09:00",
+            "end": "2026-11-18T10:00",
+            "status": "paid",
+            "client": "ИП Смирнова",
+            "amount": "129990.50",
+            "revision": 1
+          },
+          {
+            "id": "o1004",
+            "title": "Заказ № 1004",
+            "start": "2026-11-18T10:00",
+            "end": "2026-11-18T12:00",
+            "status": "paid",
+            "client": "Типография «Оттиск»",
+            "amount": "74500.00",
+            "revision": 1
+          },
+          {
+            "id": "o1005",
+            "title": "Заказ № 1005",
+            "start": "2026-11-18T10:30",
+            "end": "2026-11-18T11:30",
+            "status": "wait",
+            "client": "Студия «Кадр»",
+            "amount": "1200.00",
+            "revision": 1
+          },
+          {
+            "id": "o1006",
+            "title": "Заказ № 1006",
+            "start": "2026-11-18T13:00",
+            "end": "2026-11-18T15:00",
+            "status": "paid",
+            "client": "ООО «Северный склад»",
+            "amount": "418000.00",
+            "revision": 1
+          },
+          {
+            "id": "o1007",
+            "title": "Заказ № 1007",
+            "start": "2026-11-18T15:00",
+            "end": "2026-11-18T16:00",
+            "status": "new",
+            "client": "Кафе «Лето»",
+            "amount": "5070.00",
+            "revision": 1
+          },
+          {
+            "id": "o1008",
+            "title": "Заказ № 1008",
+            "start": "2026-11-19T10:00",
+            "end": "2026-11-19T12:00",
+            "status": "paid",
+            "client": "ИП Смирнова",
+            "amount": "129990.50",
+            "revision": 1
+          },
+          {
+            "id": "o1009",
+            "title": "Заказ № 1009",
+            "start": "2026-11-20T11:00",
+            "end": "2026-11-20T13:00",
+            "status": "new",
+            "client": "Типография «Оттиск»",
+            "amount": "74500.00",
+            "revision": 1
+          },
+          {
+            "id": "o1010",
+            "title": "Заказ № 1010",
+            "start": "2026-11-24T12:00",
+            "end": "2026-11-24T14:00",
+            "status": "wait",
+            "client": "Студия «Кадр»",
+            "amount": "1200.00",
+            "revision": 1
+          },
+          {
+            "id": "o1011",
+            "title": "Заказ № 1011",
+            "start": "2026-11-27T10:00",
+            "end": "2026-11-27T11:00",
+            "status": "new",
+            "client": "ООО «Северный склад»",
+            "amount": "418000.00",
+            "revision": 1
+          }
+        ],
+        "undated": [
+          {
+            "id": "o1101",
+            "title": "Заказ № 1101",
+            "start": null,
+            "end": null,
+            "status": "new",
+            "client": "Пекарня «Колос»",
+            "amount": "9900.00",
+            "revision": 1
+          }
+        ],
+        "options": {
+          "date_field": "start",
+          "end_field": "end",
+          "color_field": "status",
+          "event_fields": [
+            "client",
+            "amount"
+          ],
+          "per_day": 3
+        },
+        "rules": [
+          {
+            "code": "past",
+            "reason": "Доставку нельзя назначить на прошедший день"
+          },
+          {
+            "code": "sunday",
+            "reason": "По воскресеньям доставки нет"
+          }
+        ],
+        "now": "2026-11-18T11:20",
+        "time-zone": "Europe/Moscow",
+        "week-start": 1
+      },
+      "expect": {
+        "name": "Доставки"
+      },
+      "parent": "<div style=\"display: grid; grid-template-columns: minmax(37.5rem, 1fr); inline-size: 60rem; max-inline-size: 100%; overflow-x: auto\"></div>",
+      "x-first-paint": "A page's width: the month grid of six weeks. The frame keeps the page width (at least 600 px, where the phone layout starts) and scrolls inside itself on a phone, so the printed month and the drawn one are the same; the phone example shows the phone layout. Inside sf-view the phone is covered by the view's own calendar skeleton.",
+      "first-paint": {
+        "max-bytes": 65536,
+        "why": "A month at rest: the bar (‹ ›, the period, «Сегодня», the modes, «Без даты N») and 42 days, each with its number and its events, «+N» where a day holds more than per_day; every control a printed Smart element with its own markup. Nothing closed is printed."
+      }
+    },
+    {
+      "name": "week",
+      "title": "Неделя по часам",
+      "settings": {
+        "aria-label": "Доставки",
+        "fields": [
+          {
+            "key": "title",
+            "label": "Заказ",
+            "propertyType": "string"
+          },
+          {
+            "key": "start",
+            "label": "Доставка с",
+            "propertyType": "datetime"
+          },
+          {
+            "key": "end",
+            "label": "Доставка до",
+            "propertyType": "datetime"
+          },
+          {
+            "key": "status",
+            "label": "Статус",
+            "propertyType": "choice",
+            "options": [
+              {
+                "value": "new",
+                "label": "Новый",
+                "scheme": "primary"
+              },
+              {
+                "value": "wait",
+                "label": "Ждёт оплаты",
+                "status": "warning"
+              },
+              {
+                "value": "paid",
+                "label": "Оплачен",
+                "status": "success"
+              },
+              {
+                "value": "sent",
+                "label": "Отправлен",
+                "scheme": "neutral"
+              }
+            ]
+          },
+          {
+            "key": "client",
+            "label": "Клиент",
+            "propertyType": "string"
+          },
+          {
+            "key": "amount",
+            "label": "Сумма",
+            "propertyType": "money",
+            "currency": "RUB"
+          }
+        ],
+        "records": [
+          {
+            "id": "o1001",
+            "title": "Заказ № 1001",
+            "start": "2026-11-10T10:00",
+            "end": "2026-11-10T12:00",
+            "status": "sent",
+            "client": "ООО «Северный склад»",
+            "amount": "418000.00",
+            "revision": 1,
+            "can": {
+              "update": false,
+              "reason": "Отправленный заказ не переносится"
+            }
+          },
+          {
+            "id": "o1002",
+            "title": "Заказ № 1002",
+            "start": "2026-11-12T14:00",
+            "end": "2026-11-12T15:00",
+            "status": "sent",
+            "client": "Кафе «Лето»",
+            "amount": "5070.00",
+            "revision": 1,
+            "can": {
+              "update": false,
+              "reason": "Отправленный заказ не переносится"
+            }
+          },
+          {
+            "id": "o1003",
+            "title": "Заказ № 1003",
+            "start": "2026-11-18T09:00",
+            "end": "2026-11-18T10:00",
+            "status": "paid",
+            "client": "ИП Смирнова",
+            "amount": "129990.50",
+            "revision": 1
+          },
+          {
+            "id": "o1004",
+            "title": "Заказ № 1004",
+            "start": "2026-11-18T10:00",
+            "end": "2026-11-18T12:00",
+            "status": "paid",
+            "client": "Типография «Оттиск»",
+            "amount": "74500.00",
+            "revision": 1
+          },
+          {
+            "id": "o1005",
+            "title": "Заказ № 1005",
+            "start": "2026-11-18T10:30",
+            "end": "2026-11-18T11:30",
+            "status": "wait",
+            "client": "Студия «Кадр»",
+            "amount": "1200.00",
+            "revision": 1
+          },
+          {
+            "id": "o1006",
+            "title": "Заказ № 1006",
+            "start": "2026-11-18T13:00",
+            "end": "2026-11-18T15:00",
+            "status": "paid",
+            "client": "ООО «Северный склад»",
+            "amount": "418000.00",
+            "revision": 1
+          },
+          {
+            "id": "o1007",
+            "title": "Заказ № 1007",
+            "start": "2026-11-18T15:00",
+            "end": "2026-11-18T16:00",
+            "status": "new",
+            "client": "Кафе «Лето»",
+            "amount": "5070.00",
+            "revision": 1
+          },
+          {
+            "id": "o1008",
+            "title": "Заказ № 1008",
+            "start": "2026-11-19T10:00",
+            "end": "2026-11-19T12:00",
+            "status": "paid",
+            "client": "ИП Смирнова",
+            "amount": "129990.50",
+            "revision": 1
+          },
+          {
+            "id": "o1009",
+            "title": "Заказ № 1009",
+            "start": "2026-11-20T11:00",
+            "end": "2026-11-20T13:00",
+            "status": "new",
+            "client": "Типография «Оттиск»",
+            "amount": "74500.00",
+            "revision": 1
+          },
+          {
+            "id": "o1010",
+            "title": "Заказ № 1010",
+            "start": "2026-11-24T12:00",
+            "end": "2026-11-24T14:00",
+            "status": "wait",
+            "client": "Студия «Кадр»",
+            "amount": "1200.00",
+            "revision": 1
+          },
+          {
+            "id": "o1011",
+            "title": "Заказ № 1011",
+            "start": "2026-11-27T10:00",
+            "end": "2026-11-27T11:00",
+            "status": "new",
+            "client": "ООО «Северный склад»",
+            "amount": "418000.00",
+            "revision": 1
+          }
+        ],
+        "undated": [
+          {
+            "id": "o1101",
+            "title": "Заказ № 1101",
+            "start": null,
+            "end": null,
+            "status": "new",
+            "client": "Пекарня «Колос»",
+            "amount": "9900.00",
+            "revision": 1
+          }
+        ],
+        "options": {
+          "date_field": "start",
+          "end_field": "end",
+          "color_field": "status",
+          "event_fields": [
+            "client",
+            "amount"
+          ],
+          "per_day": 3
+        },
+        "rules": [
+          {
+            "code": "past",
+            "reason": "Доставку нельзя назначить на прошедший день"
+          },
+          {
+            "code": "sunday",
+            "reason": "По воскресеньям доставки нет"
+          }
+        ],
+        "now": "2026-11-18T11:20",
+        "time-zone": "Europe/Moscow",
+        "week-start": 1,
+        "mode": "week"
+      },
+      "expect": {
+        "name": "Доставки"
+      },
+      "parent": "<div style=\"display: grid; grid-template-columns: minmax(37.5rem, 1fr); inline-size: 60rem; max-inline-size: 100%; overflow-x: auto\"></div>",
+      "first-paint": {
+        "max-bytes": 49152,
+        "why": "A week: the bar, the day heads, the all-day row and the visible hours with the timed events."
+      }
+    },
+    {
+      "name": "phone",
+      "title": "На телефоне: месяц с точками и выбранный день",
+      "settings": {
+        "aria-label": "Доставки",
+        "fields": [
+          {
+            "key": "title",
+            "label": "Заказ",
+            "propertyType": "string"
+          },
+          {
+            "key": "start",
+            "label": "Доставка с",
+            "propertyType": "datetime"
+          },
+          {
+            "key": "end",
+            "label": "Доставка до",
+            "propertyType": "datetime"
+          },
+          {
+            "key": "status",
+            "label": "Статус",
+            "propertyType": "choice",
+            "options": [
+              {
+                "value": "new",
+                "label": "Новый",
+                "scheme": "primary"
+              },
+              {
+                "value": "wait",
+                "label": "Ждёт оплаты",
+                "status": "warning"
+              },
+              {
+                "value": "paid",
+                "label": "Оплачен",
+                "status": "success"
+              },
+              {
+                "value": "sent",
+                "label": "Отправлен",
+                "scheme": "neutral"
+              }
+            ]
+          },
+          {
+            "key": "client",
+            "label": "Клиент",
+            "propertyType": "string"
+          },
+          {
+            "key": "amount",
+            "label": "Сумма",
+            "propertyType": "money",
+            "currency": "RUB"
+          }
+        ],
+        "records": [
+          {
+            "id": "o1001",
+            "title": "Заказ № 1001",
+            "start": "2026-11-10T10:00",
+            "end": "2026-11-10T12:00",
+            "status": "sent",
+            "client": "ООО «Северный склад»",
+            "amount": "418000.00",
+            "revision": 1,
+            "can": {
+              "update": false,
+              "reason": "Отправленный заказ не переносится"
+            }
+          },
+          {
+            "id": "o1002",
+            "title": "Заказ № 1002",
+            "start": "2026-11-12T14:00",
+            "end": "2026-11-12T15:00",
+            "status": "sent",
+            "client": "Кафе «Лето»",
+            "amount": "5070.00",
+            "revision": 1,
+            "can": {
+              "update": false,
+              "reason": "Отправленный заказ не переносится"
+            }
+          },
+          {
+            "id": "o1003",
+            "title": "Заказ № 1003",
+            "start": "2026-11-18T09:00",
+            "end": "2026-11-18T10:00",
+            "status": "paid",
+            "client": "ИП Смирнова",
+            "amount": "129990.50",
+            "revision": 1
+          },
+          {
+            "id": "o1004",
+            "title": "Заказ № 1004",
+            "start": "2026-11-18T10:00",
+            "end": "2026-11-18T12:00",
+            "status": "paid",
+            "client": "Типография «Оттиск»",
+            "amount": "74500.00",
+            "revision": 1
+          },
+          {
+            "id": "o1005",
+            "title": "Заказ № 1005",
+            "start": "2026-11-18T10:30",
+            "end": "2026-11-18T11:30",
+            "status": "wait",
+            "client": "Студия «Кадр»",
+            "amount": "1200.00",
+            "revision": 1
+          },
+          {
+            "id": "o1006",
+            "title": "Заказ № 1006",
+            "start": "2026-11-18T13:00",
+            "end": "2026-11-18T15:00",
+            "status": "paid",
+            "client": "ООО «Северный склад»",
+            "amount": "418000.00",
+            "revision": 1
+          },
+          {
+            "id": "o1007",
+            "title": "Заказ № 1007",
+            "start": "2026-11-18T15:00",
+            "end": "2026-11-18T16:00",
+            "status": "new",
+            "client": "Кафе «Лето»",
+            "amount": "5070.00",
+            "revision": 1
+          },
+          {
+            "id": "o1008",
+            "title": "Заказ № 1008",
+            "start": "2026-11-19T10:00",
+            "end": "2026-11-19T12:00",
+            "status": "paid",
+            "client": "ИП Смирнова",
+            "amount": "129990.50",
+            "revision": 1
+          },
+          {
+            "id": "o1009",
+            "title": "Заказ № 1009",
+            "start": "2026-11-20T11:00",
+            "end": "2026-11-20T13:00",
+            "status": "new",
+            "client": "Типография «Оттиск»",
+            "amount": "74500.00",
+            "revision": 1
+          },
+          {
+            "id": "o1010",
+            "title": "Заказ № 1010",
+            "start": "2026-11-24T12:00",
+            "end": "2026-11-24T14:00",
+            "status": "wait",
+            "client": "Студия «Кадр»",
+            "amount": "1200.00",
+            "revision": 1
+          },
+          {
+            "id": "o1011",
+            "title": "Заказ № 1011",
+            "start": "2026-11-27T10:00",
+            "end": "2026-11-27T11:00",
+            "status": "new",
+            "client": "ООО «Северный склад»",
+            "amount": "418000.00",
+            "revision": 1
+          }
+        ],
+        "undated": [
+          {
+            "id": "o1101",
+            "title": "Заказ № 1101",
+            "start": null,
+            "end": null,
+            "status": "new",
+            "client": "Пекарня «Колос»",
+            "amount": "9900.00",
+            "revision": 1
+          }
+        ],
+        "options": {
+          "date_field": "start",
+          "end_field": "end",
+          "color_field": "status",
+          "event_fields": [
+            "client",
+            "amount"
+          ],
+          "per_day": 3
+        },
+        "rules": [
+          {
+            "code": "past",
+            "reason": "Доставку нельзя назначить на прошедший день"
+          },
+          {
+            "code": "sunday",
+            "reason": "По воскресеньям доставки нет"
+          }
+        ],
+        "now": "2026-11-18T11:20",
+        "time-zone": "Europe/Moscow",
+        "week-start": 1
+      },
+      "expect": {
+        "name": "Доставки"
+      },
+      "parent": "<div style=\"inline-size: 22rem; max-inline-size: 100%\"></div>",
+      "first-paint": {
+        "max-bytes": 49152,
+        "why": "A phone: the bar, the month with dots on event days and the chosen day as a list under it (C307 (1))."
+      }
+    }
+  ],
+  "pages": [
+    {
+      "name": "conformance",
+      "title": "sf-view-calendar against component.json (standard simai.smart-component 1.4 §12, gate 20)",
+      "format": "stands/15-scenarios (A4 modal: a page, probes in steps); the runner is ui-source tests/browser/manifest-probes.browser.mjs, run for the package by scripts/run-manifest-probes.mjs",
+      "page": {
+        "lang": "ru",
+        "body": [
+          "<main style=\"inline-size: 60rem\">",
+          "  <sf-view-calendar id=\"c\" aria-label='Доставки' fields='[{\"key\": \"title\", \"label\": \"Заказ\", \"propertyType\": \"string\"}, {\"key\": \"start\", \"label\": \"Доставка с\", \"propertyType\": \"datetime\"}, {\"key\": \"end\", \"label\": \"Доставка до\", \"propertyType\": \"datetime\"}, {\"key\": \"status\", \"label\": \"Статус\", \"propertyType\": \"choice\", \"options\": [{\"value\": \"new\", \"label\": \"Новый\", \"scheme\": \"primary\"}, {\"value\": \"wait\", \"label\": \"Ждёт оплаты\", \"status\": \"warning\"}, {\"value\": \"paid\", \"label\": \"Оплачен\", \"status\": \"success\"}, {\"value\": \"sent\", \"label\": \"Отправлен\", \"scheme\": \"neutral\"}]}, {\"key\": \"client\", \"label\": \"Клиент\", \"propertyType\": \"string\"}, {\"key\": \"amount\", \"label\": \"Сумма\", \"propertyType\": \"money\", \"currency\": \"RUB\"}]' records='[{\"id\": \"o1001\", \"title\": \"Заказ № 1001\", \"start\": \"2026-11-10T10:00\", \"end\": \"2026-11-10T12:00\", \"status\": \"sent\", \"client\": \"ООО «Северный склад»\", \"amount\": \"418000.00\", \"revision\": 1, \"can\": {\"update\": false, \"reason\": \"Отправленный заказ не переносится\"}}, {\"id\": \"o1002\", \"title\": \"Заказ № 1002\", \"start\": \"2026-11-12T14:00\", \"end\": \"2026-11-12T15:00\", \"status\": \"sent\", \"client\": \"Кафе «Лето»\", \"amount\": \"5070.00\", \"revision\": 1, \"can\": {\"update\": false, \"reason\": \"Отправленный заказ не переносится\"}}, {\"id\": \"o1003\", \"title\": \"Заказ № 1003\", \"start\": \"2026-11-18T09:00\", \"end\": \"2026-11-18T10:00\", \"status\": \"paid\", \"client\": \"ИП Смирнова\", \"amount\": \"129990.50\", \"revision\": 1}, {\"id\": \"o1004\", \"title\": \"Заказ № 1004\", \"start\": \"2026-11-18T10:00\", \"end\": \"2026-11-18T12:00\", \"status\": \"paid\", \"client\": \"Типография «Оттиск»\", \"amount\": \"74500.00\", \"revision\": 1}, {\"id\": \"o1005\", \"title\": \"Заказ № 1005\", \"start\": \"2026-11-18T10:30\", \"end\": \"2026-11-18T11:30\", \"status\": \"wait\", \"client\": \"Студия «Кадр»\", \"amount\": \"1200.00\", \"revision\": 1}, {\"id\": \"o1006\", \"title\": \"Заказ № 1006\", \"start\": \"2026-11-18T13:00\", \"end\": \"2026-11-18T15:00\", \"status\": \"paid\", \"client\": \"ООО «Северный склад»\", \"amount\": \"418000.00\", \"revision\": 1}, {\"id\": \"o1007\", \"title\": \"Заказ № 1007\", \"start\": \"2026-11-18T15:00\", \"end\": \"2026-11-18T16:00\", \"status\": \"new\", \"client\": \"Кафе «Лето»\", \"amount\": \"5070.00\", \"revision\": 1}, {\"id\": \"o1008\", \"title\": \"Заказ № 1008\", \"start\": \"2026-11-19T10:00\", \"end\": \"2026-11-19T12:00\", \"status\": \"paid\", \"client\": \"ИП Смирнова\", \"amount\": \"129990.50\", \"revision\": 1}, {\"id\": \"o1009\", \"title\": \"Заказ № 1009\", \"start\": \"2026-11-20T11:00\", \"end\": \"2026-11-20T13:00\", \"status\": \"new\", \"client\": \"Типография «Оттиск»\", \"amount\": \"74500.00\", \"revision\": 1}, {\"id\": \"o1010\", \"title\": \"Заказ № 1010\", \"start\": \"2026-11-24T12:00\", \"end\": \"2026-11-24T14:00\", \"status\": \"wait\", \"client\": \"Студия «Кадр»\", \"amount\": \"1200.00\", \"revision\": 1}, {\"id\": \"o1011\", \"title\": \"Заказ № 1011\", \"start\": \"2026-11-27T10:00\", \"end\": \"2026-11-27T11:00\", \"status\": \"new\", \"client\": \"ООО «Северный склад»\", \"amount\": \"418000.00\", \"revision\": 1}]' undated='[{\"id\": \"o1101\", \"title\": \"Заказ № 1101\", \"start\": null, \"end\": null, \"status\": \"new\", \"client\": \"Пекарня «Колос»\", \"amount\": \"9900.00\", \"revision\": 1}]' options='{\"date_field\": \"start\", \"end_field\": \"end\", \"color_field\": \"status\", \"event_fields\": [\"client\", \"amount\"], \"per_day\": 3}' rules='[{\"code\": \"past\", \"reason\": \"Доставку нельзя назначить на прошедший день\"}, {\"code\": \"sunday\", \"reason\": \"По воскресеньям доставки нет\"}]' now='2026-11-18T11:20' time-zone='Europe/Moscow' week-start='1'></sf-view-calendar>",
+          "</main>"
+        ]
+      },
+      "checks": [
+        {
+          "id": "p1-month",
+          "title": "Six weeks of seven days from Monday 26 October; today is marked; 18 November holds two events and «+3»",
+          "covers": "settings.records, settings.options, settings.week-start, accessibility.name",
+          "steps": [
+            {
+              "script": "true",
+              "wait": 500,
+              "check": "document.querySelectorAll('#c .sf-view-calendar__day[role=gridcell]').length === 42 && document.querySelector('#c .sf-view-calendar__day').dataset.day === '2026-10-26' && document.querySelector('#c [data-day=\"2026-11-18\"]').hasAttribute('data-today') && document.querySelectorAll('#c [data-day=\"2026-11-18\"] .sf-view-calendar__ev').length === 2 && document.querySelector('#c [data-day=\"2026-11-18\"] [data-more]') !== null"
+            }
+          ]
+        },
+        {
+          "id": "p2-refused-by-rule",
+          "title": "A move to a Sunday is refused by the host's rule: nothing moves, no move event",
+          "covers": "settings.rules, events.move",
+          "steps": [
+            {
+              "script": "(document.querySelector('#c').moveRecord('o1008', {day: '2026-11-22'}), true)",
+              "wait": 200,
+              "expect": {
+                "events": [
+                  {
+                    "name": "sf-view-calendar-move",
+                    "count": 0
+                  }
+                ]
+              },
+              "check": "document.querySelector('#c [data-day=\"2026-11-19\"] [data-ev=o1008]') !== null"
+            }
+          ]
+        },
+        {
+          "id": "p3-move-settled",
+          "title": "A move to Monday 23 November shows at once, pale, sends move with the patch; settle-move applied keeps it",
+          "covers": "events.move, actions.settle-move",
+          "steps": [
+            {
+              "script": "(document.querySelector('#c').moveRecord('o1008', {day: '2026-11-23'}), true)",
+              "wait": 200,
+              "expect": {
+                "events": [
+                  {
+                    "name": "sf-view-calendar-move",
+                    "count": 1,
+                    "detail": {
+                      "id": "o1008",
+                      "patch": {
+                        "start": "2026-11-23T10:00",
+                        "end": "2026-11-23T12:00"
+                      }
+                    }
+                  }
+                ]
+              },
+              "check": "document.querySelector('#c [data-day=\"2026-11-23\"] [data-ev=o1008]').hasAttribute('data-pending')"
+            },
+            {
+              "script": "(document.querySelector('#c').settleMove('o1008', {answer: 'applied'}), true)",
+              "wait": 200,
+              "check": "!document.querySelector('#c [data-ev=o1008]').hasAttribute('data-pending')"
+            }
+          ]
+        },
+        {
+          "id": "p4-list",
+          "title": "The list mode draws the period's records by day with the «Кратко» fields",
+          "covers": "actions.set-mode, settings.options",
+          "steps": [
+            {
+              "script": "(document.querySelector('#c').setMode('list'), true)",
+              "wait": 400,
+              "check": "document.querySelectorAll('#c .sf-view-calendar__row').length === 11 && document.querySelectorAll('#c .sf-view-calendar__row .sf-view-calendar__field').length === 22"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

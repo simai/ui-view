@@ -2,7 +2,46 @@
   "$comment": "sf-view-flow, standard simai.smart-component 1.4 (vocabulary 1.1.5): properties as a block in a flow. Design: ui-view docs/design/sf-view-flow.md. The confirm surface (SIMAI Framework helpers/confirm-surface.js) gives the states, the expiry, the answer and expired events and the actions open, answer, confirm and cancel; the field values are sf-view-properties' js/field-value.js over the Framework field renderers.",
   "id": "smart.view-flow",
   "tag": "sf-view-flow",
-  "version": "1.1.2",
+  "version": "1.1.6",
+  "x-history": [
+    {
+      "version": "1.1.6",
+      "kind": "patch",
+      "recorded_on": "2026-11-17",
+      "consumer": "Nothing to change for a host: only the SIMAI Framework file it builds in moved with the repin.",
+      "evidence": "https://github.com/simai/ui-view/commit/72efdf758ad42334369aa418dc0e1b149f457fd9"
+    },
+    {
+      "version": "1.1.5",
+      "kind": "patch",
+      "recorded_on": "2026-11-17",
+      "consumer": "Nothing to change for a host: «Отправить» comes first and «Отмена» after it; dates are the field renderers'.",
+      "evidence": "https://github.com/simai/ui-view/commit/548b6e88425ee85c7d642f69b089165aa18de268"
+    },
+    {
+      "version": "1.1.4",
+      "kind": "patch",
+      "recorded_on": "2026-11-16",
+      "consumer": "Nothing to change for a host: the utility classes come with the component, so the first paint no longer shifts.",
+      "evidence": "https://github.com/simai/ui-view/commit/cc73a1fa9632a29db947dde22160a9016bfee4ed"
+    },
+    {
+      "version": "1.1.3",
+      "kind": "patch",
+      "recorded_on": "2026-11-16",
+      "consumer": "Nothing to change for a host: only the SIMAI Framework file it builds in moved with the repin.",
+      "evidence": "https://github.com/simai/ui-view/commit/e214dd608fdcf39cea527676fc522afd718922d4"
+    }
+  ],
+  "x-framework-first": {
+    "$comment": "Copies of Framework parts kept knowingly, part id (docs/FRAMEWORK-FIRST.md) to the Framework order (FO) each waits for (set standard draft 1.1 §7.3). The repin that brings an order removes its copy.",
+    "waits": {
+      "F-03": "FO-8",
+      "F-04": "FO-8",
+      "F-05": "FO-3",
+      "F-06": "FO-8"
+    }
+  },
   "kind": "leaf",
   "family": "record",
   "settings": {
@@ -397,6 +436,30 @@
       "$comment": [
         "A password field's show/hide."
       ]
+    },
+    {
+      "name": "align-items/default",
+      "$comment": [
+        "The utility classes its templates write, asked for with the component (SIMAI Framework loader: a Framework component gets them from template-utilities.generated.json, a package component names them here); fetched after the first paint, they moved the drawn parts -- the bulk band's gap came 0 -> 8 and the band 8 px down some 150 ms in (View 1.8.1 acceptance, queue #172). The list is scripts/generate-template-utilities.mjs run over the overlay."
+      ]
+    },
+    {
+      "name": "display/default"
+    },
+    {
+      "name": "flex-direction/default"
+    },
+    {
+      "name": "flex-wrap/default"
+    },
+    {
+      "name": "gap/default"
+    },
+    {
+      "name": "min-width/default"
+    },
+    {
+      "name": "text-color/default"
     }
   ],
   "templates": {
@@ -621,6 +684,34 @@
           "to": "1.1.2",
           "changes": [
             "Over SIMAI Framework ui-2bd5a3ab478a (core.runtime 1.51.0) the confirm surface says nothing when the answer is declined (owner decision C35, remark R067; module.smart-helpers 1.4.0): a Cancel the host settles leaves the block declined with an empty status line, where it said «Отменено». The probe p2-cancel expects that. Nothing to change for a host."
+          ]
+        },
+        {
+          "from": "1.1.2",
+          "to": "1.1.3",
+          "changes": [
+            "Over SIMAI Framework ui-078a4b4c6f6e (ui-source 10145e63b9dc) the Framework file it builds in, src/smart/helpers/confirm-surface.js, moved; the provenance and the version follow. Nothing of its own; nothing to change for a host."
+          ]
+        },
+        {
+          "from": "1.1.3",
+          "to": "1.1.4",
+          "changes": [
+            "#172: the utility classes its templates write are its relations, asked for with the component; fetched after the first paint they moved the drawn parts (the bulk band 0 -> 8 gap, 8 px down)"
+          ]
+        },
+        {
+          "from": "1.1.4",
+          "to": "1.1.5",
+          "changes": [
+            "View round 1 (D10, VF-10): the footer puts Отправить first and Отмена after it, the status line after both (C159 (4)); dates are the field renderers' reading, the set's own date parsing is gone."
+          ]
+        },
+        {
+          "from": "1.1.5",
+          "to": "1.1.6",
+          "changes": [
+            "Over the SIMAI Framework pair ui-1ed6b6c9a040: src/smart/helpers/confirm-surface.js, which the flow builds in, draws the status sign at the ladder's 1/3 (C151 (1)); provenance only, nothing of the flow's own."
           ]
         }
       ]

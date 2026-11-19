@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-flow",
-  "version": "1.1.2",
+  "version": "1.1.6",
   "title": "Flow block",
   "summary": "A few properties as a block in a flow (a chat message, a feed, any stream): shows a record's fields, or asks for a few and sends them, then keeps the answer read-only. Fields are sf-view-properties' descriptors drawn by the Framework field renderers; a press is an event, the host answers with settle.",
   "kind": "smart",
@@ -452,6 +452,34 @@
         "changes": [
           "Over SIMAI Framework ui-2bd5a3ab478a (core.runtime 1.51.0) the confirm surface says nothing when the answer is declined (owner decision C35, remark R067; module.smart-helpers 1.4.0): a Cancel the host settles leaves the block declined with an empty status line, where it said «Отменено». The probe p2-cancel expects that. Nothing to change for a host."
         ]
+      },
+      {
+        "from": "1.1.2",
+        "to": "1.1.3",
+        "changes": [
+          "Over SIMAI Framework ui-078a4b4c6f6e (ui-source 10145e63b9dc) the Framework file it builds in, src/smart/helpers/confirm-surface.js, moved; the provenance and the version follow. Nothing of its own; nothing to change for a host."
+        ]
+      },
+      {
+        "from": "1.1.3",
+        "to": "1.1.4",
+        "changes": [
+          "#172: the utility classes its templates write are its relations, asked for with the component; fetched after the first paint they moved the drawn parts (the bulk band 0 -> 8 gap, 8 px down)"
+        ]
+      },
+      {
+        "from": "1.1.4",
+        "to": "1.1.5",
+        "changes": [
+          "View round 1 (D10, VF-10): the footer puts Отправить first and Отмена after it, the status line after both (C159 (4)); dates are the field renderers' reading, the set's own date parsing is gone."
+        ]
+      },
+      {
+        "from": "1.1.5",
+        "to": "1.1.6",
+        "changes": [
+          "Over the SIMAI Framework pair ui-1ed6b6c9a040: src/smart/helpers/confirm-surface.js, which the flow builds in, draws the status sign at the ladder's 1/3 (C151 (1)); provenance only, nothing of the flow's own."
+        ]
       }
     ]
   },
@@ -461,7 +489,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-flow/index.js",
-        "sha256": "8a519d3bb7a6bda52339aa2a74ad905bce8d898022bc5c9c6d819e2b4663366b"
+        "sha256": "f0adf66f71fc8f1d69379a9810d564ebf01b820e87d414a24281b6884607ef3a"
       },
       {
         "path": "src/smart/view-flow/js/answer.js",
@@ -469,11 +497,11 @@
       },
       {
         "path": "src/smart/view-flow/js/templates/default.js",
-        "sha256": "dff4ddc80b56d3fb07b1481441ca6ec0248678e9513b95319e05f0f471c8d504"
+        "sha256": "2b047f617c5213802084904bc97419e6d6cea20ac564f9a0e0ca9a302ba1235d"
       },
       {
         "path": "src/smart/view-flow/js/templates/default.css",
-        "sha256": "3be8da12912851c8759e9e5f1523152f6302078093c426631778e5cc4141e074"
+        "sha256": "abcfc89095d445723f28af9a02939f053d25130cedb68831a6ec8e74a8b3c7d3"
       },
       {
         "path": "src/smart/view-properties/js/field-value.js",
@@ -485,11 +513,11 @@
       },
       {
         "path": "src/smart/helpers/confirm-surface.js",
-        "sha256": "eae90fc1cc4a72c7293fda31ce77c6085ef622f0642dfa449884e28d5d0c0f54"
+        "sha256": "ecb8f3ad977b27cb344a0369bcb32e073847f2a8281e113d688a53b8c3ae71af"
       },
       {
         "path": "src/smart/view-flow/rule.js",
-        "sha256": "4daca58eea5e866715a1507c78f0749d2efe1ade23d8497f1a4250ebcbf27d53"
+        "sha256": "7dcd2bb147ab45091906a27e898fb4a41788fbb028a8c104854d40c3494b1580"
       },
       {
         "path": "src/smart/view-flow/docs.md",

@@ -32,11 +32,286 @@ SF.RuleLoader.registerPackage("view", {
         },
         {
           "name": "cl-button-icon"
+        },
+        {
+          "name": "cl-menu-context"
+        },
+        {
+          "name": "cl-spinner"
+        },
+        {
+          "name": "cl-segmented"
+        },
+        {
+          "name": "cl-badge"
+        },
+        {
+          "name": "cl-input"
+        },
+        {
+          "name": "cl-popover"
+        },
+        {
+          "lazy": true,
+          "name": "cl-drawer"
+        },
+        {
+          "lazy": true,
+          "name": "cl-tabs"
+        },
+        {
+          "lazy": true,
+          "name": "cl-radio"
+        },
+        {
+          "lazy": true,
+          "name": "cl-icon"
+        },
+        {
+          "name": "align-items/default"
+        },
+        {
+          "name": "display/default"
+        },
+        {
+          "name": "flex-direction/default"
+        },
+        {
+          "name": "flex-wrap/default"
+        },
+        {
+          "name": "gap/default"
+        },
+        {
+          "name": "justify-content/default"
+        },
+        {
+          "name": "margin/default"
+        },
+        {
+          "name": "position/default"
+        },
+        {
+          "name": "table/default"
         }
       ],
       "tags": [
         "sf-view",
         "sf-data-view"
+      ],
+      "type": "smart"
+    },
+    "cl-view-board": {
+      "css": true,
+      "js": true,
+      "mode": "smart",
+      "relation": [
+        {
+          "name": "icons"
+        },
+        {
+          "name": "cl-sortable"
+        },
+        {
+          "name": "card"
+        },
+        {
+          "name": "cl-badge"
+        },
+        {
+          "name": "cl-button"
+        },
+        {
+          "name": "cl-button-icon"
+        },
+        {
+          "name": "cl-checkbox"
+        },
+        {
+          "lazy": true,
+          "name": "cl-tabs"
+        },
+        {
+          "lazy": true,
+          "name": "cl-toast"
+        },
+        {
+          "lazy": true,
+          "name": "cl-menu-context"
+        },
+        {
+          "name": "cl-avatar"
+        },
+        {
+          "name": "cl-tag"
+        },
+        {
+          "name": "cl-reference-link"
+        },
+        {
+          "name": "cl-progress-scale"
+        },
+        {
+          "name": "cl-icon"
+        },
+        {
+          "name": "align-items/default"
+        },
+        {
+          "name": "display/default"
+        },
+        {
+          "name": "flex-direction/default"
+        },
+        {
+          "name": "flex-wrap/default"
+        },
+        {
+          "name": "gap/default"
+        },
+        {
+          "name": "min-width/default"
+        },
+        {
+          "name": "text-color/default"
+        }
+      ],
+      "tags": [
+        "sf-view-board"
+      ],
+      "type": "smart"
+    },
+    "cl-view-calendar": {
+      "css": true,
+      "js": true,
+      "mode": "smart",
+      "relation": [
+        {
+          "name": "icons"
+        },
+        {
+          "name": "cl-segmented"
+        },
+        {
+          "name": "cl-button"
+        },
+        {
+          "name": "cl-button-icon"
+        },
+        {
+          "name": "cl-badge"
+        },
+        {
+          "name": "cl-checkbox"
+        },
+        {
+          "lazy": true,
+          "name": "cl-toast"
+        },
+        {
+          "lazy": true,
+          "name": "cl-menu-context"
+        },
+        {
+          "lazy": true,
+          "name": "cl-input-date"
+        },
+        {
+          "name": "cl-avatar"
+        },
+        {
+          "name": "cl-tag"
+        },
+        {
+          "name": "cl-reference-link"
+        },
+        {
+          "name": "cl-progress-scale"
+        },
+        {
+          "name": "cl-icon"
+        },
+        {
+          "name": "align-items/default"
+        },
+        {
+          "name": "display/default"
+        },
+        {
+          "name": "flex-direction/default"
+        },
+        {
+          "name": "flex-wrap/default"
+        },
+        {
+          "name": "gap/default"
+        },
+        {
+          "name": "min-width/default"
+        },
+        {
+          "name": "text-color/default"
+        }
+      ],
+      "tags": [
+        "sf-view-calendar"
+      ],
+      "type": "smart"
+    },
+    "cl-view-cards": {
+      "css": true,
+      "js": true,
+      "mode": "smart",
+      "relation": [
+        {
+          "name": "icons"
+        },
+        {
+          "name": "card"
+        },
+        {
+          "name": "cl-checkbox"
+        },
+        {
+          "name": "cl-button"
+        },
+        {
+          "name": "cl-button-icon"
+        },
+        {
+          "name": "cl-icon"
+        },
+        {
+          "name": "cl-pagination"
+        },
+        {
+          "name": "cl-empty-state"
+        },
+        {
+          "name": "cl-skeleton"
+        },
+        {
+          "lazy": true,
+          "name": "cl-menu-context"
+        },
+        {
+          "name": "cl-badge"
+        },
+        {
+          "name": "cl-avatar"
+        },
+        {
+          "name": "cl-tag"
+        },
+        {
+          "name": "cl-reference-link"
+        },
+        {
+          "name": "cl-progress-scale"
+        }
+      ],
+      "tags": [
+        "sf-view-cards"
       ],
       "type": "smart"
     },
@@ -127,6 +402,27 @@ SF.RuleLoader.registerPackage("view", {
         {
           "lazy": true,
           "name": "cl-button-icon"
+        },
+        {
+          "name": "align-items/default"
+        },
+        {
+          "name": "display/default"
+        },
+        {
+          "name": "flex-direction/default"
+        },
+        {
+          "name": "flex-wrap/default"
+        },
+        {
+          "name": "gap/default"
+        },
+        {
+          "name": "min-width/default"
+        },
+        {
+          "name": "text-color/default"
         }
       ],
       "tags": [
@@ -265,6 +561,95 @@ SF.RuleLoader.registerPackage("view", {
         },
         {
           "name": "cl-tabs"
+        },
+        {
+          "name": "cl-list-description"
+        },
+        {
+          "name": "cl-list"
+        },
+        {
+          "name": "skeleton"
+        },
+        {
+          "name": "cl-confirm"
+        },
+        {
+          "name": "cl-menu"
+        },
+        {
+          "lazy": true,
+          "name": "cl-list-timeline"
+        },
+        {
+          "lazy": true,
+          "name": "cl-form"
+        },
+        {
+          "name": "align-items/default"
+        },
+        {
+          "name": "align-self/default"
+        },
+        {
+          "name": "background-color/default"
+        },
+        {
+          "name": "container/default"
+        },
+        {
+          "name": "cursor/default"
+        },
+        {
+          "name": "display/default"
+        },
+        {
+          "name": "flex-direction/default"
+        },
+        {
+          "name": "flex-grow/default"
+        },
+        {
+          "name": "flex-wrap/default"
+        },
+        {
+          "name": "flex/default"
+        },
+        {
+          "name": "gap/default"
+        },
+        {
+          "name": "justify-content/default"
+        },
+        {
+          "name": "min-height/default"
+        },
+        {
+          "name": "min-width/default"
+        },
+        {
+          "name": "overflow/default"
+        },
+        {
+          "name": "padding/default"
+        },
+        {
+          "name": "position/default"
+        },
+        {
+          "name": "sr-only/default"
+        },
+        {
+          "name": "text-align/default"
+        },
+        {
+          "name": "text-color/default"
+        },
+        {
+          "name": "visibility/default"
+        },
+        {
+          "name": "width/default"
         }
       ],
       "tags": [
@@ -331,6 +716,10 @@ SF.RuleLoader.registerPackage("view", {
         },
         {
           "lazy": true,
+          "name": "cl-settings"
+        },
+        {
+          "lazy": true,
           "name": "cl-menu-context"
         },
         {
@@ -371,6 +760,93 @@ SF.RuleLoader.registerPackage("view", {
         },
         {
           "name": "cl-segmented"
+        },
+        {
+          "name": "align-items/default"
+        },
+        {
+          "name": "border-collapse/default"
+        },
+        {
+          "name": "border-spacing/default"
+        },
+        {
+          "name": "cursor/default"
+        },
+        {
+          "name": "display/default"
+        },
+        {
+          "name": "element-position/default"
+        },
+        {
+          "name": "flex-direction/default"
+        },
+        {
+          "name": "flex-wrap/default"
+        },
+        {
+          "name": "flex/default"
+        },
+        {
+          "name": "gap/default"
+        },
+        {
+          "name": "height/default"
+        },
+        {
+          "name": "justify-content/default"
+        },
+        {
+          "name": "margin/default"
+        },
+        {
+          "name": "max-width/default"
+        },
+        {
+          "name": "min-height/default"
+        },
+        {
+          "name": "min-width/default"
+        },
+        {
+          "name": "overflow/default"
+        },
+        {
+          "name": "padding/default"
+        },
+        {
+          "name": "pointer-events/default"
+        },
+        {
+          "name": "position/default"
+        },
+        {
+          "name": "table-layout/default"
+        },
+        {
+          "name": "table/default"
+        },
+        {
+          "name": "text-max-width/default"
+        },
+        {
+          "name": "text-overflow/default"
+        },
+        {
+          "name": "transition-property/default"
+        },
+        {
+          "name": "user-select/default"
+        },
+        {
+          "name": "visibility/default"
+        },
+        {
+          "name": "width/default"
+        },
+        {
+          "name": "z-index/default"
         }
       ],
       "tags": [

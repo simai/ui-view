@@ -1,0 +1,674 @@
+{
+  "$comment": "sf-view-calendar, standard simai.smart-component 1.4 (vocabulary 1.1.5): the calendar layout of the view set (owner decision C307, after the board and the cards, C298). Study: ui-control control/research/2026-11-18-calendar-view. Modes month, week, day and list; the month and time grids are the calendar's own; the bar, menus, toasts, the «Перенести на…» window and the event fields are SIMAI Framework parts.",
+  "id": "smart.view-calendar",
+  "tag": "sf-view-calendar",
+  "version": "1.1.2",
+  "x-history": [
+    {
+      "version": "1.1.2",
+      "kind": "patch",
+      "recorded_on": "2026-11-19",
+      "consumer": "Nothing to change for a host: the release number of round/view-r4's 1.1.0 in view 1.9.0. 1.1.1 is the superseded round/view-calendar (never released), so the released number is above it.",
+      "evidence": "control/evidence/2026-11-19-view-r4-release/README.md"
+    },
+    {
+      "version": "1.1.0",
+      "kind": "minor",
+      "recorded_on": "2026-11-18",
+      "consumer": "Nothing to change. New: layouts.calendar.span_days (31 by default, up to 366) and layouts.calendar.rules of view-config/1 (Larena backend msg-75b451e2): past, weekdays {days: the ISO days 1..7 a start may fall on}, locked {field, in}, ability {ability} (answered per record in can {update, code, reason}); a rule without a reason and a host refusal coded storage_calendar_update_* are said in the language pack's words. weekdays {days} now names the days allowed (ISO 1..7), as the Larena host checks it, not days refused (0..6). DEV's acceptance (VCL-1, VCL-3, VCL-4): layouts.calendar mode opens the calendar when no mode attribute is written (it opened in month); «+N» is a text row at the event line height, so a month row is the number row and per_day lines (112 at per_day 3, the month 672 instead of 750); on a phone the chosen day's rows are two lines, the second «Кратко» field at the end of the title line, long values ending with «…». Phone month (C307 (3), (4), DEV msg-92a6590e9e1c4483bd21): the chosen day's heading under the month carries + (always shown there), creating on that day; «Без даты N» under the month swaps the chosen day's list for the records without a date (choosing a day swaps back); on a list row a held touch, Shift+F10 or the context menu opens the event menu, where «Перенести на…» sets the date. Words: undated-hint-phone, undated-list-opened-text, undated-list-closed-text (en, ru).",
+      "evidence": "control/evidence/2026-11-18-view-r4/README.md"
+    },
+    {
+      "version": "1.0.0",
+      "kind": "minor",
+      "recorded_on": "2026-11-18",
+      "consumer": "New: sf-view layout=\"calendar\" draws it; a host answers the date window {range, date_field, end_field} with context {timeZone, weekStart}, a query {window: {undated}} for the «Без даты» column, and record.set with patch for a move.",
+      "evidence": "control/evidence/2026-11-18-view-calendar"
+    }
+  ],
+  "kind": "leaf",
+  "family": "view",
+  "settings": {
+    "size": {
+      "type": "enum",
+      "values": [
+        "1/2",
+        "1"
+      ],
+      "default": "1/2",
+      "summary": "The rung of the bar, the day numbers, «+», «+N» and the list rows."
+    },
+    "title-field": {
+      "type": "string",
+      "default": "title",
+      "summary": "The record key an event's title reads (else title, name, id)."
+    },
+    "mode": {
+      "type": "enum",
+      "values": [
+        "month",
+        "week",
+        "day",
+        "list"
+      ],
+      "optional": true,
+      "summary": "The mode shown (else layouts.calendar mode, else month). On a phone week is three days and day is not offered."
+    },
+    "date": {
+      "type": "string",
+      "default": "",
+      "summary": "A day of the period shown, yyyy-mm-dd (else today in the request's zone)."
+    },
+    "time-zone": {
+      "type": "string",
+      "default": "",
+      "summary": "The request's time zone (context.timeZone, C293): dates and times are shown and written in it; empty, the person's (the browser's)."
+    },
+    "week-start": {
+      "type": "number",
+      "optional": true,
+      "integer": true,
+      "min": 0,
+      "max": 7,
+      "summary": "The request's first day of the week (context.weekStart, C293), 0 or 7 Sunday to 6 Saturday; without it the page language's (ru Monday). Never stored in the view."
+    },
+    "locale": {
+      "type": "string",
+      "default": "",
+      "summary": "The language of month and day names (Intl); empty, the page's."
+    },
+    "now": {
+      "type": "string",
+      "default": "",
+      "summary": "«Now» for a page that shows one moment (yyyy-mm-ddThh:mm): today and the now line; empty, the clock."
+    },
+    "selectable": {
+      "type": "boolean",
+      "default": true,
+      "summary": "List mode rows carry the selection box; Space marks a row."
+    },
+    "creatable": {
+      "type": "boolean",
+      "default": false,
+      "summary": "«+» in a day (on hover and focus, always on touch, C307 (4)): the create event with the date."
+    },
+    "movable": {
+      "type": "boolean",
+      "default": true,
+      "summary": "Moves and stretches are offered; false refuses each with «Нет права менять»."
+    },
+    "truncated": {
+      "type": "boolean",
+      "default": false,
+      "summary": "The host gave the first 1000 records of the period only: «Показаны не все — сузьте фильтр»."
+    },
+    "undated-total": {
+      "type": "number",
+      "optional": true,
+      "integer": true,
+      "min": 0,
+      "summary": "How many records have no date under the filter (the count on «Без даты N»); else the undated list's length."
+    },
+    "undated-open": {
+      "type": "boolean",
+      "default": false,
+      "summary": "The «Без даты» column is open (kept by the view through the save event)."
+    },
+    "records": {
+      "type": "list",
+      "default": [],
+      "summary": "The records of the days on screen (the window {range}), up to 1000; each with id, revision, the date fields, can {update, reason} where the host limits it (CL-7)."
+    },
+    "undated": {
+      "type": "list",
+      "default": [],
+      "summary": "The records without a date (query window {undated}), for the «Без даты» column."
+    },
+    "fields": {
+      "type": "list",
+      "default": [],
+      "of": {
+        "key": "string",
+        "label": {
+          "type": "string",
+          "optional": true
+        },
+        "propertyType": {
+          "type": "string",
+          "optional": true
+        },
+        "timeZone": {
+          "type": "string",
+          "optional": true
+        },
+        "options": {
+          "type": "list",
+          "optional": true
+        }
+      },
+      "summary": "Field descriptors (sf-view's columns): the date fields (a date field is all day, a datetime field timed; timeZone the source's zone, CL-5), the colour field's options (C140), the «Кратко» fields."
+    },
+    "options": {
+      "type": "object",
+      "default": {},
+      "summary": "layouts.calendar of simai.view-config/1: date_field, end_field, all_day_field, mode, modes, color_field, event_fields (up to three), per_day (3), hours ([\"08:00\", \"20:00\"]), slot (30), weekends show|hide, undated button|panel|none, span_days (31, up to 366: how far back the host looks for an event that started before the days on screen), rules (the move rules, as the rules setting)."
+    },
+    "rules": {
+      "type": "list",
+      "default": [],
+      "summary": "The host's move rules (describe().rules of the date field, and layouts.calendar.rules of simai.view-config/1): [{code, reason}] with past; weekdays {days: the ISO days 1..7 a start may fall on}; locked {field, in} (a record whose field holds one of the values does not move); ability {ability} (answered per record in can {update, code, reason}); and sunday..saturday, min {date}, max {date}, dates {dates}. A refused day dims with the reason while an event is held; a rule without a reason, and a host refusal coded storage_calendar_update_* (past, weekday, locked, denied, end_before_start, too_long, patch_invalid), is said in the pack's words. Other codes are the server's."
+    },
+    "actions": {
+      "type": "list",
+      "default": [],
+      "of": {
+        "id": "id",
+        "text": "string",
+        "icon": {
+          "type": "icon",
+          "optional": true
+        }
+      },
+      "summary": "The host's actions on a selection in the list mode, after «Перенести на…»."
+    },
+    "selected": {
+      "type": "list",
+      "default": [],
+      "summary": "The ids marked in the list mode."
+    },
+    "current": {
+      "type": "string",
+      "default": "",
+      "summary": "The record open in the record card (C305): its event is marked."
+    }
+  },
+  "values": {},
+  "events": {
+    "move": {
+      "carries": {
+        "id": "id",
+        "patch": "object",
+        "from": "object",
+        "revision": {
+          "type": "any",
+          "nullable": true
+        },
+        "how": "string"
+      },
+      "cancelable": true,
+      "summary": "An event moved or stretched (drag, touch, keys, the menu, «Перенести на…», from or to «Без даты»): patch holds the date fields in their own form; shown at once and pale until the host answers settleMove. Cancel to refuse at once."
+    },
+    "open": {
+      "carries": {
+        "id": "id"
+      },
+      "summary": "An event pressed or «Открыть» (vocabulary open): the host opens the record card (sf-view-properties beside the list, C305)."
+    },
+    "create": {
+      "carries": {
+        "date": "string",
+        "time": {
+          "type": "string",
+          "optional": true
+        },
+        "field": "string"
+      },
+      "own-verb": true,
+      "summary": "«+» in a day: the host opens a new record with that date (and time)."
+    },
+    "range": {
+      "carries": {
+        "from": "string",
+        "to": "string",
+        "mode": "string",
+        "window": "object",
+        "context": "object"
+      },
+      "own-verb": true,
+      "summary": "The days on screen changed (period, mode, phone): the host answers the records of window.range [from, to)."
+    },
+    "select": {
+      "carries": {
+        "ids": "list"
+      },
+      "summary": "The selection changed (vocabulary select)."
+    },
+    "save": {
+      "carries": {
+        "mode": "string",
+        "undated_open": "boolean"
+      },
+      "summary": "The mode or the «Без даты» column changed: to keep in the view (layouts.calendar mode, the person's)."
+    },
+    "apply": {
+      "carries": {
+        "action": "id",
+        "ids": "list",
+        "scope": "string"
+      },
+      "own-verb": true,
+      "summary": "A host action chosen on the selection in the bulk bar."
+    }
+  },
+  "actions": {
+    "settle-move": {
+      "with": {
+        "id": "id",
+        "result": "object"
+      },
+      "x-outcomes": [
+        "applied",
+        "refused"
+      ],
+      "summary": "The host's answer to a move: {answer: applied, record?} keeps it; refused or conflict ({reason, message}) puts the event back and says why.",
+      "x-returns": {
+        "type": "object",
+        "description": "{outcome: applied} or {outcome: refused, reason}"
+      }
+    },
+    "set-mode": {
+      "with": {
+        "mode": "string"
+      },
+      "x-outcomes": [
+        "applied",
+        "refused"
+      ],
+      "summary": "Shows a mode (month, week, day, list).",
+      "x-returns": {
+        "type": "boolean",
+        "description": "true when the mode changed"
+      }
+    },
+    "go-to": {
+      "with": {
+        "day": "string"
+      },
+      "x-outcomes": [
+        "applied",
+        "refused"
+      ],
+      "summary": "Shows the period around a day (yyyy-mm-dd).",
+      "x-returns": {
+        "type": "boolean",
+        "description": "true when the day is valid"
+      }
+    },
+    "focus-record": {
+      "with": {
+        "id": "id"
+      },
+      "x-outcomes": [
+        "applied",
+        "refused"
+      ],
+      "summary": "Moves the focus to a record's event (the record card's close gives it back here).",
+      "x-returns": {
+        "type": "boolean",
+        "description": "true when the event is on screen"
+      }
+    }
+  },
+  "slots": {},
+  "layer": {
+    "kind": "surface",
+    "locks-page": false,
+    "traps-focus": false
+  },
+  "side-effects": [],
+  "keyboard": {
+    "host": {
+      "Tab": "reach",
+      "ArrowLeft": "move",
+      "ArrowRight": "move",
+      "ArrowUp": "move",
+      "ArrowDown": "move",
+      "Home": "move",
+      "End": "move",
+      "PageUp": "move",
+      "PageDown": "move",
+      "Enter": "activate",
+      "Space": "select",
+      "Escape": "dismiss"
+    }
+  },
+  "relations": [
+    {
+      "name": "icons"
+    },
+    {
+      "name": "cl-segmented",
+      "$comment": [
+        "The modes Месяц, Неделя, День, Список in the bar."
+      ]
+    },
+    {
+      "name": "cl-button",
+      "$comment": [
+        "«Сегодня», «Без даты N», «+N»."
+      ]
+    },
+    {
+      "name": "cl-button-icon",
+      "$comment": [
+        "‹ ›, «+» in a day, the close of the «Без даты» column."
+      ]
+    },
+    {
+      "name": "cl-badge"
+    },
+    {
+      "name": "cl-checkbox",
+      "$comment": [
+        "The selection box of a list row."
+      ]
+    },
+    {
+      "name": "cl-toast",
+      "lazy": true,
+      "$comment": [
+        "A refused move."
+      ]
+    },
+    {
+      "name": "cl-menu-context",
+      "lazy": true,
+      "$comment": [
+        "The event menu and the day list of «+N» (SF.menu.open)."
+      ]
+    },
+    {
+      "name": "cl-input-date",
+      "lazy": true,
+      "$comment": [
+        "The «Перенести на…» window (the panel without its field)."
+      ]
+    },
+    {
+      "name": "cl-avatar",
+      "$comment": [
+        "Below: what the Framework field renderers draw in the «Кратко» place."
+      ]
+    },
+    {
+      "name": "cl-tag"
+    },
+    {
+      "name": "cl-reference-link"
+    },
+    {
+      "name": "cl-progress-scale"
+    },
+    {
+      "name": "cl-icon"
+    },
+    {
+      "name": "align-items/default",
+      "$comment": [
+        "The utility classes its templates write, asked for with the component (SIMAI Framework loader: a Framework component gets them from template-utilities.generated.json, a package component names them here); fetched after the first paint, they moved the drawn parts -- the bulk band's gap came 0 -> 8 and the band 8 px down some 150 ms in (View 1.8.1 acceptance, queue #172). The list is scripts/generate-template-utilities.mjs run over the overlay."
+      ]
+    },
+    {
+      "name": "display/default"
+    },
+    {
+      "name": "flex-direction/default"
+    },
+    {
+      "name": "flex-wrap/default"
+    },
+    {
+      "name": "gap/default"
+    },
+    {
+      "name": "min-width/default"
+    },
+    {
+      "name": "text-color/default"
+    }
+  ],
+  "templates": {
+    "default": {
+      "file": "js/templates/default.js",
+      "$comment": "The Lit template in JavaScript (§5.2)."
+    }
+  },
+  "styles": "js/templates/default.css",
+  "examples": "examples.json",
+  "docs": "docs.md",
+  "lang": "lang/",
+  "accessibility": {
+    "role": "region",
+    "name": {
+      "from": [
+        "aria-label",
+        "runtime.calendar-label"
+      ]
+    },
+    "keys": {
+      "Tab": "reach",
+      "ArrowLeft": "move",
+      "ArrowRight": "move",
+      "ArrowUp": "move",
+      "ArrowDown": "move",
+      "Home": "move",
+      "End": "move",
+      "PageUp": "move",
+      "PageDown": "move",
+      "Enter": "activate",
+      "Space": "select",
+      "Escape": "dismiss"
+    },
+    "x-keys": "One Tab stop for the grid (the W3C date grid): left and right a day, up and down a week in the month, Home and End the week's start and end, PageUp and PageDown the period, Shift+PageUp and Shift+PageDown a year, T today; Enter goes into the day's events («+N» and «+» after them), up and down between them, Escape back to the day; Enter on an event opens the record; Shift+F10 or the context menu key opens the event menu (disabled items say why); Ctrl+Shift+left and right move it a day, Ctrl+Shift+up and down a slot in week and day. Every move and refusal is announced in the calendar's live region."
+  },
+  "host-states": {},
+  "css-variables": {
+    "--sf-view-calendar-gap": {
+      "type": "length",
+      "state": "default"
+    },
+    "--sf-view-calendar-line": {
+      "type": "color",
+      "state": "default"
+    },
+    "--sf-view-calendar-day-background": {
+      "type": "color",
+      "state": "default"
+    },
+    "--sf-view-calendar-out-background": {
+      "type": "color",
+      "state": "default"
+    },
+    "--sf-view-calendar-refused-opacity": {
+      "type": "number",
+      "state": "default"
+    },
+    "--sf-view-calendar-hour": {
+      "type": "length",
+      "state": "default"
+    },
+    "--sf-view-calendar-per-day": {
+      "type": "number",
+      "state": "default"
+    },
+    "--sf-view-calendar-undated-width": {
+      "type": "length",
+      "state": "default"
+    }
+  },
+  "x-summary": "The calendar layout of the view set: month, week, day and list; records on the days of their date field, a move or a stretch is a change of the date fields the host settles. sf-view layout=\"calendar\" draws it over the date window.",
+  "x-words": [
+    "calendar-label",
+    "empty-text",
+    "more-text",
+    "undated-text",
+    "refuse-default",
+    "truncated-text"
+  ],
+  "x-decisions": [
+    "shape: a leaf drawn by sf-view (layout calendar, the layout registry) or by a host directly; it owns no data.",
+    "reuse: sf-segmented, sf-button(-icon), sf-badge, sf-checkbox, sf-toast, SF.menu.open, sf-input-date (Перенести на…; the phone month once it carries day marks, CL-6), the Framework field renderers' renderCellField; sf-bulk-actions where the pair has it. The month and time grids are its own.",
+    "window: the days on screen [from, to) by the date field (and end field) in the request's zone and week start (C293), up to 1000 records; the undated records in a query of their own.",
+    "moves: a change of the date fields (patch in each value's own form); the host's rules and the record's right dim a day while an event is held and disable menu items with their reason; a refusal puts the event back with the host's reason (toast and live region).",
+    "phone: the month with dots and the chosen day as a list (C307 (1)); «+N» opens the day list in place (C307 (2)); «Без даты N» opens a column (C307 (3)); «+» on hover and focus, always on touch (C307 (4)). Timeline is a later layout."
+  ],
+  "x-rule": {
+    "$comment": [
+      "The calendar draws its bar with sf-button(-icon) and sf-segmented, its grids itself, its list rows",
+      "with sf-checkbox and the Framework field renderers' cell output; menus, toasts and the date window come later."
+    ]
+  },
+  "x-registry": {
+    "capabilities": [
+      "drag-and-drop",
+      "field-renderers",
+      "live-announcement",
+      "selection"
+    ],
+    "persistence": {
+      "mode": "none",
+      "source_of_truth": "host",
+      "network_owner": "host",
+      "revision_field": "revision"
+    },
+    "readiness": {
+      "level": "host-required",
+      "required_checks": [
+        "manifest",
+        "loader-rule",
+        "view-calendar-contract",
+        "view-calendar-browser"
+      ]
+    },
+    "tags": [
+      "calendar",
+      "dates",
+      "schedule",
+      "view"
+    ],
+    "contracts": {
+      "window": {
+        "const": "{range: [from, to), date_field, end_field?} with context {timeZone, weekStart, locale}"
+      },
+      "rules": {
+        "const": "[{code: past|weekdays|locked|ability|sunday..saturday|min|max|dates, reason, days?, field?, in?, ability?, date?, dates?}]"
+      },
+      "update": {
+        "const": "record.set {record_id, key, value, patch, revision} -> applied {records} | refused {reason (storage_calendar_update_* or the host's code), message}"
+      }
+    },
+    "state": {
+      "machines": {
+        "move": [
+          "shown",
+          "pending",
+          "applied",
+          "refused"
+        ]
+      },
+      "visual_states": [
+        "default",
+        "loading",
+        "error"
+      ]
+    },
+    "artifacts": {
+      "fixtures": [],
+      "scenarios": []
+    },
+    "ownership": {
+      "source": "simai/ui-view",
+      "data": "host",
+      "effects": "host",
+      "forbidden_client_responsibilities": [
+        "saving a move",
+        "move rules and permissions",
+        "the time zone of the source"
+      ]
+    },
+    "security": {
+      "permissions_owner": "host",
+      "untrusted_inputs": [
+        "titles, option labels and field values (drawn as text or by the field renderers)"
+      ],
+      "network_policy": "deny"
+    },
+    "presentation": {
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "locales": [
+        "en",
+        "ru"
+      ],
+      "responsive": [
+        "desktop",
+        "mobile"
+      ],
+      "skeleton": {
+        "shape": "block",
+        "while_loading": "none"
+      }
+    },
+    "ai_guidance": {
+      "use_when": "Use sf-view-calendar through sf-view layout=\"calendar\" for records with a date or a date and time (deliveries, tasks, bookings, meetings) that a person reads by day and moves between days.",
+      "do_not": [
+        "Do not save a move in the element; answer sf-view-calendar-move and call settleMove.",
+        "Do not store a week start or a time zone in the view: they come from the request (C293).",
+        "Do not use it for a timeline (rows by people or resources)."
+      ],
+      "required_reads": [
+        "inputs",
+        "contracts",
+        "events",
+        "accessibility"
+      ],
+      "minimal_example": "<sf-view layout=\"calendar\" aria-label=\"Доставки\"></sf-view>",
+      "owner_commands": [
+        "node scripts/test.mjs",
+        "node scripts/run-browser-probes.mjs <free> <set build>"
+      ]
+    },
+    "accessibility": {
+      "accessible_name": "internal",
+      "focus": "A region named by aria-label (else «Календарь»); the bar's controls, then one Tab stop for the grid with the W3C date grid keys inside; a polite live region says every move and refusal; after a settled move focus stays on the event."
+    },
+    "compatibility": {
+      "migrations": [
+        {
+          "from": "0.0.0",
+          "to": "1.0.0",
+          "changes": [
+            "New: the calendar layout (owner decision C307): month, week, day and list modes over the host's date window in the request's time zone and week start; all-day and multi-day bars and timed events in their option's colour; «+N» opens the day list; moves and stretches by mouse, touch and keys as a change of the date fields the host settles (settleMove), refused days dim with the reason; «Без даты N» column; «+» on a day; the phone month with dots; selection in the list mode; one Tab stop with the W3C date grid keys."
+          ]
+        },
+        {
+          "from": "1.0.0",
+          "to": "1.1.0",
+          "changes": [
+            "view-config/1 keys from the Larena backend (msg-75b451e2): calendarOptions reads span_days (31, clamped to 366; how far back the host looks for an event that started before the days on screen) and rules from layouts.calendar; the move rules in force are the rules setting and layouts.calendar.rules. moveCheck: weekdays {days} are the ISO days 1..7 a start may fall on (the host's reading; the round's own 0..6 refused days are gone), locked {field, in} holds a record whose field has one of the values (also with no day), ability is the host's and comes per record in can {update: false, code, reason}; sunday..saturday, min, max and dates are still read. A refusal carries its code; with no reason of its own a rule or a host refusal (storage_calendar_update_past, _weekday, _locked, _denied, _end_before_start, _too_long, _patch_invalid) is said in the pack's words (refuse-past, refuse-weekday, refuse-locked, refuse-denied, refuse-end-before-start, refuse-too-long, refuse-patch-invalid; en and ru); a machine code is never shown to a person. VCL-1: mode resolves the mode attribute only when written, then layouts.calendar mode, then month (getProp answered the property default, month, and hid the setting). VCL-3: «+N» is a plain button (sf-view-calendar__more) at --sf-text-height-1/2 instead of an sf-button of the control height; the day's block-size is padding + one control row + per_day text lines and gaps. VCL-4: the phone row's grid is time | title | auto, the second field on the title line (end), the first under the title, ellipsis on long values. Phone month: renderPhoneList draws «Без даты N» (data-undtoggle, aria-pressed) under the month and the chosen day's list (renderDayList with + in its heading, lday-h[data-picked]) or renderUndatedList (rows with data-ev, the close button data-undclose); phoneUndated is the phone's own state, apart from the saved undated_open, cleared by pickDay; toggleUndated on the phone's month toggles it. A touch held 700 ms on a list row opens openEventMenu (rows do not drag; the click after it is swallowed; a native contextmenu cancels the hold). The pick window (and the phone month panel) also hears sf-change, the name under which the pair's sf-input-date says a chosen day; with sf-input-date-change alone «Перенести на…» moved nothing. Undated phone rows have no time column."
+          ]
+        },
+        {
+          "from": "1.1.0",
+          "to": "1.1.2",
+          "changes": [
+            "Release numbering (view 1.9.0): the same code as 1.1.0 of round/view-r4; 1.1.1 belongs to the superseded round/view-calendar a2c5c8f (not merged, not released), so the release takes 1.1.2."
+          ]
+        }
+      ]
+    },
+    "inputs": {
+      "template": {
+        "const": "default"
+      }
+    }
+  },
+  "x-framework-first": {
+    "$comment": "Copies of Framework parts kept knowingly, part id (docs/FRAMEWORK-FIRST.md) to the Framework order (FO) each waits for (set standard draft 1.1 §7.3). The repin that brings an order removes its copy.",
+    "waits": {
+      "K-09": "FO-9"
+    }
+  }
+}

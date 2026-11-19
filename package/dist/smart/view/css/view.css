@@ -1,5 +1,5 @@
 @charset "UTF-8";
-@layer sf.reset, sf.tokens, sf.base, sf.utilities, sf.components, sf.overrides, sf.states;
+@layer sf.reset, sf.tokens, sf.base, sf.paint, sf.utilities, sf.components, sf.overrides, sf.states;
 /* sf-view's own sheet (data-view.css): its first paint, the skeleton
    _startFirstPaint draws and a server prints. Until 1.6.0 these rules were in
    sf-view-table's sheet and data-view.css was the table's and the page row's styles,
@@ -256,13 +256,15 @@
   }
   /* The compact list's toolbar (.sf-table-toolbar--list): one line, the field
      first and taking what is left, the filter and create as squares of the
-     step's control after it, 1/3 apart, and no saved-views control. The
+     step's control after it, each a group of its own --sf-space-1 apart
+     (C144: sf-view-table 1.20.1; the sort button that joins the filter at
+     1/3 comes with the answer), and no saved-views control. The
      list draws it below list-below, and on a list at any width unless the
      layout switch keeps the table's toolbar there (view161 acceptance O1:
      the skeleton kept the filter first and the field moved 116 / 92 px). */
   .sf-data-view-skeleton[data-layout=list]:not([data-layout-switch]) .sf-data-view-skeleton-toolbar {
     flex-wrap: nowrap;
-    gap: var(--sf-space-1\/3);
+    gap: var(--sf-space-1);
   }
   .sf-data-view-skeleton[data-layout=list]:not([data-layout-switch]) .sf-data-view-skeleton-toolbar > [data-part] {
     display: contents;
@@ -363,6 +365,19 @@
     width: 1lh;
     inline-size: 1lh;
   }
+  /* The page box over a list of records (sf-view-table 1.24.0, VT-2): its
+     box and its words, a line with half the record's air. */
+  .sf-data-view-skeleton-list > div[data-list-head] {
+    display: flex;
+    align-items: center;
+    padding-top: var(--sf-a4);
+    padding-bottom: var(--sf-a4);
+    padding-block: var(--sf-a4);
+  }
+  .sf-data-view-skeleton-list > div[data-list-head] > .sf-skeleton-text:last-child {
+    width: 30%;
+    inline-size: 30%;
+  }
   .sf-data-view-skeleton-list > div > div {
     display: flex;
     flex-direction: column;
@@ -378,25 +393,207 @@
     width: 75%;
     inline-size: 75%;
   }
-  /* The page row's words: as long as the words they stand for. */
-  .sf-data-view-skeleton nav .sf-skeleton-text:not([data-control]) {
-    width: 5em;
-    inline-size: 5em;
+  /* The footer (C97 (5)), laid out as the live one (the view's shadow part
+     footer): one row as tall as the ladder says -- the control of the step,
+     --sf-space-1 above and below it and the line under it -- the range at
+     the start, the page-size button, the page field last; where they do not
+     fit, the page field takes a line of its own and still ends there. */
+  .sf-data-view-skeleton-footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--sf-space-1);
+    box-sizing: border-box;
+    min-height: calc(2 * var(--sf-space-1) + var(--sf-data-view-skeleton--control) + var(--sf-px));
+    min-block-size: calc(2 * var(--sf-space-1) + var(--sf-data-view-skeleton--control) + var(--sf-px));
+    padding-top: var(--sf-space-1);
+    padding-bottom: var(--sf-space-1);
+    padding-block: var(--sf-space-1);
+    border-bottom: var(--sf-px) solid var(--sf-outline-variant);
+    -webkit-border-after: var(--sf-px) solid var(--sf-outline-variant);
+            border-block-end: var(--sf-px) solid var(--sf-outline-variant);
   }
-  /* The page row's field with «из N» after it (sf-pagination 1.5: the field
-     of one digit and the words, 2.5 controls) and the page-size button (2.75
-     controls), with the pagination's gap between the controls of its pages. */
-  .sf-data-view-skeleton nav .sf-pagination-container {
+  .sf-data-view-skeleton-footer-start {
+    display: flex;
+    flex: 1 1 auto;
+    align-items: center;
+    gap: var(--sf-space-1);
+    min-width: 0;
+    min-inline-size: 0;
+  }
+  /* The range: as long as the words it stands for. */
+  .sf-data-view-skeleton-footer-start > span {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-inline-size: 0;
+  }
+  .sf-data-view-skeleton-footer-start > span > .sf-skeleton-text {
+    width: 6em;
+    inline-size: 6em;
+  }
+  /* The page row: first, previous, the field of one digit with «из N» (2.5
+     controls), next, last, with the pagination's gap between them. */
+  _:-ms-input-placeholder, html:not([dir="rtl"]) .sf-data-view-skeleton-footer-pages{
+    margin-left: auto;
+  }
+  @supports not (margin-inline-start: initial){
+  html:not([dir="rtl"]) .sf-data-view-skeleton-footer-pages{
+    margin-left: auto;
+    }
+  }
+  .sf-data-view-skeleton-footer-pages:where(:dir(ltr)){
+    margin-left: auto;
+  }
+  _:-ms-input-placeholder, [dir="rtl"] .sf-data-view-skeleton-footer-pages{
+    margin-right: auto;
+  }
+  @supports not (margin-inline-start: initial){
+  [dir="rtl"] .sf-data-view-skeleton-footer-pages{
+    margin-right: auto;
+    }
+  }
+  .sf-data-view-skeleton-footer-pages:where(:dir(rtl)){
+    margin-right: auto;
+  }
+  .sf-data-view-skeleton-footer-pages {
+    display: flex;
+    align-items: center;
     gap: var(--sf-space-1\/3);
     gap: var(--sf-pagination-gap, var(--sf-space-1\/3));
+    -webkit-margin-start: auto;
+            margin-inline-start: auto;
   }
-  .sf-data-view-skeleton nav .sf-skeleton-text[data-control=page] {
+  .sf-data-view-skeleton-footer .sf-skeleton-text[data-control=page] {
     width: calc(var(--sf-data-view-skeleton--control) * 2.5);
     inline-size: calc(var(--sf-data-view-skeleton--control) * 2.5);
   }
-  .sf-data-view-skeleton nav .sf-skeleton-text[data-control=size] {
+  /* The page-size button «По 20 ▾» (2.75 controls). */
+  .sf-data-view-skeleton-footer .sf-skeleton-text[data-control=size] {
     width: calc(var(--sf-data-view-skeleton--control) * 2.75);
     inline-size: calc(var(--sf-data-view-skeleton--control) * 2.75);
+  }
+  /* The live footer's start (slot footer of the view): the range, the offer
+     to count, then the page-size button at its end, beside the page row. */
+  sf-view > .sf-view-footer-start {
+    display: flex;
+    align-items: center;
+    gap: var(--sf-space-1);
+    min-width: 0;
+    min-inline-size: 0;
+  }
+  sf-data-view > .sf-view-footer-start {
+    display: flex;
+    align-items: center;
+    gap: var(--sf-space-1);
+    min-width: 0;
+    min-inline-size: 0;
+  }
+  sf-view > .sf-view-footer-start > .sf-view-footer-total {
+    display: flex;
+    flex: 1 1 auto;
+    align-items: center;
+    gap: var(--sf-space-1\/3);
+    min-width: 0;
+    min-inline-size: 0;
+  }
+  sf-data-view > .sf-view-footer-start > .sf-view-footer-total {
+    display: flex;
+    flex: 1 1 auto;
+    align-items: center;
+    gap: var(--sf-space-1\/3);
+    min-width: 0;
+    min-inline-size: 0;
+  }
+  /* The range: the step's text in the quiet ink, figures of one width so the
+     number does not move its neighbours while a person pages. */
+  sf-view > .sf-view-footer-start .sf-view-footer-range {
+    color: var(--sf-on-surface-variant);
+    font-family: var(--sf-text--family);
+    font-size: var(--sf-text-size-1);
+    line-height: var(--sf-text-height-1);
+    -webkit-font-feature-settings: "tnum";
+            font-feature-settings: "tnum";
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  sf-data-view > .sf-view-footer-start .sf-view-footer-range {
+    color: var(--sf-on-surface-variant);
+    font-family: var(--sf-text--family);
+    font-size: var(--sf-text-size-1);
+    line-height: var(--sf-text-height-1);
+    -webkit-font-feature-settings: "tnum";
+            font-feature-settings: "tnum";
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  sf-view[size="1/2"] > .sf-view-footer-start .sf-view-footer-range {
+    font-size: var(--sf-text-size-1\/2);
+    line-height: var(--sf-text-height-1\/2);
+  }
+  sf-data-view[size="1/2"] > .sf-view-footer-start .sf-view-footer-range {
+    font-size: var(--sf-text-size-1\/2);
+    line-height: var(--sf-text-height-1\/2);
+  }
+  sf-view > .sf-view-footer-start [hidden] {
+    display: none;
+  }
+  sf-data-view > .sf-view-footer-start [hidden] {
+    display: none;
+  }
+  /* The page row ends the footer, on its own line too where it wraps
+     (sf-pagination's host is display: contents: its nav is the footer's
+     item). */
+  _:-ms-input-placeholder, html:not([dir="rtl"]) sf-view > sf-pagination[slot=pagination] > nav{
+    margin-left: auto;
+  }
+  @supports not (margin-inline-start: initial){
+  html:not([dir="rtl"]) sf-view > sf-pagination[slot=pagination] > nav{
+    margin-left: auto;
+    }
+  }
+  sf-view > sf-pagination[slot=pagination] > nav:where(:dir(ltr)){
+    margin-left: auto;
+  }
+  _:-ms-input-placeholder, [dir="rtl"] sf-view > sf-pagination[slot=pagination] > nav{
+    margin-right: auto;
+  }
+  @supports not (margin-inline-start: initial){
+  [dir="rtl"] sf-view > sf-pagination[slot=pagination] > nav{
+    margin-right: auto;
+    }
+  }
+  sf-view > sf-pagination[slot=pagination] > nav:where(:dir(rtl)){
+    margin-right: auto;
+  }
+  sf-view > sf-pagination[slot=pagination] > nav {
+    -webkit-margin-start: auto;
+            margin-inline-start: auto;
+  }
+  _:-ms-input-placeholder, html:not([dir="rtl"]) sf-data-view > sf-pagination[slot=pagination] > nav{
+    margin-left: auto;
+  }
+  @supports not (margin-inline-start: initial){
+  html:not([dir="rtl"]) sf-data-view > sf-pagination[slot=pagination] > nav{
+    margin-left: auto;
+    }
+  }
+  sf-data-view > sf-pagination[slot=pagination] > nav:where(:dir(ltr)){
+    margin-left: auto;
+  }
+  _:-ms-input-placeholder, [dir="rtl"] sf-data-view > sf-pagination[slot=pagination] > nav{
+    margin-right: auto;
+  }
+  @supports not (margin-inline-start: initial){
+  [dir="rtl"] sf-data-view > sf-pagination[slot=pagination] > nav{
+    margin-right: auto;
+    }
+  }
+  sf-data-view > sf-pagination[slot=pagination] > nav:where(:dir(rtl)){
+    margin-right: auto;
+  }
+  sf-data-view > sf-pagination[slot=pagination] > nav {
+    -webkit-margin-start: auto;
+            margin-inline-start: auto;
   }
   .sf-data-view-skeleton[data-layout=list] .sf-data-view-skeleton-table {
     display: none;
@@ -411,11 +608,11 @@
     /* Below list-below the list's compact toolbar, as above. */
     .sf-data-view-skeleton[data-layout=auto] .sf-data-view-skeleton-toolbar {
       flex-wrap: nowrap;
-      gap: var(--sf-space-1\/3);
+      gap: var(--sf-space-1);
     }
     .sf-data-view-skeleton[data-layout=list] .sf-data-view-skeleton-toolbar {
       flex-wrap: nowrap;
-      gap: var(--sf-space-1\/3);
+      gap: var(--sf-space-1);
     }
     .sf-data-view-skeleton[data-layout=auto] .sf-data-view-skeleton-toolbar > [data-part] {
       display: contents;
@@ -487,4 +684,699 @@
       display: block;
     }
   }
+  /* The board's first paint (sf-view-board, BD-2): lanes of 18rem in a row,
+     each a head (the 1/2 control row) and cards of the card's own lengths
+     (.sf-card at 1/2: 8 block, 12 inline padding, a title line and two field
+     lines); below 600 px one lane fills the row, as the board draws it. */
+  .sf-data-view-skeleton[data-layout=board] .sf-data-view-skeleton-board {
+    display: flex;
+    gap: var(--sf-space-1\/2);
+    overflow: hidden;
+    min-width: 0;
+    min-inline-size: 0;
+  }
+  .sf-data-view-skeleton-board > div {
+    flex: 0 0 var(--sf-f8);
+    width: var(--sf-f8);
+    inline-size: var(--sf-f8);
+    display: flex;
+    flex-direction: column;
+    gap: var(--sf-space-1\/3);
+    padding: var(--sf-space-1\/3);
+    border-radius: var(--sf-radius--surface);
+    background: var(--sf-surface-container);
+  }
+  _:-ms-input-placeholder, html:not([dir="rtl"]) .sf-data-view-skeleton-board [data-part=head]{
+    padding-left: var(--sf-space-1\/4);
+  }
+  @supports not (padding-inline-start: initial){
+  html:not([dir="rtl"]) .sf-data-view-skeleton-board [data-part=head]{
+    padding-left: var(--sf-space-1\/4);
+    }
+  }
+  .sf-data-view-skeleton-board [data-part=head]:where(:dir(ltr)){
+    padding-left: var(--sf-space-1\/4);
+  }
+  _:-ms-input-placeholder, [dir="rtl"] .sf-data-view-skeleton-board [data-part=head]{
+    padding-right: var(--sf-space-1\/4);
+  }
+  @supports not (padding-inline-start: initial){
+  [dir="rtl"] .sf-data-view-skeleton-board [data-part=head]{
+    padding-right: var(--sf-space-1\/4);
+    }
+  }
+  .sf-data-view-skeleton-board [data-part=head]:where(:dir(rtl)){
+    padding-right: var(--sf-space-1\/4);
+  }
+  .sf-data-view-skeleton-board [data-part=head] {
+    min-height: var(--sf-ui-1\/2--control-height);
+    min-block-size: var(--sf-ui-1\/2--control-height);
+    display: flex;
+    align-items: center;
+    -webkit-padding-start: var(--sf-space-1\/4);
+            padding-inline-start: var(--sf-space-1\/4);
+  }
+  .sf-data-view-skeleton-board [data-part=card] {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sf-space-1\/4);
+    padding: var(--sf-space-1\/3) var(--sf-space-1\/2);
+    border-radius: var(--sf-radius--surface);
+    background: var(--sf-surface-card);
+    min-height: calc(var(--sf-space-1\/3) * 2 + var(--sf-text-height-1\/2) * 3 + var(--sf-space-1\/4) * 2);
+    min-block-size: calc(var(--sf-space-1\/3) * 2 + var(--sf-text-height-1\/2) * 3 + var(--sf-space-1\/4) * 2);
+  }
+  /* The calendar's first paint (sf-view-calendar, CL-2): its bar of controls
+     and the month of six weeks, each day the calendar's own fixed height (the
+     number row and three event lines, «+N» one of them, VCL-3), so the days do not move when
+     the events come. */
+  .sf-data-view-skeleton-calendar {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sf-space-1\/3);
+    min-width: 0;
+    min-inline-size: 0;
+  }
+  .sf-data-view-skeleton-calendar [data-part=bar] {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--sf-space-1\/3);
+    min-height: var(--sf-ui-1\/2--control-height);
+    min-block-size: var(--sf-ui-1\/2--control-height);
+  }
+  _:-ms-input-placeholder, html:not([dir="rtl"]) .sf-data-view-skeleton-calendar [data-part=bar] > .sf-skeleton-text:not([data-control]){
+    margin-right: auto;
+  }
+  @supports not (margin-inline-end: initial){
+  html:not([dir="rtl"]) .sf-data-view-skeleton-calendar [data-part=bar] > .sf-skeleton-text:not([data-control]){
+    margin-right: auto;
+    }
+  }
+  .sf-data-view-skeleton-calendar [data-part=bar] > .sf-skeleton-text:not([data-control]):where(:dir(ltr)){
+    margin-right: auto;
+  }
+  _:-ms-input-placeholder, [dir="rtl"] .sf-data-view-skeleton-calendar [data-part=bar] > .sf-skeleton-text:not([data-control]){
+    margin-left: auto;
+  }
+  @supports not (margin-inline-end: initial){
+  [dir="rtl"] .sf-data-view-skeleton-calendar [data-part=bar] > .sf-skeleton-text:not([data-control]){
+    margin-left: auto;
+    }
+  }
+  .sf-data-view-skeleton-calendar [data-part=bar] > .sf-skeleton-text:not([data-control]):where(:dir(rtl)){
+    margin-left: auto;
+  }
+  .sf-data-view-skeleton-calendar [data-part=bar] > .sf-skeleton-text:not([data-control]) {
+    flex: 0 1 var(--sf-f6);
+    -webkit-margin-end: auto;
+            margin-inline-end: auto;
+  }
+  .sf-data-view-skeleton-calendar [data-part=weekdays],
+  .sf-data-view-skeleton-calendar [data-part=month] > div {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+  }
+  .sf-data-view-skeleton-calendar [data-part=weekdays] > span {
+    padding: 0 var(--sf-space-1\/4) var(--sf-space-1\/4);
+    min-height: var(--sf-text-height-1\/2);
+    min-block-size: var(--sf-text-height-1\/2);
+  }
+  _:-ms-input-placeholder, html:not([dir="rtl"]) .sf-data-view-skeleton-calendar [data-part=month]{
+    border-left: var(--sf-px) solid var(--sf-outline-variant);
+  }
+  @supports not (border-inline-start: initial){
+  html:not([dir="rtl"]) .sf-data-view-skeleton-calendar [data-part=month]{
+    border-left: var(--sf-px) solid var(--sf-outline-variant);
+    }
+  }
+  .sf-data-view-skeleton-calendar [data-part=month]:where(:dir(ltr)){
+    border-left: var(--sf-px) solid var(--sf-outline-variant);
+  }
+  _:-ms-input-placeholder, [dir="rtl"] .sf-data-view-skeleton-calendar [data-part=month]{
+    border-right: var(--sf-px) solid var(--sf-outline-variant);
+  }
+  @supports not (border-inline-start: initial){
+  [dir="rtl"] .sf-data-view-skeleton-calendar [data-part=month]{
+    border-right: var(--sf-px) solid var(--sf-outline-variant);
+    }
+  }
+  .sf-data-view-skeleton-calendar [data-part=month]:where(:dir(rtl)){
+    border-right: var(--sf-px) solid var(--sf-outline-variant);
+  }
+  .sf-data-view-skeleton-calendar [data-part=month] {
+    border-top: var(--sf-px) solid var(--sf-outline-variant);
+    -webkit-border-before: var(--sf-px) solid var(--sf-outline-variant);
+            border-block-start: var(--sf-px) solid var(--sf-outline-variant);
+    -webkit-border-start: var(--sf-px) solid var(--sf-outline-variant);
+            border-inline-start: var(--sf-px) solid var(--sf-outline-variant);
+  }
+  _:-ms-input-placeholder, html:not([dir="rtl"]) .sf-data-view-skeleton-calendar [data-part=month] span{
+    border-right: var(--sf-px) solid var(--sf-outline-variant);
+  }
+  @supports not (border-inline-end: initial){
+  html:not([dir="rtl"]) .sf-data-view-skeleton-calendar [data-part=month] span{
+    border-right: var(--sf-px) solid var(--sf-outline-variant);
+    }
+  }
+  .sf-data-view-skeleton-calendar [data-part=month] span:where(:dir(ltr)){
+    border-right: var(--sf-px) solid var(--sf-outline-variant);
+  }
+  _:-ms-input-placeholder, [dir="rtl"] .sf-data-view-skeleton-calendar [data-part=month] span{
+    border-left: var(--sf-px) solid var(--sf-outline-variant);
+  }
+  @supports not (border-inline-end: initial){
+  [dir="rtl"] .sf-data-view-skeleton-calendar [data-part=month] span{
+    border-left: var(--sf-px) solid var(--sf-outline-variant);
+    }
+  }
+  .sf-data-view-skeleton-calendar [data-part=month] span:where(:dir(rtl)){
+    border-left: var(--sf-px) solid var(--sf-outline-variant);
+  }
+  .sf-data-view-skeleton-calendar [data-part=month] span {
+    box-sizing: border-box;
+    height: calc(2 * var(--sf-space-1\/4) + var(--sf-px) + var(--sf-ui-1\/2--control-height) + 3 * var(--sf-text-height-1\/2) + 3 * var(--sf-space-1\/4));
+    block-size: calc(2 * var(--sf-space-1\/4) + var(--sf-px) + var(--sf-ui-1\/2--control-height) + 3 * var(--sf-text-height-1\/2) + 3 * var(--sf-space-1\/4));
+    padding: var(--sf-space-1\/4);
+    -webkit-border-end: var(--sf-px) solid var(--sf-outline-variant);
+            border-inline-end: var(--sf-px) solid var(--sf-outline-variant);
+    border-bottom: var(--sf-px) solid var(--sf-outline-variant);
+    -webkit-border-after: var(--sf-px) solid var(--sf-outline-variant);
+            border-block-end: var(--sf-px) solid var(--sf-outline-variant);
+  }
+  .sf-data-view-skeleton-calendar [data-part=month] .sf-skeleton-text {
+    width: var(--sf-space-1);
+    inline-size: var(--sf-space-1);
+  }
+  .sf-data-view-skeleton-switch {
+    display: none;
+  }
+  @container (max-width: 600px) {
+    /* The phone month (C307 (1)): the number and a row of dots; the modes
+       take a row of their own under the bar, as the calendar draws them. */
+    .sf-data-view-skeleton-calendar [data-part=month] span {
+      height: calc(3 * var(--sf-space-1\/4) + var(--sf-ui-1\/2--control-height) + var(--sf-space-1\/3) + var(--sf-px));
+      block-size: calc(3 * var(--sf-space-1\/4) + var(--sf-ui-1\/2--control-height) + var(--sf-space-1\/3) + var(--sf-px));
+    }
+    .sf-data-view-skeleton-calendar [data-part=bar] > [data-control]:last-child {
+      flex: 1 1 100%;
+    }
+    .sf-data-view-skeleton-board > div {
+      flex: 0 0 100%;
+      width: 100%;
+      inline-size: 100%;
+    }
+    .sf-data-view-skeleton[data-layout=board] .sf-data-view-skeleton-switch {
+      display: flex;
+      align-items: center;
+      min-height: var(--sf-ui-1\/2--control-height);
+      min-block-size: var(--sf-ui-1\/2--control-height);
+      margin-bottom: var(--sf-space-1\/3);
+      -webkit-margin-after: var(--sf-space-1\/3);
+              margin-block-end: var(--sf-space-1\/3);
+    }
+  }
+  /* The cards' first paint (sf-view-cards, CD-2): the grid of the cards' own
+     lengths -- columns by the least card width of the size (S --sf-f2, M
+     --sf-f5, L --sf-g0), a card of .sf-card at the 1/2 rung with a cover frame
+     of 4:3 edge to edge, a title line and two field lines; on a phone (the
+     grid below 600 px) S two columns, M and L one, as the cards draw them. */
+  .sf-data-view-skeleton[data-layout=cards] .sf-data-view-skeleton-cards {
+    --sf-data-view-skeleton--card-min: var(--sf-f5);
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--sf-data-view-skeleton--card-min)), 1fr));
+    grid-gap: var(--sf-space-1\/2);
+    gap: var(--sf-space-1\/2);
+    min-width: 0;
+    min-inline-size: 0;
+  }
+  .sf-data-view-skeleton-cards[data-card-size=s] {
+    --sf-data-view-skeleton--card-min: var(--sf-f2);
+  }
+  .sf-data-view-skeleton-cards[data-card-size=l] {
+    --sf-data-view-skeleton--card-min: var(--sf-g0);
+  }
+  .sf-data-view-skeleton-cards > div {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sf-space-1\/4);
+    padding: var(--sf-space-1\/3) var(--sf-space-1\/2);
+    border: var(--sf-px) solid var(--sf-outline-variant);
+    border-radius: var(--sf-radius--surface);
+    background: var(--sf-surface-card);
+    overflow: hidden;
+    min-width: 0;
+    min-inline-size: 0;
+  }
+  .sf-data-view-skeleton-cards > div > i {
+    height: var(--sf-text-height-1\/2);
+    block-size: var(--sf-text-height-1\/2);
+  }
+  .sf-data-view-skeleton-cards [data-part=cover] {
+    display: block;
+    margin: calc(-1 * var(--sf-space-1\/3)) calc(-1 * var(--sf-space-1\/2)) 0;
+    aspect-ratio: 4/3;
+    background: var(--sf-surface-container);
+  }
+  @container (max-width: 599.98px) {
+    .sf-data-view-skeleton[data-layout=cards] .sf-data-view-skeleton-cards {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .sf-data-view-skeleton[data-layout=cards] .sf-data-view-skeleton-cards[data-card-size=s] {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .sf-data-view-skeleton-cards > div {
+      padding-left: var(--sf-space-1\/3);
+      padding-right: var(--sf-space-1\/3);
+      padding-inline: var(--sf-space-1\/3);
+    }
+    .sf-data-view-skeleton-cards [data-part=cover] {
+      margin-left: calc(-1 * var(--sf-space-1\/3));
+      margin-right: calc(-1 * var(--sf-space-1\/3));
+      margin-inline: calc(-1 * var(--sf-space-1\/3));
+    }
+  }
+}
+@charset "UTF-8";
+/* The list head of sf-view (head="list", js/head.js; owner decisions C297,
+   C299, C300, C301). Light DOM, slot head: the Framework's own sheets reach
+   its parts. Every length is a system value: the space steps, the control
+   height of the size, the owner's 20rem search and 22rem windows. */
+sf-view > .sf-view-head {
+  --sf-view-head--control-height: var(--sf-ui-1\/2--control-height);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-1\/2);
+  min-width: 0;
+  min-inline-size: 0;
+}
+sf-data-view > .sf-view-head {
+  --sf-view-head--control-height: var(--sf-ui-1\/2--control-height);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-1\/2);
+  min-width: 0;
+  min-inline-size: 0;
+}
+
+sf-view[size="1"] > .sf-view-head {
+  --sf-view-head--control-height: var(--sf-ui-1--control-height);
+}
+
+sf-data-view[size="1"] > .sf-view-head {
+  --sf-view-head--control-height: var(--sf-ui-1--control-height);
+}
+
+sf-view > .sf-view-head[hidden] {
+  display: none;
+}
+
+sf-data-view > .sf-view-head[hidden] {
+  display: none;
+}
+
+/* The title row: how to look. */
+.sf-view-head-title,
+.sf-view-head-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sf-space-1\/2) var(--sf-space-1);
+  min-width: 0;
+  min-inline-size: 0;
+  min-height: var(--sf-view-head--control-height);
+  min-block-size: var(--sf-view-head--control-height);
+}
+
+.sf-view-head-name {
+  display: flex;
+  align-items: center;
+  gap: var(--sf-space-1\/2);
+  min-width: 0;
+  min-inline-size: 0;
+  margin: 0;
+  font-size: var(--sf-text-size-2);
+  line-height: var(--sf-text-height-2);
+  font-weight: var(--sf-font-weight-medium);
+  color: var(--sf-on-surface);
+}
+
+.sf-view-head-name > span {
+  min-width: 0;
+  min-inline-size: 0;
+  word-wrap: anywhere;
+}
+
+_:-ms-input-placeholder, html:not([dir="rtl"]) .sf-view-head-title-end,html:not([dir="rtl"])
+.sf-view-head-end{
+  margin-left: auto;
+}
+
+@supports not (margin-inline-start: initial){
+
+html:not([dir="rtl"]) .sf-view-head-title-end,html:not([dir="rtl"])
+.sf-view-head-end{
+  margin-left: auto;
+  }
+}
+
+.sf-view-head-title-end:where(:dir(ltr)),
+.sf-view-head-end:where(:dir(ltr)){
+  margin-left: auto;
+}
+
+_:-ms-input-placeholder, [dir="rtl"] .sf-view-head-title-end,[dir="rtl"]
+.sf-view-head-end{
+  margin-right: auto;
+}
+
+@supports not (margin-inline-start: initial){
+
+[dir="rtl"] .sf-view-head-title-end,[dir="rtl"]
+.sf-view-head-end{
+  margin-right: auto;
+  }
+}
+
+.sf-view-head-title-end:where(:dir(rtl)),
+.sf-view-head-end:where(:dir(rtl)){
+  margin-right: auto;
+}
+
+.sf-view-head-title-end,
+.sf-view-head-end {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  /* buttons of one group: 8 (C144) */
+  gap: var(--sf-space-1\/3);
+  -webkit-margin-start: auto;
+          margin-inline-start: auto;
+  min-width: 0;
+  min-inline-size: 0;
+}
+
+/* The head row: what to do. «Filter» and its bookmark, the filter fields and
+   «Clear» at the start; the search and «Create» at the end. */
+.sf-view-head-start {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sf-space-1\/2) var(--sf-space-1\/3);
+  min-width: 0;
+  min-inline-size: 0;
+  flex: 1 1 auto;
+}
+
+.sf-view-head-join {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  flex: none;
+}
+
+.sf-view-head-fields {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sf-space-1\/4);
+  min-width: 0;
+  min-inline-size: 0;
+}
+
+.sf-view-head-fields > * {
+  flex: none;
+}
+
+.sf-view-head-fields:empty {
+  display: none;
+}
+
+/* The end keeps the search and «Create» on one line; the start gives way. */
+.sf-view-head-end {
+  flex: 0 1 auto;
+  flex-wrap: nowrap;
+  max-width: 100%;
+  max-inline-size: 100%;
+}
+
+/* The search: up to 20rem (C297), never wider than the row. */
+.sf-view-head-search {
+  flex: 0 1 20rem;
+  width: 20rem;
+  inline-size: 20rem;
+  min-width: 12rem;
+  min-inline-size: 12rem;
+}
+
+.sf-view-head-search > sf-input {
+  display: block;
+  min-width: 0;
+  min-inline-size: 0;
+}
+
+/* The phone (the view under 600 px): one row of «Filter», the search and «+»;
+   the filter fields one row that scrolls sideways. */
+.sf-view-head[data-phone] .sf-view-head-row {
+  flex-wrap: nowrap;
+  gap: var(--sf-space-1\/3);
+}
+
+.sf-view-head[data-phone] .sf-view-head-search {
+  flex: 1 1 auto;
+  width: auto;
+  inline-size: auto;
+  min-width: 0;
+  min-inline-size: 0;
+}
+
+.sf-view-head[data-phone] .sf-view-head-title {
+  flex-wrap: nowrap;
+}
+
+.sf-view-head[data-phone] .sf-view-head-title-end {
+  flex-wrap: nowrap;
+  flex: none;
+}
+
+.sf-view-head[data-phone] .sf-view-head-fields {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  contain: inline-size;
+  padding-bottom: var(--sf-space-1\/4);
+  -webkit-padding-after: var(--sf-space-1\/4);
+          padding-block-end: var(--sf-space-1\/4);
+}
+
+.sf-view-head-fields[hidden] {
+  display: none;
+}
+
+/* The windows' content: a popover on a desktop, a bottom sheet on the phone. */
+.sf-view-head-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-1\/2);
+  min-width: 0;
+  min-inline-size: 0;
+}
+
+.sf-view-head-panel[data-kind] {
+  padding: var(--sf-space-1\/2);
+}
+
+/* The body is the window's own content slot: a closed window hides it. */
+sf-popover:not([open]) > .sf-view-head-panel[slot=content] {
+  display: none;
+}
+
+.sf-view-head-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-1\/3);
+  flex: none;
+  max-height: 18rem;
+  max-block-size: 18rem;
+  overflow: auto;
+  min-width: 0;
+  min-inline-size: 0;
+}
+
+.sf-view-head-saved {
+  display: flex;
+  align-items: center;
+  gap: var(--sf-space-1\/3);
+  min-width: 0;
+  min-inline-size: 0;
+}
+
+.sf-view-head-saved > sf-radio {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-inline-size: 0;
+}
+
+.sf-view-head-saved > sf-icon {
+  color: var(--sf-on-surface-variant);
+}
+
+.sf-view-head-foot {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-gap: var(--sf-space-1\/3);
+  gap: var(--sf-space-1\/3);
+}
+
+.sf-view-head-foot[data-one] {
+  grid-template-columns: 1fr;
+}
+
+.sf-view-head-foot > sf-button > button {
+  width: 100%;
+  inline-size: 100%;
+}
+
+.sf-view-head-note,
+.sf-view-head-sub {
+  margin: 0;
+  font-size: var(--sf-text-size-1\/2);
+  line-height: var(--sf-text-height-1\/2);
+  color: var(--sf-on-surface-variant);
+}
+
+.sf-view-head-sub {
+  display: flex;
+  align-items: center;
+  gap: var(--sf-space-1\/4);
+  color: var(--sf-on-surface);
+}
+
+.sf-view-head-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-1\/4);
+}
+
+.sf-view-head-actions > sf-button > button {
+  width: 100%;
+  inline-size: 100%;
+  justify-content: flex-start;
+}
+
+.sf-view-head-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sf-space-1\/3);
+}
+
+.sf-view-head-divider {
+  display: flex;
+  align-items: center;
+  gap: var(--sf-space-1\/3);
+  color: var(--sf-on-surface-variant);
+  font-size: var(--sf-text-size-1\/2);
+  line-height: var(--sf-text-height-1\/2);
+}
+
+.sf-view-head-divider::before,
+.sf-view-head-divider::after {
+  content: "";
+  flex: 1 1 auto;
+  border-top: var(--sf-px) solid var(--sf-outline-variant);
+  -webkit-border-before: var(--sf-px) solid var(--sf-outline-variant);
+          border-block-start: var(--sf-px) solid var(--sf-outline-variant);
+}
+
+/* A display kind the view does not draw itself (board, cards, calendar until
+   their layouts come, C298): the table and its page row stand aside for the
+   host's own content. */
+/* Both hosts may be display: contents, so their content stands aside too. */
+sf-view[data-display]:not([data-display=table]) > sf-view-table[slot=content]:not(.does-not-exist) {
+  display: none;
+}
+sf-view[data-display]:not([data-display=table]) > sf-table[slot=content]:not(.does-not-exist) {
+  display: none;
+}
+sf-view[data-display]:not([data-display=table]) > sf-pagination[slot=pagination]:not(.does-not-exist) {
+  display: none;
+}
+sf-view[data-display]:not([data-display=table]) > [slot=footer][data-sf-view-made] {
+  display: none;
+}
+sf-data-view[data-display]:not([data-display=table]) > sf-view-table[slot=content]:not(.does-not-exist) {
+  display: none;
+}
+sf-data-view[data-display]:not([data-display=table]) > sf-table[slot=content]:not(.does-not-exist) {
+  display: none;
+}
+sf-data-view[data-display]:not([data-display=table]) > sf-pagination[slot=pagination]:not(.does-not-exist) {
+  display: none;
+}
+sf-data-view[data-display]:not([data-display=table]) > [slot=footer][data-sf-view-made] {
+  display: none;
+}
+sf-view[data-display]:not([data-display=table]) > sf-view-table[slot=content]:not(.does-not-exist) > * {
+  display: none;
+}
+sf-view[data-display]:not([data-display=table]) > sf-table[slot=content]:not(.does-not-exist) > * {
+  display: none;
+}
+sf-view[data-display]:not([data-display=table]) > sf-pagination[slot=pagination]:not(.does-not-exist) > * {
+  display: none;
+}
+sf-view[data-display]:not([data-display=table]) > [slot=footer][data-sf-view-made] > * {
+  display: none;
+}
+sf-data-view[data-display]:not([data-display=table]) > sf-view-table[slot=content]:not(.does-not-exist) > * {
+  display: none;
+}
+sf-data-view[data-display]:not([data-display=table]) > sf-table[slot=content]:not(.does-not-exist) > * {
+  display: none;
+}
+sf-data-view[data-display]:not([data-display=table]) > sf-pagination[slot=pagination]:not(.does-not-exist) > * {
+  display: none;
+}
+sf-data-view[data-display]:not([data-display=table]) > [slot=footer][data-sf-view-made] > * {
+  display: none;
+}
+
+/* The head's place in the first paint: its two rows, the control height each. */
+.sf-view-head-skeleton {
+  --sf-view-head--control-height: var(--sf-ui-1\/2--control-height);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-1\/2);
+  margin-bottom: var(--sf-space-3);
+  -webkit-margin-after: var(--sf-space-3);
+          margin-block-end: var(--sf-space-3);
+  margin-bottom: var(--sf-space-3);
+  margin-bottom: var(--sf-data-view-gap, var(--sf-space-3));
+  -webkit-margin-after: var(--sf-data-view-gap, var(--sf-space-3));
+          margin-block-end: var(--sf-data-view-gap, var(--sf-space-3));
+}
+
+.sf-view-head-skeleton[data-size="1"] {
+  --sf-view-head--control-height: var(--sf-ui-1--control-height);
+}
+
+.sf-view-head-skeleton > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sf-space-1);
+  height: var(--sf-view-head--control-height);
+  block-size: var(--sf-view-head--control-height);
+}
+
+.sf-view-head-skeleton > div > i {
+  width: 12rem;
+  inline-size: 12rem;
+}
+
+.sf-view-head-skeleton > div > i[data-control] {
+  width: 20rem;
+  inline-size: 20rem;
+  height: var(--sf-view-head--control-height);
+  block-size: var(--sf-view-head--control-height);
 }
