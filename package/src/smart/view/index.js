@@ -1628,7 +1628,8 @@ class SfDataView extends DataViewElement {
             // An own toolbar slot is a row of the view's layout, even empty.
             ownToolbar ? '<div class="sf-data-view-skeleton-own-toolbar"></div>' : "",
             // The list head's two rows hold their height from the first paint.
-            headRows ? `<div class="sf-view-head-skeleton" data-size="${this.size}"><div>${bar}</div><div>${control()}${control()}</div></div>` : "",
+            // A view zone the person left open (VZ-1) holds its framed row too.
+            headRows ? `<div class="sf-view-head-skeleton" data-size="${this.size}"><div>${bar}</div><div>${control()}${control()}</div>${this.keptPreferences?.viewZone === true ? `<div data-zone>${control()}${control()}</div>` : ""}</div>` : "",
             '<div class="sf-data-view-skeleton-records">',
             toolbar ? toolbarMarkup : "",
             `<div class="sf-data-view-skeleton-table">${row()}${Array.from({length: rows}, () => row()).join("")}</div>`,
@@ -2179,6 +2180,14 @@ class SfDataView extends DataViewElement {
             this.query.per_page = kept.pageSize;
             this._pageSizeDeclared = true;
         }
+    }
+
+    // What this person keeps for the list in this browser (SF.Preferences
+    // under preferences-key): the sort, the page size and whether the list
+    // head's view zone is open (VZ-1). Empty without a key.
+    get keptPreferences() {
+        const key = this.preferencesKey;
+        return key ? (preferences()?.read(key) ?? {}) : {};
     }
 
     _keepPreference(patch) {

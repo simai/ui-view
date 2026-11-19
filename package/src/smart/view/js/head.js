@@ -1,16 +1,27 @@
 // The list head of sf-view (head="list"; owner decisions C297, C299, C300,
 // C301; ui-control research 2026-11-17-list-head-filters, sections 5-7).
 //
-// Two rows above the list:
-//   the title row  -- how to look: the list name and count, the views menu,
-//                     the display kind (sf-segmented), «Customize view» and the
-//                     list menu «⋯» (only for those the host allows);
-//   the head row   -- what to do: «Filter» with its bookmark, the filter
-//                     fields, «Clear», the search (up to 20rem) and «Create».
+// The head by zones (owner C393, C394; ui-control views-switcher study,
+// option D, VZ-1):
+//   the title row  -- the list name only (the favourites star is the page
+//                     header's, VS-10; the number of records is the footer's,
+//                     C388);
+//   the head row   -- what to do: the view toggle (a quiet view_quilt icon,
+//                     first), «Filter» with its bookmark, the filter fields,
+//                     «Clear», the search (up to 20rem), «Create» and the list
+//                     menu «⋯» (only for those the host allows);
+//   the view zone  -- below the head row in its own frame, opened and closed
+//                     by the view toggle and remembered per person: the open
+//                     view's name and menu (by level), the display kind,
+//                     «Customize view» and «Changed» with save and reset.
+// The toggle's name and tooltip say «View: <name>»; a dot says the view has
+// changes not saved for everyone; it is tinted while a view other than the
+// default is open; pressed while the zone is open.
 // On a phone (the view narrower than 600 px, where the table turns into the
-// compact list) the title row keeps a display-kind icon, «Customize view» and
-// «⋯»; the head row is «Filter», the search and «+»; the filter fields are one
-// row that scrolls sideways; every window is a bottom sheet (sf-drawer).
+// compact list) the head row is the view toggle, «Filter», the search, «+»
+// and «⋯»; the zone holds the name, a display-kind icon and «Customize view»;
+// the filter fields are one row that scrolls sideways; every window is a
+// bottom sheet (sf-drawer).
 //
 // Everything drawn is a SIMAI Framework part: sf-button, sf-button-icon,
 // sf-segmented, sf-badge, sf-input, sf-popover, sf-drawer, sf-tabs,
@@ -33,6 +44,7 @@
 import {menuOpen} from "../../../core/js/menu-open.js";
 
 const PHONE_WIDTH = 600;
+let ZONE_IDS = 0;
 const KINDS = {
     table: "table_rows",
     board: "view_kanban",
@@ -301,33 +313,38 @@ export class ListHead {
         const outline = 'appearance="outline" scheme="on-surface"';
         const pop = (name, placement, trigger) => `<sf-popover data-pop="${name}" placement="${placement}" width="22rem" offset="var(--sf-space-1\\/4)">${trigger}<div slot="content" data-body></div></sf-popover>`;
         this.root.toggleAttribute("data-phone", phone);
+        // The view zone's place in the head is one block (zone below the head
+        // row); its toggle is the first part of the head row. Option D's
+        // placement waits one owner confirmation: moving the toggle to the end
+        // of the row is the order of these two strings.
+        const toggle = `<sf-button-icon class="sf-view-head-zone-toggle" data-zone-toggle size="${size}" appearance="ghost" scheme="on-surface" icon="view_quilt" aria-controls="" pressed="false" hidden></sf-button-icon>`;
+        const more = `<sf-button-icon class="sf-view-head-more" data-list-menu size="${size}" appearance="ghost" scheme="on-surface" icon="more_vert" aria-haspopup="menu" hidden></sf-button-icon>`;
+        const changed = pop("state", "bottom-start", `<sf-button slot="trigger" class="sf-view-head-changed" size="${size}" appearance="ghost" scheme="primary" icon-start="edit_note"></sf-button>`);
         this.root.innerHTML = phone
             ? `<div class="sf-view-head-title" data-title>
-                 <h2 class="sf-view-head-name"><span data-name></span><sf-badge data-count size="1/2" appearance="tonal" scheme="primary" hidden></sf-badge></h2>
-                 <div class="sf-view-head-title-end">
-                   <sf-button-icon class="sf-view-head-kind-menu" data-kind-menu size="${size}" ${outline} icon="table_rows" aria-haspopup="menu"></sf-button-icon>
-                   <sf-button-icon class="sf-view-head-tune" data-head-open="view" size="${size}" ${outline} icon="tune"></sf-button-icon>
-                   <sf-button-icon class="sf-view-head-more" data-list-menu size="${size}" appearance="ghost" scheme="on-surface" icon="more_vert" aria-haspopup="menu" hidden></sf-button-icon>
-                 </div>
+                 <h2 class="sf-view-head-name"><span data-name></span></h2>
                </div>
                <div class="sf-view-head-row">
+                 ${toggle}
                  <sf-button-icon class="sf-view-head-filter-icon" data-head-open="filter" size="${size}" icon="filter_list"></sf-button-icon>
                  <div class="sf-view-head-search"><sf-input data-search appearance="filled" size="${size}" icon-start="search" input-type="search" clearable></sf-input></div>
                  <sf-button-icon class="sf-view-head-create" data-create size="${size}" icon="add" aria-haspopup="menu" hidden></sf-button-icon>
+                 ${more}
                </div>
                <div class="sf-view-head-fields" data-fields hidden></div>
+               <div class="sf-view-head-zone" data-zone hidden>
+                 <sf-button class="sf-view-head-views" data-views size="${size}" appearance="ghost" scheme="on-surface" icon-start="bookmarks" icon-end="expand_more" aria-haspopup="menu"></sf-button>
+                 <sf-button-icon class="sf-view-head-kind-menu" data-kind-menu size="${size}" appearance="ghost" scheme="on-surface" icon="table_rows" aria-haspopup="menu"></sf-button-icon>
+                 <sf-button-icon class="sf-view-head-tune" data-head-open="view" size="${size}" appearance="ghost" scheme="on-surface" icon="tune"></sf-button-icon>
+                 <sf-button class="sf-view-head-changed" data-head-open="state" size="${size}" appearance="ghost" scheme="primary" icon-start="edit_note" hidden></sf-button>
+               </div>
                <sf-drawer data-sheet data-sf-role="head-sheet" placement="bottom"><div slot="content" data-body></div></sf-drawer>`
             : `<div class="sf-view-head-title" data-title>
-                 <h2 class="sf-view-head-name"><span data-name></span><sf-badge data-count size="1/2" appearance="tonal" scheme="primary" hidden></sf-badge></h2>
-                 <div class="sf-view-head-title-end">
-                   <sf-button class="sf-view-head-views" data-views size="${size}" ${outline} icon-start="bookmarks" icon-end="expand_more" aria-haspopup="menu" hidden></sf-button>
-                   <sf-segmented data-kinds size="${size}" hidden></sf-segmented>
-                   ${pop("view", "bottom-end", `<sf-button slot="trigger" class="sf-view-head-customize" size="${size}" ${outline} icon-start="tune"></sf-button>`)}
-                   <sf-button-icon class="sf-view-head-more" data-list-menu size="${size}" appearance="ghost" scheme="on-surface" icon="more_vert" aria-haspopup="menu" hidden></sf-button-icon>
-                 </div>
+                 <h2 class="sf-view-head-name"><span data-name></span></h2>
                </div>
                <div class="sf-view-head-row">
                  <div class="sf-view-head-start">
+                   ${toggle}
                    <div class="sf-view-head-join" data-filter-group>
                      ${pop("filter", "bottom-start", `<sf-button slot="trigger" class="sf-view-head-filter" size="${size}" segment="start" icon-start="filter_list"></sf-button>`)}
                      ${pop("save", "bottom-start", `<sf-button-icon slot="trigger" class="sf-view-head-save" size="${size}" segment="end" icon="bookmark_add"></sf-button-icon>`)}
@@ -337,8 +354,19 @@ export class ListHead {
                  <div class="sf-view-head-end">
                    <div class="sf-view-head-search"><sf-input data-search appearance="filled" size="${size}" icon-start="search" input-type="search" clearable></sf-input></div>
                    <sf-button class="sf-view-head-create" size="${size}" icon-start="add" hidden></sf-button>
+                   ${more}
                  </div>
+               </div>
+               <div class="sf-view-head-zone" data-zone hidden>
+                 <sf-button class="sf-view-head-views" data-views size="${size}" appearance="ghost" scheme="on-surface" icon-start="bookmarks" icon-end="expand_more" aria-haspopup="menu"></sf-button>
+                 <span class="sf-view-head-zone-line" data-zone-line aria-hidden="true"></span>
+                 <sf-segmented data-kinds size="${size}" hidden></sf-segmented>
+                 ${pop("view", "bottom-start", `<sf-button slot="trigger" class="sf-view-head-customize" size="${size}" appearance="ghost" scheme="on-surface" icon-start="tune"></sf-button>`)}
+                 ${changed}
                </div>`;
+        const zone = this.root.querySelector("[data-zone]");
+        zone.id = `sf-view-head-zone-${++ZONE_IDS}`;
+        this.root.querySelector("[data-zone-toggle]")?.setAttribute("aria-controls", zone.id);
         // The windows' drawers carry a role (data-sf-role): their path ids are
         // then sf-view's own (…/head-sheet). Counted among the
         // page's drawers by document order, the head's first drawer took the
@@ -367,39 +395,14 @@ export class ListHead {
             else if (node.getAttribute(name) !== String(value)) node.setAttribute(name, String(value));
         };
 
-        // The title row.
+        // The title row: the name only (the count is the footer's, C388).
         const name = this.view.getAttribute("heading") || this.view.getAttribute("aria-label") || "";
         const nameNode = one("[data-name]");
         if (nameNode && nameNode.textContent !== name) nameNode.textContent = name;
-        const count = one("[data-count]");
-        const total = this.view._answered && this.view.countKnown !== false && !refused ? this.view.total : null;
-        set(count, "hidden", total === null ? "" : null);
-        if (total !== null) {
-            set(count, "text", this.view._shownTotal ? this.view._shownTotal(total) : String(total));
-            set(count, "aria-label", this.text("headCount").replace("{count}", String(total)));
-        }
-        const views = one(".sf-view-head-views");
-        const current = this.currentView;
-        set(views, "hidden", this.savedViews.length || this.view.hostOffers("saved-views") ? null : "");
-        set(views, "text", current?.label ?? current?.name ?? this.text("headViews"));
-        set(views, "title", this.text("headViews"));
-        const kinds = one("[data-kinds]");
-        if (kinds) {
-            const items = this.kinds.map((kind) => ({id: kind, value: kind, label: this.kindLabel(kind), icon: KINDS[kind]}));
-            set(kinds, "hidden", items.length > 1 ? null : "");
-            set(kinds, "items", JSON.stringify(items));
-            set(kinds, "value", this.kind);
-            set(kinds, "aria-label", this.text("headDisplay"));
-        }
-        const kindMenu = one(".sf-view-head-kind-menu");
-        set(kindMenu, "icon", KINDS[this.kind]);
-        set(kindMenu, "aria-label", this.text("headDisplayMenu"));
-        const customize = one(".sf-view-head-customize");
-        set(customize, "text", this.text("headCustomize"));
-        set(one(".sf-view-head-tune"), "aria-label", this.text("headCustomize"));
         const listMenu = one(".sf-view-head-more");
         set(listMenu, "hidden", this.listMenu.length ? null : "");
         set(listMenu, "aria-label", this.text("headListMenu"));
+        this._renderZone(one, set);
 
         // The head row.
         const open = this.openFilter;
@@ -439,6 +442,133 @@ export class ListHead {
         this._renderFields();
         // An open window shows the state it was opened over.
         if (this.open && !this.open.kind.startsWith("value:") && this.open.kind !== "save" && !this.open.kind.startsWith("rename:")) this._renderOpen();
+    }
+
+    // ---------- the view zone (VZ-1, option D) ----------
+
+    // Whether the zone has anything to show: saved views, more than one
+    // display kind, or a view the person can customize (always: «Customize
+    // view» is there for every kind).
+    get zoneOpen() {
+        if (this._zoneOpen === undefined) this._zoneOpen = this.view.keptPreferences?.viewZone === true;
+        return this._zoneOpen;
+    }
+
+    _setZoneOpen(open) {
+        this._zoneOpen = Boolean(open);
+        // Remembered per person the way the page size is (SF.Preferences
+        // under preferences-key, view round 5): the port has no personal
+        // setting for it yet.
+        this.view._keepPreference?.({viewZone: this._zoneOpen});
+        if (!this._zoneOpen && ["view", "state"].includes(this.open?.kind)) this._closeOpen();
+        this.render();
+        if (this._zoneOpen) this.root?.querySelector("[data-zone]")?.focus?.({preventScroll: true});
+    }
+
+    // The view the list opened with: the one the host marks default, else the first.
+    get defaultView() {
+        return this.savedViews.find((view) => view?.default === true || view?.is_default === true) ?? this.savedViews[0] ?? null;
+    }
+
+    // The open view: the query's, else the default (currentView keeps the
+    // first view when none is named, as the views menu always did).
+    get openViewIsDefault() {
+        const id = this.query.view?.id;
+        return id === null || id === undefined || id === "" || String(id) === String(this.defaultView?.key ?? "");
+    }
+
+    viewLevel(view) {
+        const level = String(view?.level ?? view?.kind ?? "");
+        if (level === "system") return "system";
+        if (level === "personal" || level === "own" || view?.mine === true) return "personal";
+        if (level === "shared" || level === "all") return "shared";
+        return "";
+    }
+
+    // The open view differs from what is saved for everyone: its filters, its
+    // display kind, or a setting the person changed here (C298: a personal
+    // change applies at once and is saved only for them). A personal view
+    // saves at once and is never «changed».
+    get viewChanged() {
+        const view = this.currentView;
+        if (!view || this.viewLevel(view) === "personal") return false;
+        if (this._settings && Object.values(this._settings).some((entry) => entry && Object.keys(entry).length)) return true;
+        const active = (filters) => Object.fromEntries(Object.entries(filters ?? {}).filter(([, entry]) => conditionActive(entry)));
+        const saved = view.query?.filters ?? view.filters ?? {};
+        if (!same(active(saved), active(this.filters))) return true;
+        const layout = view.settings?.layout ?? view.layout;
+        return typeof layout === "string" && this.kinds.includes(layout) && layout !== this.kind;
+    }
+
+    get zoneUseful() {
+        return this.savedViews.length > 0 || this.view.hostOffers("saved-views") || this.kinds.length > 1 || this.view.hostOffers("personal-column-settings") || Boolean(this.description);
+    }
+
+    // The toggle look of SIMAI Framework (TG-1, C393: the background and a
+    // 1 px ring, the icon outline) where the pair's sf-button-icon names it
+    // (static toggleAppearance); without it the head draws the same look
+    // with the same tokens itself (head.css, .sf-view-head-zone-toggle).
+    get toggleAppearance() {
+        const value = globalThis.customElements?.get?.("sf-button-icon")?.toggleAppearance;
+        return typeof value === "string" && value ? value : null;
+    }
+
+    _renderZone(one, set) {
+        const toggle = one("[data-zone-toggle]");
+        const zone = one("[data-zone]");
+        const useful = this.zoneUseful;
+        const open = useful && this.zoneOpen;
+        const current = this.currentView;
+        const viewName = String(current?.label ?? current?.name ?? "");
+        const changed = this.viewChanged;
+        if (toggle) {
+            set(toggle, "hidden", useful ? null : "");
+            const label = viewName ? this.text("headViewZone").replace("{name}", viewName) : this.text("headViewZoneNone");
+            const full = changed ? `${label} (${this.text("headViewUnsaved")})` : label;
+            set(toggle, "aria-label", full);
+            set(toggle, "label-pressed", full);
+            set(toggle, "pressed", open ? "true" : "false");
+            set(toggle, "aria-expanded", open ? "true" : "false");
+            set(toggle, "badge-dot", changed ? "" : null);
+            set(toggle, "badge-label", changed ? this.text("headViewUnsaved") : null);
+            // Tinted while a view other than the default is open.
+            set(toggle, "scheme", this.openViewIsDefault ? "on-surface" : "primary");
+            const framework = this.toggleAppearance;
+            set(toggle, "appearance", framework ?? "ghost");
+            toggle.classList.toggle("sf-view-head-zone-toggle--own", !framework);
+        }
+        if (!zone) return;
+        set(zone, "hidden", open ? null : "");
+        set(zone, "role", "group");
+        set(zone, "tabindex", "-1");
+        set(zone, "aria-label", viewName ? this.text("headViewZone").replace("{name}", viewName) : this.text("headViewZoneNone"));
+        const views = one(".sf-view-head-views");
+        set(views, "hidden", this.savedViews.length || this.view.hostOffers("saved-views") ? null : "");
+        set(views, "text", viewName || this.text("headViews"));
+        set(views, "title", viewName ? this.text("headViewZone").replace("{name}", viewName) : this.text("headViews"));
+        set(views, "icon-start", {system: "bookmarks", shared: "group", personal: "person"}[this.viewLevel(current)] ?? "bookmarks");
+        this._truncate(views, "min(22rem, 40vw)");
+        const kinds = one("[data-kinds]");
+        if (kinds) {
+            const items = this.kinds.map((kind) => ({id: kind, value: kind, label: this.kindLabel(kind), icon: KINDS[kind]}));
+            set(kinds, "hidden", items.length > 1 ? null : "");
+            set(kinds, "items", JSON.stringify(items));
+            set(kinds, "value", this.kind);
+            set(kinds, "aria-label", this.text("headDisplay"));
+        }
+        set(one("[data-zone-line]"), "hidden", views?.hasAttribute("hidden") || !kinds || kinds.hasAttribute("hidden") ? "" : null);
+        const kindMenu = one(".sf-view-head-kind-menu");
+        set(kindMenu, "icon", KINDS[this.kind]);
+        set(kindMenu, "hidden", this.kinds.length > 1 ? null : "");
+        set(kindMenu, "aria-label", `${this.text("headDisplay")}: ${this.kindLabel(this.kind)}`);
+        set(one(".sf-view-head-customize"), "text", this.text("headCustomize"));
+        set(one(".sf-view-head-tune"), "aria-label", this.text("headCustomize"));
+        for (const node of this.root.querySelectorAll(".sf-view-head-changed")) {
+            const host = node.closest("sf-popover[data-pop]") ?? node;
+            set(host, "hidden", changed ? null : "");
+            set(node, "text", this.text("headViewChanged"));
+            set(node, "title", this.text("headViewState"));
+        }
     }
 
     // The filter fields (C300): a joined sf-button + sf-button-icon per chosen
@@ -570,7 +700,7 @@ export class ListHead {
         const popover = event.target?.closest?.("sf-popover[data-pop]");
         if (!popover || !this.root?.contains(popover)) return;
         const kind = popover.getAttribute("data-pop");
-        if (kind === "view" || kind === "filter" || kind === "save") popover.setAttribute("label", this._title(kind));
+        if (["view", "filter", "save", "state"].includes(kind)) popover.setAttribute("label", this._title(kind));
         this._show(kind, popover, popover.querySelector("[data-body]"));
     }
 
@@ -599,8 +729,10 @@ export class ListHead {
             sheet.open?.();
             return;
         }
+        // A window without its own button opens in its zone's: a new view in
+        // «Customize view»'s, a rename in the filter's.
         const popover = this.root?.querySelector(`sf-popover[data-pop="${CSS.escape(kind)}"]`)
-            ?? this.root?.querySelector('sf-popover[data-pop="filter"]');
+            ?? this.root?.querySelector(`sf-popover[data-pop="${kind === "view-new" ? "view" : "filter"}"]`);
         if (!popover) return;
         if (popover.getAttribute("data-pop") !== kind) {
             // a window without its own button (rename) opens in the filter's
@@ -631,6 +763,8 @@ export class ListHead {
         if (kind === "filter") return this.text("headFilter");
         if (kind === "save") return this.text("headSaveFilter");
         if (kind === "view") return this.text("headCustomize");
+        if (kind === "state") return this.text("headViewState");
+        if (kind === "view-new") return this.text("headViewNew");
         if (kind.startsWith("rename:")) return this.text("headRename");
         if (kind.startsWith("saved:")) return String(this.savedFilter(kind.slice(6))?.name ?? "");
         if (kind.startsWith("value:")) return this.field(kind.slice(6))?.label ?? "";
@@ -704,6 +838,14 @@ export class ListHead {
             return `<div class="sf-view-head-actions">${this._savedMenu(item).filter((entry) => !entry.kind).map((entry) => `<sf-button data-saved-act="${esc(entry.id)}" data-saved-id="${esc(item.id)}" size="${size}" appearance="ghost" scheme="${entry.status === "danger" ? "primary" : "on-surface"}"${entry.status === "danger" ? ' status="danger"' : ""} icon-start="${esc(entry.icon)}" text="${esc(entry.text)}"></sf-button>`).join("")}</div>`;
         }
         if (kind === "view") return this._viewPanel();
+        if (kind === "state") return this._statePanel();
+        if (kind === "view-new") {
+            const shared = this.permissions.shared_settings || this.permissions.share_views;
+            return this._note(this.text("headSaveNote"))
+                + `<sf-input data-name size="${size}" label="${esc(this.text("headSaveName"))}"></sf-input>`
+                + (shared ? `<sf-checkbox data-shared size="${size}" label="${esc(this.text("headSaveShared"))}" description="${esc(this.text("headSaveSharedHint"))}"></sf-checkbox>` : "")
+                + this._foot(["view-save-new", this.text("headSave")], ["close", this.text("headCancel")]);
+        }
         return "";
     }
 
@@ -747,6 +889,21 @@ export class ListHead {
             + `<div class="sf-view-head-foot" data-one><sf-button data-act="view-reset" size="${size}" appearance="outline" scheme="on-surface" text="${esc(this.text("headResetToShared"))}"></sf-button>`
             + (this.permissions.shared_settings ? `<sf-button data-act="view-share" size="${size}" text="${esc(this.text("headSaveForAll"))}"></sf-button>` : "")
             + "</div>";
+    }
+
+    // «Changed» (VS-2, VS-3): what is changed and the ways out -- save for
+    // everyone (where the host allows, never over a system view), save as a
+    // new view, reset to what is saved.
+    _statePanel() {
+        const size = esc(this.size);
+        const view = this.currentView;
+        const name = String(view?.label ?? view?.name ?? view?.key ?? "");
+        if (!this.viewChanged) return this._note(this.text("headViewStateNone").replace("{name}", name));
+        const shared = (this.permissions.shared_settings || this.permissions.share_views) && this.viewLevel(view) !== "system";
+        const button = (act, text, primary) => `<sf-button data-act="${act}" size="${size}"${primary ? "" : ' appearance="outline" scheme="on-surface"'} text="${esc(text)}"></sf-button>`;
+        return this._note(this.text("headViewStateMine").replace("{name}", name))
+            + `<div class="sf-view-head-actions">${shared ? button("view-save-all", this.text("headViewSaveAll"), true) : ""}`
+            + `${button("view-open-new", this.text("headViewSaveNew"), !shared)}${button("view-reset-all", this.text("headViewReset"), false)}</div>`;
     }
 
     _locked() {
@@ -914,6 +1071,10 @@ export class ListHead {
             this._openKind(opener.getAttribute("data-head-open"));
             return;
         }
+        if (target.closest("[data-zone-toggle]")) {
+            this._setZoneOpen(!this.zoneOpen);
+            return;
+        }
         const views = target.closest("[data-views], [data-kind-menu]");
         if (views) {
             this._viewsMenu(views);
@@ -949,37 +1110,55 @@ export class ListHead {
         this.raise("view.create_record", {item: id === null || id === undefined ? null : String(id)});
     }
 
+    // The views menu (VS-3): the saved views by level -- system, for everyone,
+    // mine -- the open one checked, then «Save as a new view». The phone's
+    // display-kind icon opens the kinds alone.
     async _viewsMenu(anchor) {
-        const phone = this.mode === "phone";
+        const kindsOnly = Boolean(anchor?.closest?.("[data-kind-menu]"));
         const current = this.currentView;
         const entries = [];
-        if (phone) {
+        if (kindsOnly) {
             for (const kind of this.kinds) {
                 entries.push({id: `kind:${kind}`, text: this.kindLabel(kind), icon: kind === this.kind ? "check" : KINDS[kind]});
             }
-            if (this.savedViews.length) entries.push({type: "separator"});
-        }
-        for (const view of this.savedViews) entries.push({id: `view:${view.key}`, text: String(view.label ?? view.name ?? view.key), icon: view === current ? "check" : "bookmarks"});
-        if (this.view.hostOffers("saved-views")) {
-            if (entries.length) entries.push({type: "separator"});
-            entries.push({id: "view:new", text: this.text("headViewNew"), icon: "add"});
+        } else {
+            const levels = ["system", "shared", "personal", ""];
+            const leveled = this.savedViews.some((view) => this.viewLevel(view));
+            for (const level of levels) {
+                const list = this.savedViews.filter((view) => this.viewLevel(view) === level);
+                if (!list.length) continue;
+                if (entries.length) entries.push({type: "separator"});
+                if (leveled && level) entries.push({type: "heading", text: this.text(`headLevel${level[0].toUpperCase()}${level.slice(1)}`)});
+                for (const view of list) {
+                    const own = {system: "bookmarks", shared: "group", personal: "person"}[level] ?? "bookmarks";
+                    entries.push({id: `view:${view.key}`, text: String(view.label ?? view.name ?? view.key), icon: view === current ? "check" : own});
+                }
+            }
+            if (this.view.hostOffers("saved-views")) {
+                if (entries.length) entries.push({type: "separator"});
+                entries.push({id: "view:new", text: this.text("headViewNew"), icon: "add"});
+            }
         }
         if (!entries.length) return;
-        const id = await this._menu(anchor, this.text(phone ? "headDisplayMenu" : "headViews"), entries);
+        const id = await this._menu(anchor, this.text(kindsOnly ? "headDisplay" : "headViews"), entries);
         if (!id) return;
         if (id.startsWith("kind:")) return this._setKind(id.slice(5));
-        if (id === "view:new") {
-            const label = this.text("headViewNewName");
-            return this.view.saveView?.({key: `view-${Date.now().toString(36)}`, label, settings: {filter_fields: this.chosen, layout: this.kind}});
-        }
-        const key = id.slice(5);
-        const view = this.savedViews.find((item) => String(item.key) === key);
+        if (id === "view:new") return this._openKind("view-new");
+        this._openSavedView(id.slice(5));
+    }
+
+    _openSavedView(key) {
+        const view = this.savedViews.find((item) => String(item.key) === String(key));
         const type = view?.settings?.layout && this.kinds.includes(view.settings.layout) && this.drawable(view.settings.layout) ? view.settings.layout : this.kind;
+        // Another view starts from what is saved for it: no change of the
+        // person's carries over from the view they left.
+        this._settings = null;
         // A view saved as a board opens as one (and a table view as a table):
         // the layout's own query first, then the view.
         if (type !== this.view.layoutKind && this.drawable(type)) this.view.switchLayout?.(type);
         this.view.query = {...this.view.query, view: {id: key, type}};
         this.view.openView?.(key);
+        this.render();
     }
 
     async _listMenu(anchor) {
@@ -1196,6 +1375,46 @@ export class ListHead {
             this._saveSettings("personal", null);
             this._renderOpen();
             return;
+        case "view-open-new":
+            this._closeOpen();
+            this._openKind("view-new");
+            return;
+        case "view-save-new": {
+            const label = value("[data-name]").trim();
+            if (!label) {
+                body.querySelector("[data-name]")?.setAttribute("status", "error");
+                body.querySelector("[data-name] input")?.focus?.();
+                return;
+            }
+            const level = this._checked(body.querySelector("[data-shared]")) ? "shared" : "personal";
+            this._closeOpen();
+            this.view.saveView?.({key: `view-${Date.now().toString(36)}`, label, level, settings: {filter_fields: this.chosen, layout: this.kind, ...(this._settings?.[this.kind] ? {layouts: {[this.kind]: copy(this._settings[this.kind])}} : {})}});
+            return;
+        }
+        case "view-save-all": {
+            const view = this.currentView;
+            this._closeOpen();
+            if (!view) return;
+            if (this._settings?.[this.kind]) this._saveSettings("shared", this._kindSettings(this.kind));
+            this.view.saveView?.({key: view.key, label: view.label ?? view.name ?? view.key, revision: view.revision, level: "shared", roles: view.roles, settings: {...(view.settings ?? {}), filter_fields: this.chosen, layout: this.kind}});
+            this._settings = null;
+            return;
+        }
+        case "view-reset-all": {
+            const view = this.currentView;
+            this._closeOpen();
+            if (!view) return;
+            if (this._settings) {
+                this._settings = null;
+                this._saveSettings("personal", null);
+            }
+            const filters = copy(view.query?.filters ?? view.filters ?? {});
+            const fields = Array.isArray(view.settings?.filter_fields) ? view.settings.filter_fields.map(String) : Object.keys(filters);
+            const layout = view.settings?.layout ?? view.layout;
+            if (typeof layout === "string" && layout !== this.kind && this.kinds.includes(layout)) this._setKind(layout);
+            this._query({filters, filters_chosen: fields});
+            return;
+        }
         case "view-share":
             this._saveSettings("shared", this._kindSettings(this.kind));
             this._closeOpen();
