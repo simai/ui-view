@@ -2,8 +2,15 @@
   "$comment": "sf-data-view from its component.json (standard simai.smart-component 1.3.8, vocabulary 1.1.5), migrated from ui-control control/smart-architecture/migration/out/data-view; every x-todo decided in x-decisions.",
   "id": "smart.view",
   "tag": "sf-view",
-  "version": "1.23.0",
+  "version": "1.23.2",
   "x-history": [
+    {
+      "version": "1.23.2",
+      "kind": "patch",
+      "recorded_on": "2026-11-19",
+      "consumer": "Nothing to change for a host: the release number of round/view-r4's 1.23.0 in view 1.9.0. 1.23.1 is the superseded round/view-calendar (DEV's parallel VCL-1..VCL-4, never released), so the released number is above it.",
+      "evidence": "control/evidence/2026-11-19-view-r4-release/README.md"
+    },
     {
       "version": "1.23.0",
       "kind": "minor",
@@ -1904,6 +1911,13 @@
           "to": "1.23.0",
           "changes": [
             "View round 4 (round/view-r4, the dispatcher's merge of round/view-returns, round/view-cards and round/view-calendar): switchLayout(kind) works over every layout of the registry -- the content element is the layout's own (table, board, cards, calendar), a page's own element of another layout is parked with one console warning, the marked records go over to the new layout (sf-view-board, sf-view-cards and sf-view-calendar take selected) at once and again over the switch's own answer, the board's lanes become the list's records for the others, the calendar draws the known records on their days at once, the cards' per_page (24) gives the list's page size back when another layout is chosen and the window of the left layout is dropped from the query; selection reads the layout on screen. The list head therefore offers cards and calendar enabled when the host lists them. A filter field of the list head (C300, C310): with SF.fieldRenderers.filterWindow {open, summary} in the pair it opens filterWindow.open({anchor, field, value, size}) and applies {action: apply, value} or resets on {action: reset}; null changes nothing; the button reads filterWindow.summary(field, value) {active, count, words}; without it (the pair ui-1ed6b6c9a040) the head's own window as before; a head drawn before the field renderers loaded draws its fields again once they are in. The calendar's move refusal carries the host's code to sf-view-calendar. DEV's round 3 returns: canDrawLayout(kind) answers true for a layout element only when it is in the running set -- defined, or its cl- rule known to the Loader; the head's kinds leave out what the view cannot draw (the disabled segment, its reason caption and the word head-kind-unavailable are gone, VR3-1, DEV's decision). The head's menus pass separators as {type: \"separator\"}, the key sf-menu-context reads; {kind: \"separator\"} drew an empty focusable item (VR3-2). The list's page size is kept while the cards or the calendar are on screen (OWN_PAGING) and given back, from page 1, with the table or the board: the calendar's query has no page, and the table after it asked the page row's default. VCL-2: calendarQuery leaves date_field out rather than null (defaultWindow reads layouts.calendar, the columns, then describe().fields), and acceptCalendar asks the range again once the answer's layouts.calendar names the field. The calendar's first paint draws each day at the calendar's new height (the number row and three event lines, VCL-3)."
+          ]
+        },
+        {
+          "from": "1.23.0",
+          "to": "1.23.2",
+          "changes": [
+            "Release numbering (view 1.9.0): the same code as 1.23.0 of round/view-r4; 1.23.1 belongs to the superseded round/view-calendar a2c5c8f (not merged, not released), so the release takes 1.23.2."
           ]
         }
       ]

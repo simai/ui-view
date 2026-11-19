@@ -2,8 +2,15 @@
   "$comment": "sf-view-calendar, standard simai.smart-component 1.4 (vocabulary 1.1.5): the calendar layout of the view set (owner decision C307, after the board and the cards, C298). Study: ui-control control/research/2026-11-18-calendar-view. Modes month, week, day and list; the month and time grids are the calendar's own; the bar, menus, toasts, the «Перенести на…» window and the event fields are SIMAI Framework parts.",
   "id": "smart.view-calendar",
   "tag": "sf-view-calendar",
-  "version": "1.1.0",
+  "version": "1.1.2",
   "x-history": [
+    {
+      "version": "1.1.2",
+      "kind": "patch",
+      "recorded_on": "2026-11-19",
+      "consumer": "Nothing to change for a host: the release number of round/view-r4's 1.1.0 in view 1.9.0. 1.1.1 is the superseded round/view-calendar (never released), so the released number is above it.",
+      "evidence": "control/evidence/2026-11-19-view-r4-release/README.md"
+    },
     {
       "version": "1.1.0",
       "kind": "minor",
@@ -641,6 +648,13 @@
           "to": "1.1.0",
           "changes": [
             "view-config/1 keys from the Larena backend (msg-75b451e2): calendarOptions reads span_days (31, clamped to 366; how far back the host looks for an event that started before the days on screen) and rules from layouts.calendar; the move rules in force are the rules setting and layouts.calendar.rules. moveCheck: weekdays {days} are the ISO days 1..7 a start may fall on (the host's reading; the round's own 0..6 refused days are gone), locked {field, in} holds a record whose field has one of the values (also with no day), ability is the host's and comes per record in can {update: false, code, reason}; sunday..saturday, min, max and dates are still read. A refusal carries its code; with no reason of its own a rule or a host refusal (storage_calendar_update_past, _weekday, _locked, _denied, _end_before_start, _too_long, _patch_invalid) is said in the pack's words (refuse-past, refuse-weekday, refuse-locked, refuse-denied, refuse-end-before-start, refuse-too-long, refuse-patch-invalid; en and ru); a machine code is never shown to a person. VCL-1: mode resolves the mode attribute only when written, then layouts.calendar mode, then month (getProp answered the property default, month, and hid the setting). VCL-3: «+N» is a plain button (sf-view-calendar__more) at --sf-text-height-1/2 instead of an sf-button of the control height; the day's block-size is padding + one control row + per_day text lines and gaps. VCL-4: the phone row's grid is time | title | auto, the second field on the title line (end), the first under the title, ellipsis on long values. Phone month: renderPhoneList draws «Без даты N» (data-undtoggle, aria-pressed) under the month and the chosen day's list (renderDayList with + in its heading, lday-h[data-picked]) or renderUndatedList (rows with data-ev, the close button data-undclose); phoneUndated is the phone's own state, apart from the saved undated_open, cleared by pickDay; toggleUndated on the phone's month toggles it. A touch held 700 ms on a list row opens openEventMenu (rows do not drag; the click after it is swallowed; a native contextmenu cancels the hold). The pick window (and the phone month panel) also hears sf-change, the name under which the pair's sf-input-date says a chosen day; with sf-input-date-change alone «Перенести на…» moved nothing. Undated phone rows have no time column."
+          ]
+        },
+        {
+          "from": "1.1.0",
+          "to": "1.1.2",
+          "changes": [
+            "Release numbering (view 1.9.0): the same code as 1.1.0 of round/view-r4; 1.1.1 belongs to the superseded round/view-calendar a2c5c8f (not merged, not released), so the release takes 1.1.2."
           ]
         }
       ]

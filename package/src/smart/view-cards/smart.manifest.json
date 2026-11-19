@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-cards",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "title": "Cards",
   "summary": "The cards layout of the view set: records as cards in a grid whose columns follow its width, a cover the layout draws, a title and up to four fields in the «Кратко» place; «Показать ещё» appends the next page. sf-view layout=\"cards\" draws it where the author turned it on.",
   "kind": "smart",
@@ -426,6 +426,13 @@
         "to": "1.0.1",
         "changes": [
           "DEV's acceptance return VC-1 (round/view-r4): fieldAlign(field, index) answers end only for a numeric field in the second column (odd index); the template passes the index and marks numbers data-numeric for tabular digits."
+        ]
+      },
+      {
+        "from": "1.0.1",
+        "to": "1.0.3",
+        "changes": [
+          "Release numbering (view 1.9.0): the same code as 1.0.1 of round/view-r4; 1.0.2 is the same VC-1 change on the superseded round/view-cards f85ac5a (not merged, not released), so the release takes 1.0.3."
         ]
       }
     ]

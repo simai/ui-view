@@ -5,7 +5,7 @@ profile: reference
 
 # Календарь
 
-:badge[sf-view-calendar]{variant=main scheme=on-surface size=1} :badge[Версия 1.1.0]{variant=tonal scheme=neutral size=1} :badge[Предварительная версия]{variant=tonal scheme=warning size=1}
+:badge[sf-view-calendar]{variant=main scheme=on-surface size=1} :badge[Версия 1.1.2]{variant=tonal scheme=neutral size=1} :badge[Предварительная версия]{variant=tonal scheme=warning size=1}
 
 Календарь показывает записи **на днях их даты**: месяц из шести недель, неделю или день по часам, список по дням. Запись переносят на другой день или время и растягивают за край — мышью, пальцем или клавишами; календарь сразу показывает новое место, а приложение сохраняет его или отказывает и объясняет почему.
 
@@ -87,7 +87,7 @@ query.context  // {timeZone: 'Europe/Moscow', weekStart: 1, locale: 'ru'}
 |:---|:---|
 | Тег | `<sf-view-calendar>` |
 | Назначение | Календарь набора представлений: месяц, неделя, день и список; записи стоят в днях своего поля даты, перенос или растягивание — изменение полей даты, которое подтверждает хост. sf-view с layout="calendar" рисует его над окном дат. |
-| Контракт | `smart.view-calendar`, версия `1.1.0` |
+| Контракт | `smart.view-calendar`, версия `1.1.2` |
 | Жизненный цикл | экспериментальный: API может меняться между выпусками |
 
 ### Атрибуты

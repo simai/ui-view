@@ -16,7 +16,39 @@ same numbers with other content); every next set version is above them
 up). Each component.json says the same under `x-decisions`
 `pro-copy-versions`.
 
-## Unreleased (round/view-r4, the four layouts together)
+## 1.9.0 — 2026-11-19
+
+The four layouts together: view rounds 1 to 4 (round/view-r1 .. round/view-r4,
+accepted by DEV on 2026-11-19), their entries below.
+
+- Over the SIMAI Framework pair `ui-dc9fc39aeb26` (ui-source `1dd18375cbc2`,
+  npm `@simai-studio/ui@5.20261118.1205`, core.runtime 1.61.0; the rounds were
+  built over `ui-1ed6b6c9a040`). The set still needs core.runtime 1.51.0 or
+  newer. Former names keep ending on 2027-01-01.
+- New in the set (preview): the board `sf-view-board` 1.1.1, the cards
+  `sf-view-cards` 1.0.3 and the calendar `sf-view-calendar` 1.1.2. `sf-view`
+  1.23.2 switches live between table, board, cards and calendar and keeps the
+  marked records and the open card.
+- `sf-view` 1.23.2, `sf-view-table` 1.25.1, `sf-view-properties` 1.21.0,
+  `sf-view-flow` 1.1.6, `sf-view-board` 1.1.1, `sf-view-cards` 1.0.3,
+  `sf-view-calendar` 1.1.2.
+- `sf-view-properties` 1.21.0 is the round's 1.20.0 together with the released
+  1.19.2 and 1.20.2 (1.8.2, 1.8.3): every `simai.property-view-port` 1.0.0..1.22.0
+  is accepted. The record card settings (C311: `view.publish`, `view.lock`,
+  `view.locked`, `view.head`, `profiles[].required`) are offered only to a host
+  that declares 1.22.0, the C311 edition of SIMAI Framework group build 13; a
+  host on 1.20.0 or 1.21.0 that used the round's card settings loses them with
+  this release until it declares 1.22.0.
+- Release numbers: `sf-view` 1.23.2, `sf-view-calendar` 1.1.2 and
+  `sf-view-cards` 1.0.3 are the round's 1.23.0, 1.1.0 and 1.0.1, numbered above
+  the superseded `round/view-calendar` (1.23.1, 1.1.1) and `round/view-cards`
+  (1.0.2), which are not in the set; `sf-view-properties` 1.21.0 is above
+  1.20.2 and ui-pro's own 1.20.1.
+- Known, open: the board's head buttons stand 4 apart where the rule says 8;
+  the calendar asks its range twice until the date field is named; arranging a
+  card shifts the layout once.
+
+### round/view-r4 (the four layouts together)
 
 Round/view-cards and round/view-calendar merged onto round/view-returns;
 Larena's view-config/1 keys (msg-75b451e2); C311 (5); the list head's filter
@@ -81,7 +113,7 @@ window (C310); DEV's round 3 returns VR3-1..VR3-4.
   (`SET_LIVE_BRANCHES=1` reads live origin, VR3-3). Site: the view-table
   example of former tags uses `sf-view-table` (VR3-4).
 
-## Unreleased (round/view-returns, record card settings)
+### round/view-returns (record card settings)
 
 Owner decision C311 on the levels of C298 (RC-1..RC-4, RC-6..RC-10, TB-1;
 RC-5 is Larena's).
@@ -107,7 +139,7 @@ RC-5 is Larena's).
 - Site: the card page's «Настройка карточки» with a host of port 1.19.0 and
   its request log.
 
-## Unreleased (round/view-returns)
+### round/view-returns
 
 DEV's returns of round 2 (VR2-1..VR2-9) and C306.
 
@@ -136,7 +168,7 @@ DEV's returns of round 2 (VR2-1..VR2-9) and C306.
   `config/example-heights.json`, VR2-7); the board example answers the lane
   totals with the cards.
 
-## Unreleased (round/view-r3)
+### round/view-r3
 
 - `sf-view` 1.18.0 (view round 3, item 2): the list head's «Таблица» /
   «Доска» switches the layout live. `switchLayout(kind)` swaps the view-made
@@ -153,7 +185,7 @@ DEV's returns of round 2 (VR2-1..VR2-9) and C306.
   part in them has drawn (frame layout shift 0.55-1.22 -> 0.01-0.03); pages
   «Доска» and «Шапка списка» in «Компоненты».
 
-## Unreleased (round/view-cards)
+### round/view-cards
 
 - `sf-view-cards` 1.0.0, new (owner decisions C297, C306, CD-1..CD-8): the
   cards layout. Records as `.sf-card` in a grid whose columns follow its
@@ -172,7 +204,7 @@ DEV's returns of round 2 (VR2-1..VR2-9) and C306.
   narrows; the first paint holds a grid of cards. The wiring lives in
   `view/js/cards.js`; `index.js` only calls it at its hook points.
 
-## Unreleased (round/view-calendar)
+### round/view-calendar
 
 - `sf-view-calendar` 1.0.0 (owner decision C307, CA-1..CA-10; study
   ui-control `control/research/2026-11-18-calendar-view`): a new layout of
@@ -195,7 +227,7 @@ DEV's returns of round 2 (VR2-1..VR2-9) and C306.
   revision}`; the first paint holds the month grid. The list head's calendar
   settings write `color_field` and offer no week start.
 
-## Unreleased (round/view-r2)
+### round/view-r2
 
 - `sf-view-table` 1.24.0 (owner decision C296, view round 2, VT-1..VT-18):
   the table draws columns and rows. A column head's menu (right press,
@@ -303,7 +335,7 @@ DEV's returns of round 2 (VR2-1..VR2-9) and C306.
   templates from the Framework registry (`templates`, `template`) and falls
   back to the former `variant` names.
 
-## Unreleased (round/view-r1, for 1.9.0)
+### round/view-r1 (for 1.9.0)
 
 - Over the SIMAI Framework pair `ui-1ed6b6c9a040` (npm 5.20261117.1612,
   ui-source `acc113415d98`, core.runtime 1.60.0; the round's helpers built
@@ -462,6 +494,40 @@ DEV's returns of round 2 (VR2-1..VR2-9) and C306.
   The filter window keeps its tabs: its saved views need a sortable,
   pinnable choice of one with a row menu and a rename in place, which
   `sf-settings` does not offer yet.
+
+## 1.8.3 — 2026-11-18
+
+- Over the same SIMAI Framework pair `ui-141822273efe`.
+- `sf-view-properties` 1.20.2: the panel accepts a host that declares
+  `simai.property-view-port` 1.20.0, 1.21.0 or 1.22.0 (SIMAI Framework group
+  build 13). The three versions only add: field settings `template`,
+  `templateParams`, `decimals`, `holder` and new type names (1.20.0), the
+  record history and neighbours behind their own capabilities and the
+  refusal `revision_moved` (1.21.0), publishing and locking a view and the
+  view's head, locks and required profiles (1.22.0); 1.19.0's conformance
+  cases are unchanged. Nothing the panel reads or writes changes: it asks for
+  none of the new things, a field sent with `template` alone is drawn with
+  its type's default, a type name it does not know is not offered for
+  editing and nothing is written for it, and `revision_moved` is shown as a
+  refusal with nothing written. A 1.22.0 host reads this panel's shared view
+  saves and a layer's `variant` until 2027-01-01. Without this, a page on the
+  SIMAI Framework pair that carries 1.22.0 would refuse the panel's host.
+  (1.20.0 is a version on an unreleased branch and 1.20.1 ui-pro's own copy;
+  neither is in this set.)
+
+## 1.8.2 — 2026-11-18
+
+- Over the same SIMAI Framework pair `ui-141822273efe`.
+- `sf-view-properties` 1.19.2: the panel accepts a host that declares
+  `simai.property-view-port` 1.19.0 (owner decision C294). 1.19.0 adds two
+  optional money settings (`currencies`, `currencyDisplay`) and drops a
+  percent's default bounds; its conformance cases are 1.18.0's, unchanged,
+  so nothing the panel reads or writes changes. The panel does not read the
+  two money settings yet, and a percent without `min` and `max` still stops
+  at 0..100 while typed; a value the host sends is shown and kept as it is.
+  Without this, a page on the SIMAI Framework pair that carries 1.19.0 would
+  refuse the panel's host. (1.19.0 is a version on an unreleased branch and
+  1.19.1 ui-pro's own copy; neither is in this set.)
 
 ## 1.8.1 — 2026-11-15
 

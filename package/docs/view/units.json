@@ -5,6 +5,15 @@
   "entries": [
     {
       "unit": "smart.view",
+      "version": "1.23.2",
+      "recorded_on": "2026-11-19",
+      "change": "patch",
+      "consumer": "Nothing to change for a host: the release number of round/view-r4's 1.23.0 in view 1.9.0. 1.23.1 is the superseded round/view-calendar (DEV's parallel VCL-1..VCL-4, never released), so the released number is above it.",
+      "summary": "Release numbering (view 1.9.0): the same code as 1.23.0 of round/view-r4; 1.23.1 belongs to the superseded round/view-calendar a2c5c8f (not merged, not released), so the release takes 1.23.2.",
+      "evidence": "control/evidence/2026-11-19-view-r4-release/README.md"
+    },
+    {
+      "unit": "smart.view",
       "version": "1.23.0",
       "recorded_on": "2026-11-18",
       "change": "minor",
@@ -293,6 +302,15 @@
     },
     {
       "unit": "smart.view-properties",
+      "version": "1.21.0",
+      "recorded_on": "2026-11-19",
+      "change": "minor",
+      "consumer": "Release of round/view-r4 (view 1.9.0) as one version above the released 1.19.2 and 1.20.2 (view 1.8.2 and 1.8.3, port widening only) and ui-pro's own 1.20.1. Every simai.property-view-port 1.0.0..1.22.0 stays accepted. The record card settings (C311: view.publish, view.lock, view.locked, view.head, profiles[].required) are offered only to a host that declares 1.22.0 (the C311 edition in SIMAI Framework group build 13): a host on 1.20.0 or 1.21.0 that used the round's card settings loses them with this release and gets them back by declaring 1.22.0. A host of 1.20.2 gets everything of 1.17.0..1.20.0 (see those entries): sections laid out by width, the edit modes, the history, the card settings and the select-only view chooser.",
+      "summary": "Release of round/view-r4 in view 1.9.0: the code of 1.20.0 (port range 1.0.0..1.22.0, card settings only for a 1.22.0 host) merged with the released line 1.19.2 and 1.20.2 (view 1.8.2, 1.8.3: port widening of the 1.16.3 panel), numbered above both and above ui-pro's 1.20.1. A 1.20.0 or 1.21.0 host is offered no card settings (they need 1.22.0).",
+      "evidence": "control/evidence/2026-11-19-view-r4-release/README.md"
+    },
+    {
+      "unit": "smart.view-properties",
       "version": "1.20.0",
       "recorded_on": "2026-11-18",
       "change": "minor",
@@ -491,6 +509,15 @@
     },
     {
       "unit": "smart.view-cards",
+      "version": "1.0.3",
+      "recorded_on": "2026-11-19",
+      "change": "patch",
+      "consumer": "Nothing to change for a host: the release number of round/view-r4's 1.0.1 in view 1.9.0. 1.0.2 is the same VC-1 change on the superseded round/view-cards (never released), so the released number is above it.",
+      "summary": "Release numbering (view 1.9.0): the same code as 1.0.1 of round/view-r4; 1.0.2 is the same VC-1 change on the superseded round/view-cards f85ac5a (not merged, not released), so the release takes 1.0.3.",
+      "evidence": "control/evidence/2026-11-19-view-r4-release/README.md"
+    },
+    {
+      "unit": "smart.view-cards",
       "version": "1.0.1",
       "recorded_on": "2026-11-18",
       "change": "patch",
@@ -506,6 +533,15 @@
       "consumer": "New: sf-view layout=\"cards\" draws it, where the author turned cards on (C297); a host answers the window {page, per_page: 24} with {records, total, has_next}.",
       "summary": "New: the cards layout (owner decisions C297, C306): records as .sf-card in a grid whose columns follow its width (sizes S, M, L), a cover in a frame of one ratio drawn by the layout (cover or contain, lazy), the title in two lines and up to four fields in the «Кратко» place, «Показать ещё» over the window {page, per_page: 24}, one Tab stop with the arrows by rows, a selection for sf-bulk-actions, empty states by sf-empty-state.",
       "evidence": "control/evidence/2026-11-18-view-cards"
+    },
+    {
+      "unit": "smart.view-calendar",
+      "version": "1.1.2",
+      "recorded_on": "2026-11-19",
+      "change": "patch",
+      "consumer": "Nothing to change for a host: the release number of round/view-r4's 1.1.0 in view 1.9.0. 1.1.1 is the superseded round/view-calendar (never released), so the released number is above it.",
+      "summary": "Release numbering (view 1.9.0): the same code as 1.1.0 of round/view-r4; 1.1.1 belongs to the superseded round/view-calendar a2c5c8f (not merged, not released), so the release takes 1.1.2.",
+      "evidence": "control/evidence/2026-11-19-view-r4-release/README.md"
     },
     {
       "unit": "smart.view-calendar",
