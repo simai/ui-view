@@ -413,6 +413,16 @@
     padding: var(--sf-space-2);
   }
 
+  /* The section tabs' strip in a panel (VB-1, C394, C20): sf-tabs paints a
+     sticky strip with --sf-surface-page, which in the dark theme is darker
+     than the panel's --sf-surface-area -- a dark band over a lighter ground.
+     In a panel the strip takes the panel's ground in the dark theme; in the
+     light one it stays the page's white, as before. (SIMAI Framework order:
+     a sticky strip should take the ground it sticks on.) */
+  .sf-property-view-panel .sf-tabs.sf-tabs--sticky > .sf-tabs-top-container {
+    background-color: light-dark(var(--sf-surface-page), var(--sf-surface-area));
+  }
+
   /* The head carries the group's name and the way into editing it, with a line
      under it: the mockup draws one, and without it the title floated among the
      fields at the same size as their labels. */
