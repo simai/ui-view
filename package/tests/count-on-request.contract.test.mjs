@@ -41,7 +41,7 @@ test('a number that has been answered stays until the query changes', async () =
 
   assert.match(
     view,
-    /_countKey\(\) \{\s*return JSON\.stringify\(\[this\.query\.search \?\? "", this\.query\.filters \?\? \{\}, this\.query\.per_page \?\? 25\]\);/u,
+    /_countKey\(\) \{\s*return JSON\.stringify\(\[this\.query\.search \?\? "", this\.query\.filters \?\? \{\}, this\.query\.per_page \?\? VIEW_DEFAULT_PAGE_SIZE\]\);/u,
     'search, filters and page size change what the number would be; a page does not',
   );
   assert.match(

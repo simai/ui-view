@@ -23,7 +23,9 @@ test('record-card is a declared setting of sf-view', () => {
 test('the table, the list and the board open a record through one path', () => {
   assert.match(view, /detail\.action_id === "view"\) return this\._openRecord\(ids\[0\], detail\);/u);
   assert.match(view, /"sf-view-board-open"\) \{\s*await this\._openRecord\(detail\.id,/u);
-  assert.match(view, /_openRecord\(id, detail\) \{\s*const allowed = this\.sfEmit\("open", \{id\}, \{cancelable: true\}\);\s*if \(!allowed\) return null;\s*const card = this\.recordCard;\s*if \(!card\) return this\._raise\("record\.open", detail\);/u);
+  // Without a card the page's own panel is watched for its close (view round 7, R5-1), then the same path.
+  assert.match(view, /_openRecord\(id, detail\) \{\s*const card = this\.recordCard;[\s\S]*?if \(!card\) this\._watchHostRecordClose\(String\(id\)\);\s*const allowed = this\.sfEmit\("open", \{id\}, \{cancelable: true\}\);\s*if \(!allowed\) return null;\s*if \(!card\) return this\._raise\("record\.open", detail\);/u);
+  assert.match(view, /root\.addEventListener\("sf-view-properties-close", this\._onHostRecordClose\)/u);
   assert.match(view, /addEventListener\("sf-view-properties-step", this\._onCardStep\)/u);
   assert.match(view, /addEventListener\("sf-view-properties-close", this\._onCardClose\)/u);
   assert.match(view, /: this\.recordBeside\(from, detail\.direction\)/u);
