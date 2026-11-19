@@ -1,0 +1,717 @@
+{
+  "schema": "simai.framework.set-pair-range",
+  "schema_version": 1,
+  "set": "view",
+  "release": "view-acd69c85b6aa",
+  "version": "1.9.0",
+  "repository": "simai/ui-view",
+  "package": {
+    "source_revision": "acd69c85b6aa1043ec58ed02707a30139a22e007",
+    "build_revision": "33752437538f88b3c8cd53c3d8089704c1d19ebf",
+    "receipt_sha256": "fe959b5efb020c5c2f7f2d672fd01e5aa3443f86e90f24e4cca25c0fc879b8bf",
+    "manifest_sha256": "1d03b89b3ee89d0da66b5b785b60c069724522663901d81170e8d601af3c9251",
+    "archive_sha256": "74d4d205905d32c36243af110309b06c69c76bb67b8e4ecdbbc2672b432b1e9c",
+    "files_count": 256
+  },
+  "built_over": {
+    "pair": "ui-dc9fc39aeb26",
+    "commit": "dc9fc39aeb266bbd8fd2486f21da50d7d1d85d74",
+    "source_revision": "1dd18375cbc23cf3392576d2e046fde52a047060"
+  },
+  "requires": {
+    "core_runtime": ">=1.51.0",
+    "runtime": {
+      "abi": 1,
+      "modules": {
+        "aliases": [
+          "installAliases"
+        ],
+        "deprecations": [
+          "noteDeprecated"
+        ],
+        "element-manifest": [
+          "applied",
+          "elementFromManifest",
+          "refused"
+        ],
+        "instance-path": [
+          "instancePath",
+          "partId"
+        ],
+        "layer-stack": [
+          "FOCUSABLE",
+          "closeLayer",
+          "hasLayer",
+          "hasLayerAbove",
+          "layerZIndex",
+          "openLayer",
+          "openLayers"
+        ],
+        "lit": [
+          "html",
+          "nothing",
+          "render"
+        ],
+        "lit/directive-helpers.js": [
+          "isTemplateResult"
+        ],
+        "lit/directive.js": [
+          "Directive",
+          "PartType",
+          "directive"
+        ],
+        "lit/directives/keyed.js": [
+          "keyed"
+        ],
+        "lit/directives/ref.js": [
+          "ref"
+        ],
+        "lit/directives/repeat.js": [
+          "repeat"
+        ],
+        "lit/directives/unsafe-html.js": [
+          "unsafeHTML"
+        ],
+        "open-surface-mark": [
+          "holdOpenSurfaceMark"
+        ],
+        "page-language": [
+          "localeText",
+          "pageLocale",
+          "pageText",
+          "pageWord"
+        ],
+        "position": [
+          "default"
+        ],
+        "smart-base": [
+          "canonicalTag",
+          "default",
+          "defineTagAliases",
+          "isTag",
+          "tagSelector"
+        ]
+      }
+    },
+    "relations": [
+      {
+        "name": "accordion",
+        "resolves_to": "accordion"
+      },
+      {
+        "name": "align-items/default",
+        "resolves_to": "align-items/default"
+      },
+      {
+        "name": "align-self/default",
+        "resolves_to": "align-self/default"
+      },
+      {
+        "name": "background-color/default",
+        "resolves_to": "background-color/default"
+      },
+      {
+        "name": "border-collapse/default",
+        "resolves_to": "border-collapse/default"
+      },
+      {
+        "name": "border-spacing/default",
+        "resolves_to": "border-spacing/default"
+      },
+      {
+        "name": "card",
+        "resolves_to": "card"
+      },
+      {
+        "name": "cl-avatar",
+        "resolves_to": "cl-avatar"
+      },
+      {
+        "name": "cl-badge",
+        "resolves_to": "cl-badge"
+      },
+      {
+        "name": "cl-button",
+        "resolves_to": "cl-button"
+      },
+      {
+        "name": "cl-button-close",
+        "resolves_to": "cl-button-close"
+      },
+      {
+        "name": "cl-button-copy",
+        "resolves_to": "cl-button-copy"
+      },
+      {
+        "name": "cl-button-icon",
+        "resolves_to": "cl-button-icon"
+      },
+      {
+        "name": "cl-checkbox",
+        "resolves_to": "cl-checkbox"
+      },
+      {
+        "name": "cl-confirm",
+        "resolves_to": "cl-confirm"
+      },
+      {
+        "name": "cl-drawer",
+        "resolves_to": "cl-drawer"
+      },
+      {
+        "name": "cl-dropdown",
+        "resolves_to": "cl-dropdown"
+      },
+      {
+        "name": "cl-empty-state",
+        "resolves_to": "cl-empty-state"
+      },
+      {
+        "name": "cl-file-preview",
+        "resolves_to": "cl-file-preview"
+      },
+      {
+        "name": "cl-file-upload",
+        "resolves_to": "cl-file-upload"
+      },
+      {
+        "name": "cl-form",
+        "resolves_to": "cl-form"
+      },
+      {
+        "name": "cl-help-mark",
+        "resolves_to": "cl-help-mark"
+      },
+      {
+        "name": "cl-icon",
+        "resolves_to": "cl-icon"
+      },
+      {
+        "name": "cl-input",
+        "resolves_to": "cl-input"
+      },
+      {
+        "name": "cl-input-color",
+        "resolves_to": "cl-input-color"
+      },
+      {
+        "name": "cl-input-country",
+        "resolves_to": "cl-input-country"
+      },
+      {
+        "name": "cl-input-date",
+        "resolves_to": "cl-input-date"
+      },
+      {
+        "name": "cl-input-image",
+        "resolves_to": "cl-input-image"
+      },
+      {
+        "name": "cl-input-lookup",
+        "resolves_to": "cl-input-lookup"
+      },
+      {
+        "name": "cl-input-quantity",
+        "resolves_to": "cl-input-quantity"
+      },
+      {
+        "name": "cl-input-rich",
+        "resolves_to": "cl-input-rich"
+      },
+      {
+        "name": "cl-input-textarea",
+        "resolves_to": "cl-input-textarea"
+      },
+      {
+        "name": "cl-list",
+        "resolves_to": "cl-list"
+      },
+      {
+        "name": "cl-list-description",
+        "resolves_to": "cl-list-description"
+      },
+      {
+        "name": "cl-list-item",
+        "resolves_to": "cl-list-item"
+      },
+      {
+        "name": "cl-list-timeline",
+        "resolves_to": "cl-list-timeline"
+      },
+      {
+        "name": "cl-menu",
+        "resolves_to": "cl-menu"
+      },
+      {
+        "name": "cl-menu-context",
+        "resolves_to": "cl-menu-context"
+      },
+      {
+        "name": "cl-modal",
+        "resolves_to": "cl-modal"
+      },
+      {
+        "name": "cl-pagination",
+        "resolves_to": "cl-pagination"
+      },
+      {
+        "name": "cl-popover",
+        "resolves_to": "cl-popover"
+      },
+      {
+        "name": "cl-profile-picker",
+        "resolves_to": "cl-profile-picker"
+      },
+      {
+        "name": "cl-progress-bar",
+        "resolves_to": "cl-progress-bar"
+      },
+      {
+        "name": "cl-progress-scale",
+        "resolves_to": "cl-progress-scale"
+      },
+      {
+        "name": "cl-radio",
+        "resolves_to": "cl-radio"
+      },
+      {
+        "name": "cl-reference-link",
+        "resolves_to": "cl-reference-link"
+      },
+      {
+        "name": "cl-resizer",
+        "resolves_to": "cl-resizer"
+      },
+      {
+        "name": "cl-segmented",
+        "resolves_to": "cl-segmented"
+      },
+      {
+        "name": "cl-settings",
+        "resolves_to": "cl-settings"
+      },
+      {
+        "name": "cl-skeleton",
+        "resolves_to": "cl-skeleton"
+      },
+      {
+        "name": "cl-slider-range",
+        "resolves_to": "cl-slider-range"
+      },
+      {
+        "name": "cl-sortable",
+        "resolves_to": "cl-sortable"
+      },
+      {
+        "name": "cl-spinner",
+        "resolves_to": "cl-spinner"
+      },
+      {
+        "name": "cl-switch",
+        "resolves_to": "cl-switch"
+      },
+      {
+        "name": "cl-tabs",
+        "resolves_to": "cl-tabs"
+      },
+      {
+        "name": "cl-tag",
+        "resolves_to": "cl-tag"
+      },
+      {
+        "name": "cl-toast",
+        "resolves_to": "cl-toast"
+      },
+      {
+        "name": "container/default",
+        "resolves_to": "container/default"
+      },
+      {
+        "name": "cursor/default",
+        "resolves_to": "cursor/default"
+      },
+      {
+        "name": "display/default",
+        "resolves_to": "display/default"
+      },
+      {
+        "name": "dot",
+        "resolves_to": "dot"
+      },
+      {
+        "name": "element-position/default",
+        "resolves_to": "element-position/default"
+      },
+      {
+        "name": "flex-direction/default",
+        "resolves_to": "flex-direction/default"
+      },
+      {
+        "name": "flex-grow/default",
+        "resolves_to": "flex-grow/default"
+      },
+      {
+        "name": "flex-wrap/default",
+        "resolves_to": "flex-wrap/default"
+      },
+      {
+        "name": "flex/default",
+        "resolves_to": "flex/default"
+      },
+      {
+        "name": "gap/default",
+        "resolves_to": "gap/default"
+      },
+      {
+        "name": "height/default",
+        "resolves_to": "height/default"
+      },
+      {
+        "name": "icons",
+        "resolves_to": "icons"
+      },
+      {
+        "name": "justify-content/default",
+        "resolves_to": "justify-content/default"
+      },
+      {
+        "name": "margin/default",
+        "resolves_to": "margin/default"
+      },
+      {
+        "name": "max-width/default",
+        "resolves_to": "max-width/default"
+      },
+      {
+        "name": "min-height/default",
+        "resolves_to": "min-height/default"
+      },
+      {
+        "name": "min-width/default",
+        "resolves_to": "min-width/default"
+      },
+      {
+        "name": "overflow/default",
+        "resolves_to": "overflow/default"
+      },
+      {
+        "name": "padding/default",
+        "resolves_to": "padding/default"
+      },
+      {
+        "name": "pointer-events/default",
+        "resolves_to": "pointer-events/default"
+      },
+      {
+        "name": "position/default",
+        "resolves_to": "position/default"
+      },
+      {
+        "name": "skeleton",
+        "resolves_to": "skeleton"
+      },
+      {
+        "name": "sr-only/default",
+        "resolves_to": "sr-only/default"
+      },
+      {
+        "name": "table-layout/default",
+        "resolves_to": "table-layout/default"
+      },
+      {
+        "name": "table/default",
+        "resolves_to": "table/default"
+      },
+      {
+        "name": "text-align/default",
+        "resolves_to": "text-align/default"
+      },
+      {
+        "name": "text-color/default",
+        "resolves_to": "text-color/default"
+      },
+      {
+        "name": "text-max-width/default",
+        "resolves_to": "text-max-width/default"
+      },
+      {
+        "name": "text-overflow/default",
+        "resolves_to": "text-overflow/default"
+      },
+      {
+        "name": "tooltip",
+        "resolves_to": "tooltip"
+      },
+      {
+        "name": "transition-property/default",
+        "resolves_to": "transition-property/default"
+      },
+      {
+        "name": "user-select/default",
+        "resolves_to": "user-select/default"
+      },
+      {
+        "name": "visibility/default",
+        "resolves_to": "visibility/default"
+      },
+      {
+        "name": "width/default",
+        "resolves_to": "width/default"
+      },
+      {
+        "name": "z-index/default",
+        "resolves_to": "z-index/default"
+      }
+    ],
+    "elements": [
+      "sf-data-view",
+      "sf-property-view",
+      "sf-table",
+      "sf-view",
+      "sf-view-board",
+      "sf-view-calendar",
+      "sf-view-cards",
+      "sf-view-flow",
+      "sf-view-properties",
+      "sf-view-table"
+    ],
+    "free_elements": [
+      "sf-avatar",
+      "sf-badge",
+      "sf-button",
+      "sf-button-close",
+      "sf-button-icon",
+      "sf-checkbox",
+      "sf-confirm",
+      "sf-drawer",
+      "sf-dropdown",
+      "sf-empty-state",
+      "sf-file-preview",
+      "sf-file-upload",
+      "sf-form",
+      "sf-help-mark",
+      "sf-icon",
+      "sf-input",
+      "sf-input-choice",
+      "sf-input-color",
+      "sf-input-country",
+      "sf-input-date",
+      "sf-input-image",
+      "sf-input-lookup",
+      "sf-input-quantity",
+      "sf-input-rich",
+      "sf-input-textarea",
+      "sf-list",
+      "sf-list-item",
+      "sf-list-timeline",
+      "sf-menu",
+      "sf-menu-context",
+      "sf-modal",
+      "sf-pagination",
+      "sf-popover",
+      "sf-profile-picker",
+      "sf-progress-bar",
+      "sf-progress-scale",
+      "sf-radio",
+      "sf-reference-link",
+      "sf-segmented",
+      "sf-settings",
+      "sf-skeleton",
+      "sf-slider-range",
+      "sf-sortable",
+      "sf-spinner",
+      "sf-switch",
+      "sf-tabs",
+      "sf-tag",
+      "sf-toast"
+    ],
+    "core_folder": null,
+    "variables": [
+      "--sf-0",
+      "--sf-a0",
+      "--sf-a2",
+      "--sf-a3",
+      "--sf-a4",
+      "--sf-a8",
+      "--sf-animation",
+      "--sf-b0",
+      "--sf-b6",
+      "--sf-c2",
+      "--sf-code--background",
+      "--sf-code--color",
+      "--sf-code--font-family",
+      "--sf-code--radius",
+      "--sf-context-menu--block-space",
+      "--sf-context-menu--inset-end",
+      "--sf-context-menu--inset-start",
+      "--sf-context-menu-tail-corner-offset",
+      "--sf-d0",
+      "--sf-d2",
+      "--sf-d4",
+      "--sf-duration-fast",
+      "--sf-duration-normal",
+      "--sf-e4",
+      "--sf-e6",
+      "--sf-ease-exit",
+      "--sf-ease-move",
+      "--sf-elevation-3--shadow",
+      "--sf-elevation-3--surface",
+      "--sf-error",
+      "--sf-error-container",
+      "--sf-f0",
+      "--sf-f2",
+      "--sf-f4",
+      "--sf-f5",
+      "--sf-f6",
+      "--sf-f8",
+      "--sf-focus--color",
+      "--sf-focus--inset",
+      "--sf-focus--offset",
+      "--sf-focus--style",
+      "--sf-focus--width",
+      "--sf-focus-outline-width",
+      "--sf-font-weight-bold",
+      "--sf-font-weight-medium",
+      "--sf-g0",
+      "--sf-g3",
+      "--sf-g4",
+      "--sf-heading-4--height",
+      "--sf-heading-4--size",
+      "--sf-hit--min",
+      "--sf-icon-size-1",
+      "--sf-icon-size-2",
+      "--sf-label-large--height",
+      "--sf-label-large--size",
+      "--sf-label-medium--height",
+      "--sf-label-medium--size",
+      "--sf-label-small--height",
+      "--sf-label-small--size",
+      "--sf-link",
+      "--sf-list-description--below-font-size",
+      "--sf-list-description--below-line",
+      "--sf-list-description--line",
+      "--sf-neutral-50",
+      "--sf-neutral-90",
+      "--sf-on-error-container",
+      "--sf-on-primary",
+      "--sf-on-primary-container",
+      "--sf-on-success-container",
+      "--sf-on-surface",
+      "--sf-on-surface-popup-variant",
+      "--sf-on-warning-container",
+      "--sf-outline",
+      "--sf-outline-variant",
+      "--sf-primary",
+      "--sf-primary-container",
+      "--sf-primary-container-hover",
+      "--sf-primary-outline",
+      "--sf-primary-state-select",
+      "--sf-px",
+      "--sf-radius--surface",
+      "--sf-radius--ui",
+      "--sf-radius-1",
+      "--sf-radius-2",
+      "--sf-radius-circle",
+      "--sf-shadow-popup",
+      "--sf-shadow-raised",
+      "--sf-space-1",
+      "--sf-space-2",
+      "--sf-space-3",
+      "--sf-space-4",
+      "--sf-success-container",
+      "--sf-surface-2",
+      "--sf-surface-area",
+      "--sf-surface-card",
+      "--sf-surface-container",
+      "--sf-surface-container-hover",
+      "--sf-surface-page",
+      "--sf-surface-popup",
+      "--sf-surface-state-hover",
+      "--sf-surface-state-select",
+      "--sf-text--family",
+      "--sf-text--height",
+      "--sf-text--height-1",
+      "--sf-text--size",
+      "--sf-text--size-1",
+      "--sf-text--size-2",
+      "--sf-text-height-1",
+      "--sf-text-height-2",
+      "--sf-text-medium--height",
+      "--sf-text-medium--size",
+      "--sf-text-size-1",
+      "--sf-text-size-2",
+      "--sf-text-small--height",
+      "--sf-text-small--size",
+      "--sf-title--height-1",
+      "--sf-title--height-2",
+      "--sf-ui-1--control-height",
+      "--sf-ui-1--space-x",
+      "--sf-ui-1--space-y-tightness-default",
+      "--sf-ui-1--space-y-tightness-low",
+      "--sf-ui-1--text-space-x",
+      "--sf-ui-2--control-height",
+      "--sf-ui-3--control-height",
+      "--sf-warning-container",
+      "--sf-weight--medium",
+      "--sf-z-index-9"
+    ],
+    "js_api": [
+      "Assembly",
+      "Clipboard",
+      "Loader",
+      "Loader.ensure",
+      "Loader.preloadIcons",
+      "Loader.watch",
+      "Position",
+      "Preferences",
+      "Preferences.remove",
+      "Resizer.attach",
+      "RuleLoader",
+      "Sortable.attach",
+      "copyText",
+      "deprecations",
+      "fieldRenderers",
+      "fieldRenderers.dateFilter",
+      "fieldRenderers.dateTime",
+      "fieldRenderers.renderFilterField",
+      "format",
+      "format.number",
+      "icons",
+      "icons.choices",
+      "language.register",
+      "menu",
+      "menu.open",
+      "notify",
+      "runtimeModule",
+      "whenFieldRenderers"
+    ]
+  },
+  "interface_sha256": "499c9fee252e3b8a2d45126ffa532ee05c7361339bc087d6bbee7888eacaeb14",
+  "expires": null,
+  "not_covered": [
+    "behaviour behind an unchanged interface: token values, free component looks, smart-base behaviour under the same ABI",
+    "Framework code a bundle inlined at build time: a rebuild over the pair may give other bytes (pair-receipt.py equivalence)",
+    "the set gates over the pair: unit, manifest, browser and first-paint probes",
+    "the attributes, events and slots of the free elements the set renders (renamed only with dated aliases)",
+    "window.SF reached through an alias the scan cannot see (const s = SF; s.x)"
+  ],
+  "tooling": {
+    "repository": "simai/ui-builder",
+    "revision": "ba79e739d1f9e2568d27e030606e8f95ce91b380",
+    "clean": true,
+    "as_of": "2026-11-19",
+    "notes": {
+      "relations_to_required_sets": [],
+      "variables_bound_by_the_page": [
+        "--sf-view-table-line-color"
+      ],
+      "js_names_not_public": [
+        "SF.__internal"
+      ]
+    }
+  },
+  "created_on": "2026-11-19",
+  "claims": {
+    "production_ready": false
+  }
+}
