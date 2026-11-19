@@ -729,7 +729,7 @@ function renderGroup(context, section, group) {
         : html`${fields.map((field) => renderField(context, field, editing, String(section.key ?? ''), groupKey))}`;
 
     return html`
-        <section class="sf-property-view-group bg-surface-page flex flex-col gap-2 ${editing ? 'sf-property-view-group--editing' : ''} ${group.kind === 'related' && !editing && !configuring ? 'sf-property-view-group--related' : ''}"
+        <section class="sf-property-view-group ${groupSurface(context)} flex flex-col gap-2 ${editing ? 'sf-property-view-group--editing' : ''} ${group.kind === 'related' && !editing && !configuring ? 'sf-property-view-group--related' : ''}"
                  data-group=${groupKey}
                  aria-busy=${reading ? 'true' : nothing}
                  data-sf-sortable-item=${configuring ? groupKey : nothing}
@@ -1672,6 +1672,13 @@ function renderHistorySide(context) {
 // boxes this draws (standard simai.smart-component 1.3.8 §5.4, item 25). The
 // same markup is skeleton.html, which a server prints before any code, so the
 // element's first render after the printed skeleton changes nothing.
+// A group is a card on its ground (C20: a card is never darker than what it
+// stands on). In a panel the ground is --sf-surface-area, which in the dark
+// theme is lighter than --sf-surface-page, so the groups took the card role
+// (--sf-surface-card: white in the light theme as before, --sf-surface-2 in the
+// dark one); on a page the group keeps the page's own surface (VB-1, C394).
+const groupSurface = (context) => (context.panel ? 'bg-surface-card' : 'bg-surface-page');
+
 const SKELETON_WIDTHS = ['w-1/3', 'w-2/3', 'w-1/2', 'w-3/4', 'w-2/5'];
 const SKELETON_GROUPS = 3;
 const SKELETON_FIELDS = 3;
@@ -1688,7 +1695,7 @@ function renderLoading(context) {
     // text line before, and the record still moved down by 49px at size 1.
     // The root is not .sf-tabs: that class is the tabs script's to bind.
     const tabs = html`<div class="sf-property-view-tabs sf-property-view-tabs--skeleton" aria-hidden="true" data-sf-skeleton="tabs" data-sections-as=${context.sectionsLayout === 'tabs' ? 'tabs' : 'list'} data-size=${context.size}><div class="sf-tabs-top-container"><div class="sf-property-view-tabs-skeleton-strip flex items-cross-center gap-2">${[0, 1, 2].map((at) => html`<div class="flex-none" style="inline-size: 6rem">${bar(at + 3)}</div>`)}</div></div><div class="sf-tabs-main-container"></div></div>`;
-    return html`${tabs}<div class="sf-property-view-loading flex flex-col gap-4" data-state="loading">${Array.from({length: SKELETON_GROUPS}, (_, group) => html`<section class="sf-property-view-group bg-surface-page flex flex-col gap-2" aria-busy="true"><header class="sf-property-view-group-header flex items-cross-center content-main-between gap-2"><div class="flex-1">${bar(group)}</div></header>${Array.from({length: SKELETON_FIELDS}, (_, field) => bar(group + field + 1))}</section>`)}<span class="sr-only" role="status">${context.message}</span></div>`;
+    return html`${tabs}<div class="sf-property-view-loading flex flex-col gap-4" data-state="loading">${Array.from({length: SKELETON_GROUPS}, (_, group) => html`<section class="sf-property-view-group ${groupSurface(context)} flex flex-col gap-2" aria-busy="true"><header class="sf-property-view-group-header flex items-cross-center content-main-between gap-2"><div class="flex-1">${bar(group)}</div></header>${Array.from({length: SKELETON_FIELDS}, (_, field) => bar(group + field + 1))}</section>`)}<span class="sr-only" role="status">${context.message}</span></div>`;
 }
 
 function renderLoadFailure(context) {
