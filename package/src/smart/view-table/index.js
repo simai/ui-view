@@ -3321,6 +3321,66 @@ class SfTable extends TableElement {
         else table.style.removeProperty('--sf-table--content-inline-size');
     }
 
+    // The host's declared widths are where it would like its columns, not a
+    // floor: where their sum does not fit the box (a list beside a docked
+    // record panel, VT r6, DEV 2026-11-19: 1100 px of declared columns in a
+    // 1024 px box scrolled), each declared column gives back what it holds
+    // above its content width (as measured, up to the cap), in proportion,
+    // before the box scrolls. Only when the content itself does not fit does
+    // the box scroll. A width the person set (colWidth) is not touched, nor
+    // one that is not in pixels. Answers the column's width in pixels, or ''.
+    fittedWidth(column) {
+        if (!column?.key || SYSTEM_COLUMN_KEYS.has(column.key) || column.colWidth != null) return '';
+        // Read once per layout pass (applyColumnWidths) or per render: the
+        // template asks for every column in a row.
+        let fit = this._layoutReads?.get('fit') ?? (this._layoutReads ? null : this._fitCache);
+        if (!fit) {
+            fit = this.readFittedWidths();
+            if (this._layoutReads) this._layoutReads.set('fit', fit);
+            else {
+                this._fitCache = fit;
+                queueMicrotask(() => { this._fitCache = null; });
+            }
+        }
+        const width = fit.get(column.key);
+        return width ? `${width}px` : '';
+    }
+
+    readFittedWidths() {
+        const fitted = new Map();
+        const box = this.refs.scroll?.value?.clientWidth || this._responsiveWidth || 0;
+        if (!box || !this.hasContentWidths) return fitted;
+        const columns = (this.getColumns?.() ?? []).filter((column) => column?.key && column.visible !== false);
+        let total = 0;
+        let slack = 0;
+        const declared = [];
+        for (const cell of this.querySelectorAll('thead th[data-key]')) {
+            if (SYSTEM_COLUMN_KEYS.has(cell.dataset.key)) total += cell.getBoundingClientRect().width;
+        }
+        const cap = this.columnWidthCap();
+        for (const column of columns) {
+            if (SYSTEM_COLUMN_KEYS.has(column.key)) continue;
+            const content = Math.min(this._contentWidths.get(column.key) ?? 0, cap);
+            const own = column.colWidth ?? column.width ?? column.size;
+            const wants = column.colWidth == null ? this.parseColumnSize(own, null) : null;
+            if (wants === null) {
+                total += this.parseColumnSize(own, null) ?? content;
+                continue;
+            }
+            const floor = Math.max(content, this.parseColumnSize(column.min_width ?? column.minWidth, 0) ?? 0);
+            total += wants;
+            if (wants > floor) {
+                declared.push([column.key, wants, wants - floor]);
+                slack += wants - floor;
+            }
+        }
+        const excess = total - box;
+        if (excess <= 0 || !slack) return fitted;
+        const share = Math.min(1, excess / slack);
+        for (const [key, wants, room] of declared) fitted.set(key, Math.floor(wants - room * share));
+        return fitted;
+    }
+
     contentWidth(column) {
         const width = this._contentWidths?.get(column?.key);
         if (!width) return '';

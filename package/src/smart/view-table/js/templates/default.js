@@ -543,7 +543,11 @@ const skeletonBar = (row, column) => html`<div class="sf-skeleton sf-skeleton--a
 // rather than rendering itself again for it (owner, 2026-10-15: a sort was five
 // renders of four hundred elements).
 export function columnStyle(component, column) {
-    const width = toColumnSize(column.colWidth ?? column.width ?? column.size)
+    // A width the host declared gives back what it holds above the column's
+    // content before the box scrolls (fittedWidth); the person's own width
+    // (colWidth) stays as set.
+    const width = (column.colWidth == null ? component?.fittedWidth?.(column) : '')
+            || toColumnSize(column.colWidth ?? column.width ?? column.size)
             || (column.key === 'actions' ? (component?.actionsColumnWidth || 'var(--sf-table--actions-column-width, var(--sf-f0))') : '')
             || component?.contentWidth?.(column)
             // A content-sized table takes no floor: each data column gets its
