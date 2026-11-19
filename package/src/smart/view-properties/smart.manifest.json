@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-properties",
-  "version": "1.22.1",
+  "version": "1.23.0",
   "title": "Property view",
   "summary": "One object's fields shown as sections, groups and fields, each drawn by the per-type field renderer set, behind a separate host port. A group is edited and saved as one revision by the button, and a reference field is picked from the host's own candidates a page at a time. The pair to the data view: that one is a set of records, this one is a single object.",
   "kind": "composite",
@@ -432,8 +432,8 @@
       },
       "panel-size": {
         "type": "string",
-        "default": "1",
-        "description": "How wide the panel is, on the drawer's own ladder.",
+        "default": "2",
+        "description": "How wide the panel is (C396): 1/2, 1 and 2 are the text-measure steps 44, 52 and 64 (352, 416 and 512 px at normal density), full is the whole screen; the record card defaults to 64.",
         "enum": [
           "1/2",
           "1",
@@ -1979,9 +1979,9 @@
       },
       {
         "from": "1.22.0",
-        "to": "1.22.1",
+        "to": "1.23.0",
         "changes": [
-          "Round 6 (round/view-r6, VB-1, owner C394, C20): in a panel a group card takes bg-surface-card (light: white as before; dark: --sf-surface-2 over the panel's --sf-surface-area), on a page it keeps bg-surface-page; the sticky section tabs strip in a panel takes light-dark(--sf-surface-page, --sf-surface-area) over sf-tabs' --sf-surface-page (dark: #1a1b1f instead of #0f1115 on #1a1b1f)."
+          "Round 6 (round/view-r6, VB-1, owner C394, C20): in a panel a group card takes bg-surface-card (light: white as before; dark: --sf-surface-2 over the panel's --sf-surface-area), on a page it keeps bg-surface-page; the sticky section tabs strip in a panel takes light-dark(--sf-surface-page, --sf-surface-area) over sf-tabs' --sf-surface-page (dark: #1a1b1f instead of #0f1115 on #1a1b1f). C396 (WM-7): panel-size 1/2, 1 and 2 draw the drawer at the text-measure steps 44, 52 and 64 (panelWidthStyle writes --sf-drawer-width: var(--sf-measure-N, calc(N * var(--sf-text--size-1) / 2)) on every wide panel below full, plus the sections column and gutter when widened; 352, 416, 512 px at normal density, 308, 364, 448 at compact); the panel-size default is 2 (the record card at 64); a former panel-width still maps by the old 20, 24, 30rem steps."
         ]
       }
     ]
@@ -1992,7 +1992,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-properties/index.js",
-        "sha256": "09f3aaa0d3dfde244b290c9596b0b57973b4859aec208a53a52d308bd6c25072"
+        "sha256": "e6644b2d6ea70a6483e7e73bfe82f206678049b1b9764fca4856826b4646ca8c"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.js",
@@ -2052,7 +2052,7 @@
       },
       {
         "path": "src/smart/view-properties/docs.md",
-        "sha256": "e9b83096bd8de954f843298283d24dc3ac96a0f33770031ab2c65c579d0c2144"
+        "sha256": "a9b548fefeca9ec16b9e571adb456beee6a1cfc29252f9c8f07e3d203215eb7e"
       }
     ],
     "generated_runtime": []

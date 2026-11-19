@@ -136,13 +136,16 @@ try {
 
   // 3. The pinned block: the box, the row menu and the title column, placed
   // from measured widths, holding their place while the rows scroll sideways.
+  // Declared widths shrink toward their content before the rows scroll
+  // (view round 6), so the columns here hold a floor: min_width keeps them at
+  // 240 and the area really scrolls sideways.
   const pinned = await table.evaluate(async () => {
     const element = document.getElementById('t');
     element.setColumns?.([
-      {key: 'name', label: 'Name', role: 'title', width: 240},
-      {key: 'city', label: 'City', width: 240},
-      {key: 'extra', label: 'Extra', width: 240},
-      {key: 'more', label: 'More', width: 240},
+      {key: 'name', label: 'Name', role: 'title', width: 240, min_width: 240},
+      {key: 'city', label: 'City', width: 240, min_width: 240},
+      {key: 'extra', label: 'Extra', width: 240, min_width: 240},
+      {key: 'more', label: 'More', width: 240, min_width: 240},
     ]);
     await new Promise((done) => setTimeout(done, 300));
     const area = element.querySelector('.sf-table-scroll');

@@ -347,11 +347,11 @@
     },
     {
       "unit": "smart.view-properties",
-      "version": "1.22.1",
+      "version": "1.23.0",
       "recorded_on": "2026-11-19",
-      "change": "patch",
-      "consumer": "Nothing to change. In a side panel in the dark theme the section tabs strip and the edited group cards are no longer darker than the panel; the light theme is unchanged.",
-      "summary": "Round 6 (round/view-r6, VB-1, owner C394, C20): in a panel a group card takes bg-surface-card (light: white as before; dark: --sf-surface-2 over the panel's --sf-surface-area), on a page it keeps bg-surface-page; the sticky section tabs strip in a panel takes light-dark(--sf-surface-page, --sf-surface-area) over sf-tabs' --sf-surface-page (dark: #1a1b1f instead of #0f1115 on #1a1b1f).",
+      "change": "minor",
+      "consumer": "The panel widths follow the body text (C396): panel-size 1/2, 1 and 2 are 352, 416 and 512 px at normal density (were 320, 384 and 480), and smaller at compact density. The default panel-size is now 2, so a panel without the attribute is 512 px wide (was 384): a page that wants the former width writes panel-size=\"1\". In a side panel in the dark theme the section tabs strip and the edited group cards are no longer darker than the panel; the light theme is unchanged.",
+      "summary": "Round 6 (round/view-r6, VB-1, owner C394, C20): in a panel a group card takes bg-surface-card (light: white as before; dark: --sf-surface-2 over the panel's --sf-surface-area), on a page it keeps bg-surface-page; the sticky section tabs strip in a panel takes light-dark(--sf-surface-page, --sf-surface-area) over sf-tabs' --sf-surface-page (dark: #1a1b1f instead of #0f1115 on #1a1b1f). C396 (WM-7): panel-size 1/2, 1 and 2 draw the drawer at the text-measure steps 44, 52 and 64 (panelWidthStyle writes --sf-drawer-width: var(--sf-measure-N, calc(N * var(--sf-text--size-1) / 2)) on every wide panel below full, plus the sections column and gutter when widened; 352, 416, 512 px at normal density, 308, 364, 448 at compact); the panel-size default is 2 (the record card at 64); a former panel-width still maps by the old 20, 24, 30rem steps.",
       "evidence": "control/evidence/2026-11-19-view-r6/README.md"
     },
     {

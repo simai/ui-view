@@ -135,7 +135,21 @@ const HISTORY_PAGE = 20;
 // step, and anything wider than the widest step on that step -- Larena's 40rem
 // and ui-admin's 44rem take 30rem. A record that needs more room opens on the
 // whole screen, where its sections stand in a column.
+// A former panel-width was written against the drawer ladder the steps had
+// then (20, 24, 30rem): its length still names the step it meant.
 const PANEL_STEPS = [["1/2", 20], ["1", 24], ["2", 30]];
+
+// The panel's widths follow the body text (C396): panel-size 1/2, 1 and 2
+// are the width steps 44, 52 and 64 of the Framework's text measure, N times
+// half the body text size (352, 416 and 512 px at normal density, 308, 364
+// and 448 at compact). Before the pair that carries --sf-measure-N the same
+// value is computed here from the body text size; after it, the Framework's
+// variable is read. The drawer's own ladder (20, 24, 30rem) is not used.
+const PANEL_MEASURE = {"1/2": 44, "1": 52, "2": 64};
+const panelMeasure = (step) => {
+    const n = PANEL_MEASURE[step] ?? PANEL_MEASURE["2"];
+    return `var(--sf-measure-${n}, calc(${n} * var(--sf-text--size-1) / 2))`;
+};
 const PANEL_WIDTH_UNTIL = "2027-01-01";
 const nearestPanelStep = (width) => {
     const found = /^\s*(\d+(?:\.\d+)?)\s*(rem|em|px)\s*$/u.exec(String(width ?? ""));
@@ -261,7 +275,7 @@ class SfPropertyView extends PropertyViewElement {
             // for a record with a few, and is what the mockup drew first.
             sectionsAs: {attribute: "sections-as", default: "list", values: ["list", "tabs"]},
             panel: {type: Boolean, default: false},
-            panelSize: {attribute: "panel-size", default: "1", values: ["1/2", "1", "2", "full"]},
+            panelSize: {attribute: "panel-size", default: "2", values: ["1/2", "1", "2", "full"]},
             panelLabel: {attribute: "panel-label", default: ""},
             panelWidth: {attribute: "panel-width", default: ""},
             closeLabel: {attribute: "close-label", default: "Close"},
@@ -613,7 +627,7 @@ class SfPropertyView extends PropertyViewElement {
     // step's width, the list's column and the rail's gap. The drawer clamps it
     // to the viewport; below 48rem the panel is the whole screen and the
     // sections a list screen, so every wide window holds it (the widest, step
-    // 2: 30rem + 12rem + a gutter, 43rem).
+    // 2: 64 text steps (32rem at normal density) + 12rem + a gutter, 45rem).
     get panelWidened() {
         if (!this.panel || !this.wide || this.drawerStep === "full" || this.sectionsAs !== "list") return false;
         // Before the record comes its sections are not known: the panel is
@@ -624,9 +638,13 @@ class SfPropertyView extends PropertyViewElement {
         return (this.sections?.length ?? 0) > 1 || this.configuring;
     }
 
+    // The drawer's width: the step's text measure (C396), and with the
+    // section list beside the groups that list's column and the rail's gap.
+    // A whole-screen step keeps the drawer's own 100vi.
     get panelWidthStyle() {
-        if (!this.panelWidened) return "";
-        const step = {"1/2": "var(--sf-g0)", "1": "var(--sf-g2)", "2": "var(--sf-g5)"}[this.drawerStep] ?? "var(--sf-g2)";
+        if (!this.panel || !this.wide || this.drawerStep === "full") return "";
+        const step = panelMeasure(this.drawerStep);
+        if (!this.panelWidened) return ` --sf-drawer-width: ${step};`;
         return ` --sf-drawer-width: calc(${step} + ${SECTIONS_WIDTH} + var(--sf-drawer-gutter, var(--sf-space-1)));`;
     }
 
@@ -680,7 +698,7 @@ class SfPropertyView extends PropertyViewElement {
         const size = this.getAttribute("panel-size");
         if (["1/2", "1", "2", "full"].includes(size)) return size;
         const width = this.panelWidth;
-        return width ? nearestPanelStep(width) : "1";
+        return width ? nearestPanelStep(width) : "2";
     }
 
     // How the sections are laid out (C289 (1), (5); R250; C386): a panel on
@@ -692,7 +710,7 @@ class SfPropertyView extends PropertyViewElement {
     get sectionsLayout() {
         if (!this.wide) return "phone";
         // Arranging on the whole screen keeps the rail of sections beside the
-        // groups, each its own scroller. A narrower panel (20, 24 or 30rem,
+        // groups, each its own scroller. A narrower panel (44, 52 or 64 text steps,
         // less its gutters) cannot hold a rail and fields of 20rem beside it:
         // the rail left the fields 212 px at 30rem and 116 px at 24rem (view
         // round 5, LV-3). There it arranges stacked, as tabs do (C311 (4)):

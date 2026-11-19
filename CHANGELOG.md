@@ -37,9 +37,13 @@ scroll and VB-1 (DEV msg-b137d217, C394 revised).
 - `sf-view-table` 1.27.0: declared column widths shrink toward their
   content before the table scrolls sideways (a list beside a docked record
   panel: 1100 px of columns in a 1024 px box no longer scroll).
-- `sf-view-properties` 1.22.1: in a side panel in the dark theme the
+- `sf-view-properties` 1.23.0: in a side panel in the dark theme the
   section tabs strip and the edited group cards are no longer darker than
-  the panel (C20); the light theme is unchanged.
+  the panel (C20); the light theme is unchanged. The panel widths follow the
+  body text (C396): `panel-size` 1/2, 1 and 2 are the measure steps 44, 52
+  and 64 (352, 416, 512 px at normal density, 308, 364, 448 at compact),
+  read from `--sf-measure-N` once the pair carries it; the default is now 2
+  (512 px, was 384): write `panel-size="1"` for the former default.
 
 ## Unreleased — view round 5
 

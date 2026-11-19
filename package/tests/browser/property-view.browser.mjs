@@ -1528,10 +1528,11 @@ try {
     const wide = measured.width ?? {};
     // Since 1.17.0 (C289 (2)) the panel never takes a width of its own:
     // panel-size names the step, and a former panel-width beside it is not read
-    // (alone it lands on the nearest step). Step 1 is 24rem, 384px.
-    if (wide.painted === null || Math.abs(Number(wide.painted) - 384) > 2) {
+    // (alone it lands on the nearest step). Step 1 is the text measure 52
+    // (C396): 52 x half the body text, 416px at normal density.
+    if (wide.painted === null || Math.abs(Number(wide.painted) - 416) > 2) {
       note({case: 'panel-size names the step; panel-width does not beat it',
-        got: wide.painted, expected: '384 -- step 1, 24rem at the default root size'});
+        got: wide.painted, expected: '416 -- step 1, text measure 52 at normal density'});
     }
     if (wide.titleClipped !== false) {
       note({case: 'a title the consumer asked room for is not cut',

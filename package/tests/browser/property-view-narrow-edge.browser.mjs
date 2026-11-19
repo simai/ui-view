@@ -3,7 +3,8 @@
 // The record panel's controls at narrow widths. Since sf-view-properties
 // 1.17.0 (C289 (2), (6), R254) nothing stands outside the panel: copy-link and
 // open-full are rows of the head's «⋯» menu, and the panel is drawn at a step
-// of the drawer ladder (a former panel-width="44rem" lands on step 2, 30rem).
+// of the panel ladder (a former panel-width="44rem" lands on step 2, the text
+// measure 64, 512px at normal density; C396).
 // The docs review (round 4, 2026-10-20) found the old edge strip half off the
 // screen in a ~1000px frame and over the record's name on a phone. What has to
 // hold at every width: no control on the drawer's edge; each control of the
@@ -150,9 +151,10 @@ try {
     }
     // C386 (view round 5, LV-11): with its sections on the left (a panel's
     // default) the panel is wider by the section column (12rem) and the
-    // drawer gutter, so the fields keep the step's 30rem: 480 + 192 + 16.
-    if (seen.wide && seen.panel && seen.panel.right - seen.panel.left > 689) {
-      note({width, case: 'the panel is drawn at its step (panel-width 44rem lands on 30rem) plus the section column', got: seen.panel, expected: '<= 688 px'});
+    // drawer gutter, so the fields keep the step's text measure 64 (C396):
+    // 512 + 192 + 16.
+    if (seen.wide && seen.panel && seen.panel.right - seen.panel.left > 721) {
+      note({width, case: 'the panel is drawn at its step (panel-width 44rem lands on measure 64) plus the section column', got: seen.panel, expected: '<= 720 px'});
     }
     const off = seen.controls.filter((control) => control.left < 0 || control.right > seen.viewport
       || (seen.panel && (control.left < seen.panel.left || control.right > seen.panel.right)));
