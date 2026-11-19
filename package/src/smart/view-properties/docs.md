@@ -277,13 +277,18 @@ receives.
 
 ## The record card (since 1.17.0, C289)
 
-- The sections are laid out by width: in a panel an underline `sf-tabs` line
-  under the head, the ones that do not fit under «Ещё (n)»; in a panel of size
+- The sections are laid out by place and width: in a panel with
+  `sections-as="tabs"` an underline `sf-tabs` line under the head, the ones
+  that do not fit under «Ещё (n)»; in a panel of size
   `full` (and a wide inline view) the section column at the start; on a phone
   a list of `sf-list` rows, each opening its section with «←» in the head.
-  `sections-as` is read by an inline view only.
+  `sections-as` defaults by place (C386, since 1.22.0): `list` (sections on
+  the left) in a side panel, `tabs` (on top) on a page; a written value wins.
+  A side panel with the list is wider by the section column, so the fields
+  keep the `panel-size` width.
 - The panel is drawn at a step of the `sf-drawer` ladder (`panel-size` 1/2,
-  1, 2 or full) and never grows. `panel-width` is a former name until
+  1, 2 or full); with its sections on the left it is wider by the section
+  column (C386), otherwise it never grows. `panel-width` is a former name until
   2027-01-01: a length is mapped to the nearest step, with a console notice.
 - A record to read is an `sf-list-description`: the label beside the value,
   each group a heading of the list with «Изменить» in it. It has no foot:

@@ -8,7 +8,7 @@
       "version": "1.26.0",
       "kind": "minor",
       "recorded_on": "2026-11-19",
-      "consumer": "Nothing to change. In the list head only Создать is filled; Фильтр is outlined and tonal while conditions are set. On a phone the list head has the table settings button that opens the same panel as the desktop gear. The View tab shows the density in effect: compact on a compact page; choosing another draws the table in it.",
+      "consumer": "Nothing to change. In the list head only Создать is filled; Фильтр is outlined and tonal while conditions are set. On a phone the list head has the table settings button that opens the same panel as the desktop gear. The View tab shows the density in effect: compact on a compact page; choosing another draws the table in it. The filter button carries the name of the open saved filter (C388, C301 (3)).",
       "evidence": "control/evidence/2026-11-19-view-r5/README.md"
     },
     {
@@ -3021,7 +3021,7 @@
           "from": "1.25.2",
           "to": "1.26.0",
           "changes": [
-            "Round 5 (round/view-r5): LV-4 Фильтр and its saved-filter segment are outline on-surface (tonal primary while conditions are set), Сохранить tonal, Создать and its arrow default primary, the phone filter and sort icons tonal while active and + filled (C301); LV-6 renderListToolbar draws a settings button (sf-table-list-settings) that calls toggleTableSettings, the method the desktop gear now calls too; LV-8 storedViewDensity, areaDensity and shownViewDensity: the View tab's density shows the stored choice or the area's density (C22), and a choice other than compact in a compact area draws the table as a normal-density island (data-sf-density=normal, C79)."
+            "Round 5 (round/view-r5): LV-4 Фильтр and its saved-filter segment are outline on-surface (tonal primary while conditions are set), Сохранить tonal, Создать and its arrow default primary, the phone filter and sort icons tonal while active and + filled (C301); LV-6 renderListToolbar draws a settings button (sf-table-list-settings) that calls toggleTableSettings, the method the desktop gear now calls too; LV-8 storedViewDensity, areaDensity and shownViewDensity: the View tab's density shows the stored choice or the area's density (C22), and a choice other than compact in a compact area draws the table as a normal-density island (data-sf-density=normal, C79). LV-13 (C388, C301 (3)): filterName, the open saved filter's label (not the default one), is the filter button's text."
           ]
         }
       ]

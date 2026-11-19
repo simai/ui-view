@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view",
-  "version": "1.23.3",
+  "version": "1.24.0",
   "title": "Data view",
   "summary": "Host-driven data view that composes toolbar, content and pagination around a separate data port.",
   "kind": "composite",
@@ -1881,9 +1881,9 @@
       },
       {
         "from": "1.23.2",
-        "to": "1.23.3",
+        "to": "1.24.0",
         "changes": [
-          "DEV's open item B2 (round/view-r5): calendarQuery leaves window.date_field out until the date field is named, and acceptCalendar no longer asks the same range a second time with the field the first answer named (_calendarAskWithField and the refresh('calendar-range') step are gone). One range query per window."
+          "DEV's open item B2 (round/view-r5): calendarQuery leaves window.date_field out until the date field is named, and acceptCalendar no longer asks the same range a second time with the field the first answer named (_calendarAskWithField and the refresh('calendar-range') step are gone). One range query per window. LV-12 (C388): the view writes page-sizes=\"10,20,50,100\" (VIEW_PAGE_SIZES, marked data-sf-view-page-sizes) on a page row that has none."
         ]
       }
     ]

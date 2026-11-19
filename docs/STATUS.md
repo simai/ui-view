@@ -56,7 +56,7 @@ Every remote branch ahead of `main`, with the release that takes it.
 
 | Branch | Release that takes it |
 |---|---|
-| `round/view-r5` | view round 5 (from `main` 882bd57, view 1.9.0): DEV's open items B1-B3 and the list study order LV-2..LV-9 (sf-view 1.23.3, sf-view-table 1.26.0, sf-view-properties 1.22.0, sf-view-board 1.1.2); the next view release |
+| `round/view-r5` | view round 5 (from `main` 882bd57, view 1.9.0): DEV's open items B1-B3 and the list study order LV-2..LV-13 (sf-view 1.24.0, sf-view-table 1.26.0, sf-view-properties 1.22.0, sf-view-board 1.1.2); the next view release |
 | `round/view-r5-shadow-menu` | view round 5: sf-view-table 1.25.2 (DEV msg-b353fce8), merged into `round/view-r5` |
 | `round/view-r1` | view 1.9.0 (the round) |
 | `round/view-r4` | view round 4: the dispatcher's merge of `round/view-returns` 50f0639, `round/view-cards` ae80702 and `round/view-calendar` 454f86e, with view-config/1 calendar and cards keys, C311 (5) and the list head filter window (C310); the next view release |

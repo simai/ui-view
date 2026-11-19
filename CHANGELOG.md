@@ -19,7 +19,7 @@ up). Each component.json says the same under `x-decisions`
 ## Unreleased — view round 5
 
 Over `view` 1.9.0 (round/view-r5, not released yet): DEV's open items B1-B3
-and the list study order LV-2..LV-9 (V1, V5, V7 not built).
+and the list study order LV-2..LV-13 (V1, V5, V7 and the record window not built; LV-14 is the Framework's).
 
 - `sf-view-table` 1.25.2: a table in sf-view's shadow root opens its row
   menu through SIMAI Framework sf-menu-context 1.27.0 (`for` given the
@@ -41,7 +41,14 @@ and the list study order LV-2..LV-9 (V1, V5, V7 not built).
   a late shift (B3).
 - `sf-view-board` 1.1.2: the column head buttons stand 8 apart, the gap of
   one button group (B1).
-- `sf-view` 1.23.3: the calendar asks its range once (B2).
+- `sf-view` 1.24.0: the calendar asks its range once (B2); the footer's
+  page size menu offers 10, 20, 50 and 100 (C388, LV-12).
+- C386 (LV-10, LV-11), `sf-view-properties` 1.22.0: the sections default to
+  a list on the left in a side panel and to tabs on top on a page; a written
+  `sections-as` wins. A side panel with the list is wider by it, so the
+  fields keep the `panel-size` width.
+- C388 (LV-13), `sf-view-table` 1.26.0: «Фильтр» carries the name of the
+  open saved filter.
 
 ## 1.9.0 — 2026-11-19
 
