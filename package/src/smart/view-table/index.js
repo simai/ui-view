@@ -534,19 +534,7 @@ class SfTable extends TableElement {
                     icon: "settings",
                     ariaLabel: this.text("settingsColumnLabel"),
                     value: "settings",
-                    // The gear opens the window and closes it again.
-                    // One click reaches this twice (the button, then its host), so
-                    // only a later click closes what this one opened.
-                    '@click': (e) => {
-                        const open = this.state.contextMenu?.open && this.state.contextMenu?.menu === 'table-settings';
-                        if (open && e.timeStamp - (this._settingsOpenedAt ?? 0) > 200) {
-                            this.closeContextMenu();
-                            return;
-                        }
-                        if (open) return;
-                        this._settingsOpenedAt = e.timeStamp;
-                        this.openContextMenu(e, {menu: 'table-settings'})
-                    }
+                    '@click': (e) => this.toggleTableSettings(e)
                 },
             },
         };
@@ -5199,6 +5187,21 @@ class SfTable extends TableElement {
     // «Сбросить» puts back the fields as the window opened with them, or the
     // view's defaults, by the tab it stands on. The panel takes its density
     // from the gear (C22); a size is passed only when the host wrote one.
+    // The gear opens the column settings and closes them again: the gear in
+    // the head of the row-menu column, and on a phone the list toolbar's own
+    // (view round 5, LV-6). One click reaches this twice (the button, then its
+    // host), so only a later click closes what this one opened.
+    toggleTableSettings(e) {
+        const open = this.state.contextMenu?.open && this.state.contextMenu?.menu === 'table-settings';
+        if (open && e.timeStamp - (this._settingsOpenedAt ?? 0) > 200) {
+            this.closeContextMenu();
+            return;
+        }
+        if (open) return;
+        this._settingsOpenedAt = e.timeStamp;
+        this.openContextMenu(e, {menu: 'table-settings'});
+    }
+
     renderTableSettingsContextMenu(data) {
         return html`
             <sf-settings
@@ -5245,7 +5248,7 @@ class SfTable extends TableElement {
                 {id: "columns", type: "fields", text: this.text("settingsFieldsTab"), sortable: true, pinnable: true, options},
             ]},
             {type: "group", text: this.text("settingsViewTab"), items: [
-                {id: "density", type: "choice", text: this.text("viewDensity"), value: view.density,
+                {id: "density", type: "choice", text: this.text("viewDensity"), value: this.shownViewDensity,
                     options: Object.entries(density).map(([id, word]) => ({id, text: this.text(word)}))},
                 toggle("lines", "viewLines"),
                 toggle("singleLine", "viewSingleLine"),
@@ -5821,11 +5824,55 @@ class SfTable extends TableElement {
         return {...TABLE_VIEW_DEFAULTS, ...general, ...own};
     }
 
+    // The density a person chose in the gear's «Вид», or none.
+    get storedViewDensity() {
+        const key = this.viewPreferenceKey;
+        const general = preferences()?.read(GENERAL_TABLE_PREFERENCE)?.view ?? {};
+        const own = key ? preferences()?.read(key)?.view ?? {} : this._sessionView ?? {};
+        const density = own.density ?? general.density;
+        return ["compact", "normal", "spacious"].includes(density) ? density : null;
+    }
+
+    // The density of the area the table stands in (C22): the nearest
+    // data-sf-density above it, across shadow roots; the table's own island
+    // (below) is not read.
+    get areaDensity() {
+        let node = this.parentElement ?? this.getRootNode?.()?.host ?? null;
+        while (node) {
+            const area = node.closest?.("[data-sf-density]");
+            if (area) return area.getAttribute("data-sf-density") === "compact" ? "compact" : "normal";
+            node = node.getRootNode?.()?.host ?? null;
+        }
+        return "normal";
+    }
+
+    // The density «Вид» shows: the person's choice, else the one in effect
+    // (view round 5, LV-8, C22). A table on a compact page draws compact rows
+    // and said «Обычно».
+    get shownViewDensity() {
+        return this.storedViewDensity ?? this.areaDensity;
+    }
+
     applyTableView() {
         const view = this.tableView;
         const flag = (name, on) => (on ? this.setAttribute(name, "") : this.removeAttribute(name));
-        if (view.density === "normal") this.removeAttribute("data-sf-view-density");
-        else this.setAttribute("data-sf-view-density", view.density);
+        // The rows by the density shown. In a compact area «Компактно» is the
+        // area's own; «Обычно» returns the table to the normal step, the C79
+        // island (data-sf-density="normal" on the table, written and removed
+        // by the table only); «Просторно» adds the rows' spacious step to it.
+        const density = this.shownViewDensity;
+        const compactArea = this.areaDensity === "compact";
+        const island = compactArea && density !== "compact";
+        if (island && !this.hasAttribute("data-sf-density")) {
+            this.setAttribute("data-sf-density", "normal");
+            this.setAttribute("data-sf-view-density-island", "");
+        } else if (!island && this.hasAttribute("data-sf-view-density-island")) {
+            this.removeAttribute("data-sf-density");
+            this.removeAttribute("data-sf-view-density-island");
+        }
+        const rows = compactArea ? (density === "spacious" ? "spacious" : "normal") : density;
+        if (rows === "normal") this.removeAttribute("data-sf-view-density");
+        else this.setAttribute("data-sf-view-density", rows);
         // Zebra is the author's (C146 (4)): a person's stored choice is no
         // longer read.
         flag("data-sf-view-stripes", this.hasAttribute("stripes") && this.getAttribute("stripes") !== "false");

@@ -157,6 +157,10 @@ const DRAWN_TAGS = [
     "sf-popover", "sf-form", "sf-list-timeline", "sf-menu",
 ];
 
+// The parts only the arranging mode and the select-only chooser draw (C311):
+// asked for once the card knows it may arrange, before the mode is entered.
+const ARRANGING_TAGS = ["sf-profile-picker", "sf-sortable"];
+
 // How long the copy control shows its tick. The Framework's own clipboard holds
 // its tick for this long, and two controls that say «copied» for two different
 // lengths are two conventions where there is one act.
@@ -660,9 +664,13 @@ class SfPropertyView extends PropertyViewElement {
     // panel) a wide page keeps `sections-as`.
     get sectionsLayout() {
         if (!this.wide) return "phone";
-        // Arranging keeps the rail of sections beside the groups, each its own
-        // scroller, in a panel of any step: the sections are dragged there.
-        if (this.panel) return this.drawerStep === "full" || this.configuring ? "column" : "tabs";
+        // Arranging on the whole screen keeps the rail of sections beside the
+        // groups, each its own scroller. A narrower panel (20, 24 or 30rem,
+        // less its gutters) cannot hold a rail and fields of 20rem beside it:
+        // the rail left the fields 212 px at 30rem and 116 px at 24rem (view
+        // round 5, LV-3). There it arranges stacked, as tabs do (C311 (4)):
+        // the picker, «Вкладки» (dragged as before), then the fields.
+        if (this.panel) return this.drawerStep === "full" ? "column" : "tabs";
         return this.sectionsAs === "tabs" ? "tabs" : "column";
     }
 
@@ -774,6 +782,27 @@ class SfPropertyView extends PropertyViewElement {
         const cards = openLayers("panel").filter((owner) => owner?.parentElement?.localName === this.localName);
         const at = cards.indexOf(own);
         return at === -1 ? cards.length === 0 : at === 0;
+    }
+
+    // A docked panel is a column of the page only where something gives it the
+    // room: the element marked data-sf-drawer-dock-host pads itself by the
+    // panel's width (sf-drawer). sf-view marks itself when it opens a record in
+    // its record-card; a panel the page opened by itself (Larena's lists, the
+    // admin list study: row-open="row" and the page places the card) found no
+    // host, so it stood over the list's end -- the last column and the pages
+    // under it (view round 5, LV-2; C305 (4): the list stays usable). With no
+    // host on the page the panel marks one as it opens: the sf-view whose
+    // record-card names it, else the page's only sf-view, else its own parent.
+    _dockBeside() {
+        const docked = this.docked;
+        const document = globalThis.document;
+        if (!docked || !this.panelOpen || !document || document.querySelector("[data-sf-drawer-dock-host]")) return docked;
+        const views = [...document.querySelectorAll("sf-view")];
+        const host = (this.id ? views.find((view) => view.getAttribute("record-card") === this.id) : null)
+            ?? (views.length === 1 ? views[0] : null)
+            ?? (this.parentElement && this.parentElement !== document.documentElement ? this.parentElement : null);
+        host?.setAttribute("data-sf-drawer-dock-host", "");
+        return docked;
     }
 
     // What the drawer is told to be. `size` is a ladder and its widest step short
@@ -1440,6 +1469,23 @@ class SfPropertyView extends PropertyViewElement {
         Promise.resolve(loader.ensure([...missing], {timeout: 10000})).catch(() => null);
     }
 
+    // The arranging mode's own parts (C311): the view picker and the lists
+    // that drag. They are lazy relations, asked for only once the mode drew
+    // them, so the picker came about a hundred milliseconds after the mode and
+    // the hint beside it moved once it did (view round 5, DEV's carried item
+    // «arranging a card shifts the layout once»). A card that may arrange, or
+    // that shows the select-only chooser, asks for them as soon as it knows,
+    // and the mode's first frame is its whole picture.
+    _askForArrangingTags() {
+        if (this._arrangingAsked || !(this.canConfigureView || this.viewProfiles.length > 1)) return;
+        this._arrangingAsked = true;
+        const registry = globalThis.customElements;
+        const loader = globalThis.SF?.Loader;
+        if (typeof registry?.get !== "function" || typeof loader?.ensure !== "function") return;
+        const missing = ARRANGING_TAGS.filter((tag) => !registry.get(tag));
+        if (missing.length) Promise.resolve(loader.ensure(missing, {timeout: 10000})).catch(() => null);
+    }
+
     onConnected() {
         super.onConnected?.();
         this._notePanelWidth();
@@ -1534,6 +1580,7 @@ class SfPropertyView extends PropertyViewElement {
                 Promise.resolve().then(() => this.loadHistory()).finally(() => { this._sideAsked = false; });
             }
             this._askForUndefinedTags();
+            this._askForArrangingTags();
             // The panel's level for a related record (C289 (6)): whether this
             // panel's drawer is drawn inside another one is known once it is open.
             const nested = this._nestedLabel();
@@ -2273,7 +2320,7 @@ class SfPropertyView extends PropertyViewElement {
             historyOpen: this.historyOpen && !this.historySide,
             historySide: this.historySide,
             history: this.historyFeed,
-            docked: this.docked,
+            docked: this._dockBeside(),
             dockBreakpoint: DOCK_BREAKPOINT,
             // VP-26: sf-tabs vertical once it places its box by its own column;
             // until then sf-menu, and sf-tabs where sf-menu is not defined.
@@ -2685,7 +2732,20 @@ class SfPropertyView extends PropertyViewElement {
         const panel = root?.querySelector?.("[data-sf-drawer-panel]");
         const title = panel?.querySelector?.(".sf-property-view-panel .sf-property-view-title");
         const active = document.activeElement;
-        if (!panel || !title || !active || !panel.contains(active)) return;
+        if (!panel || !title || !active) return;
+        // A docked column hands out no focus (sf-drawer: it is a part of the
+        // page, not a window), so the focus stayed on the row that opened it
+        // and the record was not reached from the keyboard (view round 5,
+        // LV-9). The title takes it, as a window's does; a person typing in a
+        // field outside keeps it. The ring is drawn for the keyboard only
+        // (:focus-visible), and nothing with a tooltip is focused.
+        if (!panel.contains(active)) {
+            if (!drawer?.dockColumn || active.closest?.("input, textarea, select, [contenteditable], sf-input, sf-select, sf-textarea")) return;
+            this._endTitleFocus();
+            title.tabIndex = -1;
+            title.focus({preventScroll: true});
+            return;
+        }
         if (active.closest?.("input, textarea, select, [contenteditable], sf-input, sf-select, sf-textarea")) return this._endTitleFocus();
         if (active !== panel && active !== drawer?.firstFocusIn?.(panel)) return this._endTitleFocus();
         this._endTitleFocus();

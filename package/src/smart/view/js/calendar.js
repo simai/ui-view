@@ -65,12 +65,12 @@ export function calendarQuery(view, query, extra = null) {
     const calendar = calendarOf(view);
     const window = calendar && typeof calendar.window === "object" && calendar.window?.date_field ? copy(calendar.window) : defaultWindow(view);
     query.window = {...window, ...(extra ?? {})};
-    // Never a null date field: a range asked before the field is known is
-    // asked again once layouts.calendar has named it (VCL-2).
-    if (!query.window.date_field) {
-        delete query.window.date_field;
-        if (query.window.range) view._calendarAskWithField = true;
-    }
+    // Never a null date field (VCL-2): a range asked before the field is known
+    // goes without it, and the host answers it by its own date field, the one
+    // its layouts.calendar names. That answer stands; the next ranges carry the
+    // field. One query, not two (view round 5: the range was asked again once
+    // the first answer had named the field).
+    if (!query.window.date_field) delete query.window.date_field;
     query.context = contextOf(view);
     delete query.page;
     delete query.per_page;
@@ -82,10 +82,6 @@ export function acceptCalendar(view, data) {
     if (view.layoutKind !== "calendar") return;
     const layouts = data.view_config?.layouts ?? data.layouts;
     if (layouts?.calendar && typeof layouts.calendar === "object") view._calendarHostOptions = copy(layouts.calendar);
-    if (view._calendarAskWithField && calendarOptionsOf(view).date_field) {
-        view._calendarAskWithField = false;
-        queueMicrotask(() => { if (view.isConnected && view.layoutKind === "calendar") view.refresh?.("calendar-range"); });
-    }
     if (data.context && typeof data.context === "object") view._calendarContext = copy(data.context);
     if (data.rules && typeof data.rules === "object") {
         const dateField = calendarOptionsOf(view).date_field;

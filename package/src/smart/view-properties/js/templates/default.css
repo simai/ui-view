@@ -363,8 +363,29 @@
      grid step of 20rem, not zero, so the two floors came to 42rem inside a 40rem
      panel and a sectioned record was clipped at the drawer's edge. Both floors
      are gone; the list keeps a width of its own and a long name wraps in it. */
+  /* View round 5 (LV-3, DEV's order from the admin list study): the list of
+     sections takes the width of its names (content-fit), up to the column's
+     width (--sf-view-properties-sections-width, 12rem), and the fields take
+     the rest. It had the whole 12rem whatever the names, so in a 30rem panel
+     the fields were left 212 px and in a 24rem one 116 px. Where the fields
+     would keep less than 20rem beside it, the fields go under the list
+     (flex-wrap, the body's basis) rather than shrinking; a panel narrower than
+     the whole screen arranges stacked (sectionsLayout). */
   .sf-property-view-sections {
-    flex: 0 0 var(--sf-property-view--sections-width);
+    flex: 0 1 auto;
+    inline-size: max-content;
+    min-inline-size: 0;
+    max-inline-size: var(--sf-property-view--sections-width);
+  }
+
+  .sf-property-view-layout:not([data-stacked="true"]) {
+    flex-wrap: wrap;
+    row-gap: var(--sf-space-3);
+  }
+
+  .sf-property-view-layout > .sf-property-view-body {
+    flex: 1 1 var(--sf-g0);
+    min-inline-size: 0;
   }
 
 
@@ -995,6 +1016,17 @@
     flex: 1 1 auto;
   }
 
+  /* The title takes the focus when the panel opens (LV-9): a ring for the
+     keyboard only. */
+  .sf-property-view-title:focus {
+    outline: none;
+  }
+
+  .sf-property-view-title:focus-visible {
+    outline: var(--sf-focus--width) var(--sf-focus--style) var(--sf-focus--color);
+    outline-offset: var(--sf-focus--offset);
+  }
+
   .sf-property-view-title {
     margin: 0;
     /* A panel's title is on the window step (C157 (7) = C159 (5): h4, 20/24,
@@ -1274,7 +1306,7 @@
   }
 
   .sf-property-view-sections {
-    flex-basis: var(--sf-view-properties-sections-width, var(--sf-property-view--sections-width, 12rem));
+    max-inline-size: var(--sf-view-properties-sections-width, var(--sf-property-view--sections-width, 12rem));
   }
 
   /* The row being edited in its window, and the fields a save just wrote. */

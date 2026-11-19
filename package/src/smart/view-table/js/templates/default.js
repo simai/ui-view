@@ -38,6 +38,12 @@ function renderListToolbar(context) {
     const filterTags = context.component.getCurrentFilterTags();
     const filterValues = context.component.getCurrentFilterValues();
     const active = Object.entries(filterTags || {}).filter(([, tag]) => tag?.active !== false);
+    // The column settings on a phone (view round 5, LV-6): the desktop's gear
+    // stands in the head of the row-menu column, which a list has not, so the
+    // same gear stands here with the filter and the sort -- the view's own
+    // controls (C301 (1): settings of the view over the list, not by «Создать»).
+    const gear = context.settings !== false && context.settingsMenu !== false;
+    const sortable = context.component.getColumns().some((column) => column?.sortable && !column.system);
     return html`
         <div class="sf-table-toolbar sf-table-toolbar--list flex flex-col gap-1/3 flex-none"
              data-sf-filter-tags="${active.length ? '1' : '0'}">
@@ -60,15 +66,15 @@ function renderListToolbar(context) {
                 <!-- C144: filter and sort are one group of neighbours (H5,
                      --sf-space-1/3); the field before them and «Создать»
                      after them stand a group apart (H6, --sf-space-1). -->
-                ${context.component.offersFilter(active.length) || context.component.getColumns().some((column) => column?.sortable && !column.system) ? html`<div class="sf-table-list-view-buttons flex items-cross-center gap-1/3">
+                ${context.component.offersFilter(active.length) || sortable || gear ? html`<div class="sf-table-list-view-buttons flex items-cross-center gap-1/3">
                 ${context.component.offersFilter(active.length) ? html`<span class="sf-table-list-filter">
                     <!-- The count of active conditions is the icon's own badge
                          (sf-button-icon badge-count, simai/ui-source#12): it
                          joins the button's name in the page language. -->
                     <sf-button-icon
                             size=${context.controlSize ?? nothing}
-                            appearance=${active.length ? 'default' : 'outline'}
-                            scheme="primary"
+                            appearance=${active.length ? 'tonal' : 'outline'}
+                            scheme=${active.length ? 'primary' : 'on-surface'}
                             icon="filter_list"
                             badge-count=${active.length || nothing}
                             badge-label=${active.length ? context.component.text('filterBadgeLabel') : nothing}
@@ -76,22 +82,33 @@ function renderListToolbar(context) {
                             @click=${(e) => context.component.openContextMenu(e, {type: 'bottom', menu: 'filter-settings'})}
                     ></sf-button-icon>
                 </span>` : nothing}
-                ${context.component.getColumns().some((column) => column?.sortable && !column.system) ? html`
+                ${sortable ? html`
                     <sf-button-icon
                             size=${context.controlSize ?? nothing}
-                            appearance=${state.sort?.key ? 'default' : 'outline'}
+                            appearance=${state.sort?.key ? 'tonal' : 'outline'}
                             scheme=${state.sort?.key ? 'primary' : 'on-surface'}
                             icon="swap_vert"
                             aria-label=${context.component.text('sortLabel')}
                             aria-haspopup="menu"
                             @click=${(e) => context.component.openContextMenu(e, {type: 'bottom', menu: 'list-sort'})}
                     ></sf-button-icon>` : nothing}
+                ${gear ? html`
+                    <sf-button-icon
+                            class="sf-table-list-settings"
+                            size=${context.controlSize ?? nothing}
+                            appearance="outline"
+                            scheme="on-surface"
+                            icon="settings"
+                            aria-label=${context.component.text('settingsColumnLabel')}
+                            aria-haspopup="dialog"
+                            @click=${(e) => context.component.toggleTableSettings(e)}
+                    ></sf-button-icon>` : nothing}
                 </div>` : nothing}
                 ${context.actions && context.creatable ? html`
                     <sf-button-icon
                             size=${context.controlSize ?? nothing}
-                            appearance="outline"
-                            scheme="on-surface"
+                            appearance="default"
+                            scheme="primary"
                             icon="add"
                             aria-label=${context.createText}
                             @click=${(e) => (state.createItems?.length
@@ -141,10 +158,12 @@ function renderToolbar(context) {
         >
             <div class="sf-table-toolbar-start flex items-cross-center gap-1/3 flex-wrap min-w-0">
                 ${context.component.offersFilter(activeFilterTags.length) ? html`<div class="flex items-cross-center">
+                    <!-- C301 (3): only «Создать» is filled; «Фильтр» has an
+                         outline, and a tone while conditions are set. -->
                     <sf-button
                             size=${context.controlSize ?? nothing}
-                            appearance="default"
-                            scheme="primary"
+                            appearance=${activeFilterTags.length ? 'tonal' : 'outline'}
+                            scheme=${activeFilterTags.length ? 'primary' : 'on-surface'}
                             text=${context.filterText}
                             segment=${context.filterTemplates ? 'start' : nothing}
                             icon-start="filter_list"
@@ -158,8 +177,8 @@ function renderToolbar(context) {
                     ${context.filterTemplates ? html`
                     <sf-button-icon
                             size=${context.controlSize ?? nothing}
-                            appearance="default"
-                            scheme="primary"
+                            appearance=${activeFilterTags.length ? 'tonal' : 'outline'}
+                            scheme=${activeFilterTags.length ? 'primary' : 'on-surface'}
                             aria-label=${context.component.text('saveFilterTemplateLabel')}
                             ?disabled=${!activeFilterTags.length}
                             segment="end"
@@ -219,7 +238,7 @@ function renderToolbar(context) {
                     ${hasUnsavedFilterDataChanges ? html`
                         <sf-button
                                 size=${context.controlSize ?? nothing}
-                                appearance="default"
+                                appearance="tonal"
                                 scheme="primary"
                                 text=${context.component.text('saveText')}
                                 @click="${() => context.component.saveCurrentFilterTemplateData()}"
@@ -277,8 +296,8 @@ function renderToolbar(context) {
                             <div class="flex items-cross-center">
                                 <sf-button
                                         size=${context.controlSize ?? nothing}
-                                        appearance="outline"
-                                        scheme="on-surface"
+                                        appearance="default"
+                                        scheme="primary"
                                         text=${context.createText}
                                         segment=${state.createItems?.length ? 'start' : nothing}
                                         @click=${() => context.component.requestCreateIntent(null)}
@@ -286,8 +305,8 @@ function renderToolbar(context) {
                                 ${state.createItems?.length ? html`
                                     <sf-button-icon
                                             size=${context.controlSize ?? nothing}
-                                            appearance="outline"
-                                            scheme="on-surface"
+                                            appearance="default"
+                                            scheme="primary"
                                             segment="end"
                                             icon="keyboard_arrow_down"
                                             aria-label=${context.component.text('createMoreLabel')}
