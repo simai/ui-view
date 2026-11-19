@@ -616,6 +616,11 @@ class SfPropertyView extends PropertyViewElement {
     // 2: 30rem + 12rem + a gutter, 43rem).
     get panelWidened() {
         if (!this.panel || !this.wide || this.drawerStep === "full" || this.sectionsAs !== "list") return false;
+        // Before the record comes its sections are not known: the panel is
+        // drawn wide from its first frame, so a sectioned record does not
+        // widen it under the person (first paint gate); a record of one
+        // section takes the step's width when it comes.
+        if (!this.record) return true;
         return (this.sections?.length ?? 0) > 1 || this.configuring;
     }
 

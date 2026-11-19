@@ -1985,7 +1985,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-properties/index.js",
-        "sha256": "ddd239941410a74654a7affb147f18febcd34357e800677c3702b8e991ee2d13"
+        "sha256": "09f3aaa0d3dfde244b290c9596b0b57973b4859aec208a53a52d308bd6c25072"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.js",
