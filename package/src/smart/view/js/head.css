@@ -105,7 +105,8 @@
    toggleAppearance). The subset icon font's .sf-icon rule reads only the
    private --sf-icon--fill (TG-2), so it is set too. */
 .sf-view-head-zone-toggle--own { --sf-icon-fill: 0; }
-.sf-view-head-zone-toggle--own .sf-icon-button .sf-icon.sf-icon { --sf-icon--fill: 0; }
+/* The pressed rules set it at (0,5,0): one step over them. */
+.sf-view-head-zone-toggle--own .sf-icon-button.sf-icon-button.sf-icon-button.sf-icon-button .sf-icon.sf-icon { --sf-icon--fill: 0; }
 .sf-view-head-zone-toggle--own .sf-icon-button.sf-icon-button.sf-icon-button.sf-icon-button.sf-icon-button--pressed {
   box-shadow: inset 0 0 0 var(--sf-px) var(--sf-primary);
 }
