@@ -366,7 +366,7 @@ export class ListHead {
                </div>`;
         const zone = this.root.querySelector("[data-zone]");
         zone.id = `sf-view-head-zone-${++ZONE_IDS}`;
-        this.root.querySelector("[data-zone-toggle]")?.setAttribute("aria-controls", zone.id);
+        this.root.querySelector("sf-button-icon.sf-view-head-zone-toggle")?.setAttribute("aria-controls", zone.id);
         // The windows' drawers carry a role (data-sf-role): their path ids are
         // then sf-view's own (…/head-sheet). Counted among the
         // page's drawers by document order, the head's first drawer took the
@@ -514,7 +514,8 @@ export class ListHead {
     }
 
     _renderZone(one, set) {
-        const toggle = one("[data-zone-toggle]");
+        // sf-button-icon hands its data-* to the button it draws: the host by its class.
+        const toggle = one("sf-button-icon.sf-view-head-zone-toggle");
         const zone = one("[data-zone]");
         const useful = this.zoneUseful;
         const open = useful && this.zoneOpen;
