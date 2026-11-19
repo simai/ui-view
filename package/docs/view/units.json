@@ -5,6 +5,15 @@
   "entries": [
     {
       "unit": "smart.view",
+      "version": "1.26.0",
+      "recorded_on": "2026-11-20",
+      "change": "minor",
+      "consumer": "Nothing to change for a host. With head=\"list\" a view's filter fields (settings.filter_fields) are put on the head row when it opens, and the default view's from the first answer, whether or not the host echoes filters_chosen; a view that keeps none no longer inherits the fields of the view left. Adding or removing a field of a shared or system view that keeps its fields marks it changed. A board and cards say their count in the footer («1–80 из 120», sf-pagination's range words); host attribute data-sf-view-footer-count while they do.",
+      "summary": "Round 7 (round/view-r7, VS-8, board and cards count; views study e072e2ab): js/head.js chosen falls back to the open view's settings.filter_fields (with the fields of its conditions) when the query has no filters_chosen; _openSavedView writes the view's fields as filters_chosen (or drops the previous ones); viewChanged compares the view's fields with the chosen ones. index.js _drawCountFooter: for layout board and cards the footer start shows the range of the records on screen of view.total in sf-pagination's words (range, range-many, read under sf-pagination; the page size and count offer hidden), the host attribute data-sf-view-footer-count keeps the footer part drawn without a page row; nothing before the first answer, for an empty, failed or refused list or with chrome without pagination.",
+      "evidence": "control/evidence/2026-11-20-view-r7/README.md"
+    },
+    {
+      "unit": "smart.view",
       "version": "1.25.0",
       "recorded_on": "2026-11-19",
       "change": "minor",

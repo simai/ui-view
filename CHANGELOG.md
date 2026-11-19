@@ -16,6 +16,21 @@ same numbers with other content); every next set version is above them
 up). Each component.json says the same under `x-decisions`
 `pro-copy-versions`.
 
+## Unreleased — view round 7
+
+Over round 6 (round/view-r7 from round/view-r6 a237bbd, not released yet):
+VS-8 of the views study (prototypes/views-switcher-study.html) and the count
+of a board and cards.
+
+- `sf-view` 1.26.0: with the list head a view's filter fields
+  (`settings.filter_fields`) are on the head row as soon as it opens, and the
+  default view's from the first answer, whether or not the host echoes
+  `filters_chosen`; going back to a view no longer keeps the fields of the
+  view left. Adding or removing a field of a system or shared view marks it
+  changed. A board and cards have no page row, yet the footer says how many:
+  «1–80 из 120», the records on screen of all the host counted, in the table
+  footer's words (sf-pagination `range`, `range-many`).
+
 ## Unreleased — view round 6
 
 Over round 5 (round/view-r6 from round/view-r5 279c7f5, not released yet):

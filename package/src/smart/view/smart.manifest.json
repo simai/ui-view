@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view",
-  "version": "1.25.0",
+  "version": "1.26.0",
   "title": "Data view",
   "summary": "Host-driven data view that composes toolbar, content and pagination around a separate data port.",
   "kind": "composite",
@@ -1892,6 +1892,13 @@
         "changes": [
           "Round 6 (round/view-r6, VZ-1, owner C393, C394, views study option D): js/head.js draws the title row with the name only (data-count gone), the view toggle first in the head row (sf-button-icon, name and tooltip «Представление: <name>», badge-dot while the open view has unsaved changes, glyph tinted while a view other than the default is open, pressed and aria-expanded while the zone is open; appearance toggle where the page's sheets carry sf-icon-button--toggle, else the own look .sf-view-head-zone-toggle--own with the same tokens), the view zone (.sf-view-head-zone, --sf-outline-variant 1 px, --sf-radius--surface) with the views button (menu by level system / shared / personal with headings), sf-segmented of the kinds, Настроить вид and Изменено (state window: unsaved or mine note, save for everyone, save as new, reset); its open state in SF.Preferences (viewZone) read by keptPreferences, and the first-paint skeleton holds the zone row while it is kept open. «⋯» moved to the head row end. A page row without appearance takes --sf-pagination-divider-color: transparent (the footer draws the line). C396 (round 6): text-container widths moved from --sf-g* to the text measure var(--sf-measure-N, calc(N * var(--sf-text--size-1) / 2)): notice max g0 -> 44, places window g4 -> 52, skeleton search basis and toolbar end min g0 -> 44."
         ]
+      },
+      {
+        "from": "1.25.0",
+        "to": "1.26.0",
+        "changes": [
+          "Round 7 (round/view-r7, VS-8, board and cards count; views study e072e2ab): js/head.js chosen falls back to the open view's settings.filter_fields (with the fields of its conditions) when the query has no filters_chosen; _openSavedView writes the view's fields as filters_chosen (or drops the previous ones); viewChanged compares the view's fields with the chosen ones. index.js _drawCountFooter: for layout board and cards the footer start shows the range of the records on screen of view.total in sf-pagination's words (range, range-many, read under sf-pagination; the page size and count offer hidden), the host attribute data-sf-view-footer-count keeps the footer part drawn without a page row; nothing before the first answer, for an empty, failed or refused list or with chrome without pagination."
+        ]
       }
     ]
   },
@@ -1901,7 +1908,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view/index.js",
-        "sha256": "72678e6643db9db758f688264c23eefa9d402c24a5c9baee680d67cf9752a294"
+        "sha256": "c6f4259fb5b66f3bc812fc9634c6fe9178af4b6832c0dbc5a7f18341396bf791"
       },
       {
         "path": "src/core/contracts/ports/simai.dataview-port/1.5.0/port.json",
@@ -1909,7 +1916,7 @@
       },
       {
         "path": "src/smart/view/docs.md",
-        "sha256": "487506f9fde8a1004dd133e5215075ac55848836b8431aa3869dce8b9c6d0368"
+        "sha256": "c9ccf74e33ce00c998e0435aab7e4008addd977a82e06345213800826567e272"
       },
       {
         "path": "tests/fixtures/data-view-composite-lab.html",

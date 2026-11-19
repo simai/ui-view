@@ -146,6 +146,13 @@ payload}`, стандарт §4.9), или из `capabilities` рядом с о�
 страниц: `page-sizes`, слова (`page-size-label`, `show-count-label`) и
 события `sf-pagination-change` и `sf-pagination-count` работают как раньше.
 
+У доски и карточек (с версии 1.26.0) строки страниц нет: каждая колонка
+доски и сетка карточек заканчиваются своей кнопкой «Показать ещё». Но низ
+списка и у них говорит, сколько записей: «1–80 из 120» — записи на экране из
+всех, что насчитал хост, теми же словами, что у таблицы (слова `range` и
+`range-many` у `sf-pagination`). Размера страницы и стрелок там нет. У
+пустого, упавшего или закрытого списка строки нет, как и у таблицы.
+
 ## Список ресурсов (с версии 1.11.0)
 
 Представление передаёт таблице свой `layout` (раньше оно само ставило `auto`
@@ -354,6 +361,15 @@ view.updateRecord('17', {status: 'published', revision: 'r2'});
 `settings.filter_fields` — the keys of the filter fields, in order — and the
 host stores `settings` as it is given. When that view is opened, the component
 puts those fields back from `saved_views[].settings.filter_fields`.
+
+With the list head (`head="list"`, from 1.26.0) the view's fields are the head's
+filter fields: opening a view puts its `settings.filter_fields` on the head row
+(with the field of every condition it sets) whether or not the host echoes
+`filters_chosen`, and the default view's fields are on the row from the first
+answer. A view that keeps none starts with the fields its conditions name, never
+the fields the person had on the view they left. Adding or removing a field of a
+view that keeps its fields (a system or shared one; a personal view saves at
+once) marks it changed («Изменено»), as a changed condition does.
 
 ## Nothing found, and what went wrong
 
