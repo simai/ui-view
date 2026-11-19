@@ -164,7 +164,7 @@ function renderToolbar(context) {
                             size=${context.controlSize ?? nothing}
                             appearance=${activeFilterTags.length ? 'tonal' : 'outline'}
                             scheme=${activeFilterTags.length ? 'primary' : 'on-surface'}
-                            text=${context.filterText}
+                            text=${context.filterName || context.filterText}
                             segment=${context.filterTemplates ? 'start' : nothing}
                             icon-start="filter_list"
                             @click=${(e) => {

@@ -2995,11 +2995,11 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-table/index.js",
-        "sha256": "d46960b9a9e64c44b275333c90a992242b169f2785ec23e7a3067b88b1bd32fa"
+        "sha256": "3797749ea33c15f61e1294989146741628b8827099c43e9e0b25051e2168db2b"
       },
       {
         "path": "src/smart/view-table/js/templates/default.js",
-        "sha256": "23f4dcd29c71e839067f01a2023e43bd3655ebf6fefe9f5602c890bc7cbfe890"
+        "sha256": "9150c2eeecc7d0c60e6292f2c2641fd5a8dac98d53e18513f4a3e5189433a206"
       },
       {
         "path": "src/smart/view-table/js/templates/default.css",

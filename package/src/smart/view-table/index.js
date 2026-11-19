@@ -8116,6 +8116,12 @@ class SfTable extends TableElement {
             rootClass: this.getRootClass(),
             rootStyle: this.getRootStyle(),
             filterText: this.text("filterText", "filter-text"),
+            // The open saved filter names the filter button (C388, C301 (3),
+            // view round 5 LV-13); the default one leaves «Фильтр».
+            filterName: (() => {
+                const template = this.getSelectedFilterTemplate?.();
+                return template && template.key !== "default" ? String(template.label || "") : "";
+            })(),
             clearText: this.text("clearText", "clear-text"),
             searchPlaceholder: this.text("searchPlaceholder", "search-placeholder"),
             createText: this.text("createText", "create-text"),

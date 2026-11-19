@@ -217,6 +217,7 @@ const copy = (value) => (value == null ? value : JSON.parse(JSON.stringify(value
 // no filter.
 // SF.Preferences: the view's sort and page size are the person's (owner,
 // 2026-10-14), kept under the same key as the table's arrangement.
+const VIEW_PAGE_SIZES = "10,20,50,100";
 const preferences = () => globalThis.SF?.Preferences || BundledPreferences;
 // The stored key keeps the former tag's spelling: it names what a person has
 // already saved (SF.Preferences, a host's store), not the element.
@@ -3035,7 +3036,14 @@ class SfDataView extends DataViewElement {
         // The page size in force is one of the sizes offered: 25 by default
         // against the pager's 10/20/30/40 showed a size the select could not
         // name (docs trial 4). An author's own page-sizes is kept, the size added.
-        const sizes = String(pagination?.getAttribute?.("page-sizes") ?? "10,20,30,40").split(/[\s,]+/u).map(Number).filter((size) => Number.isInteger(size) && size > 0);
+        // The page sizes the view offers (C388, view round 5 LV-12): 10, 20, 50
+        // and 100, written on a page row the page gave none; an author's own
+        // page-sizes is kept.
+        if (pagination?.setAttribute && !pagination.hasAttribute?.("page-sizes")) {
+            pagination.setAttribute("page-sizes", VIEW_PAGE_SIZES);
+            pagination.setAttribute("data-sf-view-page-sizes", "");
+        }
+        const sizes = String(pagination?.getAttribute?.("page-sizes") ?? VIEW_PAGE_SIZES).split(/[\s,]+/u).map(Number).filter((size) => Number.isInteger(size) && size > 0);
         const perPage = Number(this.query.per_page);
         if (pagination && Number.isInteger(perPage) && perPage > 0 && !sizes.includes(perPage)) {
             pagination.setAttribute("page-sizes", [...sizes, perPage].sort((a, b) => a - b).join(","));

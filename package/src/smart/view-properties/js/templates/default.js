@@ -1846,7 +1846,7 @@ export function renderPropertyViewTemplate(context) {
                 dock-breakpoint=${context.docked ? context.dockBreakpoint : nothing}
                 size=${context.wide ? context.drawerStep : 'full'}
                 gutter="var(--sf-space-1)"
-                panel-style=${`--sf-drawer-background: var(--sf-surface-area); --sf-property-view--sections-width: ${context.sectionsWidth}; scrollbar-gutter: auto;${sizeStyle(context)}`}
+                panel-style=${`--sf-drawer-background: var(--sf-surface-area); --sf-property-view--sections-width: ${context.sectionsWidth}; scrollbar-gutter: auto;${sizeStyle(context)}${context.panelWidthStyle || ''}`}
                 show-close="false"
                 close-label=${context.closeLabel}
                 label=${context.panelLabel || context.recordLabel || context.recordId || ''}

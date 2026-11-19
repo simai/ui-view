@@ -601,8 +601,28 @@ class SfPropertyView extends PropertyViewElement {
         return this.getAttribute("conflict-text") || pageText(PROPERTY_VIEW_TEXT, "conflictText", this);
     }
 
+    // The default depends on the place (C386, view round 5 LV-10): in a side
+    // panel the sections are a list on the left, on a page (the work area)
+    // tabs on top. A written sections-as always wins.
     get sectionsAs() {
-        return this.getEnumAttr("sections-as", ["list", "tabs"], "list");
+        return this.getEnumAttr("sections-as", ["list", "tabs"], this.panel ? "list" : "tabs");
+    }
+
+    // A side panel with its sections on the left is wider by the section
+    // list, so the fields keep the width panel-size gives (C386, LV-11): the
+    // step's width, the list's column and the rail's gap. The drawer clamps it
+    // to the viewport; below 48rem the panel is the whole screen and the
+    // sections a list screen, so every wide window holds it (the widest, step
+    // 2: 30rem + 12rem + a gutter, 43rem).
+    get panelWidened() {
+        if (!this.panel || !this.wide || this.drawerStep === "full" || this.sectionsAs !== "list") return false;
+        return (this.sections?.length ?? 0) > 1 || this.configuring;
+    }
+
+    get panelWidthStyle() {
+        if (!this.panelWidened) return "";
+        const step = {"1/2": "var(--sf-g0)", "1": "var(--sf-g2)", "2": "var(--sf-g5)"}[this.drawerStep] ?? "var(--sf-g2)";
+        return ` --sf-drawer-width: calc(${step} + ${SECTIONS_WIDTH} + var(--sf-drawer-gutter, var(--sf-space-1)));`;
     }
 
     get sectionsLabel() {
@@ -658,12 +678,12 @@ class SfPropertyView extends PropertyViewElement {
         return width ? nearestPanelStep(width) : "1";
     }
 
-    // How the sections are laid out (C289 (1), (5); R250): the component
-    // decides by width and the person does not set it. A panel on a phone is
-    // the list of sections, each opening as a level with «←»; a panel on the
-    // whole screen keeps a column on the left; any narrower panel draws a line
-    // of tabs under its head, what does not fit in «Ещё (n)». In place (not a
-    // panel) a wide page keeps `sections-as`.
+    // How the sections are laid out (C289 (1), (5); R250; C386): a panel on
+    // a phone is the list of sections, each opening as a level with «←»; a
+    // panel on the whole screen keeps a column on the left; a narrower panel
+    // keeps sections-as (a list by default, the panel widened for it, or a
+    // line of tabs under its head, what does not fit in «Ещё (n)»). In place
+    // (not a panel) a wide page keeps `sections-as` (tabs by default).
     get sectionsLayout() {
         if (!this.wide) return "phone";
         // Arranging on the whole screen keeps the rail of sections beside the
@@ -672,7 +692,11 @@ class SfPropertyView extends PropertyViewElement {
         // the rail left the fields 212 px at 30rem and 116 px at 24rem (view
         // round 5, LV-3). There it arranges stacked, as tabs do (C311 (4)):
         // the picker, «Вкладки» (dragged as before), then the fields.
-        if (this.panel) return this.drawerStep === "full" ? "column" : "tabs";
+        if (this.panel) {
+            if (this.drawerStep === "full") return "column";
+            if (this.configuring) return "tabs";
+            return this.sectionsAs === "list" && this.panelWidened ? "column" : "tabs";
+        }
         return this.sectionsAs === "tabs" ? "tabs" : "column";
     }
 
@@ -2207,6 +2231,7 @@ class SfPropertyView extends PropertyViewElement {
             address: this.address,
             drawerWidth: this.drawerWidth,
             sectionsWidth: SECTIONS_WIDTH,
+            panelWidthStyle: this.panelWidthStyle,
             conflict: this.conflict,
             confirmation: this.confirmation,
             confirmSaveText: pageText(PROPERTY_VIEW_TEXT, "confirmSaveText", this),
