@@ -104,6 +104,7 @@
     "head-view-state": "Состояние представления",
     "head-view-state-mine": "Изменено. Сохранено только для вас; остальные видят «{name}» как было.",
     "head-view-state-none": "«{name}»: изменений нет.",
+    "head-view-state-unsaved": "Изменено и не сохранено: у всех «{name}» остаётся как было.",
     "head-view-unsaved": "изменено, не сохранено",
     "head-view-zone": "Представление: {name}",
     "head-view-zone-none": "Представление",

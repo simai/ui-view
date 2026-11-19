@@ -932,7 +932,10 @@ export class ListHead {
         if (!this.viewChanged) return this._note(this.text("headViewStateNone").replace("{name}", name));
         const shared = (this.permissions.shared_settings || this.permissions.share_views) && this.viewLevel(view) !== "system";
         const button = (act, text, primary) => `<sf-button data-act="${act}" size="${size}"${primary ? "" : ' appearance="outline" scheme="on-surface"'} text="${esc(text)}"></sf-button>`;
-        return this._note(this.text("headViewStateMine").replace("{name}", name))
+        // A setting changed in «Customize view» is already saved for the
+        // person (C298); a filter or a display kind changed here is not saved.
+        const mine = Boolean(this._settings && Object.values(this._settings).some((entry) => entry && Object.keys(entry).length));
+        return this._note(this.text(mine ? "headViewStateMine" : "headViewStateUnsaved").replace("{name}", name))
             + `<div class="sf-view-head-actions">${shared ? button("view-save-all", this.text("headViewSaveAll"), true) : ""}`
             + `${button("view-open-new", this.text("headViewSaveNew"), !shared)}${button("view-reset-all", this.text("headViewReset"), false)}</div>`;
     }

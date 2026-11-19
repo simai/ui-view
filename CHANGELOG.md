@@ -16,6 +16,31 @@ same numbers with other content); every next set version is above them
 up). Each component.json says the same under `x-decisions`
 `pro-copy-versions`.
 
+## Unreleased — view round 6
+
+Over round 5 (round/view-r6 from round/view-r5 279c7f5, not released yet):
+VZ-1 (owner C393, C394, views study option D), the table's columns before
+scroll and VB-1 (DEV msg-b137d217, C394 revised).
+
+- `sf-view` 1.25.0: the list head by zones. The title row holds the list
+  name only; the number of records is the footer's. The head row starts
+  with a quiet view toggle (`view_quilt`; name and tooltip «Представление:
+  <name>», a dot while the open view has unsaved changes, the glyph tinted
+  while a view other than the default is open) that opens the view zone in
+  its own frame below the row: the open view and its menu by level, the
+  display kind, «Настроить вид» and «Изменено» with save for everyone, save
+  as new and reset. Whether the zone is open is kept per person under
+  `preferences-key`. «⋯» moved to the end of the head row. The toggle takes
+  SIMAI Framework's `appearance="toggle"` where the pair carries it, else
+  draws the same look itself. A page row without a look of its own leaves
+  its line to the footer.
+- `sf-view-table` 1.27.0: declared column widths shrink toward their
+  content before the table scrolls sideways (a list beside a docked record
+  panel: 1100 px of columns in a 1024 px box no longer scroll).
+- `sf-view-properties` 1.22.1: in a side panel in the dark theme the
+  section tabs strip and the edited group cards are no longer darker than
+  the panel (C20); the light theme is unchanged.
+
 ## Unreleased — view round 5
 
 Over `view` 1.9.0 (round/view-r5, not released yet): DEV's open items B1-B3

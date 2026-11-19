@@ -5,6 +5,15 @@
   "entries": [
     {
       "unit": "smart.view",
+      "version": "1.25.0",
+      "recorded_on": "2026-11-19",
+      "change": "minor",
+      "consumer": "Nothing to change for a host. With head=\"list\" the title row holds the list name only (the number of records is the footer's); the head row starts with a quiet view toggle (view_quilt) that opens the view zone below it: the open view's name and menu by level, the display kind, Настроить вид and, when the view is changed, Изменено with save as new, save for everyone (where allowed) and reset. The zone's open state is kept per person under preferences-key. The list menu moved to the end of the head row.",
+      "summary": "Round 6 (round/view-r6, VZ-1, owner C393, C394, views study option D): js/head.js draws the title row with the name only (data-count gone), the view toggle first in the head row (sf-button-icon, name and tooltip «Представление: <name>», badge-dot while the open view has unsaved changes, glyph tinted while a view other than the default is open, pressed and aria-expanded while the zone is open; appearance toggle where the page's sheets carry sf-icon-button--toggle, else the own look .sf-view-head-zone-toggle--own with the same tokens), the view zone (.sf-view-head-zone, --sf-outline-variant 1 px, --sf-radius--surface) with the views button (menu by level system / shared / personal with headings), sf-segmented of the kinds, Настроить вид and Изменено (state window: unsaved or mine note, save for everyone, save as new, reset); its open state in SF.Preferences (viewZone) read by keptPreferences, and the first-paint skeleton holds the zone row while it is kept open. «⋯» moved to the head row end. A page row without appearance takes --sf-pagination-divider-color: transparent (the footer draws the line).",
+      "evidence": "control/evidence/2026-11-19-view-r6/README.md"
+    },
+    {
+      "unit": "smart.view",
       "version": "1.24.0",
       "recorded_on": "2026-11-19",
       "change": "minor",
@@ -167,6 +176,15 @@
     },
     {
       "unit": "smart.view-table",
+      "version": "1.27.0",
+      "recorded_on": "2026-11-19",
+      "change": "minor",
+      "consumer": "Nothing to change. Column widths the host declares shrink toward their content before the table scrolls sideways: a list beside a docked record panel no longer scrolls while its content fits.",
+      "summary": "Round 6 (round/view-r6, DEV msg-b137d217): fittedWidth/readFittedWidths: where the sum of the declared column widths (width or size in pixels; never the person's colWidth) and the system columns exceeds the scroll box, each declared column gives back what it holds above its measured content width (or its min_width), in proportion, before the box scrolls; columnStyle uses it. Measured: sites list beside a record panel at 1440, box 1024, columns 1100 -> 1024, no scroll, no cut cell.",
+      "evidence": "control/evidence/2026-11-19-view-r6/README.md"
+    },
+    {
+      "unit": "smart.view-table",
       "version": "1.26.0",
       "recorded_on": "2026-11-19",
       "change": "minor",
@@ -326,6 +344,15 @@
       "consumer": "Nothing to change for a host: only the SIMAI Framework file it builds in moved with the repin.",
       "summary": "Over SIMAI Framework ui-078a4b4c6f6e (ui-source 10145e63b9dc) the Framework file it builds in, src/smart/pagination/index.js (sf-pagination 1.7: «Show more» within reach, C167; a deleting action listed last, C116), moved; the provenance and the version follow. Nothing of its own; nothing to change for a host. 1.19.7 and 1.19.8 are ui-pro's own patched copies, never this set's.",
       "evidence": "https://github.com/simai/ui-view/commit/e214dd608fdcf39cea527676fc522afd718922d4"
+    },
+    {
+      "unit": "smart.view-properties",
+      "version": "1.22.1",
+      "recorded_on": "2026-11-19",
+      "change": "patch",
+      "consumer": "Nothing to change. In a side panel in the dark theme the section tabs strip and the edited group cards are no longer darker than the panel; the light theme is unchanged.",
+      "summary": "Round 6 (round/view-r6, VB-1, owner C394, C20): in a panel a group card takes bg-surface-card (light: white as before; dark: --sf-surface-2 over the panel's --sf-surface-area), on a page it keeps bg-surface-page; the sticky section tabs strip in a panel takes light-dark(--sf-surface-page, --sf-surface-area) over sf-tabs' --sf-surface-page (dark: #1a1b1f instead of #0f1115 on #1a1b1f).",
+      "evidence": "control/evidence/2026-11-19-view-r6/README.md"
     },
     {
       "unit": "smart.view-properties",

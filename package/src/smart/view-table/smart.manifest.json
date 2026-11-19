@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-table",
-  "version": "1.26.0",
+  "version": "1.27.0",
   "title": "Table",
   "summary": "Complete server-backed collection view with search, filters, table preferences, row and bulk actions, and pagination.",
   "kind": "composite",
@@ -2986,6 +2986,13 @@
         "changes": [
           "Round 5 (round/view-r5): LV-4 Фильтр and its saved-filter segment are outline on-surface (tonal primary while conditions are set), Сохранить tonal, Создать and its arrow default primary, the phone filter and sort icons tonal while active and + filled (C301); LV-6 renderListToolbar draws a settings button (sf-table-list-settings) that calls toggleTableSettings, the method the desktop gear now calls too; LV-8 storedViewDensity, areaDensity and shownViewDensity: the View tab's density shows the stored choice or the area's density (C22), and a choice other than compact in a compact area draws the table as a normal-density island (data-sf-density=normal, C79). LV-13 (C388, C301 (3)): filterName, the open saved filter's label (not the default one), is the filter button's text."
         ]
+      },
+      {
+        "from": "1.26.0",
+        "to": "1.27.0",
+        "changes": [
+          "Round 6 (round/view-r6, DEV msg-b137d217): fittedWidth/readFittedWidths: where the sum of the declared column widths (width or size in pixels; never the person's colWidth) and the system columns exceeds the scroll box, each declared column gives back what it holds above its measured content width (or its min_width), in proportion, before the box scrolls; columnStyle uses it. Measured: sites list beside a record panel at 1440, box 1024, columns 1100 -> 1024, no scroll, no cut cell."
+        ]
       }
     ]
   },
@@ -2995,11 +3002,11 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-table/index.js",
-        "sha256": "3797749ea33c15f61e1294989146741628b8827099c43e9e0b25051e2168db2b"
+        "sha256": "246b2cb101ed6290ce4c92eae6c19c94939af2c0437157a08bd25b9388cdfb06"
       },
       {
         "path": "src/smart/view-table/js/templates/default.js",
-        "sha256": "9150c2eeecc7d0c60e6292f2c2641fd5a8dac98d53e18513f4a3e5189433a206"
+        "sha256": "ed04cb7574855ab48bcf4e9e4610b767ace6ce9c70b82bfe3414661ea63ce69e"
       },
       {
         "path": "src/smart/view-table/js/templates/default.css",

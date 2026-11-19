@@ -104,6 +104,7 @@
     "head-view-state": "View state",
     "head-view-state-mine": "Changed. Saved only for you; everyone else sees «{name}» as it was.",
     "head-view-state-none": "«{name}»: no changes.",
+    "head-view-state-unsaved": "Changed, not saved: everyone still sees «{name}» as it was.",
     "head-view-unsaved": "changed, not saved",
     "head-view-zone": "View: {name}",
     "head-view-zone-none": "View",

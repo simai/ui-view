@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view",
-  "version": "1.24.0",
+  "version": "1.25.0",
   "title": "Data view",
   "summary": "Host-driven data view that composes toolbar, content and pagination around a separate data port.",
   "kind": "composite",
@@ -1885,6 +1885,13 @@
         "changes": [
           "DEV's open item B2 (round/view-r5): calendarQuery leaves window.date_field out until the date field is named, and acceptCalendar no longer asks the same range a second time with the field the first answer named (_calendarAskWithField and the refresh('calendar-range') step are gone). One range query per window. LV-12 (C388): the view writes page-sizes=\"10,20,50,100\" (VIEW_PAGE_SIZES, marked data-sf-view-page-sizes) on a page row that has none."
         ]
+      },
+      {
+        "from": "1.24.0",
+        "to": "1.25.0",
+        "changes": [
+          "Round 6 (round/view-r6, VZ-1, owner C393, C394, views study option D): js/head.js draws the title row with the name only (data-count gone), the view toggle first in the head row (sf-button-icon, name and tooltip «Представление: <name>», badge-dot while the open view has unsaved changes, glyph tinted while a view other than the default is open, pressed and aria-expanded while the zone is open; appearance toggle where the page's sheets carry sf-icon-button--toggle, else the own look .sf-view-head-zone-toggle--own with the same tokens), the view zone (.sf-view-head-zone, --sf-outline-variant 1 px, --sf-radius--surface) with the views button (menu by level system / shared / personal with headings), sf-segmented of the kinds, Настроить вид and Изменено (state window: unsaved or mine note, save for everyone, save as new, reset); its open state in SF.Preferences (viewZone) read by keptPreferences, and the first-paint skeleton holds the zone row while it is kept open. «⋯» moved to the head row end. A page row without appearance takes --sf-pagination-divider-color: transparent (the footer draws the line)."
+        ]
       }
     ]
   },
@@ -1894,7 +1901,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view/index.js",
-        "sha256": "da80145be2c32d12898970c6f2ee06b5e32de7f774211bf22910e515d776b559"
+        "sha256": "0969b9a21107cfde90ee774970f15e64780e6cbb9a50aa875880efc8a20062d0"
       },
       {
         "path": "src/core/contracts/ports/simai.dataview-port/1.5.0/port.json",

@@ -56,6 +56,7 @@ Every remote branch ahead of `main`, with the release that takes it.
 
 | Branch | Release that takes it |
 |---|---|
+| `round/view-r6` | view round 6 (from `round/view-r5` 279c7f5): VZ-1 the list head's view zone, table columns before scroll, VB-1 panel surfaces in the dark theme (sf-view 1.25.0, sf-view-table 1.27.0, sf-view-properties 1.22.1); the next view release, after round 5 |
 | `round/view-r5` | view round 5 (from `main` 882bd57, view 1.9.0): DEV's open items B1-B3 and the list study order LV-2..LV-13 (sf-view 1.24.0, sf-view-table 1.26.0, sf-view-properties 1.22.0, sf-view-board 1.1.2); the next view release |
 | `round/view-r5-shadow-menu` | view round 5: sf-view-table 1.25.2 (DEV msg-b353fce8), merged into `round/view-r5` |
 | `round/view-r1` | view 1.9.0 (the round) |

@@ -2,8 +2,15 @@
   "$comment": "sf-property-view from its component.json (standard simai.smart-component 1.3.8, vocabulary 1.1.5), migrated from ui-control control/smart-architecture/migration/out/property-view; every x-todo decided in x-decisions.",
   "id": "smart.view-properties",
   "tag": "sf-view-properties",
-  "version": "1.22.0",
+  "version": "1.22.1",
   "x-history": [
+    {
+      "version": "1.22.1",
+      "kind": "patch",
+      "recorded_on": "2026-11-19",
+      "consumer": "Nothing to change. In a side panel in the dark theme the section tabs strip and the edited group cards are no longer darker than the panel; the light theme is unchanged.",
+      "evidence": "control/evidence/2026-11-19-view-r6/README.md"
+    },
     {
       "version": "1.22.0",
       "kind": "minor",
@@ -2366,6 +2373,13 @@
           "to": "1.22.0",
           "changes": [
             "Round 5 (round/view-r5): LV-2 a docked panel marks its sf-view (record-card id, the only sf-view, or the parent) as [data-sf-drawer-dock-host] when the page has none, so the list ends where the panel starts; LV-3 sectionsLayout in a panel is column only at the full step, tabs (stacked) otherwise, the section column is max-content capped by --sf-property-view--sections-width, the fields take the rest, and the row wraps instead of squeezing; LV-9 the title takes the focus of a docked panel and keeps the watch until the person acts or two seconds pass (a phone sheet's second focus pick no longer takes it), outline on :focus-visible only; B3 sf-profile-picker, sf-sortable, sf-dropdown and sf-switch are asked of the Loader once a view can be arranged, so arranging draws without a late shift. LV-10 (C386): sectionsAs defaults to list with panel and tabs without it. LV-11 (C386): a panel below the full step keeps sections-as (column for list, then the panel is widened: panelWidened, panelWidthStyle writes --sf-drawer-width as calc(step + sections width + gutter) in the drawer's panel-style); arranging there stays stacked (C311 (4))."
+          ]
+        },
+        {
+          "from": "1.22.0",
+          "to": "1.22.1",
+          "changes": [
+            "Round 6 (round/view-r6, VB-1, owner C394, C20): in a panel a group card takes bg-surface-card (light: white as before; dark: --sf-surface-2 over the panel's --sf-surface-area), on a page it keeps bg-surface-page; the sticky section tabs strip in a panel takes light-dark(--sf-surface-page, --sf-surface-area) over sf-tabs' --sf-surface-page (dark: #1a1b1f instead of #0f1115 on #1a1b1f)."
           ]
         }
       ]
