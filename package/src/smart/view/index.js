@@ -3045,7 +3045,9 @@ class SfDataView extends DataViewElement {
         }
         const sizes = String(pagination?.getAttribute?.("page-sizes") ?? VIEW_PAGE_SIZES).split(/[\s,]+/u).map(Number).filter((size) => Number.isInteger(size) && size > 0);
         const perPage = Number(this.query.per_page);
-        if (pagination && Number.isInteger(perPage) && perPage > 0 && !sizes.includes(perPage)) {
+        // Only a size in force: the view's own 25 before the page's printed
+        // page-size is read is not one (it put 25 among 10/20/50/100, LV-12).
+        if (pagination && Number.isInteger(perPage) && perPage > 0 && !sizes.includes(perPage) && (this._pageSizeDeclared || this._answered)) {
             pagination.setAttribute("page-sizes", [...sizes, perPage].sort((a, b) => a - b).join(","));
         }
         pagination?.setState?.({
