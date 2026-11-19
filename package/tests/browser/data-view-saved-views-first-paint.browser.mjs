@@ -159,7 +159,9 @@ const WATCH = `(() => {
           filter: control('sf-button[icon-start="filter_list"], sf-button-icon[icon="filter_list"]'),
           slot: control('sf-button-icon[icon="bookmark_add"]'),
           field: box(field && (field.firstElementChild || field)),
-          create: control('sf-button[appearance="outline"], sf-button-icon[icon="add"]')};
+          // Создать is the filled button (C301, sf-view-table 1.26.0); the
+          // filter is the outlined one now.
+          create: control('sf-button[appearance="default"][scheme="primary"]:not([icon-start]), sf-button-icon[icon="add"]')};
       }
       Object.assign(row, {t: Math.round(performance.now()), sheetsIn, fonts});
       fp.frames.push(row);
