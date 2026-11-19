@@ -72,15 +72,14 @@ test('sf-view-table template: the narrow keyed table fits its width and draws th
 test('sf-view-table: one row menu on sf-menu-context for= over the table and the list rows', async () => {
   const source = await read('src/smart/view-table/index.js');
   const menu = between(source, '    rowMenu() {', '\n    }\n');
-  assert.match(menu, /setAttribute\("for", `\$\{this\.rowAreaId\} \$\{this\.rowAreaId\}-list`\)/);
+  assert.match(menu, /menu\.for = this\.rowMenuAreas\(\);/);
   assert.match(menu, /addEventListener\("sf-menu-context-open"/);
-  // The ≡ and the list ⋯ open it on the row, so a table in a shadow root
-  // (not found by `for`) still gets its row.
+  // The ≡ and the list ⋯ open it on the row.
   const open = between(source, '    async openRowMenu(event, row = {}, {group = null, items = null} = {}) {', '\n    }\n');
   assert.match(open, /menu\.toggleFor\(anchor, target \? \{target\} : \{\}\)/);
-  // The table's own right-click and menu-key paths are gone but in a shadow root.
-  assert.doesNotMatch(source, /openRowContextMenu\(|openListRowMenu\(|menuPointAt\(/);
-  assert.match(source, /    bindShadowRowMenu\(\) \{/);
+  // The table's own right-click and menu-key paths are gone, in a shadow
+  // root too (sf-menu-context 1.27.0 reaches areas there).
+  assert.doesNotMatch(source, /openRowContextMenu\(|openListRowMenu\(|menuPointAt\(|bindShadowRowMenu/);
   const template = await read('src/smart/view-table/js/templates/default.js');
   assert.match(template, /id=\$\{context\.rowAreaId\}/);
   assert.match(template, /id=\$\{`\$\{context\.rowAreaId\}-list`\}/);

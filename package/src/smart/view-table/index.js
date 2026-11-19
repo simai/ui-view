@@ -7238,8 +7238,7 @@ class SfTable extends TableElement {
         await globalThis.SF?.Loader?.ensure?.(["sf-menu-context"]);
         const menu = this.rowMenu();
         await customElements.whenDefined?.("sf-menu-context");
-        // The row is named: a table inside a shadow root (sf-view's own
-        // table) is not found by `for`, which reads the document's ids.
+        // The row is named: the menu acts on the row the button stands in.
         const target = anchor.closest("[data-row-id]") ?? undefined;
         try {
             return menu.toggleFor(anchor, target ? {target} : {});
@@ -7267,51 +7266,26 @@ class SfTable extends TableElement {
         // A slot's fallback table is not drawn while the slot holds another.
         const slot = this.parentElement;
         if (slot?.tagName === "SLOT" && slot.assignedNodes?.().length) return;
-        this.bindShadowRowMenu();
-        if (this._rowMenu?.isConnected) return;
+        if (this._rowMenu?.isConnected) {
+            // A draw may swap the table for the list (or back): the menu is
+            // given the areas standing now.
+            this._rowMenu.for = this.rowMenuAreas();
+            return;
+        }
         globalThis.SF?.Loader?.ensure?.(["sf-menu-context"]);
         this.rowMenu();
     }
 
-    // sf-menu-context's `for` reads the document's ids and listens on the
-    // document, so a table inside a shadow root (sf-view's own table, when
-    // the host slots none) is out of its reach. There the table answers the
-    // right button, the menu key and Shift+F10 itself, the way the menu does
-    // for its areas (C164 (1)): Shift with the right button, a link, a field
-    // and selected text keep the browser's menu.
-    bindShadowRowMenu() {
-        if (this._shadowRowMenuBound) return;
-        this._shadowRowMenuBound = true;
-        const inShadow = () => this.getRootNode() !== document;
-        const rowAt = (event) => {
-            const element = event.target?.closest?.("tbody > tr[data-row-id], li[data-row-id]");
-            return element && this.contains(element) ? element : null;
-        };
-        const keeps = (event) => Boolean(event.target?.closest?.("a[href], input:not([type=checkbox]), textarea, select, [contenteditable]"))
-            || Boolean(String(document.getSelection?.() ?? "").trim());
-        this.addEventListener("keydown", (event) => {
-            if (!inShadow() || event.defaultPrevented) return;
-            if (event.key !== "ContextMenu" && !(event.shiftKey && event.key === "F10")) return;
-            const row = rowAt(event);
-            if (!row || keeps(event)) return;
-            event.preventDefault();
-            this._shadowMenuKeyAt = Date.now();
-            this.rowMenu().openAtTarget?.(row);
-        });
-        this.addEventListener("contextmenu", (event) => {
-            if (!inShadow() || event.defaultPrevented) return;
-            const row = rowAt(event);
-            if (!row) return;
-            if (Date.now() - (this._shadowMenuKeyAt ?? 0) < 500) {
-                event.preventDefault();
-                return;
-            }
-            if ((event.shiftKey && event.button === 2) || keeps(event)) return;
-            event.preventDefault();
-            const menu = this.rowMenu();
-            if (event.button === 2 || event.pointerType === "touch") menu.openAt?.(event.clientX, event.clientY, {target: row});
-            else menu.openAtTarget?.(row);
-        });
+    // The row menu's areas: the table's own <table> and list, as elements
+    // (SIMAI Framework sf-menu-context 1.27.0 `for` takes a list of areas and
+    // reads its events at the composed path). A table inside a shadow root --
+    // sf-view's own, when the host slots none -- is reached the same way as
+    // one in the document, so the table hears no right button or menu key of
+    // its own. The toolbar, the head's column menu and the pagination stay
+    // outside the areas and keep the browser's menu.
+    rowMenuAreas() {
+        const id = this.rowAreaId;
+        return Array.from(this.querySelectorAll(`[id="${id}"], [id="${id}-list"]`));
     }
 
     // The entries of the row the menu opens for (C164): every action the row
@@ -7401,8 +7375,10 @@ class SfTable extends TableElement {
         const menu = document.createElement("sf-menu-context");
         menu.setAttribute("popup", "");
         menu.dataset.sfTableMenu = "row";
-        // The table's rows and the list's rows are this menu's objects.
-        menu.setAttribute("for", `${this.rowAreaId} ${this.rowAreaId}-list`);
+        // The table's rows and the list's rows are this menu's objects, given
+        // as the elements themselves: their ids are not seen from the
+        // document when the table stands in a shadow root.
+        menu.for = this.rowMenuAreas();
         // The question every way in asks (C164 (2)): which row, and what it
         // offers. A press outside a record's row (the head, a «load more»
         // row) and a row without actions open nothing.

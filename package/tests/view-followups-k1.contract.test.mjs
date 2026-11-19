@@ -38,21 +38,28 @@ test('sf-view-table: the right button, the keys and a long press open the row me
   const source = await read('src/smart/view-table/index.js');
   // The table's own point anchor, contextmenu listeners and menu-key branches
   // are gone: the engine of the pair (sf-menu-context 1.21.0, `for`) hears
-  // them on the rows of the table and the list, and asks `open`.
-  // A table inside a shadow root (sf-view's own) is out of `for`'s reach and
-  // answers the right button and the keys itself (bindShadowRowMenu) alone.
-  const shadow = source.slice(source.indexOf('    bindShadowRowMenu() {'), source.indexOf('    // The entries of the row the menu opens for'));
-  assert.match(shadow, /if \(!inShadow\(\) \|\| event\.defaultPrevented\) return;/);
+  // them on the rows of the table and the list, and asks `open`. A table
+  // inside a shadow root (sf-view's own) is reached the same way since
+  // sf-menu-context 1.27.0 (areas given as elements, events read at the
+  // composed path): the table's own workaround (bindShadowRowMenu) is gone.
+  assert.doesNotMatch(source, /bindShadowRowMenu|_shadowRowMenuBound|_shadowMenuKeyAt|inShadow/);
   // The column menu (C158 (5), C296) answers the right button on any head of
   // a data column, a menu of its own and no row's.
   const head = source.slice(source.indexOf('    bindHeadMenu(table, signal) {'), source.indexOf('    handleHeadKeydown(event, table) {'));
   assert.match(head, /if \(!column \|\| column\.system\) return;/);
-  const outside = source.replace(shadow, '').replace(head, '');
+  const outside = source.replace(head, '');
   for (const gone of [/function menuPointAt\(/, /openRowMenuOf\(/, /openListRowMenu\(/, /openRowContextMenu\(/, /_listContextMenu/, /isMenuKey/, /keepsBrowserMenu/, /addEventListener\("contextmenu"/]) {
     assert.doesNotMatch(outside, gone, String(gone));
   }
   const menu = source.slice(source.indexOf('    rowMenu() {'), source.indexOf('    // Which of the table\'s actions this row offers'));
-  assert.match(menu, /menu\.setAttribute\("for", `\$\{this\.rowAreaId\} \$\{this\.rowAreaId\}-list`\);/);
+  // `for` names the table's own areas, the <table> and the list, as
+  // elements; every draw gives the menu the areas standing then.
+  assert.match(menu, /menu\.for = this\.rowMenuAreas\(\);/);
+  assert.doesNotMatch(menu, /setAttribute\("for"/);
+  const areas = source.slice(source.indexOf('    rowMenuAreas() {'), source.indexOf('    // The entries of the row the menu opens for'));
+  assert.match(areas, /this\.querySelectorAll\(`\[id="\$\{id\}"\], \[id="\$\{id\}-list"\]`\)/);
+  const bind = source.slice(source.indexOf('    bindRowMenu() {'), source.indexOf('    rowMenuAreas() {'));
+  assert.match(bind, /this\._rowMenu\.for = this\.rowMenuAreas\(\);/);
   assert.match(menu, /menu\.addEventListener\("sf-menu-context-open", \(event\) => \{/);
   assert.match(menu, /if \(!row \|\| !this\.getActionRowItems\(row\)\.length\) \{\n\s*event\.preventDefault\(\);/);
   assert.match(menu, /const \{ids\} = this\.rowMenuTargets\(row\);/);
