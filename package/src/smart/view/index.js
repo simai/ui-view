@@ -180,8 +180,8 @@ const TABLE_TOOLBAR_TEXT = {
 // board and cards say their count in the same words (view round 7), read
 // under sf-pagination, so words a product registers for it reach them too.
 const PAGINATION_RANGE_TEXT = {
-    en: {"range": paginationEn.runtime.range, "range-many": paginationEn.runtime["range-many"]},
-    ru: {"range": paginationRu.runtime.range, "range-many": paginationRu.runtime["range-many"]},
+    en: Object.fromEntries(["range", "range-many", "page-size-text", "page-size-label"].map((key) => [key, paginationEn.runtime[key]])),
+    ru: Object.fromEntries(["range", "range-many", "page-size-text", "page-size-label"].map((key) => [key, paginationRu.runtime[key]])),
 };
 const escapeText = (text) => String(text).replace(/[&<>"]/gu, (letter) => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"})[letter]);
 
@@ -1177,6 +1177,14 @@ class SfDataView extends DataViewElement {
             : pageWord(PAGINATION_RANGE_TEXT, "range-many", this, {...words, vars: {from: 1, to: shown}});
         if (parts.range && parts.range.textContent !== text) parts.range.textContent = text;
         for (const name of ["count", "counting", "size"]) if (parts[name]) parts[name].hidden = true;
+        // The page size is not offered here (each portion is the lane's or the
+        // grid's own); its hidden button still carries its words, so it is
+        // never a button without a name.
+        const size = Number(this.query.per_page) || "";
+        if (parts.size && !parts.size.getAttribute("text")) {
+            parts.size.setAttribute("text", pageWord(PAGINATION_RANGE_TEXT, "page-size-text", this, {...words, vars: {size}}));
+            parts.size.setAttribute("aria-label", `${pageWord(PAGINATION_RANGE_TEXT, "page-size-label", this, words)} ${size}`.trim());
+        }
         return true;
     }
 
