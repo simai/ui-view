@@ -148,8 +148,11 @@ try {
     if (!actions.includes('menu') || !actions.includes('close')) {
       note({width, case: 'the head holds the «⋯» menu and the close', got: actions});
     }
-    if (seen.wide && seen.panel && seen.panel.right - seen.panel.left > 481) {
-      note({width, case: 'the panel is drawn at its step (panel-width 44rem lands on 30rem)', got: seen.panel, expected: '<= 480 px'});
+    // C386 (view round 5, LV-11): with its sections on the left (a panel's
+    // default) the panel is wider by the section column (12rem) and the
+    // drawer gutter, so the fields keep the step's 30rem: 480 + 192 + 16.
+    if (seen.wide && seen.panel && seen.panel.right - seen.panel.left > 689) {
+      note({width, case: 'the panel is drawn at its step (panel-width 44rem lands on 30rem) plus the section column', got: seen.panel, expected: '<= 688 px'});
     }
     const off = seen.controls.filter((control) => control.left < 0 || control.right > seen.viewport
       || (seen.panel && (control.left < seen.panel.left || control.right > seen.panel.right)));

@@ -92,7 +92,7 @@ try {
     + 'window.__portAsks.push({owner: event.detail.context.owner, record: event.detail.context.record,'
     + ' group: event.detail.context.group, tag: event.target.tagName.toLowerCase()});'
     + '});</script>'
-    + '<sf-view-properties id="many" record-id="record-1" collection="pages"></sf-view-properties>'
+    + '<sf-view-properties id="many" record-id="record-1" collection="pages" sections-as="list"></sf-view-properties>'
     + '<sf-view-properties id="one" record-id="record-2" collection="settings"></sf-view-properties>'
     + '</body></html>',
   );
