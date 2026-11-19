@@ -55,6 +55,10 @@ window (C310); DEV's round 3 returns VR3-1..VR3-4.
   the card settings to a 1.22.0 host only.
 - `sf-view-table` 1.25.1: the column head menu's separators draw as
   separators (VR3-2).
+- `sf-view-table` 1.25.2: a table in sf-view's shadow root opens its row
+  menu through SIMAI Framework sf-menu-context 1.27.0 (`for` given the
+  table's own `<table>` and list as elements); the table's own workaround
+  `bindShadowRowMenu` is removed (DEV msg-b353fce8).
 - DEV's acceptance of the cards and the calendar: `sf-view-calendar` 1.1.0
   opens in `layouts.calendar.mode` when no `mode` is written (VCL-1); «+N»
   is a text row at the event line height, so the month is 672 px instead of

@@ -149,6 +149,15 @@
     },
     {
       "unit": "smart.view-table",
+      "version": "1.25.2",
+      "recorded_on": "2026-11-19",
+      "change": "patch",
+      "consumer": "Nothing to change. A table inside a shadow root (sf-view's own) opens its row menu through SIMAI Framework sf-menu-context 1.27.0 like one in the document: the menu's for is the table's own <table> and list as elements, and the table's own right button and menu key workaround (bindShadowRowMenu) is gone. Needs the pair with sf-menu-context 1.27.0 (ui-1ed6b6c9a040 or later).",
+      "summary": "DEV msg-b353fce8 (round/view-r5-shadow-menu): the row menu's for is the table's own areas as elements (rowMenuAreas: the <table> and the list, refreshed on every draw), which SIMAI Framework sf-menu-context 1.27.0 reaches inside a shadow root; bindShadowRowMenu, the table's own right button, menu key and Shift+F10 listeners for a table in sf-view's shadow root, is removed. Same menu, same entries, same gestures.",
+      "evidence": "control/evidence/2026-11-19-view-shadow-menu/README.md"
+    },
+    {
+      "unit": "smart.view-table",
       "version": "1.25.1",
       "recorded_on": "2026-11-18",
       "change": "patch",
