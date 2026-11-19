@@ -20,10 +20,14 @@ const body = (text, start) => {
   return text.slice(at, text.indexOf('\n    }\n', at));
 };
 
-test('the panel never takes a width of its own: a step of the drawer ladder', () => {
+test('the panel never takes a width of its own: a step of the panel ladder', () => {
   assert.match(body(source, '    get drawerWidth() {'), /return null;/u);
+  // A former panel-width still names the step it meant on the old drawer
+  // ladder; the steps themselves are the text measure 44, 52, 64 (C396).
   assert.match(source, /const PANEL_STEPS = \[\["1\/2", 20\], \["1", 24\], \["2", 30\]\];/u);
-  assert.match(body(source, '    get drawerStep() {'), /return width \? nearestPanelStep\(width\) : "1";/u);
+  assert.match(source, /const PANEL_MEASURE = \{"1\/2": 44, "1": 52, "2": 64\};/u);
+  assert.match(source, /var\(--sf-measure-\$\{n\}, calc\(\$\{n\} \* var\(--sf-text--size-1\) \/ 2\)\)/u);
+  assert.match(body(source, '    get drawerStep() {'), /return width \? nearestPanelStep\(width\) : "2";/u);
   assert.doesNotMatch(template, /\swidth=\$\{/u, 'the drawer is never given a width');
 });
 
