@@ -17,7 +17,10 @@ and pale until the host answers, the keys and the announcements.
 It owns no data and does no network. The records come from the host as one
 window: the days on screen `[from, to)` by the date field (and the end field)
 in the request's time zone and week start (C293), up to 1000 records; the
-undated records come in a query of their own. A move, a stretch, a new record
+undated records come in a query of their own. Every range query names the
+date field: when neither the page nor the columns name it before the first
+answer, sf-view asks the first query as the page printed it, without a window,
+and asks the range as soon as that answer gives `layouts.calendar`. A move, a stretch, a new record
 on a day, opening a record, the period and the mode are events; the host
 answers a move with `settleMove()`.
 
@@ -44,12 +47,19 @@ answers a move with `settleMove()`.
   source's first date field by default.
 - `end_field`: the end of the same type; a stretch changes it.
 - `all_day_field`: a boolean the host keeps; without it the field's type says.
-- `mode`, `modes`: the mode it opens in and the ones offered. On a phone
-  «Неделя» is three days and «День» is not offered.
+- `mode`, `modes`: the mode it opens in and the ones offered. A `mode`
+  attribute the page writes on the element goes first, then this option,
+  then month; the person's choice goes over all. On a phone «Неделя» is three
+  days and «День» is not offered.
 - `color_field`: a choice field; an event takes its option's colour (C140).
 - `event_fields`: up to three fields in the «Кратко» place (list rows, the
-  event's tooltip), drawn by the Framework field renderers.
-- `per_day`: rows of a month day before «+N» (3); «+N» opens the day's list.
+  event's tooltip), drawn by the Framework field renderers. On a phone a row
+  is two lines: the time, the title and the second field at its end, then the
+  first field; a long value ends with «…».
+- `per_day`: lines of a month day (3); when the events do not fit, the last
+  line is «+N», a text button the height of an event, which opens the day's
+  list. Every day of the month has the height of the number row and these
+  lines.
 - `hours`, `slot`: the visible hours of a week and a day, and the step of a
   move or a stretch in minutes.
 - `weekends`: `show` or `hide` (week and month).

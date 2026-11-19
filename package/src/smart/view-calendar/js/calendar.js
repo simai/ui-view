@@ -76,6 +76,17 @@ export function calendarOptions(options = {}, fields = []) {
     };
 }
 
+/**
+ * The mode a calendar opens in (VCL-1): the person's choice, else a mode the
+ * page wrote on the element, else layouts.calendar mode (calendarOptions
+ * gives month when the view names none); one the modes do not offer gives
+ * way to the first offered.
+ */
+export function modeOf({chosen = null, written = null, mode = "month", modes = [...MODES]} = {}) {
+    const asked = chosen || written || mode;
+    return modes.includes(asked) ? asked : modes[0];
+}
+
 // ── days ─────────────────────────────────────────────────────────────────
 
 const dayDate = (iso) => new Date(`${String(iso).slice(0, 10)}T00:00:00Z`);

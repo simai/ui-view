@@ -149,9 +149,8 @@ function renderMonthDay(context, day, week, lanes, month, compact) {
         <div class="sf-view-calendar__nrow">${number}${renderAdd(context, day)}</div>
         ${pieces}
         ${shown.map((event) => renderChip(context, event))}
-        ${rest > 0 ? html`<span class="sf-view-calendar__more"><sf-button size=${context.size} appearance="ghost" scheme="on-surface-variant"
-                text=${component.word("more-text", {count: rest})} data-more=${day} tabindex="-1"
-                aria-label=${component.word("more-label", {count: rest, day: component.dayName(day)})}></sf-button></span>` : nothing}`);
+        ${rest > 0 ? html`<span class="sf-view-calendar__more"><button type="button" class="sf-view-calendar__more-b" data-more=${day} tabindex="-1"
+                aria-label=${component.word("more-label", {count: rest, day: component.dayName(day)})}>${component.word("more-text", {count: rest})}</button></span>` : nothing}`);
 }
 
 // ── week and day ─────────────────────────────────────────────────────────
@@ -239,9 +238,12 @@ function renderRow(context, event) {
                 aria-label=${component.word("select-text", {title: event.title})}></sf-checkbox></span>` : nothing}
         <span class="sf-view-calendar__time"><span class="sf-view-calendar__dot" aria-hidden="true"></span>${component.timeOf(event)}</span>
         <span class="sf-view-calendar__name">${event.title}</span>
-        ${component.eventFieldList.map((field) => html`<span class="sf-view-calendar__field" data-key=${String(field.key)} data-align=${component.fieldAlign(field)}>${renderShape(component.cellShape(field, event.record), component)}</span>`)}
+        ${component.eventFieldList.map((field) => html`<span class="sf-view-calendar__field" data-key=${String(field.key)} data-align=${component.fieldAlign(field)}>${rowValue(renderShape(component.cellShape(field, event.record), component))}</span>`)}
     </div>`;
 }
+
+// A plain value in a row is its own box, so a long one ends with «…» (VCL-4).
+const rowValue = (content) => (typeof content === "string" ? html`<span class="sf-view-calendar__text">${content}</span>` : content);
 
 function renderDayList(context, day, always = false) {
     const component = context.component;

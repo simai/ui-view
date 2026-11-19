@@ -2,8 +2,15 @@
   "$comment": "sf-view-calendar, standard simai.smart-component 1.4 (vocabulary 1.1.5): the calendar layout of the view set (owner decision C307, after the board and the cards, C298). Study: ui-control control/research/2026-11-18-calendar-view. Modes month, week, day and list; the month and time grids are the calendar's own; the bar, menus, toasts, the «Перенести на…» window and the event fields are SIMAI Framework parts.",
   "id": "smart.view-calendar",
   "tag": "sf-view-calendar",
-  "version": "1.0.0",
+  "version": "1.1.1",
   "x-history": [
+    {
+      "version": "1.1.1",
+      "kind": "minor",
+      "recorded_on": "2026-11-19",
+      "consumer": "Nothing to change. A view whose layouts.calendar names a mode opens in it (an absent mode attribute no longer reads as month); «+N» is a text button the height of an event, so a month day is 113 px instead of 125; on a phone a day-list row is two lines with the second «Кратко» field at the end of the title line, long values end with «…» (DEV's acceptance returns VCL-1, VCL-3, VCL-4).",
+      "evidence": "control/evidence/2026-11-19-view-calendar-vcl/README.md"
+    },
     {
       "version": "1.0.0",
       "kind": "minor",
@@ -627,6 +634,13 @@
           "to": "1.0.0",
           "changes": [
             "New: the calendar layout (owner decision C307): month, week, day and list modes over the host's date window in the request's time zone and week start; all-day and multi-day bars and timed events in their option's colour; «+N» opens the day list; moves and stretches by mouse, touch and keys as a change of the date fields the host settles (settleMove), refused days dim with the reason; «Без даты N» column; «+» on a day; the phone month with dots; selection in the list mode; one Tab stop with the W3C date grid keys."
+          ]
+        },
+        {
+          "from": "1.0.0",
+          "to": "1.1.1",
+          "changes": [
+            "DEV's acceptance returns (round/view-calendar): VCL-1 the open mode is the person's, else a written mode attribute, else layouts.calendar mode, else month (modeOf; getProp answered the enum's first value with no attribute); VCL-3 «+N» is a native text button of the event line height (--sf-text-height-1/2) and the fixed day height is the number row plus per_day lines; VCL-4 the phone row puts the second event field on the title line, end-aligned, the first under the title, and plain values are their own box with an ellipsis. Numbered above round/view-r4's 1.1.0."
           ]
         }
       ]

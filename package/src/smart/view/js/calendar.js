@@ -61,6 +61,20 @@ function contextOf(view) {
 export function calendarQuery(view, query, extra = null) {
     const calendar = calendarOf(view);
     const window = calendar && typeof calendar.window === "object" && calendar.window?.date_field ? copy(calendar.window) : defaultWindow(view);
+    // Before the first answer the date field may be unknown (no layouts.calendar
+    // on the page, no date column yet): the range query would name no field
+    // and the host would have to guess it (VCL-2). The first query then goes
+    // as the page printed it, without a window -- the early call the page
+    // started is taken as is -- and its answer brings layouts.calendar; the
+    // range query follows at once with the field from it. Only the first
+    // query: a host that names no date field at all gets the range as before.
+    if (!window.date_field && !extra && !view._calendarAsked) {
+        view._calendarAsked = true;
+        view._calendarBare = true;
+        return query;
+    }
+    view._calendarAsked = true;
+    view._calendarBare = false;
     query.window = {...window, ...(extra ?? {})};
     query.context = contextOf(view);
     delete query.page;
@@ -78,6 +92,14 @@ export function acceptCalendar(view, data) {
         const dateField = calendarOptionsOf(view).date_field;
         const rules = Array.isArray(data.rules) ? data.rules : data.rules[dateField];
         if (Array.isArray(rules)) view._calendarRules = copy(rules);
+    }
+    if (view._calendarBare) {
+        // The answer to the first query, asked without a window (VCL-2): its
+        // records are not the days on screen. It gave layouts.calendar and the
+        // columns; the range query goes next with the date field.
+        view._calendarBare = false;
+        view._calendarRangeWanted = true;
+        return false;
     }
     if (view._calendarUndatedAsk) {
         // The answer to the undated query: the column's records and their count.
@@ -100,6 +122,16 @@ export function acceptCalendar(view, data) {
 export function syncCalendar(view) {
     const calendar = calendarOf(view);
     if (!calendar || view.layoutKind !== "calendar") return;
+    if (view._calendarRangeWanted) {
+        // The range is the calendar's own window (its mode, day and week
+        // start) once its code is in; a calendar that never comes gets the
+        // month around today after the first paint's wait.
+        view._calendarRangeWanted = false;
+        const ask = () => { if (view.isConnected && view.layoutKind === "calendar") view.refresh?.("calendar-range"); };
+        const registry = globalThis.customElements;
+        if (typeof registry?.whenDefined !== "function" || registry.get("sf-view-calendar")) globalThis.queueMicrotask(ask);
+        else Promise.race([registry.whenDefined("sf-view-calendar"), new Promise((done) => globalThis.setTimeout(done, 3000))]).catch(() => {}).then(ask);
+    }
     calendar.fields = view.columns ?? [];
     if (view._calendarHostOptions) calendar.options = {...(calendar.options ?? {}), ...view._calendarHostOptions};
     if (view._calendarRules) calendar.rules = view._calendarRules;

@@ -5,8 +5,9 @@ import test from 'node:test';
 import {fileURLToPath} from 'node:url';
 import {
   calendarOptions, rangeOf, stepPeriod, weekStartFor, readValue, writeValue, eventsOf, moveCheck, movePatch, toneOf,
-  MODES, PER_DAY, SLOT, EVENT_FIELDS_MAX, RECORDS_MAX, MONTH_DAYS, PHONE_DAYS,
+  MODES, PER_DAY, SLOT, EVENT_FIELDS_MAX, RECORDS_MAX, MONTH_DAYS, PHONE_DAYS, modeOf,
 } from '../src/smart/view-calendar/js/calendar.js';
+import {acceptCalendar, calendarQuery, syncCalendar} from '../src/smart/view/js/calendar.js';
 
 // sf-view-calendar (owner decision C307; study ui-control
 // control/research/2026-11-18-calendar-view, section 5; CA-1..CA-10 of the
@@ -134,7 +135,7 @@ test('C293: the list head offers no week start; the colour setting is color_fiel
 
 test('the calendar is declared and its words are in every language pack', () => {
   const component = json('src/smart/view-calendar/component.json');
-  assert.equal(component.version, '1.0.0');
+  assert.equal(component.version, '1.1.1');
   const en = json('src/smart/view-calendar/lang/en.json');
   const ru = json('src/smart/view-calendar/lang/ru.json');
   const keys = (pack) => Object.keys(pack.runtime ?? pack).sort();
@@ -147,4 +148,58 @@ test('the calendar is declared and its words are in every language pack', () => 
 test('no raw lengths in the calendar sheet', () => {
   const css = read('src/smart/view-calendar/js/templates/default.css');
   assert.doesNotMatch(css.replace(/\/\*[\s\S]*?\*\//gu, ''), /(?<![-\w])\d+(\.\d+)?(px|rem|em)\b/u);
+});
+
+test('VCL-1: the open mode is the person\'s, else a written attribute, else layouts.calendar mode, else month', () => {
+  const modes = [...MODES];
+  assert.equal(modeOf({mode: calendarOptions({mode: 'week'}).mode, modes}), 'week');
+  assert.equal(modeOf({mode: calendarOptions({}).mode, modes}), 'month');
+  assert.equal(modeOf({written: 'day', mode: 'week', modes}), 'day');
+  assert.equal(modeOf({chosen: 'list', written: 'day', mode: 'week', modes}), 'list');
+  // A phone offers no day: a view asking for it opens in the first offered.
+  assert.equal(modeOf({mode: 'day', modes: ['month', 'week', 'list']}), 'month');
+  // The element reads the attribute itself: an absent one answers the enum's
+  // first value through getProp, which must not hide the view's mode.
+  const element = read('src/smart/view-calendar/index.js');
+  assert.match(element, /const written = this\.getAttribute\?\.\("mode"\);/u);
+  assert.match(element, /return modeOf\(\{chosen: this\._mode, written: given, mode: this\.calendarOptions\.mode, modes: this\.modes\}\);/u);
+  assert.doesNotMatch(element, /this\._mode \?\? this\.getProp\("mode"\)/u);
+});
+
+test('VCL-2: no range query names a null date field when layouts.calendar can give it', async () => {
+  const refreshed = [];
+  const calendar = {localName: 'sf-view-calendar', options: {}, window: undefined, attributes: new Map(), getAttribute(name) { return this.attributes.get(name) ?? null; }, setAttribute(name, value) { this.attributes.set(name, value); }, hasAttribute(name) { return this.attributes.has(name); }, toggleAttribute() {}};
+  const view = {
+    layoutKind: 'calendar', columns: [], isConnected: true,
+    shadowRoot: {querySelector: () => ({assignedElements: () => [calendar]})},
+    getAttribute: () => null,
+    renders: () => true, hostOffers: () => true,
+    refresh(reason) { refreshed.push(reason); },
+  };
+  // Nothing names the date field yet: the first query goes as the page printed it.
+  const printed = {filters: {}, search: '', sort: [], page: 1, per_page: 25};
+  const first = calendarQuery(view, {...printed});
+  assert.deepEqual(first, printed);
+  assert.equal('window' in first, false);
+  // Its answer gives layouts.calendar; its records are not the days on screen.
+  acceptCalendar(view, {records: [{id: 'a', start: '2026-11-18T10:00'}], view_config: {layouts: {calendar: {date_field: 'start', end_field: 'end', mode: 'week'}}}});
+  assert.equal(view._calendarRecords, undefined);
+  syncCalendar(view);
+  await Promise.resolve();
+  assert.deepEqual(refreshed, ['calendar-range']);
+  // The range query carries the field from layouts.calendar.
+  const range = calendarQuery(view, {...printed});
+  assert.equal(range.window.date_field, 'start');
+  assert.equal(range.window.end_field, 'end');
+  assert.equal(range.window.range.length, 2);
+  assert.equal('page' in range, false);
+  acceptCalendar(view, {records: [{id: 'a', start: '2026-11-18T10:00'}]});
+  assert.equal(view._calendarRecords.length, 1);
+  // Only the first query goes without a window: a host that names no date
+  // field at all still gets the range (as before).
+  const bare = {...view, _calendarAsked: true, _calendarHostOptions: undefined, _calendarBare: false};
+  assert.ok(calendarQuery(bare, {...printed}).window.range);
+  // A field the page already gave is used at once.
+  const given = {...view, _calendarAsked: false, _calendarHostOptions: {date_field: 'due'}};
+  assert.equal(calendarQuery(given, {...printed}).window.date_field, 'due');
 });

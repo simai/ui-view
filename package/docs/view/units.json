@@ -5,6 +5,15 @@
   "entries": [
     {
       "unit": "smart.view",
+      "version": "1.23.1",
+      "recorded_on": "2026-11-19",
+      "change": "minor",
+      "consumer": "Nothing to change for a host that names the date field. A calendar view whose page names no date field before the first answer asks the first query as printed, without a window, and the range query right after it with date_field and end_field from layouts.calendar: no range query carries date_field null (VCL-2). The calendar skeleton's day is the calendar's new height (VCL-3).",
+      "summary": "DEV's acceptance returns (round/view-calendar): VCL-2 calendarQuery asks the first query bare when no date field is known, acceptCalendar takes only layouts.calendar, the rules and the context from its answer and the range query follows from syncCalendar; VCL-3 the first-paint month day is the number row plus three lines. Numbered above round/view-r4's 1.23.0.",
+      "evidence": "control/evidence/2026-11-19-view-calendar-vcl/README.md"
+    },
+    {
+      "unit": "smart.view",
       "version": "1.18.0",
       "recorded_on": "2026-11-18",
       "change": "minor",
@@ -380,6 +389,15 @@
       "consumer": "New: sf-view layout=\"board\" (or Larena's kanban) draws it; a host answers the lane window (lanes, per_lane) and settles moves.",
       "summary": "New: the board layout (owner decisions C298, C304): lanes by one field from the host's lane window, cards with up to four fields in the «Кратко» place, moves as a change of the lane field the host settles (settleMove), «Показать ещё» per lane (appendLane), soft limits, folded and hidden lanes, one lane per screen on a phone, one Tab stop with the arrows inside.",
       "evidence": "control/evidence/2026-11-18-view-r2-board"
+    },
+    {
+      "unit": "smart.view-calendar",
+      "version": "1.1.1",
+      "recorded_on": "2026-11-19",
+      "change": "minor",
+      "consumer": "Nothing to change. A view whose layouts.calendar names a mode opens in it (an absent mode attribute no longer reads as month); «+N» is a text button the height of an event, so a month day is 113 px instead of 125; on a phone a day-list row is two lines with the second «Кратко» field at the end of the title line, long values end with «…» (DEV's acceptance returns VCL-1, VCL-3, VCL-4).",
+      "summary": "DEV's acceptance returns (round/view-calendar): VCL-1 the open mode is the person's, else a written mode attribute, else layouts.calendar mode, else month (modeOf; getProp answered the enum's first value with no attribute); VCL-3 «+N» is a native text button of the event line height (--sf-text-height-1/2) and the fixed day height is the number row plus per_day lines; VCL-4 the phone row puts the second event field on the title line, end-aligned, the first under the title, and plain values are their own box with an ellipsis. Numbered above round/view-r4's 1.1.0.",
+      "evidence": "control/evidence/2026-11-19-view-calendar-vcl/README.md"
     },
     {
       "unit": "smart.view-calendar",

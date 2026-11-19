@@ -18,6 +18,21 @@ up). Each component.json says the same under `x-decisions`
 
 ## Unreleased (round/view-calendar)
 
+- `sf-view-calendar` 1.1.1 and `sf-view` 1.23.1 (DEV's acceptance returns
+  VCL-1..VCL-4, numbered above round/view-r4): the calendar opens in the mode
+  `layouts.calendar` names (a mode attribute the page writes goes first, the
+  person's choice over both; an absent attribute no longer reads as month).
+  No range query carries `date_field: null`: when nothing names the date field
+  before the first answer, sf-view asks the first query as printed, without a
+  window, and the range query right after it with the field from
+  `layouts.calendar`. «+N» is a text button the height of an event row, so a
+  month day is 113 px (was 125) and the month 678 px (was 750); the first
+  paint follows. On a phone a day-list row is two lines: time, title and the
+  second «Кратко» field at its end, then the first field; long values end with
+  «…».
+- Tests: «STATUS names every remote branch ahead of main» compares the remote
+  branches only in the release check (`VIEW_RELEASE_CHECK=1`), as on
+  round/view-cards.
 - `sf-view-calendar` 1.0.0 (owner decision C307, CA-1..CA-10; study
   ui-control `control/research/2026-11-18-calendar-view`): a new layout of
   the set, preview. Records sit on the days of their date field in a month

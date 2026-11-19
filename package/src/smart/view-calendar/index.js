@@ -25,7 +25,7 @@ import {applied, elementFromManifest, refused} from "../../core/js/element-manif
 import {renderCellField} from "../field-renderers/index.js";
 import {renderViewCalendarTemplate} from "./js/templates/default.js";
 import {
-    MODES, RECORDS_MAX, addDays, addMonths, calendarOptions, clockOf, eventsOf, moveCheck, movePatch,
+    MODES, RECORDS_MAX, addDays, addMonths, calendarOptions, clockOf, eventsOf, modeOf, moveCheck, movePatch,
     onDay, personZone, rangeOf, readValue, stepPeriod, validZone, wallIn, weekStartFor, weekendFor, weekday,
 } from "./js/calendar.js";
 import manifest from "./component.json";
@@ -227,11 +227,12 @@ class SfViewCalendar extends CalendarElement {
     get today() { return this.now.date; }
 
     get mode() {
-        const options = this.calendarOptions;
-        const modes = this.modes;
-        const asked = this._mode ?? this.getProp("mode") ?? options.mode;
-        const mode = modes.includes(asked) ? asked : modes[0];
-        return mode;
+        // The person's choice, else a written mode attribute, else the view's
+        // layouts.calendar mode (VCL-1): an absent attribute reads as the
+        // enum's first value, so only a written one is the page's.
+        const written = this.getAttribute?.("mode");
+        const given = written === null || written === undefined || written === "" ? null : this.getProp("mode");
+        return modeOf({chosen: this._mode, written: given, mode: this.calendarOptions.mode, modes: this.modes});
     }
 
     set mode(value) { this.setMode(value); }

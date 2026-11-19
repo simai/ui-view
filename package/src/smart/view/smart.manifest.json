@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view",
-  "version": "1.18.0",
+  "version": "1.23.1",
   "title": "Data view",
   "summary": "Host-driven data view that composes toolbar, content and pagination around a separate data port.",
   "kind": "composite",
@@ -1833,6 +1833,13 @@
         "changes": [
           "The layout registry takes calendar (owner decision C307, CA-1): layout=\"calendar\" draws sf-view-calendar in the content slot, with no page row; its first paint holds the calendar's bar and the month of six weeks at the day's own height (CL-2). The query carries window {range: [from, to), date_field, end_field} and context {timeZone, weekStart, locale} (C293); the undated records are a second query.change (reason undated, window {undated, page, per_page}); a move or a stretch is record.set {record_id, key, value, patch, revision} and the answer settles it on the calendar; a + on a day is view.create_record with the date filled; an opened event goes to the record card (C305). The list head's calendar settings write color_field and no week start. (round/view-calendar)"
         ]
+      },
+      {
+        "from": "1.18.0",
+        "to": "1.23.1",
+        "changes": [
+          "DEV's acceptance returns (round/view-calendar): VCL-2 calendarQuery asks the first query bare when no date field is known, acceptCalendar takes only layouts.calendar, the rules and the context from its answer and the range query follows from syncCalendar; VCL-3 the first-paint month day is the number row plus three lines. Numbered above round/view-r4's 1.23.0."
+        ]
       }
     ]
   },
@@ -1862,11 +1869,11 @@
       },
       {
         "path": "src/smart/view/js/first-paint.css",
-        "sha256": "123df0e22d6ce27c6c65d23f3fda0ae028e3a2f2a119c5bdbf69759bb73491d7"
+        "sha256": "c4c63efd373c974eeea773ab7f24c5e03c60088dd003ba23c399e278c761f2dc"
       },
       {
         "path": "src/smart/view/js/calendar.js",
-        "sha256": "b0405d026b2d5a20e3faf30952155b6938fec370424b35b41424f49f02931800"
+        "sha256": "ef3adc35d370eb0e235b2400046866881f0c741b9488b931d46441015868dc63"
       }
     ],
     "generated_runtime": []

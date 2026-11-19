@@ -32,6 +32,12 @@ node site/scripts/evidence.mjs <site URL> docs/evidence/<date>-<what>
 
 Sibling checkouts `../ui-source`, `../ui` and `../ui-builder` are the defaults.
 
+Before cutting a release, run the unit suite once with `VIEW_RELEASE_CHECK=1`
+(`VIEW_RELEASE_CHECK=1 node package/scripts/test.mjs`): only then does the
+test «STATUS names every remote branch ahead of main» compare STATUS with the
+live origin; a plain run skips that comparison, so it passes on any checkout
+whatever round branches other threads have pushed.
+
 ## Process files
 
 - [STATUS](STATUS.md) — one screen: the pin, what is done with its evidence,
