@@ -158,8 +158,10 @@ const DRAWN_TAGS = [
 ];
 
 // The parts only the arranging mode and the select-only chooser draw (C311):
-// asked for once the card knows it may arrange, before the mode is entered.
-const ARRANGING_TAGS = ["sf-profile-picker", "sf-sortable"];
+// the view picker, the lists that drag, a section's icon (a dropdown) and the
+// switches of a field's settings. Asked for once the card knows it may
+// arrange, before the mode is entered.
+const ARRANGING_TAGS = ["sf-profile-picker", "sf-sortable", "sf-dropdown", "sf-switch"];
 
 // How long the copy control shows its tick. The Framework's own clipboard holds
 // its tick for this long, and two controls that say «copied» for two different

@@ -295,8 +295,9 @@
     color: var(--sf-on-primary-container);
   }
 
+  /* Between words only: «Доставк / а» broke inside the word in a 12rem rail. */
   .sf-property-view-section-tab-label {
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
   }
 
   /* C311 (4), TB-1: a tab row is a handle, the button that selects the tab,
@@ -374,7 +375,9 @@
   .sf-property-view-sections {
     flex: 0 1 auto;
     inline-size: max-content;
-    min-inline-size: 0;
+    /* A name is never broken inside a word: the longest word sets the floor,
+       and a floor above the column's width wins over it (CSS min over max). */
+    min-inline-size: min-content;
     max-inline-size: var(--sf-property-view--sections-width);
   }
 
@@ -1307,6 +1310,13 @@
 
   .sf-property-view-sections {
     max-inline-size: var(--sf-view-properties-sections-width, var(--sf-property-view--sections-width, 12rem));
+  }
+
+  /* Stacked (arranging in a panel, C311 (4)), the list is a row of the panel's
+     width over the fields, not a column. */
+  .sf-property-view-layout[data-stacked="true"] > .sf-property-view-sections {
+    inline-size: auto;
+    max-inline-size: none;
   }
 
   /* The row being edited in its window, and the fields a save just wrote. */
