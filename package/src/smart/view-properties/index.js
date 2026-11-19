@@ -37,6 +37,35 @@ import {drawsSetField} from "./js/set-fields.js";
 import {propertyModes} from "../field-renderers/index.js";
 import {historyFromRevisions, timelineItems, valueText} from "./js/history.js";
 
+// Whether the page's sheets hold SIMAI Framework's own ground for the sticky
+// tab strip (component.tabs 1.5.4, group build 15: the strip reads
+// --sf-surface-place-ground, the ground it stands on). Found once, it stays
+// found; not found, it is asked again only when the page has more sheets
+// than at the last look. Without it the panel keeps the set's own strip
+// ground (VB-1, default.css .sf-property-view-panel--own-strip).
+let stripGroundFound = false;
+let stripGroundSheets = -1;
+function frameworkStripGround() {
+    if (stripGroundFound) return true;
+    const sheets = globalThis.document?.styleSheets;
+    if (!sheets || sheets.length === stripGroundSheets) return false;
+    stripGroundSheets = sheets.length;
+    const holds = (rules) => {
+        for (const rule of rules ?? []) {
+            if (rule.selectorText?.includes("sf-tabs--sticky") && rule.selectorText.includes("sf-tabs-top-container")
+                && String(rule.style?.backgroundColor ?? rule.style?.getPropertyValue?.("background-color") ?? "").includes("--sf-surface-place-ground")) return true;
+            if (rule.cssRules && holds(rule.cssRules)) return true;
+        }
+        return false;
+    };
+    for (const sheet of sheets) {
+        let rules = null;
+        try { rules = sheet.cssRules; } catch { continue; }
+        if (holds(rules)) return (stripGroundFound = true);
+    }
+    return false;
+}
+
 // Every port version this composite accepts, in one place, the way sf-view
 // keeps its list -- a guard naming a narrower set than the published versions is
 // a component refusing a host it asked to move. The contract test beside this
@@ -2218,6 +2247,9 @@ class SfPropertyView extends PropertyViewElement {
             loading: this.getAttribute("data-state") === "loading" && !this.record,
             panel: this.panel,
             panelOpen: this.panelOpen,
+            // The set's own strip ground in a panel, until the pair's sf-tabs
+            // paints it (component.tabs 1.5.4).
+            ownStrip: !frameworkStripGround(),
             // The record's own name heads a panel the page gave no label: the
             // host answers it with the record (port 1.14.0 record.label); the
             // reference host and most pages send record.title, read as well.

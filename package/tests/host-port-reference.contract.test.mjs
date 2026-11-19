@@ -219,3 +219,75 @@ test('the reference host answers every intent the port declares', () => {
     assert.notEqual(answer.reason, 'intent-unknown', `${name} (${intent.event}) is unknown to the reference host`);
   }
 });
+
+// Port 1.16.0 (simai/ui-source feat/view-port-levels): the six new kit cases,
+// written here against the reference host because the pinned pair carries the
+// 1.15.0 kit; where the overlay holds the 1.16.0 kit its cases are checked to be
+// these six.
+const levelsKitRoot = 'src/core/contracts/ports/simai.dataview-port/1.16.0/kit';
+const levelCases = ['saved-views-name-their-level', 'system-view-is-not-written', 'preferences-come-with-the-first-answer',
+  'preferences-save-merges-the-changed-fields', 'preferences-save-conflict', 'preferences-without-the-capability-stay-in-the-browser'];
+
+test('1.16.0: the kit, where the overlay has it, adds exactly the six cases checked below', (t) => {
+  let levelsKit = null;
+  try { levelsKit = json(`${levelsKitRoot}/manifest.json`); } catch { /* the pinned pair is 1.15.0 */ }
+  if (!levelsKit) return t.skip('the pinned pair carries no 1.16.0 kit');
+  for (const id of levelCases) assert.ok(levelsKit.cases.includes(id), id);
+});
+
+test('1.16.0 saved-views-name-their-level: system, shared, personal; package reads as system', () => {
+  const host = createReferenceHost({ saved_views: [
+    { key: 'all', label: 'Все заказы', revision: 'v1', level: 'system' },
+    { key: 'unpaid', label: 'Ждут оплаты', revision: 'v3', level: 'shared', query: { filters: { status: ['unpaid'] } } },
+    { key: 'mine', label: 'Мои срочные', revision: 'v7', level: 'personal' },
+    { key: 'legacy', label: 'Архив', revision: 'v2', level: 'package' },
+    { key: 'plain', label: 'Без уровня', revision: 'v1' },
+  ] });
+  const answer = host.raise('view.open', { key: 'unpaid' });
+  assert.equal(answer.answer, 'applied');
+  assert.ok(answer.data.column_settings && answer.data.echo);
+  assert.deepEqual(['all', 'unpaid', 'mine', 'legacy', 'plain'].map(host.level), ['system', 'shared', 'personal', 'system', null]);
+});
+
+test('1.16.0 system-view-is-not-written: refused with a reason, the view keeps its revision', () => {
+  const host = createReferenceHost({ saved_views: [{ key: 'all', label: 'Все заказы', revision: 'v1', level: 'system' }] });
+  const answer = host.raise('view.save', { key: 'all', label: 'Все заказы', revision: 'v1', query: { filters: { status: ['new'] } } });
+  assert.equal(answer.answer, 'refused');
+  assert.ok(answer.reason);
+  assert.equal(host.raise('view.save', { key: 'all-mine', label: 'Мои', query: {} }).answer, 'applied', 'saved as a new view');
+});
+
+test('1.16.0 preferences-come-with-the-first-answer', () => {
+  const host = createReferenceHost({ records: [], capabilities: ['saved-views', 'personal-preferences'],
+    preferences: { revision: 'p3', page_size: 50, view_zone: 'open', view: 'unpaid' } });
+  const answer = host.raise('query.change', { sequence: 1, query: { filters: {}, search: '', sort: [], page: 1, per_page: 50 } });
+  assert.equal(answer.answer, 'applied');
+  assert.deepEqual(answer.data.preferences, { revision: 'p3', page_size: 50, view_zone: 'open', view: 'unpaid' });
+});
+
+test('1.16.0 preferences-save-merges-the-changed-fields', () => {
+  const host = createReferenceHost({ capabilities: ['personal-preferences'], preferences: { revision: 'p3', page_size: 50, view_zone: 'open' } });
+  const answer = host.raise('preferences.save', { preferences: { view_zone: 'closed' }, base_revision: 'p3' });
+  assert.equal(answer.answer, 'applied');
+  assert.equal(answer.data.preferences.page_size, 50);
+  assert.equal(answer.data.preferences.view_zone, 'closed');
+  assert.notEqual(answer.data.preferences.revision, 'p3');
+  const removed = host.raise('preferences.save', { preferences: { page_size: null }, base_revision: answer.data.preferences.revision });
+  assert.equal('page_size' in removed.data.preferences, false, 'null removes a field');
+});
+
+test('1.16.0 preferences-save-conflict names the current revision', () => {
+  const host = createReferenceHost({ capabilities: ['personal-preferences'], preferences: { revision: 'p4', page_size: 20 } });
+  const answer = host.raise('preferences.save', { preferences: { page_size: 100 }, base_revision: 'p3' });
+  assert.equal(answer.answer, 'conflict');
+  assert.equal(answer.current_revision, 'p4');
+  assert.equal(host.raise('preferences.save', { preferences: { page_size: 100 }, base_revision: 'p4' }).answer, 'applied', 'the same change again wins');
+});
+
+test('1.16.0 preferences-without-the-capability-stay-in-the-browser', () => {
+  const host = createReferenceHost({ records: [], capabilities: ['saved-views'] });
+  const answer = host.raise('preferences.save', { preferences: { page_size: 20 }, base_revision: 'p1' });
+  assert.equal(answer.answer, 'unavailable');
+  assert.equal(answer.reason, 'capability-not-provided');
+  assert.equal('preferences' in host.raise('query.change', { sequence: 1, query: {} }).data, false);
+});

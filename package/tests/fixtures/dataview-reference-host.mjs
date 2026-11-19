@@ -10,6 +10,16 @@ export const createReferenceHost = (state = {}) => {
   const capabilities = new Set(state.capabilities ?? ['saved-views', 'shared-column-settings', 'bulk-under-filter', 'row-actions']);
   const sharedOnly = new Set(state.shared_only_fields ?? ['pinned']);
   const savedViews = new Map((state.saved_views ?? []).map((view) => [view.key, clone(view)]));
+  // Port 1.16.0: a saved view names its level -- system, shared or personal;
+  // package is 1.15.0's name of system, read as system until 2027-01-01. A
+  // system view ships with the product and is never written through the port.
+  const levelOf = (view) => (view?.level === 'package' ? 'system' : view?.level ?? null);
+  // Port 1.16.0 personal-preferences: one layer of this person's view state
+  // (page size, the view zone, the view opened last) with its revision, sent
+  // with every answer to query.change and merged by preferences.save. A host
+  // that does not offer the capability (a guest's page) keeps none.
+  let preferences = state.preferences ? clone(state.preferences) : null;
+  let preferencesRevision = 0;
   const layers = clone(state.column_settings?.layers) ?? {};
   const store = state.store ?? 'up';
   // A host that counts every answer is the ordinary case. One that does not
@@ -43,6 +53,7 @@ export const createReferenceHost = (state = {}) => {
       echo.sort = [];
     }
     const data = { records: [...records.values()], echo, columns: state.columns ?? [] };
+    if (capabilities.has('personal-preferences')) data.preferences = clone(preferences ?? { revision: 'p0' });
     if (counts) data.total = records.size;
     else data.has_next = hasNext;
     return { answer: 'applied', sequence: payload.sequence, data };
@@ -55,6 +66,8 @@ export const createReferenceHost = (state = {}) => {
     capabilities: [...capabilities],
     applied,
     record: (id) => clone(records.get(String(id))),
+    preferences: () => clone(preferences),
+    level: (key) => levelOf(savedViews.get(key)),
     raise(intent, payload = {}) {
       if (!has(this.capabilityOf(intent))) return { answer: 'unavailable', reason: 'capability-not-provided' };
       if (store === 'down' && intent === 'query.change') return { answer: 'unavailable', reason: 'store-unreachable' };
@@ -132,6 +145,7 @@ export const createReferenceHost = (state = {}) => {
             return { answer: 'refused', reason: 'shared-target-required' };
           }
           const view = savedViews.get(payload.key);
+          if (levelOf(view) === 'system') return { answer: 'refused', reason: 'forbidden' };
           if (view) {
             const conflict = compare(payload.revision, view.revision);
             if (conflict) return conflict;
@@ -145,7 +159,22 @@ export const createReferenceHost = (state = {}) => {
           applied.push({ intent, key: payload.key });
           return { answer: 'applied' };
         }
+        case 'preferences.save': {
+          const current = preferences?.revision ?? 'p0';
+          const conflict = compare(payload.base_revision, current);
+          if (conflict) return conflict;
+          const next = { ...(preferences ?? {}) };
+          for (const [field, value] of Object.entries(payload.preferences ?? {})) {
+            if (value === null) delete next[field];
+            else next[field] = clone(value);
+          }
+          next.revision = `${current}+${++preferencesRevision}`;
+          preferences = next;
+          applied.push({ intent, fields: Object.keys(payload.preferences ?? {}) });
+          return { answer: 'applied', data: { preferences: clone(preferences) } };
+        }
         case 'view.delete': {
+          if (levelOf(savedViews.get(payload.key)) === 'system') return { answer: 'refused', reason: 'forbidden' };
           if (!savedViews.delete(payload.key)) return { answer: 'refused', reason: 'view-missing' };
           applied.push({ intent, key: payload.key });
           return { answer: 'applied' };
@@ -169,6 +198,7 @@ export const createReferenceHost = (state = {}) => {
         'view.save': 'saved-views',
         'view.save_shared': 'shared-saved-views',
         'view.delete': 'saved-views',
+        'preferences.save': 'personal-preferences',
       })[intent] ?? null,
   };
 };

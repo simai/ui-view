@@ -497,11 +497,20 @@ export class ListHead {
         return this._zoneOpen;
     }
 
+    // The person's layer arrived from the host (port 1.16.0 preferences): the
+    // zone follows it, unless the person has already opened or closed it here.
+    keptChanged() {
+        if (this._zoneTouched) return;
+        this._zoneOpen = undefined;
+        this.render();
+    }
+
     _setZoneOpen(open) {
+        this._zoneTouched = true;
         this._zoneOpen = Boolean(open);
-        // Remembered per person the way the page size is (SF.Preferences
-        // under preferences-key, view round 5): the port has no personal
-        // setting for it yet.
+        // Remembered per person the way the page size is: the host's
+        // personal layer where it offers one (port 1.16.0,
+        // personal-preferences), else SF.Preferences under preferences-key.
         this.view._keepPreference?.({viewZone: this._zoneOpen});
         if (!this._zoneOpen && ["view", "state"].includes(this.open?.kind)) this._closeOpen();
         this.render();
@@ -522,7 +531,10 @@ export class ListHead {
 
     viewLevel(view) {
         const level = String(view?.level ?? view?.kind ?? "");
-        if (level === "system") return "system";
+        // package is simai.dataview-port 1.15.0's name of system, read as
+        // system until 2027-01-01 (port 1.16.0, journal
+        // value-dataview-saved-view-level-package-to-system).
+        if (level === "system" || level === "package") return "system";
         if (level === "personal" || level === "own" || view?.mine === true) return "personal";
         if (level === "shared" || level === "all") return "shared";
         return "";

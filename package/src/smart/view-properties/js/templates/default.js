@@ -1858,7 +1858,7 @@ export function renderPropertyViewTemplate(context) {
                 close-label=${context.closeLabel}
                 label=${context.panelLabel || context.recordLabel || context.recordId || ''}
         >
-            <div class="sf-property-view-panel relative flex flex-col gap-2${rail ? ' sf-property-view-panel--railed' : ''}"
+            <div class="sf-property-view-panel relative flex flex-col gap-2${rail ? ' sf-property-view-panel--railed' : ''}${context.ownStrip ? ' sf-property-view-panel--own-strip' : ''}"
                  data-record-id=${context.recordId || ''}
                  data-sections-layout=${context.sectionsLayout}
                  data-nested=${context.nestedUnder ? 'true' : nothing}

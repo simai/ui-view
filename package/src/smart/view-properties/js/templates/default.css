@@ -417,9 +417,12 @@
      sticky strip with --sf-surface-page, which in the dark theme is darker
      than the panel's --sf-surface-area -- a dark band over a lighter ground.
      In a panel the strip takes the panel's ground in the dark theme; in the
-     light one it stays the page's white, as before. (SIMAI Framework order:
-     a sticky strip should take the ground it sticks on.) */
-  .sf-property-view-panel .sf-tabs.sf-tabs--sticky > .sf-tabs-top-container {
+     light one it stays the page's white, as before. SIMAI Framework
+     component.tabs 1.5.4 (group build 15) paints the strip with the ground
+     it stands on itself: where the page's sheets carry that rule the panel
+     drops this class (sf-view-properties ownStripGround), and this rule
+     goes once every supported pair carries it. */
+  .sf-property-view-panel--own-strip .sf-tabs.sf-tabs--sticky > .sf-tabs-top-container {
     background-color: light-dark(var(--sf-surface-page), var(--sf-surface-area));
   }
 

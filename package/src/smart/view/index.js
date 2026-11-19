@@ -145,7 +145,7 @@ function projectColumn(column) {
     return projected;
 }
 
-const SUPPORTED_PORT_VERSIONS = ["1.0.0", "1.1.0", "1.2.0", "1.3.0", "1.4.0", "1.5.0", "1.6.0", "1.7.0", "1.8.0", "1.9.0", "1.10.0", "1.11.0", "1.12.0", "1.13.0", "1.14.0", "1.15.0"];
+const SUPPORTED_PORT_VERSIONS = ["1.0.0", "1.1.0", "1.2.0", "1.3.0", "1.4.0", "1.5.0", "1.6.0", "1.7.0", "1.8.0", "1.9.0", "1.10.0", "1.11.0", "1.12.0", "1.13.0", "1.14.0", "1.15.0", "1.16.0"];
 
 // Creating a record and saving personal column settings became capabilities in
 // port 1.10.0. A host that declares an earlier version was offered both without
@@ -2235,18 +2235,100 @@ class SfDataView extends DataViewElement {
         }
     }
 
-    // What this person keeps for the list in this browser (SF.Preferences
-    // under preferences-key): the sort, the page size and whether the list
-    // head's view zone is open (VZ-1). Empty without a key.
+    // What this person keeps for the list: the sort, the page size and
+    // whether the list head's view zone is open (VZ-1). In this browser
+    // (SF.Preferences under preferences-key; empty without a key), and where
+    // the host keeps the person's own layer (simai.dataview-port 1.16.0,
+    // personal-preferences: a signed-in person) its page size and zone state
+    // win once its answer has come. The browser copy stays as the first
+    // paint's guess before that answer.
     get keptPreferences() {
         const key = this.preferencesKey;
-        return key ? (preferences()?.read(key) ?? {}) : {};
+        const kept = key ? (preferences()?.read(key) ?? {}) : {};
+        const layer = this.personalLayer;
+        if (!layer) return kept;
+        return {
+            ...kept,
+            ...(Number.isInteger(layer.page_size) && layer.page_size > 0 ? {pageSize: layer.page_size} : {}),
+            ...(layer.view_zone === "open" || layer.view_zone === "closed" ? {viewZone: layer.view_zone === "open"} : {}),
+        };
+    }
+
+    // Whether the host keeps this person's own layer: port 1.16.0 or later
+    // with personal-preferences (a signed-in person). Any earlier port, or a
+    // guest's page, keeps the state in the browser as before.
+    _personalOffered() {
+        const port = this.hostPort ?? this._declaredPort ?? null;
+        return Boolean(port) && portAtLeast(port.version, "1.16.0") && this.hostOffers("personal-preferences");
+    }
+
+    // The host's layer of this person's view state, where it offers one.
+    get personalLayer() {
+        return this._personalLayer && this._personalOffered() ? this._personalLayer : null;
     }
 
     _keepPreference(patch) {
         const key = this.preferencesKey;
-        if (!key) return;
-        preferences()?.write(key, {...(preferences()?.read(key) ?? {}), v: 1, ...patch});
+        if (key) preferences()?.write(key, {...(preferences()?.read(key) ?? {}), v: 1, ...patch});
+        // The page size and the zone go to the person's layer too, where the
+        // host keeps one; the sort stays the browser's (the layer has no sort).
+        const fields = {
+            ...(Number.isInteger(patch.pageSize) ? {page_size: patch.pageSize} : {}),
+            ...(typeof patch.viewZone === "boolean" ? {view_zone: patch.viewZone ? "open" : "closed"} : {}),
+        };
+        if (Object.keys(fields).length) this._savePersonal(fields);
+    }
+
+    // preferences.save (port 1.16.0): only the fields that changed, against
+    // the layer's revision. A conflict names the current revision and the
+    // same change goes again against it: the layer is the person's own (two
+    // tabs of theirs), so the newest change wins. Quiet: a failed write of a
+    // preference says nothing to the person, the browser copy stays.
+    async _savePersonal(fields) {
+        if (!this.hostPort || !this._personalOffered() || !this._personalLayer) return;
+        const base = this._personalLayer.revision;
+        if (base === undefined || base === null) return;
+        this._personalLayer = {...this._personalLayer, ...fields};
+        const send = async (revision, again) => {
+            let answer = null;
+            try {
+                answer = await this.hostPort.raise("preferences.save", {preferences: copy(fields), base_revision: revision});
+            } catch {
+                return;
+            }
+            if (answer?.answer === "applied" && answer.data?.preferences && typeof answer.data.preferences === "object") {
+                this._personalLayer = copy(answer.data.preferences);
+            } else if (answer?.answer === "conflict" && answer.current_revision != null && again) {
+                await send(answer.current_revision, false);
+            }
+        };
+        await send(base, true);
+    }
+
+    // The person's layer in an answer (port 1.16.0: required in the first
+    // answer of a host with personal-preferences). The zone follows it; a
+    // page size other than the one the first query asked with asks once more
+    // with it. The browser copy is brought in line for the next first paint.
+    _acceptPersonal(layer) {
+        if (!layer || typeof layer !== "object" || !this._personalOffered()) return;
+        const first = !this._personalLayer;
+        this._personalLayer = copy(layer);
+        const key = this.preferencesKey;
+        const kept = this.keptPreferences;
+        if (key) {
+            const stored = preferences()?.read(key) ?? {};
+            preferences()?.write(key, {...stored, v: 1,
+                ...(Number.isInteger(kept.pageSize) ? {pageSize: kept.pageSize} : {}),
+                ...(typeof kept.viewZone === "boolean" ? {viewZone: kept.viewZone} : {})});
+        }
+        this._head?.keptChanged?.();
+        const size = layer.page_size;
+        if (first && Number.isInteger(size) && size > 0 && size !== Number(this.query.per_page)) {
+            this._pageSizeDeclared = true;
+            Promise.resolve().then(() => {
+                if (this.isConnected && size !== Number(this.query.per_page)) this.changeQuery({per_page: size, page: 1}, "page-size-change");
+            });
+        }
     }
 
     refresh(reason = "refresh") {
@@ -2381,6 +2463,7 @@ class SfDataView extends DataViewElement {
         acceptCalendar(this, data);
         this._answered = true;
         if (Array.isArray(data.saved_views)) this.savedViews = copy(data.saved_views);
+        if (data.preferences && typeof data.preferences === "object") this._acceptPersonal(data.preferences);
         if (Array.isArray(data.saved_filters)) this.savedFilters = copy(data.saved_filters);
         if (data.view_config && typeof data.view_config === "object") this.viewConfig = copy(data.view_config);
         if (Array.isArray(data.locked)) this.lockedSettings = copy(data.locked);
