@@ -1,0 +1,8 @@
+{
+  "lanes": [
+    {"value": "new", "total": 48, "sums": {"amount": 125000}, "over_limit": false,
+     "records": [{"id": "10468", "revision": "3"}, {"id": "10471", "revision": "1"}], "cursor": "c2"},
+    {"value": "work", "total": 2, "over_limit": true, "records": [{"id": "10401", "revision": "9"}, {"id": "10402", "revision": "2"}]},
+    {"value": null, "total": 0, "records": []}
+  ]
+}

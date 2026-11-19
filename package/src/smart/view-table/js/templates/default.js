@@ -73,12 +73,12 @@ function renderListToolbar(context) {
                          joins the button's name in the page language. -->
                     <sf-button-icon
                             size=${context.controlSize ?? nothing}
-                            appearance=${active.length ? 'tonal' : 'outline'}
-                            scheme=${active.length ? 'primary' : 'on-surface'}
+                            appearance=${active.length || context.filterHeld ? 'tonal' : 'outline'}
+                            scheme=${active.length || context.filterHeld ? 'primary' : 'on-surface'}
                             icon="filter_list"
                             badge-count=${active.length || nothing}
                             badge-label=${active.length ? context.component.text('filterBadgeLabel') : nothing}
-                            aria-label=${context.filterText}
+                            aria-label=${context.filterName ? `${context.filterText}: ${context.filterName}` : context.filterText}
                             @click=${(e) => context.component.openContextMenu(e, {type: 'bottom', menu: 'filter-settings'})}
                     ></sf-button-icon>
                 </span>` : nothing}
@@ -162,8 +162,8 @@ function renderToolbar(context) {
                          outline, and a tone while conditions are set. -->
                     <sf-button
                             size=${context.controlSize ?? nothing}
-                            appearance=${activeFilterTags.length ? 'tonal' : 'outline'}
-                            scheme=${activeFilterTags.length ? 'primary' : 'on-surface'}
+                            appearance=${activeFilterTags.length || context.filterHeld ? 'tonal' : 'outline'}
+                            scheme=${activeFilterTags.length || context.filterHeld ? 'primary' : 'on-surface'}
                             text=${context.filterName || context.filterText}
                             segment=${context.filterTemplates ? 'start' : nothing}
                             icon-start="filter_list"
@@ -177,8 +177,8 @@ function renderToolbar(context) {
                     ${context.filterTemplates ? html`
                     <sf-button-icon
                             size=${context.controlSize ?? nothing}
-                            appearance=${activeFilterTags.length ? 'tonal' : 'outline'}
-                            scheme=${activeFilterTags.length ? 'primary' : 'on-surface'}
+                            appearance=${activeFilterTags.length || context.filterHeld ? 'tonal' : 'outline'}
+                            scheme=${activeFilterTags.length || context.filterHeld ? 'primary' : 'on-surface'}
                             aria-label=${context.component.text('saveFilterTemplateLabel')}
                             ?disabled=${!activeFilterTags.length}
                             segment="end"

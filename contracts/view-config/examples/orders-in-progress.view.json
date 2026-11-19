@@ -1,0 +1,21 @@
+{
+  "schema": "simai.view-config/1",
+  "id": "orders-in-progress",
+  "name": "В работе",
+  "source": "orders",
+  "layout": "board",
+  "query": {
+    "filter": {"status": {"operator": "in", "value": ["new", "work"]}},
+    "sort": [{"field": "due", "dir": "asc"}],
+    "per_page": 20
+  },
+  "fields": {"visible": ["title", "status", "due", "owner"], "order": ["title", "owner", "due", "status"]},
+  "layouts": {
+    "table": {"widths": {"title": 320}, "density": "compact", "totals": ["sum"]},
+    "board": {"lane_field": "status", "card_fields": ["owner", "due"], "per_lane": 20}
+  },
+  "head": {"filter_fields": ["status", "owner", "due"]},
+  "required": false,
+  "locked": ["query.filter", "fields.visible"],
+  "revision": 7
+}

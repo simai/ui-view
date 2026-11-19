@@ -22,7 +22,7 @@ profile: how_to
    списком:
 
    ```json
-   {"search": "казань", "filters": {"status": "new"}, "sort": [{"key": "created_at", "direction": "desc"}], "page": 1, "per_page": 25}
+   {"search": "казань", "filters": {"status": "new"}, "sort": [{"key": "created_at", "direction": "desc"}], "page": 1, "per_page": 20}
    ```
 
    Ищите по полям, по которым человеку ожидаемо искать: номер, имя, город.

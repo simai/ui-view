@@ -104,7 +104,7 @@ view.setHostPort({
   search: 'Ромашка',
   view: {id: 'all', type: 'table'},
   page: 1,
-  per_page: 25,
+  per_page: 20,                                 // без своего размера страницы — 20
 }
 ```
 

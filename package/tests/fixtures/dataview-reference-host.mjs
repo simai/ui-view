@@ -46,7 +46,7 @@ export const createReferenceHost = (state = {}) => {
       search: query.search ?? '',
       sort: query.sort ?? [],
       page: query.page ?? 1,
-      per_page: query.per_page ?? 25,
+      per_page: query.per_page ?? 20,
     };
     if (payload.reason === 'view-switch') {
       echo.switch = { query: { filters: usable }, dropped: ['sort'] };
@@ -134,7 +134,7 @@ export const createReferenceHost = (state = {}) => {
                 search: '',
                 sort: [],
                 page: 1,
-                per_page: 25,
+                per_page: 20,
               },
             },
           };

@@ -2195,6 +2195,19 @@ class SfTable extends TableElement {
         };
     }
 
+    // Whether a saved filter sets conditions: its tags, its values, or the
+    // query a saved view of sf-view carries (query.filters).
+    filterTemplateHolds(template) {
+        const some = (value) => {
+            if (value == null || value === "") return false;
+            if (Array.isArray(value)) return value.some(some);
+            if (typeof value === "object") return Object.values(value).some(some);
+            return true;
+        };
+        const tags = Object.values(template?.data?.tags || {}).filter((tag) => tag?.active !== false);
+        return tags.length > 0 || some(template?.data?.values) || some(template?.query?.filters) || some(template?.filters);
+    }
+
     getFilterTemplates(filter = this.state?.filter || {}) {
         const templates = (filter.templates || []).map((template, index) =>
             this.normalizeFilterTemplate(template, index),
@@ -8181,6 +8194,14 @@ class SfTable extends TableElement {
             filterName: (() => {
                 const template = this.getSelectedFilterTemplate?.();
                 return template && template.key !== "default" ? String(template.label || "") : "";
+            })(),
+            // An open saved filter that holds conditions tints the filter
+            // control as a field condition does (C301 (3), view round 5 R5-2
+            // and Q1): on a phone the icon has no room for the name, so the
+            // tone is its sign, and the name joins its accessible name.
+            filterHeld: (() => {
+                const template = this.getSelectedFilterTemplate?.();
+                return Boolean(template && template.key !== "default" && this.filterTemplateHolds(template));
             })(),
             clearText: this.text("clearText", "clear-text"),
             searchPlaceholder: this.text("searchPlaceholder", "search-placeholder"),

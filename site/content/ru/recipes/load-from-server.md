@@ -22,7 +22,7 @@ profile: how_to
    ```html
    <sf-view id="orders" aria-label="Заказы" preferences-key="shop.orders">
      <sf-view-table slot="content" aria-label="Заказы" layout="auto"></sf-view-table>
-     <sf-pagination slot="pagination" page-sizes="10,25,50"></sf-pagination>
+     <sf-pagination slot="pagination" page-sizes="10,20,50,100"></sf-pagination>
    </sf-view>
    ```
 
@@ -66,7 +66,7 @@ profile: how_to
        ],
        "total": 48,
        "echo": {"search": "", "filters": {}, "filters_chosen": {}, "filters_rejected": [],
-                "sort": [], "page": 1, "per_page": 25}
+                "sort": [], "page": 1, "per_page": 20}
      }
    }
    ```

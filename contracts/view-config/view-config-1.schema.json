@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/simai/ui-view/contracts/view-config/view-config-1.schema.json",
+  "title": "simai.view-config/1",
+  "description": "A saved view (представление) of a data source, and the board window and answer. Contract 1.0.0, view-config-1.md.",
+  "x-contract-version": "1.0.0",
+  "x-limits": {"views_per_level": 20, "view_bytes": 8192, "per_lane_default": 20, "per_lane_max": 100, "lanes_max": 200, "per_page_default": 20, "per_page": [10, 20, 50, 100]},
+  "x-levels": ["system", "shared", "profile", "personal"],
+  "x-level-aliases": {"package": {"of": "system", "until": "2027-01-01"}},
+  "x-words": {"view": "представление", "save": "Сохранить представление", "save-own": "Сохранить как моё", "never": ["шаблон"]},
+  "$ref": "#/$defs/view",
+  "$defs": {
+    "key": {"type": "string", "pattern": "^[A-Za-z0-9_.-]{1,64}$"},
+    "layout": {"type": "string", "enum": ["table", "board", "cards", "calendar", "list", "tree"]},
+    "view": {
+      "type": "object",
+      "required": ["schema", "id", "name", "source", "layout", "revision"],
+      "additionalProperties": false,
+      "properties": {
+        "schema": {"const": "simai.view-config/1"},
+        "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$"},
+        "name": {"type": "string", "minLength": 1, "maxLength": 120},
+        "source": {"$ref": "#/$defs/key"},
+        "layout": {"$ref": "#/$defs/layout"},
+        "query": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "filter": {"type": "object", "additionalProperties": {"$ref": "#/$defs/condition"}},
+            "sort": {"type": "array", "items": {"$ref": "#/$defs/sort"}},
+            "per_page": {"type": "integer", "enum": [10, 20, 50, 100]}
+          }
+        },
+        "fields": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "visible": {"type": "array", "items": {"$ref": "#/$defs/key"}},
+            "order": {"type": "array", "items": {"$ref": "#/$defs/key"}}
+          }
+        },
+        "layouts": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "table": {"type": "object"},
+            "board": {
+              "type": "object",
+              "properties": {
+                "lane_field": {"$ref": "#/$defs/key"},
+                "card_fields": {"type": "array", "items": {"$ref": "#/$defs/key"}},
+                "per_lane": {"type": "integer", "minimum": 1, "maximum": 100}
+              }
+            },
+            "cards": {"type": "object"},
+            "calendar": {"type": "object"},
+            "list": {"type": "object"},
+            "tree": {"type": "object"}
+          }
+        },
+        "head": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {"filter_fields": {"type": "array", "items": {"$ref": "#/$defs/key"}}}
+        },
+        "required": {"type": "boolean"},
+        "locked": {"type": "array", "items": {"type": "string", "pattern": "^[a-z_]+(\\.[a-z_]+)*$"}},
+        "revision": {"type": "integer", "minimum": 1}
+      }
+    },
+    "condition": {
+      "type": "object",
+      "required": ["operator"],
+      "properties": {"operator": {"type": "string", "minLength": 1}}
+    },
+    "sort": {
+      "type": "object",
+      "required": ["field", "dir"],
+      "additionalProperties": false,
+      "properties": {"field": {"$ref": "#/$defs/key"}, "dir": {"type": "string", "enum": ["asc", "desc"]}}
+    },
+    "board-window": {
+      "type": "object",
+      "required": ["lanes"],
+      "properties": {
+        "lanes": {"$ref": "#/$defs/key"},
+        "per_lane": {"type": "integer", "minimum": 1, "maximum": 100},
+        "totals": {"type": "array", "items": {"type": "string"}},
+        "lane": {},
+        "cursor": {"type": "string"}
+      }
+    },
+    "board-answer": {
+      "type": "object",
+      "required": ["lanes"],
+      "properties": {
+        "lanes": {
+          "type": "array",
+          "maxItems": 200,
+          "items": {
+            "type": "object",
+            "required": ["value", "total", "records"],
+            "additionalProperties": false,
+            "properties": {
+              "value": {},
+              "total": {"type": "integer", "minimum": 0},
+              "sums": {"type": "object", "additionalProperties": {"type": "number"}},
+              "over_limit": {"type": "boolean"},
+              "records": {"type": "array", "maxItems": 100, "items": {"type": "object", "required": ["id"]}},
+              "cursor": {"type": "string"}
+            }
+          }
+        }
+      }
+    }
+  }
+}

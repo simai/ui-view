@@ -34,6 +34,21 @@ of a board and cards.
   level `package` group as system; with `personal-preferences` the page size
   and the view zone's state are the person's layer on the host
   (`data.preferences`, `preferences.save`), else the browser as before.
+  DEV's round-5 returns: a page that sets no page size now asks **20**, not
+  25, and its menu is exactly 10/20/50/100 (owner decision 2026-11-20; a
+  host sees `per_page: 20` in the first query); the «Показать ещё» look's
+  range counts every row on screen («1–12 из 12», not «11–12 из 12»);
+  closing a record the host opened in its own panel (Escape or ×) gives the
+  focus back to its row instead of the page's body.
+- `sf-view-table` 1.27.1: an open saved filter that holds conditions tints
+  the filter control as a field condition does — the phone's filter icon
+  (whose name now carries the filter's name) and the desktop «Фильтр»
+  button with its save segment (R5-2, Q1, C301 (3)).
+- Contract `simai.view-config/1` (`contracts/view-config/`): the view
+  document, the board window and answer (per_lane 20, at most 100; at most
+  200 lanes), the levels, the limits `describe()` reports (20 views per list
+  per level, 8 KB per view) and the words «представление», «Сохранить
+  представление», «Сохранить как моё»; scopes reserved.
 - `sf-view-properties` 1.23.1: the record panel paints the tab strip's ground
   itself only while the page's sheets lack SIMAI Framework component.tabs
   1.5.4, which paints it with the ground it stands on.

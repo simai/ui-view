@@ -227,6 +227,10 @@ const copy = (value) => (value == null ? value : JSON.parse(JSON.stringify(value
 // SF.Preferences: the view's sort and page size are the person's (owner,
 // 2026-10-14), kept under the same key as the table's arrangement.
 const VIEW_PAGE_SIZES = "10,20,50,100";
+// The page size of a view whose page sets none (owner decision 2026-11-20,
+// view round 5 R5-3): 20, one of the sizes offered; it was 25, a size the
+// menu of 10/20/50/100 could not name.
+const VIEW_DEFAULT_PAGE_SIZE = 20;
 const preferences = () => globalThis.SF?.Preferences || BundledPreferences;
 // The stored key keeps the former tag's spelling: it names what a person has
 // already saved (SF.Preferences, a host's store), not the element.
@@ -287,7 +291,7 @@ class SfDataView extends DataViewElement {
     constructor() {
         super();
         this.instanceId = `sf-view-${++instanceNumber}`;
-        this.query = {filters: {}, search: "", sort: [], page: 1, per_page: 25};
+        this.query = {filters: {}, search: "", sort: [], page: 1, per_page: VIEW_DEFAULT_PAGE_SIZE};
         this.records = [];
         // The tree, when the host answers in levels (port 1.8.0): mode is
         // tree, flat or flattened as the last answer said, null before one.
@@ -542,8 +546,48 @@ class SfDataView extends DataViewElement {
         const allowed = this.sfEmit("open", {id}, {cancelable: true});
         if (!allowed) return null;
         const card = this.recordCard;
-        if (!card) return this._raise("record.open", detail);
+        if (!card) {
+            this._watchHostRecordClose(String(id));
+            return this._raise("record.open", detail);
+        }
         return this._openBeside(card, String(id));
+    }
+
+    // A record the host opened in a panel of its own (record.open, no
+    // record-card): when that panel closes (sf-view-properties-close, Escape
+    // or ×) and the host removes it, the focus fell to the page's body (view
+    // round 5 R5-1, 12/12 runs). The focus goes back to the record's row, as
+    // it does from the card beside the list -- only when it was lost, so a
+    // host that placed it somewhere keeps its choice (WCAG 2.4.3).
+    _watchHostRecordClose(id) {
+        this._hostRecordOpen = id;
+        const root = globalThis.document;
+        if (!root?.addEventListener || this._onHostRecordClose) return;
+        this._onHostRecordClose = (event) => {
+            const open = this._hostRecordOpen;
+            if (!open || !this.isConnected) return;
+            const named = event.target?.getAttribute?.("record-id");
+            if (named != null && named !== "" && String(named) !== open) return;
+            this._hostRecordOpen = null;
+            globalThis.setTimeout?.(() => {
+                const active = root.activeElement;
+                const lost = !active || active === root.body || active === root.documentElement || !active.isConnected;
+                if (lost && this.isConnected) this._focusRecord(open);
+            }, 0);
+        };
+        root.addEventListener("sf-view-properties-close", this._onHostRecordClose);
+    }
+
+    // The focus on a record of the list: its card on a board or in cards, its
+    // day in a calendar, its row in the table.
+    _focusRecord(id) {
+        const board = this.layoutKind === "board" ? this.board : null;
+        const cardOf = board?.querySelector?.(`.sf-view-board__card[data-id="${globalThis.CSS?.escape ? CSS.escape(id) : id}"]`);
+        const cardsCard = this.layoutKind === "cards" ? this.cards?.querySelector?.(`.sf-view-cards__card[data-id="${globalThis.CSS?.escape ? CSS.escape(id) : id}"]`) : null;
+        const calendar = this.layoutKind === "calendar" ? calendarOf(this) : null;
+        if (cardOf ?? cardsCard) (cardOf ?? cardsCard).focus?.({preventScroll: true});
+        else if (calendar) calendar.focusRecord?.(id);
+        else this.table?.focusRow?.(id, {focus: true});
     }
 
     _openBeside(card, id) {
@@ -594,15 +638,7 @@ class SfDataView extends DataViewElement {
             event.currentTarget.setAttribute("open", "false");
             if (!id) return;
             // The focus goes back to the record it was opened from.
-            globalThis.setTimeout?.(() => {
-                const board = this.layoutKind === "board" ? this.board : null;
-                const cardOf = board?.querySelector?.(`.sf-view-board__card[data-id="${globalThis.CSS?.escape ? CSS.escape(id) : id}"]`);
-                const cardsCard = this.layoutKind === "cards" ? this.cards?.querySelector?.(`.sf-view-cards__card[data-id="${globalThis.CSS?.escape ? CSS.escape(id) : id}"]`) : null;
-                const calendar = this.layoutKind === "calendar" ? calendarOf(this) : null;
-                if (cardOf ?? cardsCard) (cardOf ?? cardsCard).focus?.({preventScroll: true});
-                else if (calendar) calendar.focusRecord?.(id);
-                else this.table?.focusRow?.(id, {focus: true});
-            }, 0);
+            globalThis.setTimeout?.(() => this._focusRecord(id), 0);
         };
         card.addEventListener("sf-view-properties-step", this._onCardStep);
         card.addEventListener("sf-view-properties-close", this._onCardClose);
@@ -1121,7 +1157,11 @@ class SfDataView extends DataViewElement {
             if (element && element.getAttribute(name) !== value) element.setAttribute(name, value);
         };
         const range = part("range");
-        const text = pagination.rangeText ?? "";
+        // The «Показать ещё» look grows the list page by page: the range is
+        // all the rows on screen, «1–12 из 12», not the page that came last
+        // («11–12 из 12» beside «Показано 12 из 12», view round 5 R5-4).
+        const growing = pagination.getAttribute?.("appearance") === "more" && (this.records ?? []).length > 0;
+        const text = growing ? this._shownRangeText() : (pagination.rangeText ?? "");
         if (range && range.textContent !== text) range.textContent = text;
         // «41–60 из ~450» or «из многих»: the offer to count, where the host
         // counts on request, and a short wait while it does (as the
@@ -1171,10 +1211,7 @@ class SfDataView extends DataViewElement {
         start.hidden = false;
         const parts = this._footerParts ?? {};
         const words = {component: "sf-pagination"};
-        const known = this.countKnown !== false && Number.isSafeInteger(this.total);
-        const text = known
-            ? pageWord(PAGINATION_RANGE_TEXT, "range", this, {...words, vars: {from: 1, to: shown, total: this._shownTotal(Math.max(this.total, shown))}})
-            : pageWord(PAGINATION_RANGE_TEXT, "range-many", this, {...words, vars: {from: 1, to: shown}});
+        const text = this._shownRangeText();
         if (parts.range && parts.range.textContent !== text) parts.range.textContent = text;
         for (const name of ["count", "counting", "size"]) if (parts[name]) parts[name].hidden = true;
         // The page size is not offered here (each portion is the lane's or the
@@ -1186,6 +1223,17 @@ class SfDataView extends DataViewElement {
             parts.size.setAttribute("aria-label", `${pageWord(PAGINATION_RANGE_TEXT, "page-size-label", this, words)} ${size}`.trim());
         }
         return true;
+    }
+
+    // «1–N из M»: the records on screen of all the host counted, in the
+    // page row's words (a board, cards, and the «Показать ещё» look).
+    _shownRangeText() {
+        const shown = (this.records ?? []).length;
+        const words = {component: "sf-pagination"};
+        const known = this.countKnown !== false && Number.isSafeInteger(this.total);
+        return known
+            ? pageWord(PAGINATION_RANGE_TEXT, "range", this, {...words, vars: {from: 1, to: shown, total: this._shownTotal(Math.max(this.total, shown))}})
+            : pageWord(PAGINATION_RANGE_TEXT, "range-many", this, {...words, vars: {from: 1, to: shown}});
     }
 
     // The menu of page sizes is made when it is first opened: a list nobody
@@ -1387,7 +1435,7 @@ class SfDataView extends DataViewElement {
 
     // The page size somebody declared: the person's kept one, a first answer's
     // echo, or the page row's page-size as the page printed it. Zero when
-    // nobody did -- the query's own 25 is the view's default, not a request.
+    // nobody did -- the query's own 20 is the view's default, not a request.
     _declaredPageSize() {
         if (this._pageSizeDeclared) return Number(this.query.per_page) || 0;
         return this._printedPageSize || 0;
@@ -1808,6 +1856,11 @@ class SfDataView extends DataViewElement {
         this._portRequested = false;
         this._controller?.abort();
         this._controller = null;
+        if (this._onHostRecordClose) {
+            globalThis.document?.removeEventListener?.("sf-view-properties-close", this._onHostRecordClose);
+            this._onHostRecordClose = null;
+            this._hostRecordOpen = null;
+        }
         const events = [
             ...Object.keys(EVENTS), ...LISTENED,
         ];
@@ -2477,7 +2530,7 @@ class SfDataView extends DataViewElement {
             this.query = {
                 ...this.query, filters: copy((chosenKeys ? echo.filters : echo.filters_chosen ?? echo.filters) ?? {}),
                 search: echo.search ?? "", sort: copy(echo.sort ?? []),
-                page: echo.page ?? 1, per_page: echo.per_page ?? 25,
+                page: echo.page ?? 1, per_page: echo.per_page ?? VIEW_DEFAULT_PAGE_SIZE,
                 ...(chosenKeys ? {filters_chosen: copy(chosenKeys)} : {}),
                 ...(echo.saved_filter !== undefined ? {saved_filter: echo.saved_filter} : {}),
                 ...(echo.view && typeof echo.view === "object" ? {view: copy(echo.view)} : {}),
@@ -2498,7 +2551,7 @@ class SfDataView extends DataViewElement {
     // What a count belongs to. Search, filters and page size change what the
     // number would be; a page does not.
     _countKey() {
-        return JSON.stringify([this.query.search ?? "", this.query.filters ?? {}, this.query.per_page ?? 25]);
+        return JSON.stringify([this.query.search ?? "", this.query.filters ?? {}, this.query.per_page ?? VIEW_DEFAULT_PAGE_SIZE]);
     }
 
     // What the band shows and what it does. The words and the action list stay
@@ -3190,7 +3243,7 @@ class SfDataView extends DataViewElement {
         }
         const sizes = String(pagination?.getAttribute?.("page-sizes") ?? VIEW_PAGE_SIZES).split(/[\s,]+/u).map(Number).filter((size) => Number.isInteger(size) && size > 0);
         const perPage = Number(this.query.per_page);
-        // Only a size in force: the view's own 25 before the page's printed
+        // Only a size in force: the view's own default before the page's printed
         // page-size is read is not one (it put 25 among 10/20/50/100, LV-12).
         if (pagination && Number.isInteger(perPage) && perPage > 0 && !sizes.includes(perPage) && (this._pageSizeDeclared || this._answered)) {
             pagination.setAttribute("page-sizes", [...sizes, perPage].sort((a, b) => a - b).join(","));
