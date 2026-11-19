@@ -105,6 +105,9 @@
    toggleAppearance). The subset icon font's .sf-icon rule reads only the
    private --sf-icon--fill (TG-2), so it is set too. */
 .sf-view-head-zone-toggle--own { --sf-icon-fill: 0; }
+/* A view other than the default is open: the glyph in primary while the
+   zone is closed (open, the pressed ink says it). */
+.sf-view-head-zone-toggle--tinted .sf-icon-button.sf-icon-button.sf-icon-button.sf-icon-button:not(.sf-icon-button--pressed) .sf-icon { color: var(--sf-primary); }
 /* The pressed rules set it at (0,5,0): one step over them. */
 .sf-view-head-zone-toggle--own .sf-icon-button.sf-icon-button.sf-icon-button.sf-icon-button .sf-icon.sf-icon { --sf-icon--fill: 0; }
 .sf-view-head-zone-toggle--own .sf-icon-button.sf-icon-button.sf-icon-button.sf-icon-button.sf-icon-button--pressed {
@@ -208,3 +211,9 @@ sf-popover:not([open]) > .sf-view-head-panel[slot="content"] { display: none; }
   border-radius: var(--sf-radius--surface);
 }
 .sf-view-head-skeleton > div[data-zone] > i[data-control] { inline-size: 10rem; }
+
+/* The view's footer draws the line under the page row itself ([part=footer]);
+   a page row without a look of its own leaves its own line out, so there is
+   never a second line (sf-pagination's --sf-pagination-divider-color,
+   SIMAI Framework GB15; a pair without it draws one line as before). */
+:is(sf-view, sf-data-view) > sf-pagination[slot="pagination"]:not([appearance]) { --sf-pagination-divider-color: transparent; }

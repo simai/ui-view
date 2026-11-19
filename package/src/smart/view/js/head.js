@@ -44,6 +44,31 @@
 import {menuOpen} from "../../../core/js/menu-open.js";
 
 const PHONE_WIDTH = 600;
+
+// Whether the page's sheets hold the Framework's toggle look (see
+// ListHead.toggleAppearance). Found once, it stays found; not found, it is
+// asked again only when the page has more sheets than at the last look.
+let toggleFound = false;
+let toggleSheets = -1;
+function frameworkToggle() {
+    if (toggleFound) return true;
+    const sheets = globalThis.document?.styleSheets;
+    if (!sheets || sheets.length === toggleSheets) return false;
+    toggleSheets = sheets.length;
+    const holds = (rules) => {
+        for (const rule of rules ?? []) {
+            if (rule.selectorText?.includes("sf-icon-button--toggle")) return true;
+            if (rule.cssRules && holds(rule.cssRules)) return true;
+        }
+        return false;
+    };
+    for (const sheet of sheets) {
+        let rules = null;
+        try { rules = sheet.cssRules; } catch { continue; }
+        if (holds(rules)) return (toggleFound = true);
+    }
+    return false;
+}
 let ZONE_IDS = 0;
 const KINDS = {
     table: "table_rows",
@@ -505,12 +530,15 @@ export class ListHead {
     }
 
     // The toggle look of SIMAI Framework (TG-1, C393: the background and a
-    // 1 px ring, the icon outline) where the pair's sf-button-icon names it
-    // (static toggleAppearance); without it the head draws the same look
-    // with the same tokens itself (head.css, .sf-view-head-zone-toggle).
+    // 1 px ring, the icon outline): sf-button-icon appearance="toggle"
+    // (sf-button-icon 1.14.0, icon-buttons 1.20.0, class sf-icon-button--toggle).
+    // A pair without it would draw the unknown look as the default fill, so
+    // the head asks the page's sheets for the class rule; without it the head
+    // draws the same look with the same tokens itself (head.css,
+    // .sf-view-head-zone-toggle--own, to be removed once every supported pair
+    // carries the toggle look).
     get toggleAppearance() {
-        const value = globalThis.customElements?.get?.("sf-button-icon")?.toggleAppearance;
-        return typeof value === "string" && value ? value : null;
+        return frameworkToggle() ? "toggle" : null;
     }
 
     _renderZone(one, set) {
@@ -525,15 +553,17 @@ export class ListHead {
         if (toggle) {
             set(toggle, "hidden", useful ? null : "");
             const label = viewName ? this.text("headViewZone").replace("{name}", viewName) : this.text("headViewZoneNone");
-            const full = changed ? `${label} (${this.text("headViewUnsaved")})` : label;
-            set(toggle, "aria-label", full);
-            set(toggle, "label-pressed", full);
+            // The dot's words are said by the badge (badge-label) after the name.
+            set(toggle, "aria-label", label);
+            set(toggle, "label-pressed", label);
             set(toggle, "pressed", open ? "true" : "false");
             set(toggle, "aria-expanded", open ? "true" : "false");
             set(toggle, "badge-dot", changed ? "" : null);
             set(toggle, "badge-label", changed ? this.text("headViewUnsaved") : null);
-            // Tinted while a view other than the default is open.
-            set(toggle, "scheme", this.openViewIsDefault ? "on-surface" : "primary");
+            // Tinted while a view other than the default is open: the glyph
+            // in primary (head.css). The scheme stays on-surface: the pressed
+            // look is a neutral toggle's only (C211 (1)).
+            toggle.classList.toggle("sf-view-head-zone-toggle--tinted", !this.openViewIsDefault);
             const framework = this.toggleAppearance;
             set(toggle, "appearance", framework ?? "ghost");
             toggle.classList.toggle("sf-view-head-zone-toggle--own", !framework);
