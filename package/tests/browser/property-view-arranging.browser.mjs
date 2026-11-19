@@ -329,9 +329,26 @@ try {
   // The column beside the fields holds the tabs and nothing else: the band of
   // the arranging mode stands over the fields instead (owner, 2026-10-07), and
   // the tabs can be put in another order by a drag.
+  // C311 (4) (view round 5, LV-3): the rail beside the fields is the whole
+  // screen's. A narrower panel arranges stacked, «Вкладки» over the fields,
+  // which keep the panel's width; the rail is measured at the full step.
   const rail = await page.evaluate(async () => {
     const settle = (ms) => new Promise((done) => setTimeout(done, ms));
     const view = document.getElementById('pv');
+    view.startConfiguringView();
+    await settle(300);
+    const narrow = (() => {
+      const content = view.panelContent();
+      const layout = content?.querySelector('.sf-property-view-layout');
+      const nav = content?.querySelector('.sf-property-view-sections');
+      const body = content?.querySelector('.sf-property-view-layout > .sf-property-view-body');
+      return {step: view.drawerStep, stacked: layout?.getAttribute('data-stacked') ?? null,
+        over: Boolean(nav && body && nav.getBoundingClientRect().bottom <= body.getBoundingClientRect().top + 1),
+        fields: body ? Math.round(body.getBoundingClientRect().width) : null};
+    })();
+    view.stopConfiguringView();
+    view.setAttribute('panel-size', 'full');
+    await settle(400);
     view.startConfiguringView();
     await settle(300);
     const content = view.panelContent();
@@ -346,6 +363,7 @@ try {
     }));
     await settle(500);
     return {
+      narrow,
       before,
       after: [...(content?.querySelectorAll('.sf-property-view-sections [data-section-tab]') ?? [])]
         .map((tab) => tab.getAttribute('data-section-tab')),
@@ -477,6 +495,10 @@ try {
       })(),
     };
   });
+  if (rail.narrow?.stacked !== 'true' || !rail.narrow?.over) {
+    note({case: 'a panel below the full step arranges stacked: «Вкладки» over the fields (C311 (4))',
+      got: rail.narrow, expected: 'data-stacked="true", the sections above the fields'});
+  }
   if (rail.band || !rail.bandInFoot || rail.bandInScroller) {
     note({case: 'the column of tabs holds tabs, and the mode\'s controls hold the foot',
       got: rail,

@@ -1312,6 +1312,13 @@
     max-inline-size: var(--sf-view-properties-sections-width, var(--sf-property-view--sections-width, 12rem));
   }
 
+  /* The column of vertical sf-tabs (before sf-menu is defined) keeps the
+     column's width: sf-tabs is a size container, so its content width is
+     zero, and a content-fit column folded to its padding. */
+  .sf-property-view-sections:has(> sf-tabs) {
+    inline-size: var(--sf-view-properties-sections-width, var(--sf-property-view--sections-width, 12rem));
+  }
+
   /* Stacked (arranging in a panel, C311 (4)), the list is a row of the panel's
      width over the fields, not a column. */
   .sf-property-view-layout[data-stacked="true"] > .sf-property-view-sections {
