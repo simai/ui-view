@@ -16,6 +16,33 @@ same numbers with other content); every next set version is above them
 up). Each component.json says the same under `x-decisions`
 `pro-copy-versions`.
 
+## Unreleased — view round 5
+
+Over `view` 1.9.0 (round/view-r5, not released yet): DEV's open items B1-B3
+and the list study order LV-2..LV-9 (V1, V5, V7 not built).
+
+- `sf-view-table` 1.25.2: a table in sf-view's shadow root opens its row
+  menu through SIMAI Framework sf-menu-context 1.27.0 (`for` given the
+  table's own `<table>` and list as elements); the table's own workaround
+  `bindShadowRowMenu` is removed (DEV msg-b353fce8).
+- `sf-view-table` 1.26.0: only «Создать» is filled in the list head;
+  «Фильтр» is outlined and tonal while conditions are set (C301, LV-4). A
+  phone's list head has the table settings button, the panel of the desktop
+  gear (LV-6). The «Вид» tab shows the density in effect, compact on a
+  compact page; another choice draws the table as a density island (C22,
+  C79, LV-8).
+- `sf-view-properties` 1.22.0: a docked record beside a list keeps the list
+  usable with no dim; with no dock host on the page the panel marks its
+  sf-view (C305 (4), LV-2). Arranging in a panel below the full step stacks
+  the sections over the fields; beside them the section list takes its
+  content width and the fields the rest (LV-3). Opening a record puts the
+  focus on its title, ring for the keyboard only, no tooltip (LV-9). The
+  arranging parts are asked of the Loader early, so arranging draws without
+  a late shift (B3).
+- `sf-view-board` 1.1.2: the column head buttons stand 8 apart, the gap of
+  one button group (B1).
+- `sf-view` 1.23.3: the calendar asks its range once (B2).
+
 ## 1.9.0 — 2026-11-19
 
 The four layouts together: view rounds 1 to 4 (round/view-r1 .. round/view-r4,
@@ -87,10 +114,6 @@ window (C310); DEV's round 3 returns VR3-1..VR3-4.
   the card settings to a 1.22.0 host only.
 - `sf-view-table` 1.25.1: the column head menu's separators draw as
   separators (VR3-2).
-- `sf-view-table` 1.25.2: a table in sf-view's shadow root opens its row
-  menu through SIMAI Framework sf-menu-context 1.27.0 (`for` given the
-  table's own `<table>` and list as elements); the table's own workaround
-  `bindShadowRowMenu` is removed (DEV msg-b353fce8).
 - DEV's acceptance of the cards and the calendar: `sf-view-calendar` 1.1.0
   opens in `layouts.calendar.mode` when no `mode` is written (VCL-1); «+N»
   is a text row at the event line height, so the month is 672 px instead of

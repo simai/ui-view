@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view",
-  "version": "1.23.2",
+  "version": "1.23.3",
   "title": "Data view",
   "summary": "Host-driven data view that composes toolbar, content and pagination around a separate data port.",
   "kind": "composite",
@@ -1877,6 +1877,13 @@
         "to": "1.23.2",
         "changes": [
           "Release numbering (view 1.9.0): the same code as 1.23.0 of round/view-r4; 1.23.1 belongs to the superseded round/view-calendar a2c5c8f (not merged, not released), so the release takes 1.23.2."
+        ]
+      },
+      {
+        "from": "1.23.2",
+        "to": "1.23.3",
+        "changes": [
+          "DEV's open item B2 (round/view-r5): calendarQuery leaves window.date_field out until the date field is named, and acceptCalendar no longer asks the same range a second time with the field the first answer named (_calendarAskWithField and the refresh('calendar-range') step are gone). One range query per window."
         ]
       }
     ]

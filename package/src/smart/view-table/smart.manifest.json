@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-table",
-  "version": "1.25.2",
+  "version": "1.26.0",
   "title": "Table",
   "summary": "Complete server-backed collection view with search, filters, table preferences, row and bulk actions, and pagination.",
   "kind": "composite",
@@ -2979,6 +2979,13 @@
         "changes": [
           "DEV msg-b353fce8 (round/view-r5-shadow-menu): the row menu's for is the table's own areas as elements (rowMenuAreas: the <table> and the list, refreshed on every draw), which SIMAI Framework sf-menu-context 1.27.0 reaches inside a shadow root; bindShadowRowMenu, the table's own right button, menu key and Shift+F10 listeners for a table in sf-view's shadow root, is removed. Same menu, same entries, same gestures."
         ]
+      },
+      {
+        "from": "1.25.2",
+        "to": "1.26.0",
+        "changes": [
+          "Round 5 (round/view-r5): LV-4 Фильтр and its saved-filter segment are outline on-surface (tonal primary while conditions are set), Сохранить tonal, Создать and its arrow default primary, the phone filter and sort icons tonal while active and + filled (C301); LV-6 renderListToolbar draws a settings button (sf-table-list-settings) that calls toggleTableSettings, the method the desktop gear now calls too; LV-8 storedViewDensity, areaDensity and shownViewDensity: the View tab's density shows the stored choice or the area's density (C22), and a choice other than compact in a compact area draws the table as a normal-density island (data-sf-density=normal, C79)."
+        ]
       }
     ]
   },
@@ -2988,11 +2995,11 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-table/index.js",
-        "sha256": "ba7e778ec0d977ba010202948b92593a46e8ee40bfd1da34236b164911a4f547"
+        "sha256": "d46960b9a9e64c44b275333c90a992242b169f2785ec23e7a3067b88b1bd32fa"
       },
       {
         "path": "src/smart/view-table/js/templates/default.js",
-        "sha256": "db84cc813140377b68c96a7586163bf125b0184a65de33a80a1fc1e8005296d2"
+        "sha256": "23f4dcd29c71e839067f01a2023e43bd3655ebf6fefe9f5602c890bc7cbfe890"
       },
       {
         "path": "src/smart/view-table/js/templates/default.css",

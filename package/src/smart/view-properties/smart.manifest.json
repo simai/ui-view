@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-properties",
-  "version": "1.21.0",
+  "version": "1.22.0",
   "title": "Property view",
   "summary": "One object's fields shown as sections, groups and fields, each drawn by the per-type field renderer set, behind a separate host port. A group is edited and saved as one revision by the button, and a reference field is picked from the host's own candidates a page at a time. The pair to the data view: that one is a set of records, this one is a single object.",
   "kind": "composite",
@@ -1969,6 +1969,13 @@
           "Release of round/view-r4 in view 1.9.0: the code of 1.20.0 (port range 1.0.0..1.22.0, card settings only for a 1.22.0 host) merged with the released line 1.19.2 and 1.20.2 (view 1.8.2, 1.8.3: port widening of the 1.16.3 panel), numbered above both and above ui-pro's 1.20.1. A 1.20.0 or 1.21.0 host is offered no card settings (they need 1.22.0).",
           "The released 1.19.2 and 1.20.2 (view 1.8.2, 1.8.3) were steps of the 1.16.3 panel that only widened the accepted port range (1.19.0, then 1.20.0..1.22.0); 1.21.0 holds the same range, so a host of 1.20.2 gets everything of 1.16.4..1.20.0 above with nothing taken away."
         ]
+      },
+      {
+        "from": "1.21.0",
+        "to": "1.22.0",
+        "changes": [
+          "Round 5 (round/view-r5): LV-2 a docked panel marks its sf-view (record-card id, the only sf-view, or the parent) as [data-sf-drawer-dock-host] when the page has none, so the list ends where the panel starts; LV-3 sectionsLayout in a panel is column only at the full step, tabs (stacked) otherwise, the section column is max-content capped by --sf-property-view--sections-width, the fields take the rest, and the row wraps instead of squeezing; LV-9 the title takes the focus of a docked panel and keeps the watch until the person acts or two seconds pass (a phone sheet's second focus pick no longer takes it), outline on :focus-visible only; B3 sf-profile-picker, sf-sortable, sf-dropdown and sf-switch are asked of the Loader once a view can be arranged, so arranging draws without a late shift."
+        ]
       }
     ]
   },
@@ -1978,7 +1985,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-properties/index.js",
-        "sha256": "4aaa991e2b8cbff403e6058776176bbf1760a58f2129c5dce44f976733e302d8"
+        "sha256": "7a5df245eb45d0e7f956cf65ab3110319bbab1ee07d71ef2342a74ee57c36aac"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.js",
@@ -1986,7 +1993,7 @@
       },
       {
         "path": "src/smart/view-properties/js/templates/default.css",
-        "sha256": "32864a531bd6467d16a2209e59e51a42da7f1900b60057bd96309432e3b18b47"
+        "sha256": "3c2ba80403d7d991e0320340fca4cf08da5da85a267c68ad72b431f7e82ab19f"
       },
       {
         "path": "src/smart/view-properties/js/conditions.js",
@@ -2038,7 +2045,7 @@
       },
       {
         "path": "src/smart/view-properties/docs.md",
-        "sha256": "2bdcacab3c6afb69ea7a87f6718c3ceea51fb2a359d5c896fa41239c9cee96cc"
+        "sha256": "1cd53681043ccdc3eacd3c8ec961b44a7b0a69243af940b89053fad585b7c4c4"
       }
     ],
     "generated_runtime": []

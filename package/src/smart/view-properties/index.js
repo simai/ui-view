@@ -1526,10 +1526,9 @@ class SfPropertyView extends PropertyViewElement {
         // panel watches the focus from its open until the title is drawn, the
         // person acts or two seconds pass.
         this._onPanelFocusIn = () => this._focusTitleFirst();
-        this._onPanelAct = (event) => {
-            const root = this._ownDrawerRoot();
-            if (root && event.composedPath?.().includes(root)) this._endTitleFocus();
-        };
+        // Any act ends the watch, outside the panel too: a docked record sits
+        // beside the list, and a button pressed there keeps its focus.
+        this._onPanelAct = () => this._endTitleFocus();
         this._offAfterRender = this.onAfterRender?.(() => {
             const open = this.panelOpen;
             if (open && !this._panelWasOpen) this._startTitleFocus();
@@ -2743,14 +2742,16 @@ class SfPropertyView extends PropertyViewElement {
         // (:focus-visible), and nothing with a tooltip is focused.
         if (!panel.contains(active)) {
             if (!drawer?.dockColumn || active.closest?.("input, textarea, select, [contenteditable], sf-input, sf-select, sf-textarea")) return;
-            this._endTitleFocus();
             title.tabIndex = -1;
             title.focus({preventScroll: true});
             return;
         }
+        // The title keeps the watch until the person acts or the wait ends: a
+        // sheet on a phone hands its panel the focus a second time after its
+        // slide-in, and that second pick took the focus off the title (LV-9).
+        if (active === title) return;
         if (active.closest?.("input, textarea, select, [contenteditable], sf-input, sf-select, sf-textarea")) return this._endTitleFocus();
         if (active !== panel && active !== drawer?.firstFocusIn?.(panel)) return this._endTitleFocus();
-        this._endTitleFocus();
         title.tabIndex = -1;
         title.focus({preventScroll: true});
     }

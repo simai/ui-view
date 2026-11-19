@@ -236,7 +236,7 @@ profile: reference
 | `--sf-view-properties-label-width` | `length` | ширина колонки подписей записи (подпись рядом со значением от 22rem) |
 | `--sf-view-properties-row-gap` | `length` | промежуток между полями группы |
 | `--sf-view-properties-group-gap` | `length` | промежуток между группами |
-| `--sf-view-properties-sections-width` | `length` | ширина колонки разделов на полном экране и у записи на месте |
+| `--sf-view-properties-sections-width` | `length` | наибольшая ширина колонки разделов: список берёт ширину по содержимому, поля — остальное |
 | `--sf-view-properties-side-width` | `length` | ширина колонки истории на полном экране, от 80rem |
 | `--sf-view-properties-current-background-color` | `color` | фон значения поля, которое правится в окне |
 | `--sf-view-properties-saved-background-color` | `color` | фон значений, которые только что записало сохранение |

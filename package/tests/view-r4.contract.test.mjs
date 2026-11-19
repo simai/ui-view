@@ -142,12 +142,14 @@ test('VCL-1: layouts.calendar mode wins over the property default when no attrib
   assert.match(calendar, /const asked = this\._mode \?\? \(this\.hasAttribute\?\.\("mode"\) \? this\.getProp\("mode"\) : null\) \?\? options\.mode \?\? "month";/u);
 });
 
-test('VCL-2: the range query never carries a null date field; it is asked again once the field is known', () => {
+test('VCL-2: the range query never carries a null date field; the first answer stands (one query, view round 5 B2)', () => {
   const glue = read('src/smart/view/js/calendar.js');
   assert.match(glue, /\.\.\.\(dateField \? \{date_field: dateField\} : \{\}\)/u);
   assert.match(glue, /dated\(view\._head\?\.description\?\.fields\)/u);
-  assert.match(glue, /if \(!query\.window\.date_field\) \{\s*delete query\.window\.date_field;\s*if \(query\.window\.range\) view\._calendarAskWithField = true;/u);
-  assert.match(glue, /view\._calendarAskWithField && calendarOptionsOf\(view\)\.date_field/u);
+  assert.match(glue, /if \(!query\.window\.date_field\) delete query\.window\.date_field;/u);
+  // B2 (view round 5): the range is not asked a second time once the first
+  // answer names the field.
+  assert.doesNotMatch(glue, /_calendarAskWithField/u);
 });
 
 test('VCL-3: «+N» is a text row at the event line height; a day is the number row and per_day lines', () => {

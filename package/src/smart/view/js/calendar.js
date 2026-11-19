@@ -65,11 +65,9 @@ export function calendarQuery(view, query, extra = null) {
     const calendar = calendarOf(view);
     const window = calendar && typeof calendar.window === "object" && calendar.window?.date_field ? copy(calendar.window) : defaultWindow(view);
     query.window = {...window, ...(extra ?? {})};
-    // Never a null date field (VCL-2): a range asked before the field is known
-    // goes without it, and the host answers it by its own date field, the one
-    // its layouts.calendar names. That answer stands; the next ranges carry the
-    // field. One query, not two (view round 5: the range was asked again once
-    // the first answer had named the field).
+    // Never a null date field (VCL-2): before the field is known the range
+    // goes without it and the host answers by its own (layouts.calendar).
+    // That answer stands: one query, not two (view round 5, B2).
     if (!query.window.date_field) delete query.window.date_field;
     query.context = contextOf(view);
     delete query.page;

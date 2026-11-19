@@ -358,6 +358,16 @@ receives.
   `-group-gap`, `-sections-width`, `-side-width`,
   `-current-background-color`, `-saved-background-color`;
   `--sf-property-view--sections-width` is a former name until 2027-01-01.
+  Since 1.22.0 the sections width is a cap: the section list beside the
+  fields takes its content width up to it, the fields take the rest, and a
+  row too narrow for both puts the fields under the list.
+- **Since 1.22.0** (view round 5): a docked panel with no
+  `[data-sf-drawer-dock-host]` on the page marks its `sf-view` (the one whose
+  `record-card` is the card's id, the only one, or the card's parent), so the
+  list ends where the panel starts (C305 (4)). Arranging in a panel below
+  the full step stacks the sections over the fields. Opening a record puts
+  the focus on its title (a heading, not a Tab stop; the ring for the
+  keyboard only).
 
 ## Record card settings (since 1.19.0, C311, port 1.22.0)
 

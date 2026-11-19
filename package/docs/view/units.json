@@ -5,6 +5,15 @@
   "entries": [
     {
       "unit": "smart.view",
+      "version": "1.23.3",
+      "recorded_on": "2026-11-19",
+      "change": "patch",
+      "consumer": "Nothing to change. The calendar asks its range once: a query whose date field is not known yet leaves window.date_field out, and the answer is drawn as it comes.",
+      "summary": "DEV's open item B2 (round/view-r5): calendarQuery leaves window.date_field out until the date field is named, and acceptCalendar no longer asks the same range a second time with the field the first answer named (_calendarAskWithField and the refresh('calendar-range') step are gone). One range query per window.",
+      "evidence": "control/evidence/2026-11-19-view-r5/README.md"
+    },
+    {
+      "unit": "smart.view",
       "version": "1.23.2",
       "recorded_on": "2026-11-19",
       "change": "patch",
@@ -158,6 +167,15 @@
     },
     {
       "unit": "smart.view-table",
+      "version": "1.26.0",
+      "recorded_on": "2026-11-19",
+      "change": "minor",
+      "consumer": "Nothing to change. In the list head only Создать is filled; Фильтр is outlined and tonal while conditions are set. On a phone the list head has the table settings button that opens the same panel as the desktop gear. The View tab shows the density in effect: compact on a compact page; choosing another draws the table in it.",
+      "summary": "Round 5 (round/view-r5): LV-4 Фильтр and its saved-filter segment are outline on-surface (tonal primary while conditions are set), Сохранить tonal, Создать and its arrow default primary, the phone filter and sort icons tonal while active and + filled (C301); LV-6 renderListToolbar draws a settings button (sf-table-list-settings) that calls toggleTableSettings, the method the desktop gear now calls too; LV-8 storedViewDensity, areaDensity and shownViewDensity: the View tab's density shows the stored choice or the area's density (C22), and a choice other than compact in a compact area draws the table as a normal-density island (data-sf-density=normal, C79).",
+      "evidence": "control/evidence/2026-11-19-view-r5/README.md"
+    },
+    {
+      "unit": "smart.view-table",
       "version": "1.25.2",
       "recorded_on": "2026-11-19",
       "change": "patch",
@@ -308,6 +326,15 @@
       "consumer": "Nothing to change for a host: only the SIMAI Framework file it builds in moved with the repin.",
       "summary": "Over SIMAI Framework ui-078a4b4c6f6e (ui-source 10145e63b9dc) the Framework file it builds in, src/smart/pagination/index.js (sf-pagination 1.7: «Show more» within reach, C167; a deleting action listed last, C116), moved; the provenance and the version follow. Nothing of its own; nothing to change for a host. 1.19.7 and 1.19.8 are ui-pro's own patched copies, never this set's.",
       "evidence": "https://github.com/simai/ui-view/commit/e214dd608fdcf39cea527676fc522afd718922d4"
+    },
+    {
+      "unit": "smart.view-properties",
+      "version": "1.22.0",
+      "recorded_on": "2026-11-19",
+      "change": "minor",
+      "consumer": "Nothing to change. A docked record panel beside a list keeps the list usable without a dim; when the page has no dock host the panel names the sf-view it belongs to. Arranging in a panel narrower than the full step stacks the sections over the fields; beside them the section list takes its content width (--sf-view-properties-sections-width is now its cap). Opening a record puts the focus on its title, with the ring for the keyboard only. The arranging tags are asked of the Loader before they are drawn.",
+      "summary": "Round 5 (round/view-r5): LV-2 a docked panel marks its sf-view (record-card id, the only sf-view, or the parent) as [data-sf-drawer-dock-host] when the page has none, so the list ends where the panel starts; LV-3 sectionsLayout in a panel is column only at the full step, tabs (stacked) otherwise, the section column is max-content capped by --sf-property-view--sections-width, the fields take the rest, and the row wraps instead of squeezing; LV-9 the title takes the focus of a docked panel and keeps the watch until the person acts or two seconds pass (a phone sheet's second focus pick no longer takes it), outline on :focus-visible only; B3 sf-profile-picker, sf-sortable, sf-dropdown and sf-switch are asked of the Loader once a view can be arranged, so arranging draws without a late shift.",
+      "evidence": "control/evidence/2026-11-19-view-r5/README.md"
     },
     {
       "unit": "smart.view-properties",
@@ -488,6 +515,15 @@
       "consumer": "Nothing to change for a host: only the SIMAI Framework file it builds in moved with the repin.",
       "summary": "Over SIMAI Framework ui-078a4b4c6f6e (ui-source 10145e63b9dc) the Framework file it builds in, src/smart/helpers/confirm-surface.js, moved; the provenance and the version follow. Nothing of its own; nothing to change for a host.",
       "evidence": "https://github.com/simai/ui-view/commit/e214dd608fdcf39cea527676fc522afd718922d4"
+    },
+    {
+      "unit": "smart.view-board",
+      "version": "1.1.2",
+      "recorded_on": "2026-11-19",
+      "change": "patch",
+      "consumer": "Nothing to change. The board's column head buttons stand 8 apart (4 in a compact area), the gap of buttons of one group.",
+      "summary": "DEV's open item B1 (round/view-r5): the column head's buttons (.sf-view-board__row, .sf-view-board__top) are --sf-space-1/3 apart (8; 4 compact), the gap of buttons of one group (H5), not --sf-space-1/4 (4).",
+      "evidence": "control/evidence/2026-11-19-view-r5/README.md"
     },
     {
       "unit": "smart.view-board",

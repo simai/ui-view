@@ -399,7 +399,7 @@
     "css:--sf-view-properties-label-width": "ширина колонки подписей записи (подпись рядом со значением от 22rem)",
     "css:--sf-view-properties-row-gap": "промежуток между полями группы",
     "css:--sf-view-properties-group-gap": "промежуток между группами",
-    "css:--sf-view-properties-sections-width": "ширина колонки разделов на полном экране и у записи на месте",
+    "css:--sf-view-properties-sections-width": "наибольшая ширина колонки разделов: список берёт ширину по содержимому, поля — остальное",
     "css:--sf-view-properties-side-width": "ширина колонки истории на полном экране, от 80rem",
     "css:--sf-view-properties-current-background-color": "фон значения поля, которое правится в окне",
     "css:--sf-view-properties-saved-background-color": "фон значений, которые только что записало сохранение",

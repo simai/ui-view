@@ -16,8 +16,10 @@ test('sf-view-table list toolbar: field, view buttons and «Создать» are
   const template = await read('src/smart/view-table/js/templates/default.js');
   const list = template.slice(template.indexOf('class="sf-table-toolbar sf-table-toolbar--list'), template.indexOf('function renderToolbar(context)'));
   assert.match(list, /<div class="sf-table-list-search flex items-cross-center gap-1 min-w-0">/);
-  // No empty group: a row without filter and sort draws none.
-  assert.match(list, /offersFilter\(active\.length\) \|\| context\.component\.getColumns\(\)\.some\(\(column\) => column\?\.sortable && !column\.system\) \? html`<div class="sf-table-list-view-buttons/);
+  // No empty group: a row without filter, sort and the settings button
+  // (LV-6, view round 5) draws none.
+  assert.match(template, /const sortable = context\.component\.getColumns\(\)\.some\(\(column\) => column\?\.sortable && !column\.system\);/);
+  assert.match(list, /offersFilter\(active\.length\) \|\| sortable \|\| gear \? html`<div class="sf-table-list-view-buttons/);
   // Filter and sort sit inside the view-buttons group; «Создать» after it.
   const group = list.slice(list.indexOf('<div class="sf-table-list-view-buttons flex items-cross-center gap-1/3">'));
   assert.ok(group.length < list.length, 'the view buttons group');
