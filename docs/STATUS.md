@@ -56,7 +56,7 @@ Every remote branch ahead of `main`, with the release that takes it.
 
 | Branch | Release that takes it |
 |---|---|
-| `round/view-r7` | view round 7 (from `round/view-r6` a237bbd): VS-8 the view's filter fields on the head row, the count line of a board and cards (sf-view 1.26.0); the next view release, after round 6 |
+| `round/view-r7` | view round 7 (from `round/view-r6` a237bbd): VS-8 the view's filter fields on the head row, the count line of a board and cards, simai.dataview-port 1.16.0 (levels, the person's preferences layer), the panel's strip patch behind the component.tabs 1.5.4 check (sf-view 1.26.0, sf-view-properties 1.23.1); the next view release, after round 6 |
 | `round/view-r6` | view round 6 (from `round/view-r5` 279c7f5): VZ-1 the list head's view zone, table columns before scroll, VB-1 panel surfaces in the dark theme (sf-view 1.25.0, sf-view-table 1.27.0, sf-view-properties 1.23.0); the next view release, after round 5 |
 | `round/view-r5` | view round 5 (from `main` 882bd57, view 1.9.0): DEV's open items B1-B3 and the list study order LV-2..LV-13 (sf-view 1.24.0, sf-view-table 1.26.0, sf-view-properties 1.22.0, sf-view-board 1.1.2); the next view release |
 | `round/view-r5-shadow-menu` | view round 5: sf-view-table 1.25.2 (DEV msg-b353fce8), merged into `round/view-r5` |

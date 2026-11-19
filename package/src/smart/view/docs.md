@@ -328,6 +328,24 @@ payload}`, стандарт §4.9), или из `capabilities` рядом с о�
 
 ## Port 1.5.0: a write answered with its record, and a view that remembers its fields
 
+Port 1.16.0 (from sf-view 1.26.0; simai/ui-source feat/view-port-levels, rides
+group build 15) is accepted beside 1.0.0..1.15.0; the contract the view declares as
+current stays 1.15.0 until the pinned pair carries 1.16.0. Two things, both additive:
+
+- **Levels of saved views.** `saved_views[].level` is `system`, `shared` or
+  `personal`; the list head's views menu groups them so. `package`, the 1.15.0 name
+  of `system`, is read as `system` until 2027-01-01. A system view is never written:
+  its change is saved as a new view.
+- **The person's layer.** A host that announces `personal-preferences` (a signed-in
+  person) sends `data.preferences` `{revision, page_size?, view_zone?, view?}` with
+  its first answer. The view takes the page size from it (asking once more if the
+  first query had another one) and opens or closes the view zone by it; a change of
+  the page size or of the zone raises `preferences.save` with only the changed
+  fields against the layer's revision, and goes once more against the
+  `current_revision` of a conflict. Without the capability (a guest, any earlier
+  port) both stay in the browser (SF.Preferences under `preferences-key`), as before.
+  The browser keeps a copy either way for the first paint.
+
 Port [1.5.0](../../core/contracts/ports/simai.dataview-port/1.5.0/port.json) adds two things, both additive. The 24 cases
 of the [1.4.0 kit](../../core/contracts/ports/simai.dataview-port/1.4.0/kit/manifest.json) are byte for byte the first 24
 of the [1.5.0 kit](../../core/contracts/ports/simai.dataview-port/1.5.0/kit/manifest.json), so a host that passed 1.4.0

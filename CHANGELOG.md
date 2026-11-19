@@ -29,7 +29,14 @@ of a board and cards.
   view left. Adding or removing a field of a system or shared view marks it
   changed. A board and cards have no page row, yet the footer says how many:
   «1–80 из 120», the records on screen of all the host counted, in the table
-  footer's words (sf-pagination `range`, `range-many`).
+  footer's words (sf-pagination `range`, `range-many`). Port
+  `simai.dataview-port` 1.16.0 is accepted (1.0.0..1.16.0): saved views of
+  level `package` group as system; with `personal-preferences` the page size
+  and the view zone's state are the person's layer on the host
+  (`data.preferences`, `preferences.save`), else the browser as before.
+- `sf-view-properties` 1.23.1: the record panel paints the tab strip's ground
+  itself only while the page's sheets lack SIMAI Framework component.tabs
+  1.5.4, which paints it with the ground it stands on.
 
 ## Unreleased — view round 6
 
