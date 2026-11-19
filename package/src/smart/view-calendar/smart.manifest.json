@@ -610,7 +610,7 @@
       },
       {
         "path": "src/smart/field-renderers/index.js",
-        "sha256": "467c3bbf3eb6a9f0be71c23f2da1e119cf339edd0601dcecdd5c9abfdb6c267c"
+        "sha256": "6ac942637adeecab6d761d81589d6cc2ec40c5fe2971adb8eedbf28f54a2e631"
       },
       {
         "path": "src/smart/view-calendar/rule.js",

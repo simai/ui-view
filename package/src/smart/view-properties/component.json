@@ -2350,28 +2350,8 @@
           "from": "1.20.0",
           "to": "1.21.0",
           "changes": [
-            "Release of round/view-r4 in view 1.9.0: the code of 1.20.0 (port range 1.0.0..1.22.0, card settings only for a 1.22.0 host) merged with the released line 1.19.2 and 1.20.2 (view 1.8.2, 1.8.3: port widening of the 1.16.3 panel), numbered above both and above ui-pro's 1.20.1. A 1.20.0 or 1.21.0 host is offered no card settings (they need 1.22.0)."
-          ]
-        },
-        {
-          "from": "1.16.3",
-          "to": "1.19.2",
-          "changes": [
-            "Accepts simai.property-view-port 1.19.0 (owner decision C294, ui-source acb9bcd77): a host that declares 1.19.0 is taken as one that declares 1.18.0 (SUPPORTED_PORT_VERSIONS, x-port.supports, host_port.supported_versions). 1.19.0 adds two optional money keys (currencies, currencyDisplay) and drops a percent's default bounds; its conformance kit is 1.18.0's 65 cases unchanged, so what the panel reads and writes does not change. The panel does not read the two money keys yet, and a percent without min and max still stops at 0..100 while typed (a host that wants a wider percent sends min and max); a value the host sends is shown and kept as it is. The contract it is checked against stays 1.18.0. Over the same SIMAI Framework pair ui-141822273efe. 1.19.0 is held by simai/ui-view round/view-returns and 1.19.1 by ui-pro's own copy (pro, 2026-11-18), so the number is 1.19.2."
-          ]
-        },
-        {
-          "from": "1.19.2",
-          "to": "1.20.2",
-          "changes": [
-            "Accepts simai.property-view-port 1.20.0, 1.21.0 and 1.22.0 (SIMAI Framework group build 13, ui-source integration/pair-next-15 89b0c3b8e): a host that declares any of them is taken as one that declares 1.18.0 (SUPPORTED_PORT_VERSIONS, x-port.supports, host_port.supported_versions). The three editions only add: field keys template, templateParams, decimals and holder and new type names (1.20.0), record.history and record.neighbours behind their own capabilities and the refusal revision_moved (1.21.0), view.publish, view.lock and the view keys head, locked and profiles[].required (1.22.0); the kit keeps 1.19.0's 65 cases unchanged (75 in 1.22.0). What the panel reads and writes does not change: it asks neither new intent, a field sent with template alone is drawn with its type's default template, a type name it does not know (phone, password, complex, url, link, ru.inn) is not offered for editing and nothing is written for it, revision_moved is shown as a refusal with nothing written, and its view.save with target.kind shared and a layer's variant are read by a 1.22.0 host until 2027-01-01. The contract it is checked against stays 1.18.0, the newest edition in the released pair it is built over (ui-141822273efe). The number is above 1.20.0 (simai/ui-view round/view-r4) and 1.20.1 (ui-pro's own copy)."
-          ]
-        },
-        {
-          "from": "1.20.2",
-          "to": "1.21.0",
-          "changes": [
-            "From the released 1.20.2 (view 1.8.3): everything of 1.16.4..1.20.0 above (round/view-r1..r4) and the release numbering of 1.21.0; the port range 1.0.0..1.22.0 is the same as 1.20.2's."
+            "Release of round/view-r4 in view 1.9.0: the code of 1.20.0 (port range 1.0.0..1.22.0, card settings only for a 1.22.0 host) merged with the released line 1.19.2 and 1.20.2 (view 1.8.2, 1.8.3: port widening of the 1.16.3 panel), numbered above both and above ui-pro's 1.20.1. A 1.20.0 or 1.21.0 host is offered no card settings (they need 1.22.0).",
+            "The released 1.19.2 and 1.20.2 (view 1.8.2, 1.8.3) were steps of the 1.16.3 panel that only widened the accepted port range (1.19.0, then 1.20.0..1.22.0); 1.21.0 holds the same range, so a host of 1.20.2 gets everything of 1.16.4..1.20.0 above with nothing taken away."
           ]
         }
       ]
