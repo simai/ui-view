@@ -250,9 +250,27 @@ export class ListHead {
         return marked ? String(marked.id) : null;
     }
 
+    // The filter fields on screen: the query's (the host's echo, or the
+    // person's choice), else the open view's own set (VS-8: a view keeps its
+    // filter fields, settings.filter_fields; views study head.filter_fields)
+    // with every field a condition is set on, else the fields with a condition.
     get chosen() {
-        const asked = Array.isArray(this.query.filters_chosen) ? this.query.filters_chosen : Object.keys(this.query.filters ?? {});
-        return asked.filter((key) => this.field(key));
+        const asked = Array.isArray(this.query.filters_chosen) ? this.query.filters_chosen.map(String) : null;
+        const set = Object.keys(this.query.filters ?? {});
+        const saved = this.viewFilterFields(this.openView);
+        const keys = asked ?? (saved ? [...saved, ...set.filter((key) => !saved.includes(key))] : set);
+        return keys.filter((key) => this.field(key));
+    }
+
+    // The view on screen: the query's, else the default one.
+    get openView() {
+        return this.query.view?.id ? this.currentView : this.defaultView;
+    }
+
+    // A view's own filter fields (settings.filter_fields), or null where it keeps none.
+    viewFilterFields(view) {
+        const fields = view?.settings?.filter_fields;
+        return Array.isArray(fields) ? fields.filter((key) => typeof key === "string") : null;
     }
 
     get filters() { return this.query.filters ?? {}; }
@@ -521,6 +539,9 @@ export class ListHead {
         const active = (filters) => Object.fromEntries(Object.entries(filters ?? {}).filter(([, entry]) => conditionActive(entry)));
         const saved = view.query?.filters ?? view.filters ?? {};
         if (!same(active(saved), active(this.filters))) return true;
+        // Its filter fields: a field added or taken away is a change (VS-8).
+        const fields = this.viewFilterFields(view);
+        if (fields && !same(fields.filter((key) => this.field(key)).sort(), [...this.chosen].sort())) return true;
         const layout = view.settings?.layout ?? view.layout;
         return typeof layout === "string" && this.kinds.includes(layout) && layout !== this.kind;
     }
@@ -1190,7 +1211,12 @@ export class ListHead {
         // A view saved as a board opens as one (and a table view as a table):
         // the layout's own query first, then the view.
         if (type !== this.view.layoutKind && this.drawable(type)) this.view.switchLayout?.(type);
-        this.view.query = {...this.view.query, view: {id: key, type}};
+        // Its filter fields come with it (VS-8): the ones it keeps, else none
+        // chosen (the fields of its conditions, as the host answers them).
+        const query = {...(this.view.query ?? {})};
+        delete query.filters_chosen;
+        const fields = this.viewFilterFields(view);
+        this.view.query = {...query, ...(fields ? {filters_chosen: fields} : {}), view: {id: key, type}};
         this.view.openView?.(key);
         this.render();
     }

@@ -9,7 +9,7 @@
 // The view's own first-paint styles, its skeleton, are its sheet.
 import "./js/first-paint.css";
 import "./js/head.css";
-import {pageText} from "../../core/js/page-language";
+import {pageText, pageWord} from "../../core/js/page-language";
 import {elementFromManifest} from "../../core/js/element-manifest";
 // The renamed tags (sf-view-table for sf-table, sf-view for sf-data-view until
 // 2027-01-01): a lookup by name takes both through these, and the view defines
@@ -25,6 +25,8 @@ import en from "./lang/en.json";
 import ru from "./lang/ru.json";
 import tableEn from "../view-table/lang/en.json";
 import tableRu from "../view-table/lang/ru.json";
+import paginationEn from "../pagination/lang/en.json";
+import paginationRu from "../pagination/lang/ru.json";
 import BundledPreferences from "../../core/js/preferences.js";
 import {acceptLevel, collapse, createTree, expandKnown, hasLevel, knownRecords, markLoading, visibleRows} from "./js/tree.js";
 import {ListHead} from "./js/head.js";
@@ -173,6 +175,13 @@ const DATA_VIEW_TEXT = {
 const TABLE_TOOLBAR_TEXT = {
     en: {filterText: tableEn.runtime["filter-text"], createText: tableEn.runtime["create-text"]},
     ru: {filterText: tableRu.runtime["filter-text"], createText: tableRu.runtime["create-text"]},
+};
+// The table footer's range words are sf-pagination's (range, range-many): a
+// board and cards say their count in the same words (view round 7), read
+// under sf-pagination, so words a product registers for it reach them too.
+const PAGINATION_RANGE_TEXT = {
+    en: {"range": paginationEn.runtime.range, "range-many": paginationEn.runtime["range-many"]},
+    ru: {"range": paginationRu.runtime.range, "range-many": paginationRu.runtime["range-many"]},
 };
 const escapeText = (text) => String(text).replace(/[&<>"]/gu, (letter) => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"})[letter]);
 
@@ -412,7 +421,9 @@ class SfDataView extends DataViewElement {
             :host([size="1/2"]) [part="footer"] { --sf-view--footer-control-height: var(--sf-ui-1\\/2--control-height); }
             /* A footer with no page row in it (the page row hidden: a tree, a
                failed or refused list) draws nothing, not an empty line. */
-            [part="footer"]:has(> slot[name="pagination"][hidden]) { display: none; }
+            /* A board and cards have no page row but say their count
+               (data-sf-view-footer-count, view round 7). */
+            :host(:not([data-sf-view-footer-count])) [part="footer"]:has(> slot[name="pagination"][hidden]) { display: none; }
             slot[name="footer"]::slotted(*) { flex: 1 1 auto; min-inline-size: 0; }
             slot[name="pagination"]::slotted(*) { margin-inline-start: auto; }
           </style>
@@ -1091,12 +1102,14 @@ class SfDataView extends DataViewElement {
     }
 
     _drawFooter() {
+        if (this._drawCountFooter()) return;
         const pagination = this.pagination;
         // Drawn from the page row's own reading of its state, so not before
         // the row is an sf-pagination (its module may still be on the way).
         if (!pagination || typeof pagination.setState !== "function" || typeof pagination.requestCount !== "function"
             || !this.renders("pagination")) return;
         if (!this.footerStart) return;
+        this._footerStart.hidden = false;
         const part = (name) => this._footerParts?.[name] ?? null;
         const size = this.controlSize;
         const sized = (element) => {
@@ -1135,6 +1148,36 @@ class SfDataView extends DataViewElement {
         const menu = part("menu");
         sized(menu);
         write(menu, "aria-label", pagination.pageSizeLabel ?? "");
+    }
+
+    // A board and cards (view round 7, C388): no page row -- each lane and the
+    // cards' grid end in their own «Показать ещё» (C304, C306) -- yet the
+    // footer says how many, as the table's does: «1–16 из 60», the records on
+    // screen of all the host counted, in the table footer's words. Nothing
+    // before the first answer, for an empty, failed or refused list, or where
+    // the page turned the page row off. True when the view draws such a kind.
+    _drawCountFooter() {
+        const kind = this.layoutKind;
+        if (kind !== "board" && kind !== "cards") return false;
+        const shown = (this.records ?? []).length;
+        const show = this.renders("pagination") && this._answered && !this._queryRefused
+            && !["error", "no-access"].includes(this.getAttribute("data-state") ?? "") && shown > 0;
+        this.toggleAttribute("data-sf-view-footer-count", show);
+        if (!show) {
+            if (this._footerStart) this._footerStart.hidden = true;
+            return true;
+        }
+        const start = this.footerStart;
+        start.hidden = false;
+        const parts = this._footerParts ?? {};
+        const words = {component: "sf-pagination"};
+        const known = this.countKnown !== false && Number.isSafeInteger(this.total);
+        const text = known
+            ? pageWord(PAGINATION_RANGE_TEXT, "range", this, {...words, vars: {from: 1, to: shown, total: this._shownTotal(Math.max(this.total, shown))}})
+            : pageWord(PAGINATION_RANGE_TEXT, "range-many", this, {...words, vars: {from: 1, to: shown}});
+        if (parts.range && parts.range.textContent !== text) parts.range.textContent = text;
+        for (const name of ["count", "counting", "size"]) if (parts[name]) parts[name].hidden = true;
+        return true;
     }
 
     // The menu of page sizes is made when it is first opened: a list nobody
@@ -1969,6 +2012,8 @@ class SfDataView extends DataViewElement {
         // it until a list comes back (docs trial 4: «Всего: 10» over an error).
         const pageRow = this.shadowRoot.querySelector('slot[name="pagination"]');
         if (pageRow && ["error", "no-access"].includes(state)) pageRow.hidden = true;
+        // A board's or the cards' count follows the state (view round 7).
+        if (this.layoutKind === "board" || this.layoutKind === "cards") this._queueFooter();
         const status = this.shadowRoot.querySelector('[part="status"]');
         status.hidden = !message;
         status.textContent = message;
