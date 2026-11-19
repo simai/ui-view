@@ -18,6 +18,15 @@ up). Each component.json says the same under `x-decisions`
 
 ## Unreleased (round/view-cards)
 
+- `sf-view-cards` 1.0.2 (DEV's acceptance return VC-1): a number in the first
+  «Кратко» column stays at the column's start; only the second column puts
+  numbers, dates and files at its end, as the accepted study does (price at
+  the card's start, stock at its end). Numbers keep tabular digits in both
+  columns (`data-numeric`). The same code as round/view-r4's 1.0.1, numbered
+  above it.
+- Tests: «STATUS names every remote branch ahead of main» compares the
+  remote branches only in the release check (`VIEW_RELEASE_CHECK=1`); a plain
+  unit run on a checkout with other round branches no longer fails on them.
 - `sf-view-cards` 1.0.0, new (owner decisions C297, C306, CD-1..CD-8): the
   cards layout. Records as `.sf-card` in a grid whose columns follow its
   width (sizes S, M, L: least width 12, 15, 20rem; on a phone S two columns,

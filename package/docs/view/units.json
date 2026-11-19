@@ -383,6 +383,15 @@
     },
     {
       "unit": "smart.view-cards",
+      "version": "1.0.2",
+      "recorded_on": "2026-11-19",
+      "change": "patch",
+      "consumer": "Nothing to change. A number in the first «Кратко» column stays at the column's start; only the second column ends numbers, dates and files, as the accepted prototype does (VC-1, DEV's acceptance of the cards). The same change round/view-r4 numbers 1.0.1.",
+      "summary": "DEV's acceptance return VC-1 (round/view-cards): fieldAlign(field, index) answers end only for a numeric field in the second column (odd index); the template passes the index and marks numbers data-numeric for tabular digits. The same code as round/view-r4's 1.0.1; numbered above it.",
+      "evidence": "control/evidence/2026-11-19-view-cards-vc1/README.md"
+    },
+    {
+      "unit": "smart.view-cards",
       "version": "1.0.0",
       "recorded_on": "2026-11-18",
       "change": "minor",

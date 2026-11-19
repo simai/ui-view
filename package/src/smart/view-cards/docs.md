@@ -46,8 +46,9 @@ action, «Создать» and «Сбросить фильтр» are events.
   `1:1`, `4:3` (default), `3:4`, `16:9`.
 - `title_field`: the record's title, two lines then «…».
 - `card_fields`: up to four fields under the title, each drawn by the
-  Framework field renderers in the «Кратко» place (C300 (2)): text at the
-  start, numbers and dates at the end. `card_labels: true` shows their labels;
+  Framework field renderers in the «Кратко» place (C300 (2)) in two columns:
+  the first column at its start, numbers and dates of the second at its end.
+  `card_labels: true` shows their labels;
   without them a screen reader reads them and a tooltip shows them.
 - `size`: `s`, `m`, `l` = least card width 12, 15, 20rem; the columns follow
   the width. On a phone (the grid below 600 px) S draws two columns, M and L

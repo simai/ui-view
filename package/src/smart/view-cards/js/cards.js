@@ -129,9 +129,13 @@ export function fileIcon(mime = "", name = "") {
     return "description";
 }
 
-/** Where a field stands on its row: text at the start, numbers, dates and files at the end. */
-export function fieldAlign(field) {
-    return NUMERIC.has(typeOf(field)) ? "end" : "start";
+/**
+ * Where a field stands on its row: the first column at its start whatever it
+ * holds; in the second, numbers, dates and files at the end (VC-1, the
+ * accepted prototype's END).
+ */
+export function fieldAlign(field, index = 1) {
+    return NUMERIC.has(typeOf(field)) && index % 2 === 1 ? "end" : "start";
 }
 
 /** A record's title from the title field (else title, name, id), as text. */

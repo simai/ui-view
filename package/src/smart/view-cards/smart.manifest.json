@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-cards",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "title": "Cards",
   "summary": "The cards layout of the view set: records as cards in a grid whose columns follow its width, a cover the layout draws, a title and up to four fields in the «Кратко» place; «Показать ещё» appends the next page. sf-view layout=\"cards\" draws it where the author turned it on.",
   "kind": "smart",
@@ -420,6 +420,13 @@
         "changes": [
           "New: the cards layout (owner decisions C297, C306): records as .sf-card in a grid whose columns follow its width (sizes S, M, L), a cover in a frame of one ratio drawn by the layout (cover or contain, lazy), the title in two lines and up to four fields in the «Кратко» place, «Показать ещё» over the window {page, per_page: 24}, one Tab stop with the arrows by rows, a selection for sf-bulk-actions, empty states by sf-empty-state."
         ]
+      },
+      {
+        "from": "1.0.0",
+        "to": "1.0.2",
+        "changes": [
+          "DEV's acceptance return VC-1 (round/view-cards): fieldAlign(field, index) answers end only for a numeric field in the second column (odd index); the template passes the index and marks numbers data-numeric for tabular digits. The same code as round/view-r4's 1.0.1; numbered above it."
+        ]
       }
     ]
   },
@@ -429,19 +436,19 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-cards/index.js",
-        "sha256": "7a25a6951c3371669ea6182ff324ccdd6e419f6c63e8ea42c89ed1a909f7b56b"
+        "sha256": "ef957e7b3ae5f3bd6ff6a1fee8eb266bf48a38158b37578b1b6db5f288911438"
       },
       {
         "path": "src/smart/view-cards/js/cards.js",
-        "sha256": "92acc4334ac1db0033da2b677cd5e6e09ebc22d1ba2ce1e9da7983b7cc43e537"
+        "sha256": "d5dbaabae6820944f16bf62b4643e319b01e91365e50d4cba0105904c5f823de"
       },
       {
         "path": "src/smart/view-cards/js/templates/default.js",
-        "sha256": "3657f8a50090272068218d0726267624960e7dfeb8a7451671ee788e8211e9ac"
+        "sha256": "45384448ae6a49612e5fa86d45312ec429cc44037747282f2d72ab11b620b5f8"
       },
       {
         "path": "src/smart/view-cards/js/templates/default.css",
-        "sha256": "d24cbb25be4c98150ff4b843a5ecc74c0a5a24069b8ba6cd5959f20c6df415b7"
+        "sha256": "8d1d17ca49f9d2f8dd600fd63e3078d06d3ab67c8b685ed8cdcdd8cf3038e30d"
       },
       {
         "path": "src/smart/field-renderers/index.js",
@@ -453,7 +460,7 @@
       },
       {
         "path": "src/smart/view-cards/docs.md",
-        "sha256": "96a2e95ec96344ac0e6c01c7af0d6e5f075d133c6ce7389a0689f1b03cc473fa"
+        "sha256": "04c6be8a377a7520bbc47a978d401e356a76018a3687ad7b7703050a3044959d"
       }
     ],
     "generated_runtime": []

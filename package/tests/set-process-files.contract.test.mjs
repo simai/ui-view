@@ -36,7 +36,12 @@ test('STATUS: what is done with its evidence, the consumers in three columns, th
   assert.match(section('## Open branches'), /^\| Branch \| Release that takes it \|$/mu);
 });
 
-test('STATUS names every remote branch ahead of main', {skip}, (t) => {
+// The branch list is live: other threads push round branches at any time, so
+// a unit run on any checkout would fail on branches this commit cannot know.
+// The comparison runs in the release check (VIEW_RELEASE_CHECK=1, set by the
+// release route before it cuts a version); a plain unit run skips it.
+const releaseCheck = process.env.VIEW_RELEASE_CHECK === '1';
+test('STATUS names every remote branch ahead of main', {skip: skip || (releaseCheck ? false : 'live origin is compared only in the release check (VIEW_RELEASE_CHECK=1)')}, (t) => {
   let refs;
   try {
     refs = execFileSync('git', ['-C', repository, 'for-each-ref', '--format=%(refname:short)', 'refs/remotes/origin'], {encoding: 'utf8'}).trim().split('\n').filter(Boolean);

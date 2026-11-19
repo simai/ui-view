@@ -78,6 +78,12 @@ test('CD-6: the arrows go by the rows as drawn', () => {
   assert.equal(gridStep('Tab', 1, grid), null);
   assert.equal(fieldAlign({propertyType: 'money'}), 'end');
   assert.equal(fieldAlign({propertyType: 'string'}), 'start');
+  // VC-1: the first column keeps its fields at the start, the second puts numbers at the end.
+  assert.equal(fieldAlign({propertyType: 'money'}, 0), 'start', 'a number in the first column stays at its start');
+  assert.equal(fieldAlign({propertyType: 'money'}, 2), 'start');
+  assert.equal(fieldAlign({propertyType: 'integer'}, 3), 'end', 'a number in the second column stands at its end');
+  assert.equal(fieldAlign({propertyType: 'date'}, 1), 'end');
+  assert.equal(fieldAlign({propertyType: 'string'}, 1), 'start');
   assert.equal(titleOf({id: 1, name: {label: 'Кружка'}}, 'name'), 'Кружка');
 });
 

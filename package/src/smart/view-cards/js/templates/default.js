@@ -59,12 +59,12 @@ function renderControls(context, record, title) {
         </span>`;
 }
 
-function renderField(context, field, record) {
+function renderField(context, field, record, index = 1) {
     const component = context.component;
     const label = String(field.label ?? field.key);
     const shape = component.cellShape(field, record);
     if (shape === null && !context.labels) return html`<span class="sf-view-cards__field" data-key=${String(field.key)} data-empty></span>`;
-    return html`<span class="sf-view-cards__field" data-key=${String(field.key)} data-align=${component.fieldAlign(field)}
+    return html`<span class="sf-view-cards__field" data-key=${String(field.key)} data-align=${component.fieldAlign(field, index)} ?data-numeric=${component.fieldAlign(field) === "end"}
                       title=${context.labels ? nothing : label}>${context.labels
         ? html`<span class="sf-view-cards__label">${label}</span>`
         : html`<span class="sr-only">${label}: </span>`}<span class="sf-view-cards__value">${renderShape(shape, component)}</span></span>`;
@@ -87,7 +87,7 @@ function renderCard(context, record, index) {
                 <div class="sf-view-cards__title">${title}</div>`
                 : html`<div class="sf-view-cards__top"><div class="sf-view-cards__title">${title}</div>${renderControls(context, record, title)}</div>`}
             ${context.cardFields.length ? html`<div class="sf-view-cards__fields" ?data-labels=${context.labels}>
-                ${context.cardFields.map((field) => renderField(context, field, record))}
+                ${context.cardFields.map((field, index) => renderField(context, field, record, index))}
             </div>` : nothing}
         </div>`;
 }
