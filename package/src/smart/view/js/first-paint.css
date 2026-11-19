@@ -200,6 +200,17 @@
 .sf-data-view-skeleton[data-layout="list"]:not([data-layout-switch]) .sf-data-view-skeleton-toolbar [data-control="segment"] {
     display: none;
   }
+  /* The compact list's settings button (sf-view-table 1.26.0, LV-6): a square
+     of the step's control in the filter's group, 1/3 after it. The table's
+     toolbar has none (its gear is in the head). */
+  .sf-data-view-skeleton-toolbar [data-control="settings"] {
+    display: none;
+  }
+  .sf-data-view-skeleton[data-layout="list"]:not([data-layout-switch]) .sf-data-view-skeleton-toolbar [data-control="settings"] {
+    display: block;
+    inline-size: var(--sf-data-view-skeleton--control);
+    margin-inline-start: calc(var(--sf-space-1\/3) - var(--sf-space-1));
+  }
 
   /* A row (the head first) as tall as the table's: the step's control, the
      line under it drawn inside, as the table draws its line inside the cell
@@ -404,6 +415,11 @@
     .sf-data-view-skeleton:is([data-layout="auto"], [data-layout="list"]) .sf-data-view-skeleton-toolbar :is([data-control="split"], [data-control="switch"], [data-control="actions"]),
     .sf-data-view-skeleton:is([data-layout="auto"], [data-layout="list"]) .sf-data-view-skeleton-toolbar [data-control="segment"] {
       display: none;
+    }
+    .sf-data-view-skeleton:is([data-layout="auto"], [data-layout="list"]) .sf-data-view-skeleton-toolbar [data-control="settings"] {
+      display: block;
+      inline-size: var(--sf-data-view-skeleton--control);
+      margin-inline-start: calc(var(--sf-space-1\/3) - var(--sf-space-1));
     }
     .sf-data-view-skeleton[data-layout="auto"] .sf-data-view-skeleton-list {
       display: block;

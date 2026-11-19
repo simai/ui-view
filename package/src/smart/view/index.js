@@ -1567,6 +1567,9 @@ class SfDataView extends DataViewElement {
         // at the end; in the compact list the field first and the two as
         // icons after it. The labels are the table's words, so the blocks are
         // as wide as the buttons; the sheet orders and sizes them for each.
+        // The compact list's settings button (sf-view-table 1.26.0, LV-6)
+        // stands after the filter whenever the table offers settings; the
+        // table's own toolbar has no such control (the gear is in its head).
         const creatable = this.hostOffers("create-record");
         const word = (key, attribute) => escapeText(table?.getAttribute?.(attribute) || pageText(TABLE_TOOLBAR_TEXT, key, table ?? this, "sf-view-table"));
         const label = (kind, text) => `<i class="sf-skeleton-text" data-control="${kind}">${text}</i>`;
@@ -1587,7 +1590,7 @@ class SfDataView extends DataViewElement {
             ? (createSplit ? `<span data-part="create">${label("create", word("createText", "create-text"))}${control("split")}</span>` : label("create", word("createText", "create-text")))
             : "";
         const toolbarMarkup = '<div class="sf-data-view-skeleton-toolbar">'
-            + `<div data-part="start">${label("filter", word("filterText", "filter-text"))}${views ? control("segment") : ""}</div>`
+            + `<div data-part="start">${label("filter", word("filterText", "filter-text"))}${views ? control("segment") : ""}${settings ? control("settings") : ""}</div>`
             + `<div data-part="end">${control("field")}${layoutSwitch ? control("switch") : ""}${createMarkup}${toolbarActions ? control("actions") : ""}</div>`
             + "</div>";
         if (layoutSwitch) skeleton.setAttribute("data-layout-switch", "");
