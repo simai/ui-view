@@ -24,6 +24,8 @@ const manifestImports = {
   // The table's own words, for the toolbar the first paint draws (sf-view 1.11.1).
   tableEn: json('src/smart/view-table/lang/en.json'),
   tableRu: json('src/smart/view-table/lang/ru.json'),
+  paginationEn: json('src/smart/pagination/lang/en.json'),
+  paginationRu: json('src/smart/pagination/lang/ru.json'),
   answerActions,
   settingSetters,
   installAliases: () => ({uninstall() {}}),
@@ -129,6 +131,7 @@ vm.runInNewContext(source, {
   // English table is what this fake answers with, which is enough for a test
   // about wiring rather than about wording.
   pageText: (table, key) => table.en?.[key] ?? key,
+  pageWord: (table, key, node, {vars = {}} = {}) => String(table.en?.[key] ?? key).replace(/\{(\w+)\}/gu, (_, name) => String(vars[name] ?? '')),
   // The tag helpers of the Smart base (rename plan R2): the fake page holds
   // only the new tags, so a selector is the tag and a former tag is not defined.
   tagSelector: (tag) => tag,
