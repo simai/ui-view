@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view",
-  "version": "1.28.0",
+  "version": "1.28.1",
   "title": "Data view",
   "summary": "Host-driven data view that composes toolbar, content and pagination around a separate data port.",
   "kind": "composite",
@@ -1915,6 +1915,13 @@
         "changes": [
           "Round 8 (round/view-r8, R67-1, R67-2, VSA-1, VSA-5): js/head.css hides the footer start under a display kind other than the table only while the view has no count (:not([data-sf-view-footer-count])), and the phone search field takes contain: inline-size; index.js _drawCountFooter drops data-sf-view-footer-count for other kinds, _holdLayoutLoad after a layout change puts a skeleton of the layout (slot content, data-sf-layout-hold) until the element is defined and has drawn (8 s at most); js/head.js state panel offers headViewSaveMine «Сохранить как моё» for a system, unshareable or locked view; lang head-view-new and head-view-save-new «Сохранить представление», new head-view-save-mine."
         ]
+      },
+      {
+        "from": "1.28.0",
+        "to": "1.28.1",
+        "changes": [
+          "View site round 2 (round/view-r8, DEV return R8-3): js/head.js _renderZone sets pressed and label-pressed only when the pair has the toggle look (frameworkToggle); otherwise it removes them and toggles .sf-view-head-zone-toggle--open; js/head.css draws --own.--open with the pressed tokens (--sf-icon-button-pressed-background-color or --sf-primary-container, on-primary-container, the 1 px primary ring, container hover and active); the toggle markup no longer writes pressed=\"false\"."
+        ]
       }
     ]
   },
@@ -1932,7 +1939,7 @@
       },
       {
         "path": "src/smart/view/docs.md",
-        "sha256": "60978506d15e57cffb1b36a5ffd779354ccc9daab7e8b16a60ebc0f2f53ffe8b"
+        "sha256": "6f4ceffd306ce9ff77dd7216fd06eb62025d0c0f975f6f5c3341237c03c6c8f5"
       },
       {
         "path": "tests/fixtures/data-view-composite-lab.html",

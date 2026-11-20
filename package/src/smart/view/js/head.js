@@ -367,7 +367,7 @@ export class ListHead {
         // row); its toggle is the first part of the head row. Option D's
         // placement waits one owner confirmation: moving the toggle to the end
         // of the row is the order of these two strings.
-        const toggle = `<sf-button-icon class="sf-view-head-zone-toggle" data-zone-toggle size="${size}" appearance="ghost" scheme="on-surface" icon="view_quilt" aria-controls="" pressed="false" hidden></sf-button-icon>`;
+        const toggle = `<sf-button-icon class="sf-view-head-zone-toggle" data-zone-toggle size="${size}" appearance="ghost" scheme="on-surface" icon="view_quilt" aria-controls="" hidden></sf-button-icon>`;
         const more = `<sf-button-icon class="sf-view-head-more" data-list-menu size="${size}" appearance="ghost" scheme="on-surface" icon="more_vert" aria-haspopup="menu" hidden></sf-button-icon>`;
         const changed = pop("state", "bottom-start", `<sf-button slot="trigger" class="sf-view-head-changed" size="${size}" appearance="ghost" scheme="primary" icon-start="edit_note"></sf-button>`);
         this.root.innerHTML = phone
@@ -595,16 +595,23 @@ export class ListHead {
             const label = viewName ? this.text("headViewZone").replace("{name}", viewName) : this.text("headViewZoneNone");
             // The dot's words are said by the badge (badge-label) after the name.
             set(toggle, "aria-label", label);
-            set(toggle, "label-pressed", label);
-            set(toggle, "pressed", open ? "true" : "false");
+            const framework = this.toggleAppearance;
+            // Over a pair without the toggle look the button is a disclosure
+            // (aria-expanded) and draws its open look itself (head.css
+            // --open): a pressed sf-button-icon fills its glyph, and an icon
+            // font subset without the filled view_quilt (the Docara site's
+            // icon catalogue) drew an empty tinted square (R8-3). The glyph
+            // stays outlined in both states, as TG-1 asks.
+            set(toggle, "label-pressed", framework ? label : null);
+            set(toggle, "pressed", framework ? (open ? "true" : "false") : null);
             set(toggle, "aria-expanded", open ? "true" : "false");
+            toggle.classList.toggle("sf-view-head-zone-toggle--open", Boolean(open && !framework));
             set(toggle, "badge-dot", changed ? "" : null);
             set(toggle, "badge-label", changed ? this.text("headViewUnsaved") : null);
             // Tinted while a view other than the default is open: the glyph
             // in primary (head.css). The scheme stays on-surface: the pressed
             // look is a neutral toggle's only (C211 (1)).
             toggle.classList.toggle("sf-view-head-zone-toggle--tinted", !this.openViewIsDefault);
-            const framework = this.toggleAppearance;
             set(toggle, "appearance", framework ?? "ghost");
             toggle.classList.toggle("sf-view-head-zone-toggle--own", !framework);
         }

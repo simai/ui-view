@@ -18,6 +18,19 @@ import BundledPosition from "../../core/js/position.js";
 import {holdOpenSurfaceMark} from "../../core/js/open-surface-mark.js";
 import {closeLayer, layerZIndex, openLayer} from "../../core/js/layer-stack.js";
 import {followDensity} from "../../core/js/density.js";
+
+// The local day of a date ("2026-11-19") or a date and time (ISO 8601) for
+// the relative date template: a date alone is that day where the page is, a
+// moment is the day it falls on there. null for anything else.
+function relativeDay(value) {
+    const text = typeof value === "string" ? value.trim() : "";
+    const date = /^(\d{4})-(\d{2})-(\d{2})$/u.exec(text);
+    if (date) return new Date(Number(date[1]), Number(date[2]) - 1, Number(date[3]));
+    if (!/^\d{4}-\d{2}-\d{2}T/u.test(text)) return null;
+    const moment = new Date(text);
+    if (Number.isNaN(moment.getTime())) return null;
+    return new Date(moment.getFullYear(), moment.getMonth(), moment.getDate());
+}
 import {menuOpen} from "../../core/js/menu-open.js";
 import {noteDeprecated} from "../../core/js/deprecations.js";
 import {roving} from "../../core/js/roving.js";
@@ -522,7 +535,10 @@ class SfTable extends TableElement {
 
         this.TABLE_SETTINGS_COLUMN = {
             key: "settings",
-            label: "settings",
+            // The column's name from the language files (Larena L-1): the
+            // literal "settings" stood in the head cell's data-label and in
+            // the phone list in every language.
+            label: this.text("settingsColumnLabel"),
             system: true,
             width: 'calc(var(--sf-text-height-1) + (var(--sf-ui-1--space-y-tightness-default) * 2) + var(--sf-b6))',
             component: {
@@ -1660,7 +1676,7 @@ class SfTable extends TableElement {
         if (typed !== null && typeof typed !== "undefined") {
             if (typeof typed !== "string" && typeof typed !== "number") return null;
             const datetime = this.cellDateTime(column, value);
-            if (datetime) return {kind: "time", className: "sf-table-cell-bare", text: String(typed), datetime};
+            if (datetime) return {kind: "time", className: "sf-table-cell-bare", text: String(typed), datetime, title: this.cellTitle(column, value)};
             return {kind: "text", className: "sf-table-cell-bare", text: String(typed)};
         }
         if (typeof value === "boolean") return null;
@@ -4774,6 +4790,12 @@ class SfTable extends TableElement {
     // table, while money and dates were localised) -- every digit the value
     // has, never rounded, grouped as the language groups.
     cellValue(column = {}, value) {
+        // The relative date template (Larena L-3): «сегодня», «вчера»,
+        // «3 дня назад» in the cell, the full date in its title.
+        if (this.cellIsRelative(column)) {
+            const relative = this.relativeDate(column, value);
+            if (relative) return relative;
+        }
         const typed = this.getTypedCellValue(column, value);
         if (typed !== null && typed !== undefined) return typed;
         const type = column.propertyType ?? column.property_type ?? column.type;
@@ -4791,6 +4813,46 @@ class SfTable extends TableElement {
         } catch {
             return null;
         }
+    }
+
+    // A date or a date and time column drawn with the relative template
+    // (variant "relative", the «Кратко» place only: the record card and the
+    // editor keep the full date).
+    cellIsRelative(column = {}) {
+        const type = column.propertyType ?? column.property_type ?? column.type;
+        return (type === "date" || type === "datetime") && (column.variant ?? column.template) === "relative";
+    }
+
+    // How far the value's day is from today, in the page language
+    // (Intl.RelativeTimeFormat, numeric "auto"): «сегодня», «вчера»,
+    // «3 дня назад», «через 2 недели»; days under a week, then weeks under a
+    // month, months under a year, then years. null for a value that is no
+    // date, so the cell falls back to the full date.
+    relativeDate(column = {}, value) {
+        const day = relativeDay(value);
+        if (!day) return null;
+        const now = new Date(typeof this.now === "function" ? this.now() : Date.now());
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const days = Math.round((day - today) / 86400000);
+        const locale = this.closest?.("[lang]")?.getAttribute("lang") || globalThis.document?.documentElement?.lang || undefined;
+        const size = Math.abs(days);
+        const [amount, unit] = size < 7 ? [days, "day"]
+            : size < 30 ? [Math.trunc(days / 7), "week"]
+                : size < 365 ? [Math.trunc(days / 30), "month"]
+                    : [Math.trunc(days / 365), "year"];
+        try {
+            return new Intl.RelativeTimeFormat(locale || undefined, {numeric: "auto"}).format(amount, unit);
+        } catch {
+            return null;
+        }
+    }
+
+    // The title of a cell: the full date of a relative date cell, else none.
+    cellTitle(column = {}, value) {
+        if (!this.cellIsRelative(column) || !this.relativeDate(column, value)) return null;
+        const {variant, template, ...plain} = column;
+        const full = this.getTypedCellValue(plain, value);
+        return typeof full === "string" || typeof full === "number" ? String(full) : null;
     }
 
     // The machine reading of a date cell (C40, PD-9): a date or a date and time

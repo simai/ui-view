@@ -779,7 +779,7 @@ function rowStrings(kinds) {
             pieces.push('<span class=', ROW_HOLE, ' title=', ROW_HOLE, ' .textContent=', ROW_HOLE, '></span>');
         } else if (kind === 'time') {
             // A date (C40, PD-9): a time element with the record's own day.
-            pieces.push('<time class=', ROW_HOLE, ' datetime=', ROW_HOLE, ' .textContent=', ROW_HOLE, '></time>');
+            pieces.push('<time class=', ROW_HOLE, ' datetime=', ROW_HOLE, ' title=', ROW_HOLE, ' .textContent=', ROW_HOLE, '></time>');
         } else if (kind === 'node') {
             pieces.push(ROW_HOLE);
         }
@@ -1268,7 +1268,7 @@ export function renderTableTemplate(context) {
                     values.push(mark.className, mark.title ?? nothing, mark.text);
                 } else if (mark?.kind === 'time') {
                     kinds.push('time');
-                    values.push(mark.className, mark.datetime, mark.text);
+                    values.push(mark.className, mark.datetime, mark.title ?? nothing, mark.text);
                 } else if (mark?.kind === 'empty') {
                     kinds.push('empty');
                 } else if (column.key === 'actions') {
@@ -1483,7 +1483,7 @@ export function renderTableTemplate(context) {
                 }
 
                 const datetime = typeof typed === "string" ? context.component?.cellDateTime?.(column, value) : "";
-                if (datetime) return html`<time datetime=${datetime}>${typed}</time>`;
+                if (datetime) return html`<time datetime=${datetime} title=${context.component?.cellTitle?.(column, value) ?? nothing}>${typed}</time>`;
                 return renderCellItem(typed, context.component);
             }
         }
