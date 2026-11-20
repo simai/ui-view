@@ -5,6 +5,15 @@
   "entries": [
     {
       "unit": "smart.view",
+      "version": "1.29.0",
+      "recorded_on": "2026-11-20",
+      "change": "minor",
+      "consumer": "Nothing to change for a host. Over a pair that carries sf-bulk-actions (ui-b654460cad2a and later) the marked rows' band of a table is the group actions bar (Larena L-2, C295): «Выбрано N», the actions as buttons (up to three, the rest and a deleting one in «⋯»), «Выбрать все N» where the host offers bulk-under-filter, the cross and Escape; the host's answer is the bar's result line (done, or the refused rows with the reason, «Подробнее», «Повторить для N»). The actions, words and events stay the page row's (actions, selected-label, actions-region-label, bulkActions with icons) and the port's (bulk.apply_selected, bulk.apply_under_filter). Over an older pair the band of before stays. Before the first answer the page row's line of arrows is held only when the page writes its count (total over a page, has-next or a current page past the first) on sf-pagination; a one-page list no longer loses 48px at 390 when its answer comes.",
+      "summary": "View round 9 (round/view-r9, Larena L-2): index.js _renderBulkBand draws sf-bulk-actions (slot bulk, place dock, data-sf-bulk=bar) where bulkBarAvailable(), its actions from the page row's bulkActions (icons from the view's bulkActions), page-count from bulkPageCount, total and all-selected from the page row's for-all; sf-bulk-actions-action raises bulk.apply_selected or bulk.apply_under_filter and the answer goes to bar.result(); -select-all/-select-page set the page row's for-all; -clear clears the selection. rule.js and relations cl-bulk-actions (lazy), composition.uses smart.bulk-actions. The skeleton's footer prints the page row's arrows and field only where the page row the page wrote draws them (firstPaintHasPages: current past 1, has-next, or a total over one page), the rule of sf-pagination 1.10.0; printed for a one-page list they stood 48px under the range at 390 and went when the answer came (gate 24, view/reference and view/open-record @390).",
+      "evidence": "control/evidence/2026-11-21-view-r9/README.md"
+    },
+    {
+      "unit": "smart.view",
       "version": "1.28.1",
       "recorded_on": "2026-11-22",
       "change": "patch",
@@ -212,6 +221,15 @@
     },
     {
       "unit": "smart.view-table",
+      "version": "1.29.2",
+      "recorded_on": "2026-11-20",
+      "change": "patch",
+      "consumer": "Nothing to change for a host. A table standing alone fetches sf-bulk-actions through its rule (lazy, when the bar is first drawn) over the pair ui-b654460cad2a; over an older pair its own buttons stay. The table's own menus (the column settings, a row's menu of the left kind) near the window's edge keep the width of their rows: over the pair they were capped at 100px with rows of 152px past their surface.",
+      "summary": "View round 9 (round/view-r9): rule.js and component.json relations name cl-bulk-actions (lazy), composition.uses smart.bulk-actions; the pair's option-badge and pagination provenance hashes. anchorContextMenu takes the menu surface's stylesheet cap only when it is in pixels: over the pair the context menu's box says max-inline-size: 100% (component.context-menu F-2), which getComputedStyle returns as \"100%\" and parseFloat read as a 100px cap (ported from simai/ui-pro df0604f, sf-view-table 1.29.1 there). 1.29.2 is above simai/ui-pro's 1.29.1.",
+      "evidence": "control/evidence/2026-11-21-view-r9/README.md"
+    },
+    {
+      "unit": "smart.view-table",
       "version": "1.29.0",
       "recorded_on": "2026-11-22",
       "change": "minor",
@@ -407,6 +425,15 @@
       "consumer": "Nothing to change for a host: only the SIMAI Framework file it builds in moved with the repin.",
       "summary": "Over SIMAI Framework ui-078a4b4c6f6e (ui-source 10145e63b9dc) the Framework file it builds in, src/smart/pagination/index.js (sf-pagination 1.7: «Show more» within reach, C167; a deleting action listed last, C116), moved; the provenance and the version follow. Nothing of its own; nothing to change for a host. 1.19.7 and 1.19.8 are ui-pro's own patched copies, never this set's.",
       "evidence": "https://github.com/simai/ui-view/commit/e214dd608fdcf39cea527676fc522afd718922d4"
+    },
+    {
+      "unit": "smart.view-properties",
+      "version": "1.23.5",
+      "recorded_on": "2026-11-20",
+      "change": "patch",
+      "consumer": "Nothing to change for a host. With sections-as tabs the loading skeleton draws the tabs' strip and hairline without an empty panel row, as sf-tabs 1.4.5 (pair ui-b654460cad2a) draws the record's section tabs, so the first group no longer moves up by 32px (24px at size 1/2) when the record comes.",
+      "summary": "View round 9 (round/view-r9): js/templates/default.js renderLoading and skeleton.html drop the skeleton's empty .sf-tabs-main-container, since sf-tabs 1.4.5 hides a panel row whose panels hold nothing (data-sf-panels-empty); probe property-view-pro-issues-3-4 #3 measured the strip 72 against tabs 40 (64 against 32 at 1/2) over the pair. The same fix as simai/ui-pro d7c4cf6 (sf-view-properties 1.23.4 there); 1.23.5 is above it.",
+      "evidence": "control/evidence/2026-11-21-view-r9/README.md"
     },
     {
       "unit": "smart.view-properties",
@@ -626,6 +653,15 @@
     },
     {
       "unit": "smart.view-board",
+      "version": "1.1.3",
+      "recorded_on": "2026-11-20",
+      "change": "patch",
+      "consumer": "Nothing to change for a host. The rule fetches sf-bulk-actions (lazy, when the bar is first drawn) over the pair ui-b654460cad2a, which carries it; over an older pair the board's own bar stays.",
+      "summary": "View round 9 (round/view-r9): rule.js and component.json relations name cl-bulk-actions (lazy), composition.uses smart.bulk-actions; the pair's field-renderers provenance hash.",
+      "evidence": "control/evidence/2026-11-21-view-r9/README.md"
+    },
+    {
+      "unit": "smart.view-board",
       "version": "1.1.2",
       "recorded_on": "2026-11-19",
       "change": "patch",
@@ -659,6 +695,15 @@
       "consumer": "New: sf-view layout=\"board\" (or Larena's kanban) draws it; a host answers the lane window (lanes, per_lane) and settles moves.",
       "summary": "New: the board layout (owner decisions C298, C304): lanes by one field from the host's lane window, cards with up to four fields in the «Кратко» place, moves as a change of the lane field the host settles (settleMove), «Показать ещё» per lane (appendLane), soft limits, folded and hidden lanes, one lane per screen on a phone, one Tab stop with the arrows inside.",
       "evidence": "control/evidence/2026-11-18-view-r2-board"
+    },
+    {
+      "unit": "smart.view-cards",
+      "version": "1.0.6",
+      "recorded_on": "2026-11-20",
+      "change": "patch",
+      "consumer": "Nothing to change for a host. The rule fetches sf-bulk-actions (lazy, when the bar is first drawn) over the pair ui-b654460cad2a, which carries it; over an older pair the cards' own bar stays.",
+      "summary": "View round 9 (round/view-r9): rule.js and component.json relations name cl-bulk-actions (lazy), composition.uses smart.bulk-actions; the pair's field-renderers provenance hash.",
+      "evidence": "control/evidence/2026-11-21-view-r9/README.md"
     },
     {
       "unit": "smart.view-cards",
@@ -704,6 +749,15 @@
       "consumer": "New: sf-view layout=\"cards\" draws it, where the author turned cards on (C297); a host answers the window {page, per_page: 24} with {records, total, has_next}.",
       "summary": "New: the cards layout (owner decisions C297, C306): records as .sf-card in a grid whose columns follow its width (sizes S, M, L), a cover in a frame of one ratio drawn by the layout (cover or contain, lazy), the title in two lines and up to four fields in the «Кратко» place, «Показать ещё» over the window {page, per_page: 24}, one Tab stop with the arrows by rows, a selection for sf-bulk-actions, empty states by sf-empty-state.",
       "evidence": "control/evidence/2026-11-18-view-cards"
+    },
+    {
+      "unit": "smart.view-calendar",
+      "version": "1.1.3",
+      "recorded_on": "2026-11-20",
+      "change": "patch",
+      "consumer": "Nothing to change for a host. The rule fetches sf-bulk-actions (lazy, when the bar is first drawn) over the pair ui-b654460cad2a, which carries it; over an older pair the calendar's own bar stays.",
+      "summary": "View round 9 (round/view-r9): rule.js and component.json relations name cl-bulk-actions (lazy), composition.uses smart.bulk-actions; the pair's field-renderers provenance hash.",
+      "evidence": "control/evidence/2026-11-21-view-r9/README.md"
     },
     {
       "unit": "smart.view-calendar",

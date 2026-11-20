@@ -26,7 +26,8 @@ test("the package composites are generated into the searchable registry beside t
   // (pair ui-7fb26d395af2) it holds 83 (sf-change, sf-time): 87. In
   // ui-078a4b4c6f6e sf-display-settings, sf-form and sf-tag-group join it:
   // 86 free and the set's 4 make 90; sf-view-board (view round 2) makes 91; sf-view-cards (view-cards) 92, sf-view-calendar (view-calendar) 93.
-  assert.equal(registry.entries.length, 93);
+  // The pair ui-b654460cad2a adds sf-bulk-actions to the free registry: 94.
+  assert.equal(registry.entries.length, 94);
   assert.ok(registry.entries.some((entry) => entry.id === "smart.confirm-change"), "sf-confirm-change, the Framework's");
   for (const id of ["smart.view-table", "smart.view", "smart.view-properties", "smart.view-flow", "smart.view-board", "smart.view-cards", "smart.view-calendar"]) {
     assert.ok(registry.entries.some((entry) => entry.id === id), id);

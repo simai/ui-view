@@ -20,6 +20,8 @@ const styles = [
   'component/component/inputs/css/inputs.css',
   'smart/smart/view-table/css/view-table.css', 'smart/smart/resizer/css/resizer.css',
   'smart/smart/sortable/css/sortable.css',
+  // sf-pagination draws its band as sf-bulk-actions since 1.9.0 (C295).
+  'smart/smart/bulk-actions/css/bulk-actions.css',
 ].map((p) => join(out, p));
 const modules = [
   'core/core/js/core.js', 'core/core/js/smart-base.js',
@@ -31,6 +33,7 @@ const modules = [
   'smart/smart/dropdown/js/dropdown.js',
   'smart/smart/input/js/input.js',
   'smart/smart/spinner/js/spinner.js',
+  'smart/smart/bulk-actions/js/bulk-actions.js',
   'smart/smart/pagination/js/pagination.js',
   'smart/smart/sortable/js/sortable.js',
   'smart/smart/resizer/js/resizer.js', 'smart/smart/view-table/js/view-table.js',
@@ -319,24 +322,21 @@ try {
   const panel = await open(
     `<div style="height:300px;overflow:auto"><div style="height:900px">
        <sf-pagination id="p" total="450" page-size="10" current="1" selected-count="0"
-         actions="archive:В архив|delete:Удалить" show-action-for-all="true"></sf-pagination>
+         actions="archive:В архив|delete:Удалить" show-action-for-all="true" top="true"></sf-pagination>
      </div></div>`,
   );
   const states = await panel.evaluate(async () => {
     const element = document.getElementById('p');
     await new Promise((done) => setTimeout(done, 200));
+    // Since sf-pagination 1.9.0 (C295) the band is the bar sf-bulk-actions;
+    // a bar with nothing marked is hidden.
     const read = () => {
-      const dock = element.querySelector('.sf-pagination-actions');
-      if (!dock) return null;
-      const style = getComputedStyle(dock);
-      const apply = [...dock.querySelectorAll('sf-button')].pop();
+      const dock = element.querySelector('sf-bulk-actions .sf-bulk-actions');
+      if (!dock || dock.hidden) return null;
       return {
-        position: style.position,
-        bottom: style.insetBlockEnd,
-        count: dock.querySelector('.sf-pagination-actions-count')?.textContent?.trim() ?? '',
-        forAll: dock.querySelector('sf-checkbox')?.getAttribute('label') ?? '',
-        applyDisabled: apply?.hasAttribute('disabled') ?? null,
-        clear: Boolean(dock.querySelector('.sf-pagination-actions-clear')),
+        count: dock.querySelector('.sf-bulk-actions__count')?.textContent?.trim() ?? '',
+        actions: [...dock.querySelectorAll('[data-sf-bulk-action]')].map((one) => one.dataset.sfBulkAction),
+        clear: Boolean(dock.querySelector('.sf-bulk-actions__clear')),
       };
     };
     const empty = read();
@@ -345,10 +345,13 @@ try {
     const marked = read();
     const cleared = [];
     element.addEventListener('sf-pagination-selection-clear', (event) => cleared.push(event.detail['selected-count']));
-    element.querySelector('.sf-pagination-actions-clear')?.click();
+    const cross = element.querySelector('.sf-bulk-actions__clear');
+    (cross?.querySelector('button') ?? cross)?.click();
     await new Promise((done) => setTimeout(done, 150));
     // The compatible footer of sf-pagination 1.5.0 (C97) draws Show more on a
-    // line of its own above the row (.sf-pagination-top).
+    // line of its own above the row (.sf-pagination-top); since 1.10.0 only
+    // when the author writes top (journal
+    // behaviour-pagination-footer-show-more-written-only).
     const showMoreWithNext = Boolean(element.querySelector('.sf-pagination-more-button'));
     element.setAttribute('total', '10');
     await new Promise((done) => setTimeout(done, 200));
@@ -359,20 +362,14 @@ try {
   if (!states.marked) {
     note({case: 'panel', expected: 'a panel once rows are marked'});
   } else {
-    // The band is part of the card now, and the page row is what sticks: the
-    // owner replaced the floating panel on 2026-10-04. Its place is measured in
-    // pagination-round-2; here it only has to be the band, not a floating box.
-    if (states.marked.position !== 'sticky') {
-      note({case: 'panel', got: states.marked.position, expected: 'a band in the card, sticky at its bottom'});
-    }
-    if (!/Selected:\s*3/u.test(states.marked.count)) {
+    // The bar's place is measured in pagination-round-2 and its actions in
+    // pagination-bulk-c116; here it says the count, carries both actions as
+    // buttons (no apply step since C295) and a cross.
+    if (!/3/u.test(states.marked.count)) {
       note({case: 'panel', got: states.marked.count, expected: 'it says three are marked'});
     }
-    if (!/\(450\)/u.test(states.marked.forAll)) {
-      note({case: 'panel', got: states.marked.forAll, expected: 'for-all names the 450 records'});
-    }
-    if (states.marked.applyDisabled !== true) {
-      note({case: 'panel', expected: 'apply is out of reach until an action is chosen'});
+    if (!states.marked.actions.includes('archive') || !states.marked.actions.includes('delete') && !states.marked.actions.includes('more')) {
+      note({case: 'panel', got: states.marked.actions, expected: 'archive and delete reachable from the bar'});
     }
     if (!states.marked.clear) note({case: 'panel', expected: 'a cross that drops the selection'});
   }

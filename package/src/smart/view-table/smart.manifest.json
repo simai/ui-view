@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-table",
-  "version": "1.29.0",
+  "version": "1.29.2",
   "title": "Table",
   "summary": "Complete server-backed collection view with search, filters, table preferences, row and bulk actions, and pagination.",
   "kind": "composite",
@@ -36,6 +36,7 @@
       "component.tooltip",
       "smart.avatar",
       "smart.badge",
+      "smart.bulk-actions",
       "smart.button",
       "smart.button-icon",
       "smart.checkbox",
@@ -3014,6 +3015,13 @@
         "changes": [
           "View site round 2 (round/view-r8, Larena L-1, L-3): TABLE_SETTINGS_COLUMN.label = text(settingsColumnLabel); cellIsRelative / relativeDate (Intl.RelativeTimeFormat numeric auto: days under 7, weeks under 30, months under 365, then years; relativeDay reads a date as the local day and a moment as its local day) / cellTitle (the full date from the field renderers without the variant); cellValue answers the relative words first; the time cell of the markup path and the full path carry title."
         ]
+      },
+      {
+        "from": "1.29.0",
+        "to": "1.29.2",
+        "changes": [
+          "View round 9 (round/view-r9): rule.js and component.json relations name cl-bulk-actions (lazy), composition.uses smart.bulk-actions; the pair's option-badge and pagination provenance hashes. anchorContextMenu takes the menu surface's stylesheet cap only when it is in pixels: over the pair the context menu's box says max-inline-size: 100% (component.context-menu F-2), which getComputedStyle returns as \"100%\" and parseFloat read as a 100px cap (ported from simai/ui-pro df0604f, sf-view-table 1.29.1 there). 1.29.2 is above simai/ui-pro's 1.29.1."
+        ]
       }
     ]
   },
@@ -3023,7 +3031,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-table/index.js",
-        "sha256": "220fde9142ee37c44abf37692ee3339abc193361ff9d3fbf75b27db2c2f60062"
+        "sha256": "d7a0de20e16085a1f2efbac05c8918618f0ac7d41c630b013eaf36b756715ed1"
       },
       {
         "path": "src/smart/view-table/js/templates/default.js",
@@ -3035,11 +3043,11 @@
       },
       {
         "path": "src/smart/helpers/option-badge.js",
-        "sha256": "bc56841fbeb1689e492d3e47b754ab76ca7de9502740a05c105eb26ead44ee2d"
+        "sha256": "ad7638a3bc1c7baf8895dcd10b3eebcd08f47843c8f56a973a4e18974dc0dfca"
       },
       {
         "path": "src/smart/view-table/rule.js",
-        "sha256": "2045b2766285b5f3edc5030f0d71e140f4cd22f2bbb63c309d495307eb3d60e0"
+        "sha256": "4b63aae2d02533f4ff00c26be9843b39c6a5804a40745997dbf4f04dc2cb6b7c"
       },
       {
         "path": "src/smart/view-table/docs/smart-table-guide.md",
@@ -3047,7 +3055,7 @@
       },
       {
         "path": "src/smart/pagination/index.js",
-        "sha256": "942192f5112be7e05271f8ffbc7f1145ddad789217b4844753ce68bc2464007e"
+        "sha256": "b3edc530b8c4c41533f25ad23b1ea134dfbda9fb910366e1e7784211dcf35bd9"
       }
     ],
     "generated_runtime": []

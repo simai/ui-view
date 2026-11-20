@@ -2,8 +2,15 @@
   "$comment": "sf-data-view from its component.json (standard simai.smart-component 1.3.8, vocabulary 1.1.5), migrated from ui-control control/smart-architecture/migration/out/data-view; every x-todo decided in x-decisions.",
   "id": "smart.view",
   "tag": "sf-view",
-  "version": "1.28.1",
+  "version": "1.29.0",
   "x-history": [
+    {
+      "version": "1.29.0",
+      "kind": "minor",
+      "recorded_on": "2026-11-20",
+      "consumer": "Nothing to change for a host. Over a pair that carries sf-bulk-actions (ui-b654460cad2a and later) the marked rows' band of a table is the group actions bar (Larena L-2, C295): «Выбрано N», the actions as buttons (up to three, the rest and a deleting one in «⋯»), «Выбрать все N» where the host offers bulk-under-filter, the cross and Escape; the host's answer is the bar's result line (done, or the refused rows with the reason, «Подробнее», «Повторить для N»). The actions, words and events stay the page row's (actions, selected-label, actions-region-label, bulkActions with icons) and the port's (bulk.apply_selected, bulk.apply_under_filter). Over an older pair the band of before stays. Before the first answer the page row's line of arrows is held only when the page writes its count (total over a page, has-next or a current page past the first) on sf-pagination; a one-page list no longer loses 48px at 390 when its answer comes.",
+      "evidence": "control/evidence/2026-11-21-view-r9/README.md"
+    },
     {
       "version": "1.28.1",
       "kind": "patch",
@@ -386,9 +393,13 @@
       "type": "list",
       "of": {
         "id": "string",
-        "label": "string"
+        "label": "string",
+        "icon": {
+          "type": "icon",
+          "optional": true
+        }
       },
-      "x-shape": "the actions offered for the marked rows; an assembly gives the ids, their words are its language file's roles.<role>.items.<id> (§11.3); a page may write them on its page row instead"
+      "x-shape": "the actions offered for the marked rows; an assembly gives the ids, their words are its language file's roles.<role>.items.<id> (§11.3); a page may write them on its page row instead; an icon is read where the pair carries sf-bulk-actions (the bar's buttons, and the one button of a phone)"
     },
     "first-answer": {
       "type": "object",
@@ -1113,6 +1124,13 @@
       "name": "cl-checkbox"
     },
     {
+      "name": "cl-bulk-actions",
+      "lazy": true,
+      "$comment": [
+        "The group actions bar (C295) where the pair has it: drawn while something is selected, fetched when first drawn."
+      ]
+    },
+    {
       "name": "cl-dropdown"
     },
     {
@@ -1489,7 +1507,8 @@
     "framework-tag-renames": "version 1.7.1: the Framework elements it draws, finds and listens to are named by their new tags (Smart component naming of 2026-11-02, sf-[set]-<block>): the bulk clear button is sf-button-icon. The rule relations and the registry ids follow (cl-<new>, smart.<new>; the package reference pro.package.json of the pair). The former tags stay dated aliases of the Framework until 2027-01-01; public CSS variables and classes keep their names. No visible change. Needs the SIMAI Framework pair with the tag renames (core.runtime 1.21.0).",
     "tag-rename": "version 1.8.0: the tag is sf-view (naming decision 2026-11-02: sf-[set]-<block>[-<variant>]; rename plan R2); the folder view, the id smart.view and the bundle cl-view follow it. sf-data-view stays a dated alias until 2027-01-01: a subclass the Smart base defines beside the new tag, listed in the package rule, in sheets as :is(sf-view, sf-data-view), its events named after the tag followed by their former names (ui-source change journal tag-sf-data-view-to-sf-view, path-smart-data-view-to-view).",
     "host-chrome": "version 1.8.1: a table the host wrote selectable=\"false\" or settings=\"false\" on keeps it. The view wrote its own chrome (select, settings) over both on every projection, so a list the host had turned them off on came back with a box in every row and the settings column (Larena, the sites list, 2026-11-05). What the table carried before the view first touched it is kept in data-sf-host-selectable and data-sf-host-settings, as data-sf-host-row-actions already was, and the first-paint skeleton draws the same columns.",
-    "pro-copy-versions": "Version line (draft set standard §5.7, VS1.r2, VW-3; view round 1 B2): version numbers of sf-view are assigned only in this set. ui-pro's copy shipped its own 1.12.6 (ui-pro 55c8c26, a first-paint pass of its own), which is not a version of this set; the set's next version is above every number a copy shipped (1.13.x)."
+    "pro-copy-versions": "Version line (draft set standard §5.7, VS1.r2, VW-3; view round 1 B2): version numbers of sf-view are assigned only in this set. ui-pro's copy shipped its own 1.12.6 (ui-pro 55c8c26, a first-paint pass of its own), which is not a version of this set; the set's next version is above every number a copy shipped (1.13.x).",
+    "row-selection-bar": "version 1.29.0 (Larena L-2, view round 9, 2026-11-20): where the pair carries the group actions bar sf-bulk-actions (C295; pair ui-b654460cad2a and later: defined, or the rule cl-bulk-actions), the marked rows' band of a table is that bar: the view draws <sf-bulk-actions slot=\"bulk\" place=\"dock\" data-sf-bulk=\"bar\"> while rows are marked, with count, page-count (the page row's bulkPageCount), total and all-selected (the page row's for-all, only where the host offers bulk-under-filter and the count is known), label (actions-region-label) and count-text (selected-label, when the host wrote one); actions are the page row's in the bar's shape (bulkActions: confirm false, a deleting one status danger, as the band never asked; the host asks with confirm_required), with icons from the view's bulkActions. The view listens to the bar: sf-bulk-actions-action {id, scope} raises bulk.apply_selected over the marked rows with their revisions (scope selection) or bulk.apply_under_filter over the confirmed total (scope all); sf-bulk-actions-select-all and -select-page set the page row's for-all; sf-bulk-actions-clear (the cross, Escape in the list or the bar) clears the selection. The answer is the bar's result: applied says «Готово N из N» and the bar goes back; refused, a conflict or unavailable lists every marked row (its title column, else its id) with the host's sentence or the stale-revision words for the rows the conflict names, keeps them marked and offers «Подробнее» and «Повторить для N» (the same action again); such a refusal is not also a corner notice. The view's own events and the port are unchanged: sf-view-answer still carries every answer, sf-data-view-deleted follows an applied delete. Over a pair without the bar the band of before stays (an action list, Apply, For all, the cross)."
   },
   "x-rule": {
     "$comment": [
@@ -2004,6 +2023,13 @@
           "to": "1.28.1",
           "changes": [
             "View site round 2 (round/view-r8, DEV return R8-3): js/head.js _renderZone sets pressed and label-pressed only when the pair has the toggle look (frameworkToggle); otherwise it removes them and toggles .sf-view-head-zone-toggle--open; js/head.css draws --own.--open with the pressed tokens (--sf-icon-button-pressed-background-color or --sf-primary-container, on-primary-container, the 1 px primary ring, container hover and active); the toggle markup no longer writes pressed=\"false\"."
+          ]
+        },
+        {
+          "from": "1.28.1",
+          "to": "1.29.0",
+          "changes": [
+            "View round 9 (round/view-r9, Larena L-2): index.js _renderBulkBand draws sf-bulk-actions (slot bulk, place dock, data-sf-bulk=bar) where bulkBarAvailable(), its actions from the page row's bulkActions (icons from the view's bulkActions), page-count from bulkPageCount, total and all-selected from the page row's for-all; sf-bulk-actions-action raises bulk.apply_selected or bulk.apply_under_filter and the answer goes to bar.result(); -select-all/-select-page set the page row's for-all; -clear clears the selection. rule.js and relations cl-bulk-actions (lazy), composition.uses smart.bulk-actions. The skeleton's footer prints the page row's arrows and field only where the page row the page wrote draws them (firstPaintHasPages: current past 1, has-next, or a total over one page), the rule of sf-pagination 1.10.0; printed for a one-page list they stood 48px under the range at 390 and went when the answer came (gate 24, view/reference and view/open-record @390)."
           ]
         }
       ]

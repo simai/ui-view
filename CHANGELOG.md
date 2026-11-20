@@ -16,6 +16,40 @@ same numbers with other content); every next set version is above them
 up). Each component.json says the same under `x-decisions`
 `pro-copy-versions`.
 
+## Unreleased — view round 9
+
+The set moves to the SIMAI Framework pair `ui-b654460cad2a` (npm
+`@simai-studio/ui` 5.20261120.1816, ui-source `049a2ba3d`): the lock and the
+passport pin its source; the units follow the pair (the page row's band is
+sf-bulk-actions, three more field keys the port 1.20.0 declares, the
+registry's statuses). The set's candidate stays **1.10.0**.
+
+- `sf-view` 1.29.0: row selection through the group actions bar (Larena
+  L-2, C295). While rows are marked the view draws `sf-bulk-actions` under
+  the list: «Выбрано N», the actions as buttons (icons from `bulkActions`),
+  «Выбрать все N» where the host acts under the filter, the cross and
+  Escape. An action goes to `bulk.apply_selected` or
+  `bulk.apply_under_filter` as before; the host's answer is the bar's result
+  line («Готово 2 из 2», or «Готово 0 из 2 · 2 не удалось» with «Подробнее»
+  and «Повторить для 2», the rows kept marked). Over a pair without the bar
+  the band of before stays.
+- `sf-view` 1.29.0 also holds the page row's line of arrows in its skeleton
+  only where the page writes the count on `sf-pagination` (a total over one
+  page, `has-next`, a page past the first): the pair's page row draws no
+  arrows for one page, and a one-page list lost 48 px at 390 when its answer
+  came.
+- `sf-view-table` 1.29.2, `sf-view-board` 1.1.3, `sf-view-cards` 1.0.6,
+  `sf-view-calendar` 1.1.3: their rules fetch `sf-bulk-actions` (lazy) now
+  that the pair carries it.
+- `sf-view-table` 1.29.2: the table's own menus near the window's edge keep
+  the width of their rows; over the pair their box says `max-inline-size:
+  100%`, which the table read as 100 px (the same fix as simai/ui-pro
+  df0604f, numbered above its 1.29.1).
+- `sf-view-properties` 1.23.5 (the same fix as simai/ui-pro d7c4cf6, above its 1.23.4): with sections as tabs the loading skeleton
+  draws no empty panel row under the tabs' strip, as sf-tabs 1.4.5 of the
+  pair draws none, so the first group no longer jumps up by 32 px (24 px at
+  size 1/2) when the record comes.
+
 ## Unreleased — view round 8
 
 Over the site round (round/view-r8 from round/view-site abd3ca8, not released

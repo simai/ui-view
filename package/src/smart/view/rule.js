@@ -16,6 +16,8 @@ SF.RuleLoader['cl-view'] = {
     { name: 'cl-toast', lazy: true },
     { name: 'cl-button' },
     { name: 'cl-checkbox' },
+    // The group actions bar (C295) where the pair has it: drawn while something is selected, fetched when first drawn.
+    { name: 'cl-bulk-actions', lazy: true },
     { name: 'cl-dropdown' },
     { name: 'cl-button-icon' },
     // C97 (5): the footer's page-size menu is the view's own (it was sf-pagination's compatible footer's); sf-spinner is the wait while the host counts.

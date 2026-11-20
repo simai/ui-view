@@ -12,6 +12,8 @@ SF.RuleLoader['cl-view-cards'] = {
     // A card is the Framework .sf-card.
     { name: 'card' },
     { name: 'cl-checkbox' },
+    // The group actions bar (C295) where the pair has it: drawn while something is selected, fetched when first drawn.
+    { name: 'cl-bulk-actions', lazy: true },
     { name: 'cl-button' },
     { name: 'cl-button-icon' },
     // The cover of a record without a picture: the file type's icon or «Нет фото».

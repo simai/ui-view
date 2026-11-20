@@ -32,6 +32,13 @@ import {acceptLevel, collapse, createTree, expandKnown, hasLevel, knownRecords, 
 import {ListHead} from "./js/head.js";
 import {CARDS_EVENTS, acceptCards, cardsDrawn, cardsOf, cardsQuery, cardsSkeleton, onCardsEvent, syncCards, syncCardsState} from "./js/cards.js";
 import {CALENDAR_EVENTS, acceptCalendar, calendarOf, calendarOrder, calendarQuery, calendarSkeleton, onCalendarEvent, syncCalendar} from "./js/calendar.js";
+// Whether the pair carries the group actions bar sf-bulk-actions (C295):
+// defined, or a rule the Loader can fetch. Where it does, the marked rows'
+// band is that bar (Larena L-2, view round 9); where it does not, the view's
+// own band of before (an action list, Apply, For all and the cross).
+function bulkBarAvailable() {
+    return Boolean(globalThis.customElements?.get?.("sf-bulk-actions") || globalThis.SF?.RuleLoader?.["cl-bulk-actions"]);
+}
 const LISTENED = Object.freeze([
     "sf-view-table-search-change", "sf-view-table-filter-change", "sf-view-table-sort-change", "sf-view-table-save",
     "sf-view-table-apply", "sf-view-table-refresh", "sf-view-table-select", "sf-view-table-column-settings-reset",
@@ -1441,6 +1448,26 @@ class SfDataView extends DataViewElement {
         return asked || cap || FIRST_PAINT_ROWS;
     }
 
+    // Whether the page row draws its navigation before the host's first
+    // answer: the rule of sf-pagination 1.10.0 (singlePage: no page before
+    // and none after) over what the page wrote on its page row -- a current
+    // page past the first, has-next, or a total over one page. A page row
+    // that says nothing of its count draws no arrows, so the skeleton prints
+    // none either; a list of several pages the page wrote the count of keeps
+    // their line from the first paint.
+    get firstPaintHasPages() {
+        const row = this.querySelector?.(':scope > sf-pagination[slot="pagination"]');
+        if (!row) return false;
+        const number = (name) => Number.parseInt(row.getAttribute(name) ?? "", 10);
+        const current = number("current");
+        if (Number.isInteger(current) && current > 1) return true;
+        const next = row.getAttribute("has-next");
+        if (next !== null && next !== "false") return true;
+        const total = number("total");
+        const size = number("page-size") || this._declaredPageSize() || 20;
+        return Number.isInteger(total) && total > size;
+    }
+
     // The page size somebody declared: the person's kept one, a first answer's
     // echo, or the page row's page-size as the page printed it. Zero when
     // nobody did -- the query's own 20 is the view's default, not a request.
@@ -1727,9 +1754,16 @@ class SfDataView extends DataViewElement {
         // the arrows to the first and the previous page, the page field with
         // «из N», the arrows to the next and the last. The view's sheet lays
         // it out as the live row is laid out, so it wraps where the row does.
+        // The page row's arrows and field only where the page row the page
+        // wrote draws them: since sf-pagination 1.10.0 (pair ui-b654460cad2a,
+        // C97, C167 (1), Larena LF-11) a page row with no page before and none
+        // after draws no navigation, and before the host's first answer the
+        // count is what the page wrote (firstPaintHasPages). Printed for a
+        // one-page list, the arrows' line stood 48px under the range at 390
+        // and went when the answer came (gate 24, view/reference @390).
         const pageRow = `<div class="sf-data-view-skeleton-footer" data-size="${this.size}">`
             + `<div class="sf-data-view-skeleton-footer-start"><span>${bar}</span>${control("size")}</div>`
-            + `<div class="sf-data-view-skeleton-footer-pages">${control()}${control()}${control("page")}${control()}${control()}</div>`
+            + (this.firstPaintHasPages ? `<div class="sf-data-view-skeleton-footer-pages">${control()}${control()}${control("page")}${control()}${control()}</div>` : "")
             + "</div>";
         return [
             // An own toolbar slot is a row of the view's layout, even empty.
@@ -2289,8 +2323,14 @@ class SfDataView extends DataViewElement {
     }
 
     _showAnswer(intent, answer, {stated = false} = {}) {
-        if (!stated && ["conflict", "refused"].includes(answer.answer)
-            || (answer.answer === "unavailable" && intent !== "query.change")) {
+        // A refused batch raised from the group actions bar is said in the
+        // bar's result line, next to the rows it names: a notice in the
+        // corner said it a second time and, on a phone, covered the bar's
+        // «Подробнее» and «Повторить» (L-2).
+        const inBar = intent === "bulk.apply_selected" && this._bulkBarRaising === true
+            && answer.reason !== "not-confirmed" && typeof this._bulkBar?.result === "function";
+        if (!inBar && (!stated && ["conflict", "refused"].includes(answer.answer)
+            || (answer.answer === "unavailable" && intent !== "query.change"))) {
             const text = this._noticeText(answer);
             this._setState(this.records.length ? "populated" : "empty", text);
             this.notify(text, {kind: answer.answer === "conflict" ? "warning" : "error", code: answer.reason || ""});
@@ -2620,6 +2660,7 @@ class SfDataView extends DataViewElement {
         const table = this.table;
         const selected = table?.getSelectedRecordIds?.() ?? [];
         const actions = pagination?.actions ?? [];
+        if (bulkBarAvailable()) return this._renderBulkBar({pagination, selected, actions});
         if (!pagination || !selected.length || !actions.length) {
             if (this._bulkBand?.isConnected) this._bulkBand.remove();
             this._bulkBand = null;
@@ -2705,6 +2746,130 @@ class SfDataView extends DataViewElement {
         chosen(parts.clear, "aria-label", pagination.clearSelectionLabel);
 
         return this;
+    }
+
+    // Row selection through the group actions bar (Larena L-2, C295): while
+    // rows are marked, sf-bulk-actions stands in the band's place (slot bulk,
+    // the last strip of the card, sticking to the bottom of the window) with
+    // «Выбрано N», the actions as buttons (up to three, the rest and a deleting
+    // one in «⋯»), «Выбрать все N» where the host acts under the filter, and
+    // the cross. The words and the actions stay the host's, set on the page
+    // row as before (actions, selected-label, actions-region-label) or given
+    // as bulkActions; the page row keeps the for-all state. The bar's events
+    // go the band's ways: an action on the marked rows is bulk.apply_selected,
+    // on all under the filter bulk.apply_under_filter; the cross and Escape
+    // drop the selection. The host's answer is the bar's result line: done,
+    // or «Готово 0 из 3 · 3 не удалось» with «Подробнее» and «Повторить для 3»
+    // while the refused rows stay marked.
+    _bulkBarActions(pagination, actions) {
+        const own = new Map((this._bulkActions ?? []).map((item) => [String(item.id ?? item.value), item]));
+        const list = actions.length
+            ? (Array.isArray(pagination?.bulkActions) ? pagination.bulkActions : actions.map((item) => ({
+                id: item.value, text: item.text, disabled: Boolean(item.disabled),
+                status: isDestructiveAction(item) ? "danger" : "", confirm: false,
+            })))
+            : [...own.values()].map((item) => ({
+                id: String(item.id ?? item.value), text: String(item.label ?? item.text ?? item.id ?? item.value),
+                status: isDestructiveAction(item) ? "danger" : "", confirm: false,
+            }));
+        // The page row's markup has no icons: a host's bulkActions may.
+        return list.map((item) => (own.get(String(item.id))?.icon ? {...item, icon: own.get(String(item.id)).icon} : item));
+    }
+
+    _renderBulkBar({pagination, selected, actions}) {
+        const list = this._bulkBarActions(pagination, actions);
+        let bar = this._bulkBar?.isConnected ? this._bulkBar : null;
+        // The band of before goes, whichever drew it.
+        if (this._bulkBand?.isConnected && this._bulkBand !== bar) this._bulkBand.remove();
+        this._bulkBand = null;
+        if (!list.length || (!selected.length && !bar)) {
+            bar?.remove();
+            this._bulkBar = null;
+            return this;
+        }
+        const chosen = (name, value) => {
+            if (value == null || value === false || value === "") bar.removeAttribute(name);
+            else bar.setAttribute(name, value === true ? "" : String(value));
+        };
+        if (!bar) {
+            bar = document.createElement("sf-bulk-actions");
+            bar.setAttribute("slot", "bulk");
+            bar.setAttribute("place", "dock");
+            bar.dataset.sfBulk = "bar";
+            bar.addEventListener("sf-bulk-actions-action", (event) => this._onBulkBarAction(event));
+            bar.addEventListener("sf-bulk-actions-select-all", () => this._setBulkForAll(true));
+            bar.addEventListener("sf-bulk-actions-select-page", () => this._setBulkForAll(false));
+            bar.addEventListener("sf-bulk-actions-clear", () => this.clearSelection());
+            this.append(bar);
+            if (!globalThis.customElements?.get?.("sf-bulk-actions")) this._ensureElements(["sf-bulk-actions"]);
+        }
+        this._bulkBar = bar;
+        const forAll = Boolean(pagination?.showActionForAll) && pagination?.countKnown !== false && Number(pagination?.total) > 0;
+        chosen("size", this.controlSize);
+        chosen("label", pagination?.actionsRegionLabel);
+        chosen("count-text", selected.length ? pagination?.bulkCountText : "");
+        chosen("page-count", pagination?.bulkPageCount ?? this.records.length);
+        chosen("total", forAll ? pagination.total : null);
+        chosen("all-selected", forAll && Boolean(pagination?.actionForAll));
+        chosen("count", String(selected.length));
+        bar.actions = list;
+        return this;
+    }
+
+    _setBulkForAll(on) {
+        this.pagination?.setActionForAll?.(on);
+        this._renderBulkBand();
+    }
+
+    async _onBulkBarAction(event) {
+        const id = event.detail?.id;
+        if (id === undefined || id === null || id === "") return undefined;
+        const scope = event.detail?.scope === "all" ? "all" : "selection";
+        const ids = this.table?.getSelectedRecordIds?.() ?? [];
+        let answer;
+        if (scope === "all") answer = await this.applyUnderFilter(String(id), this.total);
+        else {
+            this._bulkBarRaising = true;
+            try {
+                answer = await this._action({action_id: String(id), record_ids: ids}, {selectedBulk: true});
+            } finally {
+                this._bulkBarRaising = false;
+            }
+        }
+        this._bulkResult(answer, {ids, scope});
+        return answer;
+    }
+
+    // The host's answer, said in the bar. A batch is applied or refused as a
+    // whole (simai.dataview-port): applied is «Готово N из N» in the live
+    // region and the bar goes back; refused or a conflict names every marked
+    // row with the reason (the stale ones the conflict lists say so), keeps
+    // them marked and offers to try again. A question not confirmed, an
+    // estimate counted first or an action under the filter the host refused
+    // says nothing here: the notice of the view says it.
+    _bulkResult(answer, {ids, scope}) {
+        const bar = this._bulkBar;
+        if (!answer || !bar?.isConnected || typeof bar.result !== "function") return;
+        if (answer.answer === "applied") {
+            bar.result({ok: scope === "all" ? this.total : ids.length, failed: []});
+            return;
+        }
+        if (scope === "all" || !ids.length || ["not-confirmed", "total-counted"].includes(answer.reason)) return;
+        if (!["refused", "conflict", "unavailable"].includes(answer.answer)) return;
+        const reason = this._noticeText(answer);
+        const stale = new Set((answer.conflicts ?? answer.data?.conflicts ?? []).map((entry) => String(entry?.id)));
+        const staleText = pageText(DATA_VIEW_TEXT, "noticeStaleRevision", this);
+        bar.result({ok: 0, failed: ids.map((key) => ({
+            id: String(key), text: this._recordText(key), reason: stale.has(String(key)) ? staleText : reason,
+        }))});
+    }
+
+    // A record's name for a line that lists it: its title column's value, or its id.
+    _recordText(id) {
+        const record = this.records.find((item) => String(item?.id) === String(id));
+        const title = (this.columns ?? []).find((column) => column?.role === "title");
+        const value = title ? record?.[title.key] : undefined;
+        return value === undefined || value === null || typeof value === "object" ? String(id) : String(value);
     }
 
     // Apply is the band's only write, and it goes the same way it went from the

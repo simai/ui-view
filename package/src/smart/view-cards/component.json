@@ -2,8 +2,15 @@
   "$comment": "sf-view-cards, standard simai.smart-component 1.4 (vocabulary 1.1.5): the cards layout of the view set (a gallery of record cards; owner decisions C297, C306). Study: ui-control control/research/2026-11-18-cards-view. The card is .sf-card, the cover the layout's own frame, the card fields the Framework field renderers' cell output, «Показать ещё» sf-pagination in its more look, empty states sf-empty-state, menus SF.menu.open, the selection bar sf-bulk-actions where the pair has it.",
   "id": "smart.view-cards",
   "tag": "sf-view-cards",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "x-history": [
+    {
+      "version": "1.0.6",
+      "kind": "patch",
+      "recorded_on": "2026-11-20",
+      "consumer": "Nothing to change for a host. The rule fetches sf-bulk-actions (lazy, when the bar is first drawn) over the pair ui-b654460cad2a, which carries it; over an older pair the cards' own bar stays.",
+      "evidence": "control/evidence/2026-11-21-view-r9/README.md"
+    },
     {
       "version": "1.0.5",
       "kind": "patch",
@@ -265,6 +272,13 @@
     },
     {
       "name": "cl-checkbox"
+    },
+    {
+      "name": "cl-bulk-actions",
+      "lazy": true,
+      "$comment": [
+        "The group actions bar (C295) where the pair has it: drawn while something is selected, fetched when first drawn."
+      ]
     },
     {
       "name": "cl-button"
@@ -546,6 +560,13 @@
           "to": "1.0.5",
           "changes": [
             "R8-1 (round/view-r8): js/templates/default.css --sf-view-cards-min reads var(--sf-measure-28|36|44, var(--sf-f4|f8|g1)); the fields grid is minmax(min-content, 1fr) auto, the field and its values wrap (no nowrap, overflow or ellipsis); the phone S grid lays the fields in one column."
+          ]
+        },
+        {
+          "from": "1.0.5",
+          "to": "1.0.6",
+          "changes": [
+            "View round 9 (round/view-r9): rule.js and component.json relations name cl-bulk-actions (lazy), composition.uses smart.bulk-actions; the pair's field-renderers provenance hash."
           ]
         }
       ]

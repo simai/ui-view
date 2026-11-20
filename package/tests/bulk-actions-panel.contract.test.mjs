@@ -9,6 +9,10 @@ const read = (path) => readFile(new URL(path, root), 'utf8');
 const styles = async () => (await read('src/component/pagination/scss/_css__pagination.scss'))
   .replace(/\/\*[\s\S]*?\*\//gu, '');
 
+// Since the pair ui-b654460cad2a (sf-pagination 1.9.0, owner decision C295)
+// the page row's band is the group actions bar sf-bulk-actions: the row passes
+// its settings to the bar and turns the bar's events into its own, so a host
+// that listens for sf-pagination-apply and -selection-clear is served as before.
 test('the panel is there while rows are marked, and not there otherwise', async () => {
   const markup = await read('src/smart/pagination/js/templates/default.js');
 
@@ -17,45 +21,27 @@ test('the panel is there while rows are marked, and not there otherwise', async 
     /\$\{context\.bottom && context\.showActions && context\.actions\?\.length && context\.selectedCount > 0/u,
     'nothing marked, no panel',
   );
-  assert.match(markup, /role="region"\s*aria-label=\$\{context\.actionsRegionLabel\}/u);
-  assert.match(
-    markup,
-    /sf-pagination-actions-count">\s*\$\{context\.selectedLabel\} \$\{context\.selectedCount\}/u,
-    'the panel says how many are marked',
-  );
+  assert.match(markup, /<sf-bulk-actions[\s\S]*?label=\$\{context\.actionsRegionLabel\}/u, 'the bar is the region, named');
+  assert.match(markup, /count=\$\{String\(context\.selectedCount\)\}/u, 'the bar says how many are marked');
+  const marked = await render(await pagination({selectedCount: 2, actions: 'archive:Archive'}));
+  assert.match(marked.markup, /<sf-bulk-actions[^>]*\scount=2\s/u);
+  const none = await render(await pagination({selectedCount: 0, actions: 'archive:Archive'}));
+  assert.doesNotMatch(none.markup, /<sf-bulk-actions/u);
 });
 
-test('the panel carries the four controls the owner asked for', async () => {
+test('the panel carries the actions, «all N» and the cross', async () => {
   const markup = await read('src/smart/pagination/js/templates/default.js');
 
-  assert.match(markup, /placeholder=\$\{context\.actionChooseLabel\}/u, 'the list asks for an action');
-  // And it opens on that choice rather than on the first real action: a select
-  // that starts on an action makes Apply pressable before anyone has chosen,
-  // and the first action is as likely to be "delete for ever" as anything else.
-  assert.match(
-    markup,
-    /text: context\.actionChooseLabel,\s*value: "",\s*selected: !context\.action,/u,
-    'the first option is not an action',
-  );
-  assert.match(
-    markup,
-    /text=\$\{context\.actionApplyText\}\s*\?disabled=\$\{!context\.action\}/u,
-    'apply is out of reach until an action is chosen',
-  );
-  // It names the number when there is one, an estimate as «~N» (gate 29).
-  // With the count unknown the label stays bare until marking the box has
-  // asked for it.
-  const forAll = async (settings) => /<sf-checkbox\s+(?:size=\S+\s+)?label=([^\n]*?)\s+\?checked=/u.exec((await render(await pagination({
-    selectedCount: 2, actions: 'archive:Archive', showActionForAll: true, ...settings,
-  }))).markup)?.[1];
-  assert.equal(await forAll({total: 450}), '{action-for-all-label} (450)', 'for-all names how many it would touch');
-  assert.equal(await forAll({total: 450, totalExact: false}), '{action-for-all-label} (~450)');
-  assert.equal(await forAll({countKnown: false}), '{action-for-all-label}');
-  assert.match(
-    markup,
-    /sf-pagination-actions-clear"[\s\S]*?icon="close"[\s\S]*?@click=\$\{\(\) => component\.clearSelection\(\)\}/u,
-    'and the cross drops the selection',
-  );
+  assert.match(markup, /\.actions=\$\{context\.bulkActions\}/u, 'the actions in the bar\'s shape');
+  assert.match(markup, /@sf-bulk-actions-action=\$\{\(event\) => component\.applyBulkAction\(event\)\}/u, 'an action is the row\'s apply');
+  assert.match(markup, /@sf-bulk-actions-select-all=\$\{\(\) => component\.setActionForAll\(true\)\}/u, '«all N» is the for-all of before');
+  assert.match(markup, /@sf-bulk-actions-clear=\$\{\(\) => component\.clearSelection\(\)\}/u, 'and the cross drops the selection');
+  // The band never asked a question; a host that asks its own (confirm_required)
+  // keeps doing so: the bar's actions say confirm false, a deleting one is danger.
+  const bar = await pagination({selectedCount: 2, actions: 'archive:Archive|delete:Delete'});
+  assert.deepEqual(bar.bulkActions.map(({id, status, confirm}) => ({id, status, confirm})), [
+    {id: 'archive', status: '', confirm: false}, {id: 'delete', status: 'danger', confirm: false},
+  ]);
 });
 
 test('the cross announces the end of a selection it does not own', async () => {
