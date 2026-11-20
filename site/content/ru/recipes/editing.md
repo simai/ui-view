@@ -72,5 +72,5 @@ profile: how_to
 
 ## См. также
 
-- [Выбор строк и действия над ними](/ru/guide/list/bulk-actions/)
+- [Массовые действия](/ru/guide/list/bulk-actions/)
 - [Карточка записи sf-view-properties](/ru/components/view-properties/)

@@ -49,5 +49,5 @@ profile: explanation
 
 ## См. также
 
-- [Страницы](/ru/guide/list/footer/)
+- [Подвал и страницы](/ru/guide/list/footer/)
 - [Загрузка данных с сервера](/ru/recipes/load-from-server/)

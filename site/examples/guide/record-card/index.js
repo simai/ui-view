@@ -222,13 +222,16 @@ const initializeCard = async () => {
   panel.setHostPort(app.cardPort);
   page.setHostPort(app.cardPort);
   page.addEventListener('sf-view-properties-close', () => page.setAttribute('hidden', ''));
-  // The width the panel has drawn, once it has opened.
+  // Where the panel has opened and how wide it is, read from what it drew:
+  // beside the list when the frame is wide enough, over it when it is not.
   const measure = async (title) => {
     await new Promise((done) => setTimeout(done, 600));
-    const box = panel.querySelector('.sf-drawer-panel, [part~="panel"], dialog, aside') ?? panel;
-    const width = Math.round(box.getBoundingClientRect().width);
+    const box = document.querySelector('.sf-drawer-panel');
+    const width = box ? Math.round(box.getBoundingClientRect().width) : 0;
     const size = panel.getAttribute('panel-size') ?? '2';
-    log.textContent = `${title} в панели сбоку (${WIDTH[size]}): разделы слева, список рядом${width ? `; панель ${width} px` : ''}.`;
+    log.textContent = width && width < window.innerWidth * 0.9
+      ? `${title} в панели рядом со списком (${WIDTH[size]}, ${width} px): разделы слева, список остаётся рабочим.`
+      : `${title} поверх списка: пример уже, чем нужно для панели рядом; разделы — строками, каждая открывает свой раздел.`;
   };
   view.addEventListener('sf-view-open', (event) => {
     const order = app.orders.find((one) => one.id === String(event.detail?.id));
