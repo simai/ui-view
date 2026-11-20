@@ -1352,6 +1352,15 @@ function renderMenuControl(context) {
 // before the host's actions) is the component's own sheet, not utilities: the
 // Loader asks for a utility sheet only after the first render, so the close
 // stood beside the star for ~115 ms and then jumped to the end (D1, 1.16.3).
+// The row's layout is written on the row itself as well (view round 10,
+// Larena L-4): the component's sheet is fetched by the Loader beside its code,
+// and a page that has the code already (a bundle of its own, or a cached one)
+// draws the head before that sheet arrives -- the «⋯» stood beside the star and
+// moved to the end about half a second later. With the row a flex line and the
+// spacer growing from the first frame, the end controls stand where they end.
+// Values are the Framework's (core.css), the same as the sheet's.
+const TITLE_ROW_STYLE = 'display: flex; align-items: center; gap: var(--sf-space-1\\/3); min-inline-size: 0';
+
 function renderPanelHead(context) {
     const level = phoneLevel(context);
     const record = context.panelLabel || context.recordLabel || context.recordId || '';
@@ -1389,7 +1398,7 @@ function renderPanelHead(context) {
                         data-sf-drawer-back
                 ></sf-button>
             </div>` : nothing}
-            <div class="sf-property-view-title-row">
+            <div class="sf-property-view-title-row" style=${TITLE_ROW_STYLE}>
                 ${level ? html`<sf-button-icon
                         size="1/3"
                         appearance="ghost"
@@ -1412,7 +1421,7 @@ function renderPanelHead(context) {
                         aria-label=${context.favouriteLabel}
                         @click=${() => context.component.toggleFavourite()}
                 ></sf-button-icon>` : nothing}
-                <span class="sf-property-view-head-spacer"></span>
+                <span class="sf-property-view-head-spacer" style="flex: 1 1 auto"></span>
                 ${context.hasHostSlot('actions') ? context.hostSlot('actions') : nothing}
                 ${renderMenuControl(context)}
                 <sf-button-close

@@ -286,6 +286,17 @@
   .sf-data-view-skeleton-list > div > div > .sf-skeleton-text:first-child { inline-size: 60%; }
   .sf-data-view-skeleton-list > div > div > .sf-skeleton-text:nth-child(even) { inline-size: 75%; }
 
+  /* A record's title and fields are lines of the list's own text, which is
+     the step-1 text at both sizes (sf-view-table .sf-table-list-item: the
+     title and a field's value, its label a smaller text inside that line), so
+     its bars hold the step-1 line at 1/2 too (view round 10, R9-1: at 1/2 the
+     bars held the 1/2 line and a three-field record stood 93 px where the
+     list draws 109, and twelve records grew the list by 130 px). */
+  .sf-data-view-skeleton-list > div:not([data-list-head]) > div > .sf-skeleton-text {
+    --sf-skeleton-text--height: var(--sf-text-size-1);
+    --sf-skeleton-text--line: var(--sf-text-height-1);
+  }
+
   /* The footer (C97 (5)), laid out as the live one (the view's shadow part
      footer): one row as tall as the ladder says -- the control of the step,
      --sf-space-1 above and below it and the line under it -- the range at
