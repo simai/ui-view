@@ -231,7 +231,7 @@ for (const theme of ['light', 'dark']) for (const dir of ['ltr', 'rtl']) {
   await page.locator('sf-view-table#table sf-button').filter({ hasText: 'Фильтр' }).locator('button').click();
   const templateMenu = page.locator('sf-menu-context[aria-label="Настройки фильтра"]');
   await templateMenu.waitFor();
-  const templatesTab = templateMenu.locator('sf-button').filter({ hasText: 'Шаблоны' }).locator('button').first();
+  const templatesTab = templateMenu.locator('sf-button').filter({ hasText: 'Представления' }).locator('button').first();
   if (await templatesTab.count()) await templatesTab.click();
   await page.waitForTimeout(300);
   const templateRow = templateMenu.locator('[data-context-submenu-anchor="old"]').first();
@@ -294,7 +294,7 @@ await page.locator('sf-view-table#table sf-button').filter({ hasText: 'Филь�
 const menu = page.locator('sf-menu-context[aria-label="Настройки фильтра"]');
 await menu.waitFor();
 const tabs = await menu.locator('[role="tab"], button').allTextContents();
-const templatesTab = menu.locator('[role="tab"]').filter({ hasText: 'Шаблоны' });
+const templatesTab = menu.locator('[role="tab"]').filter({ hasText: 'Представления' });
 if (await templatesTab.count()) await templatesTab.first().click();
 await page.waitForTimeout(200);
 const mine = menu.getByText('Мои записи', { exact: true }).first();

@@ -1111,7 +1111,7 @@
       "name": "cl-tabs",
       "lazy": true,
       "$comment": [
-        "The filter window's tabs, «Шаблоны» and «Поля» (owner, 2026-10-14)."
+        "The filter window's tabs, «Представления» and «Поля» (owner, 2026-10-14; named after view-config/1 in view round 8)."
       ]
     },
     {

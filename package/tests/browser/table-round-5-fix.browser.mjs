@@ -101,9 +101,9 @@ try {
     note({case: 'templates tab', got: shown, expected: 'both templates, each with a radio and its name'});
   }
   if (shown?.fieldTicksOnScreen !== 0) {
-    note({case: 'the other tab stays hidden', got: shown, expected: 'no field ticks on screen while Шаблоны is selected'});
+    note({case: 'the other tab stays hidden', got: shown, expected: 'no field ticks on screen while Представления is selected'});
   }
-  if (String(shown?.tabTitles) !== 'Шаблоны,Поля') {
+  if (String(shown?.tabTitles) !== 'Представления,Поля') {
     note({case: 'tab titles', got: shown?.tabTitles, expected: 'both tab titles'});
   }
   await ready.close();
@@ -116,7 +116,7 @@ try {
   await racing.waitForTimeout(1200);
   const afterModules = await look(racing);
   if (afterModules?.named !== 2 || afterModules?.radios !== 2
-      || String(afterModules?.tabTitles) !== 'Шаблоны,Поля' || afterModules?.fieldTicksOnScreen !== 0) {
+      || String(afterModules?.tabTitles) !== 'Представления,Поля' || afterModules?.fieldTicksOnScreen !== 0) {
     note({case: 'late modules', got: {beforeModules, afterModules},
       expected: 'the window redraws itself once the elements it renders are defined'});
   }
