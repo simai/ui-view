@@ -178,9 +178,13 @@ sf-popover:not([open]) > .sf-view-head-panel[slot="content"] { display: none; }
 /* A display kind the view does not draw itself (board, cards, calendar until
    their layouts come, C298): the table and its page row stand aside for the
    host's own content. */
-/* Both hosts may be display: contents, so their content stands aside too. */
-:is(sf-view, sf-data-view)[data-display]:not([data-display="table"]) > :is(:is(sf-view-table, sf-table)[slot="content"], sf-pagination[slot="pagination"], [slot="footer"][data-sf-view-made]),
-:is(sf-view, sf-data-view)[data-display]:not([data-display="table"]) > :is(:is(sf-view-table, sf-table)[slot="content"], sf-pagination[slot="pagination"], [slot="footer"][data-sf-view-made]) > * { display: none; }
+/* Both hosts may be display: contents, so their content stands aside too.
+   The footer start stays where the view says the count of a board or cards
+   (data-sf-view-footer-count, view round 8 R67-1): «1–16 из 60». */
+:is(sf-view, sf-data-view)[data-display]:not([data-display="table"]) > :is(:is(sf-view-table, sf-table)[slot="content"], sf-pagination[slot="pagination"]),
+:is(sf-view, sf-data-view)[data-display]:not([data-display="table"]) > :is(:is(sf-view-table, sf-table)[slot="content"], sf-pagination[slot="pagination"]) > *,
+:is(sf-view, sf-data-view)[data-display]:not([data-display="table"]):not([data-sf-view-footer-count]) > [slot="footer"][data-sf-view-made],
+:is(sf-view, sf-data-view)[data-display]:not([data-display="table"]):not([data-sf-view-footer-count]) > [slot="footer"][data-sf-view-made] > * { display: none; }
 
 /* The head's place in the first paint: its two rows, the control height each. */
 .sf-view-head-skeleton {

@@ -14,13 +14,13 @@
       "label": "Order changed"
     },
     "template-delete": {
-      "label": "Template deleted"
+      "label": "View deleted"
     },
     "template-save": {
-      "label": "Template saved"
+      "label": "View saved"
     },
     "template-select": {
-      "label": "Template chosen"
+      "label": "View chosen"
     },
     "toolbar-action": {
       "label": "Toolbar action"
@@ -70,9 +70,9 @@
     "context-field-filter-label": "Filtering by",
     "context-filter-settings-label": "Filter settings",
     "context-row-actions-label": "Row actions",
-    "context-save-template-label": "Saving the filter as a template",
+    "context-save-template-label": "Saving the view",
     "context-table-settings-label": "Table settings",
-    "context-template-actions-label": "Template actions",
+    "context-template-actions-label": "View actions",
     "context-view-actions-label": "View actions",
     "create-more-label": "More ways to create",
     "create-options-label": "Ways to create",
@@ -122,9 +122,9 @@
     "restore-text": "Restore",
     "retry-text": "Try again",
     "row-actions-label": "Row actions",
-    "save-filter-template-label": "Save the filter as a template",
+    "save-filter-template-label": "Save the view",
     "save-for-everyone-label": "Save for everyone",
-    "save-template-label": "Save the filter as a template",
+    "save-template-label": "Saving the view",
     "save-text": "Save",
     "search-placeholder": "Search",
     "select-all-label": "Select every row",
@@ -141,11 +141,11 @@
     "status-ok": "Working",
     "status-stopped": "Stopped",
     "status-warning": "Needs attention",
-    "template-actions-label": "Template actions",
-    "template-move-label": "Move the template",
+    "template-actions-label": "View actions",
+    "template-move-label": "Move the view",
     "template-name-placeholder": "Name",
-    "template-pin-label": "Keep the template at the top",
-    "templates-tab-text": "Templates",
+    "template-pin-label": "Keep the view at the top",
+    "templates-tab-text": "Views",
     "totals-all": "Total",
     "totals-page": "On this page",
     "tree-collapse": "Collapse",

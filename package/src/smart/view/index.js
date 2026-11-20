@@ -1199,7 +1199,11 @@ class SfDataView extends DataViewElement {
     // the page turned the page row off. True when the view draws such a kind.
     _drawCountFooter() {
         const kind = this.layoutKind;
-        if (kind !== "board" && kind !== "cards") return false;
+        if (kind !== "board" && kind !== "cards") {
+            // Back to a table or on to a calendar: the mark goes with the kind.
+            this.removeAttribute?.("data-sf-view-footer-count");
+            return false;
+        }
         const shown = (this.records ?? []).length;
         const show = this.renders("pagination") && this._answered && !this._queryRefused
             && !["error", "no-access"].includes(this.getAttribute("data-state") ?? "") && shown > 0;

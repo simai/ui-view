@@ -327,7 +327,7 @@ class SfPropertyView extends PropertyViewElement {
             fieldLabelText: {attribute: "field-label-text", default: "Name"},
             sectionIconText: {attribute: "section-icon-text", default: "Section glyph"},
             sectionIcons: {attribute: "section-icons", default: ""},
-            variantText: {attribute: "variant-text", default: "Template"},
+            variantText: {attribute: "variant-text", default: "Look"},
             hintText: {attribute: "hint-text", default: "Hint"},
             hiddenText: {attribute: "hidden-text", default: "Hide"},
             configureHintText: {

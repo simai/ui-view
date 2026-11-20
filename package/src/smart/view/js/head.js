@@ -975,9 +975,14 @@ export class ListHead {
         // A setting changed in «Customize view» is already saved for the
         // person (C298); a filter or a display kind changed here is not saved.
         const mine = Boolean(this._settings && Object.values(this._settings).some((entry) => entry && Object.keys(entry).length));
+        // A view the person cannot write (a system view, one they may not
+        // share, or one with locked paths) is kept as their own copy:
+        // «Сохранить как моё»; their own view is saved as a new one
+        // («Сохранить представление», view-config/1 words).
+        const locked = this.viewLevel(view) !== "personal" && (!shared || this._locked().length > 0);
         return this._note(this.text(mine ? "headViewStateMine" : "headViewStateUnsaved").replace("{name}", name))
             + `<div class="sf-view-head-actions">${shared ? button("view-save-all", this.text("headViewSaveAll"), true) : ""}`
-            + `${button("view-open-new", this.text("headViewSaveNew"), !shared)}${button("view-reset-all", this.text("headViewReset"), false)}</div>`;
+            + `${button("view-open-new", this.text(locked ? "headViewSaveMine" : "headViewSaveNew"), !shared)}${button("view-reset-all", this.text("headViewReset"), false)}</div>`;
     }
 
     _locked() {

@@ -416,6 +416,10 @@
     inline-size: max-content !important;
     min-inline-size: 0 !important;
   }
+  /* The least widths (leastContentWidths): the same moment at min-content. */
+  :is(sf-view-table, sf-table) table.sf-table-measuring.sf-table-measuring-least {
+    inline-size: min-content !important;
+  }
   :is(sf-view-table, sf-table) table.sf-table-measuring col {
     inline-size: auto !important;
     width: auto !important;

@@ -55,7 +55,7 @@ camelCase: `list-fields` — `listFields`. Полный список атриб�
 ```html
 <sf-view aria-label="Заказы">
   <sf-view-table slot="content" aria-label="Заказы"></sf-view-table>
-  <sf-pagination slot="pagination" page-sizes="10,25,50"></sf-pagination>
+  <sf-pagination slot="pagination" page-sizes="10,20,50,100"></sf-pagination>
 </sf-view>
 ```
 

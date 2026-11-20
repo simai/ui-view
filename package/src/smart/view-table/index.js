@@ -3330,7 +3330,10 @@ class SfTable extends TableElement {
         });
         table.classList.toggle('sf-table-content-sized', this.contentSized);
         table.classList.toggle('w-max', !this.contentSized);
-        if (this.hasContentWidths && this._contentInlineSize) table.style.setProperty('--sf-table--content-inline-size', `${this._contentInlineSize}px`);
+        // Where the flexible columns gave back room (readFittedWidths), the
+        // table's least width is their fitted sum, not the content's.
+        const least = this._fittedInlineSize ? Math.min(this._fittedInlineSize, this._contentInlineSize || Infinity) : this._contentInlineSize;
+        if (this.hasContentWidths && least) table.style.setProperty('--sf-table--content-inline-size', `${least}px`);
         else table.style.removeProperty('--sf-table--content-inline-size');
     }
 
@@ -3359,14 +3362,23 @@ class SfTable extends TableElement {
         return width ? `${width}px` : '';
     }
 
+    // Then, where the columns at their content widths still do not fit (a
+    // list beside the record panel at the normal density, view round 8
+    // R67-3: 935 px of content in an 896 px box), the flexible columns -- the
+    // data columns the person did not size -- give back what they hold above
+    // their least width (their longest word or value that cannot break, and
+    // never below the column's min_width), in proportion: their text wraps.
+    // The box scrolls only when the least widths themselves do not fit.
     readFittedWidths() {
         const fitted = new Map();
+        this._fittedInlineSize = null;
         const box = this.refs.scroll?.value?.clientWidth || this._responsiveWidth || 0;
         if (!box || !this.hasContentWidths) return fitted;
         const columns = (this.getColumns?.() ?? []).filter((column) => column?.key && column.visible !== false);
         let total = 0;
         let slack = 0;
         const declared = [];
+        const flexible = [];
         for (const cell of this.querySelectorAll('thead th[data-key]')) {
             if (SYSTEM_COLUMN_KEYS.has(cell.dataset.key)) total += cell.getBoundingClientRect().width;
         }
@@ -3376,22 +3388,74 @@ class SfTable extends TableElement {
             const content = Math.min(this._contentWidths.get(column.key) ?? 0, cap);
             const own = column.colWidth ?? column.width ?? column.size;
             const wants = column.colWidth == null ? this.parseColumnSize(own, null) : null;
+            const least = this.parseColumnSize(column.min_width ?? column.minWidth, 0) ?? 0;
             if (wants === null) {
-                total += this.parseColumnSize(own, null) ?? content;
+                const width = this.parseColumnSize(own, null) ?? content;
+                total += width;
+                // A column the person sized keeps its width; one in other
+                // units than pixels is not touched.
+                if (column.colWidth == null && own == null && content > 0) flexible.push([column.key, content, least]);
                 continue;
             }
-            const floor = Math.max(content, this.parseColumnSize(column.min_width ?? column.minWidth, 0) ?? 0);
+            const floor = Math.max(content, least);
             total += wants;
+            flexible.push([column.key, Math.min(wants, floor), least]);
             if (wants > floor) {
                 declared.push([column.key, wants, wants - floor]);
                 slack += wants - floor;
             }
         }
         const excess = total - box;
-        if (excess <= 0 || !slack) return fitted;
-        const share = Math.min(1, excess / slack);
+        if (excess <= 0) return fitted;
+        const share = slack ? Math.min(1, excess / slack) : 0;
         for (const [key, wants, room] of declared) fitted.set(key, Math.floor(wants - room * share));
+        const left = excess - slack;
+        if (left <= 0 || !flexible.length) return fitted;
+        // The least widths are read only now, when they are needed: one more
+        // layout of the table, the content widths' measuring at min-content.
+        const leastWidths = this.leastContentWidths();
+        if (!leastWidths) return fitted;
+        let room = 0;
+        const shrinking = [];
+        for (const [key, width, declaredLeast] of flexible) {
+            const least = Math.min(width, Math.max(leastWidths.get(key) ?? width, declaredLeast));
+            if (width > least) {
+                shrinking.push([key, width, width - least]);
+                room += width - least;
+            }
+        }
+        if (!room) return fitted;
+        const give = Math.min(1, left / room);
+        let given = 0;
+        for (const [key, width, spare] of shrinking) {
+            const next = Math.floor(width - spare * give);
+            given += width - next;
+            fitted.set(key, next);
+        }
+        this._fittedInlineSize = Math.ceil(total - slack - given);
         return fitted;
+    }
+
+    // Each data column's least width: the table laid out for a moment at
+    // min-content (the longest word or the widest value that cannot break),
+    // cached with the content widths it was read beside.
+    leastContentWidths() {
+        if (this._leastWidths && this._leastWidthsOf === this._contentWidths) return this._leastWidths;
+        const table = this.refs.table?.value;
+        if (!(table instanceof HTMLTableElement) || !table.isConnected) return null;
+        const least = new Map();
+        table.classList.add('sf-table-measuring', 'sf-table-measuring-least');
+        try {
+            if (getComputedStyle(table).tableLayout !== 'auto') return null;
+            for (const cell of table.querySelectorAll('thead th[data-key]')) {
+                if (!SYSTEM_COLUMN_KEYS.has(cell.dataset.key)) least.set(cell.dataset.key, Math.ceil(cell.getBoundingClientRect().width));
+            }
+        } finally {
+            table.classList.remove('sf-table-measuring', 'sf-table-measuring-least');
+        }
+        this._leastWidths = least;
+        this._leastWidthsOf = this._contentWidths;
+        return least;
     }
 
     contentWidth(column) {
