@@ -38,7 +38,7 @@ test('a date cell is a time element with its machine value (PD-9)', () => {
   assert.match(table, /return dateTimeAttribute\(\{\.\.\.column, propertyType: type\}, value\) \|\| "";/u);
   assert.match(table, /kind: "time", className: "sf-table-cell-bare", text: String\(typed\), datetime/u);
   assert.match(template, /<time class=/u);
-  assert.match(template, /html`<time datetime=\$\{datetime\}>\$\{typed\}<\/time>`/u);
+  assert.match(template, /html`<time datetime=\$\{datetime\} title=\$\{context\.component\?\.cellTitle\?\.\(column, value\) \?\? nothing\}>\$\{typed\}<\/time>`/u);
 });
 
 test('the card reads a field shown through its host first, and the renderers otherwise', () => {

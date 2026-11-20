@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-table",
-  "version": "1.28.0",
+  "version": "1.29.0",
   "title": "Table",
   "summary": "Complete server-backed collection view with search, filters, table preferences, row and bulk actions, and pagination.",
   "kind": "composite",
@@ -3007,6 +3007,13 @@
         "changes": [
           "Round 8 (round/view-r8, R67-3, R67-2): readFittedWidths shrinks flexible columns (no colWidth, width in pixels or none) after the declared ones, in proportion, to leastContentWidths (the measuring pass with tbody set aside, class sf-table-measuring-least: each heading on one line; read only when needed and cached with the content widths); applyColumnWidths writes the fitted sum as --sf-table--content-inline-size and sets data-sf-columns-fitted, under which data cells are nowrap with an ellipsis. lang ru/en: the template words of the filter window become view words."
         ]
+      },
+      {
+        "from": "1.28.0",
+        "to": "1.29.0",
+        "changes": [
+          "View site round 2 (round/view-r8, Larena L-1, L-3): TABLE_SETTINGS_COLUMN.label = text(settingsColumnLabel); cellIsRelative / relativeDate (Intl.RelativeTimeFormat numeric auto: days under 7, weeks under 30, months under 365, then years; relativeDay reads a date as the local day and a moment as its local day) / cellTitle (the full date from the field renderers without the variant); cellValue answers the relative words first; the time cell of the markup path and the full path carry title."
+        ]
       }
     ]
   },
@@ -3016,11 +3023,11 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-table/index.js",
-        "sha256": "76320115f27d1be33c0cc3666e1c62cddbb44bca96938cad3848daa36e062f23"
+        "sha256": "220fde9142ee37c44abf37692ee3339abc193361ff9d3fbf75b27db2c2f60062"
       },
       {
         "path": "src/smart/view-table/js/templates/default.js",
-        "sha256": "a9ffe775f8af8f4072de3036f194d75bce466f6ad4f2a3443c7ac6195cf2a722"
+        "sha256": "8c4b92ffe8f97d0079e06066fabc886542156c40435bb785c42ee35dbebdd4f8"
       },
       {
         "path": "src/smart/view-table/js/templates/default.css",

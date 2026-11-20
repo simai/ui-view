@@ -113,6 +113,23 @@
 .sf-view-head-zone-toggle--own .sf-icon-button.sf-icon-button.sf-icon-button.sf-icon-button.sf-icon-button--pressed {
   box-shadow: inset 0 0 0 var(--sf-px) var(--sf-primary);
 }
+/* Open (R8-3): the head draws the pressed toggle's look over a disclosure
+   button, so the glyph is never asked in its filled form -- the soft
+   primary container, the icon in on-primary-container, the 1 px ring. The
+   hover and press steps are the container's own. */
+.sf-view-head-zone-toggle--own.sf-view-head-zone-toggle--open .sf-icon-button.sf-icon-button.sf-icon-button.sf-icon-button.sf-icon-button:not(:disabled, [aria-disabled="true"]) {
+  --sf-icon-button--background-color: var(--sf-icon-button-pressed-background-color, var(--sf-primary-container));
+  --sf-icon-button--border-color: transparent;
+  --sf-icon--color: var(--sf-icon-button-pressed-color, var(--sf-on-primary-container));
+  box-shadow: inset 0 0 0 var(--sf-px) var(--sf-primary);
+}
+.sf-view-head-zone-toggle--own.sf-view-head-zone-toggle--open .sf-icon-button.sf-icon-button.sf-icon-button.sf-icon-button.sf-icon-button:not(:disabled, [aria-disabled="true"]):hover {
+  --sf-icon-button--background-color: var(--sf-primary-container-hover);
+}
+.sf-view-head-zone-toggle--own.sf-view-head-zone-toggle--open .sf-icon-button.sf-icon-button.sf-icon-button.sf-icon-button.sf-icon-button:not(:disabled, [aria-disabled="true"]):active {
+  --sf-icon-button--background-color: var(--sf-primary-container-active);
+}
+.sf-view-head-zone-toggle--own.sf-view-head-zone-toggle--open .sf-icon-button.sf-icon-button.sf-icon-button.sf-icon-button.sf-icon-button .sf-icon.sf-icon { color: var(--sf-icon-button-pressed-color, var(--sf-on-primary-container)); }
 
 /* The phone (the view under 600 px): one row of «Filter», the search and «+»;
    the filter fields one row that scrolls sideways. */

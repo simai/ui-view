@@ -198,6 +198,19 @@ getComputedStyle(document.documentElement).getPropertyValue('--sf-table-row-bloc
 (`column-menu-label`, `column-width-change-text`, `column-width-fit-text`,
 `column-width-default-text`, `column-resize-label`, `column-width-value`).
 
+## Относительная дата в ячейке
+
+У колонки типа `date` или `datetime` шаблон `variant: "relative"` показывает в
+ячейке, сколько прошло от сегодняшнего дня: «сегодня», «вчера», «3 дня
+назад», «через 2 недели» (недели — от семи дней, месяцы — от тридцати, годы —
+от года), на языке страницы (`Intl.RelativeTimeFormat`). Полная дата —
+в подсказке ячейки (`title`) и в `<time datetime>`. Шаблон меняет только
+ячейку: карточка записи и правка показывают дату целиком.
+
+```json
+{"key": "updated_at", "label": "Изменён", "propertyType": "datetime", "variant": "relative"}
+```
+
 ## Former tag
 
 Until 2027-01-01 the former tag `sf-table` is a dated alias of `sf-view-table`
