@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-properties",
-  "version": "1.23.4",
+  "version": "1.23.5",
   "title": "Property view",
   "summary": "One object's fields shown as sections, groups and fields, each drawn by the per-type field renderer set, behind a separate host port. A group is edited and saved as one revision by the button, and a reference field is picked from the host's own candidates a page at a time. The pair to the data view: that one is a set of records, this one is a single object.",
   "kind": "composite",
@@ -2000,9 +2000,9 @@
       },
       {
         "from": "1.23.3",
-        "to": "1.23.4",
+        "to": "1.23.5",
         "changes": [
-          "View round 9 (round/view-r9): js/templates/default.js renderLoading and skeleton.html drop the skeleton's empty .sf-tabs-main-container, since sf-tabs 1.4.5 hides a panel row whose panels hold nothing (data-sf-panels-empty); probe property-view-pro-issues-3-4 #3 measured the strip 72 against tabs 40 (64 against 32 at 1/2) over the pair."
+          "View round 9 (round/view-r9): js/templates/default.js renderLoading and skeleton.html drop the skeleton's empty .sf-tabs-main-container, since sf-tabs 1.4.5 hides a panel row whose panels hold nothing (data-sf-panels-empty); probe property-view-pro-issues-3-4 #3 measured the strip 72 against tabs 40 (64 against 32 at 1/2) over the pair. The same fix as simai/ui-pro d7c4cf6 (sf-view-properties 1.23.4 there); 1.23.5 is above it."
         ]
       }
     ]
