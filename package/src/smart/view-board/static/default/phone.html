@@ -9,7 +9,7 @@
 <sf-button appearance="default" scheme="primary" size="1/2" text="Новый" root-class="selected" style="display: contents;" data-sf-size-relative>
 
 
-<button type="button" class="sf-button sf-button--size-1/2 sf-button--default sf-button--primary flex items-cross-center selected" id="sf-view-board-phone-1" role="tab" aria-controls="sf-view-board-phone-7" aria-selected="true" aria-disabled="false" aria-labelledby="sf-view-board-phone-2" tabindex="0" data-sf-tab-index="0" data-sf-static>
+<button type="button" class="sf-button sf-button--size-1/2 sf-button--default sf-button--primary flex items-cross-center selected" id="sf-view-board-phone-1" role="tab" aria-controls="sf-tabs-1--panel-0" aria-selected="true" aria-disabled="false" aria-labelledby="sf-view-board-phone-2" tabindex="0" data-sf-tab-index="0" data-sf-static>
 
 
 <span class="sf-button-text-container text-center pointer-events-none flex-1" id="sf-view-board-phone-2">
@@ -22,7 +22,7 @@
 <sf-button appearance="default" scheme="primary" size="1/2" text="Оплачен" root-class style="display: contents;" data-sf-size-relative>
 
 
-<button type="button" class="sf-button sf-button--size-1/2 sf-button--default sf-button--primary flex items-cross-center" id="sf-view-board-phone-3" role="tab" aria-controls="sf-view-board-phone-8" aria-selected="false" aria-disabled="false" aria-labelledby="sf-view-board-phone-4" tabindex="-1" data-sf-tab-index="1" data-sf-static>
+<button type="button" class="sf-button sf-button--size-1/2 sf-button--default sf-button--primary flex items-cross-center" id="sf-view-board-phone-3" role="tab" aria-controls="sf-tabs-1--panel-1" aria-selected="false" aria-disabled="false" aria-labelledby="sf-view-board-phone-4" tabindex="-1" data-sf-tab-index="1" data-sf-static>
 
 
 <span class="sf-button-text-container text-center pointer-events-none flex-1" id="sf-view-board-phone-4">
@@ -35,7 +35,7 @@
 <sf-button appearance="default" scheme="primary" size="1/2" text="Отправлен" root-class style="display: contents;" data-sf-size-relative>
 
 
-<button type="button" class="sf-button sf-button--size-1/2 sf-button--default sf-button--primary flex items-cross-center" id="sf-view-board-phone-5" role="tab" aria-controls="sf-view-board-phone-9" aria-selected="false" aria-disabled="false" aria-labelledby="sf-view-board-phone-6" tabindex="-1" data-sf-tab-index="2" data-sf-static>
+<button type="button" class="sf-button sf-button--size-1/2 sf-button--default sf-button--primary flex items-cross-center" id="sf-view-board-phone-5" role="tab" aria-controls="sf-tabs-1--panel-2" aria-selected="false" aria-disabled="false" aria-labelledby="sf-view-board-phone-6" tabindex="-1" data-sf-tab-index="2" data-sf-static>
 
 
 <span class="sf-button-text-container text-center pointer-events-none flex-1" id="sf-view-board-phone-6">
@@ -50,17 +50,7 @@
 
 
 </div>
-<div class="sf-tabs-main-container">
-
-<div class="sf-tabs-main-tab selected" role="tabpanel" id="sf-view-board-phone-7" aria-labelledby="sf-view-board-phone-1" data-sf-tab-panel="0" data-entry="new">
-
-</div>
-
-<div class="sf-tabs-main-tab" role="tabpanel" id="sf-view-board-phone-8" aria-labelledby="sf-view-board-phone-3" data-sf-tab-panel="1" data-entry="paid" hidden></div>
-
-<div class="sf-tabs-main-tab" role="tabpanel" id="sf-view-board-phone-9" aria-labelledby="sf-view-board-phone-5" data-sf-tab-panel="2" data-entry="sent" hidden></div>
-
-</div>
+<div class="sf-tabs-main-container" hidden data-sf-panels-empty></div>
 </div>
 </sf-tabs></div>
 <div class="sf-view-board__lanes" role="region" aria-label="Заказы">
@@ -93,16 +83,16 @@
 </div>
 <div class="sf-view-board__note" aria-hidden="true"></div>
 <div class="sf-view-board__body">
-<sf-sortable class="sf-view-board__list" id="sf-view-board-phone-10" group="sf-view-board-1" label="Новый" data-lane="new" data-sf-sortable="connected">
+<sf-sortable class="sf-view-board__list" id="sf-view-board-phone-7" group="sf-view-board-1" label="Новый" data-lane="new" data-sf-sortable="connected">
 
-<div class="sf-card sf-view-board__card" slot="item" data-sf-sortable-item="o1001" data-id="o1001" tabindex="0" aria-describedby="sf-view-board-phone-13" role="group" aria-roledescription="перемещаемый" data-sf-sortable-whole>
+<div class="sf-card sf-view-board__card" slot="item" data-sf-sortable-item="o1001" data-id="o1001" tabindex="0" aria-describedby="sf-view-board-phone-10" role="group" aria-roledescription="перемещаемый" data-sf-sortable-whole>
 <div class="sf-view-board__top">
 <span class="sf-view-board__box">
 <sf-checkbox size="1/2" data-box="o1001" aria-label="Выбрать Заказ № 1001" style="display: contents;" data-sf-size-relative>
-<label class="sf-checkbox sf-checkbox--size-1/2 flex cursor-pointer sf-checkable sf-checkable--size-1/2" for="sf-view-board-phone-11" data-sf-static>
+<label class="sf-checkbox sf-checkbox--size-1/2 flex cursor-pointer sf-checkable sf-checkable--size-1/2" for="sf-view-board-phone-8" data-sf-static>
 
 <span class="sf-checkbox-box flex">
-<input type="checkbox" value="on" aria-label="Выбрать Заказ № 1001" id="sf-view-board-phone-11">
+<input type="checkbox" value="on" aria-label="Выбрать Заказ № 1001" data-sf-sortable-tabindex tabindex="-1" id="sf-view-board-phone-8">
 <sf-icon aria-hidden="true" icon style="display: contents;"><i class="sf-icon" aria-hidden="true" data-sf-static></i></sf-icon>
 </span>
 
@@ -110,9 +100,9 @@
 </label>
 </sf-checkbox>
 </span>
-<button type="button" class="sf-view-board__title" data-open="o1001" tabindex="-1">Заказ № 1001</button>
+<button type="button" class="sf-view-board__title" data-open="o1001" data-sf-sortable-tabindex tabindex="-1">Заказ № 1001</button>
 <sf-button-icon class="sf-view-board__menu" appearance="ghost" scheme="on-surface-variant" icon="more_horiz" size="1/2" aria-label="Действия: Заказ № 1001" tooltip="Действия" style="display: contents;" data-sf-size-relative>
-<button type="button" class="sf-icon-button sf-icon-button--size-1/2 sf-icon-button--icon sf-icon-button--ghost flex items-cross-center sf-icon-button--on-surface-variant" aria-label="Действия: Заказ № 1001" data-menu="o1001" tabindex="-1" data-sf-static>
+<button type="button" class="sf-icon-button sf-icon-button--size-1/2 sf-icon-button--icon sf-icon-button--ghost flex items-cross-center sf-icon-button--on-surface-variant" aria-label="Действия: Заказ № 1001" data-sf-sortable-tabindex tabindex="-1" data-menu="o1001" data-sf-static>
 
 <sf-icon root-class="pointer-events-none" weight="400" aria-hidden="true" filled="false" icon="more_horiz" style="display: contents;"><i class="sf-icon sf-icon--weight-regular pointer-events-none" aria-hidden="true" data-sf-static>more_horiz</i></sf-icon>
 </button>
@@ -122,14 +112,14 @@
 <span class="sf-view-board__field" data-key="client" data-align="start">ООО «Северный склад»</span><span class="sf-view-board__field" data-key="amount" data-align="end">418&nbsp;000,00&nbsp;₽</span>
 </div>
 </div>
-<div class="sf-card sf-view-board__card" slot="item" data-sf-sortable-item="o1002" data-id="o1002" tabindex="-1" aria-describedby="sf-view-board-phone-13" role="group" aria-roledescription="перемещаемый" data-sf-sortable-whole>
+<div class="sf-card sf-view-board__card" slot="item" data-sf-sortable-item="o1002" data-id="o1002" tabindex="-1" aria-describedby="sf-view-board-phone-10" role="group" aria-roledescription="перемещаемый" data-sf-sortable-whole>
 <div class="sf-view-board__top">
 <span class="sf-view-board__box">
 <sf-checkbox size="1/2" data-box="o1002" aria-label="Выбрать Заказ № 1002" style="display: contents;" data-sf-size-relative>
-<label class="sf-checkbox sf-checkbox--size-1/2 flex cursor-pointer sf-checkable sf-checkable--size-1/2" for="sf-view-board-phone-12" data-sf-static>
+<label class="sf-checkbox sf-checkbox--size-1/2 flex cursor-pointer sf-checkable sf-checkable--size-1/2" for="sf-view-board-phone-9" data-sf-static>
 
 <span class="sf-checkbox-box flex">
-<input type="checkbox" value="on" aria-label="Выбрать Заказ № 1002" id="sf-view-board-phone-12">
+<input type="checkbox" value="on" aria-label="Выбрать Заказ № 1002" data-sf-sortable-tabindex tabindex="-1" id="sf-view-board-phone-9">
 <sf-icon aria-hidden="true" icon style="display: contents;"><i class="sf-icon" aria-hidden="true" data-sf-static></i></sf-icon>
 </span>
 
@@ -137,9 +127,9 @@
 </label>
 </sf-checkbox>
 </span>
-<button type="button" class="sf-view-board__title" data-open="o1002" tabindex="-1">Заказ № 1002</button>
+<button type="button" class="sf-view-board__title" data-open="o1002" data-sf-sortable-tabindex tabindex="-1">Заказ № 1002</button>
 <sf-button-icon class="sf-view-board__menu" appearance="ghost" scheme="on-surface-variant" icon="more_horiz" size="1/2" aria-label="Действия: Заказ № 1002" tooltip="Действия" style="display: contents;" data-sf-size-relative>
-<button type="button" class="sf-icon-button sf-icon-button--size-1/2 sf-icon-button--icon sf-icon-button--ghost flex items-cross-center sf-icon-button--on-surface-variant" aria-label="Действия: Заказ № 1002" data-menu="o1002" tabindex="-1" data-sf-static>
+<button type="button" class="sf-icon-button sf-icon-button--size-1/2 sf-icon-button--icon sf-icon-button--ghost flex items-cross-center sf-icon-button--on-surface-variant" aria-label="Действия: Заказ № 1002" data-sf-sortable-tabindex tabindex="-1" data-menu="o1002" data-sf-static>
 
 <sf-icon root-class="pointer-events-none" weight="400" aria-hidden="true" filled="false" icon="more_horiz" style="display: contents;"><i class="sf-icon sf-icon--weight-regular pointer-events-none" aria-hidden="true" data-sf-static>more_horiz</i></sf-icon>
 </button>
@@ -149,7 +139,7 @@
 <span class="sf-view-board__field" data-key="client" data-align="start">Кафе «Лето»</span><span class="sf-view-board__field" data-key="amount" data-align="end">5&nbsp;070,00&nbsp;₽</span>
 </div>
 </div>
-<div class="sf-sortable-live" aria-live="polite" data-sf-static></div><div class="sf-sortable-live" id="sf-view-board-phone-13" data-sf-static>Пробел или Enter — взять, стрелки — переместить, Пробел или Enter — положить, Escape — отменить.</div></sf-sortable>
+<div class="sf-sortable-live" aria-live="polite" data-sf-static></div><div class="sf-sortable-live" id="sf-view-board-phone-10" data-sf-static>Пробел — выбрать, Enter — взять, стрелки — переместить, Enter — положить, Escape — отменить.</div></sf-sortable>
 
 </div>
 <div class="sf-view-board__more">
@@ -193,16 +183,16 @@
 </div>
 <div class="sf-view-board__note" aria-hidden="true"></div>
 <div class="sf-view-board__body">
-<sf-sortable class="sf-view-board__list" id="sf-view-board-phone-14" group="sf-view-board-1" label="Оплачен" data-lane="paid" data-sf-sortable="connected">
+<sf-sortable class="sf-view-board__list" id="sf-view-board-phone-11" group="sf-view-board-1" label="Оплачен" data-lane="paid" data-sf-sortable="connected">
 
-<div class="sf-card sf-view-board__card" slot="item" data-sf-sortable-item="o1004" data-id="o1004" tabindex="-1" aria-describedby="sf-view-board-phone-17" role="group" aria-roledescription="перемещаемый" data-sf-sortable-whole>
+<div class="sf-card sf-view-board__card" slot="item" data-sf-sortable-item="o1004" data-id="o1004" tabindex="-1" aria-describedby="sf-view-board-phone-14" role="group" aria-roledescription="перемещаемый" data-sf-sortable-whole>
 <div class="sf-view-board__top">
 <span class="sf-view-board__box">
 <sf-checkbox size="1/2" data-box="o1004" aria-label="Выбрать Заказ № 1004" style="display: contents;" data-sf-size-relative>
-<label class="sf-checkbox sf-checkbox--size-1/2 flex cursor-pointer sf-checkable sf-checkable--size-1/2" for="sf-view-board-phone-15" data-sf-static>
+<label class="sf-checkbox sf-checkbox--size-1/2 flex cursor-pointer sf-checkable sf-checkable--size-1/2" for="sf-view-board-phone-12" data-sf-static>
 
 <span class="sf-checkbox-box flex">
-<input type="checkbox" value="on" aria-label="Выбрать Заказ № 1004" id="sf-view-board-phone-15">
+<input type="checkbox" value="on" aria-label="Выбрать Заказ № 1004" data-sf-sortable-tabindex tabindex="-1" id="sf-view-board-phone-12">
 <sf-icon aria-hidden="true" icon style="display: contents;"><i class="sf-icon" aria-hidden="true" data-sf-static></i></sf-icon>
 </span>
 
@@ -210,9 +200,9 @@
 </label>
 </sf-checkbox>
 </span>
-<button type="button" class="sf-view-board__title" data-open="o1004" tabindex="-1">Заказ № 1004</button>
+<button type="button" class="sf-view-board__title" data-open="o1004" data-sf-sortable-tabindex tabindex="-1">Заказ № 1004</button>
 <sf-button-icon class="sf-view-board__menu" appearance="ghost" scheme="on-surface-variant" icon="more_horiz" size="1/2" aria-label="Действия: Заказ № 1004" tooltip="Действия" style="display: contents;" data-sf-size-relative>
-<button type="button" class="sf-icon-button sf-icon-button--size-1/2 sf-icon-button--icon sf-icon-button--ghost flex items-cross-center sf-icon-button--on-surface-variant" aria-label="Действия: Заказ № 1004" data-menu="o1004" tabindex="-1" data-sf-static>
+<button type="button" class="sf-icon-button sf-icon-button--size-1/2 sf-icon-button--icon sf-icon-button--ghost flex items-cross-center sf-icon-button--on-surface-variant" aria-label="Действия: Заказ № 1004" data-sf-sortable-tabindex tabindex="-1" data-menu="o1004" data-sf-static>
 
 <sf-icon root-class="pointer-events-none" weight="400" aria-hidden="true" filled="false" icon="more_horiz" style="display: contents;"><i class="sf-icon sf-icon--weight-regular pointer-events-none" aria-hidden="true" data-sf-static>more_horiz</i></sf-icon>
 </button>
@@ -222,14 +212,14 @@
 <span class="sf-view-board__field" data-key="client" data-align="start">ИП Смирнова</span><span class="sf-view-board__field" data-key="amount" data-align="end">129&nbsp;990,50&nbsp;₽</span>
 </div>
 </div>
-<div class="sf-card sf-view-board__card" slot="item" data-sf-sortable-item="o1005" data-id="o1005" tabindex="-1" aria-describedby="sf-view-board-phone-17" role="group" aria-roledescription="перемещаемый" data-sf-sortable-whole>
+<div class="sf-card sf-view-board__card" slot="item" data-sf-sortable-item="o1005" data-id="o1005" tabindex="-1" aria-describedby="sf-view-board-phone-14" role="group" aria-roledescription="перемещаемый" data-sf-sortable-whole>
 <div class="sf-view-board__top">
 <span class="sf-view-board__box">
 <sf-checkbox size="1/2" data-box="o1005" aria-label="Выбрать Заказ № 1005" style="display: contents;" data-sf-size-relative>
-<label class="sf-checkbox sf-checkbox--size-1/2 flex cursor-pointer sf-checkable sf-checkable--size-1/2" for="sf-view-board-phone-16" data-sf-static>
+<label class="sf-checkbox sf-checkbox--size-1/2 flex cursor-pointer sf-checkable sf-checkable--size-1/2" for="sf-view-board-phone-13" data-sf-static>
 
 <span class="sf-checkbox-box flex">
-<input type="checkbox" value="on" aria-label="Выбрать Заказ № 1005" id="sf-view-board-phone-16">
+<input type="checkbox" value="on" aria-label="Выбрать Заказ № 1005" data-sf-sortable-tabindex tabindex="-1" id="sf-view-board-phone-13">
 <sf-icon aria-hidden="true" icon style="display: contents;"><i class="sf-icon" aria-hidden="true" data-sf-static></i></sf-icon>
 </span>
 
@@ -237,9 +227,9 @@
 </label>
 </sf-checkbox>
 </span>
-<button type="button" class="sf-view-board__title" data-open="o1005" tabindex="-1">Заказ № 1005</button>
+<button type="button" class="sf-view-board__title" data-open="o1005" data-sf-sortable-tabindex tabindex="-1">Заказ № 1005</button>
 <sf-button-icon class="sf-view-board__menu" appearance="ghost" scheme="on-surface-variant" icon="more_horiz" size="1/2" aria-label="Действия: Заказ № 1005" tooltip="Действия" style="display: contents;" data-sf-size-relative>
-<button type="button" class="sf-icon-button sf-icon-button--size-1/2 sf-icon-button--icon sf-icon-button--ghost flex items-cross-center sf-icon-button--on-surface-variant" aria-label="Действия: Заказ № 1005" data-menu="o1005" tabindex="-1" data-sf-static>
+<button type="button" class="sf-icon-button sf-icon-button--size-1/2 sf-icon-button--icon sf-icon-button--ghost flex items-cross-center sf-icon-button--on-surface-variant" aria-label="Действия: Заказ № 1005" data-sf-sortable-tabindex tabindex="-1" data-menu="o1005" data-sf-static>
 
 <sf-icon root-class="pointer-events-none" weight="400" aria-hidden="true" filled="false" icon="more_horiz" style="display: contents;"><i class="sf-icon sf-icon--weight-regular pointer-events-none" aria-hidden="true" data-sf-static>more_horiz</i></sf-icon>
 </button>
@@ -249,7 +239,7 @@
 <span class="sf-view-board__field" data-key="client" data-align="start">Типография «Оттиск»</span><span class="sf-view-board__field" data-key="amount" data-align="end">74&nbsp;500,00&nbsp;₽</span>
 </div>
 </div>
-<div class="sf-sortable-live" aria-live="polite" data-sf-static></div><div class="sf-sortable-live" id="sf-view-board-phone-17" data-sf-static>Пробел или Enter — взять, стрелки — переместить, Пробел или Enter — положить, Escape — отменить.</div></sf-sortable>
+<div class="sf-sortable-live" aria-live="polite" data-sf-static></div><div class="sf-sortable-live" id="sf-view-board-phone-14" data-sf-static>Пробел — выбрать, Enter — взять, стрелки — переместить, Enter — положить, Escape — отменить.</div></sf-sortable>
 
 </div>
 
@@ -282,9 +272,9 @@
 </div>
 <div class="sf-view-board__note" aria-hidden="true"></div>
 <div class="sf-view-board__body">
-<sf-sortable class="sf-view-board__list" id="sf-view-board-phone-18" group="sf-view-board-1" label="Отправлен" data-lane="sent" data-sf-sortable="connected">
+<sf-sortable class="sf-view-board__list" id="sf-view-board-phone-15" group="sf-view-board-1" label="Отправлен" data-lane="sent" data-sf-sortable="connected">
 
-<div class="sf-sortable-live" aria-live="polite" data-sf-static></div><div class="sf-sortable-live" id="sf-view-board-phone-19" data-sf-static>Пробел или Enter — взять, стрелки — переместить, Пробел или Enter — положить, Escape — отменить.</div></sf-sortable>
+<div class="sf-sortable-live" aria-live="polite" data-sf-static></div><div class="sf-sortable-live" id="sf-view-board-phone-16" data-sf-static>Enter или пробел — взять, стрелки — переместить, Enter или пробел — положить, Escape — отменить.</div></sf-sortable>
 <div class="sf-view-board__empty">Пусто</div>
 </div>
 
@@ -292,5 +282,4 @@
 </div>
 <div class="sf-view-board__live" role="status" aria-live="polite"></div>
 
-<div class="sf-view-board__bulk" role="region" aria-label="Действия с выбранными" hidden></div>
 </div></sf-view-board>
