@@ -24,11 +24,12 @@ the set site's orders VS-SITE-1..14 and two items of round 7.
 - `sf-view` 1.27.0: with `simai.dataview-port` 1.16.0 and
   `personal-preferences`, the view the person opened last
   (`data.preferences.view`) opens by itself on load, with the layer's page
-  size; opening another view saves it to the layer (`preferences.save`
-  `{view}`).
+  size and in its own layout (a board view opens as a board); opening
+  another view saves it to the layer (`preferences.save` `{view}`).
 - `sf-view-cards` 1.0.4: inside `sf-view`, whose footer says «1–24 из 60»,
   the grid no longer repeats «Показано 24 из 60»; the «Показать ещё 24»
-  button stays. Cards drawn on their own keep the line.
+  button stays, and the focus stays on it while the next page loads. Cards
+  drawn on their own keep the line.
 
 ## Unreleased — view round 7
 

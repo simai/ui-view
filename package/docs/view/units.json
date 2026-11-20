@@ -9,7 +9,7 @@
       "recorded_on": "2026-11-21",
       "change": "minor",
       "consumer": "Nothing to change for a host. With simai.dataview-port 1.16.0 and personal-preferences, the view the person opened last (data.preferences.view, a saved view's key the host lists) opens by itself on load, with the layer's page size; opening another view saves it to the layer (preferences.save {view}).",
-      "summary": "View site round (round/view-site, dispatcher order 2026-11-20, view round 7 open item O5): _acceptPersonal opens the layer's view on its first answer through _openKeptView (the head's _openSavedView, else openView) after the answer's echo is read, unless the list already shows it; the page size rides with that query instead of a second ask; openView raises preferences.save {view} when the layer names another view.",
+      "summary": "View site round (round/view-site, dispatcher order 2026-11-20, view round 7 open item O5): _acceptPersonal opens the layer's view on its first answer through _openKeptView (the head's _openSavedView, else openView) after the answer's echo is read, unless the list already shows it; the page size rides with that query instead of a second ask; openView raises preferences.save {view} when the layer names another view. The kept view waits for the head's describe() answer (head.described) so it opens in its own layout.",
       "evidence": "control/evidence/2026-11-21-view-site/README.md"
     },
     {
@@ -621,7 +621,7 @@
       "recorded_on": "2026-11-21",
       "change": "patch",
       "consumer": "Nothing to change. Inside sf-view, whose footer says «1–24 из 60», the cards no longer repeat the count under the grid: the «Показать ещё 24» button stays alone. Cards drawn without sf-view keep sf-pagination's line «Показано 24 из 60».",
-      "summary": "View site round (round/view-site, view round 7 open item O1): renderMore draws sf-button (outline, primary, data-more, words more-text / more-plain-text in en and ru) instead of sf-pagination when the cards stand inside sf-view (context.inView); a click on [data-more] asks showMore().",
+      "summary": "View site round (round/view-site, view round 7 open item O1): renderMore draws sf-button (outline, primary, data-more, words more-text / more-plain-text in en and ru) instead of sf-pagination when the cards stand inside sf-view (context.inView); a click on [data-more] asks showMore(). Once the next page is drawn the focus goes back to the more button (or to the last card on the last page) instead of falling to the page.",
       "evidence": "control/evidence/2026-11-21-view-site/README.md"
     },
     {

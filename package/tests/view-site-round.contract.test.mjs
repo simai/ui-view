@@ -22,7 +22,8 @@ test('inside sf-view the cards keep the more button and drop their own count lin
   assert.doesNotMatch(inView, /sf-pagination|shown/u, 'no «Показано N из M» under sf-view');
   assert.match(more, /<sf-pagination appearance="more"/u, 'standalone cards keep sf-pagination with its line');
   assert.match(cards, /inView: Boolean\(this\.closest\?\.\("sf-view"\)\)/u);
-  assert.match(cards, /if \(control\.hasAttribute\("data-more"\)\) this\.showMore\(\);/u);
+  assert.match(cards, /if \(control\.hasAttribute\("data-more"\)\) \{\n\s+this\._refocusMore = true;\n\s+this\.showMore\(\);/u);
+  assert.match(cards, /_keepMoreFocus\(\) \{[\s\S]*?\.sf-view-cards__more sf-button button/u, 'the focus goes back to the more button');
   for (const lang of ['en', 'ru']) {
     const words = json(`src/smart/view-cards/lang/${lang}.json`).runtime;
     assert.ok(words['more-text']?.includes('{count}'), lang);

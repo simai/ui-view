@@ -1975,7 +1975,7 @@
           "from": "1.26.0",
           "to": "1.27.0",
           "changes": [
-            "View site round (round/view-site, dispatcher order 2026-11-20, view round 7 open item O5): _acceptPersonal opens the layer's view on its first answer through _openKeptView (the head's _openSavedView, else openView) after the answer's echo is read, unless the list already shows it; the page size rides with that query instead of a second ask; openView raises preferences.save {view} when the layer names another view."
+            "View site round (round/view-site, dispatcher order 2026-11-20, view round 7 open item O5): _acceptPersonal opens the layer's view on its first answer through _openKeptView (the head's _openSavedView, else openView) after the answer's echo is read, unless the list already shows it; the page size rides with that query instead of a second ask; openView raises preferences.save {view} when the layer names another view. The kept view waits for the head's describe() answer (head.described) so it opens in its own layout."
           ]
         }
       ]

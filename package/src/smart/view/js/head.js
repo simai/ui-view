@@ -160,9 +160,16 @@ export class ListHead {
 
     // The host's description of the list (the adapter's describe(), draft
     // view-config/1 section 2): fields, layouts, permissions; asked once per port.
-    async describe(port) {
-        if (!port || this._describedPort === port) return;
+    // The answer's promise is kept (described) for whoever needs the layouts
+    // before acting: the view opening the person's last view.
+    describe(port) {
+        if (!port || this._describedPort === port) return this.described ?? Promise.resolve();
         this._describedPort = port;
+        this.described = this._describe(port);
+        return this.described;
+    }
+
+    async _describe(port) {
         let described = null;
         try {
             described = typeof port.describe === "function" ? await port.describe() : port.describe ?? null;

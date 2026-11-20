@@ -323,6 +323,23 @@ class SfViewCards extends CardsElement {
     afterRender(changed) {
         super.afterRender?.(changed);
         this._quietControls();
+        this._keepMoreFocus();
+    }
+
+    // The more button is busy while the page loads and the focus falls to the
+    // page; once the cards are drawn it goes back to the button (or, on the
+    // last page, to the first card that arrived).
+    _keepMoreFocus() {
+        if (!this._refocusMore || this._loadingMore) return;
+        this._refocusMore = false;
+        const active = document.activeElement;
+        if (active && active !== document.body && !this.contains(active)) return;
+        // After the button itself has drawn without its busy state.
+        requestAnimationFrame(() => {
+            const button = this.querySelector(".sf-view-cards__more sf-button button");
+            if (button && !button.disabled) return void button.focus({preventScroll: true});
+            this._cards().at(-1)?.focus?.({preventScroll: true});
+        });
     }
 
     _quietControls() {
@@ -433,7 +450,10 @@ class SfViewCards extends CardsElement {
         const control = event.target.closest?.("[data-menu], [data-box], [data-bulk], [data-clear], [data-more]");
         if (control && this.contains(control)) {
             const data = control.dataset;
-            if (control.hasAttribute("data-more")) this.showMore();
+            if (control.hasAttribute("data-more")) {
+                this._refocusMore = true;
+                this.showMore();
+            }
             else if (data.menu) this.openCardMenu(data.menu, control);
             else if (data.bulk) this._apply(data.bulk);
             else if (control.hasAttribute("data-clear")) this.clearSelection();

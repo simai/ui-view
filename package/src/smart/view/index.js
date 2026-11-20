@@ -3361,8 +3361,9 @@ class SfDataView extends DataViewElement {
         if (!views.some((view) => String(view?.key) === key)) return false;
         const size = layer.page_size;
         const sized = Number.isInteger(size) && size > 0;
-        // After the rest of this answer (its echo writes the query) is read.
-        Promise.resolve().then(() => {
+        // After the rest of this answer (its echo writes the query) is read,
+        // and after the host's description (the layouts the view may open in).
+        Promise.resolve().then(() => this._head?.described).catch(() => {}).then(() => {
             if (!this.isConnected) return;
             const shown = this.query.view?.id;
             const fallback = views.find((view) => view?.default === true || view?.is_default === true) ?? views[0];

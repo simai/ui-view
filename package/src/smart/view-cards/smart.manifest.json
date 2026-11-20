@@ -439,7 +439,7 @@
         "from": "1.0.3",
         "to": "1.0.4",
         "changes": [
-          "View site round (round/view-site, view round 7 open item O1): renderMore draws sf-button (outline, primary, data-more, words more-text / more-plain-text in en and ru) instead of sf-pagination when the cards stand inside sf-view (context.inView); a click on [data-more] asks showMore()."
+          "View site round (round/view-site, view round 7 open item O1): renderMore draws sf-button (outline, primary, data-more, words more-text / more-plain-text in en and ru) instead of sf-pagination when the cards stand inside sf-view (context.inView); a click on [data-more] asks showMore(). Once the next page is drawn the focus goes back to the more button (or to the last card on the last page) instead of falling to the page."
         ]
       }
     ]
@@ -450,7 +450,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-cards/index.js",
-        "sha256": "42b52b61bc623627dad55948f06981a9c09b28a3857f67b104e52c77bb5638b1"
+        "sha256": "e41164f4575c0b66ec0a132c3454bdf847df80df1351d3d4de6ab573baca0594"
       },
       {
         "path": "src/smart/view-cards/js/cards.js",
