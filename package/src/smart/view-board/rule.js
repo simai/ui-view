@@ -18,6 +18,8 @@ SF.RuleLoader['cl-view-board'] = {
     { name: 'cl-button' },
     { name: 'cl-button-icon' },
     { name: 'cl-checkbox' },
+    // The group actions bar (C295) where the pair has it: drawn while something is selected, fetched when first drawn.
+    { name: 'cl-bulk-actions', lazy: true },
     // The lane switcher on a phone (C304 (1)).
     { name: 'cl-tabs', lazy: true },
     // A refused move.

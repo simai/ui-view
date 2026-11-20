@@ -64,6 +64,7 @@
       "requires": [
         "cl-avatar",
         "cl-badge",
+        "cl-bulk-actions",
         "cl-button",
         "cl-button-icon",
         "cl-checkbox",
@@ -196,6 +197,7 @@
       "requires": [
         "cl-avatar",
         "cl-badge",
+        "cl-bulk-actions",
         "cl-button",
         "cl-button-icon",
         "cl-checkbox",
@@ -217,6 +219,7 @@
       "requires": [
         "cl-avatar",
         "cl-badge",
+        "cl-bulk-actions",
         "cl-button",
         "cl-button-icon",
         "cl-checkbox",
@@ -238,6 +241,7 @@
       "requires": [
         "cl-avatar",
         "cl-badge",
+        "cl-bulk-actions",
         "cl-button",
         "cl-button-icon",
         "cl-checkbox",

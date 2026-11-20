@@ -7,6 +7,8 @@ SF.RuleLoader['cl-view-table'] = {
   css: true,
   relation: [
     { name: 'cl-checkbox' },
+    // The group actions bar (C295) where the pair has it: drawn while something is selected, fetched when first drawn.
+    { name: 'cl-bulk-actions', lazy: true },
     // The cells drawn with another Smart element come with the table, not
     // after the rows: a reference (sf-reference-link), a file
     // (sf-file-preview) and a colour (sf-input-color, in a cell as well as in a

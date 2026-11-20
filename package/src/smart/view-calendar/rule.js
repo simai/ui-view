@@ -18,6 +18,8 @@ SF.RuleLoader['cl-view-calendar'] = {
     { name: 'cl-badge' },
     // The selection box of a list row.
     { name: 'cl-checkbox' },
+    // The group actions bar (C295) where the pair has it: drawn while something is selected, fetched when first drawn.
+    { name: 'cl-bulk-actions', lazy: true },
     // A refused move.
     { name: 'cl-toast', lazy: true },
     // The event menu and the day list of «+N» (SF.menu.open).
