@@ -70,8 +70,9 @@ test('R67-3: flexible columns give back room down to their least width before th
   assert.match(table, /const left = excess - slack;/u);
   assert.match(table, /this\._fittedInlineSize = Math\.ceil\(total - slack - given\);/u);
   const css = read('src/smart/view-table/js/templates/default.css');
-  assert.match(css, /table\.sf-table-measuring\.sf-table-measuring-least \{\n\s+inline-size: min-content !important;/u);
-  assert.match(css, /table\.sf-table-measuring-least :is\(th, td\) \* \{\n\s+overflow-wrap: normal !important;/u);
+  assert.match(css, /table\.sf-table-measuring-least > tbody \{\n\s+display: none !important;/u, 'the least width is the heading on one line');
+  assert.match(css, /\[data-sf-columns-fitted\] table:not\(\.sf-table-measuring\) td\[data-key\][^{]*\{\n\s+white-space: nowrap;\n\s+overflow: hidden;\n\s+text-overflow: ellipsis;/u, 'a fitted cell stays one line');
+  assert.match(table, /this\.toggleAttribute\('data-sf-columns-fitted', Boolean\(this\._fittedInlineSize\)\);/u);
 });
 
 test('VSA-1: the phone head search field does not widen the row', () => {

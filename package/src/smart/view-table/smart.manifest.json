@@ -3005,7 +3005,7 @@
         "from": "1.27.1",
         "to": "1.28.0",
         "changes": [
-          "Round 8 (round/view-r8, R67-3, R67-2): readFittedWidths shrinks flexible columns (no colWidth, width in pixels or none) after the declared ones, in proportion, to leastContentWidths (a measuring pass at min-content with overflow-wrap normal, class sf-table-measuring-least, read only when needed and cached with the content widths); applyColumnWidths writes the fitted sum as --sf-table--content-inline-size. lang ru/en: the template words of the filter window become view words."
+          "Round 8 (round/view-r8, R67-3, R67-2): readFittedWidths shrinks flexible columns (no colWidth, width in pixels or none) after the declared ones, in proportion, to leastContentWidths (the measuring pass with tbody set aside, class sf-table-measuring-least: each heading on one line, at least --sf-table--column-min-inline-size; read only when needed and cached with the content widths); applyColumnWidths writes the fitted sum as --sf-table--content-inline-size and sets data-sf-columns-fitted, under which data cells are nowrap with an ellipsis. lang ru/en: the template words of the filter window become view words."
         ]
       }
     ]
@@ -3016,7 +3016,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-table/index.js",
-        "sha256": "928a3e91f10b8400a93c208623cb226f5ba95a0f6f896cc82e7dad061a97cbc5"
+        "sha256": "48797f2fa06e38b57052c4cdbe1b946c4c78d3de9fced45edcdb4a408340fe12"
       },
       {
         "path": "src/smart/view-table/js/templates/default.js",
@@ -3024,7 +3024,7 @@
       },
       {
         "path": "src/smart/view-table/js/templates/default.css",
-        "sha256": "7ade4932f9affec6675246d65d30f5cdf8aa3932a6f034cb0a4d3c376e10df4e"
+        "sha256": "2a8c36d578549f1bd7eaf4f2a4ddf9cb70e34fe713f486de78cf53a02606a060"
       },
       {
         "path": "src/smart/helpers/option-badge.js",

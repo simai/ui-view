@@ -3333,6 +3333,9 @@ class SfTable extends TableElement {
         // Where the flexible columns gave back room (readFittedWidths), the
         // table's least width is their fitted sum, not the content's.
         const least = this._fittedInlineSize ? Math.min(this._fittedInlineSize, this._contentInlineSize || Infinity) : this._contentInlineSize;
+        // A column given less than its content holds its values on one line
+        // with an ellipsis (default.css).
+        this.toggleAttribute('data-sf-columns-fitted', Boolean(this._fittedInlineSize));
         if (this.hasContentWidths && least) table.style.setProperty('--sf-table--content-inline-size', `${least}px`);
         else table.style.removeProperty('--sf-table--content-inline-size');
     }
@@ -3366,9 +3369,12 @@ class SfTable extends TableElement {
     // list beside the record panel at the normal density, view round 8
     // R67-3: 935 px of content in an 896 px box), the flexible columns -- the
     // data columns the person did not size -- give back what they hold above
-    // their least width (their longest word or value that cannot break, and
-    // never below the column's min_width), in proportion: their text wraps.
-    // The box scrolls only when the least widths themselves do not fit.
+    // their least width, in proportion. The least width is the column's
+    // heading on one line, never below the table's column floor or the
+    // column's min_width. Nothing wraps (owner, 2026-10-13: a cell is one
+    // line): a value wider than its column ends in an ellipsis
+    // (data-sf-columns-fitted). The box scrolls only when the least widths
+    // themselves do not fit.
     readFittedWidths() {
         const fitted = new Map();
         this._fittedInlineSize = null;
@@ -3436,19 +3442,23 @@ class SfTable extends TableElement {
         return fitted;
     }
 
-    // Each data column's least width: the table laid out for a moment at
-    // min-content (the longest word or the widest value that cannot break),
-    // cached with the content widths it was read beside.
+    // Each data column's least width: for a moment the table is laid out by
+    // its headings alone (the measuring layout, the rows set aside), each on
+    // one line, and the column floor; cached with the content widths.
     leastContentWidths() {
         if (this._leastWidths && this._leastWidthsOf === this._contentWidths) return this._leastWidths;
         const table = this.refs.table?.value;
         if (!(table instanceof HTMLTableElement) || !table.isConnected) return null;
         const least = new Map();
+        const root = Number.parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+        const raw = getComputedStyle(table).getPropertyValue('--sf-table--column-min-inline-size').trim();
+        const value = Number.parseFloat(raw);
+        const floor = Number.isFinite(value) && value > 0 ? (raw.endsWith('px') ? value : value * root) : 0;
         table.classList.add('sf-table-measuring', 'sf-table-measuring-least');
         try {
             if (getComputedStyle(table).tableLayout !== 'auto') return null;
             for (const cell of table.querySelectorAll('thead th[data-key]')) {
-                if (!SYSTEM_COLUMN_KEYS.has(cell.dataset.key)) least.set(cell.dataset.key, Math.ceil(cell.getBoundingClientRect().width));
+                if (!SYSTEM_COLUMN_KEYS.has(cell.dataset.key)) least.set(cell.dataset.key, Math.max(floor, Math.ceil(cell.getBoundingClientRect().width)));
             }
         } finally {
             table.classList.remove('sf-table-measuring', 'sf-table-measuring-least');
