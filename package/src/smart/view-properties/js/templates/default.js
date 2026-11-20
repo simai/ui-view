@@ -1358,8 +1358,16 @@ function renderMenuControl(context) {
 // draws the head before that sheet arrives -- the «⋯» stood beside the star and
 // moved to the end about half a second later. With the row a flex line and the
 // spacer growing from the first frame, the end controls stand where they end.
-// Values are the Framework's (core.css), the same as the sheet's.
-const TITLE_ROW_STYLE = 'display: flex; align-items: center; gap: var(--sf-space-1\\/3); min-inline-size: 0';
+// The band's own edges too: it takes back the drawer's gutter and sets its
+// row on the panel's axis (the sheet's two tokens, with the same reading of the
+// drawer's gutter and scroll room where the sheet has not declared them yet), so
+// the «⋯» and the close end where they end, not a scroll room further out.
+// Values are the Framework's (core.css) and the drawer's, the same as the sheet's.
+const TITLE_ROW_STYLE = 'display: flex; align-items: center; gap: var(--sf-space-1\\/3); min-inline-size: 0;'
+    + ' min-block-size: calc(var(--sf-ui-2--control-height) - var(--sf-px))';
+const HEAD_STYLE = 'box-sizing: border-box;'
+    + ' margin-inline: calc(-1 * var(--sf-property-view--panel-bleed, var(--sf-drawer-gutter, var(--sf-space-1))));'
+    + ' padding-inline: var(--sf-property-view--panel-axis, calc(var(--sf-drawer-gutter, var(--sf-space-1)) + var(--sf-scroll-bg-width, 0px)))';
 
 function renderPanelHead(context) {
     const level = phoneLevel(context);
@@ -1374,7 +1382,7 @@ function renderPanelHead(context) {
     // drawer's own back part (data-sf-drawer-back), so the title does not move
     // and the close still closes the whole chain.
     return html`
-        <header class="sf-property-view-head flex flex-col">
+        <header class="sf-property-view-head flex flex-col" style=${HEAD_STYLE}>
             ${history ? html`<div class="sf-property-view-back">
                 <sf-button
                         appearance="ghost"
