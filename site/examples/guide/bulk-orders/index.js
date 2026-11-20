@@ -230,14 +230,11 @@ const initializeBulk = async () => {
       return {answer: 'applied', message: `отмечено оплаченными ${changed.length} из ${marked.length}${changed.length < marked.length ? ' (остальные уже оплачены)' : ''}.`};
     }
     if (marked.some((order) => order.status === 'paid')) {
-      return {answer: 'refused', reason: 'action-not-allowed', message: 'среди отмеченных есть оплаченные заказы — напоминать не о чем.'};
+      return {answer: 'refused', reason: 'action-not-allowed', message: 'Среди отмеченных есть оплаченные заказы — напоминать не о чем.'};
     }
     return {answer: 'applied', message: `напоминание отправлено: ${[...new Set(marked.map((order) => order.client))].join(', ')}.`};
   }});
   view.setHostPort(app.listPort);
-  view.addEventListener('sf-view-answer', (event) => {
-    if (event.detail?.intent === 'bulk.apply_selected' && event.detail?.answer === 'applied') view.refresh?.();
-  });
 };
 
 initializeBulk();
