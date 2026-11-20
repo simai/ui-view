@@ -2,8 +2,15 @@
   "$comment": "sf-view-cards, standard simai.smart-component 1.4 (vocabulary 1.1.5): the cards layout of the view set (a gallery of record cards; owner decisions C297, C306). Study: ui-control control/research/2026-11-18-cards-view. The card is .sf-card, the cover the layout's own frame, the card fields the Framework field renderers' cell output, «Показать ещё» sf-pagination in its more look, empty states sf-empty-state, menus SF.menu.open, the selection bar sf-bulk-actions where the pair has it.",
   "id": "smart.view-cards",
   "tag": "sf-view-cards",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "x-history": [
+    {
+      "version": "1.0.4",
+      "kind": "patch",
+      "recorded_on": "2026-11-21",
+      "consumer": "Nothing to change. Inside sf-view, whose footer says «1–24 из 60», the cards no longer repeat the count under the grid: the «Показать ещё 24» button stays alone. Cards drawn without sf-view keep sf-pagination's line «Показано 24 из 60».",
+      "evidence": "control/evidence/2026-11-21-view-site/README.md"
+    },
     {
       "version": "1.0.3",
       "kind": "patch",
@@ -518,6 +525,13 @@
           "to": "1.0.3",
           "changes": [
             "Release numbering (view 1.9.0): the same code as 1.0.1 of round/view-r4; 1.0.2 is the same VC-1 change on the superseded round/view-cards f85ac5a (not merged, not released), so the release takes 1.0.3."
+          ]
+        },
+        {
+          "from": "1.0.3",
+          "to": "1.0.4",
+          "changes": [
+            "View site round (round/view-site, view round 7 open item O1): renderMore draws sf-button (outline, primary, data-more, words more-text / more-plain-text in en and ru) instead of sf-pagination when the cards stand inside sf-view (context.inView); a click on [data-more] asks showMore()."
           ]
         }
       ]

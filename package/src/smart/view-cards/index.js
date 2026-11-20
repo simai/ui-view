@@ -15,7 +15,8 @@
 // Framework parts: the card is .sf-card; the fields in the «Кратко» place are
 // the Framework field renderers' cell output (C300 (2), C302); «Показать ещё»
 // and «Показано N из M» are sf-pagination in its more look (C167, words in
-// every Framework language pack); empty states are sf-empty-state; the card
+// every Framework language pack), and inside sf-view, whose footer says the
+// count, the «Показать ещё» button alone; empty states are sf-empty-state; the card
 // menu is SF.menu.open; the selection bar is sf-bulk-actions (C295) where the
 // pair has it, else the same strip of sf-button.
 import SfBaseElement from "../../core/js/smart-base";
@@ -258,6 +259,12 @@ class SfViewCards extends CardsElement {
             perPage: options.perPage,
             portions: pages,
             more: records.length > 0 && (this.hasNext || records.length > options.perPage),
+            // Inside sf-view the footer says «1–24 из 60»: the grid keeps the
+            // button and drops its own «Показано 24 из 60» (view site round).
+            inView: Boolean(this.closest?.("sf-view")),
+            moreText: countKnown
+                ? this.word("more-text", {count: Math.max(1, Math.min(options.perPage, total - records.length))})
+                : this.word("more-plain-text"),
             loadingMore: this._loadingMore,
             loading,
             skeletons: SKELETONS,
@@ -423,10 +430,11 @@ class SfViewCards extends CardsElement {
     // ── clicks and menus ───────────────────────────────────────────────────
 
     _onClick(event) {
-        const control = event.target.closest?.("[data-menu], [data-box], [data-bulk], [data-clear]");
+        const control = event.target.closest?.("[data-menu], [data-box], [data-bulk], [data-clear], [data-more]");
         if (control && this.contains(control)) {
             const data = control.dataset;
-            if (data.menu) this.openCardMenu(data.menu, control);
+            if (control.hasAttribute("data-more")) this.showMore();
+            else if (data.menu) this.openCardMenu(data.menu, control);
             else if (data.bulk) this._apply(data.bulk);
             else if (control.hasAttribute("data-clear")) this.clearSelection();
             // The box is answered by its change event.

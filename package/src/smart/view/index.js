@@ -2362,11 +2362,14 @@ class SfDataView extends DataViewElement {
     // The person's layer in an answer (port 1.16.0: required in the first
     // answer of a host with personal-preferences). The zone follows it; a
     // page size other than the one the first query asked with asks once more
-    // with it. The browser copy is brought in line for the next first paint.
+    // with it; the view the person opened last (layer.view, a saved view's
+    // key) opens by itself, with that page size. The browser copy is brought
+    // in line for the next first paint.
     _acceptPersonal(layer) {
         if (!layer || typeof layer !== "object" || !this._personalOffered()) return;
         const first = !this._personalLayer;
         this._personalLayer = copy(layer);
+        const opened = first && this._openKeptView(layer);
         const key = this.preferencesKey;
         const kept = this.keptPreferences;
         if (key) {
@@ -2377,7 +2380,7 @@ class SfDataView extends DataViewElement {
         }
         this._head?.keptChanged?.();
         const size = layer.page_size;
-        if (first && Number.isInteger(size) && size > 0 && size !== Number(this.query.per_page)) {
+        if (first && !opened && Number.isInteger(size) && size > 0 && size !== Number(this.query.per_page)) {
             this._pageSizeDeclared = true;
             Promise.resolve().then(() => {
                 if (this.isConnected && size !== Number(this.query.per_page)) this.changeQuery({per_page: size, page: 1}, "page-size-change");
@@ -3336,9 +3339,45 @@ class SfDataView extends DataViewElement {
     deleteView(key) { return this._raise("view.delete", {key}); }
     // Which view was opened, so its own settings can be put back when the
     // answer arrives: the fields the filter was showing are saved with it.
+    // Where the host keeps the person's layer (port 1.16.0) the view opened
+    // goes to it (preferences.save {view}), so the next visit opens it again.
     openView(key) {
         this._openedView = key;
+        if (this.personalLayer && key != null && String(this._personalLayer.view ?? "") !== String(key)) {
+            this._savePersonal({view: String(key)});
+        }
         return this._raise("view.open", {key});
+    }
+
+    // The view the person opened last, from their layer (port 1.16.0
+    // data.preferences.view): opened on load as if they had chosen it in the
+    // views menu, when the host offers saved views and lists it and the list
+    // is not already showing it (the page's own query or the default view).
+    // The layer's page size rides with it. Answers whether a view was opened.
+    _openKeptView(layer) {
+        const key = typeof layer.view === "string" && layer.view !== "" ? layer.view : null;
+        if (key === null || !this.hostOffers("saved-views")) return false;
+        const views = Array.isArray(this.savedViews) ? this.savedViews : [];
+        if (!views.some((view) => String(view?.key) === key)) return false;
+        const size = layer.page_size;
+        const sized = Number.isInteger(size) && size > 0;
+        // After the rest of this answer (its echo writes the query) is read.
+        Promise.resolve().then(() => {
+            if (!this.isConnected) return;
+            const shown = this.query.view?.id;
+            const fallback = views.find((view) => view?.default === true || view?.is_default === true) ?? views[0];
+            const showing = shown != null && shown !== "" ? String(shown) === key : String(fallback?.key) === key;
+            if (sized && size !== Number(this.query.per_page)) {
+                this._pageSizeDeclared = true;
+                // The list already shows the view: only the size is asked again.
+                if (showing) return this.changeQuery({per_page: size, page: 1}, "page-size-change");
+                this.query = {...this.query, per_page: size, page: 1};
+            }
+            if (showing) return;
+            if (typeof this._head?._openSavedView === "function") this._head._openSavedView(key);
+            else this.openView(key);
+        });
+        return true;
     }
 
     // The part of a saved view that belongs to the table rather than to the

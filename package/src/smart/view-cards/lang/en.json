@@ -10,6 +10,8 @@
     "cleared-text": "Selection cleared",
     "create-text": "Create",
     "deselect-text": "Deselect",
+    "more-text": "Show {count} more",
+    "more-plain-text": "Show more",
     "no-cover-text": "No photo",
     "open-text": "Open",
     "position-text": "{title}, {index} of {count}",

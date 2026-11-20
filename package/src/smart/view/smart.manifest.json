@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view",
-  "version": "1.26.0",
+  "version": "1.27.0",
   "title": "Data view",
   "summary": "Host-driven data view that composes toolbar, content and pagination around a separate data port.",
   "kind": "composite",
@@ -1901,6 +1901,13 @@
           "Round 7 (round/view-r7, VS-8, board and cards count; views study e072e2ab): js/head.js chosen falls back to the open view's settings.filter_fields (with the fields of its conditions) when the query has no filters_chosen; _openSavedView writes the view's fields as filters_chosen (or drops the previous ones); viewChanged compares the view's fields with the chosen ones. index.js _drawCountFooter: for layout board and cards the footer start shows the range of the records on screen of view.total in sf-pagination's words (range, range-many, read under sf-pagination; the page size and count offer hidden), the host attribute data-sf-view-footer-count keeps the footer part drawn without a page row; nothing before the first answer, for an empty, failed or refused list or with chrome without pagination. Port 1.16.0 (simai/ui-source feat/view-port-levels 264f42539, dispatcher order 2026-11-20): SUPPORTED_PORT_VERSIONS, x-port.supports and host_port.supported_versions + 1.16.0 (host_port.version stays 1.15.0 until the pinned pair carries the 1.16.0 contract); head.js viewLevel reads package as system; index.js _personalOffered (port >= 1.16.0 and personal-preferences), _acceptPersonal (data.preferences of an answer: zone via ListHead.keptChanged unless the person toggled, a page size other than the first query's asked once more), _savePersonal (preferences.save of the changed fields against the layer revision, one retry on a conflict's current_revision, quiet), keptPreferences prefers the layer, the browser copy kept for the first paint.",
           "Round 7 returns of DEV's round-5 acceptance (R5-1, R5-3, R5-4): VIEW_DEFAULT_PAGE_SIZE 20 replaces the literal 25 of the initial query, the echo fallback and the revalidation key; _drawFooter takes the range of a page row in appearance more from _shownRangeText (1–N of total, the board/cards count line's text); _watchHostRecordClose hears sf-view-properties-close on the document after a record.open without record-card and, when the focus was lost (body), focuses the record through _focusRecord (shared with the record card's close). The view-config/1 contract is in contracts/view-config/ of the repository."
         ]
+      },
+      {
+        "from": "1.26.0",
+        "to": "1.27.0",
+        "changes": [
+          "View site round (round/view-site, dispatcher order 2026-11-20, view round 7 open item O5): _acceptPersonal opens the layer's view on its first answer through _openKeptView (the head's _openSavedView, else openView) after the answer's echo is read, unless the list already shows it; the page size rides with that query instead of a second ask; openView raises preferences.save {view} when the layer names another view."
+        ]
       }
     ]
   },
@@ -1910,7 +1917,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view/index.js",
-        "sha256": "addb4a95089b3ca0d77888e20f24e605f56d3cc3a188b468a9e0130033278c0e"
+        "sha256": "7fc2c1be929a655b227f98c0491b5f8b56a0c6488d8781f03c1ec9916c10c550"
       },
       {
         "path": "src/core/contracts/ports/simai.dataview-port/1.5.0/port.json",

@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-cards",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "title": "Cards",
   "summary": "The cards layout of the view set: records as cards in a grid whose columns follow its width, a cover the layout draws, a title and up to four fields in the «Кратко» place; «Показать ещё» appends the next page. sf-view layout=\"cards\" draws it where the author turned it on.",
   "kind": "smart",
@@ -434,6 +434,13 @@
         "changes": [
           "Release numbering (view 1.9.0): the same code as 1.0.1 of round/view-r4; 1.0.2 is the same VC-1 change on the superseded round/view-cards f85ac5a (not merged, not released), so the release takes 1.0.3."
         ]
+      },
+      {
+        "from": "1.0.3",
+        "to": "1.0.4",
+        "changes": [
+          "View site round (round/view-site, view round 7 open item O1): renderMore draws sf-button (outline, primary, data-more, words more-text / more-plain-text in en and ru) instead of sf-pagination when the cards stand inside sf-view (context.inView); a click on [data-more] asks showMore()."
+        ]
       }
     ]
   },
@@ -443,7 +450,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-cards/index.js",
-        "sha256": "ef957e7b3ae5f3bd6ff6a1fee8eb266bf48a38158b37578b1b6db5f288911438"
+        "sha256": "42b52b61bc623627dad55948f06981a9c09b28a3857f67b104e52c77bb5638b1"
       },
       {
         "path": "src/smart/view-cards/js/cards.js",
@@ -451,7 +458,7 @@
       },
       {
         "path": "src/smart/view-cards/js/templates/default.js",
-        "sha256": "45384448ae6a49612e5fa86d45312ec429cc44037747282f2d72ab11b620b5f8"
+        "sha256": "756fcba9329d0d162606e3fbc13d8ae67f3357d7cd4aa485ceee3bc82c03acb3"
       },
       {
         "path": "src/smart/view-cards/js/templates/default.css",
