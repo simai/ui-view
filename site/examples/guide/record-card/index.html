@@ -1,0 +1,15 @@
+<div class="flex flex-col gap-2" data-card-demo>
+  <div class="flex flex-wrap gap-2 items-cross-center">
+    <sf-segmented size="1/2" aria-label="Где открыть запись" data-place
+      items='[{"value":"panel","label":"Панель сбоку"},{"value":"page","label":"На странице"}]' value="panel"></sf-segmented>
+    <sf-segmented size="1/2" aria-label="Ширина панели" data-size
+      items='[{"value":"1/2","label":"Узкая"},{"value":"1","label":"Средняя"},{"value":"2","label":"Широкая"}]' value="2"></sf-segmented>
+  </div>
+  <sf-view aria-label="Заказы" record-card="guide-order" size="1/2" preferences-key="view.guide-card">
+    <sf-view-table slot="content" aria-label="Заказы" search-placeholder="Номер или клиент"></sf-view-table>
+    <sf-pagination slot="pagination" top="false" page-size="10" page-sizes="10,20,50,100"></sf-pagination>
+  </sf-view>
+  <sf-view-properties id="guide-order" aria-label="Карточка заказа" panel hidden mode="view"></sf-view-properties>
+  <sf-view-properties aria-label="Карточка заказа на странице" mode="view" hidden data-page-card></sf-view-properties>
+  <p class="m-0 color-on-surface-variant" role="status" data-log>Нажмите номер заказа — карточка откроется рядом со списком. Alt+↓ и Alt+↑ в карточке листают записи списка.</p>
+</div>
