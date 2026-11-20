@@ -16,6 +16,27 @@ same numbers with other content); every next set version is above them
 up). Each component.json says the same under `x-decisions`
 `pro-copy-versions`.
 
+## Unreleased — view round 9
+
+The set moves to the SIMAI Framework pair `ui-b654460cad2a` (npm
+`@simai-studio/ui` 5.20261120.1816, ui-source `049a2ba3d`): the lock and the
+passport pin its source; the units follow the pair (the page row's band is
+sf-bulk-actions, three more field keys the port 1.20.0 declares, the
+registry's statuses). The set's candidate stays **1.10.0**.
+
+- `sf-view` 1.29.0: row selection through the group actions bar (Larena
+  L-2, C295). While rows are marked the view draws `sf-bulk-actions` under
+  the list: «Выбрано N», the actions as buttons (icons from `bulkActions`),
+  «Выбрать все N» where the host acts under the filter, the cross and
+  Escape. An action goes to `bulk.apply_selected` or
+  `bulk.apply_under_filter` as before; the host's answer is the bar's result
+  line («Готово 2 из 2», or «Готово 0 из 2 · 2 не удалось» with «Подробнее»
+  and «Повторить для 2», the rows kept marked). Over a pair without the bar
+  the band of before stays.
+- `sf-view-table` 1.29.1, `sf-view-board` 1.1.3, `sf-view-cards` 1.0.6,
+  `sf-view-calendar` 1.1.3: their rules fetch `sf-bulk-actions` (lazy) now
+  that the pair carries it.
+
 ## Unreleased — view round 8
 
 Over the site round (round/view-r8 from round/view-site abd3ca8, not released

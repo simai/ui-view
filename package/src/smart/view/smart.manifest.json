@@ -1947,7 +1947,7 @@
       },
       {
         "path": "src/smart/view/docs.md",
-        "sha256": "6f4ceffd306ce9ff77dd7216fd06eb62025d0c0f975f6f5c3341237c03c6c8f5"
+        "sha256": "984b750441005a165f6b59e6afa12a85d103ba4338ea538d9c3c94bf15f98e3f"
       },
       {
         "path": "tests/fixtures/data-view-composite-lab.html",
