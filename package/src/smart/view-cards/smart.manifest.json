@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-cards",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "title": "Cards",
   "summary": "The cards layout of the view set: records as cards in a grid whose columns follow its width, a cover the layout draws, a title and up to four fields in the «Кратко» place; «Показать ещё» appends the next page. sf-view layout=\"cards\" draws it where the author turned it on.",
   "kind": "smart",
@@ -74,7 +74,7 @@
       "card-size": {
         "type": "string",
         "default": "",
-        "description": "The card size over layouts.cards size: s, m, l = least card width 12, 15, 20rem (--sf-f2, --sf-f5, --sf-g0); the columns follow the width (C306). Empty: the options' size (m).",
+        "description": "The card size over layouts.cards size: s, m, l = least card width 224, 288, 352 px at a desktop (--sf-measure-28, --sf-measure-36, --sf-measure-44, C396); the columns follow the width (C306). Empty: the options' size (m).",
         "enum": [
           "",
           "s",
@@ -441,6 +441,13 @@
         "changes": [
           "View site round (round/view-site, view round 7 open item O1): renderMore draws sf-button (outline, primary, data-more, words more-text / more-plain-text in en and ru) instead of sf-pagination when the cards stand inside sf-view (context.inView); a click on [data-more] asks showMore(). Once the next page is drawn the focus goes back to the more button (or to the last card on the last page) instead of falling to the page."
         ]
+      },
+      {
+        "from": "1.0.4",
+        "to": "1.0.5",
+        "changes": [
+          "R8-1 (round/view-r8): js/templates/default.css --sf-view-cards-min reads var(--sf-measure-28|36|44, var(--sf-f4|f8|g1)); the fields grid is minmax(min-content, 1fr) auto, the field and its values wrap (no nowrap, overflow or ellipsis); the phone S grid lays the fields in one column."
+        ]
       }
     ]
   },
@@ -462,7 +469,7 @@
       },
       {
         "path": "src/smart/view-cards/js/templates/default.css",
-        "sha256": "8d1d17ca49f9d2f8dd600fd63e3078d06d3ab67c8b685ed8cdcdd8cf3038e30d"
+        "sha256": "2efe943fc74ec82b828c505252dcef9579c0ddee91972a012f5aef70e652eb55"
       },
       {
         "path": "src/smart/field-renderers/index.js",
@@ -474,7 +481,7 @@
       },
       {
         "path": "src/smart/view-cards/docs.md",
-        "sha256": "96a2e95ec96344ac0e6c01c7af0d6e5f075d133c6ce7389a0689f1b03cc473fa"
+        "sha256": "d5ae4f29776db258ca4998431f43c1d980d45881c8a9535b228d07652fd92f88"
       }
     ],
     "generated_runtime": []

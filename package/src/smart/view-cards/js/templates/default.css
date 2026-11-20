@@ -1,6 +1,9 @@
 /* sf-view-cards: a grid of record cards. Colours, sizes, radii and spaces are
    SIMAI Framework tokens only (C18, C19): the least card width of a size is a
-   size step (S --sf-f2 12rem, M --sf-f5 15rem, L --sf-g0 20rem, C306), every
+   step of the width ladder in characters (C396: S --sf-measure-28, M
+   --sf-measure-36, L --sf-measure-44 = 224, 288, 352 px at a desktop; a pair
+   without the ladder reads the same base steps --sf-f4, --sf-f8, --sf-g1),
+   wide enough for a badge, a name, a sum and a date side by side (R8-1); every
    gap a --sf-space-* step. The columns follow the grid's own width, so the
    record card docked beside the list narrows it (C305 (4)); on a phone (the
    grid below 600 px) size S draws two columns, M and L one (C306). */
@@ -8,7 +11,7 @@
   sf-view-cards {
     display: block;
     min-inline-size: 0;
-    --sf-view-cards-min: var(--sf-f5);
+    --sf-view-cards-min: var(--sf-measure-36, var(--sf-f8));
     --sf-view-cards-gap: var(--sf-space-1\/2);
     --sf-view-cards-cover-background: var(--sf-surface-container);
     --sf-view-cards-selected-background: var(--sf-primary-container);
@@ -24,8 +27,8 @@
     container-type: inline-size;
   }
 
-  .sf-view-cards[data-card-size="s"] { --sf-view-cards-min: var(--sf-f2); }
-  .sf-view-cards[data-card-size="l"] { --sf-view-cards-min: var(--sf-g0); }
+  .sf-view-cards[data-card-size="s"] { --sf-view-cards-min: var(--sf-measure-28, var(--sf-f4)); }
+  .sf-view-cards[data-card-size="l"] { --sf-view-cards-min: var(--sf-measure-44, var(--sf-g1)); }
 
   .sf-view-cards__grid {
     position: relative;
@@ -165,12 +168,14 @@
 
   /* Up to four «Кратко» fields in two columns pushed to the card's foot:
      the first column at its start, numbers and dates of the second at the
-     end (VC-1), tabular digits; rows of
-     one height across a row of cards. */
+     end (VC-1), tabular digits. No field is ever cut (R8-1): a column never
+     narrows below its content's least width (a badge whole, a sum whole, a
+     text at its longest word), and a text, a date or a sum wraps at its
+     spaces instead of ending in an ellipsis. */
   .sf-view-cards__fields {
     margin-block-start: auto;
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: minmax(min-content, 1fr) auto;
     align-items: center;
     gap: var(--sf-space-1\/4) var(--sf-space-1\/2);
     font-size: var(--sf-text-size-1\/2);
@@ -184,21 +189,19 @@
     gap: var(--sf-space-1\/4);
     min-inline-size: 0;
     min-block-size: var(--sf-text-height-1\/2);
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
+    overflow-wrap: break-word;
     color: var(--sf-on-surface-variant);
   }
 
   .sf-view-cards__field[data-align="end"] { justify-self: end; }
   .sf-view-cards__field[data-numeric] { font-variant-numeric: tabular-nums; }
   .sf-view-cards__value,
-  .sf-view-cards__values { display: inline-flex; align-items: center; gap: var(--sf-space-1\/4); min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; }
+  .sf-view-cards__values { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--sf-space-1\/4); }
 
   /* card_labels: each field a row of its label and its value. */
-  .sf-view-cards__fields[data-labels] { grid-template-columns: minmax(0, 1fr); }
+  .sf-view-cards__fields[data-labels] { grid-template-columns: minmax(min-content, 1fr); }
   .sf-view-cards__fields[data-labels] .sf-view-cards__field { justify-self: stretch; justify-content: space-between; gap: var(--sf-space-1\/2); }
-  .sf-view-cards__label { color: var(--sf-on-surface-variant); overflow: hidden; text-overflow: ellipsis; }
+  .sf-view-cards__label { color: var(--sf-on-surface-variant); }
   .sf-view-cards__fields[data-labels] .sf-view-cards__value { color: var(--sf-on-surface); }
 
   .sf-view-cards__empty { display: flex; justify-content: center; padding-block: var(--sf-space-2); }
@@ -243,6 +246,10 @@
   @container (max-width: 599.98px) {
     .sf-view-cards__grid { grid-template-columns: minmax(0, 1fr); }
     .sf-view-cards[data-card-size="s"] .sf-view-cards__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    /* Two cards side by side leave no room for two fields side by side: the
+       fields stand one under the other, each at its start (R8-1). */
+    .sf-view-cards[data-card-size="s"] .sf-view-cards__fields { grid-template-columns: minmax(min-content, 1fr); }
+    .sf-view-cards[data-card-size="s"] .sf-view-cards__field[data-align="end"] { justify-self: start; }
     .sf-view-cards__card.sf-card { --sf-card-padding-inline: var(--sf-space-1\/3); }
   }
 }

@@ -42,6 +42,15 @@ yet): DEV's returns of rounds 6+7 (R67-1..3) and of the site round
   «Представление сохранено» (R67-2).
 - `sf-view-properties` 1.23.3: the English default of `variant-text` is
   «Look» (was «Template»).
+- `sf-view-cards` 1.0.5: no card field is cut (R8-1: on the home example a
+  card of 195 px cut «Новый» to «Н…» and «9 800,00 ₽» to «9 800,»). The
+  least card width is a step of the width ladder (C396): S
+  `--sf-measure-28`, M `-36`, L `-44` = 224, 288, 352 px at a desktop (was
+  192, 240, 320), read over the base steps `--sf-f4`, `--sf-f8`, `--sf-g1`
+  where the pair has no ladder yet; a field column never narrows below its
+  content's least width and a value wraps at its spaces instead of an
+  ellipsis; on a phone the two S cards side by side lay their fields one
+  under the other.
 - Site: page sizes 10/20/50/100 in the examples; the materializer carries
   `core/contracts/icon-names.v1.json` (VSA-2); no decision ids in the change
   history or in an example's source, and the site lint rule `history` now

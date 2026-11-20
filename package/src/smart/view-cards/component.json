@@ -2,8 +2,15 @@
   "$comment": "sf-view-cards, standard simai.smart-component 1.4 (vocabulary 1.1.5): the cards layout of the view set (a gallery of record cards; owner decisions C297, C306). Study: ui-control control/research/2026-11-18-cards-view. The card is .sf-card, the cover the layout's own frame, the card fields the Framework field renderers' cell output, «Показать ещё» sf-pagination in its more look, empty states sf-empty-state, menus SF.menu.open, the selection bar sf-bulk-actions where the pair has it.",
   "id": "smart.view-cards",
   "tag": "sf-view-cards",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "x-history": [
+    {
+      "version": "1.0.5",
+      "kind": "patch",
+      "recorded_on": "2026-11-21",
+      "consumer": "Nothing to change for a host. No field of a card is cut any more: the least card width is a step of the width ladder (S 224, M 288, L 352 px at a desktop, it was 192, 240, 320), so fewer columns are drawn, and a value that does not fit its place wraps at its spaces instead of ending in an ellipsis. On a phone the two S cards side by side show their fields one under the other.",
+      "evidence": "control/evidence/2026-11-21-view-r8-1/README.md"
+    },
     {
       "version": "1.0.4",
       "kind": "patch",
@@ -54,7 +61,7 @@
         "l"
       ],
       "default": "",
-      "summary": "The card size over layouts.cards size: s, m, l = least card width 12, 15, 20rem (--sf-f2, --sf-f5, --sf-g0); the columns follow the width (C306). Empty: the options' size (m)."
+      "summary": "The card size over layouts.cards size: s, m, l = least card width 224, 288, 352 px at a desktop (--sf-measure-28, --sf-measure-36, --sf-measure-44, C396); the columns follow the width (C306). Empty: the options' size (m)."
     },
     "selectable": {
       "type": "boolean",
@@ -386,7 +393,7 @@
     "reuse: .sf-card, sf-checkbox, sf-button(-icon), sf-icon, sf-pagination (more), sf-empty-state, sf-skeleton, SF.menu.open, the Framework field renderers' renderCellField; sf-bulk-actions where the pair has it. Nothing is copied.",
     "cover: drawn by the layout in a frame of one ratio (cover crops by default, contain whole on a tint, C306 q-cover); the field template keeps its four places (C302); lazy pictures with width and height, alt empty (the title says it).",
     "window: {page, per_page: 24} answered {records, total, has_next}; «Показать ещё» asks the next page and appends it (C306 q-window); no grouping (C297).",
-    "columns: auto-fill by the least card width of the size S, M, L (12, 15, 20rem, C306 q-size); on a phone (the grid below 600 px) S two columns, M and L one (C306 q-phone)."
+    "columns: auto-fill by the least card width of the size S, M, L (--sf-measure-28, -36, -44 = 224, 288, 352 px at a desktop, C396; C306 q-size); on a phone (the grid below 600 px) S two columns with the fields one under the other, M and L one (C306 q-phone); no card field is cut: it wraps at its spaces (R8-1)."
   ],
   "x-rule": {
     "$comment": [
@@ -532,6 +539,13 @@
           "to": "1.0.4",
           "changes": [
             "View site round (round/view-site, view round 7 open item O1): renderMore draws sf-button (outline, primary, data-more, words more-text / more-plain-text in en and ru) instead of sf-pagination when the cards stand inside sf-view (context.inView); a click on [data-more] asks showMore(). Once the next page is drawn the focus goes back to the more button (or to the last card on the last page) instead of falling to the page."
+          ]
+        },
+        {
+          "from": "1.0.4",
+          "to": "1.0.5",
+          "changes": [
+            "R8-1 (round/view-r8): js/templates/default.css --sf-view-cards-min reads var(--sf-measure-28|36|44, var(--sf-f4|f8|g1)); the fields grid is minmax(min-content, 1fr) auto, the field and its values wrap (no nowrap, overflow or ellipsis); the phone S grid lays the fields in one column."
           ]
         }
       ]

@@ -49,9 +49,11 @@ action, «Создать» and «Сбросить фильтр» are events.
   Framework field renderers in the «Кратко» place (C300 (2)): text at the
   start, numbers and dates at the end. `card_labels: true` shows their labels;
   without them a screen reader reads them and a tooltip shows them.
-- `size`: `s`, `m`, `l` = least card width 12, 15, 20rem; the columns follow
-  the width. On a phone (the grid below 600 px) S draws two columns, M and L
-  one (C306).
+- `size`: `s`, `m`, `l` = least card width 224, 288, 352 px at a desktop
+  (the width ladder steps `--sf-measure-28`, `-36`, `-44`, C396); the columns
+  follow the width. On a phone (the grid below 600 px) S draws two columns,
+  its fields one under the other, M and L one (C306). No field is cut: a
+  value wraps at its spaces.
 - `density`: `compact` takes the card's padding a step down.
 - `more`: `button` («Показать ещё»); `per_page` 24 divides into 2, 3, 4 and 6
   columns.
