@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-table",
-  "version": "1.27.1",
+  "version": "1.28.0",
   "title": "Table",
   "summary": "Complete server-backed collection view with search, filters, table preferences, row and bulk actions, and pagination.",
   "kind": "composite",
@@ -3000,6 +3000,13 @@
         "changes": [
           "Round 7 (round/view-r7, DEV round-5 return R5-2 and question Q1, C301 (3)): context.filterHeld (filterTemplateHolds: the template's active tags, values, or a saved view's query.filters) joins the tags count in the tonal/primary look of the list toolbar's filter icon and the table toolbar's filter button and save segment; the list toolbar's filter icon is named «<filter-text>: <saved filter name>» while a saved filter is open."
         ]
+      },
+      {
+        "from": "1.27.1",
+        "to": "1.28.0",
+        "changes": [
+          "Round 8 (round/view-r8, R67-3, R67-2): readFittedWidths shrinks flexible columns (no colWidth, width in pixels or none) after the declared ones, in proportion, to leastContentWidths (a measuring pass at min-content with overflow-wrap normal, class sf-table-measuring-least, read only when needed and cached with the content widths); applyColumnWidths writes the fitted sum as --sf-table--content-inline-size. lang ru/en: the template words of the filter window become view words."
+        ]
       }
     ]
   },
@@ -3009,7 +3016,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-table/index.js",
-        "sha256": "beb9f752eec908facdacdb9257744a5a66ef3d9b8350d01145b9a768914316ad"
+        "sha256": "928a3e91f10b8400a93c208623cb226f5ba95a0f6f896cc82e7dad061a97cbc5"
       },
       {
         "path": "src/smart/view-table/js/templates/default.js",
@@ -3017,7 +3024,7 @@
       },
       {
         "path": "src/smart/view-table/js/templates/default.css",
-        "sha256": "fda91dc7b627681a9e3911712d05d6bc345a5965e8014e9171221d3d231edacd"
+        "sha256": "7ade4932f9affec6675246d65d30f5cdf8aa3932a6f034cb0a4d3c376e10df4e"
       },
       {
         "path": "src/smart/helpers/option-badge.js",

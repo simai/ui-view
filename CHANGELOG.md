@@ -16,6 +16,39 @@ same numbers with other content); every next set version is above them
 up). Each component.json says the same under `x-decisions`
 `pro-copy-versions`.
 
+## Unreleased — view round 8
+
+Over the site round (round/view-r8 from round/view-site abd3ca8, not released
+yet): DEV's returns of rounds 6+7 (R67-1..3) and of the site round
+(VSA-1..5). The set's version is now the candidate **1.10.0**
+(package/package.json): the site states the version of the build it runs.
+
+- `sf-view` 1.28.0: a board and cards chosen in the view zone show their
+  count line («1–16 из 60») — the head's rule for display kinds other than
+  the table hid the footer start (R67-1). The head says what view-config/1
+  says: «Сохранить представление», «Сохранить как моё» for a view the person
+  cannot write (system, not shareable or with locked paths), «Сбросить»
+  (R67-2). On a phone the search field no longer widens the head past its
+  frame (306 px in 286, VSA-1). A layout switched to while its code is on
+  the way holds only the list's place with the layout's skeleton; the head,
+  the marks and the footer stay on screen (VSA-5).
+- `sf-view-table` 1.28.0: beside the record panel at the normal density the
+  columns nobody sized give back room down to their least width (the
+  longest word or value that cannot break, never below `min_width`) and
+  wrap; the table scrolls sideways only when those least widths do not fit
+  (R67-3: sites 935 px in 896, users 826 in 688, both fit now). The filter
+  window's words: tab «Представления», «Сохранить представление»,
+  «Представление сохранено» (R67-2).
+- `sf-view-properties` 1.23.3: the English default of `variant-text` is
+  «Look» (was «Template»).
+- Site: page sizes 10/20/50/100 in the examples; the materializer carries
+  `core/contracts/icon-names.v1.json` (VSA-2); no decision ids in the change
+  history or in an example's source, and the site lint rule `history` now
+  covers both (VSA-3); `build-pages.mjs --receipt` (run by `build.sh`)
+  refuses a site that states another version than the build it runs
+  (VSA-4); an example is held hidden only for its first paint, not while a
+  layout switched to loads (VSA-5).
+
 ## Unreleased — view site round
 
 Over round 7 (round/view-site from round/view-r7 0a6d6bf, not released yet):

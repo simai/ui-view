@@ -5,6 +5,15 @@
   "entries": [
     {
       "unit": "smart.view",
+      "version": "1.28.0",
+      "recorded_on": "2026-11-20",
+      "change": "minor",
+      "consumer": "Nothing to change for a host. With head=\"list\": a board and cards chosen in the view zone show their count line in the footer («1–16 из 60»); the head's words follow view-config/1 («Сохранить представление», «Сохранить как моё» for a view the person cannot write, «Сбросить»); on a phone the search field no longer widens the head past its box. A layout switched to while its code is on the way holds only the list's place with its skeleton (host attribute data-sf-layout-loading meanwhile); the head, the marks and the footer stay.",
+      "summary": "Round 8 (round/view-r8, R67-1, R67-2, VSA-1, VSA-5): js/head.css hides the footer start under a display kind other than the table only while the view has no count (:not([data-sf-view-footer-count])), and the phone search field takes contain: inline-size; index.js _drawCountFooter drops data-sf-view-footer-count for other kinds, _holdLayoutLoad after a layout change puts a skeleton of the layout (slot content, data-sf-layout-hold) until the element is defined and has drawn (8 s at most); js/head.js state panel offers headViewSaveMine «Сохранить как моё» for a system, unshareable or locked view; lang head-view-new and head-view-save-new «Сохранить представление», new head-view-save-mine.",
+      "evidence": "control/evidence/2026-11-21-view-r8/README.md"
+    },
+    {
+      "unit": "smart.view",
       "version": "1.27.0",
       "recorded_on": "2026-11-21",
       "change": "minor",
@@ -194,6 +203,15 @@
     },
     {
       "unit": "smart.view-table",
+      "version": "1.28.0",
+      "recorded_on": "2026-11-20",
+      "change": "minor",
+      "consumer": "Nothing to change for a host. Where the columns at their content widths do not fit the box (a list beside the record panel at the normal density), the data columns nobody sized give back room down to their least width (the longest word or value that cannot break, never below min_width) and their text wraps; the box scrolls only when the least widths do not fit. The filter window's words follow view-config/1: tab «Представления», «Сохранить представление», «Представление сохранено».",
+      "summary": "Round 8 (round/view-r8, R67-3, R67-2): readFittedWidths shrinks flexible columns (no colWidth, width in pixels or none) after the declared ones, in proportion, to leastContentWidths (a measuring pass at min-content with overflow-wrap normal, class sf-table-measuring-least, read only when needed and cached with the content widths); applyColumnWidths writes the fitted sum as --sf-table--content-inline-size. lang ru/en: the template words of the filter window become view words.",
+      "evidence": "control/evidence/2026-11-21-view-r8/README.md"
+    },
+    {
+      "unit": "smart.view-table",
       "version": "1.27.1",
       "recorded_on": "2026-11-20",
       "change": "patch",
@@ -371,6 +389,15 @@
       "consumer": "Nothing to change for a host: only the SIMAI Framework file it builds in moved with the repin.",
       "summary": "Over SIMAI Framework ui-078a4b4c6f6e (ui-source 10145e63b9dc) the Framework file it builds in, src/smart/pagination/index.js (sf-pagination 1.7: «Show more» within reach, C167; a deleting action listed last, C116), moved; the provenance and the version follow. Nothing of its own; nothing to change for a host. 1.19.7 and 1.19.8 are ui-pro's own patched copies, never this set's.",
       "evidence": "https://github.com/simai/ui-view/commit/e214dd608fdcf39cea527676fc522afd718922d4"
+    },
+    {
+      "unit": "smart.view-properties",
+      "version": "1.23.3",
+      "recorded_on": "2026-11-20",
+      "change": "patch",
+      "consumer": "Nothing to change for a host. The English default of variant-text is «Look» (it was «Template»), as the Russian «Вид».",
+      "summary": "Round 8 (round/view-r8, R67-2): lang/en.json and index.js variantText default «Look»; 1.23.2 is left to the parallel branch fix/property-view-scroll.",
+      "evidence": "control/evidence/2026-11-21-view-r8/README.md"
     },
     {
       "unit": "smart.view-properties",

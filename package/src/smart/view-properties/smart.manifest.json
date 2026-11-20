@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-properties",
-  "version": "1.23.1",
+  "version": "1.23.3",
   "title": "Property view",
   "summary": "One object's fields shown as sections, groups and fields, each drawn by the per-type field renderer set, behind a separate host port. A group is edited and saved as one revision by the button, and a reference field is picked from the host's own candidates a page at a time. The pair to the data view: that one is a set of records, this one is a single object.",
   "kind": "composite",
@@ -1990,6 +1990,13 @@
         "changes": [
           "Round 7 (round/view-r7, dispatcher order 2026-11-20): the VB-1 strip rule in a panel moved to .sf-property-view-panel--own-strip; the panel takes that class while frameworkStripGround() finds no sheet rule .sf-tabs.sf-tabs--sticky > .sf-tabs-top-container reading --sf-surface-place-ground (component.tabs 1.5.4, simai/ui-source feat/view-port-levels 72c8b6547, group build 15). Remove the class and the rule once every supported pair carries 1.5.4."
         ]
+      },
+      {
+        "from": "1.23.1",
+        "to": "1.23.3",
+        "changes": [
+          "Round 8 (round/view-r8, R67-2): lang/en.json and index.js variantText default «Look»; 1.23.2 is left to the parallel branch fix/property-view-scroll."
+        ]
       }
     ]
   },
@@ -1999,7 +2006,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-properties/index.js",
-        "sha256": "a7a27b7fdb4bc1a5a806d9c2b0198152c944a9c92c1576d2559df0032c9c24af"
+        "sha256": "68df7985929d47233c34618b074aa6a293ebc72959fee05e189efc0bbb46a0f2"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.js",

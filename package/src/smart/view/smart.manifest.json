@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view",
-  "version": "1.27.0",
+  "version": "1.28.0",
   "title": "Data view",
   "summary": "Host-driven data view that composes toolbar, content and pagination around a separate data port.",
   "kind": "composite",
@@ -1908,6 +1908,13 @@
         "changes": [
           "View site round (round/view-site, dispatcher order 2026-11-20, view round 7 open item O5): _acceptPersonal opens the layer's view on its first answer through _openKeptView (the head's _openSavedView, else openView) after the answer's echo is read, unless the list already shows it; the page size rides with that query instead of a second ask; openView raises preferences.save {view} when the layer names another view. The kept view waits for the head's describe() answer (head.described) so it opens in its own layout."
         ]
+      },
+      {
+        "from": "1.27.0",
+        "to": "1.28.0",
+        "changes": [
+          "Round 8 (round/view-r8, R67-1, R67-2, VSA-1, VSA-5): js/head.css hides the footer start under a display kind other than the table only while the view has no count (:not([data-sf-view-footer-count])), and the phone search field takes contain: inline-size; index.js _drawCountFooter drops data-sf-view-footer-count for other kinds, _holdLayoutLoad after a layout change puts a skeleton of the layout (slot content, data-sf-layout-hold) until the element is defined and has drawn (8 s at most); js/head.js state panel offers headViewSaveMine «Сохранить как моё» for a system, unshareable or locked view; lang head-view-new and head-view-save-new «Сохранить представление», new head-view-save-mine."
+        ]
       }
     ]
   },
@@ -1917,7 +1924,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view/index.js",
-        "sha256": "fb07edcc69a3769cdc2fd462e75fbe5fd582a035f1553cd85efa8086a38fef0a"
+        "sha256": "4ebc63076c15e8bf666cd6169b79e58a7d16ac632e5402f91365fea29184ba34"
       },
       {
         "path": "src/core/contracts/ports/simai.dataview-port/1.5.0/port.json",

@@ -23,7 +23,7 @@ profile: how_to
 
    <!-- release:cdn-pinned -->
    ```html
-   <script src="https://cdn.jsdelivr.net/npm/@simai-studio/ui@5.20261118.1205/distr/core/js/core.min.js" data-sf-sets="view@1.9.0"></script>
+   <script src="https://cdn.jsdelivr.net/npm/@simai-studio/ui@5.20261118.1205/distr/core/js/core.min.js" data-sf-sets="view@1.10.0"></script>
    ```
    <!-- /release:cdn-pinned -->
 

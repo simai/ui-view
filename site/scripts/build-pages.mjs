@@ -25,7 +25,13 @@
 //     NPM_VERSION, moved by the repin commit). A version the release locks do
 //     not hold yet is shown as this build's candidate.
 //
-// Usage: node site/scripts/build-pages.mjs [--check]
+// With --receipt <file> (scripts/build.sh passes the set build's receipt) it
+// also refuses a site that would state another version than the build it
+// runs (view site acceptance VSA-4): the receipt's package.json version must
+// be the version the pages state, and a version a release lock holds must be
+// that release's own source, never a round build that carries it on.
+//
+// Usage: node site/scripts/build-pages.mjs [--check] [--receipt <file>]
 import {execFileSync} from 'node:child_process';
 import {existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync} from 'node:fs';
 import {dirname, join, resolve} from 'node:path';
@@ -172,6 +178,18 @@ const spoken = (date) => {
 };
 const version = pkg.version;
 const release = releases.find((one) => one.version === version);
+const receiptAt = process.argv.includes('--receipt') ? resolve(process.argv[process.argv.indexOf('--receipt') + 1] ?? '') : null;
+if (receiptAt) {
+  const receipt = JSON.parse(readFileSync(receiptAt, 'utf8'));
+  const built = receipt.package_source?.revision;
+  const builtPackage = JSON.parse(execFileSync('git', ['-C', repository, 'show', `${built}:package/package.json`], {encoding: 'utf8'}));
+  if (builtPackage.version !== version) {
+    throw new Error(`the pages state view ${version}, the site runs the build of ${built.slice(0, 12)}, which is view ${builtPackage.version}`);
+  }
+  if (release && release.source.revision !== built) {
+    throw new Error(`view ${version} is the release ${release.id} (${release.source.revision.slice(0, 12)}); the site runs the build of ${built.slice(0, 12)}: build it over the release, or give the round a candidate version above ${version}`);
+  }
+}
 if (release && release.requires.framework !== pair) {
   throw new Error(`view ${version} (${release.id}) is built over ${release.requires.framework}, the site over ${pair}: rebuild the site over the release's pair`);
 }

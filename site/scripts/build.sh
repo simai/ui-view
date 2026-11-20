@@ -32,7 +32,7 @@ if [ "$(cat .framework/COMMIT 2>/dev/null || true)" != "$commit" ]; then
   git -C "$ui" archive --format=tar "$commit" distr | tar -x -C .framework
   echo "$commit" > .framework/COMMIT
 fi
-node scripts/build-pages.mjs --check
+node scripts/build-pages.mjs --check --receipt "$workspace/build/package-receipt.json"
 node scripts/build-properties.mjs --check
 node scripts/build-reference.mjs --check --receipt "$workspace/build/package-receipt.json"
 DOCARA_SIMAI_UI_ROOT="$site/.framework" php -d memory_limit=2G vendor/bin/docara build production
