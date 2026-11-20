@@ -81,7 +81,7 @@ query.context  // {timeZone: 'Europe/Moscow', weekStart: 1, locale: 'ru'}
 
 ## Параметры
 
-Справочник собран из манифеста компонента в сборке-кандидате набора (`simai/ui-view@5ee50e95a4dd`) и обновляется вместе с выпуском. Каждому атрибуту соответствует свойство элемента с тем же именем в camelCase: `search-placeholder` — `searchPlaceholder`.
+Справочник собран из манифеста компонента в сборке-кандидате набора (`simai/ui-view@008345776e8f`) и обновляется вместе с выпуском. Каждому атрибуту соответствует свойство элемента с тем же именем в camelCase: `search-placeholder` — `searchPlaceholder`.
 
 | | |
 |:---|:---|
@@ -162,7 +162,7 @@ query.context  // {timeZone: 'Europe/Moscow', weekStart: 1, locale: 'ru'}
 
 ## Источник
 
-- `simai/ui-view@5ee50e95a4dd:package/src/smart/view-calendar`
+- `simai/ui-view@008345776e8f:package/src/smart/view-calendar`
 
 ## См. также
 
