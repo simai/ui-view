@@ -428,6 +428,17 @@
     overflow: hidden;
     text-overflow: ellipsis;
   }
+  :is(sf-view-table, sf-table)[data-sf-columns-fitted] table:not(.sf-table-measuring) td[data-key] .sf-table-title-link {
+    max-inline-size: 100%;
+  }
+  :is(sf-view-table, sf-table)[data-sf-columns-fitted] table:not(.sf-table-measuring) td[data-key] .sf-table-cell-text {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    -webkit-line-clamp: none;
+    line-clamp: none;
+  }
   :is(sf-view-table, sf-table) table.sf-table-measuring col {
     inline-size: auto !important;
     width: auto !important;

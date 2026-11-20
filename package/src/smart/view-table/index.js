@@ -3385,6 +3385,9 @@ class SfTable extends TableElement {
         let slack = 0;
         const declared = [];
         const flexible = [];
+        // A width is written in whole pixels: a column is never given less
+        // than its floor rounded up, or its heading wrapped by a fraction
+        // (users, «Последний вход»: 139.875 measured, 139 given).
         for (const cell of this.querySelectorAll('thead th[data-key]')) {
             if (SYSTEM_COLUMN_KEYS.has(cell.dataset.key)) total += cell.getBoundingClientRect().width;
         }
@@ -3407,15 +3410,20 @@ class SfTable extends TableElement {
             total += wants;
             flexible.push([column.key, Math.min(wants, floor), least]);
             if (wants > floor) {
-                declared.push([column.key, wants, wants - floor]);
+                declared.push([column.key, wants, wants - floor, Math.ceil(floor)]);
                 slack += wants - floor;
             }
         }
         const excess = total - box;
         if (excess <= 0) return fitted;
         const share = slack ? Math.min(1, excess / slack) : 0;
-        for (const [key, wants, room] of declared) fitted.set(key, Math.floor(wants - room * share));
-        const left = excess - slack;
+        let gave = 0;
+        for (const [key, wants, room, floor] of declared) {
+            const next = Math.max(floor, Math.floor(wants - room * share));
+            gave += wants - next;
+            fitted.set(key, next);
+        }
+        const left = excess - gave;
         if (left <= 0 || !flexible.length) return fitted;
         // The least widths are read only now, when they are needed: one more
         // layout of the table, the content widths' measuring at min-content.
@@ -3423,7 +3431,8 @@ class SfTable extends TableElement {
         if (!leastWidths) return fitted;
         let room = 0;
         const shrinking = [];
-        for (const [key, width, declaredLeast] of flexible) {
+        for (const [key, own, declaredLeast] of flexible) {
+            const width = fitted.get(key) ?? own;
             const least = Math.min(width, Math.max(leastWidths.get(key) ?? width, declaredLeast));
             if (width > least) {
                 shrinking.push([key, width, width - least]);
@@ -3431,14 +3440,15 @@ class SfTable extends TableElement {
             }
         }
         if (!room) return fitted;
-        const give = Math.min(1, left / room);
+        // A pixel more per column, so the rounding up leaves no sliver to scroll.
+        const give = Math.min(1, (left + shrinking.length) / room);
         let given = 0;
         for (const [key, width, spare] of shrinking) {
-            const next = Math.floor(width - spare * give);
+            const next = Math.max(Math.ceil(width - spare), Math.floor(width - spare * give));
             given += width - next;
             fitted.set(key, next);
         }
-        this._fittedInlineSize = Math.ceil(total - slack - given);
+        this._fittedInlineSize = Math.ceil(total - gave - given);
         return fitted;
     }
 

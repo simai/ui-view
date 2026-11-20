@@ -67,11 +67,13 @@ test('R67-1: a board and cards keep the footer start that says their count', () 
 test('R67-3: flexible columns give back room down to their least width before the box scrolls', () => {
   const table = read('src/smart/view-table/index.js');
   assert.match(table, /leastContentWidths\(\) \{/u);
-  assert.match(table, /const left = excess - slack;/u);
-  assert.match(table, /this\._fittedInlineSize = Math\.ceil\(total - slack - given\);/u);
+  assert.match(table, /const left = excess - gave;/u);
+  assert.match(table, /Math\.max\(floor, Math\.floor\(wants - room \* share\)\)/u, 'a column keeps its floor in whole pixels');
+  assert.match(table, /this\._fittedInlineSize = Math\.ceil\(total - gave - given\);/u);
   const css = read('src/smart/view-table/js/templates/default.css');
   assert.match(css, /table\.sf-table-measuring-least > tbody \{\n\s+display: none !important;/u, 'the least width is the heading on one line');
   assert.match(css, /\[data-sf-columns-fitted\] table:not\(\.sf-table-measuring\) td\[data-key\][^{]*\{\n\s+white-space: nowrap;\n\s+overflow: hidden;\n\s+text-overflow: ellipsis;/u, 'a fitted cell stays one line');
+  assert.match(css, /\[data-sf-columns-fitted\] table:not\(\.sf-table-measuring\) td\[data-key\] \.sf-table-cell-text \{[^}]*text-overflow: ellipsis;/u, 'a long value ends in an ellipsis');
   assert.match(table, /this\.toggleAttribute\('data-sf-columns-fitted', Boolean\(this\._fittedInlineSize\)\);/u);
 });
 
