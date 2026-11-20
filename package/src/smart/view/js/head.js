@@ -561,8 +561,21 @@ export class ListHead {
         // Its filter fields: a field added or taken away is a change (VS-8).
         const fields = this.viewFilterFields(view);
         if (fields && !same(fields.filter((key) => this.field(key)).sort(), [...this.chosen].sort())) return true;
-        const layout = view.settings?.layout ?? view.layout;
+        const layout = this.viewKind(view);
         return typeof layout === "string" && this.kinds.includes(layout) && layout !== this.kind;
+    }
+
+    // The display kind a view stands for: the one it was saved with, else the
+    // one the list showed when the view was opened (view round 10, V10-3: a
+    // system view that names no layout got «Изменено» after a filter change
+    // and not after a change of the display kind -- the kind was compared
+    // only with a saved one). Remembered per open view.
+    viewKind(view) {
+        const own = view?.settings?.layout ?? view?.layout;
+        if (typeof own === "string" && own) return own;
+        const key = String(view?.key ?? "");
+        if (this._openedKind?.key !== key) this._openedKind = {key, kind: this.kind};
+        return this._openedKind.kind;
     }
 
     get zoneUseful() {
@@ -1239,6 +1252,7 @@ export class ListHead {
         // Another view starts from what is saved for it: no change of the
         // person's carries over from the view they left.
         this._settings = null;
+        this._openedKind = {key: String(key), kind: type};
         // A view saved as a board opens as one (and a table view as a table):
         // the layout's own query first, then the view.
         if (type !== this.view.layoutKind && this.drawable(type)) this.view.switchLayout?.(type);
@@ -1368,7 +1382,28 @@ export class ListHead {
         if (same(current[key], value)) return;
         this._settings ??= {};
         this._settings[kind] = {...(this._settings[kind] ?? {}), [key]: value};
+        if (kind === "table" && key === "columns") this._showColumns(value);
         this._saveSettings("personal", {[key]: value});
+    }
+
+    // The table's columns as «Настроить вид» says (view round 10, V10-2): a
+    // column switched off there stayed in the table -- the setting went to the
+    // host (settings.save) and nothing changed on screen. The table's own
+    // column settings take it, without the table's own save (the head's
+    // settings.save is the one write).
+    _showColumns(keys) {
+        const table = this.view.table;
+        if (!Array.isArray(keys) || typeof table?.setColumnSettings !== "function") return;
+        const on = new Set(keys.map(String));
+        const columns = (this.view.columns ?? []).filter((column) => column?.key !== undefined && column?.key !== null);
+        table.setColumnSettings((current) => {
+            const next = {...(current ?? {})};
+            for (const column of columns) {
+                const key = String(column.key);
+                next[key] = {...(next[key] ?? {}), visible: on.has(key)};
+            }
+            return next;
+        }, "view-customize", false);
     }
 
     _saveSettings(layer, patch) {
@@ -1501,7 +1536,7 @@ export class ListHead {
             }
             const filters = copy(view.query?.filters ?? view.filters ?? {});
             const fields = Array.isArray(view.settings?.filter_fields) ? view.settings.filter_fields.map(String) : Object.keys(filters);
-            const layout = view.settings?.layout ?? view.layout;
+            const layout = this.viewKind(view);
             if (typeof layout === "string" && layout !== this.kind && this.kinds.includes(layout)) this._setKind(layout);
             this._query({filters, filters_chosen: fields});
             return;

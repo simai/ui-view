@@ -496,6 +496,222 @@
         },
         "$comment": "A fake host (ui-source first-paint-lib.mjs portOf): gate 24 hands it over as phase 3. It answers the shape the skeleton stands for: as many rows (row-cap, else a page of 10) and as many columns (expected-columns, 4) as it draws, each field long enough to take its own line in the compact list."
       }
+    },
+    {
+      "name": "phone-list",
+      "title": "Список на телефоне",
+      "settings": {
+        "aria-label": "Заказы",
+        "collection": "shop.orders",
+        "size": "1/2",
+        "expected-columns": 4
+      },
+      "children": "<sf-view-table slot=\"content\" aria-label=\"Заказы\" size=\"1/2\"></sf-view-table><sf-pagination slot=\"pagination\" page-size=\"12\" page-sizes=\"12,24\"></sf-pagination>",
+      "first-paint": {
+        "max-bytes": 24576,
+        "why": "The view's skeleton at size 1/2 with a page of twelve records and three fields (view round 10, R9-1): on a phone the compact list's records, each the title and three field lines of the list's own text, so the list does not grow when the records come. 24 KB as the reference: the same printed parts, two rows more."
+      },
+      "expect": {
+        "name": "Заказы",
+        "values": {
+          "state": "ready"
+        }
+      },
+      "port": {
+        "capabilities": [
+          "row-actions"
+        ],
+        "answers": {
+          "query.change": {
+            "answer": "applied",
+            "data": {
+              "records": [
+                {
+                  "id": "o-001",
+                  "revision": "r1",
+                  "actions": [
+                    "view"
+                  ],
+                  "title": "Заказ № 2101",
+                  "customer": "Анна Захарова, Казань",
+                  "state": "Ждёт оплаты по счёту",
+                  "delivery": "10 ноября 2026, курьером"
+                },
+                {
+                  "id": "o-002",
+                  "revision": "r1",
+                  "actions": [
+                    "view"
+                  ],
+                  "title": "Заказ № 2102",
+                  "customer": "Илья Петров, Самара",
+                  "state": "Оплачен, собирается на складе",
+                  "delivery": "11 ноября 2026, курьером"
+                },
+                {
+                  "id": "o-003",
+                  "revision": "r1",
+                  "actions": [
+                    "view"
+                  ],
+                  "title": "Заказ № 2103",
+                  "customer": "Мария Соколова, Пермь",
+                  "state": "Передан в службу доставки",
+                  "delivery": "12 ноября 2026, курьером"
+                },
+                {
+                  "id": "o-004",
+                  "revision": "r1",
+                  "actions": [
+                    "view"
+                  ],
+                  "title": "Заказ № 2104",
+                  "customer": "Олег Иванов, Тверь",
+                  "state": "Доставлен покупателю",
+                  "delivery": "13 ноября 2026, курьером"
+                },
+                {
+                  "id": "o-005",
+                  "revision": "r1",
+                  "actions": [
+                    "view"
+                  ],
+                  "title": "Заказ № 2105",
+                  "customer": "Ирина Белова, Омск",
+                  "state": "Ждёт оплаты по счёту",
+                  "delivery": "14 ноября 2026, курьером"
+                },
+                {
+                  "id": "o-006",
+                  "revision": "r1",
+                  "actions": [
+                    "view"
+                  ],
+                  "title": "Заказ № 2106",
+                  "customer": "Дмитрий Орлов, Томск",
+                  "state": "Оплачен, собирается на складе",
+                  "delivery": "15 ноября 2026, курьером"
+                },
+                {
+                  "id": "o-007",
+                  "revision": "r1",
+                  "actions": [
+                    "view"
+                  ],
+                  "title": "Заказ № 2107",
+                  "customer": "Анна Захарова, Казань",
+                  "state": "Передан в службу доставки",
+                  "delivery": "16 ноября 2026, курьером"
+                },
+                {
+                  "id": "o-008",
+                  "revision": "r1",
+                  "actions": [
+                    "view"
+                  ],
+                  "title": "Заказ № 2108",
+                  "customer": "Илья Петров, Самара",
+                  "state": "Доставлен покупателю",
+                  "delivery": "17 ноября 2026, курьером"
+                },
+                {
+                  "id": "o-009",
+                  "revision": "r1",
+                  "actions": [
+                    "view"
+                  ],
+                  "title": "Заказ № 2109",
+                  "customer": "Мария Соколова, Пермь",
+                  "state": "Ждёт оплаты по счёту",
+                  "delivery": "18 ноября 2026, курьером"
+                },
+                {
+                  "id": "o-010",
+                  "revision": "r1",
+                  "actions": [
+                    "view"
+                  ],
+                  "title": "Заказ № 2110",
+                  "customer": "Олег Иванов, Тверь",
+                  "state": "Оплачен, собирается на складе",
+                  "delivery": "19 ноября 2026, курьером"
+                },
+                {
+                  "id": "o-011",
+                  "revision": "r1",
+                  "actions": [
+                    "view"
+                  ],
+                  "title": "Заказ № 2111",
+                  "customer": "Ирина Белова, Омск",
+                  "state": "Передан в службу доставки",
+                  "delivery": "20 ноября 2026, курьером"
+                },
+                {
+                  "id": "o-012",
+                  "revision": "r1",
+                  "actions": [
+                    "view"
+                  ],
+                  "title": "Заказ № 2112",
+                  "customer": "Дмитрий Орлов, Томск",
+                  "state": "Доставлен покупателю",
+                  "delivery": "21 ноября 2026, курьером"
+                }
+              ],
+              "columns": [
+                {
+                  "key": "title",
+                  "label": "Заказ",
+                  "property_type": "string",
+                  "role": "title"
+                },
+                {
+                  "key": "customer",
+                  "label": "Покупатель",
+                  "property_type": "string"
+                },
+                {
+                  "key": "state",
+                  "label": "Состояние",
+                  "property_type": "string"
+                },
+                {
+                  "key": "delivery",
+                  "label": "Доставка",
+                  "property_type": "string"
+                }
+              ],
+              "total": 12,
+              "echo": {
+                "filters_chosen": {},
+                "filters": {},
+                "filters_rejected": [],
+                "search": "",
+                "sort": [],
+                "page": 1,
+                "per_page": 12
+              },
+              "column_settings": {
+                "layers": {
+                  "personal": {
+                    "revision": "p1",
+                    "columns": {}
+                  }
+                },
+                "target": {
+                  "kind": "personal",
+                  "revision": "p1"
+                }
+              }
+            }
+          },
+          "*": {
+            "answer": "applied"
+          }
+        },
+        "$comment": "Twelve records whose three fields each take a line of the phone list (R9-1): the gate holds the list's height from the skeleton to the records at 390."
+      }
     }
   ],
   "pages": [

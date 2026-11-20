@@ -1786,6 +1786,8 @@ class SfDataView extends DataViewElement {
     _endFirstPaint() {
         if (this.getAttribute("data-sf-awaiting") === null) return;
         this._dropFirstPaint();
+        // The bar for marked rows is made with the list (V10-1, _renderBulkBar).
+        if (!this._bulkBar && bulkBarAvailable()) this._renderBulkBand();
     }
 
     // The skeleton goes when the layout can draw: a board's code comes by the
@@ -2782,7 +2784,13 @@ class SfDataView extends DataViewElement {
         // The band of before goes, whichever drew it.
         if (this._bulkBand?.isConnected && this._bulkBand !== bar) this._bulkBand.remove();
         this._bulkBand = null;
-        if (!list.length || (!selected.length && !bar)) {
+        // The bar is made as soon as the view has actions for it, not at the
+        // first marked row (view round 10, V10-1): its words are a language
+        // part the page fetches when the bar first looks one up, and a bar made
+        // at the first mark said its first count in the built-in English («1
+        // selected») before the Russian part came. With no row marked it draws
+        // nothing and says nothing.
+        if (!list.length) {
             bar?.remove();
             this._bulkBar = null;
             return this;
@@ -2851,7 +2859,14 @@ class SfDataView extends DataViewElement {
         const bar = this._bulkBar;
         if (!answer || !bar?.isConnected || typeof bar.result !== "function") return;
         if (answer.answer === "applied") {
-            bar.result({ok: scope === "all" ? this.total : ids.length, failed: []});
+            // The marks go with the applied batch, before the result is said
+            // (view round 10, V10-1): they went with the list the host sent
+            // after it, and the bar's «Выбор снят» for that came after «Готово
+            // 2 из 2» and replaced it in the live region. Cleared first, the
+            // result is the bar's last word.
+            const ok = scope === "all" ? this.total : ids.length;
+            this.clearSelection();
+            bar.result({ok, failed: []});
             return;
         }
         if (scope === "all" || !ids.length || ["not-confirmed", "total-counted"].includes(answer.reason)) return;

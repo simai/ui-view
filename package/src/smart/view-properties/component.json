@@ -384,7 +384,7 @@
         "full"
       ],
       "default": "2",
-      "summary": "How wide the panel is (C396): 1/2, 1 and 2 are the text-measure steps 44, 52 and 64 (352, 416 and 512 px at normal density), full is the whole screen; the record card defaults to 64."
+      "summary": "How wide the panel is (C396): 1/2, 1 and 2 are the text-measure steps 44, 52 and 64 -- the panel 352, 416 and 512 px at normal density, its content inside the drawer gutters 320, 384 and 480 -- and wider by the section column where the sections stand on the left; full is the whole screen; the record card defaults to 64."
     },
     "size": {
       "type": "enum",

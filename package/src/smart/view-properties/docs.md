@@ -288,10 +288,14 @@ receives.
   keep the `panel-size` width.
 - The panel is drawn at a step of its own width ladder (C396): `panel-size`
   1/2, 1 and 2 are the text-measure steps 44, 52 and 64 (N times half the
-  body text: 352, 416, 512 px at normal density, 308, 364, 448 at compact;
-  `--sf-measure-N` once the pair carries it), `full` the whole screen; the
-  default is 2 (64). With its sections on the left it is wider by the section
-  column (C386), otherwise it never grows. `panel-width` is a former name until
+  body text; `--sf-measure-N` once the pair carries it), `full` the whole
+  screen; the default is 2 (64). Measured on the pair ui-b654460cad2a at
+  1440 px: the panel is 352, 416 and 512 px wide at normal density (308, 364,
+  448 at compact), and its content inside the drawer's 16 px gutters is 320,
+  384 and 480 px (276, 332, 416 at compact). With its sections on the left
+  (sections-as list, from 48rem) it is wider by the section column (C386):
+  560, 624 and 720 px at normal density, 512, 568 and 652 at compact;
+  otherwise it never grows. `panel-width` is a former name until
   2027-01-01: a length is mapped to the nearest step, with a console notice.
 - A record to read is an `sf-list-description`: the label beside the value,
   each group a heading of the list with «Изменить» in it. It has no foot:
