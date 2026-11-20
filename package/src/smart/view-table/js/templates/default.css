@@ -420,6 +420,13 @@
   :is(sf-view-table, sf-table) table.sf-table-measuring.sf-table-measuring-least {
     inline-size: min-content !important;
   }
+  /* A word is the least a column holds: a domain or an e-mail broken inside
+     it (overflow-wrap: anywhere) read as a letter's width. */
+  :is(sf-view-table, sf-table) table.sf-table-measuring-least :is(th, td),
+  :is(sf-view-table, sf-table) table.sf-table-measuring-least :is(th, td) * {
+    overflow-wrap: normal !important;
+    word-break: normal !important;
+  }
   :is(sf-view-table, sf-table) table.sf-table-measuring col {
     inline-size: auto !important;
     width: auto !important;
