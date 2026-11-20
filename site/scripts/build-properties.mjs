@@ -159,7 +159,7 @@ const overviewHtml = `<div data-properties class="flex flex-col gap-3">
     <p class="m-0 weight-6">В таблице</p>
       <sf-view aria-label="Записи" preferences-key="view.properties-all">
         <sf-view-table slot="content" aria-label="Записи" layout="auto" selectable="false"></sf-view-table>
-        <sf-pagination slot="pagination" page-size="10" page-sizes="10,25" top="false"></sf-pagination>
+        <sf-pagination slot="pagination" page-size="10" page-sizes="10,20,50,100" top="false"></sf-pagination>
       </sf-view>
   </section>
   <div class="flex flex-wrap gap-1 items-cross-center" role="group" aria-label="Запись в карточках" data-record-switch>

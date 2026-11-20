@@ -110,7 +110,7 @@ const initializeHead = async () => {
       const [order] = query.sort ?? [];
       if (order) found.sort((a, b) => (a[order.key] > b[order.key] ? 1 : -1) * (order.direction === 'desc' ? -1 : 1));
       const data = {columns: COLUMNS, total: found.length, view_config: {layouts: LAYOUTS},
-        echo: {filters_chosen: query.filters_chosen ?? ['status', 'manager'], filters: query.filters ?? {}, search: query.search ?? '', sort: query.sort ?? [], page: query.page ?? 1, per_page: query.per_page ?? 8, view: query.view ?? {id: null, type: 'table'}}};
+        echo: {filters_chosen: query.filters_chosen ?? ['status', 'manager'], filters: query.filters ?? {}, search: query.search ?? '', sort: query.sort ?? [], page: query.page ?? 1, per_page: query.per_page ?? 10, view: query.view ?? {id: null, type: 'table'}}};
       if (query.window?.lanes) {
         data.records = [];
         data.lanes = STATUS.map((lane) => {
@@ -125,8 +125,8 @@ const initializeHead = async () => {
         const start = ((query.window.page ?? 1) - 1) * query.window.per_page;
         data.records = found.slice(start, start + query.window.per_page);
       } else {
-        const start = ((query.page ?? 1) - 1) * (query.per_page ?? 8);
-        data.records = found.slice(start, start + (query.per_page ?? 8));
+        const start = ((query.page ?? 1) - 1) * (query.per_page ?? 10);
+        data.records = found.slice(start, start + (query.per_page ?? 10));
       }
       first = true;
       return {answer: 'applied', sequence: payload.sequence, data};
