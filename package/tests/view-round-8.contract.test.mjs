@@ -89,4 +89,9 @@ test('VSA-5: a layout switched to while its code loads holds only the list place
   assert.match(hold, /hold\.setAttribute\("slot", "content"\)/u, 'the skeleton stands in the list place');
   assert.match(hold, /this\.setAttribute\("data-sf-layout-loading", ""\)/u);
   assert.match(hold, /registry\.whenDefined\(tag\)/u);
+  // The hold is not the layout's element: the layout's own element is made and
+  // fed beside it (the board drew empty when the hold counted as the content).
+  assert.match(view, /child\.getAttribute\?\.\("slot"\) === slot\n\s+&& !child\.hasAttribute\?\.\("data-sf-layout-hold"\)\);/u, 'the defaults make the layout element beside the hold');
+  assert.match(view, /isTag\(child, want\) \|\| child\.hasAttribute\?\.\("data-sf-layout-hold"\)\) continue;/u, 'a switch does not park the hold');
+  assert.match(view, /:scope > \[slot="content"\]:not\(\[data-sf-layout-hold\]\)/u);
 });

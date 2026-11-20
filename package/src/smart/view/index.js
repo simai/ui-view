@@ -694,7 +694,10 @@ class SfDataView extends DataViewElement {
                     && child.hasAttribute?.("data-sf-view-default")).forEach((child) => child.remove());
                 continue;
             }
-            const own = [...(this.children ?? [])].filter((child) => child.getAttribute?.("slot") === slot);
+            // The layout hold (VSA-5) stands in the list place only while the
+            // layout's code loads; the layout's own element is made beside it.
+            const own = [...(this.children ?? [])].filter((child) => child.getAttribute?.("slot") === slot
+                && !child.hasAttribute?.("data-sf-layout-hold"));
             const mine = own.filter((child) => child.hasAttribute?.("data-sf-view-default"));
             if (own.length > mine.length) {
                 mine.forEach((child) => child.remove());
@@ -822,7 +825,7 @@ class SfDataView extends DataViewElement {
         const want = this._layoutTag();
         const children = [...(this.children ?? [])];
         for (const child of children) {
-            if (child.getAttribute?.("slot") !== "content" || isTag(child, want)) continue;
+            if (child.getAttribute?.("slot") !== "content" || isTag(child, want) || child.hasAttribute?.("data-sf-layout-hold")) continue;
             if (child.hasAttribute?.("data-sf-view-default") || child.hasAttribute?.("data-sf-view-made")) child.remove();
             else {
                 child.setAttribute("slot", "sf-view-parked");
@@ -1332,7 +1335,7 @@ class SfDataView extends DataViewElement {
         // page row -- each lane has its own «Показать ещё» (C304).
         if (this.layoutKind === "board" || this.layoutKind === "cards" || this.layoutKind === "calendar") {
             const tag = LAYOUTS.get(this.layoutKind);
-            if (!this.querySelector(':scope > [slot="content"]')) {
+            if (!this.querySelector(':scope > [slot="content"]:not([data-sf-layout-hold])')) {
                 const board = document.createElement(tag);
                 board.slot = "content";
                 board.toggleAttribute("data-sf-view-made", true);
@@ -1343,7 +1346,7 @@ class SfDataView extends DataViewElement {
             this._applyForAll();
             return;
         }
-        if (!this.querySelector(`:scope > ${tagSelector("sf-view-table")}[slot="content"], :scope > [slot="content"]`)) {
+        if (!this.querySelector(`:scope > ${tagSelector("sf-view-table")}[slot="content"], :scope > [slot="content"]:not([data-sf-layout-hold])`)) {
             const table = document.createElement("sf-view-table");
             table.slot = "content";
             table.setAttribute("aria-label", pageText(DATA_VIEW_TEXT, "recordsLabel", this));
@@ -2014,7 +2017,10 @@ class SfDataView extends DataViewElement {
         const frame = () => new Promise((done) => (globalThis.requestAnimationFrame ?? globalThis.setTimeout)(() => done()));
         const drawn = () => {
             const element = this.querySelector?.(`:scope > ${tagSelector(tag)}[slot="content"]`);
-            return Boolean(element && element.getBoundingClientRect?.().height > 0);
+            // A layout element may draw as display: contents (sf-view-board):
+            // then its own box is empty and its children carry the height.
+            const boxes = element ? [element, ...(element.children ?? []), ...(element.shadowRoot?.children ?? [])] : [];
+            return boxes.some((box) => box.getBoundingClientRect?.().height > 0);
         };
         const wait = registry.whenDefined(tag).then(async () => {
             for (let tries = 0; tries < 120 && !drawn(); tries += 1) await frame();
