@@ -2296,8 +2296,14 @@ class SfDataView extends DataViewElement {
     }
 
     _showAnswer(intent, answer, {stated = false} = {}) {
-        if (!stated && ["conflict", "refused"].includes(answer.answer)
-            || (answer.answer === "unavailable" && intent !== "query.change")) {
+        // A refused batch raised from the group actions bar is said in the
+        // bar's result line, next to the rows it names: a notice in the
+        // corner said it a second time and, on a phone, covered the bar's
+        // «Подробнее» and «Повторить» (L-2).
+        const inBar = intent === "bulk.apply_selected" && this._bulkBarRaising === true
+            && answer.reason !== "not-confirmed" && typeof this._bulkBar?.result === "function";
+        if (!inBar && (!stated && ["conflict", "refused"].includes(answer.answer)
+            || (answer.answer === "unavailable" && intent !== "query.change"))) {
             const text = this._noticeText(answer);
             this._setState(this.records.length ? "populated" : "empty", text);
             this.notify(text, {kind: answer.answer === "conflict" ? "warning" : "error", code: answer.reason || ""});
@@ -2793,9 +2799,16 @@ class SfDataView extends DataViewElement {
         if (id === undefined || id === null || id === "") return undefined;
         const scope = event.detail?.scope === "all" ? "all" : "selection";
         const ids = this.table?.getSelectedRecordIds?.() ?? [];
-        const answer = scope === "all"
-            ? await this.applyUnderFilter(String(id), this.total)
-            : await this._action({action_id: String(id), record_ids: ids}, {selectedBulk: true});
+        let answer;
+        if (scope === "all") answer = await this.applyUnderFilter(String(id), this.total);
+        else {
+            this._bulkBarRaising = true;
+            try {
+                answer = await this._action({action_id: String(id), record_ids: ids}, {selectedBulk: true});
+            } finally {
+                this._bulkBarRaising = false;
+            }
+        }
         this._bulkResult(answer, {ids, scope});
         return answer;
     }
