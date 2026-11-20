@@ -205,7 +205,7 @@ const typeExample = (type) => {
   const options = OPTIONS_OF[data.field.key] ? {[data.field.key]: OPTIONS_OF[data.field.key]} : {};
   put(`${folder}/index.html`, typeHtml(type));
   put(`${folder}/index.css`, withReserve(folder, typeCss));
-  put(`${folder}/index.js`, `${HEADER}const TYPE = ${JSON.stringify(type)};\nconst TYPE_DATA = ${JSON.stringify(data, null, 1)};\nconst OPTIONS_OF = ${JSON.stringify(options)};\n\n${engine}`);
+  put(`${folder}/index.js`, `${HEADER}const TYPE = ${JSON.stringify(type)};\nconst TYPE_DATA = ${JSON.stringify({...data, extra: undefined}, null, 1)};\nconst OPTIONS_OF = ${JSON.stringify(options)};\n\n${engine}`);
 };
 const overviewExample = () => {
   const folder = 'examples/properties/all';
@@ -304,6 +304,7 @@ config.types.forEach((entry, index) => {
     `| Larena | ${cell(data.storage[0])} |`,
     `| Битрикс | ${cell(data.storage[1])} |`,
     '',
+    ...(data.extra ?? []),
     '## См. также',
     '',
     ...siblings.map((other) => `- [${other.title}](../${slug(other.type)}/)`),

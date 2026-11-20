@@ -22,7 +22,10 @@
 //              without templates reads (C302 (3));
 //   server     four rows: the value, empty, from the edit, from the filter;
 //   settings   [setting, default, places it changes, what it sets];
-//   storage    [Larena, Bitrix]: how each stores the type.
+//   storage    [Larena, Bitrix]: how each stores the type;
+//   extra      optional lines of Markdown put after «Где хранится» (a part
+//              of the type a view component draws, such as the table's
+//              relative date).
 //
 // It is plain data. scripts/build-properties.mjs writes the pages from it and
 // puts one entry (TYPE_DATA), with scripts/property-demo.js, into the type's
@@ -201,6 +204,7 @@ const CATALOGUE = {
     server: [['Значение', 'строка `"2026-11-19"`'], ['Пустое', '`null`'], ['Из правки', 'строка даты; у значения со временем — новый день с прежним временем'],
       ['Из фильтра', '`{operator: "between", value: ["2026-11-01", "2026-11-30"]}` и готовые периоды']],
     settings: [['`min`, `max`', 'нет', 'Правка', 'границы дня, дата ISO'], REQUIRED, READONLY],
+    extra: ['## Относительная', '', 'В таблице `sf-view-table` колонку даты можно показать относительно сегодняшнего дня: «сегодня», «вчера», «3 дня назад», «на прошлой неделе», «в прошлом месяце» — на языке страницы. Полная дата — в подсказке ячейки. Это вариант колонки `variant: "relative"`; карточка записи, правка и фильтр показывают дату целиком, а на сервер уходит та же строка даты.', '', '```js', "{key: 'started', label: 'Начата', propertyType: 'date', variant: 'relative'}", '```', '', ':::example {id="guide/relative-dates" label="Задачи: даты относительно сегодня"}', ':::', ''],
     storage: ['`date@1`', 'свойство «Дата/время» без времени']},
   datetime: {family: 'dates', short: true,
     field: {key: 'meeting', label: 'Начало встречи', propertyType: 'datetime', step: 15},
@@ -210,6 +214,7 @@ const CATALOGUE = {
     server: [['Значение', 'строка ISO 8601 `"2026-11-19T10:30:00"`'], ['Пустое', '`null`'], ['Из правки', 'строка ISO 8601; новый день сохраняет прежнее время, день без времени не уходит'],
       ['Из фильтра', '`{operator: "between", value: ["2026-11-01", "2026-11-30"]}` и готовые периоды']],
     settings: [['`min`, `max`', 'нет', 'Правка', 'границы: дата или дата со временем'], ['`step`', '1', 'Правка', 'шаг минут, от 1 до 60'], REQUIRED, READONLY],
+    extra: ['## Относительная', '', 'В таблице `sf-view-table` колонку даты и времени можно показать относительно сегодняшнего дня: «сегодня», «вчера», «3 дня назад», «2 недели назад» — на языке страницы. Полная дата и время — в подсказке ячейки. Это вариант колонки `variant: "relative"`; карточка записи, правка и фильтр показывают значение целиком, а на сервер уходит та же строка ISO 8601.', '', '```js', "{key: 'updated', label: 'Изменена', propertyType: 'datetime', variant: 'relative'}", '```', '', ':::example {id="guide/relative-dates" label="Задачи: даты относительно сегодня"}', ':::', ''],
     storage: ['`datetime@1` — местное время без пояса', 'свойство «Дата/время»']},
   time: {family: 'dates', short: true,
     field: {key: 'workday', label: 'Начало рабочего дня', propertyType: 'time', min: '07:00', max: '12:00', step: 30},
