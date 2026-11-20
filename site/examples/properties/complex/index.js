@@ -1,13 +1,13 @@
 // Written by scripts/build-properties.mjs from scripts/property-catalogue.js
 // and the engine below it; edit those.
-const TYPE = "compound";
+const TYPE = "complex";
 const TYPE_DATA = {
  "family": "composite",
  "set": "view",
  "field": {
   "key": "address",
   "label": "Адрес",
-  "propertyType": "compound",
+  "propertyType": "complex",
   "parts": [
    {
     "key": "city",

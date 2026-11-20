@@ -20,7 +20,7 @@
     {"from": "ru/guide/recipes/states", "to": "ru/recipes/states"},
     {"from": "ru/fields", "to": "ru/properties"},
     {"from": "ru/fields/text", "to": "ru/properties/string"},
-    {"from": "ru/fields/numbers", "to": "ru/properties/integer"},
+    {"from": "ru/fields/numbers", "to": "ru/properties/number"},
     {"from": "ru/fields/dates", "to": "ru/properties/date"},
     {"from": "ru/fields/flags", "to": "ru/properties/boolean"},
     {"from": "ru/fields/choice", "to": "ru/properties/choice"},
@@ -40,6 +40,8 @@
     {"from": "ru/recipes/search-filter-sort", "to": "ru/guide/list/search-filter-sort"},
     {"from": "ru/recipes/paging", "to": "ru/guide/list/footer"},
     {"from": "ru/recipes/selection-and-bulk-actions", "to": "ru/guide/list/bulk-actions"},
-    {"from": "ru/components/views", "to": "ru/components"}
+    {"from": "ru/components/views", "to": "ru/components"},
+    {"from": "ru/properties/compound", "to": "ru/properties/complex"},
+    {"from": "ru/properties/integer", "to": "ru/properties/number"}
   ]
 }

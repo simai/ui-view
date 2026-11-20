@@ -13,7 +13,7 @@
     <header class="property-place-head"><h2 class="property-head" id="place-compact">Кратко</h2><span class="property-changed" hidden>меняет шаблон</span></header>
     <p class="property-note">Значение в малом месте любого представления: в строке таблицы, на карточке, в записи календаря. Длинное обрезает само представление.</p>
     <div class="property-compact">
-      <div class="property-table-wrap"><table class="property-table"><thead><tr><th>Счёт</th><th>Остаток</th><th>Клиент</th></tr></thead><tbody data-slot="compact-rows"></tbody></table></div>
+      <div class="property-table-wrap"><table class="property-table"><thead><tr><th>Счёт</th><th>ИНН</th><th>Клиент</th></tr></thead><tbody data-slot="compact-rows"></tbody></table></div>
       <div class="property-cards" data-slot="compact-cards"></div>
     </div>
     <p class="property-out" data-slot="compact-out"></p>
@@ -22,7 +22,7 @@
     <header class="property-place-head"><h2 class="property-head" id="place-edit">Правка</h2><span class="property-changed" hidden>меняет шаблон</span></header>
     <p class="property-note">Карточка в правке, форма.</p>
     <div class="property-edit">
-      <span class="property-label" data-slot="edit-label">Остаток</span>
+      <span class="property-label" data-slot="edit-label">ИНН</span>
       <div data-slot="edit"></div>
       <p class="property-out" role="status" data-slot="edit-out"></p>
     </div>
@@ -36,7 +36,7 @@
     <header class="property-place-head"><h2 class="property-head" id="place-filter">Фильтр</h2><span class="property-changed" hidden>меняет шаблон</span></header>
     <p class="property-note">Панель фильтра над списком. Задайте условие.</p>
     <div class="property-edit">
-      <span class="property-label">Остаток</span>
+      <span class="property-label">ИНН</span>
       <div data-slot="filter"></div>
       <p class="property-out" role="status" data-slot="filter-out"></p>
     </div>

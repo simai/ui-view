@@ -1,53 +1,50 @@
 // Written by scripts/build-properties.mjs from scripts/property-catalogue.js
 // and the engine below it; edit those.
-const TYPE = "integer";
+const TYPE = "link";
 const TYPE_DATA = {
- "family": "numbers",
- "short": true,
+ "family": "text",
  "field": {
-  "key": "stock",
-  "label": "Остаток",
-  "propertyType": "integer",
-  "unit": "шт.",
-  "min": 0,
-  "max": 100000,
-  "step": 1
+  "key": "docs",
+  "label": "Документация",
+  "propertyType": "link",
+  "filter": {
+   "operators": [
+    "contains"
+   ],
+   "defaultOperator": "contains"
+  }
  },
  "samples": [
   [
    "Обычное",
-   128
+   {
+    "href": "https://simai.io/docs",
+    "text": "Документация SIMAI"
+   }
   ],
   [
-   "Большое",
-   1250000
+   "Без текста",
+   {
+    "href": "/ru/guide/"
+   }
   ],
   [
    "Пусто",
    null
   ]
  ],
- "error": "Не больше 100 000",
+ "error": "Адрес — http(s), путь от корня или «#…»",
  "templates": [
   {
-   "id": "input",
-   "name": "Поле числа",
+   "id": "link",
+   "name": "Ссылка",
    "changes": []
-  },
-  {
-   "id": "stepper",
-   "name": "Кнопки «−» и «+»",
-   "changes": [
-    "edit"
-   ],
-   "variant": "stepper",
-   "what": "поле количества: кнопки «−» и «+» и стрелки клавиатуры, шаг `step`"
   }
  ],
  "server": [
   [
    "Значение",
-   "целое число `128`"
+   "`{href, text}`: `href` — http(s), путь от корня сайта или якорь; `text` можно не задавать"
   ],
   [
    "Пустое",
@@ -55,26 +52,14 @@ const TYPE_DATA = {
   ],
   [
    "Из правки",
-   "целое число; очищенное поле — `null`"
+   "тот же объект"
   ],
   [
    "Из фильтра",
-   "`{operator: \"between\", value: [10, 500]}` и другие сравнения"
+   "поиск по тексту и адресу: `{operator: \"contains\", value: \"docs\"}`"
   ]
  ],
  "settings": [
-  [
-   "`unit`",
-   "нет",
-   "Показ, Кратко",
-   "единица после числа: `шт.`, `кг`"
-  ],
-  [
-   "`min`, `max`, `step`",
-   "нет",
-   "Правка",
-   "границы и шаг ввода"
-  ],
   [
    "`required`",
    "нет",
@@ -89,8 +74,8 @@ const TYPE_DATA = {
   ]
  ],
  "storage": [
-  "`integer@1`",
-  "свойство «Число» (`number`), целое"
+  "`link@1`",
+  "нет"
  ]
 };
 const OPTIONS_OF = {};

@@ -5,13 +5,13 @@ profile: reference
 
 # Составное
 
-:badge[compound]{variant=main scheme=on-surface size=1} :badge[Тип набора view]{variant=tonal scheme=info size=1}
+:badge[complex]{variant=main scheme=on-surface size=1} :badge[Тип набора view]{variant=tonal scheme=info size=1}
 
 Несколько частей одного значения: адрес из города, улицы и индекса. Каждая часть рисуется своим типом.
 
 Шаблон у типа один — «Части» (`parts`): он рисует все четыре места.
 
-:::example {id="properties/compound" label="Составное: показ, кратко, правка, фильтр" sources=false}
+:::example {id="properties/complex" label="Составное: показ, кратко, правка, фильтр" sources=false}
 :::
 
 ## Значение и сервер
@@ -29,7 +29,7 @@ profile: reference
 {
   "key": "address",
   "label": "Адрес",
-  "propertyType": "compound",
+  "propertyType": "complex",
   "parts": [
     {"key":"city","label":"Город","propertyType":"string"},
     {"key":"street","label":"Улица и дом","propertyType":"string"},

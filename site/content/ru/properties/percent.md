@@ -46,7 +46,6 @@ profile: reference
 
 ## См. также
 
-- [Целое число](../integer/)
 - [Число](../number/)
 - [Сумма](../money/)
 - [Все свойства](/ru/properties/)

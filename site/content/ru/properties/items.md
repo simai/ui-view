@@ -59,7 +59,7 @@ profile: reference
 
 ## См. также
 
-- [Составное](../compound/)
+- [Составное](../complex/)
 - [Реквизиты](../ru-requisites/)
 - [Все свойства](/ru/properties/)
 - [Данные и их формат](/ru/guide/concepts/data/)

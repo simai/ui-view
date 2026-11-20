@@ -79,7 +79,7 @@ const ordersApp = ({count = 60, views = false, say = () => {}, bulk = null, colu
   };
   const listPort = {
     version: '1.15.0',
-    capabilities: ['row-actions', ...(views ? ['saved-views'] : [])],
+    capabilities: ['row-actions', ...(views ? ['saved-views'] : []), ...(bulk ? ['bulk-under-filter'] : [])],
     describe: () => ({fields: FIELDS, layouts: ['table', 'board', 'cards', 'calendar'], permissions: {shared_settings: Boolean(views)}}),
     async raise(intent, payload) {
       await pause();
@@ -94,12 +94,15 @@ const ordersApp = ({count = 60, views = false, say = () => {}, bulk = null, colu
       }
       if (intent === 'settings.save') return {answer: 'applied'};
       if (intent === 'record.open') return {answer: 'applied'};
-      if (intent === 'bulk.apply_selected' && bulk) {
-        const ids = payload.record_ids.map(String);
-        const marked = orders.filter((order) => ids.includes(order.id));
-        const text = bulk(payload.action_id, marked);
-        say(text);
-        return {answer: 'applied', message: text};
+      if ((intent === 'bulk.apply_selected' || intent === 'bulk.apply_under_filter') && bulk) {
+        // Under the filter: every record the filter finds, not only the page's.
+        const ids = (payload.record_ids ?? []).map(String);
+        const marked = intent === 'bulk.apply_under_filter'
+          ? orders.filter((order) => matches(order, {filters: payload.filters ?? {}, search: payload.search ?? ''}))
+          : orders.filter((order) => ids.includes(order.id));
+        const result = bulk(payload.action_id, marked);
+        say(`Приложение получило ${intent} (${marked.length}) и ответило ${result.answer}: ${result.message}`);
+        return result;
       }
       if (intent !== 'query.change') return {answer: 'unavailable', reason: 'capability-not-provided'};
       const query = {...(payload.query ?? {})};
@@ -201,9 +204,13 @@ const settle = async (root) => {
 };
 
 // ---- Actions with marked records ------------------------------------------------
-// The page row's actions (actions="id:Слова|…") show while records are
-// marked; a press raises bulk.apply_selected with their ids and revisions,
-// and the application answers. Its message is the result line.
+// view.bulkActions names the actions with their icons; while records are
+// marked the SIMAI Framework bar sf-bulk-actions shows them. A press raises
+// bulk.apply_selected with the marked ids and revisions, «Выбрать все N» then
+// an action raises bulk.apply_under_filter; the view says the answer in the
+// bar: «Готово N из N», or what failed with «Подробнее» and «Повторить».
+// «Напомнить клиенту» is refused while a paid order is marked, so the
+// refusal can be seen.
 const initializeBulk = async () => {
   const root = document.querySelector('[data-bulk-orders-demo]');
   if (!root || root.dataset.exampleReady === 'true') return;
@@ -212,13 +219,20 @@ const initializeBulk = async () => {
   const log = root.querySelector('[data-log]');
   const view = root.querySelector('sf-view');
   view.querySelector('sf-view-table')?.setFilterFields?.(FIELDS);
+  view.bulkActions = [
+    {id: 'paid', label: 'Отметить оплаченными', icon: 'payments'},
+    {id: 'remind', label: 'Напомнить клиенту', icon: 'mail'},
+  ];
   const app = ordersApp({count: 40, say: (text) => { log.textContent = text; }, bulk: (action, marked) => {
     if (action === 'paid') {
       const changed = marked.filter((order) => order.status !== 'paid');
       changed.forEach((order) => { order.status = 'paid'; order.revision = String(Number(order.revision) + 1); });
-      return `Отмечено оплаченными: ${changed.length} из ${marked.length}${changed.length < marked.length ? ' (остальные уже оплачены)' : ''}.`;
+      return {answer: 'applied', message: `отмечено оплаченными ${changed.length} из ${marked.length}${changed.length < marked.length ? ' (остальные уже оплачены)' : ''}.`};
     }
-    return `Напоминание отправлено: ${[...new Set(marked.map((order) => order.client))].join(', ')}.`;
+    if (marked.some((order) => order.status === 'paid')) {
+      return {answer: 'refused', reason: 'action-not-allowed', message: 'среди отмеченных есть оплаченные заказы — напоминать не о чем.'};
+    }
+    return {answer: 'applied', message: `напоминание отправлено: ${[...new Set(marked.map((order) => order.client))].join(', ')}.`};
   }});
   view.setHostPort(app.listPort);
   view.addEventListener('sf-view-answer', (event) => {

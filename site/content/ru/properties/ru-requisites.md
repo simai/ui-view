@@ -47,6 +47,6 @@ profile: reference
 ## См. также
 
 - [Строки](../items/)
-- [Составное](../compound/)
+- [Составное](../complex/)
 - [Все свойства](/ru/properties/)
 - [Данные и их формат](/ru/guide/concepts/data/)

@@ -5,7 +5,7 @@ profile: reference
 
 # Доска
 
-:badge[sf-view-board]{variant=main scheme=on-surface size=1} :badge[Версия 1.1.2]{variant=tonal scheme=neutral size=1} :badge[Предварительная версия]{variant=tonal scheme=warning size=1}
+:badge[sf-view-board]{variant=main scheme=on-surface size=1} :badge[Версия 1.1.3]{variant=tonal scheme=neutral size=1} :badge[Предварительная версия]{variant=tonal scheme=warning size=1}
 
 Доска раскладывает записи по колонкам: колонки — значения одного поля (состояние заказа, выбор, ответственный, да или нет), карточки — записи. Перенести карточку в другую колонку — значит изменить это поле; изменение сохраняет приложение. В шапке колонки — её название, число записей и суммы денег.
 
@@ -153,13 +153,13 @@ Larena отвечает доске своим методом `listBoard()`:
 
 ## Параметры
 
-Справочник собран из манифеста компонента в сборке-кандидате набора (`simai/ui-view@eb296cc214b8`) и обновляется вместе с выпуском. Каждому атрибуту соответствует свойство элемента с тем же именем в camelCase: `search-placeholder` — `searchPlaceholder`.
+Справочник собран из манифеста компонента в сборке-кандидате набора (`simai/ui-view@32c3be4aec98`) и обновляется вместе с выпуском. Каждому атрибуту соответствует свойство элемента с тем же именем в camelCase: `search-placeholder` — `searchPlaceholder`.
 
 | | |
 |:---|:---|
 | Тег | `<sf-view-board>` |
 | Назначение | Доска набора представлений: колонки по одному полю, карточки с полями (до четырёх) на месте «Кратко», перенос — изменение этого поля, которое подтверждает приложение. sf-view с layout="board" рисует её по окну колонок. |
-| Контракт | `smart.view-board`, версия `1.1.2` |
+| Контракт | `smart.view-board`, версия `1.1.3` |
 | Жизненный цикл | экспериментальный: API может меняться между выпусками |
 
 ### Атрибуты
@@ -222,7 +222,7 @@ Larena отвечает доске своим методом `listBoard()`:
 
 ## Источник
 
-- `simai/ui-view@eb296cc214b8:package/src/smart/view-board`
+- `simai/ui-view@32c3be4aec98:package/src/smart/view-board`
 
 ## См. также
 

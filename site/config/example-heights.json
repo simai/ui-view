@@ -108,7 +108,7 @@
     "wide": 1036,
     "narrow": 1304
   },
-  "properties/compound": {
+  "properties/complex": {
     "wide": 1473,
     "narrow": 1889
   },
@@ -131,10 +131,6 @@
   "properties/include": {
     "wide": 1300,
     "narrow": 1716
-  },
-  "properties/integer": {
-    "wide": 956,
-    "narrow": 1244
   },
   "properties/items": {
     "wide": 2949,

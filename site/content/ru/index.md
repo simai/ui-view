@@ -96,7 +96,7 @@ profile: landing
 
 <!-- release:cdn -->
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@simai-studio/ui@5.20261118.1205/distr/core/js/core.min.js" data-sf-sets="view"></script>
+<script src="https://cdn.jsdelivr.net/npm/@simai-studio/ui@5.20261120.1816/distr/core/js/core.min.js" data-sf-sets="view"></script>
 ```
 <!-- /release:cdn -->
 
@@ -122,7 +122,7 @@ SIMAI View 1.10.0, кандидат выпуска; последняя выпу�
 :::
 :::card {variant=plain}
 ### Совместимость
-Собран и проверен над выпуском SIMAI Framework `ui-dc9fc39aeb26`; работает с Core `core.runtime` 1.51.0 или новее. [Подключение](/ru/guide/connection/)
+Собран и проверен над выпуском SIMAI Framework `ui-b654460cad2a`; работает с Core `core.runtime` 1.51.0 или новее. [Подключение](/ru/guide/connection/)
 :::
 :::card {variant=plain}
 ### Лицензия
