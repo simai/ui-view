@@ -83,7 +83,7 @@ for (const group of config.groups) {
     if (!old || old.search(/^## /mu) < 0) throw new Error(`${path}: no hand-written part (a «##» heading) to keep`);
     put(path, ['---', `description: ${description}`, 'profile: reference', '---', '', `# ${title}`, '', badges, '', intro.join('\n\n'), '', rest].join('\n'));
     put(`content/ru/components/${folder}.page.json`, JSON.stringify({schema: 'docara.page.v1', title, navigation: {order: (index + 1) * 10}}));
-    overview.push(`| [${title}](${folder}/) | \`${element}\` | ${what}${entry.status === 'preview' ? '; предварительная версия' : ''} |`);
+    overview.push(`| [${title}](/ru/components/${folder}/) | \`${element}\` | ${what}${entry.status === 'preview' ? '; предварительная версия' : ''} |`);
   }
   overview.push('');
 }
