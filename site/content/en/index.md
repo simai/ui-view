@@ -1,35 +1,99 @@
 ---
 draft: true
-description: SIMAI View — таблицы, списки и карточки записей для SIMAI Framework, подключаются одной строкой; живые примеры, руководство и справочник.
+description: SIMAI View — tables, boards, cards, a calendar and the record card for SIMAI Framework, connected with one line; live examples, a guide and a reference.
 profile: landing
 ---
 
-:::hero {layout=centered padding=2xl effect=data-flow}
+:::hero {layout=split padding=2xl media=none effect=data-flow}
 # SIMAI View
 
-Таблицы, списки и карточки записей для SIMAI Framework: приложение отдаёт данные, а компоненты сами ищут, сортируют, листают и показывают запись.
+Tables, boards, cards and a calendar for SIMAI Framework: the application gives the data, and the components search, sort, page and show the record themselves.
 
-[Начать](/ru/guide/)
+[Get started](/ru/guide/)
 
-[Компоненты](/ru/components/)
+[Components](/ru/components/)
 :::
 
-## Примеры
+## One list, several layouts
 
-Четыре вида представления данных из одного набора: таблица, карточка
-записи, таблица с карточкой открытой строки и карточки в ленте сообщений.
-Данные отвечает небольшое «приложение» на JavaScript — настоящая страница
-отвечает тем же со своего сервера.
+A live list of orders. Its view zone is open: switch «Table», «Board»,
+«Cards» and «Calendar» — the filter and the search stay, and the application
+answers the same data in the shape of each layout. Open an order — the
+record card stands beside the list.
 
-:::example {id="home/showcase" label="Живые примеры" fullscreen=false wrap=false}
+:::example {id="home/list" label="Orders" fullscreen=false wrap=false}
 :::
 
-[Код примера](/ru/guide/showcase/)
+[The code of this example and other examples](/ru/guide/showcase/)
 
-## Подключение
+## What the set holds
 
-Набор подключается одной строкой рядом с SIMAI Framework — Loader сам
-загрузит нужные компоненты:
+Each component is drawn by itself over a few records. Its name leads to its
+page.
+
+:::::grid {columns=2 gap=4}
+::::card {variant=plain}
+### [Smart table](/ru/components/views/view-table/)
+
+Records as rows: columns by type, sorting, selection, a row menu.
+
+:::example {id="home/set-table" fullscreen=false wrap=false}
+:::
+::::
+::::card {variant=plain}
+### [List head](/ru/components/views/view-head/)
+
+The name, views, filter, search and «Create» above the list.
+
+:::example {id="home/set-head" fullscreen=false wrap=false}
+:::
+::::
+::::card {variant=plain}
+### [Board](/ru/components/views/view-board/)
+
+Records in columns by a field value; moving a card changes the field.
+
+:::example {id="home/set-board" fullscreen=false wrap=false}
+:::
+::::
+::::card {variant=plain}
+### [Cards](/ru/components/views/view-cards/)
+
+Records as a grid of cards: the name and up to four fields.
+
+:::example {id="home/set-cards" fullscreen=false wrap=false}
+:::
+::::
+::::card {variant=plain}
+### [Calendar](/ru/components/views/view-calendar/)
+
+Records on the days of their date: month, week, day or a list.
+
+:::example {id="home/set-calendar" fullscreen=false wrap=false}
+:::
+::::
+::::card {variant=plain}
+### [Record card](/ru/components/views/view-properties/)
+
+One record by sections and groups: viewing and editing.
+
+:::example {id="home/set-card" fullscreen=false wrap=false}
+:::
+::::
+::::card {variant=plain}
+### [Block in a flow](/ru/components/views/view-flow/)
+
+A record or a short form inside a message feed.
+
+:::example {id="home/set-flow" fullscreen=false wrap=false}
+:::
+::::
+:::::
+
+## Connection
+
+The set is connected with one line beside SIMAI Framework — the Loader loads
+the components the page uses:
 
 <!-- release:cdn -->
 ```html
@@ -37,17 +101,17 @@ profile: landing
 ```
 <!-- /release:cdn -->
 
-Другие способы, версии и лицензия — в разделе [Подключение](/ru/guide/connection/).
+Other ways, versions and the licence — in [Connection](/ru/guide/connection/).
 
-## Почему SIMAI View
+## Why SIMAI View
 
 :::features
-- :icon[bolt]{size=2 container=square variant=tonal scheme=primary} **Одна строка.** `data-sf-sets="view"` рядом с SIMAI Framework — и компоненты набора готовы на странице.
-- :icon[dns]{size=2 container=square variant=tonal scheme=primary} **Данные остаются у вас.** Компонент просит, сервер отвечает: права, фильтры и запись решает приложение.
-- :icon[speed]{size=2 container=square variant=tonal scheme=primary} **Большие объёмы.** Страницы с сервера, окно из видимых строк, приблизительный счёт для миллионов записей.
-- :icon[devices]{size=2 container=square variant=tonal scheme=primary} **Любой экран.** Таблица на широком экране, компактный список на телефоне — без отдельной вёрстки.
-- :icon[tune]{size=2 container=square variant=tonal scheme=primary} **Человек настраивает сам.** Колонки, сортировка и размер страницы запоминаются для каждого.
-- :icon[accessibility_new]{size=2 container=square variant=tonal scheme=primary} **Клавиатура и диктор.** Стрелки, Home и End, доступные имена и объявления состояний.
+- :icon[bolt]{size=2 container=square variant=tonal scheme=primary} **One line.** `data-sf-sets="view"` beside SIMAI Framework — and the components of the set are ready on the page.
+- :icon[dns]{size=2 container=square variant=tonal scheme=primary} **The data stays yours.** The component asks, the server answers: rights, filters and writes are the application's.
+- :icon[speed]{size=2 container=square variant=tonal scheme=primary} **Large volumes.** Pages from the server, a window of visible rows, an estimated count for millions of records.
+- :icon[devices]{size=2 container=square variant=tonal scheme=primary} **Any screen.** A table on a wide screen, a compact list on a phone — no layout of your own.
+- :icon[tune]{size=2 container=square variant=tonal scheme=primary} **People set it up themselves.** Views, columns, sorting and the page size are kept for each person.
+- :icon[accessibility_new]{size=2 container=square variant=tonal scheme=primary} **Keyboard and screen reader.** Arrows, Home and End, accessible names and announced states.
 :::
 
 :::::surface {width=full tone=muted padding=lg}

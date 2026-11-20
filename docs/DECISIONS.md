@@ -30,6 +30,11 @@ ones this set follows are in the Answers table with their record.
   (one set of records regrouping as a table, a board, a calendar and cards:
   the set's own subject), catalogue pinned at simai/ui-effects ffc71ca
   (main at the time, CI green; data-flow arrived in 54518d0).
+- Changed 2026-11-21 (site home, DEV msg-6af8ca2d2b244e799e6b): the
+  catalogue is the released npm package `@simai-studio/effects@1.1.0`
+  instead of the main commit; its data-flow effect.json and index.js are
+  byte-identical to ffc71ca's. The hero is split (text left), and the local
+  review copy masks the effect under the text block (Docara request 16).
 
 ## D3 — The passport's `docs` URL while view.simai.io does not serve the site
 

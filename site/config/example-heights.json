@@ -59,9 +59,34 @@
     "wide": 294,
     "narrow": 598
   },
+  "home/list": {
+    "wide": 693,
+    "narrow": 1550
+  },
+  "home/set-board": {
+    "narrow": 302
+  },
+  "home/set-calendar": {
+    "narrow": 302
+  },
+  "home/set-card": {
+    "narrow": 294
+  },
+  "home/set-cards": {
+    "narrow": 302
+  },
+  "home/set-flow": {
+    "narrow": 302
+  },
+  "home/set-head": {
+    "narrow": 302
+  },
+  "home/set-table": {
+    "narrow": 302
+  },
   "home/showcase": {
-    "wide": 957,
-    "narrow": 1900
+    "wide": 840,
+    "narrow": 1940
   },
   "properties/all": {
     "wide": 4346,
