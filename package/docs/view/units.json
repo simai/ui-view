@@ -428,6 +428,15 @@
     },
     {
       "unit": "smart.view-properties",
+      "version": "1.23.4",
+      "recorded_on": "2026-11-20",
+      "change": "patch",
+      "consumer": "Nothing to change for a host. With sections-as tabs the loading skeleton draws the tabs' strip and hairline without an empty panel row, as sf-tabs 1.4.5 (pair ui-b654460cad2a) draws the record's section tabs, so the first group no longer moves up by 32px (24px at size 1/2) when the record comes.",
+      "summary": "View round 9 (round/view-r9): js/templates/default.js renderLoading and skeleton.html drop the skeleton's empty .sf-tabs-main-container, since sf-tabs 1.4.5 hides a panel row whose panels hold nothing (data-sf-panels-empty); probe property-view-pro-issues-3-4 #3 measured the strip 72 against tabs 40 (64 against 32 at 1/2) over the pair.",
+      "evidence": "control/evidence/2026-11-21-view-r9/README.md"
+    },
+    {
+      "unit": "smart.view-properties",
       "version": "1.23.3",
       "recorded_on": "2026-11-20",
       "change": "patch",

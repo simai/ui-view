@@ -36,6 +36,10 @@ registry's statuses). The set's candidate stays **1.10.0**.
 - `sf-view-table` 1.29.1, `sf-view-board` 1.1.3, `sf-view-cards` 1.0.6,
   `sf-view-calendar` 1.1.3: their rules fetch `sf-bulk-actions` (lazy) now
   that the pair carries it.
+- `sf-view-properties` 1.23.4: with sections as tabs the loading skeleton
+  draws no empty panel row under the tabs' strip, as sf-tabs 1.4.5 of the
+  pair draws none, so the first group no longer jumps up by 32 px (24 px at
+  size 1/2) when the record comes.
 
 ## Unreleased — view round 8
 
