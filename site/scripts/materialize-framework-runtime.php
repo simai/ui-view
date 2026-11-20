@@ -406,7 +406,11 @@ foreach ($componentAssetDirectories as $directory) {
    third-party code inside those files. Lit, Floating UI and the Material fonts
    ask for their notice to travel with them, and the pair carries that notice as
    a contract file; the projection takes css and js, so it has to be named. */
-$runtimeNoticeFiles = ['core/contracts/third-party-notices.v1.json'];
+/* core/contracts/icon-names.v1.json: the icon names the core reads by URL
+   beside core/js to check an icon name (sf-icon); nothing points at it from
+   CSS either, and 11 pages logged a 404 for it (view site acceptance VSA-2).
+   ui-doc's copy serves it at the same path. */
+$runtimeNoticeFiles = ['core/contracts/third-party-notices.v1.json', 'core/contracts/icon-names.v1.json'];
 foreach ($runtimeNoticeFiles as $noticePath) {
     $target = $runtimeDistribution . '/' . $noticePath;
     if (! is_dir(dirname($target)) && ! mkdir(dirname($target), 0755, true) && ! is_dir(dirname($target))) {

@@ -1980,8 +1980,52 @@ class SfDataView extends DataViewElement {
         if (name === "chrome") this._lightDefaults();
         // A layout written after the view drew (switchLayout, or a page):
         // the content element becomes the layout's own.
-        if (name === "layout") this._swapContent();
+        if (name === "layout") {
+            this._swapContent();
+            this._holdLayoutLoad();
+        }
         this._renderProjection();
+    }
+
+    // A layout switched to after the first paint whose code is still on the
+    // way (the Loader brings sf-view-board, -cards, -calendar when first
+    // used): the head, the marks and the footer stay; only the list's place
+    // shows the layout's skeleton, until the element is defined and has drawn
+    // (view site acceptance VSA-5: the example went blank for 0.6-3.8 s).
+    _holdLayoutLoad() {
+        const registry = globalThis.customElements;
+        const tag = this._layoutTag();
+        this._layoutHold?.remove?.();
+        this._layoutHold = null;
+        this.removeAttribute?.("data-sf-layout-loading");
+        if (!this._answered || this.getAttribute("data-sf-awaiting") !== null || typeof document === "undefined"
+            || typeof registry?.get !== "function" || registry.get(tag)) return;
+        const hold = document.createElement("div");
+        hold.setAttribute("slot", "content");
+        hold.setAttribute("aria-hidden", "true");
+        hold.setAttribute("data-sf-layout-hold", "");
+        hold.className = "sf-data-view-skeleton sf-skeleton sf-skeleton--animation-pulse";
+        hold.setAttribute("data-size", this.size);
+        hold.innerHTML = this._firstPaintMarkup(hold);
+        this.append(hold);
+        this._layoutHold = hold;
+        this.setAttribute("data-sf-layout-loading", "");
+        const token = (this._layoutHoldToken = (this._layoutHoldToken ?? 0) + 1);
+        const frame = () => new Promise((done) => (globalThis.requestAnimationFrame ?? globalThis.setTimeout)(() => done()));
+        const drawn = () => {
+            const element = this.querySelector?.(`:scope > ${tagSelector(tag)}[slot="content"]`);
+            return Boolean(element && element.getBoundingClientRect?.().height > 0);
+        };
+        const wait = registry.whenDefined(tag).then(async () => {
+            for (let tries = 0; tries < 120 && !drawn(); tries += 1) await frame();
+        });
+        const late = new Promise((done) => globalThis.setTimeout(done, 8000));
+        Promise.race([wait, late]).catch(() => {}).then(() => {
+            if (token !== this._layoutHoldToken) return;
+            hold.remove();
+            if (this._layoutHold === hold) this._layoutHold = null;
+            this.removeAttribute("data-sf-layout-loading");
+        });
     }
 
     // The list head (head="list"; owner decisions C297, C299, C300, C301): the

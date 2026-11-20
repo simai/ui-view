@@ -47,6 +47,8 @@ const END = '/* reserve: end */';
 const NARROW = 640;
 // The set's own parts an example waits for before it shows.
 const PARTS = 'sf-view, sf-view-table, sf-table, sf-view-properties, sf-view-board, sf-view-cards, sf-view-calendar, sf-view-flow';
+// A view that has drawn: defined and past its first answer.
+const DRAWN = ':is(sf-view, sf-data-view):defined:not([data-sf-awaiting])';
 
 // The CSS block that holds an example's drawn height (also used by
 // build-properties.mjs for the property examples).
@@ -62,8 +64,12 @@ export function reserveCss(entry) {
   // example blank (the home showcase, VS-SITE-1). The open panel holds itself
   // until its own parts are defined; sf-tabs is waited for, as it decides
   // which panel is open.
-  lines.push(`body:has(:is(sf-tabs, ${PARTS}):not(:defined):not([data-sf-tab-panel] *)) { visibility: hidden; }`);
-  lines.push(`[data-sf-tab-panel]:not([hidden]):has(:is(${PARTS}):not(:defined)) { visibility: hidden; }`);
+  // Only the first paint is held: a part made inside a view that has drawn
+  // (a layout switched to, whose code is still on the way) is the view's to
+  // show -- it holds the list's place with the layout's skeleton -- and the
+  // example no longer goes blank while it loads (VSA-5).
+  lines.push(`body:has(:is(sf-tabs, ${PARTS}):not(:defined):not([data-sf-tab-panel] *):not(${DRAWN} *)) { visibility: hidden; }`);
+  lines.push(`[data-sf-tab-panel]:not([hidden]):has(:is(${PARTS}):not(:defined):not(${DRAWN} *)) { visibility: hidden; }`);
   if (entry.wide > 0) lines.push(`body { min-block-size: ${Math.ceil(entry.wide)}px; }`);
   if (entry.narrow > 0) lines.push(`@media (max-width: ${NARROW}px) { body { min-block-size: ${Math.ceil(entry.narrow)}px; } }`);
   lines.push(END);

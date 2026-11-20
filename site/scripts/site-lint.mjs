@@ -24,7 +24,8 @@
 //   history     no internal decision id (C295, C305 (4), VT-4) and no version
 //               history («с версии 1.17.0», «(с 1.7.0)», «С 1.18.0») in the
 //               content, the generated reference included, outside the change
-//               history and the upgrade guide (owner rules D02, D16; VS-SITE-11);
+//               history and the upgrade guide (owner rules D02, D16; VS-SITE-11),
+//               and no decision id in those two or in an example's source;
 //   grid        no grid of more than three items in a row (§11.13);
 //   showcase    every showcase panel is a surface-1 card with an outline
 //               (§11.11);
@@ -152,6 +153,15 @@ for (const path of contentFiles) {
   if (path === 'content/ru/guide/changes.md' || path === 'content/ru/guide/upgrading.md') continue;
   const text = read(path).replace(/```[\s\S]*?```/gu, (block) => block.replace(/[^\n]/gu, ' '));
   for (const match of text.matchAll(HISTORY)) fail('history', `${path}:${lineOf(text, match.index)}`, `«${match[0].trim()}»: a decision id or version history outside the change history`);
+}
+// The change history and the upgrade guide keep their versions but name no
+// decision either, and nor does an example's source, which a page shows in
+// its code tabs (view site acceptance VSA-3).
+const DECISION = /\b(?:C|CD|CL|VT|VR\d?|VS|LH|PT|VZ|LV|VB|VC|VCL|RC|GB)-?\d{2,3}\b|решени[еяю] владельца|решени[ея] C\d|owner decisions? C\d/gmu;
+for (const path of ['content/ru/guide/changes.md', 'content/ru/guide/upgrading.md', ...walk('examples').filter((one) => /\.(?:html|js|css)$/u.test(one)), 'scripts/property-demo.js']) {
+  if (!existsSync(join(site, path))) continue;
+  const text = read(path);
+  for (const match of text.matchAll(DECISION)) fail('history', `${path}:${lineOf(text, match.index)}`, `«${match[0].trim()}»: a decision id in the change history or an example's source`);
 }
 
 // ---- grid ------------------------------------------------------------------

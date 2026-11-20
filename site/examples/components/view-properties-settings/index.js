@@ -1,4 +1,4 @@
-// Record card settings (owner decision C311 on the levels of C298), answered
+// Record card settings by levels (shared, profile, personal), answered
 // by a host that lives on this page: simai.property-view-port 1.22.0.
 //
 // The host keeps, per settings profile, a shared layer and this person's
@@ -122,7 +122,7 @@ function resolve(profile) {
   }
   record.unplaced = [];
   for (const place of [...fields.values()].sort(byOrder)) {
-    // One way to not show a field (C311 (5)): a hidden one stands in «Скрытые поля».
+    // One way to not show a field: a hidden one stands in «Скрытые поля».
     const holder = place.group && !place.field.hidden ? groups.get(place.group)?.group : null;
     if (holder) holder.fields.push(place.field);
     else record.unplaced.push(place.field);
@@ -225,7 +225,7 @@ const initializeSettingsCard = async () => {
   if (!card || card.dataset.exampleReady === 'true') return;
   card.dataset.exampleReady = 'true';
   card.setHostPort({version: '1.22.0', capabilities: ['view-settings'], raise});
-  // «Добавить поле» is the data owner's structure editor (C311 (1)).
+  // «Добавить поле» is the data owner's structure editor.
   card.addEventListener('sf-view-properties-structure', (event) => log(`структура: открыть редактор полей ${event.detail?.collection ?? ''}`));
   const page = card.closest('.page-settings');
   page.querySelector('[data-configure]')?.addEventListener('click', () => card.startConfiguringView());

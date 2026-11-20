@@ -98,15 +98,14 @@ const OPTIONS_OF = {};
 // The live example of a «Свойства» page (examples/properties/<type>/index.js,
 // written by scripts/build-properties.mjs: `const TYPE`, `const TYPE_DATA` --
 // the type's entry of scripts/property-catalogue.js -- and `const OPTIONS_OF`
-// before this text). One template for every type (owner decisions C300 and
-// C302): four sections in order, each drawn by the SIMAI Framework field
-// renderers (SF.fieldRenderers) on one sample field; the page is the host,
+// before this text). One template for every type: four sections in order,
+// each drawn by the SIMAI Framework field renderers (SF.fieldRenderers) on one sample field; the page is the host,
 // holds the value and shows what a server would receive.
 //
 //   Показ    the three sample values: normal, long, empty (renderViewField);
 //   Кратко   the compact form inside any view: the same three records in a
 //            table column and on cards (renderCellField); a short field opens
-//            a small edit window at its value (C296), and saving updates both;
+//            a small edit window at its value, and saving updates both;
 //   Правка   the interactive field with «Сервер получит», then empty and
 //            required, a real error (invalid and error-message on the
 //            control) and read only (renderEditField);
@@ -115,8 +114,8 @@ const OPTIONS_OF = {};
 // A type with more than one template gets a template switch over the four
 // sections; a template only draws, so the record's value and the server lines
 // stay as they are when it changes, and the sections it changes are marked.
-// The template is read from the Framework's registry (`templates` of the type,
-// C302) and named with `template`; a Framework whose registry has no templates
+// The template is read from the Framework's registry (`templates` of the type)
+// and named with `template`; a Framework whose registry has no templates
 // yet draws the same template under its former `variant` name, and a type it
 // does not have yet (phone, password) with `drawnAs`.
 //
