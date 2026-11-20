@@ -79,5 +79,5 @@ flowchart LR
 
 - [Внешний вид](/ru/guide/appearance/)
 - [Запомненные предпочтения](/ru/guide/concepts/preferences/)
-- [Умная таблица](/ru/components/views/view-table/)
-- [Работа со списком](../)
+- [Умная таблица](/ru/components/view-table/)
+- [Работа со списком](/ru/guide/list/)

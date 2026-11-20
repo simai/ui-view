@@ -16,8 +16,8 @@ profile: reference
 | Задача | Что взять |
 |:---|:---|
 | Записи на сервере, их много, нужны поиск, фильтры, страницы | `sf-view` с `sf-view-table` внутри |
-| Десятки записей уже на странице | [`sf-view-table`](../view-table/) напрямую |
-| Одна запись с полями и правкой | [`sf-view-properties`](../view-properties/) |
+| Десятки записей уже на странице | [`sf-view-table`](/ru/components/view-table/) напрямую |
+| Одна запись с полями и правкой | [`sf-view-properties`](/ru/components/view-properties/) |
 
 ## Разметка
 
@@ -44,10 +44,9 @@ profile: reference
 
 Действия над отмеченными строками перечисляет атрибут `actions` строки
 страниц; представление отправляет их приложению намерением
-`bulk.apply_selected` с ревизиями записей.
-
-:::example {id="guide/bulk-actions" label="Счета: действия над отмеченными"}
-:::
+`bulk.apply_selected` с ревизиями записей. Как это выглядит у человека и что
+отвечает приложение — в руководстве: [Массовые
+действия](/ru/guide/list/bulk-actions/).
 
 ## Параметры
 
@@ -186,9 +185,9 @@ profile: reference
 
 ## См. также
 
-- [Шапка списка](../view-head/)
-- [Умная таблица sf-view-table](../view-table/)
-- [Доска sf-view-board](../view-board/)
-- [Карточка записи sf-view-properties](../view-properties/)
+- [Шапка списка](/ru/components/view-head/)
+- [Умная таблица sf-view-table](/ru/components/view-table/)
+- [Доска sf-view-board](/ru/components/view-board/)
+- [Карточка записи sf-view-properties](/ru/components/view-properties/)
 - [Загрузка данных с сервера](/ru/recipes/load-from-server/)
 - [Запросы и ответы](/ru/guide/concepts/intents/)

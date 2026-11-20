@@ -45,8 +45,8 @@ view.setHostPort({
 - `version` — версия порта, которую понимает приложение. `sf-view` говорит
   на порту `simai.dataview-port`, `sf-view-properties` — на порту
   `simai.property-view-port`; какие версии принимает каждый, сказано в
-  строке «Порт» его справочника ([представление данных](/ru/components/views/view/#параметры),
-  [карточка записи](/ru/components/views/view-properties/#параметры)).
+  строке «Порт» его справочника ([представление данных](/ru/components/view/#параметры),
+  [карточка записи](/ru/components/view-properties/#параметры)).
 - `capabilities` — что приложение умеет сверх обязательного: например
   `row-actions` (действия над строками) или `saved-views` (сохранённые
   виды). Компонент не предлагает человеку того, чего приложение не умеет.
@@ -136,4 +136,4 @@ view.setHostPort({
 
 - [Данные](../data/)
 - [Связь с сервером](../../server/)
-- [Представление данных sf-view](/ru/components/views/view/)
+- [Представление данных sf-view](/ru/components/view/)

@@ -5,7 +5,7 @@ profile: explanation
 
 # Карточка записи
 
-[Карточка записи](/ru/components/views/view-properties/)
+[Карточка записи](/ru/components/view-properties/)
 `sf-view-properties` показывает одну запись: её свойства в разделах и
 группах, просмотр и правку. Из списка она открывается нажатием на главное
 поле строки — название записи, — на карточку доски или событие календаря.
@@ -100,7 +100,7 @@ flowchart LR
 
 ## См. также
 
-- [Карточка записи sf-view-properties](/ru/components/views/view-properties/)
+- [Карточка записи sf-view-properties](/ru/components/view-properties/)
 - [Правка записей](/ru/recipes/editing/)
-- [Плотность](../density/)
+- [Плотность](/ru/guide/list/view-settings/)
 - [Работа со списком](../)

@@ -89,4 +89,4 @@ profile: how_to
 
 - [Запросы и ответы](/ru/guide/concepts/intents/)
 - [Связь с сервером](/ru/guide/server/)
-- [Страницы](../paging/)
+- [Страницы](/ru/guide/list/footer/)

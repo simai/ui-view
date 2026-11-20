@@ -74,6 +74,6 @@ profile: how_to
 
 ## См. также
 
-- [Календарь](/ru/components/views/view-calendar/) — все настройки и события.
+- [Календарь](/ru/components/view-calendar/) — все настройки и события.
 - [Способы показа](/ru/guide/concepts/layouts/)
 - [Доска по состоянию](../board-by-status/)

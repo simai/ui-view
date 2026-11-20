@@ -96,7 +96,7 @@ SIMAI Framework `sf-bulk-actions`: число отмеченных («Выбра
 
 ## См. также
 
-- [Выбор строк и действия над ними](/ru/recipes/selection-and-bulk-actions/)
+- [Выбор строк и действия над ними](/ru/guide/list/bulk-actions/)
 - [Запросы и ответы](/ru/guide/concepts/intents/)
 - [Подвал списка](../footer/)
 - [Работа со списком](../)

@@ -261,5 +261,5 @@ profile: reference
 
 ## См. также
 
-- [Представление данных sf-view](../view/)
+- [Представление данных sf-view](/ru/components/view/)
 - [Правка записей](/ru/recipes/editing/)

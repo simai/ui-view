@@ -130,4 +130,4 @@ view.setHostPort({
 ## См. также
 
 - [Запросы и ответы](../intents/)
-- [Умная таблица sf-view-table](/ru/components/views/view-table/)
+- [Умная таблица sf-view-table](/ru/components/view-table/)

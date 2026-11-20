@@ -58,7 +58,7 @@ profile: reference
 Перейдите в таблицу клавишей `Tab`, пройдите строки стрелками, отметьте
 строку пробелом:
 
-:::example {id="guide/bulk-actions" label="Счета: работа с клавиатуры"}
+:::example {id="guide/bulk-orders" label="Заказы: работа с клавиатуры"}
 :::
 
 ## См. также

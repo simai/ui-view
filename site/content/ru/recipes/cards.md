@@ -56,6 +56,6 @@ profile: how_to
 
 ## См. также
 
-- [Карточки](/ru/components/views/view-cards/) — все настройки и события.
+- [Карточки](/ru/components/view-cards/) — все настройки и события.
 - [Способы показа](/ru/guide/concepts/layouts/)
 - [Доска по состоянию](../board-by-status/)

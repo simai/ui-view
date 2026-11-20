@@ -92,7 +92,7 @@ flowchart LR
 
 ## См. также
 
-- [Страницы](/ru/recipes/paging/)
-- [Большие объёмы данных](/ru/guide/large-data/)
+- [Страницы](/ru/guide/list/footer/)
+- [Большие объёмы данных](/ru/guide/server/large-data/)
 - [Способы показа](/ru/guide/concepts/layouts/)
 - [Работа со списком](../)

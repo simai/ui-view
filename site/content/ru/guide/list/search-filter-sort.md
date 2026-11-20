@@ -10,7 +10,7 @@ profile: how_to
 
 ## Перед началом
 
-- Список уже загружается с сервера ([Загрузка данных с сервера](../load-from-server/)).
+- Список уже загружается с сервера ([Загрузка данных с сервера](/ru/recipes/load-from-server/)).
 
 ## Шаги
 
@@ -58,6 +58,6 @@ profile: how_to
 
 ## См. также
 
-- [Страницы](../paging/)
+- [Страницы](/ru/guide/list/footer/)
 - [Запомненные предпочтения](/ru/guide/concepts/preferences/)
-- [Представление данных sf-view](/ru/components/views/view/)
+- [Представление данных sf-view](/ru/components/view/)

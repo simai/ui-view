@@ -79,6 +79,6 @@ profile: how_to
 
 ## См. также
 
-- [Доска](/ru/components/views/view-board/) — все настройки и события.
+- [Доска](/ru/components/view-board/) — все настройки и события.
 - [Способы показа](/ru/guide/concepts/layouts/)
 - [Записи в календаре](../calendar/)

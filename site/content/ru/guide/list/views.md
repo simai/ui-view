@@ -137,7 +137,7 @@ flowchart LR
 
 ## См. также
 
-- [Шапка списка](/ru/components/views/view-head/)
+- [Шапка списка](/ru/components/view-head/)
 - [Способы показа](/ru/guide/concepts/layouts/)
 - [Запомненные предпочтения](/ru/guide/concepts/preferences/)
 - [Работа со списком](../)

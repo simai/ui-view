@@ -137,5 +137,5 @@ block.addEventListener('sf-view-flow-answer', async (event) => {
 ## См. также
 
 - [Данные в потоке (чат)](/ru/recipes/data-in-flow/)
-- [Карточка записи sf-view-properties](../view-properties/)
+- [Карточка записи sf-view-properties](/ru/components/view-properties/)
 - [Свойства](/ru/properties/)

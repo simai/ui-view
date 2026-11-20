@@ -39,7 +39,7 @@ JavaScript над массивом.
   панель тоже страница — по событию `sf-view-properties-close`.
 - **В потоке.** Лента `sf-list-feed` из SIMAI Framework рисует сообщения
   своей функцией `renderItem`, и в некоторые сообщения вложен
-  [блок в потоке](/ru/components/views/view-flow/) `sf-view-flow`: один
+  [блок в потоке](/ru/components/view-flow/) `sf-view-flow`: один
   показывает найденную заявку, другой просит заполнить поля. Ответ
   приходит событием `sf-view-flow-answer`; страница проверяет его и
   отвечает блоку методом `settle()` — отказ с `errors` встаёт под полем, а
