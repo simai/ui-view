@@ -1365,6 +1365,11 @@ function renderMenuControl(context) {
 // Values are the Framework's (core.css) and the drawer's, the same as the sheet's.
 const TITLE_ROW_STYLE = 'display: flex; align-items: center; gap: var(--sf-space-1\\/3); min-inline-size: 0;'
     + ' min-block-size: calc(var(--sf-ui-2--control-height) - var(--sf-px))';
+// The title's box as the sheet sets it (the window step, one line), so the star
+// beside it does not move when the sheet comes.
+const TITLE_STYLE = 'margin: 0; min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 700;'
+    + ' font-size: var(--sf-property-view--title-size, var(--sf-drawer--title-size, var(--sf-heading-4--size)));'
+    + ' line-height: var(--sf-property-view--title-height, var(--sf-drawer--title-height, var(--sf-heading-4--height)))';
 const HEAD_STYLE = 'box-sizing: border-box;'
     + ' margin-inline: calc(-1 * var(--sf-property-view--panel-bleed, var(--sf-drawer-gutter, var(--sf-space-1))));'
     + ' padding-inline: var(--sf-property-view--panel-axis, calc(var(--sf-drawer-gutter, var(--sf-space-1)) + var(--sf-scroll-bg-width, 0px)))';
@@ -1417,7 +1422,7 @@ function renderPanelHead(context) {
                         title=${context.backLabel}
                         @click=${() => context.component.closePhoneSection()}
                 ></sf-button-icon>` : nothing}
-                <h2 class="sf-property-view-title min-w-0 overflow-hidden" tabindex="-1">${history ? context.word('historyText') : level ? context.phoneSectionLabel : record}</h2>
+                <h2 class="sf-property-view-title min-w-0 overflow-hidden" style=${TITLE_STYLE} tabindex="-1">${history ? context.word('historyText') : level ? context.phoneSectionLabel : record}</h2>
                 ${context.recordId && context.mode !== 'create' && !history ? html`<sf-button-icon
                         appearance="ghost"
                         scheme="on-surface"
