@@ -114,16 +114,22 @@ export async function loadPagination() {
     // from a language file) instead of importing en.json and ru.json: nine
     // imports, and the harness hands it both files as that module would.
     const languageModule = /from "\.\/lang\/index\.mjs";/u.test(index);
-    const element = stripImports(index, languageModule ? 9 : 10, 'src/smart/pagination/index.js')
+    // Since the pair ui-b654460cad2a (sf-pagination 1.9.0, owner decision
+    // C295) the module imports the group actions' danger rule from
+    // ./js/actions.js, which re-exports sf-bulk-actions' js/danger.js: one
+    // import more, handed in as that file's own functions.
+    const dangerImport = /^import \{ isDestructiveAction \} from "\.\/js\/actions\.js";$/mu.test(index);
+    const danger = dangerImport ? await read('src/smart/bulk-actions/js/danger.js') : '';
+    const element = stripImports(index, (languageModule ? 9 : 10) + (dangerImport ? 1 : 0), 'src/smart/pagination/index.js')
       .replace(/^SfPagination\.define\("sf-pagination"\);$/mu, 'export default SfPagination;');
     if (!/export default SfPagination;/u.test(element)) {
       throw new Error('src/smart/pagination/index.js: SfPagination.define("sf-pagination") not found');
     }
     const {default: SfPagination} = await asModule(
-      `${BASE}\nconst manifest = ${manifest};\nconst aliases = {};\nconst enFile = ${en};\nconst ruFile = ${ru};\nconst languageFiles = {en: {runtime: enFile.runtime}, ru: {runtime: ruFile.runtime}};\n${element}`,
+      `${BASE}\n${danger.replace(/^export /gmu, '')}\nconst manifest = ${manifest};\nconst aliases = {};\nconst enFile = ${en};\nconst ruFile = ${ru};\nconst languageFiles = {en: {runtime: enFile.runtime}, ru: {runtime: ruFile.runtime}};\n${element}`,
     );
     const {renderPaginationTemplate} = await asModule(
-      `const html = (strings, ...values) => ({strings, values});\nconst nothing = undefined;\nconst keyed = (key, value) => value;\n${stripImports(actions, 0, 'src/smart/pagination/js/actions.js')}\n${stripImports(template, 3, 'src/smart/pagination/js/templates/default.js')}`,
+      `const html = (strings, ...values) => ({strings, values});\nconst nothing = undefined;\nconst keyed = (key, value) => value;\n${/^export \{[^}]*\} from /mu.test(actions) ? '' : stripImports(actions, 0, 'src/smart/pagination/js/actions.js')}\n${stripImports(template, /^import [^\n]*keyed/mu.test(template) ? 3 : 1, 'src/smart/pagination/js/templates/default.js')}`,
     );
     return {SfPagination, renderPaginationTemplate};
   })();

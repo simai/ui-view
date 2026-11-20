@@ -105,20 +105,16 @@ test('the passport lists every component of the set and only them', {skip: !setR
 });
 
 // Draft set standard §3.2 (VW-4, view round 1 F4): a component's status in
-// set.json is its status in the shared registry. One known difference waits
-// on the Framework: sf-view-flow is preview here (dispatcher decision
-// 2026-11-17, point 10) and released in the registry; the registry is
-// corrected with the next Framework group build. The entry fails once the
+// set.json is its status in the shared registry. sf-view-flow agrees since the
+// pair ui-b654460cad2a (preview in both). The pair registers the board, the
+// cards and the calendar by name as reserved; the set ships them as preview,
+// so each waits for the registry to say preview (ordered from SIMAI Framework
+// through the dispatcher, view round 9, 2026-11-20). An entry fails once the
 // registry agrees, so it is removed then.
 const STATUS_PENDING = {
-  'sf-view-flow': {set: 'preview', registry: 'released', order: 'registry status correction, ordered from SIMAI Framework through the dispatcher (view round 1, 2026-11-17)'},
-  // sf-view-board (view round 2, board helper): the name is new; the registry
-  // takes it with the next Framework group build (order through the dispatcher).
-  'sf-view-board': {set: 'preview', registry: undefined, order: 'register sf-view-board / cl-view-board in contracts/registry/names.json (view round 2 board, 2026-11-18)'},
-  // sf-view-cards (view-cards helper): registered with the next Framework group build as well.
-  'sf-view-cards': {set: 'preview', registry: undefined, order: 'register sf-view-cards / cl-view-cards in contracts/registry/names.json (view-cards, 2026-11-18)'},
-  // sf-view-calendar (view-calendar, C307): new as the board was.
-  'sf-view-calendar': {set: 'preview', registry: undefined, order: 'register sf-view-calendar / cl-view-calendar in contracts/registry/names.json (view-calendar, 2026-11-18)'},
+  'sf-view-board': {set: 'preview', registry: 'reserved', order: 'registry status reserved -> preview for sf-view-board in contracts/registry/names.json (view round 9, 2026-11-20)'},
+  'sf-view-cards': {set: 'preview', registry: 'reserved', order: 'registry status reserved -> preview for sf-view-cards in contracts/registry/names.json (view round 9, 2026-11-20)'},
+  'sf-view-calendar': {set: 'preview', registry: 'reserved', order: 'registry status reserved -> preview for sf-view-calendar in contracts/registry/names.json (view round 9, 2026-11-20)'},
 };
 
 test('each component has the status the registry gives it', {skip: !setRoot && 'SET_ROOT is not given'}, () => {
