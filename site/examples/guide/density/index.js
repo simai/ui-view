@@ -231,6 +231,7 @@ const initializeDensity = async () => {
   const area = root.querySelector('[data-area]');
   const view = root.querySelector('sf-view');
   const control = root.querySelector('[data-density]');
+  let saved = ''; // what the application last saved for the person, kept under the measurement
   const measure = async () => {
     await new Promise((done) => setTimeout(done, 400));
     const row = view.querySelector('tbody tr');
@@ -239,10 +240,11 @@ const initializeDensity = async () => {
     const height = (node) => (node ? Math.round(node.getBoundingClientRect().height) : 0);
     const mode = area.getAttribute('data-sf-density') === 'compact' ? 'Компактная' : 'Обычная';
     const narrow = !matchMedia('(min-width: 60rem)').matches;
-    log.textContent = narrow
+    const text = narrow
       ? `${mode}: пример уже 960 px, а плотность действует с этой ширины — нажмите «Проверить адаптивность» и выберите компьютер.`
       : row ? `${mode}: строка ${height(row)} px, поле поиска ${height(search)} px.`
         : `${mode}: строк таблицы нет — список показан карточками.`;
+    log.textContent = saved ? `${text} ${saved}` : text;
   };
   control.addEventListener('change', (event) => {
     const value = event.detail?.value ?? event.detail?.values?.[0] ?? control.value;
@@ -251,7 +253,7 @@ const initializeDensity = async () => {
     measure();
   });
   view.addEventListener('sf-view-state', (event) => { if (event.detail?.state === 'populated') measure(); });
-  view.setHostPort(ordersApp({count: 24, say: (text) => { log.textContent = text; }}).listPort);
+  view.setHostPort(ordersApp({count: 24, say: (text) => { saved = text; measure(); }}).listPort);
   measure();
 };
 
