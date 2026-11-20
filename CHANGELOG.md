@@ -62,21 +62,12 @@ yet): DEV's returns of rounds 6+7 (R67-1..3) and of the site round
   in the page language, the full date in the cell's title (Larena L-3). The
   settings column's name comes from the language files (Larena L-1: it was
   the literal `settings`).
-- Site round 2: a new home (the hero, one live list in four layouts with the
-  record card beside it, a card per component with a live preview, the
-  connection line, the reasons, the footer); the other home examples moved to
-  «Примеры с главной»; new guide pages «Представления», «Карточка записи»,
-  «Плотность», «Подвал списка», «Массовые действия», each with a live
-  example; page sizes 10/20/50/100 in every example (R8-4).
 - `contracts/view-config` 1.0.1 (text only, Larena server acceptance
   LVC-4, LVC-8): each level keeps whole documents, merged by the host in the
   order system < shared < profile < personal except on locked paths; a host
   keeps its own parts under `layouts.<layout>`, a filter key starting with
   `_` is a host's service field (Larena `_archived`), `fields` is optional
   and filled by a writer that knows it; a list belongs to one host place.
-- Site home banner: the data-flow tiles fade to a tenth under the hero text
-  (a mask on the effect layer from the text side, local copy, as the other
-  home transform; DEV msg-6af8ca2d).
 - Site: page sizes 10/20/50/100 in the examples; the materializer carries
   `core/contracts/icon-names.v1.json` (VSA-2); no decision ids in the change
   history or in an example's source, and the site lint rule `history` now
