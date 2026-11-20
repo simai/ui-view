@@ -431,6 +431,14 @@
   :is(sf-view-table, sf-table)[data-sf-columns-fitted] table:not(.sf-table-measuring) td[data-key] .sf-table-title-link {
     max-inline-size: 100%;
   }
+  :is(sf-view-table, sf-table)[data-sf-columns-fitted] table:not(.sf-table-measuring) td[data-key] .sf-table-status {
+    max-inline-size: 100%;
+  }
+  :is(sf-view-table, sf-table)[data-sf-columns-fitted] table:not(.sf-table-measuring) td[data-key] .sf-table-status > :last-child {
+    min-inline-size: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
   :is(sf-view-table, sf-table)[data-sf-columns-fitted] table:not(.sf-table-measuring) td[data-key] .sf-table-cell-text {
     display: block;
     overflow: hidden;
