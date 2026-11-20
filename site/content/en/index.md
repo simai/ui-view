@@ -4,7 +4,7 @@ description: SIMAI View — таблицы, списки и карточки з�
 profile: landing
 ---
 
-:::hero {layout=centered padding=2xl effect=heat-mosaic}
+:::hero {layout=centered padding=2xl effect=data-flow}
 # SIMAI View
 
 Таблицы, списки и карточки записей для SIMAI Framework: приложение отдаёт данные, а компоненты сами ищут, сортируют, листают и показывают запись.

@@ -26,6 +26,10 @@ ones this set follows are in the Answers table with their record.
   the set's own among the sites; the owner may name another.
 - Outcome: `heat-mosaic`, pinned with the catalogue commit in
   `site/docara.json`; shown for review on ui-view.test.
+- Changed 2026-11-21 (DEV msg-51f19149868e4628bf25, round 8): `data-flow`
+  (one set of records regrouping as a table, a board, a calendar and cards:
+  the set's own subject), catalogue pinned at simai/ui-effects ffc71ca
+  (main at the time, CI green; data-flow arrived in 54518d0).
 
 ## D3 — The passport's `docs` URL while view.simai.io does not serve the site
 
@@ -70,7 +74,7 @@ ones this set follows are in the Answers table with their record.
 | C289 | The record card in a panel: tabs under the head, the drawer's width ladder, label beside value, one footer (round items C1-C10) | 2026-11-17 | ui-control `control/docs-review/decisions.md` C289 |
 | C290 | The site: Руководство, Компоненты, Рецепты and the set's own «Свойства»; each property type in the set's real components, four views and four states, from one registry | 2026-11-17 | ui-control `control/docs-review/decisions.md` C290 |
 | D1 | registry locale layout, Russian at the root until English is accepted | 2026-11-17 | this file; `site/docara.json` |
-| D2 | `heat-mosaic` hero effect, open for the owner's look review | 2026-11-17 | this file; `site/docara.json` |
+| D2 | hero effect `data-flow` (was `heat-mosaic` until 2026-11-21) | 2026-11-17 | this file; `site/docara.json` |
 | D3 | `docs` stays until the schema allows empty | 2026-11-17 | this file; Framework order E12 |
 | D4 | the site reports 1.9.0 as a candidate | 2026-11-17 | this file; `package/package.json` |
 | D5 | journal source is component.json `x-history` | 2026-11-17 | ui-control standard draft 1.1 §15 |
