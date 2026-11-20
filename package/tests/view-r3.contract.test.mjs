@@ -21,7 +21,8 @@ test('sf-view switches its layout live and swaps the content element', () => {
   assert.match(view, /\n {4}switchLayout\(kind, \{refresh = true\} = \{\}\) \{/u);
   assert.match(view, /if \(!LAYOUTS\.has\(name\)\) return \{outcome: "refused", reason: "layout-unavailable"\};/u);
   // A layout written after the view drew swaps the content element.
-  assert.match(view, /if \(name === "layout"\) this\._swapContent\(\);\n {8}this\._renderProjection\(\);/u);
+  // Round 8 (VSA-5): the swap is followed by the hold of a layout whose code is on the way.
+  assert.match(view, /if \(name === "layout"\) \{\n {12}this\._swapContent\(\);\n {12}this\._holdLayoutLoad\(\);\n {8}\}\n {8}this\._renderProjection\(\);/u);
   // The page's own element of the other layout is parked, never removed.
   assert.match(view, /child\.setAttribute\("slot", "sf-view-parked"\);\n {16}child\.toggleAttribute\("data-sf-view-parked", true\);/u);
 });
