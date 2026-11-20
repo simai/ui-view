@@ -30,6 +30,7 @@
       "status": "released",
       "requires": [
         "cl-badge",
+        "cl-bulk-actions",
         "cl-button",
         "cl-button-icon",
         "cl-checkbox",

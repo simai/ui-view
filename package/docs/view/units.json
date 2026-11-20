@@ -5,6 +5,15 @@
   "entries": [
     {
       "unit": "smart.view",
+      "version": "1.29.0",
+      "recorded_on": "2026-11-20",
+      "change": "minor",
+      "consumer": "Nothing to change for a host. Over a pair that carries sf-bulk-actions (ui-b654460cad2a and later) the marked rows' band of a table is the group actions bar (Larena L-2, C295): «Выбрано N», the actions as buttons (up to three, the rest and a deleting one in «⋯»), «Выбрать все N» where the host offers bulk-under-filter, the cross and Escape; the host's answer is the bar's result line (done, or the refused rows with the reason, «Подробнее», «Повторить для N»). The actions, words and events stay the page row's (actions, selected-label, actions-region-label, bulkActions with icons) and the port's (bulk.apply_selected, bulk.apply_under_filter). Over an older pair the band of before stays.",
+      "summary": "View round 9 (round/view-r9, Larena L-2): index.js _renderBulkBand draws sf-bulk-actions (slot bulk, place dock, data-sf-bulk=bar) where bulkBarAvailable(), its actions from the page row's bulkActions (icons from the view's bulkActions), page-count from bulkPageCount, total and all-selected from the page row's for-all; sf-bulk-actions-action raises bulk.apply_selected or bulk.apply_under_filter and the answer goes to bar.result(); -select-all/-select-page set the page row's for-all; -clear clears the selection. rule.js and relations cl-bulk-actions (lazy), composition.uses smart.bulk-actions.",
+      "evidence": "control/evidence/2026-11-21-view-r9/README.md"
+    },
+    {
+      "unit": "smart.view",
       "version": "1.28.1",
       "recorded_on": "2026-11-22",
       "change": "patch",
