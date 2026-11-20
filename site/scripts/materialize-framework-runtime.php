@@ -338,6 +338,40 @@ $runtimeBase = $packageRoot . '/resources/portable/vendor/simai-framework/runtim
 if (! is_dir($runtimeBase) && ! mkdir($runtimeBase, 0755, true) && ! is_dir($runtimeBase)) {
     throw new RuntimeException('FRAMEWORK_RUNTIME_DIRECTORY_FAILED');
 }
+/* A second run starts where a fresh install starts: without the projected
+   distribution. Docara's core sync refuses a file on disk its manifest does
+   not list (FRAMEWORK_RUNTIME_UNMANIFESTED_FILE), and the files this script
+   carries below (core/lang, core/contracts/icon-names.v1.json) are written
+   after that sync, so a previous run's copies stopped every next run. The
+   sync rewrites the whole distribution from the ui objects, so removing it
+   first changes nothing in the result: two runs in a row give the same
+   bytes. Only this release's projection folder inside the installed Docara
+   copy (vendor/, ignored) is removed. */
+$removeTree = static function (string $path) use (&$removeTree): void {
+    if (is_link($path) || is_file($path)) {
+        if (! unlink($path)) {
+            throw new RuntimeException('FRAMEWORK_RUNTIME_CLEAN_FAILED: ' . $path);
+        }
+
+        return;
+    }
+    if (! is_dir($path)) {
+        return;
+    }
+    foreach (scandir($path) ?: [] as $entry) {
+        if ($entry !== '.' && $entry !== '..') {
+            $removeTree($path . '/' . $entry);
+        }
+    }
+    if (! rmdir($path)) {
+        throw new RuntimeException('FRAMEWORK_RUNTIME_CLEAN_FAILED: ' . $path);
+    }
+};
+$projectedDistribution = $runtimeBase . '/distr';
+if (! str_starts_with($projectedDistribution, $packageRoot . '/resources/portable/vendor/simai-framework/runtime/')) {
+    throw new RuntimeException('FRAMEWORK_RUNTIME_CLEAN_OUTSIDE: ' . $projectedDistribution);
+}
+$removeTree($projectedDistribution);
 $writeJson($runtimeBase . '/runtime-manifest.json', [
     'schema' => 'docara.framework_runtime_assets.v1',
     'root' => 'distr',
