@@ -1448,6 +1448,26 @@ class SfDataView extends DataViewElement {
         return asked || cap || FIRST_PAINT_ROWS;
     }
 
+    // Whether the page row draws its navigation before the host's first
+    // answer: the rule of sf-pagination 1.10.0 (singlePage: no page before
+    // and none after) over what the page wrote on its page row -- a current
+    // page past the first, has-next, or a total over one page. A page row
+    // that says nothing of its count draws no arrows, so the skeleton prints
+    // none either; a list of several pages the page wrote the count of keeps
+    // their line from the first paint.
+    get firstPaintHasPages() {
+        const row = this.querySelector?.(':scope > sf-pagination[slot="pagination"]');
+        if (!row) return false;
+        const number = (name) => Number.parseInt(row.getAttribute(name) ?? "", 10);
+        const current = number("current");
+        if (Number.isInteger(current) && current > 1) return true;
+        const next = row.getAttribute("has-next");
+        if (next !== null && next !== "false") return true;
+        const total = number("total");
+        const size = number("page-size") || this._declaredPageSize() || 20;
+        return Number.isInteger(total) && total > size;
+    }
+
     // The page size somebody declared: the person's kept one, a first answer's
     // echo, or the page row's page-size as the page printed it. Zero when
     // nobody did -- the query's own 20 is the view's default, not a request.
@@ -1734,9 +1754,16 @@ class SfDataView extends DataViewElement {
         // the arrows to the first and the previous page, the page field with
         // «из N», the arrows to the next and the last. The view's sheet lays
         // it out as the live row is laid out, so it wraps where the row does.
+        // The page row's arrows and field only where the page row the page
+        // wrote draws them: since sf-pagination 1.10.0 (pair ui-b654460cad2a,
+        // C97, C167 (1), Larena LF-11) a page row with no page before and none
+        // after draws no navigation, and before the host's first answer the
+        // count is what the page wrote (firstPaintHasPages). Printed for a
+        // one-page list, the arrows' line stood 48px under the range at 390
+        // and went when the answer came (gate 24, view/reference @390).
         const pageRow = `<div class="sf-data-view-skeleton-footer" data-size="${this.size}">`
             + `<div class="sf-data-view-skeleton-footer-start"><span>${bar}</span>${control("size")}</div>`
-            + `<div class="sf-data-view-skeleton-footer-pages">${control()}${control()}${control("page")}${control()}${control()}</div>`
+            + (this.firstPaintHasPages ? `<div class="sf-data-view-skeleton-footer-pages">${control()}${control()}${control("page")}${control()}${control()}</div>` : "")
             + "</div>";
         return [
             // An own toolbar slot is a row of the view's layout, even empty.
