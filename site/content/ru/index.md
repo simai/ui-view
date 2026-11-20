@@ -30,8 +30,64 @@ profile: landing
 Каждый компонент нарисован сам собой на нескольких записях. Название ведёт
 на его страницу.
 
-:::example {id="home/set" label="Компоненты набора" fullscreen=false wrap=false}
+:::::grid {columns=2 gap=4}
+::::card {variant=plain}
+### [Умная таблица](/ru/components/views/view-table/)
+
+Записи строками: колонки по типам, сортировка, выбор, меню строки.
+
+:::example {id="home/set-table" fullscreen=false wrap=false}
 :::
+::::
+::::card {variant=plain}
+### [Шапка списка](/ru/components/views/view-head/)
+
+Название, представления, фильтр, поиск и «Создать» над списком.
+
+:::example {id="home/set-head" fullscreen=false wrap=false}
+:::
+::::
+::::card {variant=plain}
+### [Доска](/ru/components/views/view-board/)
+
+Записи колонками по значению поля; перенос карточки меняет поле.
+
+:::example {id="home/set-board" fullscreen=false wrap=false}
+:::
+::::
+::::card {variant=plain}
+### [Карточки](/ru/components/views/view-cards/)
+
+Записи сеткой карточек: название и до четырёх полей.
+
+:::example {id="home/set-cards" fullscreen=false wrap=false}
+:::
+::::
+::::card {variant=plain}
+### [Календарь](/ru/components/views/view-calendar/)
+
+Записи на днях их даты: месяц, неделя, день или список.
+
+:::example {id="home/set-calendar" fullscreen=false wrap=false}
+:::
+::::
+::::card {variant=plain}
+### [Карточка записи](/ru/components/views/view-properties/)
+
+Одна запись по разделам и группам: просмотр и правка.
+
+:::example {id="home/set-card" fullscreen=false wrap=false}
+:::
+::::
+::::card {variant=plain}
+### [Блок в потоке](/ru/components/views/view-flow/)
+
+Запись или короткая форма внутри ленты сообщений.
+
+:::example {id="home/set-flow" fullscreen=false wrap=false}
+:::
+::::
+:::::
 
 ## Подключение
 

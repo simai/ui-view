@@ -67,9 +67,26 @@
     "wide": 693,
     "narrow": 1550
   },
-  "home/set": {
-    "wide": 1726,
-    "narrow": 2836
+  "home/set-board": {
+    "narrow": 302
+  },
+  "home/set-calendar": {
+    "narrow": 302
+  },
+  "home/set-card": {
+    "narrow": 294
+  },
+  "home/set-cards": {
+    "narrow": 302
+  },
+  "home/set-flow": {
+    "narrow": 302
+  },
+  "home/set-head": {
+    "narrow": 302
+  },
+  "home/set-table": {
+    "narrow": 302
   },
   "home/showcase": {
     "wide": 840,

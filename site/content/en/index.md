@@ -31,8 +31,64 @@ record card stands beside the list.
 Each component is drawn by itself over a few records. Its name leads to its
 page.
 
-:::example {id="home/set" label="The components of the set" fullscreen=false wrap=false}
+:::::grid {columns=2 gap=4}
+::::card {variant=plain}
+### [Smart table](/ru/components/views/view-table/)
+
+Records as rows: columns by type, sorting, selection, a row menu.
+
+:::example {id="home/set-table" fullscreen=false wrap=false}
 :::
+::::
+::::card {variant=plain}
+### [List head](/ru/components/views/view-head/)
+
+The name, views, filter, search and «Create» above the list.
+
+:::example {id="home/set-head" fullscreen=false wrap=false}
+:::
+::::
+::::card {variant=plain}
+### [Board](/ru/components/views/view-board/)
+
+Records in columns by a field value; moving a card changes the field.
+
+:::example {id="home/set-board" fullscreen=false wrap=false}
+:::
+::::
+::::card {variant=plain}
+### [Cards](/ru/components/views/view-cards/)
+
+Records as a grid of cards: the name and up to four fields.
+
+:::example {id="home/set-cards" fullscreen=false wrap=false}
+:::
+::::
+::::card {variant=plain}
+### [Calendar](/ru/components/views/view-calendar/)
+
+Records on the days of their date: month, week, day or a list.
+
+:::example {id="home/set-calendar" fullscreen=false wrap=false}
+:::
+::::
+::::card {variant=plain}
+### [Record card](/ru/components/views/view-properties/)
+
+One record by sections and groups: viewing and editing.
+
+:::example {id="home/set-card" fullscreen=false wrap=false}
+:::
+::::
+::::card {variant=plain}
+### [Block in a flow](/ru/components/views/view-flow/)
+
+A record or a short form inside a message feed.
+
+:::example {id="home/set-flow" fullscreen=false wrap=false}
+:::
+::::
+:::::
 
 ## Connection
 

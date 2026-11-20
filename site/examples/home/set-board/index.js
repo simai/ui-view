@@ -202,35 +202,54 @@ const settle = async (root) => {
   }
 };
 
-// ---- What the set holds: each component drawn small -----------------------
-const initializeSet = async () => {
+// ---- What the set holds: one component drawn small -------------------------
+// The home page shows each component of the set in its own card: the name
+// (a link to its page) and one line in the card, this example as its picture.
+const initializePreview = async () => {
   const root = document.querySelector('[data-set-demo]');
   if (!root || root.dataset.exampleReady === 'true') return;
   root.dataset.exampleReady = 'true';
-  const at = (name) => root.querySelector(`[data-preview="${name}"]`);
-  const views = ['table', 'head', 'board', 'cards', 'calendar'];
-  await customElements.whenDefined('sf-view');
-  for (const name of views) {
-    const view = at(name);
+  const preview = root.querySelector('[data-preview]');
+  const name = preview.dataset.preview;
+  if (['table', 'head', 'board', 'cards', 'calendar'].includes(name)) {
+    await customElements.whenDefined('sf-view');
     // The small table keeps three columns whole: the order, its state, the sum.
     const columns = name === 'table' ? COLUMNS.filter((column) => ['title', 'status', 'amount'].includes(column.key)) : NARROW;
     const app = ordersApp({count: 16, layout: name, columns});
-    view.querySelector('sf-view-table')?.setFilterFields?.(FIELDS);
-    view.setHostPort(app.listPort);
+    if (name === 'calendar') {
+      // The picture shows the first two weeks of the month's grid: the
+      // deliveries are laid on those days.
+      const first = new Date();
+      first.setDate(1);
+      first.setDate(1 - ((first.getDay() + 6) % 7));
+      app.orders.forEach((order, index) => {
+        const at = new Date(first);
+        at.setDate(first.getDate() + ((index * 3) % 14));
+        order.due = `${at.getFullYear()}-${String(at.getMonth() + 1).padStart(2, '0')}-${String(at.getDate()).padStart(2, '0')}`;
+      });
+    }
+    preview.querySelector('sf-view-table')?.setFilterFields?.(FIELDS);
+    preview.setHostPort(app.listPort);
+  } else if (name === 'card') {
+    await customElements.whenDefined('sf-view-properties');
+    preview.setHostPort(ordersApp({count: 16}).cardPort);
+    // In a narrow frame the card lists its sections as rows, each opening
+    // its section; the picture opens the first one, so its fields show.
+    for (let tries = 0; tries < 60 && !preview.sections?.length; tries += 1) await new Promise((done) => setTimeout(done, 100));
+    preview.openPhoneSection?.('order');
+  } else if (name === 'flow') {
+    await customElements.whenDefined('sf-view-flow');
+    const order = makeOrders(4)[2];
+    preview.fields = [
+      {key: 'client', label: 'Клиент', propertyType: 'string', width: 'full', value: order.client},
+      {key: 'status', label: 'Состояние', propertyType: 'choice', width: 'half', value: order.status, options: STATUS},
+      {key: 'amount', label: 'Сумма, ₽', propertyType: 'number', width: 'half', value: order.amount},
+    ];
   }
-  await customElements.whenDefined('sf-view-properties');
-  at('card').setHostPort(ordersApp({count: 16}).cardPort);
-  await customElements.whenDefined('sf-view-flow');
-  const order = makeOrders(4)[2];
-  at('flow').fields = [
-    {key: 'client', label: 'Клиент', propertyType: 'string', width: 'full', value: order.client},
-    {key: 'status', label: 'Состояние', propertyType: 'choice', width: 'half', value: order.status, options: STATUS},
-    {key: 'amount', label: 'Сумма, ₽', propertyType: 'number', width: 'half', value: order.amount},
-  ];
-  // The previews are pictures: once their parts are defined they take no
-  // focus and no clicks. Not inert in the markup: the Loader leaves an inert
+  // The preview is a picture: once its parts are defined it takes no focus
+  // and no clicks. Not inert in the markup: the Loader leaves an inert
   // subtree for later and would never define the parts inside.
-  for (const picture of root.querySelectorAll('[data-set-picture]')) picture.inert = true;
+  root.inert = true;
 };
 
-initializeSet();
+initializePreview();
