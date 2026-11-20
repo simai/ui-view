@@ -4366,15 +4366,15 @@
             "schema_version": 2,
             "package": "view",
             "requires": "ui-dc9fc39aeb26",
-            "mount": "_docara/framework-packages/view/070409ebe3da652b5a3955d8bcfdc9286c71f029",
+            "mount": "_docara/framework-packages/view/5ee50e95a4ddb333f37968e5e2c4407fe3863e57",
             "receipt": {
                 "schema": "simai.framework.product-package-receipt",
                 "schema_version": 1,
                 "package_source": {
                     "repository": "simai/ui-view",
-                    "revision": "070409ebe3da652b5a3955d8bcfdc9286c71f029",
+                    "revision": "5ee50e95a4ddb333f37968e5e2c4407fe3863e57",
                     "path": "package",
-                    "tree": "28e3ef1c31394deca5329e40bf516c1606475aee"
+                    "tree": "943b25ef89798fcfd3ec3effedc864e1512b7617"
                 },
                 "framework_source": {
                     "repository": "simai/ui-source",
@@ -4384,8 +4384,8 @@
                     "repository": "simai/ui-builder",
                     "revision": "0ec5196b35aea0251abed7af4c60f498e1a3e411"
                 },
-                "manifest_sha256": "0bce97dfce96c7f2f4d986617ca245a7d8bc8c9958c6012a2b1018c8aaae0913",
-                "archive_sha256": "bb2fdddb385c6834e80fdd3ddb26722b5aed6e0609c0c5e990467391ddfbf4fa"
+                "manifest_sha256": "e83eb68e09a29501ae086495fb6a402ffbc353ce12b5ed84e595c4995f8c7db3",
+                "archive_sha256": "0524b851f098468aea5f5b1e817b3123ffb3a4e584959942b375727c8079f326"
             },
             "files": {
                 "set.json": {
@@ -4473,10 +4473,10 @@
                     "sha256": "bceb10f4b44db1b42142c2694437694928b6c170bac4ec2de6d216e83b7fb3ba"
                 },
                 "smart/view/js/view.js": {
-                    "sha256": "3e9445392e2cab62dc016fd58ebbabf83fbf025b77c87ef6a24eba403ebd43f2"
+                    "sha256": "75c97648bbe98366270560c9d046f274d64689174cc78d19a29780a7d67579f9"
                 },
                 "smart/view/js/view.min.js": {
-                    "sha256": "e58dbf948d1051cac7c9e63041a9e76a2c6a31dc60cbf8a68d04e45681829902"
+                    "sha256": "49ec982eb88432e0404973c2af00e35331552f530666986d795352adbe66a028"
                 }
             }
         }
