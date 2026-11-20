@@ -355,6 +355,11 @@ current stays 1.15.0 until the pinned pair carries 1.16.0. Two things, both addi
   `current_revision` of a conflict. Without the capability (a guest, any earlier
   port) both stay in the browser (SF.Preferences under `preferences-key`), as before.
   The browser keeps a copy either way for the first paint.
+- **The view opened last** (from sf-view 1.27.0). `data.preferences.view` names the
+  saved view the person opened last. On the layer's first answer the view opens it
+  by itself, as the views menu does, unless the list already shows it (the page's
+  own query or the default view), and that query carries the layer's page size.
+  Opening another view raises `preferences.save {view}`, so the next visit opens it.
 
 Port [1.5.0](../../core/contracts/ports/simai.dataview-port/1.5.0/port.json) adds two things, both additive. The 24 cases
 of the [1.4.0 kit](../../core/contracts/ports/simai.dataview-port/1.4.0/kit/manifest.json) are byte for byte the first 24
