@@ -61,7 +61,9 @@ test('the set\'s layouts that draw the bar fetch it, lazily', () => {
     const manifest = JSON.parse(read(`src/smart/${folder}/smart.manifest.json`));
     assert.ok(manifest.composition.uses.includes('smart.bulk-actions'), `${folder} uses smart.bulk-actions`);
   }
-  const passport = JSON.parse(read('set.json'));
+  // The passport is not in the overlay: SET_ROOT is the package (scripts/test.mjs).
+  if (!process.env.SET_ROOT) return;
+  const passport = JSON.parse(readFileSync(resolve(process.env.SET_ROOT, 'set.json'), 'utf8'));
   for (const component of passport.components.filter(({folder}) => ['view', 'view-table', 'view-board', 'view-cards', 'view-calendar'].includes(folder))) {
     assert.ok(component.requires.includes('cl-bulk-actions'), component.element);
   }
