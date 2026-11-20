@@ -92,7 +92,12 @@ const ordersApp = ({count = 60, views = false, say = () => {}, bulk = null, colu
         say(intent === 'view.save_shared' ? 'Приложение сохранило представление для всех.' : 'Приложение сохранило представление.');
         return {answer: 'applied', data: {saved_views: VIEWS}};
       }
-      if (intent === 'settings.save') return {answer: 'applied'};
+      if (intent === 'settings.save') {
+        const patch = payload?.patch ?? {};
+        const labels = (keys) => keys.map((key) => FIELDS.find((field) => field.key === key)?.label ?? COLUMNS.find((column) => column.key === key)?.label ?? key).join(', ');
+        say(Array.isArray(patch.columns) ? `Приложение сохранило для вас колонки: ${labels(patch.columns)} (settings.save).` : 'Приложение сохранило настройку для вас (settings.save).');
+        return {answer: 'applied'};
+      }
       if (intent === 'record.open') return {answer: 'applied'};
       if (intent === 'bulk.apply_selected' && bulk) {
         const ids = payload.record_ids.map(String);

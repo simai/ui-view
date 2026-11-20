@@ -92,7 +92,12 @@ const ordersApp = ({count = 60, views = false, say = () => {}, bulk = null, colu
         say(intent === 'view.save_shared' ? 'Приложение сохранило представление для всех.' : 'Приложение сохранило представление.');
         return {answer: 'applied', data: {saved_views: VIEWS}};
       }
-      if (intent === 'settings.save') return {answer: 'applied'};
+      if (intent === 'settings.save') {
+        const patch = payload?.patch ?? {};
+        const labels = (keys) => keys.map((key) => FIELDS.find((field) => field.key === key)?.label ?? COLUMNS.find((column) => column.key === key)?.label ?? key).join(', ');
+        say(Array.isArray(patch.columns) ? `Приложение сохранило для вас колонки: ${labels(patch.columns)} (settings.save).` : 'Приложение сохранило настройку для вас (settings.save).');
+        return {answer: 'applied'};
+      }
       if (intent === 'record.open') return {answer: 'applied'};
       if (intent === 'bulk.apply_selected' && bulk) {
         const ids = payload.record_ids.map(String);
@@ -203,7 +208,8 @@ const settle = async (root) => {
 // ---- Customize view and density -------------------------------------------------
 // The list head's «Настроить вид» shows or hides columns for the person;
 // data-sf-density="compact" on the area moves every part one step down the
-// height ladder; the line under the example measures a row and the search.
+// height ladder from 60rem up; the line under the example measures a row and
+// the search field, and says so when the frame is narrower than that.
 // The view zone starts open, so «Настроить вид» is in sight from the start;
 // the person's own choice (the zone closed) is kept after that.
 const openZoneOnce = (key) => {
@@ -228,11 +234,15 @@ const initializeDensity = async () => {
   const measure = async () => {
     await new Promise((done) => setTimeout(done, 400));
     const row = view.querySelector('tbody tr');
-    const search = view.querySelector('input[type="search"], sf-input input, input');
+    const input = view.querySelector('input[type="search"]');
+    const search = input?.closest('label') ?? input;
     const height = (node) => (node ? Math.round(node.getBoundingClientRect().height) : 0);
     const mode = area.getAttribute('data-sf-density') === 'compact' ? 'Компактная' : 'Обычная';
-    log.textContent = row ? `${mode}: строка ${height(row)} px, поле поиска ${height(search)} px.`
-      : `${mode}: на узком экране плотность не действует — список карточек тот же.`;
+    const narrow = !matchMedia('(min-width: 60rem)').matches;
+    log.textContent = narrow
+      ? `${mode}: пример уже 960 px, а плотность действует с этой ширины — нажмите «Проверить адаптивность» и выберите компьютер.`
+      : row ? `${mode}: строка ${height(row)} px, поле поиска ${height(search)} px.`
+        : `${mode}: строк таблицы нет — список показан карточками.`;
   };
   control.addEventListener('change', (event) => {
     const value = event.detail?.value ?? event.detail?.values?.[0] ?? control.value;
@@ -241,7 +251,7 @@ const initializeDensity = async () => {
     measure();
   });
   view.addEventListener('sf-view-state', (event) => { if (event.detail?.state === 'populated') measure(); });
-  view.setHostPort(ordersApp({count: 24}).listPort);
+  view.setHostPort(ordersApp({count: 24, say: (text) => { log.textContent = text; }}).listPort);
   measure();
 };
 
