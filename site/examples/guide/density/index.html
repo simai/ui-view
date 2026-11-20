@@ -2,7 +2,7 @@
   <sf-segmented size="1/2" aria-label="Плотность" data-density
     items='[{"value":"normal","label":"Обычная"},{"value":"compact","label":"Компактная"}]' value="normal"></sf-segmented>
   <div data-area>
-    <sf-view aria-label="Заказы" preferences-key="view.guide-density">
+    <sf-view aria-label="Заказы" heading="Заказы" head="list" preferences-key="view.guide-density">
       <sf-view-table slot="content" aria-label="Заказы" search-placeholder="Номер или клиент"></sf-view-table>
       <sf-pagination slot="pagination" top="false" page-size="10" page-sizes="10,20,50,100"></sf-pagination>
     </sf-view>

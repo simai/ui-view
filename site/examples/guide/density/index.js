@@ -200,9 +200,22 @@ const settle = async (root) => {
   }
 };
 
-// ---- Density ------------------------------------------------------------------
+// ---- Customize view and density -------------------------------------------------
+// The list head's «Настроить вид» shows or hides columns for the person;
 // data-sf-density="compact" on the area moves every part one step down the
 // height ladder; the line under the example measures a row and the search.
+// The view zone starts open, so «Настроить вид» is in sight from the start;
+// the person's own choice (the zone closed) is kept after that.
+const openZoneOnce = (key) => {
+  try {
+    const at = `sf-pref:sf-table/${key}`;
+    if (localStorage.getItem(at) === null) localStorage.setItem(at, JSON.stringify({v: 1, viewZone: true}));
+  } catch {
+    // No storage (a private window): the zone starts closed.
+  }
+};
+openZoneOnce('view.guide-density');
+
 const initializeDensity = async () => {
   const root = document.querySelector('[data-density-demo]');
   if (!root || root.dataset.exampleReady === 'true') return;
