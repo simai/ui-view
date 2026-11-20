@@ -13,7 +13,7 @@ Loader сам находит набор, загружает его правил�
 
 <!-- release:cdn -->
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@simai-studio/ui@5.20261117.1612/distr/core/js/core.min.js" data-sf-sets="view"></script>
+<script src="https://cdn.jsdelivr.net/npm/@simai-studio/ui@5.20261118.1205/distr/core/js/core.min.js" data-sf-sets="view"></script>
 ```
 <!-- /release:cdn -->
 
@@ -26,7 +26,7 @@ Loader сам находит набор, загружает его правил�
 jsDelivr.
 
 <!-- release:compat -->
-Эта сборка сайта — кандидат версии 1.9.0: собрана над выпуском SIMAI Framework `ui-dc9fc39aeb26` (npm `@simai-studio/ui@5.20261118.1205`) и работает с `core.runtime` 1.51.0 или новее. В npm последняя выпущенная версия — 1.8.1 (`view-69a213f6773f`).
+Версия 1.9.0 (выпуск `view-acd69c85b6aa`) собрана над выпуском SIMAI Framework `ui-dc9fc39aeb26` (npm `@simai-studio/ui@5.20261118.1205`) и работает с `core.runtime` 1.51.0 или новее.
 <!-- /release:compat -->
 
 Ссылка на выпуск закрепляет Core и набор вместе:
@@ -77,7 +77,7 @@ jsDelivr.
 
 <!-- release:npm -->
 ```bash
-npm install @simai-studio/view@1.9.0 @simai-studio/ui@5.20261117.1612
+npm install @simai-studio/view@1.9.0 @simai-studio/ui@5.20261118.1205
 ```
 <!-- /release:npm -->
 
@@ -95,7 +95,9 @@ npm install @simai-studio/view@1.9.0 @simai-studio/ui@5.20261117.1612
 <!-- release:versions -->
 | Набор | Выпуск | Собран над SIMAI Framework | Нужен Core |
 |:---|:---|:---|:---|
-| 1.9.0 | кандидат, эта сборка сайта | `ui-dc9fc39aeb26` | `core.runtime` 1.51.0 или новее |
+| 1.9.0 | `view-acd69c85b6aa` | `ui-dc9fc39aeb26` | `core.runtime` 1.51.0 или новее |
+| 1.8.3 | `view-0bd7d7284c5a` | `ui-141822273efe` | `core.runtime` 1.51.0 или новее |
+| 1.8.2 | `view-054588ce236c` | `ui-141822273efe` | `core.runtime` 1.51.0 или новее |
 | 1.8.1 | `view-69a213f6773f` | `ui-141822273efe` | `core.runtime` 1.51.0 или новее |
 | 1.8.0 | `view-80e24b1bd7cc` | `ui-141822273efe` | `core.runtime` 1.51.0 или новее |
 | 1.7.1 | `view-9eff67bbf11f` | `ui-7fb26d395af2` | `core.runtime` 1.51.0 или новее |

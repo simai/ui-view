@@ -21,6 +21,10 @@
 //               example (§11.19);
 //   promises    no promise of a later release in the content (§11.12;
 //               «docs: current state only», 2026-11-17);
+//   history     no internal decision id (C295, C305 (4), VT-4) and no version
+//               history («с версии 1.17.0», «(с 1.7.0)», «С 1.18.0») in the
+//               content, the generated reference included, outside the change
+//               history and the upgrade guide (owner rules D02, D16; VS-SITE-11);
 //   grid        no grid of more than three items in a row (§11.13);
 //   showcase    every showcase panel is a surface-1 card with an outline
 //               (§11.11);
@@ -140,6 +144,16 @@ for (const path of [...contentFiles, ...walk('config').filter((one) => one.endsW
   for (const match of text.matchAll(PROMISES)) fail('promises', `${path}:${lineOf(text, match.index)}`, `«${match[0]}» promises a later release`);
 }
 
+// ---- history ---------------------------------------------------------------
+// A page says what the set does now: which decision asked for it and since
+// which version it does so belong to the change history.
+const HISTORY = /\b(?:C|CD|CL|VT|VR\d?|VS|LH|PT|VZ|LV|VB|VC|VCL|RC|GB)-?\d{2,3}\b|[Сс] верси[ий] \d+\.\d+|\(с \d+\.\d+\.\d+|, с \d+\.\d+\.\d+\)|(?:^|[.;:]\s+)С \d+\.\d+\.\d+|по умолчанию с \d+\.\d+|решени[еяю] владельца|решени[ея] C\d/gmu;
+for (const path of contentFiles) {
+  if (path === 'content/ru/guide/changes.md' || path === 'content/ru/guide/upgrading.md') continue;
+  const text = read(path).replace(/```[\s\S]*?```/gu, (block) => block.replace(/[^\n]/gu, ' '));
+  for (const match of text.matchAll(HISTORY)) fail('history', `${path}:${lineOf(text, match.index)}`, `«${match[0].trim()}»: a decision id or version history outside the change history`);
+}
+
 // ---- grid ------------------------------------------------------------------
 for (const path of contentFiles) {
   const text = read(path);
@@ -214,7 +228,7 @@ for (const path of contentFiles) {
 }
 
 // ---- concepts --------------------------------------------------------------
-for (const name of ['data', 'intents', 'settings', 'preferences']) {
+for (const name of ['data', 'intents', 'layouts', 'settings', 'preferences']) {
   const path = `content/ru/guide/concepts/${name}.md`;
   const text = read(path);
   if (!/^:{3,}diagram\b/mu.test(text) && !/!\[[^\]]+\]\(/u.test(text)) fail('concepts', path, 'no picture');

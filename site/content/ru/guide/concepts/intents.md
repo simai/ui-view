@@ -29,7 +29,7 @@ sequenceDiagram
 ```js
 const view = document.querySelector('sf-view');
 view.setHostPort({
-  version: '1.12.0',
+  version: '1.15.0',
   capabilities: ['row-actions'],
   async raise(intent, payload) {
     const response = await fetch('/api/orders/intent', {
@@ -43,8 +43,10 @@ view.setHostPort({
 ```
 
 - `version` — версия порта, которую понимает приложение. `sf-view` говорит
-  на порту `simai.dataview-port` версий от 1.0.0 до 1.13.0,
-  `sf-view-properties` — на порту `simai.property-view-port`.
+  на порту `simai.dataview-port`, `sf-view-properties` — на порту
+  `simai.property-view-port`; какие версии принимает каждый, сказано в
+  строке «Порт» его справочника ([представление данных](/ru/components/views/view/#параметры),
+  [карточка записи](/ru/components/views/view-properties/#параметры)).
 - `capabilities` — что приложение умеет сверх обязательного: например
   `row-actions` (действия над строками) или `saved-views` (сохранённые
   виды). Компонент не предлагает человеку того, чего приложение не умеет.

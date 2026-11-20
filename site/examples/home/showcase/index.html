@@ -1,5 +1,5 @@
 <div class="flex flex-col gap-3" data-showcase>
-  <sf-tabs type="pills" scheme="link" overflow="wrap" aria-label="Виды представления" items="Таблица|Карточка|Таблица и карточка|В потоке">
+  <sf-tabs type="pills" scheme="link" overflow="wrap" aria-label="Виды представления" items="Таблица|Виды списка|Карточка|Таблица и карточка|В потоке">
     <section slot="panel-0" class="flex flex-col gap-2 p-top-2" data-demo="table" aria-label="Таблица">
       <p class="m-0 color-on-surface-variant">Умная таблица заказов: поиск, фильтр по состоянию, сортировка по колонкам, страницы. Отметьте несколько заказов — внизу появятся действия с выбранными.</p>
       <figure class="showcase-card m-0">
@@ -18,7 +18,19 @@
       </figure>
     </section>
 
-    <section slot="panel-1" class="flex flex-col gap-2 p-top-2" data-demo="card" aria-label="Карточка">
+    <section slot="panel-1" class="flex flex-col gap-2 p-top-2" data-demo="layouts" aria-label="Виды списка">
+      <p class="m-0 color-on-surface-variant">Один список заказов в разных видах: откройте зону представления значком в начале строки действий и переключите «Таблица», «Доска», «Карточки» и «Календарь» — фильтр и поиск остаются, а приложение отвечает тем же данным в форме нужного вида.</p>
+      <figure class="showcase-card m-0">
+        <figcaption class="showcase-head"><a href="/ru/components/views/view-head/" target="_top">Шапка списка</a><span aria-hidden="true">·</span><a href="/ru/components/views/view-board/" target="_top">Доска</a><span aria-hidden="true">·</span><a href="/ru/components/views/view-cards/" target="_top">Карточки</a><span aria-hidden="true">·</span><a href="/ru/components/views/view-calendar/" target="_top">Календарь</a></figcaption>
+        <sf-view id="layouts-view" aria-label="Заказы" heading="Заказы" head="list" size="1/2" preferences-key="view.home-layouts">
+          <sf-view-table slot="content" aria-label="Заказы"></sf-view-table>
+          <sf-pagination slot="pagination" top="false" page-size="8" page-sizes="8,16"></sf-pagination>
+        </sf-view>
+        <p class="m-0 color-on-surface-variant" role="status" data-log></p>
+      </figure>
+    </section>
+
+    <section slot="panel-2" class="flex flex-col gap-2 p-top-2" data-demo="card" aria-label="Карточка">
       <p class="m-0 color-on-surface-variant">Карточка сотрудника — одна запись, разложенная по группам: строки, даты, выбор, люди, файлы, числа и флажки. Переключите, как её показать.</p>
       <figure class="showcase-card m-0">
         <figcaption class="showcase-head"><a href="/ru/components/views/view-properties/" target="_top">Карточка записи</a></figcaption>
@@ -32,7 +44,7 @@
       </figure>
     </section>
 
-    <section slot="panel-2" class="flex flex-col gap-2 p-top-2" data-demo="master" aria-label="Таблица и карточка">
+    <section slot="panel-3" class="flex flex-col gap-2 p-top-2" data-demo="master" aria-label="Таблица и карточка">
       <p class="m-0 color-on-surface-variant">Список сотрудников и карточка открытой записи: нажмите имя — карточка откроется панелью сбоку, список останется на месте.</p>
       <figure class="showcase-card m-0">
         <figcaption class="showcase-head"><a href="/ru/components/views/view/" target="_top">Представление данных</a><span aria-hidden="true">·</span><a href="/ru/components/views/view-properties/" target="_top">Карточка записи</a></figcaption>
@@ -43,7 +55,7 @@
       </figure>
     </section>
 
-    <section slot="panel-3" class="flex flex-col gap-2 p-top-2" data-demo="feed" aria-label="В потоке">
+    <section slot="panel-4" class="flex flex-col gap-2 p-top-2" data-demo="feed" aria-label="В потоке">
       <p class="m-0 color-on-surface-variant">Данные внутри ленты сообщений: ассистент показывает найденную заявку и просит заполнить несколько полей. Блок во всю ширину ленты и после ответа остаётся в ней записью того, что отправлено. Попробуйте отправить пустую форму или указать город «Москва».</p>
       <figure class="showcase-card m-0">
         <figcaption class="showcase-head"><a href="/ru/components/views/view-flow/" target="_top">Блок в потоке</a></figcaption>

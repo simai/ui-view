@@ -81,7 +81,7 @@ query.context  // {timeZone: 'Europe/Moscow', weekStart: 1, locale: 'ru'}
 
 ## Параметры
 
-Справочник собран из манифеста компонента в сборке-кандидате набора (`simai/ui-view@afc19298bb48`) и обновляется вместе с выпуском. Каждому атрибуту соответствует свойство элемента с тем же именем в camelCase: `search-placeholder` — `searchPlaceholder`.
+Справочник собран из манифеста компонента в сборке-кандидате набора (`simai/ui-view@987303a5e450`) и обновляется вместе с выпуском. Каждому атрибуту соответствует свойство элемента с тем же именем в camelCase: `search-placeholder` — `searchPlaceholder`.
 
 | | |
 |:---|:---|
@@ -99,21 +99,21 @@ query.context  // {timeZone: 'Europe/Moscow', weekStart: 1, locale: 'ru'}
 - `title-field` — `string`, по умолчанию `title`. Ключ записи, из которого берётся название события (иначе title, name, id).
 - `mode` — `string`, по умолчанию пусто, значения: `month`, `week`, `day`, `list`. Показанный режим (иначе mode из layouts.calendar, иначе месяц). На телефоне неделя — три дня, а дня нет.
 - `date` — `string`, по умолчанию пусто. День показанного периода, гггг-мм-дд (иначе сегодня в часовом поясе запроса).
-- `time-zone` — `string`, по умолчанию пусто. Часовой пояс запроса (context.timeZone, C293): даты и время показываются и записываются в нём; пусто — пояс человека (браузера).
-- `week-start` — `integer`. Первый день недели запроса (context.weekStart, C293): 0 или 7 — воскресенье, до 6 — суббота; без него — по языку страницы (для ru понедельник). В виде не хранится.
+- `time-zone` — `string`, по умолчанию пусто. Часовой пояс запроса (context.timeZone): даты и время показываются и записываются в нём; пусто — пояс человека (браузера).
+- `week-start` — `integer`. Первый день недели запроса (context.weekStart): 0 или 7 — воскресенье, до 6 — суббота; без него — по языку страницы (для ru понедельник). В виде не хранится.
 - `locale` — `string`, по умолчанию пусто. Язык названий месяцев и дней (Intl); пусто — язык страницы.
 - `now` — `string`, по умолчанию пусто. «Сейчас» для страницы, которая показывает один момент (гггг-мм-ддTчч:мм): сегодня и линия текущего времени; пусто — часы.
 - `selectable` — `boolean`, по умолчанию `true`. Строки режима «Список» несут флажок выбора; пробел отмечает строку.
-- `creatable` — `boolean`, по умолчанию `false`. «+» в дне (при наведении и фокусе, на касании всегда, C307 (4)): событие создания с датой.
+- `creatable` — `boolean`, по умолчанию `false`. «+» в дне (при наведении и фокусе, на касании всегда): событие создания с датой.
 - `movable` — `boolean`, по умолчанию `true`. Перенос и растягивание доступны; false отказывает в каждом с «Нет права менять».
 - `truncated` — `boolean`, по умолчанию `false`. Хост отдал только первые 1000 записей периода: «Показаны не все — сузьте фильтр».
 - `undated-total` — `integer`. Сколько записей без даты под фильтром (число на «Без даты N»); иначе длина списка без даты.
 - `undated-open` — `boolean`, по умолчанию `false`. Колонка «Без даты» открыта (представление хранит это через событие сохранения).
-- `current` — `string`, по умолчанию пусто. Запись, открытая в карточке (C305): её событие отмечено.
+- `current` — `string`, по умолчанию пусто. Запись, открытая в карточке: её событие отмечено.
 - `aria-label` — `string`, по умолчанию пусто.
-- `records` — `array`, по умолчанию `[]`. Записи дней на экране (окно {range}), до 1000; у каждой id, revision, поля даты и can {update, reason}, где хост ограничивает (CL-7).
+- `records` — `array`, по умолчанию `[]`. Записи дней на экране (окно {range}), до 1000; у каждой id, revision, поля даты и can {update, reason}, где хост ограничивает.
 - `undated` — `array`, по умолчанию `[]`. Записи без даты (окно запроса {undated}) для колонки «Без даты».
-- `fields` — `array`, по умолчанию `[]`. Описания полей (columns у sf-view): поля даты (поле date — на весь день, datetime — со временем; timeZone — пояс источника, CL-5), варианты поля цвета (C140), поля «Кратко».
+- `fields` — `array`, по умолчанию `[]`. Описания полей (columns у sf-view): поля даты (поле date — на весь день, datetime — со временем; timeZone — пояс источника), варианты поля цвета, поля «Кратко».
 - `options` — `object`, по умолчанию `{}`. layouts.calendar из simai.view-config/1: date_field, end_field, all_day_field, mode, modes, color_field, event_fields (до трёх), per_day (3), hours (["08:00", "20:00"]), slot (30), weekends show|hide, undated button|panel|none, span_days (31, до 366: насколько назад хост ищет событие, начавшееся раньше дней на экране), rules (правила переноса, как настройка rules).
 - `rules` — `array`, по умолчанию `[]`. Правила переноса от хоста (describe().rules поля даты и layouts.calendar.rules из simai.view-config/1): [{code, reason}] — past; weekdays {days: дни ISO 1..7, на которые может прийтись начало}; locked {field, in} (запись, у которой поле содержит одно из значений, не переносится); ability {ability} (ответ на каждую запись в can {update, code, reason}); а также sunday..saturday, min {date}, max {date}, dates {dates}. Запрещённый день тускнеет с причиной, пока событие удерживают; правило без причины и отказ хоста с кодом storage_calendar_update_* (past, weekday, locked, denied, end_before_start, too_long, patch_invalid) называются словами языкового пакета. Остальные коды — слова сервера.
 - `actions` — `array`, по умолчанию `[]`. Действия хоста над выбранным в режиме «Список», после «Перенести на…».
@@ -124,7 +124,7 @@ query.context  // {timeZone: 'Europe/Moscow', weekStart: 1, locale: 'ru'}
 События приходят на сам элемент и всплывают.
 
 - `sf-view-calendar-move` — `detail`: `{ id, patch: object, from: object, revision: string|null, how: string }`. Событие перенесено или растянуто (перетаскивание, касание, клавиши, меню, «Перенести на…», из «Без даты» или туда): patch содержит поля даты в их собственном виде; показывается сразу и бледным, пока хост не ответит settleMove. Отмена события — отказ сразу.
-- `sf-view-calendar-open` — `detail`: `{ id }`. Событие нажато или выбрано «Открыть» (словарь open): хост открывает карточку записи (sf-view-properties рядом со списком, C305).
+- `sf-view-calendar-open` — `detail`: `{ id }`. Событие нажато или выбрано «Открыть» (словарь open): хост открывает карточку записи (sf-view-properties рядом со списком).
 - `sf-view-calendar-create` — `detail`: `{ date: string, time?: string, field: string }`. «+» в дне: хост открывает новую запись с этой датой (и временем).
 - `sf-view-calendar-range` — `detail`: `{ from: string, to: string, mode: string, window: object, context: object }`. Дни на экране изменились (период, режим, телефон): хост отвечает записями окна window.range [from, to).
 - `sf-view-calendar-select` — `detail`: `{ ids: array }`. Отметка изменилась (слово select).
@@ -162,7 +162,7 @@ query.context  // {timeZone: 'Europe/Moscow', weekStart: 1, locale: 'ru'}
 
 ## Источник
 
-- `simai/ui-view@afc19298bb48:package/src/smart/view-calendar`
+- `simai/ui-view@987303a5e450:package/src/smart/view-calendar`
 
 ## См. также
 

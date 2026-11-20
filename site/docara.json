@@ -40,10 +40,15 @@
     "key": "docara.docs",
     "container": {
       "max": 7
+    },
+    "scrollbar": {
+      "preset": "overlay"
     }
   },
   "settings": {
-    "theme": "system"
+    "theme": "system",
+    "modal_blur": "none",
+    "ui_radius": "default"
   },
   "search": {
     "enabled": true,

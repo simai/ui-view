@@ -24,7 +24,7 @@
 // Usage: node site/scripts/build-reference.mjs [--check | --missing] [--receipt FILE]
 
 import {execFileSync} from 'node:child_process';
-import {readFileSync, writeFileSync} from 'node:fs';
+import {readFileSync, readdirSync, writeFileSync} from 'node:fs';
 import {dirname, join, resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 
@@ -50,9 +50,15 @@ const END = '## См. также';
 
 const receipt = JSON.parse(readFileSync(receiptAt ?? join(repository, 'package/dist/package-receipt.json'), 'utf8'));
 const revision = receipt.package_source.revision;
-const from = receiptAt
-  ? `в сборке-кандидате набора (\`simai/ui-view@${revision.slice(0, 12)}\`) и обновляется вместе с выпуском`
-  : `в выпуске набора \`view-${revision.slice(0, 12)}\` и обновляется вместе с выпуском`;
+// The release whose source is this receipt's (contracts/releases/view-*.lock.json):
+// a receipt passed with --receipt may be a release's too, and is named as one.
+const releasesAt = join(repository, 'contracts/releases');
+const release = readdirSync(releasesAt).filter((name) => /^view-[0-9a-f]{12}\.lock\.json$/u.test(name))
+  .map((name) => JSON.parse(readFileSync(join(releasesAt, name), 'utf8')))
+  .find((lock) => lock.source?.revision === revision && lock.source?.tree === receipt.package_source.tree) ?? null;
+const from = release
+  ? `в выпуске набора \`${release.id}\` (версия ${release.version}) и обновляется вместе с выпуском`
+  : `в сборке-кандидате набора (\`simai/ui-view@${revision.slice(0, 12)}\`) и обновляется вместе с выпуском`;
 const show = (path) => execFileSync('git', ['-C', repository, 'show', `${revision}:${path}`], {encoding: 'utf8', maxBuffer: 64 << 20});
 const dictionary = JSON.parse(readFileSync(join(site, 'config/reference.ru.json'), 'utf8')).strings;
 
@@ -94,6 +100,14 @@ const shape = (manifest, payload) => {
 const LIFECYCLE = {experimental: 'экспериментальный: API может меняться между выпусками', stable: 'стабильный'};
 const NAME_RULE = {required: 'обязательно', optional: 'необязательно', internal: 'даёт сам компонент'};
 
+// The host port and the versions the manifest declares it accepts: the range a
+// page states is this row, never a number written by hand (VS-SITE-10).
+const portRow = (manifest) => {
+  const port = manifest.composition?.declarative?.host_port;
+  const versions = Array.isArray(port?.supported_versions) ? port.supported_versions : [];
+  if (!port?.port || versions.length < 2) return port?.port ? [`| Порт | ${code(port.port)}, версия ${code(port.version)} |`] : [];
+  return [`| Порт | ${code(port.port)}, версии с ${code(versions[0])} по ${code(versions.at(-1))} |`];
+};
 const render = (folder) => {
   const manifest = JSON.parse(show(`package/src/smart/${folder}/smart.manifest.json`));
   const component = JSON.parse(show(`package/src/smart/${folder}/component.json`));
@@ -108,6 +122,7 @@ const render = (folder) => {
     `| Назначение | ${cell(ru(manifest.summary))} |`,
     `| Контракт | ${code(manifest.id)}, версия ${code(manifest.version)} |`,
     `| Жизненный цикл | ${LIFECYCLE[manifest.lifecycle] ?? code(manifest.lifecycle)} |`,
+    ...portRow(manifest),
     '',
     '### Атрибуты',
     '',

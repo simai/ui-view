@@ -32,7 +32,7 @@ profile: how_to
    ```js
    await customElements.whenDefined('sf-view');
    document.querySelector('#orders').setHostPort({
-     version: '1.12.0',
+     version: '1.15.0',
      capabilities: [],
      async raise(intent, payload) {
        const response = await fetch('/api/orders/intent', {

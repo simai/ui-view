@@ -1,5 +1,6 @@
-// The views of SIMAI View, one per tab: a table, a card, a table with the card
-// of the open row, and cards inside a stream of messages. Each "application"
+// The views of SIMAI View, one per tab: a table, one list under the list head
+// in every layout, a card, a table with the card of the open row, and cards
+// inside a stream of messages. Each "application"
 // is a few lines of JavaScript over an array; a real page answers the same
 // intents from its server. A screen starts the first time its tab is shown.
 const pause = (ms = 200) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -423,10 +424,111 @@ const startFeed = (root) => {
   ]);
 };
 
+// ---- Виды списка -----------------------------------------------------------
+// One list of orders under the list head: the head's switch offers the
+// layouts the application names in describe().layouts, and each asks its own
+// window of the same query.change — a page for the table, lanes for the
+// board, a page of cards, the days on screen for the calendar.
+
+const dayFromToday = (shift) => {
+  const at = new Date();
+  at.setDate(at.getDate() + shift);
+  return `${at.getFullYear()}-${String(at.getMonth() + 1).padStart(2, '0')}-${String(at.getDate()).padStart(2, '0')}`;
+};
+const LIST_STATUS = [
+  {value: 'new', label: 'Новый', status: 'info'},
+  {value: 'wait', label: 'Ждёт оплаты', status: 'warning'},
+  {value: 'paid', label: 'Оплачен', status: 'success'},
+  {value: 'sent', label: 'Отправлен', scheme: 'primary'},
+];
+const LIST_MANAGERS = [{value: 'u1', label: 'Анна Белова'}, {value: 'u2', label: 'Илья Орлов'}, {value: 'u3', label: 'Мария Котова'}];
+const LIST_CLIENTS = ['ООО «Ромашка»', 'ИП Сидоров', 'АО «Вектор»', 'ООО «Север»', 'ИП Кузнецова'];
+const LIST_FIELDS = [
+  {key: 'status', label: 'Состояние', propertyType: 'choice', filter: {options: LIST_STATUS}},
+  {key: 'manager', label: 'Менеджер', propertyType: 'user', filter: {options: LIST_MANAGERS}},
+];
+const LIST_COLUMNS = [
+  {key: 'title', label: 'Заказ', role: 'title', sortable: true},
+  {key: 'status', label: 'Состояние', property_type: 'choice', options: LIST_STATUS},
+  {key: 'client', label: 'Клиент'},
+  {key: 'manager', label: 'Менеджер'},
+  {key: 'amount', label: 'Сумма', property_type: 'money', currency: 'RUB', sortable: true},
+  {key: 'due', label: 'Доставка', property_type: 'date', sortable: true},
+];
+const LIST_LAYOUTS = {
+  board: {lane_field: 'status', lanes: {order: LIST_STATUS.map((lane) => lane.value)}, empty_lanes: 'show', card_fields: ['client', 'amount'], totals: ['count'], per_lane: 4},
+  cards: {title_field: 'title', card_fields: ['status', 'client', 'amount', 'due'], card_labels: false, size: 's', more: 'button', per_page: 8},
+  calendar: {date_field: 'due', color_field: 'status', event_fields: ['client'], per_day: 3},
+};
+
+const startLayouts = (root) => {
+  const view = root.querySelector('#layouts-view');
+  const table = view.querySelector('sf-view-table');
+  const log = root.querySelector('[data-log]');
+  const orders = Array.from({length: 22}, (_, index) => ({
+    id: `l${2001 + index}`, revision: '1', title: `Заказ №${2001 + index}`, status: LIST_STATUS[(index * 3) % 4].value,
+    client: LIST_CLIENTS[index % LIST_CLIENTS.length], manager: LIST_MANAGERS[index % 3].label, managerId: LIST_MANAGERS[index % 3].value,
+    amount: 9800 + index * 2650, due: dayFromToday((index * 5) % 26 - 6), actions: ['view'],
+  }));
+  const value = (order, key) => (key === 'manager' ? order.managerId : order[key]);
+  const matches = (order, query) => {
+    const search = String(query.search ?? '').trim().toLowerCase();
+    if (search && !`${order.title} ${order.client}`.toLowerCase().includes(search)) return false;
+    return Object.entries(query.filters ?? {}).every(([key, condition]) => !condition?.values?.length || condition.values.includes(value(order, key)));
+  };
+  const say = (window) => {
+    log.textContent = window.lanes ? `Приложение получило запрос доски: колонки по «Состоянию», по ${window.per_lane} в колонке.`
+      : window.range ? `Приложение получило запрос календаря: дни с ${window.range[0]} по ${window.range[1]}.`
+        : window.per_page ? `Приложение получило запрос карточек: страница ${window.page ?? 1} по ${window.per_page}.`
+          : 'Приложение получило запрос таблицы: одна страница записей.';
+  };
+  table.setFilterFields?.(LIST_FIELDS);
+  view.setHostPort({
+    version: '1.15.0',
+    capabilities: ['row-actions'],
+    describe: () => ({fields: LIST_FIELDS, layouts: ['table', 'board', 'cards', 'calendar']}),
+    async raise(intent, payload) {
+      await pause(150);
+      if (intent === 'record.open') {
+        log.textContent = `Открыть ${payload.record_ids.join(', ')}: запись открывает приложение.`;
+        return {answer: 'applied'};
+      }
+      if (intent !== 'query.change') return {answer: 'unavailable', reason: 'capability-not-provided'};
+      const query = payload.query ?? {};
+      const window = query.window ?? {};
+      if (window.undated) return {answer: 'applied', sequence: payload.sequence, data: {columns: LIST_COLUMNS, records: [], total: 0}};
+      say(window);
+      const found = orders.filter((order) => matches(order, query));
+      const [order] = query.sort ?? [];
+      if (order) found.sort((a, b) => (a[order.key] > b[order.key] ? 1 : -1) * (order.direction === 'desc' ? -1 : 1));
+      const perPage = query.per_page ?? 8;
+      const data = {columns: LIST_COLUMNS, total: found.length, view_config: {layouts: LIST_LAYOUTS},
+        echo: {filters_chosen: query.filters_chosen ?? ['status', 'manager'], filters: query.filters ?? {}, search: query.search ?? '', sort: query.sort ?? [], page: query.page ?? 1, per_page: perPage, view: query.view ?? {id: null, type: 'table'}}};
+      if (window.lanes) {
+        data.records = [];
+        data.lanes = LIST_STATUS.map((lane) => {
+          const all = found.filter((one) => one.status === lane.value);
+          return {value: lane.value, total: all.length, records: all.slice(0, window.per_lane), cursor: null};
+        });
+      } else if (window.range) {
+        data.records = found.filter((one) => one.due >= window.range[0] && one.due < window.range[1]);
+        data.total = data.records.length;
+      } else if (window.per_page) {
+        const start = ((window.page ?? 1) - 1) * window.per_page;
+        data.records = found.slice(start, start + window.per_page);
+      } else {
+        const start = ((query.page ?? 1) - 1) * perPage;
+        data.records = found.slice(start, start + perPage);
+      }
+      return {answer: 'applied', sequence: payload.sequence, data};
+    },
+  });
+};
+
 // ---- the tabs --------------------------------------------------------------
 
-const STARTS = {table: startTable, card: startCard, master: startMaster, feed: startFeed};
-const TAGS = {table: ['sf-view'], card: ['sf-view-properties'], master: ['sf-view', 'sf-view-properties'], feed: ['sf-list-feed']};
+const STARTS = {table: startTable, layouts: startLayouts, card: startCard, master: startMaster, feed: startFeed};
+const TAGS = {table: ['sf-view'], layouts: ['sf-view', 'sf-view-table'], card: ['sf-view-properties'], master: ['sf-view', 'sf-view-properties'], feed: ['sf-list-feed']};
 // A tag only the tab's script puts in the page (sf-view-flow) is not
 // waited for: the Loader fetches it when it arrives, and waiting would never end.
 const started = new Set();

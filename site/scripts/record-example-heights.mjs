@@ -45,6 +45,8 @@ const store = join(site, 'config/example-heights.json');
 const START = '/* reserve: written by scripts/record-example-heights.mjs */';
 const END = '/* reserve: end */';
 const NARROW = 640;
+// The set's own parts an example waits for before it shows.
+const PARTS = 'sf-view, sf-view-table, sf-table, sf-view-properties, sf-view-board, sf-view-cards, sf-view-calendar, sf-view-flow';
 
 // The CSS block that holds an example's drawn height (also used by
 // build-properties.mjs for the property examples).
@@ -55,7 +57,13 @@ export function reserveCss(entry) {
     '   SIMAI Framework parts inside have drawn, and the page below moved when they did. */'];
   // Until the set's own parts are defined they have no height and the parts
   // below them would move when they draw: the example shows when they are.
-  lines.push('body:has(:is(sf-view, sf-view-table, sf-table, sf-view-properties, sf-view-board, sf-view-cards, sf-view-calendar, sf-view-flow):not(:defined)) { visibility: hidden; }');
+  // Parts in a tab panel count only while their panel is open: a closed tab's
+  // part is defined when its tab opens, so waiting for it kept a tabbed
+  // example blank (the home showcase, VS-SITE-1). The open panel holds itself
+  // until its own parts are defined; sf-tabs is waited for, as it decides
+  // which panel is open.
+  lines.push(`body:has(:is(sf-tabs, ${PARTS}):not(:defined):not([data-sf-tab-panel] *)) { visibility: hidden; }`);
+  lines.push(`[data-sf-tab-panel]:not([hidden]):has(:is(${PARTS}):not(:defined)) { visibility: hidden; }`);
   if (entry.wide > 0) lines.push(`body { min-block-size: ${Math.ceil(entry.wide)}px; }`);
   if (entry.narrow > 0) lines.push(`@media (max-width: ${NARROW}px) { body { min-block-size: ${Math.ceil(entry.narrow)}px; } }`);
   lines.push(END);

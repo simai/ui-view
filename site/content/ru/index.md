@@ -15,8 +15,9 @@ profile: landing
 
 ## Примеры
 
-Четыре вида представления данных из одного набора: таблица, карточка
-записи, таблица с карточкой открытой строки и карточки в ленте сообщений.
+Виды представления данных из одного набора: таблица; один список, который
+переключается между таблицей, доской, карточками и календарём; карточка
+записи; таблица с карточкой открытой строки и записи в ленте сообщений.
 Данные отвечает небольшое «приложение» на JavaScript — настоящая страница
 отвечает тем же со своего сервера.
 
@@ -32,7 +33,7 @@ profile: landing
 
 <!-- release:cdn -->
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@simai-studio/ui@5.20261117.1612/distr/core/js/core.min.js" data-sf-sets="view"></script>
+<script src="https://cdn.jsdelivr.net/npm/@simai-studio/ui@5.20261118.1205/distr/core/js/core.min.js" data-sf-sets="view"></script>
 ```
 <!-- /release:cdn -->
 
@@ -54,11 +55,11 @@ profile: landing
 ::::grid {columns=3 gap=4}
 :::card {variant=plain}
 ### Версия
-SIMAI View 1.9.0, кандидат выпуска; последняя выпущенная — 1.8.1 от 15 ноября 2026 года. [История изменений](/ru/guide/changes/)
+SIMAI View 1.9.0 от 19 ноября 2026 года. [История изменений](/ru/guide/changes/)
 :::
 :::card {variant=plain}
 ### Совместимость
-Собран и проверен над выпуском SIMAI Framework `ui-1ed6b6c9a040`; работает с Core `core.runtime` 1.51.0 или новее. [Подключение](/ru/guide/connection/)
+Собран и проверен над выпуском SIMAI Framework `ui-dc9fc39aeb26`; работает с Core `core.runtime` 1.51.0 или новее. [Подключение](/ru/guide/connection/)
 :::
 :::card {variant=plain}
 ### Лицензия

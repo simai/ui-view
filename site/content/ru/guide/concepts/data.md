@@ -92,7 +92,7 @@ file: {value: 'f-1', label: 'Д-1041.pdf', mime: 'application/pdf', href: '/file
 ```js
 const dateFormat = new Intl.DateTimeFormat('ru-RU', {dateStyle: 'medium'});
 view.setHostPort({
-  version: '1.12.0',
+  version: '1.15.0',
   capabilities: [],
   raise,
   formatFieldValue(field, value) {
