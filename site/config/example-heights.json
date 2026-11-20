@@ -63,9 +63,17 @@
     "wide": 294,
     "narrow": 598
   },
+  "home/list": {
+    "wide": 693,
+    "narrow": 1550
+  },
+  "home/set": {
+    "wide": 1726,
+    "narrow": 2836
+  },
   "home/showcase": {
-    "wide": 957,
-    "narrow": 1900
+    "wide": 840,
+    "narrow": 1940
   },
   "properties/all": {
     "wide": 4346,

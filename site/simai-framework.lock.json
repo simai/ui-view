@@ -4366,13 +4366,13 @@
             "schema_version": 2,
             "package": "view",
             "requires": "ui-dc9fc39aeb26",
-            "mount": "_docara/framework-packages/view/008345776e8f0d4979875a26105bc8f20c25c337",
+            "mount": "_docara/framework-packages/view/fcbca43253766d7c3d3e966528ae04119f0f2421",
             "receipt": {
                 "schema": "simai.framework.product-package-receipt",
                 "schema_version": 1,
                 "package_source": {
                     "repository": "simai/ui-view",
-                    "revision": "008345776e8f0d4979875a26105bc8f20c25c337",
+                    "revision": "fcbca43253766d7c3d3e966528ae04119f0f2421",
                     "path": "package",
                     "tree": "5d0b6ee4ea414d72dbec4bb896162068fe5d6e10"
                 },

@@ -1,9 +1,10 @@
 #!/usr/bin/env node
-// The home page's live example as a clean demo, for what Docara 3.11.1 has
+// The home page's live examples as clean demos, for what Docara 3.11.1 has
 // no block setting for (docs/DOCARA-REQUESTS.md, 14). In <locale>/index.html,
-// the page with a hero, of a copy of the built site, the example's code tabs
-// and toolbar are hidden and the live frame stays. The same example with its
-// code is on the guide page guide/showcase/.
+// the page with a hero, of a copy of the built site, the examples' code tabs
+// and toolbars are hidden and the live frames stay. The same examples with
+// their code are on the guide page guide/showcase/. The hero's effect gets a
+// mask that keeps it away from the text (request 16).
 //
 // It runs on the local review copy only (scripts/publish-local.sh), not as a
 // Docara page transform: verify-static compares each page's Framework asset
@@ -27,14 +28,58 @@ const need = (index, what, file) => {
 };
 
 const transform = (html, file) => {
-  // The live example without its code tabs.
-  const example = need(html.indexOf('<section data-docara-example='), 'the live example', file);
-  // Hidden, not removed: the shell's example script still finds its tabs.
-  // The source panels are hidden already and stay.
-  const header = need(html.indexOf('<div class="docara-example-preview__header">', example), 'the example header', file);
-  html = `${html.slice(0, header)}<div class="docara-example-preview__header" style="display:none">${html.slice(header + '<div class="docara-example-preview__header">'.length)}`;
-  return html.replace('<section data-docara-example=', '<section data-view-clean-example data-docara-example=');
+  // Every live example of the home page without its code tabs (the list and
+  // the set's components); the code is on guide/showcase/.
+  let at = need(html.indexOf('<section data-docara-example='), 'the live example', file);
+  let count = 0;
+  while (at >= 0) {
+    // Hidden, not removed: the shell's example script still finds its tabs.
+    // The source panels are hidden already and stay.
+    const header = need(html.indexOf('<div class="docara-example-preview__header">', at), 'the example header', file);
+    html = `${html.slice(0, header)}<div class="docara-example-preview__header" style="display:none">${html.slice(header + '<div class="docara-example-preview__header">'.length)}`;
+    html = `${html.slice(0, at)}<section data-view-clean-example ${html.slice(at + '<section '.length)}`;
+    count += 1;
+    at = html.indexOf('<section data-docara-example=', at + 1);
+  }
+  return {html, count};
 };
+
+// The hero's moving tiles never sit under its text (DEV msg-6af8ca2d; the
+// hero has no setting for it, request 16). The effect layer is the section's
+// first child, made at run time with its canvas; a mask fades it to a tenth
+// under the text block, from the text side, and gives it full strength only
+// in the free part beyond the text. The banner itself is not dimmed.
+// --view-hero-text-end is where the text block ends, measured from the
+// heading's words, the subtitle and the buttons on load and on resize.
+const HERO_MASK = `<style data-view-hero-mask>
+[data-docara-block="hero"][data-sf-effect] > div:first-child:not([data-docara-container]) {
+  -webkit-mask-image: linear-gradient(to right, rgb(0 0 0 / 0.1) 0, rgb(0 0 0 / 0.1) var(--view-hero-text-end, 100%), #000 calc(var(--view-hero-text-end, 100%) + 12rem));
+  mask-image: linear-gradient(to right, rgb(0 0 0 / 0.1) 0, rgb(0 0 0 / 0.1) var(--view-hero-text-end, 100%), #000 calc(var(--view-hero-text-end, 100%) + 12rem));
+}
+</style>
+<script data-view-hero-mask>
+(() => {
+  const place = () => {
+    const hero = document.querySelector('[data-docara-block="hero"][data-sf-effect]');
+    const text = hero?.querySelector('[data-docara-container] > div');
+    if (!hero || !text) return;
+    const left = hero.getBoundingClientRect().left;
+    let end = 0;
+    for (const part of text.children) {
+      const range = document.createRange();
+      range.selectNodeContents(part);
+      for (const box of range.getClientRects()) end = Math.max(end, box.right);
+      for (const child of part.children) end = Math.max(end, child.getBoundingClientRect().right);
+    }
+    hero.style.setProperty('--view-hero-text-end', \`\${Math.ceil(end - left + 16)}px\`);
+  };
+  addEventListener('DOMContentLoaded', place);
+  addEventListener('load', place);
+  addEventListener('resize', place);
+  document.fonts?.ready.then(place);
+})();
+</script>
+`;
 
 let changed = 0;
 for (const entry of readdirSync(site, {withFileTypes: true})) {
@@ -43,8 +88,13 @@ for (const entry of readdirSync(site, {withFileTypes: true})) {
   if (!existsSync(file)) continue;
   const html = readFileSync(file, 'utf8');
   if (!html.includes('<section data-docara-block="hero"') || !html.includes('<section data-docara-example=')) continue;
-  writeFileSync(file, transform(html, file));
-  changed += 1;
+  const result = transform(html, file);
+  if (html.includes('data-sf-effect=')) {
+    const head = need(result.html.indexOf('</head>'), 'the end of the head', file);
+    result.html = `${result.html.slice(0, head)}${HERO_MASK}${result.html.slice(head)}`;
+  }
+  writeFileSync(file, result.html);
+  changed += result.count;
 }
 if (changed === 0) throw new Error('landing-transform: no home page with a hero and an example found');
-console.log(`landing-transform: ${changed} home page(s)`);
+console.log(`landing-transform: ${changed} home example(s)`);

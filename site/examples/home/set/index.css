@@ -1,0 +1,42 @@
+/* A card per component of the set: its name (a link to its page), one line
+   and a real small preview of it, drawn by the component itself over a few
+   records. The preview is a picture: it takes no focus and no clicks (made
+   inert by the script once its parts are defined). */
+.page-set {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--sf-g8)), 1fr));
+  gap: var(--sf-space-3);
+}
+.page-set-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-1);
+  min-inline-size: 0;
+  padding: var(--sf-space-3);
+  border: var(--sf-px) solid var(--sf-outline-variant);
+  border-radius: var(--sf-radius--surface);
+  background: var(--sf-surface-1);
+}
+.page-set-title { margin: 0; font: inherit; font-weight: var(--sf-font-weight-medium); }
+.page-set-title a { color: var(--sf-on-surface); text-decoration: none; }
+.page-set-title a:hover { text-decoration: underline; }
+.page-set-line { margin: 0; color: var(--sf-on-surface-variant); }
+.page-set-preview {
+  block-size: var(--sf-f6);
+  overflow: hidden;
+  margin-block-start: var(--sf-space-1);
+  border-radius: var(--sf-radius--ui);
+  background: var(--sf-surface-page);
+}
+@media (max-width: 48rem) {
+  .page-set-card { padding: var(--sf-space-2); }
+}
+
+/* reserve: written by scripts/record-example-heights.mjs */
+/* The height this example has drawn, held from its first frame: Docara sizes the frame by its body before the
+   SIMAI Framework parts inside have drawn, and the page below moved when they did. */
+body:has(:is(sf-tabs, sf-view, sf-view-table, sf-table, sf-view-properties, sf-view-board, sf-view-cards, sf-view-calendar, sf-view-flow):not(:defined):not([data-sf-tab-panel] *):not(:is(sf-view, sf-data-view):defined:not([data-sf-awaiting]) *)) { visibility: hidden; }
+[data-sf-tab-panel]:not([hidden]):has(:is(sf-view, sf-view-table, sf-table, sf-view-properties, sf-view-board, sf-view-cards, sf-view-calendar, sf-view-flow):not(:defined):not(:is(sf-view, sf-data-view):defined:not([data-sf-awaiting]) *)) { visibility: hidden; }
+body { min-block-size: 1726px; }
+@media (max-width: 640px) { body { min-block-size: 2836px; } }
+/* reserve: end */
