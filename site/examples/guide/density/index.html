@@ -1,0 +1,13 @@
+<div class="flex flex-col gap-2" data-density-demo>
+  <div class="flex flex-wrap gap-1 items-cross-center" role="group" aria-label="Плотность" data-density>
+    <button type="button" class="sf-button sf-button--outline sf-button--on-surface sf-button--size-1/2 active" data-value="normal" aria-pressed="true"><span class="sf-button-text-container">Обычная</span></button>
+    <button type="button" class="sf-button sf-button--outline sf-button--on-surface sf-button--size-1/2" data-value="compact" aria-pressed="false"><span class="sf-button-text-container">Компактная</span></button>
+  </div>
+  <div data-area>
+    <sf-view aria-label="Заказы" preferences-key="view.guide-density">
+      <sf-view-table slot="content" aria-label="Заказы" search-placeholder="Номер или клиент"></sf-view-table>
+      <sf-pagination slot="pagination" top="false" page-size="10" page-sizes="10,20,50,100"></sf-pagination>
+    </sf-view>
+  </div>
+  <p class="m-0 color-on-surface-variant" role="status" data-log></p>
+</div>

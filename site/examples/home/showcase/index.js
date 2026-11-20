@@ -501,7 +501,7 @@ const startLayouts = (root) => {
       const found = orders.filter((order) => matches(order, query));
       const [order] = query.sort ?? [];
       if (order) found.sort((a, b) => (a[order.key] > b[order.key] ? 1 : -1) * (order.direction === 'desc' ? -1 : 1));
-      const perPage = query.per_page ?? 8;
+      const perPage = query.per_page ?? 10;
       const data = {columns: LIST_COLUMNS, total: found.length, view_config: {layouts: LIST_LAYOUTS},
         echo: {filters_chosen: query.filters_chosen ?? ['status', 'manager'], filters: query.filters ?? {}, search: query.search ?? '', sort: query.sort ?? [], page: query.page ?? 1, per_page: perPage, view: query.view ?? {id: null, type: 'table'}}};
       if (window.lanes) {

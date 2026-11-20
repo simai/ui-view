@@ -1,174 +1,34 @@
 {
-  "components/view-application": {
-    "wide": 515,
-    "narrow": 1255
+  "guide/bulk-orders": {
+    "wide": 595,
+    "narrow": 1496
   },
-  "components/view-board": {
-    "wide": 498,
-    "narrow": 566
+  "guide/density": {
+    "wide": 643,
+    "narrow": 1406
   },
-  "components/view-calendar": {
-    "wide": 725,
-    "narrow": 557
+  "guide/list-footer": {
+    "wide": 909,
+    "narrow": 2580
   },
-  "components/view-cards": {
-    "wide": 2254,
-    "narrow": 7094
+  "guide/record-card": {
+    "wide": 559,
+    "narrow": 1486
   },
-  "components/view-flow": {
-    "wide": 562,
-    "narrow": 730
+  "guide/views": {
+    "wide": 669,
+    "narrow": 1590
   },
-  "components/view-head": {
-    "wide": 519,
-    "narrow": 1238
+  "home/list": {
+    "wide": 693,
+    "narrow": 1550
   },
-  "components/view-properties-card": {
-    "wide": 510,
-    "narrow": 662
-  },
-  "components/view-properties-settings": {
-    "wide": 328,
-    "narrow": 392
-  },
-  "components/view-table-former-tag": {
-    "wide": 234,
-    "narrow": 366
-  },
-  "components/view-table-list": {
-    "wide": 363,
-    "narrow": 451
-  },
-  "components/view-table-overview": {
-    "wide": 320,
-    "narrow": 656
-  },
-  "guide/bulk-actions": {
-    "wide": 723,
-    "narrow": 1778
-  },
-  "guide/flow-chat": {
-    "wide": 526,
-    "narrow": 518
-  },
-  "guide/quick-start": {
-    "wide": 306,
-    "narrow": 656
-  },
-  "guide/sizes": {
-    "wide": 622,
-    "narrow": 1078
-  },
-  "guide/states": {
-    "wide": 294,
-    "narrow": 598
+  "home/set": {
+    "wide": 1726,
+    "narrow": 2836
   },
   "home/showcase": {
-    "wide": 957,
-    "narrow": 1900
-  },
-  "properties/all": {
-    "wide": 4346,
-    "narrow": 6531
-  },
-  "properties/boolean": {
-    "wide": 876,
-    "narrow": 1092
-  },
-  "properties/choice": {
-    "wide": 995,
-    "narrow": 1283
-  },
-  "properties/choices": {
-    "wide": 1024,
-    "narrow": 1376
-  },
-  "properties/color": {
-    "wide": 1036,
-    "narrow": 1304
-  },
-  "properties/compound": {
-    "wide": 1473,
-    "narrow": 1889
-  },
-  "properties/date": {
-    "wide": 896,
-    "narrow": 1144
-  },
-  "properties/datetime": {
-    "wide": 896,
-    "narrow": 1176
-  },
-  "properties/file": {
-    "wide": 1088,
-    "narrow": 1376
-  },
-  "properties/html": {
-    "wide": 1234,
-    "narrow": 1623
-  },
-  "properties/include": {
-    "wide": 1300,
-    "narrow": 1716
-  },
-  "properties/integer": {
-    "wide": 956,
-    "narrow": 1244
-  },
-  "properties/items": {
-    "wide": 2949,
-    "narrow": 3666
-  },
-  "properties/lookup": {
-    "wide": 956,
-    "narrow": 1252
-  },
-  "properties/money": {
-    "wide": 1265,
-    "narrow": 1417
-  },
-  "properties/number": {
-    "wide": 956,
-    "narrow": 1244
-  },
-  "properties/password": {
-    "wide": 852,
-    "narrow": 1100
-  },
-  "properties/percent": {
-    "wide": 1249,
-    "narrow": 1385
-  },
-  "properties/phone": {
-    "wide": 852,
-    "narrow": 1100
-  },
-  "properties/record": {
-    "wide": 1161,
-    "narrow": 1321
-  },
-  "properties/relation": {
-    "wide": 1161,
-    "narrow": 1305
-  },
-  "properties/ru-requisites": {
-    "wide": 2153,
-    "narrow": 2913
-  },
-  "properties/string": {
-    "wide": 888,
-    "narrow": 1140
-  },
-  "properties/text": {
-    "wide": 960,
-    "narrow": 1280
-  },
-  "properties/time": {
-    "wide": 836,
-    "narrow": 1084
-  },
-  "properties/user": {
-    "wide": 1236,
-    "narrow": 1400
+    "wide": 840,
+    "narrow": 1940
   }
 }

@@ -1,0 +1,20 @@
+<div class="flex flex-col gap-2" data-card-demo>
+  <div class="flex flex-wrap gap-2 items-cross-center">
+    <div class="flex flex-wrap gap-1 items-cross-center" role="group" aria-label="Где открыть запись" data-place>
+      <button type="button" class="sf-button sf-button--outline sf-button--on-surface sf-button--size-1/2 active" data-value="panel" aria-pressed="true"><span class="sf-button-text-container">Панель сбоку</span></button>
+      <button type="button" class="sf-button sf-button--outline sf-button--on-surface sf-button--size-1/2" data-value="page" aria-pressed="false"><span class="sf-button-text-container">На странице</span></button>
+    </div>
+    <div class="flex flex-wrap gap-1 items-cross-center" role="group" aria-label="Ширина панели" data-size>
+      <button type="button" class="sf-button sf-button--outline sf-button--on-surface sf-button--size-1/2" data-value="1/2" aria-pressed="false"><span class="sf-button-text-container">Узкая</span></button>
+      <button type="button" class="sf-button sf-button--outline sf-button--on-surface sf-button--size-1/2" data-value="1" aria-pressed="false"><span class="sf-button-text-container">Средняя</span></button>
+      <button type="button" class="sf-button sf-button--outline sf-button--on-surface sf-button--size-1/2 active" data-value="2" aria-pressed="true"><span class="sf-button-text-container">Широкая</span></button>
+    </div>
+  </div>
+  <sf-view aria-label="Заказы" record-card="guide-order" size="1/2" preferences-key="view.guide-card">
+    <sf-view-table slot="content" aria-label="Заказы" search-placeholder="Номер или клиент"></sf-view-table>
+    <sf-pagination slot="pagination" top="false" page-size="10" page-sizes="10,20,50,100"></sf-pagination>
+  </sf-view>
+  <sf-view-properties id="guide-order" aria-label="Карточка заказа" panel hidden mode="view" panel-size="2"></sf-view-properties>
+  <sf-view-properties aria-label="Карточка заказа на странице" mode="view" hidden data-page-card></sf-view-properties>
+  <p class="m-0 color-on-surface-variant" role="status" data-log>Нажмите номер заказа — карточка откроется рядом со списком. Стрелки Alt+↓ и Alt+↑ в карточке листают записи списка.</p>
+</div>

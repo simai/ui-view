@@ -5,7 +5,7 @@ profile: reference
 
 # Умная таблица
 
-:badge[sf-view-table]{variant=main scheme=on-surface size=1} :badge[Версия 1.28.0]{variant=tonal scheme=neutral size=1}
+:badge[sf-view-table]{variant=main scheme=on-surface size=1} :badge[Версия 1.29.0]{variant=tonal scheme=neutral size=1}
 
 Умная таблица показывает записи таблицей или компактным списком. Каждая колонка называет тип своих значений, и таблица сама рисует подходящую ячейку: ссылку на запись, выбор цветной меткой, файл, цвет. Настройка колонок, выбор строк, меню строки и колонки встроены.
 
@@ -15,6 +15,15 @@ profile: reference
 
 :::example {id="components/view-table-overview" label="Договоры: ссылка на клиента, состояние, сумма, дата и файл"}
 :::
+
+Колонка «Изменён» показывает дату относительно сегодняшнего дня —
+«сегодня», «вчера», «3 дня назад» — на языке страницы; полная дата — в
+подсказке ячейки. Это шаблон `variant: "relative"` у колонки типа `date` или
+`datetime`; карточка записи и правка показывают дату целиком:
+
+```js
+{key: 'updated', label: 'Изменён', propertyType: 'datetime', variant: 'relative'}
+```
 
 ## Компактный список
 
@@ -78,13 +87,13 @@ CSS-переменные меняют фон шапки, отступ ячейк
 
 ## Параметры
 
-Справочник собран из манифеста компонента в сборке-кандидате набора (`simai/ui-view@008345776e8f`) и обновляется вместе с выпуском. Каждому атрибуту соответствует свойство элемента с тем же именем в camelCase: `search-placeholder` — `searchPlaceholder`.
+Справочник собран из манифеста компонента в сборке-кандидате набора (`simai/ui-view@e0d37bb437e2`) и обновляется вместе с выпуском. Каждому атрибуту соответствует свойство элемента с тем же именем в camelCase: `search-placeholder` — `searchPlaceholder`.
 
 | | |
 |:---|:---|
 | Тег | `<sf-view-table>` |
 | Назначение | Полное представление коллекции с серверными данными: поиск, фильтры, настройки таблицы, действия над строками и массовые действия, пагинация. |
-| Контракт | `smart.view-table`, версия `1.28.0` |
+| Контракт | `smart.view-table`, версия `1.29.0` |
 | Жизненный цикл | экспериментальный: API может меняться между выпусками |
 | Порт | `simai.dataview-port`, версия `1.0.0` |
 
@@ -165,7 +174,7 @@ CSS-переменные меняют фон шапки, отступ ячейк
 - `sf-view-table-save` — `detail`: `{ kind, reason: string, columnSettings: object, tableSettingsKey: string }`. Настройки колонок человека, словарь §5 save `{kind: columns, reason, columnSettings, tableSettingsKey}`. Прежнее имя `sf-table-column-settings-change` приходит следом с прежним `detail` до 2027-01-01.
 - `sf-view-table-column-settings-reset` — `detail`: `{ target, tableSettingsKey: string|null }`. Человек попросил вернуть колонки по умолчанию. Таблица убирает свою сохранённую раскладку и значений по умолчанию не называет: личный слой сбрасывает хост (или представление данных) и отвечает своими значениями.
 - `sf-view-table-create` — `detail`: `{ item?: string|null }`. Кнопка «Создать» или один из её видов, словарь §5 create `{item}`. Прежнее имя `sf-table-create-intent` приходит следом с прежним `detail` до 2027-01-01.
-- `sf-view-table-filter-change` — `detail`: `{ templateKey: string, templateLabel: string, values: object, tags: object }`. Просит запрос у хоста после изменения фильтра: «Применить» в окне фильтра, снятая метка или очищенный фильтр. Представление данных превращает его в `query.change` с фильтрами из значений. `detail` — результат `getFilterPayload()` таблицы: сначала поля данных выбранного шаблона, затем эти четыре.
+- `sf-view-table-filter-change` — `detail`: `{ templateKey: string, templateLabel: string, values: object, tags: object }`. Просит запрос у хоста после изменения фильтра: «Применить» в окне фильтра, снятая метка или очищенный фильтр. Представление данных превращает его в `query.change` с фильтрами из значений. `detail` — результат `getFilterPayload()` таблицы: сначала поля данных выбранного представления, затем эти четыре.
 - `sf-view-table-query` — `detail`: `{ reason: string, context: object, sequence: integer }`. Запрос контекста входного порта композиции, словарь §5.1 query `{reason, context, sequence}`. Прежнее имя `sf-table-query-intent` приходит следом с прежним `detail` до 2027-01-01.
 - `sf-view-table-refresh` — `detail` не описан. Кнопка повтора у списка, который не загрузился, словарь §5 refresh. Прежнее имя `sf-table-retry` приходит следом с прежним `detail` до 2027-01-01.
 - `sf-view-table-search-change` — `detail`: `{ search: string }`. Запрашивает у хоста выборку после изменения значения поиска (с задержкой debounce).
@@ -266,7 +275,7 @@ CSS-переменные меняют фон шапки, отступ ячейк
 
 ## Источник
 
-- `simai/ui-view@008345776e8f:package/src/smart/view-table`
+- `simai/ui-view@e0d37bb437e2:package/src/smart/view-table`
 
 ## См. также
 

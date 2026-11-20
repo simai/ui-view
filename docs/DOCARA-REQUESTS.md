@@ -96,3 +96,11 @@ belongs to its own thread; nothing here was written in simai/docara.
     Workaround: the home-page transform runs on the local review copy, not
     in the build. Wanted: recompute the shell plans after the transforms (the
     builder already republishes the vendor assets there).
+16. **A hero effect that keeps away from the text.** The hero draws its
+    effect over the whole banner, so moving tiles pass under the heading,
+    the subtitle and the buttons (DEV: text never sits on moving tiles).
+    Workaround: `site/scripts/landing-transform.mjs` puts a mask on the
+    effect layer in the local review copy: a tenth of the strength under
+    the text block, measured from its words and buttons, full strength
+    12rem beyond it. Wanted: a hero setting such as `effect_clear=text`
+    (the effect fades under the content side) in the build.

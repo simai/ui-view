@@ -30,6 +30,10 @@ ones this set follows are in the Answers table with their record.
   (one set of records regrouping as a table, a board, a calendar and cards:
   the set's own subject), catalogue pinned at simai/ui-effects ffc71ca
   (main at the time, CI green; data-flow arrived in 54518d0).
+- Changed 2026-11-22 (site round 2, the dispatcher's correction): the
+  catalogue is the released npm package `@simai-studio/effects@1.1.0`
+  (simai/ui-effects 1a81b01) instead of the main commit; its data-flow
+  effect.json and index.js are byte-identical to ffc71ca's.
 
 ## D3 — The passport's `docs` URL while view.simai.io does not serve the site
 

@@ -45,11 +45,3 @@
   .property-rows > .property-label { margin-block-start: var(--sf-space-1\/3); }
   .property-states { grid-template-columns: minmax(0, 1fr); gap: var(--sf-space-1\/2); }
 }
-/* reserve: written by scripts/record-example-heights.mjs */
-/* The height this example has drawn, held from its first frame: Docara sizes the frame by its body before the
-   SIMAI Framework parts inside have drawn, and the page below moved when they did. */
-body:has(:is(sf-tabs, sf-view, sf-view-table, sf-table, sf-view-properties, sf-view-board, sf-view-cards, sf-view-calendar, sf-view-flow):not(:defined):not([data-sf-tab-panel] *):not(:is(sf-view, sf-data-view):defined:not([data-sf-awaiting]) *)) { visibility: hidden; }
-[data-sf-tab-panel]:not([hidden]):has(:is(sf-view, sf-view-table, sf-table, sf-view-properties, sf-view-board, sf-view-cards, sf-view-calendar, sf-view-flow):not(:defined):not(:is(sf-view, sf-data-view):defined:not([data-sf-awaiting]) *)) { visibility: hidden; }
-body { min-block-size: 1161px; }
-@media (max-width: 640px) { body { min-block-size: 1305px; } }
-/* reserve: end */
