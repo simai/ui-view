@@ -51,6 +51,23 @@ yet): DEV's returns of rounds 6+7 (R67-1..3) and of the site round
   content's least width and a value wraps at its spaces instead of an
   ellipsis; on a phone the two S cards side by side lay their fields one
   under the other.
+- `sf-view` 1.28.1: the view toggle of the list head draws its glyph open
+  and closed (R8-3: open, it was an empty tinted square on the site: a
+  pressed button asks for the filled `view_quilt`, which the site's icon
+  subset lacks). Over a pair without the toggle look the toggle is a
+  disclosure button (`aria-expanded`) whose pressed look the head draws; the
+  glyph stays outlined in both states.
+- `sf-view-table` 1.29.0: a `date` or `datetime` column with
+  `variant: "relative"` shows «сегодня», «вчера», «3 дня назад» in its cells
+  in the page language, the full date in the cell's title (Larena L-3). The
+  settings column's name comes from the language files (Larena L-1: it was
+  the literal `settings`).
+- `contracts/view-config` 1.0.1 (text only, Larena server acceptance
+  LVC-4, LVC-8): each level keeps whole documents, merged by the host in the
+  order system < shared < profile < personal except on locked paths; a host
+  keeps its own parts under `layouts.<layout>`, a filter key starting with
+  `_` is a host's service field (Larena `_archived`), `fields` is optional
+  and filled by a writer that knows it; a list belongs to one host place.
 - Site: page sizes 10/20/50/100 in the examples; the materializer carries
   `core/contracts/icon-names.v1.json` (VSA-2); no decision ids in the change
   history or in an example's source, and the site lint rule `history` now

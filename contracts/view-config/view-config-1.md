@@ -1,6 +1,7 @@
 # `simai.view-config/1`: the view document and the board window
 
-Status: **contract 1.0.0**, agreed between the SIMAI Framework dispatcher (DEV) and Larena
+Status: **contract 1.0.1** (2026-11-22: §4 levels keep whole documents, §2 host keys and
+`fields`; text only, no change of behaviour), 1.0.0 agreed between the SIMAI Framework dispatcher (DEV) and Larena
 (Larena Audit, Larena Backend) on 2026-11-20. Source: the joint draft
 `ui-control control/research/2026-11-17-views-architecture/view-config-1-draft.md` (owner
 decisions C298, C299, C300), with Larena's answers to its open points. The machine-readable
@@ -57,9 +58,9 @@ A saved filter is not a separate object: a view keeps its own `query.filter`.
 | `name` | yes | the view's name in the person's words, 1–120 characters. |
 | `source` | yes | the data source's key. |
 | `layout` | yes | the layout the view opens in. |
-| `query` | no | `filter` (one `{operator, value}` per field, the condition models of C293 and C294), `sort` (`[{field, dir}]`), `per_page`. The search text is never saved. |
-| `fields` | no | `visible` and `order`: field keys. |
-| `layouts` | no | the options of each layout, under that layout's name; switching layouts keeps the others' options. |
+| `query` | no | `filter` (one `{operator, value}` per field, the condition models of C293 and C294), `sort` (`[{field, dir}]`), `per_page`. The search text is never saved. A `filter` key that starts with `_` is a host's service field, not a field of the source (Larena: `_archived`, archived records shown); a reader that does not know it keeps it and shows no filter field for it. |
+| `fields` | no | `visible` and `order`: field keys. Optional; a writer fills them when it knows them, so another reader of the document sees the fields. |
+| `layouts` | no | the options of each layout, under that layout's name; switching layouts keeps the others' options. A host keeps its own parts of a view (column layout, roles, its settings) under `layouts.<layout>`; a reader keeps keys it does not know and leaves them alone. |
 | `head.filter_fields` | no | the fields the person put in the list head as filter fields (C300). |
 | `required` | no | a view that cannot be deleted. |
 | `locked` | no | paths that lower levels cannot change (C298). |
@@ -107,8 +108,11 @@ C298 levels, highest first: `system` → `shared` → `profile` → `personal`.
 
 - `system` is the package or product default and ships with the release. A host may still name
   it `package` until **2027-01-01**; the view reads `package` as `system` (port 1.16.0).
-- Each level stores only its difference from the level above; a lower level overrides a higher
-  one except on the paths in `locked`.
+- Each level stores **whole documents**. Where a view of the same `id` lives on several levels
+  the host merges them in the order `system` < `shared` < `profile` < `personal`: a lower
+  level's document replaces the higher one's, except on the paths in `locked`, which keep the
+  higher level's values. A later change of the higher level reaches a lower level's copy only
+  on its locked paths.
 - Personal edits of a locked path last until the person leaves the page; «Сохранить как моё»
   keeps them as a personal view.
 - A reset writes a record; it never deletes the level above.
@@ -117,7 +121,8 @@ C298 levels, highest first: `system` → `shared` → `profile` → `personal`.
   `describe().permissions` allows it (C299).
 
 **Scopes** (team or public views beside the levels) are **reserved**: not part of version 1.
-A document carries no `scope`; the settings profile covers teams.
+A document carries no `scope`; the settings profile covers teams. A list belongs to one place of
+the host (Larena: one site area), so its views and levels are per list.
 
 ## 5. Limits
 
@@ -145,14 +150,17 @@ views.list() / views.save(doc, level, base_revision) / views.remove(id, level) /
 ```
 
 The SIMAI Framework side of this adapter is `simai.dataview-port` (1.16.0: levels and the personal
-preferences layer). Larena merges the levels on the server; the browser merges only for guests.
+preferences layer). The host merges the levels (§4) and lists the views it offers in
+`saved_views`, each with its `level`; the view in the browser shows them as listed and merges no
+levels itself. A guest's own state (page size, the view zone, the last view opened) stays in the
+browser.
 
 ## Кратко по-русски
 
 Контракт `simai.view-config/1`: документ представления (запрос без поиска, вид показа, поля,
 настройки каждого вида, поля фильтра в шапке, блокировки, ревизия), окно доски (20 записей на
 колонку по умолчанию, не больше 100, не больше 200 колонок) и её ответ, уровни
-system/shared/profile/personal, лимиты (20 представлений на список на уровень, 8 КБ на
-представление, `describe()` их сообщает). Размер страницы по умолчанию — 20. Области видимости
+system/shared/profile/personal (каждый уровень хранит документ целиком; порядок слияния system < shared < profile < personal, кроме закреплённых путей), лимиты (20 представлений на список на уровень, 8 КБ на
+представление, `describe()` их сообщает). Размер страницы по умолчанию — 20. Свои части хост держит в `layouts.<вид>`, служебные поля фильтра начинаются с `_`, `fields` необязательно. Области видимости
 (команда, публичные) зарезервированы. Слова интерфейса: «представление», «Сохранить
 представление», «Сохранить как моё»; «шаблон» не используется.
