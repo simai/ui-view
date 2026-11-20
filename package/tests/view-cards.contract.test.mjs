@@ -60,10 +60,25 @@ test('CD-5: a phone draws S in two columns, M and L in one', () => {
   assert.equal(phoneColumns('m'), 1);
   assert.equal(phoneColumns('l'), 1);
   const css = read('src/smart/view-cards/js/templates/default.css');
-  assert.match(css, /--sf-view-cards-min: var\(--sf-f5\)/u);
-  assert.match(css, /\[data-card-size="s"\] \{ --sf-view-cards-min: var\(--sf-f2\); \}/u);
-  assert.match(css, /\[data-card-size="l"\] \{ --sf-view-cards-min: var\(--sf-g0\); \}/u);
+  assert.match(css, /--sf-view-cards-min: var\(--sf-measure-36, var\(--sf-f8\)\)/u);
+  assert.match(css, /\[data-card-size="s"\] \{ --sf-view-cards-min: var\(--sf-measure-28, var\(--sf-f4\)\); \}/u);
+  assert.match(css, /\[data-card-size="l"\] \{ --sf-view-cards-min: var\(--sf-measure-44, var\(--sf-g1\)\); \}/u);
   assert.doesNotMatch(css.replace(/@container \(max-width: 599\.98px\)/gu, ''), /\d+px/u, 'no raw px but the phone breakpoint');
+});
+
+test('R8-1: the least card width is a width ladder step and no card field is cut', () => {
+  const css = read('src/smart/view-cards/js/templates/default.css');
+  const minimums = [...css.matchAll(/--sf-view-cards-min: ([^;]+);/gu)].map(([, value]) => value);
+  assert.equal(minimums.length, 3);
+  for (const value of minimums) assert.match(value, /^var\(--sf-measure-(28|36|44), var\(--sf-(f4|f8|g1)\)\)$/u, `${value}: a C396 step over its base step`);
+  const rule = (selector) => css.match(new RegExp(`\\n  ${selector.replace(/[.[\]]/gu, '\\$&')}(?:,\\n  [^{]+)? \\{([^}]*)\\}`, 'u'))?.[1] ?? '';
+  for (const selector of ['.sf-view-cards__field', '.sf-view-cards__values', '.sf-view-cards__label']) {
+    const body = rule(selector);
+    assert.notEqual(body, '', `${selector} has a rule`);
+    assert.doesNotMatch(body, /nowrap|ellipsis|overflow: hidden/u, `${selector} never cuts its value`);
+  }
+  assert.match(rule('.sf-view-cards__fields'), /grid-template-columns: minmax\(min-content, 1fr\) auto;/u, 'a column never below its content');
+  assert.match(css, /\[data-card-size="s"\] \.sf-view-cards__fields \{ grid-template-columns: minmax\(min-content, 1fr\); \}/u, 'phone S: one field column');
 });
 
 test('CD-6: the arrows go by the rows as drawn', () => {

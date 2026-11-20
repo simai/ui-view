@@ -56,6 +56,7 @@ Every remote branch ahead of `main`, with the release that takes it.
 
 | Branch | Release that takes it |
 |---|---|
+| `round/view-r8` | view round 8 (from `round/view-site` abd3ca8): DEV's returns R67-1..3 and VSA-1..5 (sf-view 1.28.0, sf-view-table 1.28.0, sf-view-properties 1.23.3, the set's candidate 1.10.0), then R8-1 no cut card field (sf-view-cards 1.0.5) and the site build that runs twice in a row; the view 1.10.0 release |
 | `round/view-site` | view site round (from `round/view-r7` 0a6d6bf): the site orders VS-SITE-1..14 (first paint of the home example, repin to pair ui-dc9fc39aeb26, home, guide, recipes, reference text), the cards count said once, the person's last view opened from their layer (sf-view 1.27.0, sf-view-cards 1.0.4); the next view release, with round 7 |
 | `round/view-r7` | view round 7 (from `round/view-r6` a237bbd): VS-8 the view's filter fields on the head row, the count line of a board and cards, simai.dataview-port 1.16.0 (levels, the person's preferences layer), the panel's strip patch behind the component.tabs 1.5.4 check, DEV's round-5 returns R5-1..R5-4 (default page size 20), the view-config/1 contract (sf-view 1.26.0, sf-view-table 1.27.1, sf-view-properties 1.23.1); the next view release, after round 6 |
 | `round/view-r6` | view round 6 (from `round/view-r5` 279c7f5): VZ-1 the list head's view zone, table columns before scroll, VB-1 panel surfaces in the dark theme (sf-view 1.25.0, sf-view-table 1.27.0, sf-view-properties 1.23.0); the next view release, after round 5 |
