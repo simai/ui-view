@@ -34,7 +34,7 @@ yet): DEV's returns of rounds 6+7 (R67-1..3) and of the site round
   the marks and the footer stay on screen (VSA-5).
 - `sf-view-table` 1.28.0: beside the record panel at the normal density the
   columns nobody sized give back room down to their least width (the
-  heading on one line, never below the column floor or `min_width`); a value
+  heading on one line, never below `min_width`); a value
   wider than its column stays on one line and ends in an ellipsis; the table
   scrolls sideways only when those least widths do not fit
   (R67-3: sites 935 px in 896, users 826 in 688, both fit now). The filter

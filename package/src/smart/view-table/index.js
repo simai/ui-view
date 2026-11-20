@@ -3370,8 +3370,8 @@ class SfTable extends TableElement {
     // R67-3: 935 px of content in an 896 px box), the flexible columns -- the
     // data columns the person did not size -- give back what they hold above
     // their least width, in proportion. The least width is the column's
-    // heading on one line, never below the table's column floor or the
-    // column's min_width. Nothing wraps (owner, 2026-10-13: a cell is one
+    // heading on one line (its padding and sort button included), never
+    // below the column's min_width. Nothing wraps (owner, 2026-10-13: a cell is one
     // line): a value wider than its column ends in an ellipsis
     // (data-sf-columns-fitted). The box scrolls only when the least widths
     // themselves do not fit.
@@ -3444,21 +3444,17 @@ class SfTable extends TableElement {
 
     // Each data column's least width: for a moment the table is laid out by
     // its headings alone (the measuring layout, the rows set aside), each on
-    // one line, and the column floor; cached with the content widths.
+    // one line; cached with the content widths.
     leastContentWidths() {
         if (this._leastWidths && this._leastWidthsOf === this._contentWidths) return this._leastWidths;
         const table = this.refs.table?.value;
         if (!(table instanceof HTMLTableElement) || !table.isConnected) return null;
         const least = new Map();
-        const root = Number.parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
-        const raw = getComputedStyle(table).getPropertyValue('--sf-table--column-min-inline-size').trim();
-        const value = Number.parseFloat(raw);
-        const floor = Number.isFinite(value) && value > 0 ? (raw.endsWith('px') ? value : value * root) : 0;
         table.classList.add('sf-table-measuring', 'sf-table-measuring-least');
         try {
             if (getComputedStyle(table).tableLayout !== 'auto') return null;
             for (const cell of table.querySelectorAll('thead th[data-key]')) {
-                if (!SYSTEM_COLUMN_KEYS.has(cell.dataset.key)) least.set(cell.dataset.key, Math.max(floor, Math.ceil(cell.getBoundingClientRect().width)));
+                if (!SYSTEM_COLUMN_KEYS.has(cell.dataset.key)) least.set(cell.dataset.key, Math.ceil(cell.getBoundingClientRect().width));
             }
         } finally {
             table.classList.remove('sf-table-measuring', 'sf-table-measuring-least');

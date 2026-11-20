@@ -3005,7 +3005,7 @@
         "from": "1.27.1",
         "to": "1.28.0",
         "changes": [
-          "Round 8 (round/view-r8, R67-3, R67-2): readFittedWidths shrinks flexible columns (no colWidth, width in pixels or none) after the declared ones, in proportion, to leastContentWidths (the measuring pass with tbody set aside, class sf-table-measuring-least: each heading on one line, at least --sf-table--column-min-inline-size; read only when needed and cached with the content widths); applyColumnWidths writes the fitted sum as --sf-table--content-inline-size and sets data-sf-columns-fitted, under which data cells are nowrap with an ellipsis. lang ru/en: the template words of the filter window become view words."
+          "Round 8 (round/view-r8, R67-3, R67-2): readFittedWidths shrinks flexible columns (no colWidth, width in pixels or none) after the declared ones, in proportion, to leastContentWidths (the measuring pass with tbody set aside, class sf-table-measuring-least: each heading on one line; read only when needed and cached with the content widths); applyColumnWidths writes the fitted sum as --sf-table--content-inline-size and sets data-sf-columns-fitted, under which data cells are nowrap with an ellipsis. lang ru/en: the template words of the filter window become view words."
         ]
       }
     ]
@@ -3016,7 +3016,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-table/index.js",
-        "sha256": "48797f2fa06e38b57052c4cdbe1b946c4c78d3de9fced45edcdb4a408340fe12"
+        "sha256": "bfc608841145d9e92cf774d1e6da86e8829d4ff2426c20062d2665bbc31a1bf8"
       },
       {
         "path": "src/smart/view-table/js/templates/default.js",
