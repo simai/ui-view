@@ -1871,6 +1871,19 @@ class SfDataView extends DataViewElement {
         return Boolean(this.knownPort?.capabilities?.includes?.(capability));
     }
 
+    // A known host that offers no row actions: its rows have no menu
+    // (VR5-10, data-sf-row-menu-off on the table).
+    _rowMenuOff() {
+        return Boolean(this.knownPort) && !this.knownCapability("row-actions");
+    }
+
+    // The table's «≡» column has nothing to open: no row menu, no column
+    // gear (personal-column-settings outside the list head), no reordering.
+    _settingsColumnUnused() {
+        return this._rowMenuOff() && !(this.knownCapability("personal-column-settings") && !this.listHead)
+            && !(this.knownCapability("row-reorder") && this.treeMode !== "tree");
+    }
+
     // The query the page printed: the first answer's own (first-answer.query),
     // else the declared port's first query.change. The view asks exactly that,
     // so an early call the page started is the view's own (one request) and
@@ -1990,6 +2003,9 @@ class SfDataView extends DataViewElement {
         const select = !hostOffSelect && this.selects();
         const hostOffSettings = hostWroteOff(table, "settings");
         const settings = !hostOffSettings && this.renders("settings");
+        // The «≡» column goes where the known host gives it nothing to open
+        // (VR5-10), as the table will draw it.
+        const settingsColumn = settings && !this._settingsColumnUnused();
         const layout = this._firstPaintLayout(table);
         // The saved-views control (the filter's bookmark segment), when the
         // page declared it before the first answer -- a data-sf-port that
@@ -2048,7 +2064,7 @@ class SfDataView extends DataViewElement {
         const listFields = Number.parseInt(table?.getAttribute("list-fields") ?? "", 10);
         const fields = Math.min(columns - 1, Number.isFinite(listFields) && listFields >= 0 ? listFields : FIRST_PAINT_LIST_FIELDS);
         // The head is a row like the others (sf-view-table 1.17.1).
-        const row = () => `<div>${select ? `<span data-chrome>${bar}</span>` : ""}${settings ? `<span data-chrome>${control()}</span>` : ""}${`<span>${bar}</span>`.repeat(columns)}</div>`;
+        const row = () => `<div>${select ? `<span data-chrome>${bar}</span>` : ""}${settingsColumn ? `<span data-chrome>${control()}</span>` : ""}${`<span>${bar}</span>`.repeat(columns)}</div>`;
         // A part of more than one line is its lines with no gap between them,
         // as a wrapped value is (list-shape).
         const shape = this.listShape;
@@ -3740,8 +3756,10 @@ class SfDataView extends DataViewElement {
             // table is told so apart from row-actions="false", which also
             // means «every action in the row menu» -- without it the «≡»
             // column stood empty, 57 px, at the start of every row.
-            if (this.knownCapability("row-actions")) table.removeAttribute?.("data-sf-row-menu-off");
-            else table.setAttribute("data-sf-row-menu-off", "");
+            // Only once the host is known: before it, the column holds its
+            // place as the first paint drew it.
+            if (this._rowMenuOff()) table.setAttribute("data-sf-row-menu-off", "");
+            else table.removeAttribute?.("data-sf-row-menu-off");
             // The accessible name of a list the host did not slot in. The fallback
             // table carries a name of its own, which is right for a page list and
             // wrong inside a group called «Счета»: it would announce «Записи».
