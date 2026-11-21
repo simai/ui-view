@@ -1485,10 +1485,13 @@ class SfDataView extends DataViewElement {
     // taking two lines. The skeleton draws that shape, so the list does not
     // move when the records come. Without it the skeleton keeps a title and
     // list-fields fields of one line each (109 px at 390). Up to 12 parts of
-    // 1 to 8 lines; anything else is no hint.
+    // 1 to 8 lines; "resource" is the row of a list of resources (C31 roles:
+    // the title's line and the supporting line under it, 52 px); anything
+    // else is no hint.
     get listShape() {
         const table = this.querySelector?.(`:scope > ${tagSelector("sf-view-table")}[slot="content"]`);
         const written = this.getAttribute?.("list-shape") ?? table?.getAttribute?.("list-shape") ?? "";
+        if (written.trim() === "resource") return "resource";
         if (!/^\s*\d+(?:[\s,]+\d+)*\s*$/u.test(written)) return null;
         const parts = written.trim().split(/[\s,]+/u).map(Number);
         return parts.length <= 12 && parts.every((lines) => Number.isInteger(lines) && lines >= 1 && lines <= 8) ? parts : null;
@@ -1797,10 +1800,12 @@ class SfDataView extends DataViewElement {
         // A part of more than one line is its lines with no gap between them,
         // as a wrapped value is (list-shape).
         const shape = this.listShape;
-        const parts = shape
-            ? shape.map((lines) => (lines === 1 ? bar : `<span data-lines="${lines}">${bar.repeat(lines)}</span>`)).join("")
-            : bar.repeat(fields + 1);
-        const record = `<div>${select ? bar : "<span></span>"}<div${shape ? " data-shape" : ""}>${parts}</div>${settings ? control() : "<span></span>"}</div>`;
+        const parts = shape === "resource"
+            ? `${bar}<i class="sf-skeleton-text" data-supporting></i>`
+            : shape
+                ? shape.map((lines) => (lines === 1 ? bar : `<span data-lines="${lines}">${bar.repeat(lines)}</span>`)).join("")
+                : bar.repeat(fields + 1);
+        const record = `<div${shape === "resource" ? " data-resource" : ""}>${select ? bar : "<span></span>"}<div${shape ? " data-shape" : ""}>${parts}</div>${settings ? control() : "<span></span>"}</div>`;
         // The footer as the view draws it (C97 (5)): the range at the start,
         // the page-size button, and the page row in the field appearance --
         // the arrows to the first and the previous page, the page field with

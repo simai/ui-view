@@ -243,7 +243,7 @@
       "list-shape": {
         "type": "string",
         "default": "",
-        "description": "The host's hint of a record's shape in the compact list a phone gets (view round 11): the lines of each part of a record, the title first, space- or comma-separated -- \"1 1 2 1\" is a title of one line and three fields, the third taking two lines. The skeleton draws that shape, so the list does not move when the records come. Empty: a title and list-fields fields of one line each. Up to 12 parts of 1 to 8 lines; anything else is read as no hint. Read on the view, else on its sf-view-table."
+        "description": "The host's hint of a record's shape in the compact list a phone gets (view round 11): the lines of each part of a record, the title first, space- or comma-separated -- \"1 1 2 1\" is a title of one line and three fields, the third taking two lines. The skeleton draws that shape, so the list does not move when the records come. Empty: a title and list-fields fields of one line each. Up to 12 parts of 1 to 8 lines; \"resource\" is the row of a list of resources (C31 roles: the title line and the supporting line). Anything else is read as no hint. Read on the view, else on its sf-view-table."
       },
       "port-owner": {
         "type": "string",

@@ -305,6 +305,23 @@
 
   .sf-data-view-skeleton-list > div > div > [data-lines] > .sf-skeleton-text:last-child { inline-size: 45%; }
 
+  /* A list of resources (list-shape="resource", C31 roles): the row is the
+     title's line and the supporting line under it, in the list's own air and
+     with no rule between rows (sf-view-table .sf-table-resource-*). */
+  .sf-data-view-skeleton-list > div[data-resource] {
+    border-block-end: 0;
+  }
+
+  .sf-data-view-skeleton-list > div[data-resource] > div {
+    gap: 0;
+  }
+
+  .sf-data-view-skeleton-list > div[data-resource] > div > .sf-skeleton-text[data-supporting] {
+    inline-size: 45%;
+    --sf-skeleton-text--height: var(--sf-text-size-1\/2);
+    --sf-skeleton-text--line: var(--sf-text-height-1\/2);
+  }
+
   .sf-data-view-skeleton-list > div[data-list-head] > .sf-skeleton-text,
   .sf-data-view-skeleton-list > div:not([data-list-head]) > div > [data-lines] > .sf-skeleton-text,
   .sf-data-view-skeleton-list > div:not([data-list-head]) > div > .sf-skeleton-text {
