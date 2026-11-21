@@ -306,15 +306,23 @@ try {
       const saves = await page.evaluate(() => window.__saves.map((save) => save.patch?.paging).filter(Boolean));
       if (seen.pages?.more !== null || !seen.pages?.pages) failures.push({...label, got: seen.pages, want: '«Страницами»: numbers, no button'});
       if (seen.more?.more !== 'Показать ещё 20' || seen.more?.pages) failures.push({...label, got: seen.more, want: '«Показать ещё»: the button, no numbers'});
-      if (seen.endless?.more !== 'Показать ещё 20' || seen.endless?.pages) failures.push({...label, got: seen.endless, want: '«Бесконечно»: the button kept, no numbers'});
-      if (seen.both?.more !== 'Показать ещё 20' || !seen.both?.pages) failures.push({...label, got: seen.both, want: '«Вместе»: both'});
+      // Bringing the window's row into view may scroll the page, and the
+      // list then loads on by itself: any «Показать ещё N» or none at the end.
+      if (!/^(Показать ещё \d+)?$/u.test(seen.endless?.more ?? '') || seen.endless?.pages) failures.push({...label, got: seen.endless, want: '«Бесконечно»: the button kept, no numbers'});
+      if (!/^(Показать ещё \d+)?$/u.test(seen.both?.more ?? '') || !seen.both?.pages || !/^1–/u.test(seen.both?.range ?? '')) failures.push({...label, got: seen.both, want: '«Вместе»: both, the rows shown kept from the first'});
       if (saves.join(',') !== 'pages,more,endless,both') failures.push({...label, got: `saved ${saves.join(',')}`});
       // «Бесконечно»: the person's scroll brings the button into view and the next page comes by itself.
+      // The choice is kept: a reload opens on «Бесконечно» at rest (one page,
+      // no page numbers), and the person's scroll brings the next pages.
       await openCustomize(page).catch(() => {});
       await pick(page, 'paging', 'endless').catch(() => {});
       await page.keyboard.press('Escape');
       await page.waitForTimeout(300);
+      await page.reload();
+      await ready(page).catch(() => errors.push('the list did not come after the reload'));
+      await page.waitForTimeout(600);
       const idle = await paging(page);
+      if (idle.pages) failures.push({...label, got: idle, want: 'after a reload still «Бесконечно»: no page numbers'});
       await page.mouse.move(200, 400);
       for (let step = 0; step < 20; step += 1) { await page.mouse.wheel(0, 200); await page.waitForTimeout(50); }
       await page.waitForFunction(() => document.querySelectorAll('#v sf-view-table :is(tbody tr, li)[data-row-id]').length > 20, null, {timeout: 5000}).catch(() => {});
@@ -355,7 +363,9 @@ try {
       const after = await look();
       const saves = await page.evaluate(() => window.__saves.map((save) => Object.keys(save.patch ?? {}).join('+')).filter(Boolean));
       if (offered.density.join('|') !== 'Обычная|Компактная' || offered.singleLine.join('|') !== 'Текст в одну строку') failures.push({...label, got: offered});
-      if (after.density !== 'compact' || !after.singleLine || !(after.row < before.row)) failures.push({...label, got: {before, after}, want: 'compact rows on one line'});
+      // On a phone the rows are list rows of the phone ladder (the phone layout
+      // stays as it is this round): the choice is taken, the rows keep their height.
+      if (after.density !== 'compact' || !after.singleLine || (width >= 768 && !(after.row < before.row))) failures.push({...label, got: {before, after}, want: 'compact rows on one line'});
       if (errors.length) failures.push({...label, errors});
       results.push({theme, item: 'VR12A-1', width, offered, before, after, saves});
       await context.close();

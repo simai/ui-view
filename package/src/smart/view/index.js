@@ -232,6 +232,12 @@ const NO_REFRESH_AFTER = new Set([
     "node.targets",
     "settings.save_personal",
     "settings.save_shared",
+    // The list head's «Настроить вид» (view round 13): a setting is shown at
+    // once by the part it belongs to, and one that needs other rows (a
+    // board's lanes, a calendar's date field) asks for them itself. Re-read
+    // after the save, the rows «Показать ещё» had added collapsed to the last
+    // page («41–48 из 48») when the person changed «Подгрузка».
+    "settings.save",
 ]);
 const copy = (value) => (value == null ? value : JSON.parse(JSON.stringify(value)));
 
