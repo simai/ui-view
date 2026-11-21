@@ -364,7 +364,40 @@
     flex: none;
   }
 
+  /* The phone's section rows end in «›» (VRS-8): sf-list has no end mark of
+     its own, so the row draws the Material chevron_right as a mask in the
+     variant ink, on the icon step, mirrored right to left. */
+  .sf-property-view-phone-sections .sf-list__row {
+    position: relative;
+    --sf-property-view-chevron: var(--sf-icon-size-1, var(--sf-text-height-1));
+  }
+  .sf-property-view-phone-sections .sf-list__row > sf-list-item > :first-child {
+    padding-inline-end: calc(var(--sf-property-view-chevron) + var(--sf-space-1));
+  }
+  .sf-property-view-phone-sections .sf-list__row::after {
+    content: "";
+    position: absolute;
+    inset-block: 0;
+    inset-inline-end: var(--sf-space-1\/2);
+    margin-block: auto;
+    inline-size: var(--sf-property-view-chevron);
+    block-size: var(--sf-property-view-chevron);
+    background-color: var(--sf-on-surface-variant);
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 -960 960 960'%3E%3Cpath d='M504-480 320-664l56-56 240 240-240 240-56-56z'/%3E%3C/svg%3E") center / contain no-repeat;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 -960 960 960'%3E%3Cpath d='M504-480 320-664l56-56 240 240-240 240-56-56z'/%3E%3C/svg%3E") center / contain no-repeat;
+    pointer-events: none;
+  }
+  .sf-property-view-phone-sections .sf-list__row:dir(rtl)::after {
+    transform: scaleX(-1);
+  }
+
   /* A card in place ends its stage line with its actions (VHF-6). */
+  /* A one-group section's head without the repeated title (VRS-9): the
+     «Изменить» keeps its place at the end. */
+  .sf-property-view-group-title-gap {
+    flex: 1 1 auto;
+  }
+
   .sf-property-view-head-line-end {
     flex: none;
     margin-inline-start: auto;

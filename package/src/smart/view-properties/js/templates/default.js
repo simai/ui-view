@@ -667,7 +667,16 @@ function renderGroup(context, section, group) {
     // a property shown alone): an empty heading took a row (36 px read, 29 px
     // edited) and named nothing to a screen reader. Its «Изменить», the rare
     // mark and the arranging tools still bring the head back.
-    const titled = String(group.label ?? groupKey) !== '' || Boolean(group.rare);
+    // A section of one group whose name is the section's (VRS-9, view round
+    // 12): the section's tab, column row or phone screen already names it, and
+    // the group's head said «Заказ» again under «Заказ». Its «Изменить» stays;
+    // arranging the card still shows every head. One section alone is drawn
+    // without its name, so its group keeps the title.
+    const repeats = !configuring && !group.rare
+        && (context.visible(context.sections ?? []) ?? []).length > 1
+        && (context.visible(section.groups ?? []) ?? []).length === 1
+        && String(group.label ?? groupKey).trim() === String(section.label ?? section.key ?? '').trim();
+    const titled = (String(group.label ?? groupKey) !== '' || Boolean(group.rare)) && !repeats;
     const readEdit = context.mayEdit && !context.openAll && group.editable !== false;
     const cardEdit = !configuring && !editing && context.mayEdit && !context.openAll && group.kind !== 'related' && group.editable !== false;
     // Read, the group is a section of the record's description list: its name
@@ -681,8 +690,8 @@ function renderGroup(context, section, group) {
         return html`
             <section class="sf-property-view-group sf-property-view-group--list" data-group=${groupKey} aria-busy=${reading ? 'true' : nothing}>
                 ${titled || readEdit ? html`<div class="sf-list-description-head sf-property-view-group-header">
-                    <div class="sf-list-description-title sf-property-view-group-title" role="heading" aria-level="3">${String(group.label ?? groupKey)}${group.rare
-                            ? html` <span class="sf-property-view-rare color-on-surface-variant">${context.rareText}</span>` : nothing}</div>
+                    ${titled ? html`<div class="sf-list-description-title sf-property-view-group-title" role="heading" aria-level="3">${String(group.label ?? groupKey)}${group.rare
+                            ? html` <span class="sf-property-view-rare color-on-surface-variant">${context.rareText}</span>` : nothing}</div>` : html`<span class="sf-property-view-group-title-gap" aria-hidden="true"></span>`}
                     ${readEdit
                             ? html`<span class="sf-list-description-action"><sf-button
                                     appearance="ghost"
@@ -818,7 +827,10 @@ function renderGroup(context, section, group) {
 // between a person and the only groups there are.
 function renderPhoneSectionList(context, sections) {
     // The rows are sf-list's (C289 (5), C148 (4)): a section opens as a level
-    // of the panel, «←» in its head (C157 (6)).
+    // of the panel, «←» in its head (C157 (6)). They are the phone list's rows
+    // of the size ladder whatever the card's control size, and each ends in
+    // «›», the mark of a row that opens (VRS-8, view round 12): on the card's
+    // size 1/2 they were 28 px control rows with nothing saying they open.
     const items = sections.map((section) => ({
         id: String(section.key),
         text: String(section.label ?? section.key),
@@ -828,7 +840,7 @@ function renderPhoneSectionList(context, sections) {
         <sf-list
                 class="sf-property-view-phone-sections"
                 label=${context.sectionsLabel}
-                size=${context.controlSize ?? nothing}
+                size="1"
                 divided
                 .items=${items}
                 @sf-list-open=${(event) => {
@@ -1680,6 +1692,7 @@ function renderHistoryFeed(context) {
     const loading = !feed || feed.loading;
     return html`
         <sf-list-timeline class="sf-property-view-history"
+                size=${context.size === '1/2' ? '1/2' : nothing}
                 group="day"
                 label=${context.word('historyText')}
                 .items=${items}
