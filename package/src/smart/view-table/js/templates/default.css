@@ -452,10 +452,10 @@
      does in a column of its own width; every other cell stays one line. The
      setting on keeps the name to one line too. Until now a fitted table drew
      every cell on one line whatever the setting said. */
-  :is(sf-view-table, sf-table)[data-sf-columns-fitted]:not([data-sf-view-single-line]) table:not(.sf-table-measuring) td[data-sf-cell="title"] {
+  :is(sf-view-table, sf-table)[data-sf-columns-fitted]:not([data-sf-view-single-line]) table:not(.sf-table-measuring) td[data-key][data-sf-cell="title"]:not([data-key="select"], [data-key="settings"], [data-key="actions"]) {
     white-space: normal;
   }
-  :is(sf-view-table, sf-table)[data-sf-columns-fitted]:not([data-sf-view-single-line]) table:not(.sf-table-measuring) td[data-sf-cell="title"] .sf-table-cell-text {
+  :is(sf-view-table, sf-table)[data-sf-columns-fitted]:not([data-sf-view-single-line]) table:not(.sf-table-measuring) td[data-key][data-sf-cell="title"]:not([data-key="select"], [data-key="settings"], [data-key="actions"]) .sf-table-cell-text {
     display: -webkit-box;
     white-space: normal;
     -webkit-line-clamp: var(--sf-table-cell--line-clamp, 2);
