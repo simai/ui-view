@@ -7,10 +7,10 @@
   ],
   "bundles": {
     "view": {
-      "js_gz": 59392,
+      "js_gz": 59648,
       "css_gz": 5632,
       "measured": {
-        "js_gz": 56561,
+        "js_gz": 56565,
         "css_gz": 4407
       }
     },
