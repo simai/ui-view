@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view",
-  "version": "1.29.0",
+  "version": "1.29.1",
   "title": "Data view",
   "summary": "Host-driven data view that composes toolbar, content and pagination around a separate data port.",
   "kind": "composite",
@@ -1930,6 +1930,13 @@
         "changes": [
           "View round 9 (round/view-r9, Larena L-2): index.js _renderBulkBand draws sf-bulk-actions (slot bulk, place dock, data-sf-bulk=bar) where bulkBarAvailable(), its actions from the page row's bulkActions (icons from the view's bulkActions), page-count from bulkPageCount, total and all-selected from the page row's for-all; sf-bulk-actions-action raises bulk.apply_selected or bulk.apply_under_filter and the answer goes to bar.result(); -select-all/-select-page set the page row's for-all; -clear clears the selection. rule.js and relations cl-bulk-actions (lazy), composition.uses smart.bulk-actions. The skeleton's footer prints the page row's arrows and field only where the page row the page wrote draws them (firstPaintHasPages: current past 1, has-next, or a total over one page), the rule of sf-pagination 1.10.0; printed for a one-page list they stood 48px under the range at 390 and went when the answer came (gate 24, view/reference and view/open-record @390)."
         ]
+      },
+      {
+        "from": "1.29.0",
+        "to": "1.29.1",
+        "changes": [
+          "View round 10 (round/view-r10): first-paint.css sizes the phone list skeleton line at text step 1 (R9-1); index.js draws the bulk bar together with the list and clears the selection before the bar's result (V10-1); head.js viewKind() keeps the kind the view opened with for the «Изменено» mark (V10-3) and _showColumns() applies «Настроить вид» columns to the table (V10-2); examples.json phone-list example in the first-paint gate."
+        ]
       }
     ]
   },
@@ -1939,7 +1946,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view/index.js",
-        "sha256": "336c0cee9bd7ee4b5ba72a1e4826128f88fac35711ff42e01d4fc5f63839dfff"
+        "sha256": "7034af437cda303cc008d5b97ae675723ded89820a09085c395ebd20869a86ec"
       },
       {
         "path": "src/core/contracts/ports/simai.dataview-port/1.5.0/port.json",
@@ -1959,7 +1966,7 @@
       },
       {
         "path": "src/smart/view/js/first-paint.css",
-        "sha256": "804c4b1911a55d55c0e8fbee572e0bd236531bb2abd81a2db32e117331ef81d1"
+        "sha256": "a0f636698a7e11576c1bca440e3eda3dfed8d9dee499226e34129ff155e58ba9"
       },
       {
         "path": "src/smart/view/js/cards.js",

@@ -1352,6 +1352,28 @@ function renderMenuControl(context) {
 // before the host's actions) is the component's own sheet, not utilities: the
 // Loader asks for a utility sheet only after the first render, so the close
 // stood beside the star for ~115 ms and then jumped to the end (D1, 1.16.3).
+// The row's layout is written on the row itself as well (view round 10,
+// Larena L-4): the component's sheet is fetched by the Loader beside its code,
+// and a page that has the code already (a bundle of its own, or a cached one)
+// draws the head before that sheet arrives -- the «⋯» stood beside the star and
+// moved to the end about half a second later. With the row a flex line and the
+// spacer growing from the first frame, the end controls stand where they end.
+// The band's own edges too: it takes back the drawer's gutter and sets its
+// row on the panel's axis (the sheet's two tokens, with the same reading of the
+// drawer's gutter and scroll room where the sheet has not declared them yet), so
+// the «⋯» and the close end where they end, not a scroll room further out.
+// Values are the Framework's (core.css) and the drawer's, the same as the sheet's.
+const TITLE_ROW_STYLE = 'display: flex; align-items: center; gap: var(--sf-space-1\\/3); min-inline-size: 0;'
+    + ' min-block-size: calc(var(--sf-ui-2--control-height) - var(--sf-px))';
+// The title's box as the sheet sets it (the window step, one line), so the star
+// beside it does not move when the sheet comes.
+const TITLE_STYLE = 'margin: 0; min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 700;'
+    + ' font-size: var(--sf-property-view--title-size, var(--sf-drawer--title-size, var(--sf-heading-4--size)));'
+    + ' line-height: var(--sf-property-view--title-height, var(--sf-drawer--title-height, var(--sf-heading-4--height)))';
+const HEAD_STYLE = 'box-sizing: border-box;'
+    + ' margin-inline: calc(-1 * var(--sf-property-view--panel-bleed, var(--sf-drawer-gutter, var(--sf-space-1))));'
+    + ' padding-inline: var(--sf-property-view--panel-axis, calc(var(--sf-drawer-gutter, var(--sf-space-1)) + var(--sf-scroll-bg-width, 0px)))';
+
 function renderPanelHead(context) {
     const level = phoneLevel(context);
     const record = context.panelLabel || context.recordLabel || context.recordId || '';
@@ -1365,7 +1387,7 @@ function renderPanelHead(context) {
     // drawer's own back part (data-sf-drawer-back), so the title does not move
     // and the close still closes the whole chain.
     return html`
-        <header class="sf-property-view-head flex flex-col">
+        <header class="sf-property-view-head flex flex-col" style=${HEAD_STYLE}>
             ${history ? html`<div class="sf-property-view-back">
                 <sf-button
                         appearance="ghost"
@@ -1389,7 +1411,7 @@ function renderPanelHead(context) {
                         data-sf-drawer-back
                 ></sf-button>
             </div>` : nothing}
-            <div class="sf-property-view-title-row">
+            <div class="sf-property-view-title-row" style=${TITLE_ROW_STYLE}>
                 ${level ? html`<sf-button-icon
                         size="1/3"
                         appearance="ghost"
@@ -1400,7 +1422,7 @@ function renderPanelHead(context) {
                         title=${context.backLabel}
                         @click=${() => context.component.closePhoneSection()}
                 ></sf-button-icon>` : nothing}
-                <h2 class="sf-property-view-title min-w-0 overflow-hidden" tabindex="-1">${history ? context.word('historyText') : level ? context.phoneSectionLabel : record}</h2>
+                <h2 class="sf-property-view-title min-w-0 overflow-hidden" style=${TITLE_STYLE} tabindex="-1">${history ? context.word('historyText') : level ? context.phoneSectionLabel : record}</h2>
                 ${context.recordId && context.mode !== 'create' && !history ? html`<sf-button-icon
                         appearance="ghost"
                         scheme="on-surface"
@@ -1412,7 +1434,7 @@ function renderPanelHead(context) {
                         aria-label=${context.favouriteLabel}
                         @click=${() => context.component.toggleFavourite()}
                 ></sf-button-icon>` : nothing}
-                <span class="sf-property-view-head-spacer"></span>
+                <span class="sf-property-view-head-spacer" style="flex: 1 1 auto"></span>
                 ${context.hasHostSlot('actions') ? context.hostSlot('actions') : nothing}
                 ${renderMenuControl(context)}
                 <sf-button-close

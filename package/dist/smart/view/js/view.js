@@ -2915,7 +2915,10 @@ class SfDataView extends DataViewElement {
   _endFirstPaint() {
     if (this.getAttribute("data-sf-awaiting") === null) return;
 
-    this._dropFirstPaint();
+    this._dropFirstPaint(); // The bar for marked rows is made with the list (V10-1, _renderBulkBar).
+
+
+    if (!this._bulkBar && bulkBarAvailable()) this._renderBulkBand();
   } // The skeleton goes when the layout can draw: a board's code comes by the
   // Loader after the view's, so its skeleton stays until sf-view-board is
   // defined and has drawn its lanes (BD-2: no empty frame, no jump).
@@ -4174,9 +4177,14 @@ class SfDataView extends DataViewElement {
     let bar = this._bulkBar?.isConnected ? this._bulkBar : null; // The band of before goes, whichever drew it.
 
     if (this._bulkBand?.isConnected && this._bulkBand !== bar) this._bulkBand.remove();
-    this._bulkBand = null;
+    this._bulkBand = null; // The bar is made as soon as the view has actions for it, not at the
+    // first marked row (view round 10, V10-1): its words are a language
+    // part the page fetches when the bar first looks one up, and a bar made
+    // at the first mark said its first count in the built-in English («1
+    // selected») before the Russian part came. With no row marked it draws
+    // nothing and says nothing.
 
-    if (!list.length || !selected.length && !bar) {
+    if (!list.length) {
       bar?.remove();
       this._bulkBar = null;
       return this;
@@ -4262,8 +4270,15 @@ class SfDataView extends DataViewElement {
     if (!answer || !bar?.isConnected || typeof bar.result !== "function") return;
 
     if (answer.answer === "applied") {
+      // The marks go with the applied batch, before the result is said
+      // (view round 10, V10-1): they went with the list the host sent
+      // after it, and the bar's «Выбор снят» for that came after «Готово
+      // 2 из 2» and replaced it in the live region. Cleared first, the
+      // result is the bar's last word.
+      const ok = scope === "all" ? this.total : ids.length;
+      this.clearSelection();
       bar.result({
-        ok: scope === "all" ? this.total : ids.length,
+        ok,
         failed: []
       });
       return;
@@ -7136,8 +7151,24 @@ class ListHead {
 
     const fields = this.viewFilterFields(view);
     if (fields && !same(fields.filter(key => this.field(key)).sort(), [...this.chosen].sort())) return true;
-    const layout = view.settings?.layout ?? view.layout;
+    const layout = this.viewKind(view);
     return typeof layout === "string" && this.kinds.includes(layout) && layout !== this.kind;
+  } // The display kind a view stands for: the one it was saved with, else the
+  // one the list showed when the view was opened (view round 10, V10-3: a
+  // system view that names no layout got «Изменено» after a filter change
+  // and not after a change of the display kind -- the kind was compared
+  // only with a saved one). Remembered per open view.
+
+
+  viewKind(view) {
+    const own = view?.settings?.layout ?? view?.layout;
+    if (typeof own === "string" && own) return own;
+    const key = String(view?.key ?? "");
+    if (this._openedKind?.key !== key) this._openedKind = {
+      key,
+      kind: this.kind
+    };
+    return this._openedKind.kind;
   }
 
   get zoneUseful() {
@@ -8018,7 +8049,11 @@ class ListHead {
     const type = view?.settings?.layout && this.kinds.includes(view.settings.layout) && this.drawable(view.settings.layout) ? view.settings.layout : this.kind; // Another view starts from what is saved for it: no change of the
     // person's carries over from the view they left.
 
-    this._settings = null; // A view saved as a board opens as one (and a table view as a table):
+    this._settings = null;
+    this._openedKind = {
+      key: String(key),
+      kind: type
+    }; // A view saved as a board opens as one (and a table view as a table):
     // the layout's own query first, then the view.
 
     if (type !== this.view.layoutKind && this.drawable(type)) this.view.switchLayout?.(type); // Its filter fields come with it (VS-8): the ones it keeps, else none
@@ -8194,10 +8229,36 @@ class ListHead {
     this._settings[kind] = { ...(this._settings[kind] ?? {}),
       [key]: value
     };
+    if (kind === "table" && key === "columns") this._showColumns(value);
 
     this._saveSettings("personal", {
       [key]: value
     });
+  } // The table's columns as «Настроить вид» says (view round 10, V10-2): a
+  // column switched off there stayed in the table -- the setting went to the
+  // host (settings.save) and nothing changed on screen. The table's own
+  // column settings take it, without the table's own save (the head's
+  // settings.save is the one write).
+
+
+  _showColumns(keys) {
+    const table = this.view.table;
+    if (!Array.isArray(keys) || typeof table?.setColumnSettings !== "function") return;
+    const on = new Set(keys.map(String));
+    const columns = (this.view.columns ?? []).filter(column => column?.key !== undefined && column?.key !== null);
+    table.setColumnSettings(current => {
+      const next = { ...(current ?? {})
+      };
+
+      for (const column of columns) {
+        const key = String(column.key);
+        next[key] = { ...(next[key] ?? {}),
+          visible: on.has(key)
+        };
+      }
+
+      return next;
+    }, "view-customize", false);
   }
 
   _saveSettings(layer, patch) {
@@ -8455,7 +8516,7 @@ class ListHead {
 
           const filters = copy(view.query?.filters ?? view.filters ?? {});
           const fields = Array.isArray(view.settings?.filter_fields) ? view.settings.filter_fields.map(String) : Object.keys(filters);
-          const layout = view.settings?.layout ?? view.layout;
+          const layout = this.viewKind(view);
           if (typeof layout === "string" && layout !== this.kind && this.kinds.includes(layout)) this._setKind(layout);
 
           this._query({
@@ -8781,7 +8842,7 @@ module.exports = /*#__PURE__*/JSON.parse('{"$comment":"Dated aliases of sf-view 
 /***/ "7086146c00cc"
 (module) {
 
-module.exports = /*#__PURE__*/JSON.parse('{"id":"smart.view","tag":"sf-view","version":"1.29.0","kind":"leaf","settings":{"chrome":{"type":"string","default":"toolbar pagination select settings"},"head":{"type":"enum","values":["","list"],"default":""},"heading":{"type":"string","default":""},"row-cap":{"type":"number","default":0,"integer":true,"min":0},"expected-columns":{"type":"number","default":4,"integer":true,"min":1},"port-owner":{"type":"string","default":""},"port-record":{"type":"string","default":""},"port-group":{"type":"string","default":""},"size":{"type":"enum","values":["1/2","1"],"default":"1"},"layout":{"type":"enum","values":["auto","table","list","board","cards","calendar"],"default":"auto"},"layout-switch":{"type":"boolean","default":false},"list-below":{"type":"number","default":600},"quick-actions":{"type":"string","default":""},"row-open":{"type":"enum","values":["title","row"],"default":"title"},"list-roles":{"type":"string","default":""},"column-search-placeholder":{"type":"string"},"column-search-empty-text":{"type":"string"},"column-move-label":{"type":"string"},"filter-apply-text":{"type":"string"},"show-more-text":{"type":"string"},"selected-label":{"type":"string"},"total-label":{"type":"string"},"pages-label":{"type":"string"},"first-label":{"type":"string"},"previous-label":{"type":"string"},"page-label":{"type":"string"},"next-label":{"type":"string"},"last-label":{"type":"string"},"page-field-label":{"type":"string"},"action-choose-label":{"type":"string"},"actions-label":{"type":"string"},"actions-region-label":{"type":"string"},"clear-selection-label":{"type":"string"},"page-size-label":{"type":"string"},"pagination-aria-label":{"type":"string"},"preferences-key":{"type":"string","default":""},"accept-files":{"type":"boolean","default":false},"collection":{"type":"string","default":""},"current":{"type":"string","default":""},"record-card":{"type":"string","default":""},"bulk-actions":{"type":"list","of":{"id":"string","label":"string","icon":{"type":"icon","optional":true}}},"first-answer":{"type":"object","optional":true}},"values":{"state":{"type":"state"},"total":{"type":"number","nullable":true},"selected":{"type":"id","optional":true},"selection":{"type":"list"}},"events":{"open":{"carries":{"id":"id"},"cancelable":true},"deleted":{"carries":{"ids":"list"}},"answer":{"carries":{"intent":{"type":"string"},"answer":{"type":"enum","values":["applied","conflict","refused","unavailable"],"schema":{"type":"string"}},"reason":{"type":"string","optional":true},"message":{"type":"string","optional":true},"data":{"type":"object","optional":true},"sequence":{"type":"number","integer":true,"optional":true},"effects":{"type":"list","optional":true},"instance_id":{"type":"string"}},"own-verb":true},"state":{"carries":{"state":{"type":"enum","values":["loading","populated","empty","error","no-access"],"schema":{"type":"string"}},"message":{"type":"string"},"instance_id":{"type":"string"}},"own-verb":true},"tree":{"carries":{"intent":"string","payload":{"type":"object","optional":true}},"own-verb":true},"files-drop":{"carries":{"files":{"type":"list","schema":{"items":{"type":"object"},"minItems":1}}},"own-verb":true},"pagination-count":{"shared":"count-on-request@1","carries":{"component":{"type":"object"},"tagName":{"type":"string"},"template":{"type":"string"},"reason":{"type":"enum","values":["total","last-page","action-for-all"],"schema":{"type":"string"}},"current":{"type":"number","integer":true},"pageSize":{"type":"number","integer":true}}},"save":{"carries":{"kind":{"type":"enum","values":["view"],"optional":true},"key":{"type":"string"},"label":{"type":"string"},"revision":{"type":"string","schema":{"type":["string","integer"]},"optional":true},"roles":{"type":"object","optional":true}}},"table-action-intent":{"shared":"table-intents@1","carries":{"action_id":{"type":"string","schema":{"minLength":1}},"record_ids":{"type":"list","schema":{"items":{"type":["string","integer"]},"minItems":1}}}},"table-column-settings-change":{"shared":"table-intents@1","carries":{"reason":{"type":"string"},"columnSettings":{"type":"object"},"tableSettingsKey":{"type":"string"},"target":{"type":"enum","values":["personal","shared"],"schema":{"type":"string"},"optional":true},"base_revision":{"type":"string","schema":{"type":["string","number"]},"optional":true}}},"table-column-settings-reset":{"shared":"table-intents@1","carries":{"target":{"type":"enum","values":["personal"],"schema":{"type":"string"}},"tableSettingsKey":{"type":"string","schema":{"type":["string","null"]}}}},"table-create-intent":{"shared":"table-intents@1","carries":{"item":{"type":"string","schema":{"type":["string","null"]}}}},"table-query-intent":{"shared":"table-intents@1","carries":{"reason":{"type":"enum","values":["context"]},"context":{"type":"object"},"sequence":{"type":"number","integer":true,"schema":{"minimum":1}}}},"table-template-delete":{"shared":"table-intents@1","carries":{"key":{"type":"string","schema":{"minLength":1}}}},"table-template-save":{"shared":"table-intents@1","carries":{"templates":{"type":"list","of":{"key":"string","label":"string","selected":"boolean","data":"object","settings":"object"},"schema":{"items":{"type":"object","required":["key","label","settings"],"properties":{"key":{"type":"string"},"label":{"type":"string"},"selected":{"type":"boolean"},"data":{"type":"object"},"settings":{"type":"object","properties":{"filter_fields":{"type":"array","items":{"type":"string"}}}}}},"minItems":1}}},"x-decision":"Event detail that is not a flat object (decision 2026-11-09, control/evidence/2026-11-09-pro-queue): a non-flat detail is a flat carries map whose fields carry the nesting -- §4.2 types, `of` for a list\'s entries and `schema` for what the manifest checks; a detail that is not an object (§8) is carried in a named field, and its old shape stays on the dated alias names with mode split and the element\'s adapter. template-save carries templates, a list of one or more templates; sf-table-template-save and onTemplateSave keep the 1.3 detail (the template object, or the array of them) through sfAliasAdapters. sf-view reads detail.templates and, until 2027-01-01, a bare template or array from a table before sf-view-table 1.16.0."},"table-template-select":{"shared":"table-intents@1","carries":{"key":{"type":"string","schema":{"minLength":1}}}},"host-port-request":{"shared":"host-port@1","carries":{"component":{"type":"object","optional":true},"context":{"type":"object","optional":true}}},"list-open":{"carries":{"reason":{"type":"id","schema":{"enum":["row-cap"]}},"query":{"type":"object"}}},"table-cell-set":{"shared":"table-intents@1","carries":{"id":{"type":"string","schema":{"type":["string","integer"]}},"key":{"type":"string"},"value":{"type":"id"},"revision":{"type":"string","schema":{"type":["string","integer","null"]}}}},"table-rows-reorder":{"shared":"table-intents@1","carries":{"ids":{"type":"list","schema":{"items":{"type":"string"},"minItems":1}},"before":{"type":"string","schema":{"type":["string","null"]}},"order":{"type":"list","schema":{"items":{"type":"string"}}}}},"display-change":{"carries":{"kind":{"type":"enum","values":["table","board","cards","calendar","list","tree"]},"previous":{"type":"string"}},"cancelable":true},"settings-open":{"carries":{"id":{"type":"enum","values":["rights","export","record-field-add"]}}}},"actions":{"refresh":{"with":{"reason":{"type":"string","optional":true}}},"change-query":{"with":{"patch":"object","reason":{"type":"string","optional":true}},"concurrency":"latest"},"open-view":{"with":{"key":"string"}},"save-view":{"with":{"view":{"type":"object"}},"concurrency":"drop"},"delete-view":{"with":{"key":"string"},"concurrency":"drop"},"apply-under-filter":{"with":{"action-id":"string","confirmed-total":"number"},"concurrency":"drop"},"reset-column-settings":{},"clear-selection":{},"notify":{"with":{"text":"string","options":{"type":"object","optional":true}}}},"port":{"id":"simai.dataview-port","version":"1.15.0","contract":"src/core/contracts/ports/simai.dataview-port/1.15.0/port.json"},"presentation":{"skeleton":{"late":[]}},"css-variables":{"--sf-data-view-gap":{"type":"length","state":"default"},"--sf-data-view-drop-border-color":{"type":"color","state":"dragged-over"},"--sf-data-view-drop-background-color":{"type":"color","state":"dragged-over"},"--sf-data-view-drop-color":{"type":"color","state":"dragged-over"},"--sf-data-view-toolbar-gap":{"type":"length","state":"default"}},"host-states":{"data-state":"string","aria-busy":"string"}}');
+module.exports = /*#__PURE__*/JSON.parse('{"id":"smart.view","tag":"sf-view","version":"1.29.1","kind":"leaf","settings":{"chrome":{"type":"string","default":"toolbar pagination select settings"},"head":{"type":"enum","values":["","list"],"default":""},"heading":{"type":"string","default":""},"row-cap":{"type":"number","default":0,"integer":true,"min":0},"expected-columns":{"type":"number","default":4,"integer":true,"min":1},"port-owner":{"type":"string","default":""},"port-record":{"type":"string","default":""},"port-group":{"type":"string","default":""},"size":{"type":"enum","values":["1/2","1"],"default":"1"},"layout":{"type":"enum","values":["auto","table","list","board","cards","calendar"],"default":"auto"},"layout-switch":{"type":"boolean","default":false},"list-below":{"type":"number","default":600},"quick-actions":{"type":"string","default":""},"row-open":{"type":"enum","values":["title","row"],"default":"title"},"list-roles":{"type":"string","default":""},"column-search-placeholder":{"type":"string"},"column-search-empty-text":{"type":"string"},"column-move-label":{"type":"string"},"filter-apply-text":{"type":"string"},"show-more-text":{"type":"string"},"selected-label":{"type":"string"},"total-label":{"type":"string"},"pages-label":{"type":"string"},"first-label":{"type":"string"},"previous-label":{"type":"string"},"page-label":{"type":"string"},"next-label":{"type":"string"},"last-label":{"type":"string"},"page-field-label":{"type":"string"},"action-choose-label":{"type":"string"},"actions-label":{"type":"string"},"actions-region-label":{"type":"string"},"clear-selection-label":{"type":"string"},"page-size-label":{"type":"string"},"pagination-aria-label":{"type":"string"},"preferences-key":{"type":"string","default":""},"accept-files":{"type":"boolean","default":false},"collection":{"type":"string","default":""},"current":{"type":"string","default":""},"record-card":{"type":"string","default":""},"bulk-actions":{"type":"list","of":{"id":"string","label":"string","icon":{"type":"icon","optional":true}}},"first-answer":{"type":"object","optional":true}},"values":{"state":{"type":"state"},"total":{"type":"number","nullable":true},"selected":{"type":"id","optional":true},"selection":{"type":"list"}},"events":{"open":{"carries":{"id":"id"},"cancelable":true},"deleted":{"carries":{"ids":"list"}},"answer":{"carries":{"intent":{"type":"string"},"answer":{"type":"enum","values":["applied","conflict","refused","unavailable"],"schema":{"type":"string"}},"reason":{"type":"string","optional":true},"message":{"type":"string","optional":true},"data":{"type":"object","optional":true},"sequence":{"type":"number","integer":true,"optional":true},"effects":{"type":"list","optional":true},"instance_id":{"type":"string"}},"own-verb":true},"state":{"carries":{"state":{"type":"enum","values":["loading","populated","empty","error","no-access"],"schema":{"type":"string"}},"message":{"type":"string"},"instance_id":{"type":"string"}},"own-verb":true},"tree":{"carries":{"intent":"string","payload":{"type":"object","optional":true}},"own-verb":true},"files-drop":{"carries":{"files":{"type":"list","schema":{"items":{"type":"object"},"minItems":1}}},"own-verb":true},"pagination-count":{"shared":"count-on-request@1","carries":{"component":{"type":"object"},"tagName":{"type":"string"},"template":{"type":"string"},"reason":{"type":"enum","values":["total","last-page","action-for-all"],"schema":{"type":"string"}},"current":{"type":"number","integer":true},"pageSize":{"type":"number","integer":true}}},"save":{"carries":{"kind":{"type":"enum","values":["view"],"optional":true},"key":{"type":"string"},"label":{"type":"string"},"revision":{"type":"string","schema":{"type":["string","integer"]},"optional":true},"roles":{"type":"object","optional":true}}},"table-action-intent":{"shared":"table-intents@1","carries":{"action_id":{"type":"string","schema":{"minLength":1}},"record_ids":{"type":"list","schema":{"items":{"type":["string","integer"]},"minItems":1}}}},"table-column-settings-change":{"shared":"table-intents@1","carries":{"reason":{"type":"string"},"columnSettings":{"type":"object"},"tableSettingsKey":{"type":"string"},"target":{"type":"enum","values":["personal","shared"],"schema":{"type":"string"},"optional":true},"base_revision":{"type":"string","schema":{"type":["string","number"]},"optional":true}}},"table-column-settings-reset":{"shared":"table-intents@1","carries":{"target":{"type":"enum","values":["personal"],"schema":{"type":"string"}},"tableSettingsKey":{"type":"string","schema":{"type":["string","null"]}}}},"table-create-intent":{"shared":"table-intents@1","carries":{"item":{"type":"string","schema":{"type":["string","null"]}}}},"table-query-intent":{"shared":"table-intents@1","carries":{"reason":{"type":"enum","values":["context"]},"context":{"type":"object"},"sequence":{"type":"number","integer":true,"schema":{"minimum":1}}}},"table-template-delete":{"shared":"table-intents@1","carries":{"key":{"type":"string","schema":{"minLength":1}}}},"table-template-save":{"shared":"table-intents@1","carries":{"templates":{"type":"list","of":{"key":"string","label":"string","selected":"boolean","data":"object","settings":"object"},"schema":{"items":{"type":"object","required":["key","label","settings"],"properties":{"key":{"type":"string"},"label":{"type":"string"},"selected":{"type":"boolean"},"data":{"type":"object"},"settings":{"type":"object","properties":{"filter_fields":{"type":"array","items":{"type":"string"}}}}}},"minItems":1}}},"x-decision":"Event detail that is not a flat object (decision 2026-11-09, control/evidence/2026-11-09-pro-queue): a non-flat detail is a flat carries map whose fields carry the nesting -- §4.2 types, `of` for a list\'s entries and `schema` for what the manifest checks; a detail that is not an object (§8) is carried in a named field, and its old shape stays on the dated alias names with mode split and the element\'s adapter. template-save carries templates, a list of one or more templates; sf-table-template-save and onTemplateSave keep the 1.3 detail (the template object, or the array of them) through sfAliasAdapters. sf-view reads detail.templates and, until 2027-01-01, a bare template or array from a table before sf-view-table 1.16.0."},"table-template-select":{"shared":"table-intents@1","carries":{"key":{"type":"string","schema":{"minLength":1}}}},"host-port-request":{"shared":"host-port@1","carries":{"component":{"type":"object","optional":true},"context":{"type":"object","optional":true}}},"list-open":{"carries":{"reason":{"type":"id","schema":{"enum":["row-cap"]}},"query":{"type":"object"}}},"table-cell-set":{"shared":"table-intents@1","carries":{"id":{"type":"string","schema":{"type":["string","integer"]}},"key":{"type":"string"},"value":{"type":"id"},"revision":{"type":"string","schema":{"type":["string","integer","null"]}}}},"table-rows-reorder":{"shared":"table-intents@1","carries":{"ids":{"type":"list","schema":{"items":{"type":"string"},"minItems":1}},"before":{"type":"string","schema":{"type":["string","null"]}},"order":{"type":"list","schema":{"items":{"type":"string"}}}}},"display-change":{"carries":{"kind":{"type":"enum","values":["table","board","cards","calendar","list","tree"]},"previous":{"type":"string"}},"cancelable":true},"settings-open":{"carries":{"id":{"type":"enum","values":["rights","export","record-field-add"]}}}},"actions":{"refresh":{"with":{"reason":{"type":"string","optional":true}}},"change-query":{"with":{"patch":"object","reason":{"type":"string","optional":true}},"concurrency":"latest"},"open-view":{"with":{"key":"string"}},"save-view":{"with":{"view":{"type":"object"}},"concurrency":"drop"},"delete-view":{"with":{"key":"string"},"concurrency":"drop"},"apply-under-filter":{"with":{"action-id":"string","confirmed-total":"number"},"concurrency":"drop"},"reset-column-settings":{},"clear-selection":{},"notify":{"with":{"text":"string","options":{"type":"object","optional":true}}}},"port":{"id":"simai.dataview-port","version":"1.15.0","contract":"src/core/contracts/ports/simai.dataview-port/1.15.0/port.json"},"presentation":{"skeleton":{"late":[]}},"css-variables":{"--sf-data-view-gap":{"type":"length","state":"default"},"--sf-data-view-drop-border-color":{"type":"color","state":"dragged-over"},"--sf-data-view-drop-background-color":{"type":"color","state":"dragged-over"},"--sf-data-view-drop-color":{"type":"color","state":"dragged-over"},"--sf-data-view-toolbar-gap":{"type":"length","state":"default"}},"host-states":{"data-state":"string","aria-busy":"string"}}');
 
 /***/ },
 
