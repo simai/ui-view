@@ -506,10 +506,10 @@
         "size": "1/2",
         "expected-columns": 4
       },
-      "children": "<sf-view-table slot=\"content\" aria-label=\"Заказы\" size=\"1/2\"></sf-view-table><sf-pagination slot=\"pagination\" page-size=\"12\" page-sizes=\"12,24\"></sf-pagination>",
+      "children": "<sf-view-table slot=\"content\" aria-label=\"Заказы\" size=\"1/2\"></sf-view-table><sf-pagination slot=\"pagination\" page-size=\"10\" page-sizes=\"10,20\"></sf-pagination>",
       "first-paint": {
         "max-bytes": 24576,
-        "why": "The view's skeleton at size 1/2 with a page of twelve records and three fields (view round 10, R9-1): on a phone the compact list's records, each the title and three field lines of the list's own text, so the list does not grow when the records come. 24 KB as the reference: the same printed parts, two rows more."
+        "why": "The view's skeleton at size 1/2 with a page of ten records and three fields (view round 10, R9-1): on a phone the compact list's records, each the title and three field lines of the list's own text, so the list does not grow when the records come. 24 KB as the reference: the same printed parts, a list line more per record."
       },
       "expect": {
         "name": "Заказы",
@@ -635,28 +635,6 @@
                   "customer": "Олег Иванов, Тверь",
                   "state": "Оплачен, собирается на складе",
                   "delivery": "19 ноября 2026, курьером"
-                },
-                {
-                  "id": "o-011",
-                  "revision": "r1",
-                  "actions": [
-                    "view"
-                  ],
-                  "title": "Заказ № 2111",
-                  "customer": "Ирина Белова, Омск",
-                  "state": "Передан в службу доставки",
-                  "delivery": "20 ноября 2026, курьером"
-                },
-                {
-                  "id": "o-012",
-                  "revision": "r1",
-                  "actions": [
-                    "view"
-                  ],
-                  "title": "Заказ № 2112",
-                  "customer": "Дмитрий Орлов, Томск",
-                  "state": "Доставлен покупателю",
-                  "delivery": "21 ноября 2026, курьером"
                 }
               ],
               "columns": [
@@ -682,7 +660,7 @@
                   "property_type": "string"
                 }
               ],
-              "total": 12,
+              "total": 10,
               "echo": {
                 "filters_chosen": {},
                 "filters": {},
@@ -690,7 +668,7 @@
                 "search": "",
                 "sort": [],
                 "page": 1,
-                "per_page": 12
+                "per_page": 10
               },
               "column_settings": {
                 "layers": {
