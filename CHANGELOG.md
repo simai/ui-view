@@ -35,10 +35,12 @@ pro-f6c43828e5f2 (sf-view 1.30.1, sf-view-table 1.29.4, sf-view-properties
   the list title keeps its heading size in a compact area (C44). VHF-11: no
   boxes in the table, the cards or the calendar without bulk actions; a host
   that names `select` in its own `chrome` keeps them.
-- `sf-view-table` 1.29.5. VHF-4: «Текст в одну строку» shows (off, the name
-  takes its two lines in a fitted column too; on, one line with «…»; the
-  default is unchanged), and columns that do not fit give room from the widest
-  first, so a short name stays whole. VHF-8: «Компактно» on a normal page is the
+- `sf-view-table` 1.29.5. VHF-4: columns that do not fit take the room from
+  the other columns first, the widest first, and the record's name last, so a
+  short name stays whole; where the name still has to give, «Текст в одну
+  строку» turned off draws it on its two lines and on draws one line with «…».
+  Nothing chosen, a fitted table looks as before (one line): the default waits
+  for the owner. VHF-8: «Компактно» on a normal page is the
   Framework's compact density on the table, so the row menu «≡» and the box
   step down with the row (28 at size 1/2, 32 at 1; the «≡» held 32 and 40).
 - `sf-view-properties` 1.25.0. VHF-7: the stage badge keeps its whole word;
