@@ -6079,6 +6079,16 @@ class SfTable extends TableElement {
         return {...TABLE_VIEW_DEFAULTS, ...general, ...own};
     }
 
+    // «Текст в одну строку» as the person chose it, or undefined (view round
+    // 12, VHF-4): only a chosen «off» wraps a fitted name.
+    get storedSingleLine() {
+        const key = this.viewPreferenceKey;
+        const general = preferences()?.read(GENERAL_TABLE_PREFERENCE)?.view ?? {};
+        const own = key ? preferences()?.read(key)?.view ?? {} : this._sessionView ?? {};
+        const value = own.singleLine ?? general.singleLine;
+        return typeof value === "boolean" ? value : undefined;
+    }
+
     // The density a person chose in the gear's «Вид», or none.
     get storedViewDensity() {
         const key = this.viewPreferenceKey;
@@ -6142,6 +6152,8 @@ class SfTable extends TableElement {
         flag("data-sf-view-stripes", this.hasAttribute("stripes") && this.getAttribute("stripes") !== "false");
         flag("data-sf-view-lines", view.lines === true);
         flag("data-sf-view-single-line", view.singleLine === true);
+        // «Текст в одну строку» turned off by the person, not by default (VHF-4).
+        flag("data-sf-view-wrap", this.storedSingleLine === false);
         const page = this.getAttribute("vertical-scroll") === "page" && !this.isList;
         flag("data-sf-page-scroll", page);
         flag("data-sf-sticky-head", page && view.stickyHead !== false);

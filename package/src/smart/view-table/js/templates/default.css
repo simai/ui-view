@@ -447,15 +447,18 @@
     -webkit-line-clamp: none;
     line-clamp: none;
   }
-  /* «Текст в одну строку» off (view round 12, VHF-4): the record's name in a
-     fitted column takes its two lines (C146 (7)) before the ellipsis, as it
-     does in a column of its own width; every other cell stays one line. The
-     setting on keeps the name to one line too. Until now a fitted table drew
-     every cell on one line whatever the setting said. */
-  :is(sf-view-table, sf-table)[data-sf-columns-fitted]:not([data-sf-view-single-line]) table:not(.sf-table-measuring) td[data-key][data-sf-cell="title"]:not([data-key="select"], [data-key="settings"], [data-key="actions"]) {
+  /* «Текст в одну строку» turned off by the person (view round 12, VHF-4;
+     data-sf-view-wrap): the record's name in a fitted column takes its two
+     lines (C146 (7)) before the ellipsis, as it does in a column of its own
+     width; every other cell stays one line. On, the name is one line too.
+     Nothing chosen, a fitted table looks as before, every cell on one line:
+     the default waits for the owner (one line off by default), and a fitted
+     name wrapping by default grew the rows when the code fitted the columns
+     (first paint, typed-cells at 390: 196 -> 204). */
+  :is(sf-view-table, sf-table)[data-sf-columns-fitted][data-sf-view-wrap]:not([data-sf-view-single-line]) table:not(.sf-table-measuring) td[data-key][data-sf-cell="title"]:not([data-key="select"], [data-key="settings"], [data-key="actions"]) {
     white-space: normal;
   }
-  :is(sf-view-table, sf-table)[data-sf-columns-fitted]:not([data-sf-view-single-line]) table:not(.sf-table-measuring) td[data-key][data-sf-cell="title"]:not([data-key="select"], [data-key="settings"], [data-key="actions"]) .sf-table-cell-text {
+  :is(sf-view-table, sf-table)[data-sf-columns-fitted][data-sf-view-wrap]:not([data-sf-view-single-line]) table:not(.sf-table-measuring) td[data-key][data-sf-cell="title"]:not([data-key="select"], [data-key="settings"], [data-key="actions"]) .sf-table-cell-text {
     display: -webkit-box;
     white-space: normal;
     -webkit-line-clamp: var(--sf-table-cell--line-clamp, 2);

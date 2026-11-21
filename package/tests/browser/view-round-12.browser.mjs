@@ -20,8 +20,9 @@
 // - VHF-4: a fitted table (a long client and comment beside a short title)
 //   gives the record's name its whole value where the long columns can give
 //   the room (it was «Заказ №30…»); where it cannot, «Текст в одну строку»
-//   off draws the name on two lines, uncut, and on draws one line with the
-//   ellipsis (the setting changed nothing before).
+//   turned off draws the name on two lines, uncut, and on draws one line
+//   with the ellipsis (the setting changed nothing before). Nothing chosen,
+//   the table looks as before (one line): the default waits for the owner.
 // - VHF-6, VHF-7: a record card in place (no panel) ends its stage line with
 //   its «⋯» (it stood alone on an empty row above it); in a 360 px box and in
 //   a panel the stage badge keeps its whole word beside a long client name
@@ -213,16 +214,16 @@ try {
         const before = await listMeasure(page);
         if (!before.list && before.fitted) {
           const set = (value) => page.evaluate((on) => document.querySelector('#v sf-view-table').onTableSettingChanged({detail: {id: 'singleLine', value: on}, stopPropagation() {}, preventDefault() {}}), value);
-          const off = before;
+          const unset = before;
           await set(true); await page.waitForTimeout(500);
           const on = await listMeasure(page);
           await set(false); await page.waitForTimeout(500);
-          const back = await listMeasure(page);
-          const cutOff = off.titles.filter((one) => one.cut).length;
-          if (off.titles.some((one) => one.lines > 2) || (cutOff && off.titles.every((one) => one.lines < 2))) failures.push({...label, item: 'VHF-4', got: 'off: the name not on its two lines', titles: off.titles});
+          const off = await listMeasure(page);
+          const cutUnset = unset.titles.filter((one) => one.cut).length;
+          if (unset.titles.some((one) => one.lines !== 1)) failures.push({...label, item: 'VHF-4', got: 'nothing chosen: the name not on one line as before', titles: unset.titles});
+          if (off.titles.some((one) => one.lines > 2) || (cutUnset && off.titles.every((one) => one.lines < 2)) || off.titles.filter((one) => one.cut).length >= Math.max(1, cutUnset)) failures.push({...label, item: 'VHF-4', got: 'off: the name not on its two lines', titles: off.titles});
           if (on.titles.some((one) => one.lines !== 1)) failures.push({...label, item: 'VHF-4', got: 'on: the name not on one line', titles: on.titles});
-          if (JSON.stringify(back.titles) !== JSON.stringify(off.titles)) failures.push({...label, item: 'VHF-4', got: 'off again differs', off: off.titles, back: back.titles});
-          if (run === 1) results.push({theme, item: 'VHF-4', own: off.own, off: off.titles[0], on: on.titles[0]});
+          if (run === 1) results.push({theme, item: 'VHF-4', own: unset.own, unset: unset.titles[0], off: off.titles[0], on: on.titles[0], cut: {unset: cutUnset, off: off.titles.filter((one) => one.cut).length, on: on.titles.filter((one) => one.cut).length}});
         }
       }
       if (errors.length) failures.push({...label, errors});

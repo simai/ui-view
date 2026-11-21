@@ -3045,7 +3045,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-table/index.js",
-        "sha256": "638000560c15214b581ad223c7f536eb7e48f4b7692cdc0121e45901e7c2d7f5"
+        "sha256": "0ea4983182afd1a376f4bb26a500e7677f38c3e9901cbb46a5d82154704339f5"
       },
       {
         "path": "src/smart/view-table/js/templates/default.js",
@@ -3053,7 +3053,7 @@
       },
       {
         "path": "src/smart/view-table/js/templates/default.css",
-        "sha256": "92a957fa97346ff7c7e730a37c2bfeafd8ebc8438b3e3d7c2f22c24e54735c4c"
+        "sha256": "f3f3a43640612f1597b7f29144ba3866bdf14af415a6ec05f67b381efa1744ed"
       },
       {
         "path": "src/smart/helpers/option-badge.js",
