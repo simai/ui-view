@@ -30,22 +30,28 @@ Numbers are above every branch of this set and of ui-pro.
   other bundle takes it as `SF.runtimeModule("view/<module>", 1)`. That is the
   Framework field renderers (cell, view, edit and filter output, formats,
   conditions, the filter window, the rich-text subset, decimal, phone and mask),
-  density, menu-open, preferences, the option badge and confirm surface, and
-  what two View components share: sf-view-table's words and manifest actions
-  (sf-view), sf-view-properties' field value, set fields and conditions
-  (sf-view-flow). Each component's rule relates to `cl-view-common`, so the
-  Loader fetches it first. A page that includes View bundles by hand adds
+  density, menu-open, preferences and the option badge, and what sf-view and
+  sf-view-table share: the table's words and manifest actions. Each
+  component's rule relates to `cl-view-common`, so the Loader fetches it
+  first. A page that includes View bundles by hand adds
   `smart/view-common/js/view-common.min.js` before them.
+- One allowed duplicate: sf-view-flow (preview) keeps its own copy of
+  sf-view-properties' field value, set fields, money and conditions and of the
+  Framework confirm surface with its date and number formats. In the core they
+  would ride with every list (12 KB gzip more on a table-only list); bundled
+  twice they cost only a page with a flow block and a record card together.
+  `bundle-budgets.json` names it, with a gzip cap.
 - `sf-view` 1.33.0: `cl-view-table` is a lazy relation, and the list asks for
   the current layout's element only: a list that shows the board, the cards or
   the calendar does not fetch the table; a switch to the table fetches it then.
 - `sf-view-table` 1.32.0, `sf-view-board` 1.2.0, `sf-view-cards` 1.2.0,
   `sf-view-calendar` 1.2.0, `sf-view-properties` 1.27.0, `sf-view-flow` 1.2.0:
-  their imports of the shared code go through the core. The record's and the
-  flow's sheets are unchanged (set-fields.css is imported by their templates).
+  their imports of the shared code go through the core. `sf-view` no longer
+  warns of a row action without a catalogue entry before sf-view-table is
+  defined (the projection is drawn again then).
 - Gates: `scripts/check-bundles.mjs` (gates.sh step «bundles», after the
-  build): no module of the set in two bundles, and each bundle's min.js.gz and
-  min.css.gz within its budget in `bundle-budgets.json`.
+  build): no module of the set in two bundles but the allowed one, and each
+  bundle's min.js.gz and min.css.gz within its budget in `bundle-budgets.json`.
 - Sizes (JS + CSS gzip): the seven bundles 542.6 → 318.4 KB; see the evidence
   for the full list and the single views.
 

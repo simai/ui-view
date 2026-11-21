@@ -93,7 +93,7 @@ ${card ? '<sf-view-properties id="c" aria-label="Заказ" size="1/2" mode="au
     customElements.whenDefined('sf-view-properties').then(function(){card.setHostPort({version:'1.17.0',capabilities:['record-open'],
       raise:function(intent,p){var id=(p&&(p.record_id||p.id))||'o0';var r=ROWS.find(function(x){return x.id===id})||ROWS[0];
         return Promise.resolve(intent==='record.load'?{answer:'applied',record:{record_id:r.id,collection:'orders',revision:'1',label:r.title,title:r.title,actions:[],permissions:{},
-          sections:[{key:'s',label:'Заказ',groups:[{key:'g',label:'Основное',fields:[{key:'client',label:'Клиент',propertyType:'string',value:r.client},{key:'amount',label:'Сумма',propertyType:'money',value:r.amount}]}]}]}}:{answer:'applied'})}})});
+          sections:[{key:'s',label:'Заказ',groups:[{key:'g',label:'Основное',fields:[{key:'client',label:'Покупатель по договору',propertyType:'string',value:r.client},{key:'amount',label:'Сумма',propertyType:'money',value:r.amount}]}]}]}}:{answer:'applied'})}})});
   }
 })();
 </script></body></html>`;
@@ -214,9 +214,12 @@ try {
       await (await link.count() ? link : row).click({timeout: 5000}).catch((error) => errors.push(`the first record could not be clicked: ${error.message.split('\n')[0]}`));
       const opened = await page.waitForFunction(() => {
         const card = document.getElementById('c');
-        return card && card.getAttribute('data-state') === 'ready' && card.getClientRects().length > 0;
+        // The card is display: contents; its panel is what shows.
+        const deep = (root) => [...(root?.querySelectorAll?.('*') ?? [])].flatMap((node) => [node, ...deep(node.shadowRoot)]);
+        const shown = deep(document).some((node) => node.childElementCount === 0 && node.getClientRects().length > 0 && /^Покупатель по договору$/u.test((node.textContent ?? '').trim()));
+        return card && card.getAttribute('data-state') === 'ready' && card.getAttribute('open') === 'true' && shown;
       }, null, {timeout: 10000}).then(() => true, () => false);
-      if (!opened) errors.push('the record card did not open');
+      if (!opened) errors.push(`the record card did not open: ${await page.evaluate(() => { const c = document.getElementById('c'); return c ? [...c.attributes].map((x) => `${x.name}=${x.value}`).join(' ') + ' rects=' + c.getClientRects().length : 'none'; })}`);
       await settle(page);
       const got = tally(asked);
       steps.push(['record', got.total_kb]);

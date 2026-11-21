@@ -9,7 +9,7 @@
       "recorded_on": "2026-11-22",
       "change": "minor",
       "consumer": "Nothing to change for a page that loads the set through the SIMAI Framework Loader (the documented way): the rule relates to cl-view-common, which the Loader fetches first. A page that includes View bundles by hand adds smart/view-common/js/view-common.min.js before them. A list that shows only the board, the cards or the calendar no longer fetches sf-view-table; it comes when the list switches to the table.",
-      "summary": "View modular step 1 (round/view-modular-1): takes its shared code (the Framework field renderers, formats, conditions and filter window, and what two View components share) from the package core smart/view-common once per page, instead of a copy in its own bundle; relation cl-view-common; cl-view-table is a lazy relation and connectedCallback asks for the current layout's element only (the table on a switch, _swapContent).",
+      "summary": "View modular step 1 (round/view-modular-1): takes its shared code (the Framework field renderers, formats, conditions and filter window, and what two View components share) from the package core smart/view-common once per page, instead of a copy in its own bundle; relation cl-view-common; cl-view-table is a lazy relation and connectedCallback asks for the current layout's element only (the table on a switch, _swapContent); the row-action catalogue warning waits until sf-view-table is defined.",
       "evidence": "control/evidence/2026-11-22-view-modular-1/README.md"
     },
     {
@@ -531,7 +531,7 @@
       "recorded_on": "2026-11-22",
       "change": "minor",
       "consumer": "Nothing to change for a page that loads the set through the SIMAI Framework Loader (the documented way): the rule relates to cl-view-common, which the Loader fetches first. A page that includes View bundles by hand adds smart/view-common/js/view-common.min.js before them.",
-      "summary": "View modular step 1 (round/view-modular-1): takes its shared code (the Framework field renderers, formats, conditions and filter window, and what two View components share) from the package core smart/view-common once per page, instead of a copy in its own bundle, its own field value, set fields and conditions included (sf-view-flow draws with them); set-fields.css is imported by the template, so the sheet is unchanged; relation cl-view-common.",
+      "summary": "View modular step 1 (round/view-modular-1): takes its shared code (the Framework field renderers, formats, conditions and filter window, density, the manifest actions) from the package core smart/view-common once per page, instead of a copy in its own bundle; its field value, set fields and money import the field renderers and decimal through the core; relation cl-view-common.",
       "evidence": "control/evidence/2026-11-22-view-modular-1/README.md"
     },
     {
@@ -774,7 +774,7 @@
       "recorded_on": "2026-11-22",
       "change": "minor",
       "consumer": "Nothing to change for a page that loads the set through the SIMAI Framework Loader (the documented way): the rule relates to cl-view-common, which the Loader fetches first. A page that includes View bundles by hand adds smart/view-common/js/view-common.min.js before them.",
-      "summary": "View modular step 1 (round/view-modular-1): takes its shared code (the Framework field renderers, formats, conditions and filter window, and what two View components share) from the package core smart/view-common once per page, instead of a copy in its own bundle, sf-view-properties' field value and conditions and the Framework confirm surface included; the template imports set-fields.css, so the sheet is unchanged; relation cl-view-common.",
+      "summary": "View modular step 1 (round/view-modular-1): takes the Framework field renderers, formats and conditions from the package core smart/view-common once per page (through sf-view-properties' field value, which it still bundles with the Framework confirm surface: the one allowed duplicate of the bundles gate, bundle-budgets.json, so a list without a flow block does not carry them); relation cl-view-common.",
       "evidence": "control/evidence/2026-11-22-view-modular-1/README.md"
     },
     {

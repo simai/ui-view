@@ -68,6 +68,33 @@ test('the shared module in the package core alone passes; a bundle over its budg
   }
 });
 
+test('an allowed duplicate passes within its cap, and fails above it or once it matches nothing', {skip}, async () => {
+  const checkBundles = await gate();
+  const shared = module('aaaaaaaaaaaa', code('fieldValue'));
+  const output = lay({'view-flow': [shared], 'view-properties': [shared], 'view-board': [module('dddddddddddd', code('ownBoard'))]});
+  const budgets = (allowed) => ({...roomy(['view-flow', 'view-properties', 'view-board']), allowed_duplicates: allowed});
+  try {
+    const pass = checkBundles(output, budgets([{bundles: ['view-properties', 'view-flow'], max_gzip: 100000, reason: 'test'}]));
+    assert.equal(pass.passed, true);
+    assert.deepEqual(pass.allowed.modules.map((entry) => entry.id), ['aaaaaaaaaaaa']);
+    const capped = checkBundles(output, budgets([{bundles: ['view-flow', 'view-properties'], max_gzip: 1, reason: 'test'}]));
+    assert.equal(capped.passed, false);
+    assert.match(capped.allowed.problems[0].problem, /above max_gzip 1/u);
+    const stale = checkBundles(output, budgets([{bundles: ['view-flow', 'view-properties'], max_gzip: 100000, reason: 'test'}, {bundles: ['view-board', 'view-flow'], max_gzip: 100000, reason: 'gone'}]));
+    assert.equal(stale.passed, false);
+    assert.deepEqual(stale.allowed.problems.map((entry) => entry.problem), ['an allowed duplicate that matches nothing any more']);
+    // Another pair is not covered by the allowance.
+    const other = lay({'view-flow': [shared], 'view-board': [shared]});
+    try {
+      assert.equal(checkBundles(other, {...roomy(['view-flow', 'view-board']), allowed_duplicates: [{bundles: ['view-flow', 'view-properties'], max_gzip: 100000, reason: 'test'}]}).duplicates.length, 1);
+    } finally {
+      rmSync(other, {recursive: true, force: true});
+    }
+  } finally {
+    rmSync(output, {recursive: true, force: true});
+  }
+});
+
 test('the budgets name every bundle of the set and the package core', {skip}, () => {
   const budgets = JSON.parse(readFileSync(join(setRoot, 'bundle-budgets.json'), 'utf8'));
   const set = JSON.parse(readFileSync(join(setRoot, 'set.json'), 'utf8'));
@@ -76,5 +103,9 @@ test('the budgets name every bundle of the set and the package core', {skip}, ()
   for (const [name, budget] of Object.entries(budgets.bundles)) {
     assert.ok(Number.isInteger(budget.js_gz) && Number.isInteger(budget.css_gz), `${name}: budgets are bytes`);
     assert.ok(budget.measured && budget.js_gz >= budget.measured.js_gz && budget.css_gz >= budget.measured.css_gz, `${name}: the budget is the measured size and some room`);
+  }
+  for (const entry of budgets.allowed_duplicates ?? []) {
+    assert.ok(entry.bundles.includes('view-flow') && typeof entry.reason === 'string' && entry.reason.length > 40 && Number.isInteger(entry.max_gzip),
+      `${entry.bundles}: an allowed duplicate is sf-view-flow's own copy, with its reason and a cap`);
   }
 });

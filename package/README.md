@@ -71,7 +71,8 @@ includes View bundles by hand puts `smart/view-common/js/view-common.min.js`
 before them. `sf-view` relates to the table lazily: a list that shows the
 board, the cards or the calendar does not fetch it. The gate step «bundles»
 (`scripts/check-bundles.mjs`) fails a module found in two bundles and a bundle
-over its gzip budget in `bundle-budgets.json`.
+over its gzip budget in `bundle-budgets.json`, which also names the one
+allowed duplicate (sf-view-flow's copy of the record's field value).
 
 ## Connecting it
 

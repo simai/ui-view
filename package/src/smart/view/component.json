@@ -2143,7 +2143,7 @@
           "from": "1.32.0",
           "to": "1.33.0",
           "changes": [
-            "View modular step 1 (round/view-modular-1): takes its shared code (the Framework field renderers, formats, conditions and filter window, and what two View components share) from the package core smart/view-common once per page, instead of a copy in its own bundle; relation cl-view-common; cl-view-table is a lazy relation and connectedCallback asks for the current layout's element only (the table on a switch, _swapContent)."
+            "View modular step 1 (round/view-modular-1): takes its shared code (the Framework field renderers, formats, conditions and filter window, and what two View components share) from the package core smart/view-common once per page, instead of a copy in its own bundle; relation cl-view-common; cl-view-table is a lazy relation and connectedCallback asks for the current layout's element only (the table on a switch, _swapContent); the row-action catalogue warning waits until sf-view-table is defined."
           ]
         }
       ]

@@ -504,15 +504,15 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-flow/index.js",
-        "sha256": "4a9428f61181d54ea6b6e54a0745ab3eaf14622ba4bc8b53f834c311c6ea98e0"
+        "sha256": "f0adf66f71fc8f1d69379a9810d564ebf01b820e87d414a24281b6884607ef3a"
       },
       {
         "path": "src/smart/view-flow/js/answer.js",
-        "sha256": "747e7ae34b1a947ab9cc52b0cddbf0f66eae254f2b5e028ed1135651417e3be2"
+        "sha256": "7ade765807ce11ef2ebeb813f8d91e6e742a8cf94ea147e01738e928d6a348fc"
       },
       {
         "path": "src/smart/view-flow/js/templates/default.js",
-        "sha256": "c29a4f899e0fe119e26ac486a2bb6756cc08c28ae068fbac1c2bde3d1098ae01"
+        "sha256": "2b047f617c5213802084904bc97419e6d6cea20ac564f9a0e0ca9a302ba1235d"
       },
       {
         "path": "src/smart/view-flow/js/templates/default.css",
@@ -520,7 +520,7 @@
       },
       {
         "path": "src/smart/view-properties/js/field-value.js",
-        "sha256": "8773043c226a0aba2b261086d53522be5d40444f15559447d0937cbcc1afc8df"
+        "sha256": "5a74dd04d9e634b60d0048300dbc501609b6128def2e8aa08905d2835010a6d3"
       },
       {
         "path": "src/smart/view-properties/js/conditions.js",
