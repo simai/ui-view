@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-properties",
-  "version": "1.23.5",
+  "version": "1.23.6",
   "title": "Property view",
   "summary": "One object's fields shown as sections, groups and fields, each drawn by the per-type field renderer set, behind a separate host port. A group is edited and saved as one revision by the button, and a reference field is picked from the host's own candidates a page at a time. The pair to the data view: that one is a set of records, this one is a single object.",
   "kind": "composite",
@@ -433,7 +433,7 @@
       "panel-size": {
         "type": "string",
         "default": "2",
-        "description": "How wide the panel is (C396): 1/2, 1 and 2 are the text-measure steps 44, 52 and 64 (352, 416 and 512 px at normal density), full is the whole screen; the record card defaults to 64.",
+        "description": "How wide the panel is (C396): 1/2, 1 and 2 are the text-measure steps 44, 52 and 64 -- the panel 352, 416 and 512 px at normal density, its content inside the drawer gutters 320, 384 and 480 -- and wider by the section column where the sections stand on the left; full is the whole screen; the record card defaults to 64.",
         "enum": [
           "1/2",
           "1",
@@ -2004,6 +2004,13 @@
         "changes": [
           "View round 9 (round/view-r9): js/templates/default.js renderLoading and skeleton.html drop the skeleton's empty .sf-tabs-main-container, since sf-tabs 1.4.5 hides a panel row whose panels hold nothing (data-sf-panels-empty); probe property-view-pro-issues-3-4 #3 measured the strip 72 against tabs 40 (64 against 32 at 1/2) over the pair. The same fix as simai/ui-pro d7c4cf6 (sf-view-properties 1.23.4 there); 1.23.5 is above it."
         ]
+      },
+      {
+        "from": "1.23.5",
+        "to": "1.23.6",
+        "changes": [
+          "View round 10 (round/view-r10, Larena L-4): templates/default.js writes the head band's edges, the title row and the title's box on the elements (HEAD_STYLE, TITLE_ROW_STYLE, TITLE_STYLE, spacer flex), so the head lays out without view-properties.css; probe property-view-head-first-frame; docs panel-size (V10-5)."
+        ]
       }
     ]
   },
@@ -2017,7 +2024,7 @@
       },
       {
         "path": "src/smart/view-properties/js/templates/default.js",
-        "sha256": "6141dc49b4c677353e670761efe1eeb340e4da3c6725a2339773b34f2a671b40"
+        "sha256": "ad8ad55224d7c25fc21497de7afc7547663eeab420497aff4b0a0e5debb00d8a"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.css",
@@ -2073,7 +2080,7 @@
       },
       {
         "path": "src/smart/view-properties/docs.md",
-        "sha256": "a9b548fefeca9ec16b9e571adb456beee6a1cfc29252f9c8f07e3d203215eb7e"
+        "sha256": "f744058ae57091ff96e4b2b3df40724d8d4002049d5e9b10137bc7257fa6d9d8"
       }
     ],
     "generated_runtime": []

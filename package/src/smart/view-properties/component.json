@@ -2,8 +2,15 @@
   "$comment": "sf-property-view from its component.json (standard simai.smart-component 1.3.8, vocabulary 1.1.5), migrated from ui-control control/smart-architecture/migration/out/property-view; every x-todo decided in x-decisions.",
   "id": "smart.view-properties",
   "tag": "sf-view-properties",
-  "version": "1.23.5",
+  "version": "1.23.6",
   "x-history": [
+    {
+      "version": "1.23.6",
+      "kind": "patch",
+      "recorded_on": "2026-11-21",
+      "consumer": "Nothing to change for a host. At 1440 the card head's «⋯» stands at the row's end from the first frame even when the component's sheet arrives after its code (Larena L-4); the docs give the panel's outer and content widths (352/416/512 outer, 320/384/480 inside the gutters).",
+      "evidence": "control/evidence/2026-11-21-view-r10/README.md"
+    },
     {
       "version": "1.23.5",
       "kind": "patch",
@@ -2422,6 +2429,13 @@
           "to": "1.23.5",
           "changes": [
             "View round 9 (round/view-r9): js/templates/default.js renderLoading and skeleton.html drop the skeleton's empty .sf-tabs-main-container, since sf-tabs 1.4.5 hides a panel row whose panels hold nothing (data-sf-panels-empty); probe property-view-pro-issues-3-4 #3 measured the strip 72 against tabs 40 (64 against 32 at 1/2) over the pair. The same fix as simai/ui-pro d7c4cf6 (sf-view-properties 1.23.4 there); 1.23.5 is above it."
+          ]
+        },
+        {
+          "from": "1.23.5",
+          "to": "1.23.6",
+          "changes": [
+            "View round 10 (round/view-r10, Larena L-4): templates/default.js writes the head band's edges, the title row and the title's box on the elements (HEAD_STYLE, TITLE_ROW_STYLE, TITLE_STYLE, spacer flex), so the head lays out without view-properties.css; probe property-view-head-first-frame; docs panel-size (V10-5)."
           ]
         }
       ]

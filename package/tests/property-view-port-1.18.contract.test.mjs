@@ -37,5 +37,9 @@ test('the group titles read the text ladder, the panel title the window step', (
   assert.match(css, /\.sf-property-view-title \{[^}]*font-size: var\(--sf-property-view--title-size, var\(--sf-drawer--title-size, var\(--sf-heading-4--size\)\)\);[^}]*line-height: var\(--sf-property-view--title-height, var\(--sf-drawer--title-height, var\(--sf-heading-4--height\)\)\);/u);
   assert.match(css, /\.sf-property-view-group-title \{[^}]*font-size: var\(--sf-property-view--group-size, var\(--sf-text--size-1\)\);[^}]*line-height: var\(--sf-property-view--group-height, var\(--sf-title--height-1\)\);/u);
   assert.match(js, /--sf-property-view--title-size: var\(--sf-text--size-2\); --sf-property-view--title-height: var\(--sf-title--height-2\);/u);
-  assert.doesNotMatch(`${css.replaceAll(/var\(--sf-heading-4--(size|height)\)/gu, '')}\n${js}`, /--sf-heading-[1-6]--(size|height)/u, 'only the panel title reads a heading role');
+  // View round 10 (L-4): the title's box is written on the element as well,
+  // with the same chain, so the head lays out before the sheet arrives.
+  assert.match(js, /font-size: var\(--sf-property-view--title-size, var\(--sf-drawer--title-size, var\(--sf-heading-4--size\)\)\);/u);
+  assert.match(js, /line-height: var\(--sf-property-view--title-height, var\(--sf-drawer--title-height, var\(--sf-heading-4--height\)\)\)/u);
+  assert.doesNotMatch(`${css.replaceAll(/var\(--sf-heading-4--(size|height)\)/gu, '')}\n${js.replaceAll(/var\(--sf-heading-4--(size|height)\)/gu, '')}`, /--sf-heading-[1-6]--(size|height)/u, 'only the panel title reads a heading role');
 });

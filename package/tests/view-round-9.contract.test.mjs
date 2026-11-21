@@ -39,7 +39,9 @@ test('L-2: the bar\'s events go the band\'s ways', () => {
 
 test('L-2: the host\'s answer is the bar\'s result line', () => {
   const result = body('_bulkResult');
-  assert.match(result, /bar\.result\(\{ok: scope === "all" \? this\.total : ids\.length, failed: \[\]\}\)/u, 'applied: done, the bar goes back');
+  // View round 10 (V10-1): the marks are cleared before the result is said,
+  // so «Готово N из N» is the bar's last word, not «Выбор снят».
+  assert.match(result, /const ok = scope === "all" \? this\.total : ids\.length;\s*this\.clearSelection\(\);\s*bar\.result\(\{ok, failed: \[\]\}\)/u, 'applied: done, the bar goes back');
   assert.match(result, /\["refused", "conflict", "unavailable"\]/u);
   assert.match(result, /\["not-confirmed", "total-counted"\]\.includes\(answer\.reason\)/u, 'a question not confirmed or an estimate counted first says nothing');
   assert.match(result, /stale\.has\(String\(key\)\) \? staleText : reason/u, 'the rows a conflict names say they changed');

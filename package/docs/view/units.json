@@ -5,6 +5,15 @@
   "entries": [
     {
       "unit": "smart.view",
+      "version": "1.29.1",
+      "recorded_on": "2026-11-21",
+      "change": "patch",
+      "consumer": "Nothing to change for a host. A phone list (size 1/2) skeleton row is as tall as its answered row of short values (109px at 390, was 93); after a bulk action the screen reader keeps «Готово N из N» instead of «Выбор снят», and the bar's words are Russian from its first count; a column switched off in «Настроить вид» leaves the table at once; a system view switched to another layout shows «Изменено» like after a filter change.",
+      "summary": "View round 10 (round/view-r10): first-paint.css sizes the phone list skeleton line at text step 1 (R9-1); index.js draws the bulk bar together with the list and clears the selection before the bar's result (V10-1); head.js viewKind() keeps the kind the view opened with for the «Изменено» mark (V10-3) and _showColumns() applies «Настроить вид» columns to the table (V10-2); examples.json phone-list example in the first-paint gate.",
+      "evidence": "control/evidence/2026-11-21-view-r10/README.md"
+    },
+    {
+      "unit": "smart.view",
       "version": "1.29.0",
       "recorded_on": "2026-11-20",
       "change": "minor",
@@ -425,6 +434,15 @@
       "consumer": "Nothing to change for a host: only the SIMAI Framework file it builds in moved with the repin.",
       "summary": "Over SIMAI Framework ui-078a4b4c6f6e (ui-source 10145e63b9dc) the Framework file it builds in, src/smart/pagination/index.js (sf-pagination 1.7: «Show more» within reach, C167; a deleting action listed last, C116), moved; the provenance and the version follow. Nothing of its own; nothing to change for a host. 1.19.7 and 1.19.8 are ui-pro's own patched copies, never this set's.",
       "evidence": "https://github.com/simai/ui-view/commit/e214dd608fdcf39cea527676fc522afd718922d4"
+    },
+    {
+      "unit": "smart.view-properties",
+      "version": "1.23.6",
+      "recorded_on": "2026-11-21",
+      "change": "patch",
+      "consumer": "Nothing to change for a host. At 1440 the card head's «⋯» stands at the row's end from the first frame even when the component's sheet arrives after its code (Larena L-4); the docs give the panel's outer and content widths (352/416/512 outer, 320/384/480 inside the gutters).",
+      "summary": "View round 10 (round/view-r10, Larena L-4): templates/default.js writes the head band's edges, the title row and the title's box on the elements (HEAD_STYLE, TITLE_ROW_STYLE, TITLE_STYLE, spacer flex), so the head lays out without view-properties.css; probe property-view-head-first-frame; docs panel-size (V10-5).",
+      "evidence": "control/evidence/2026-11-21-view-r10/README.md"
     },
     {
       "unit": "smart.view-properties",

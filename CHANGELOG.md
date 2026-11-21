@@ -16,6 +16,34 @@ same numbers with other content); every next set version is above them
 up). Each component.json says the same under `x-decisions`
 `pro-copy-versions`.
 
+## Unreleased — view round 10
+
+Over view round 9 (round/view-r10 from round/view-r9 71f1c5a), on the same
+pair `ui-b654460cad2a`: Larena R9-1 and L-4, DEV's V10-1..5. The set's
+candidate is **1.10.1** (1.10.0 ships round 9).
+
+- `sf-view` 1.29.1: a phone list (size 1/2) skeleton row is sized at text
+  step 1, as the answered row is (109 px at 390, was 93); a new example
+  `phone-list` (three fields, size 1/2) is in the first-paint gate (R9-1).
+- `sf-view` 1.29.1: the group actions bar is made together with the list, so
+  its words are the page's language from the first count, and after an action
+  the view clears the selection before it gives the bar the result: the screen
+  reader keeps «Готово 2 из 2» instead of «Выбор снят» (V10-1).
+- `sf-view` 1.29.1: a column switched off in «Настроить вид» leaves the table
+  at once (V10-2); a system view switched to another layout shows «Изменено»
+  as it does after a filter change (V10-3).
+- `sf-view-properties` 1.23.6: the card head's band edges, title row and
+  title box are written on the elements, so at 1440 the «⋯» stands at the
+  row's end from the first frame even when the component's sheet arrives
+  after its code (Larena L-4; probe `property-view-head-first-frame`). The
+  docs give the panel's outer width and its content width inside the
+  gutters (352/416/512 and 320/384/480, V10-5).
+- Compact density from 60rem (960 px) only is the density contract (C22,
+  desktop only); unchanged (V10-4).
+- `gates.sh` installs Playwright of the pinned ui-source's version into the
+  package when none resolves, and its Chromium into the gate's own browsers
+  folder (R9-G).
+
 ## Unreleased — view round 9
 
 The set moves to the SIMAI Framework pair `ui-b654460cad2a` (npm
