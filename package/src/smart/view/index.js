@@ -3831,7 +3831,14 @@ class SfDataView extends DataViewElement {
                 // raw id clipped in the column, and the host is told (docs trial 4).
                 const found = known.find((action) => action.id === id);
                 if (found) return found;
-                console.warn(`[sf-view] row action «${id}» has no row_actions entry; name it in the host's catalogue.`);
+                // Before sf-view-table is defined its catalogue cannot be read
+                // (_captureRowActions): the projection is drawn again once it
+                // is, and only then is an id it does not name the host's to fix.
+                // The table is a lazy relation since view modular step 1, so it
+                // is often defined after the first answer.
+                if (globalThis.customElements?.get?.("sf-view-table")) {
+                    console.warn(`[sf-view] row action «${id}» has no row_actions entry; name it in the host's catalogue.`);
+                }
                 const label = pageText(DATA_VIEW_TEXT, "unnamedAction", this);
                 return {id, name: label, inline: false, component: {type: "button", props: {text: label, appearance: "ghost", title: id}}};
             };

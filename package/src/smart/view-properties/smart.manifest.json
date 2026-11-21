@@ -2046,7 +2046,7 @@
         "from": "1.26.0",
         "to": "1.27.0",
         "changes": [
-          "View modular step 1 (round/view-modular-1): takes its shared code (the Framework field renderers, formats, conditions and filter window, and what two View components share) from the package core smart/view-common once per page, instead of a copy in its own bundle, its own field value, set fields and conditions included (sf-view-flow draws with them); set-fields.css is imported by the template, so the sheet is unchanged; relation cl-view-common."
+          "View modular step 1 (round/view-modular-1): takes its shared code (the Framework field renderers, formats, conditions and filter window, density, the manifest actions) from the package core smart/view-common once per page, instead of a copy in its own bundle; its field value, set fields and money import the field renderers and decimal through the core; relation cl-view-common."
         ]
       }
     ]

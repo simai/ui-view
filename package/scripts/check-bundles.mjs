@@ -12,6 +12,11 @@
 //               Not counted: the runtime's own externals (a one-line
 //               SF.runtimeModule(...) stub per bundle) and the empty stubs
 //               mini-css-extract leaves for an imported stylesheet.
+//               bundle-budgets.json `allowed_duplicates` names the one kind of
+//               exception: modules found in exactly the bundles an entry lists,
+//               up to its max_gzip in all, with the reason. An entry that no
+//               longer matches anything fails too (the exception is gone, so is
+//               the entry).
 //   budgets     each bundle's min.js.gz and min.css.gz are within the budget
 //               bundle-budgets.json gives it, in bytes. A bundle with no budget,
 //               or a budget for a bundle the build has not, fails too.
@@ -60,9 +65,24 @@ export function checkBundles(output, budgets) {
       css_gz: size(join(smart, name, 'css', `${name}.min.css.gz`)),
     };
   }
-  const duplicates = [...seen.values()].filter((entry) => entry.bundles.length > 1)
+  const found = [...seen.values()].filter((entry) => entry.bundles.length > 1)
     .sort((a, b) => b.gzip - a.gzip)
     .map(({id, bytes, gzip, exports, bundles: where}) => ({id, bytes, gzip, exports, bundles: where}));
+  const key = (list) => [...list].sort().join(' ');
+  const allowances = (budgets.allowed_duplicates ?? []).map((entry) => ({...entry, key: key(entry.bundles), modules: 0, gzip: 0}));
+  const duplicates = [];
+  const allowed = [];
+  for (const entry of found) {
+    const allowance = allowances.find((one) => one.key === key(entry.bundles));
+    if (!allowance) { duplicates.push(entry); continue; }
+    allowance.modules += 1;
+    allowance.gzip += entry.gzip;
+    allowed.push(entry);
+  }
+  const allowanceProblems = allowances.flatMap((one) => [
+    ...(one.modules === 0 ? [{bundles: one.bundles, problem: 'an allowed duplicate that matches nothing any more'}] : []),
+    ...(one.gzip > one.max_gzip ? [{bundles: one.bundles, problem: `the allowed duplicates are ${one.gzip} bytes gzip, above max_gzip ${one.max_gzip}`}] : []),
+  ]);
   const over = [];
   const own = budgets.bundles ?? {};
   for (const name of bundles) {
@@ -78,8 +98,9 @@ export function checkBundles(output, budgets) {
     bundles: bundles.length,
     modules: seen.size,
     duplicates,
+    allowed: {modules: allowed, by_bundles: allowances.map(({bundles: where, modules, gzip, max_gzip: max}) => ({bundles: where, modules, gzip, max_gzip: max})), problems: allowanceProblems},
     budgets: {over, sizes, total_js_gz: total('js_gz'), total_css_gz: total('css_gz')},
-    passed: duplicates.length === 0 && over.length === 0,
+    passed: duplicates.length === 0 && allowanceProblems.length === 0 && over.length === 0,
   };
 }
 

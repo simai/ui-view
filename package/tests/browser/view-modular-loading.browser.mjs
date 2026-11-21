@@ -129,7 +129,7 @@ const CONTENT = {
   table: 'sf-view-table :is(tbody tr, li)[data-row-id]',
   board: 'sf-view-board .sf-view-board__card, sf-view-board [data-id]',
   cards: 'sf-view-cards [data-id], sf-view-cards .sf-card',
-  calendar: 'sf-view-calendar [data-id], sf-view-calendar [data-event-id], sf-view-calendar .sf-view-calendar__event',
+  calendar: 'sf-view-calendar [data-ev], sf-view-calendar .sf-view-calendar__ev',
 };
 const drawn = (page, kind) => page.waitForFunction((selector) => [...document.querySelectorAll(`#v ${selector}`)].some((node) => node.getClientRects().length > 0),
   CONTENT[kind], {timeout: 15000});
@@ -210,7 +210,7 @@ try {
       steps.push(['filter window', tally(asked).total_kb]);
       // A record, by a real click on the first row's name.
       const row = page.locator(`#v ${CONTENT.table}`).first();
-      const link = row.locator('a, button.sf-table-title, [data-sf-open]').first();
+      const link = row.locator('.sf-table-title-link').first();
       await (await link.count() ? link : row).click({timeout: 5000}).catch((error) => errors.push(`the first record could not be clicked: ${error.message.split('\n')[0]}`));
       const opened = await page.waitForFunction(() => {
         const card = document.getElementById('c');

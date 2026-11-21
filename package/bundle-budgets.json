@@ -1,8 +1,9 @@
 {
   "$comment": [
-    "Gzip budgets of the set's bundles in bytes (min.js.gz, min.css.gz), checked by scripts/check-bundles.mjs (gates.sh step «bundles»).",
+    "Gzip budgets of the set's bundles in bytes (min.js.gz, min.css.gz) and the duplicates the bundles gate allows, checked by scripts/check-bundles.mjs (gates.sh step «bundles»).",
     "Each budget is the size measured on the build of view modular step 1 (round/view-modular-1, pair ui-b654460cad2a) plus 5 % and at least 1 KB, rounded up to 256 bytes; measured is that size.",
-    "A change that grows a bundle past its budget moves the budget in the same commit and says why; a bundle without a budget fails the gate."
+    "A change that grows a bundle past its budget moves the budget in the same commit and says why; a bundle without a budget fails the gate.",
+    "allowed_duplicates: modules found in exactly these bundles are allowed up to max_gzip in all (their gzip bytes as the unminified modules, measured the same way); any other module in two bundles fails, and so does an entry that matches nothing."
   ],
   "bundles": {
     "view": {
@@ -38,26 +39,26 @@
       }
     },
     "view-common": {
-      "js_gz": 68864,
+      "js_gz": 56064,
       "css_gz": 0,
       "measured": {
-        "js_gz": 65579,
+        "js_gz": 53361,
         "css_gz": 0
       }
     },
     "view-flow": {
-      "js_gz": 7680,
+      "js_gz": 19456,
       "css_gz": 2816,
       "measured": {
-        "js_gz": 6419,
+        "js_gz": 18291,
         "css_gz": 1788
       }
     },
     "view-properties": {
-      "js_gz": 54016,
+      "js_gz": 63488,
       "css_gz": 6656,
       "measured": {
-        "js_gz": 51242,
+        "js_gz": 60240,
         "css_gz": 5499
       }
     },
@@ -69,5 +70,31 @@
         "css_gz": 7769
       }
     }
-  }
+  },
+  "allowed_duplicates": [
+    {
+      "bundles": [
+        "view-common",
+        "view-flow"
+      ],
+      "max_gzip": 5376,
+      "measured": {
+        "modules": 2,
+        "gzip": 4118
+      },
+      "reason": "The Framework date and number formats that the Framework confirm surface (helpers/confirm-surface.js) imports by its own path: sf-view-flow bundles the confirm surface, which only it uses, and the formats come with it."
+    },
+    {
+      "bundles": [
+        "view-flow",
+        "view-properties"
+      ],
+      "max_gzip": 23808,
+      "measured": {
+        "modules": 7,
+        "gzip": 22444
+      },
+      "reason": "sf-view-flow draws its fields with sf-view-properties' field value, set fields, money and conditions (the flow is the record's field drawing and the confirm surface put together, nothing copied). In the package core they would ride with every list (12 KB gzip more on a table-only list, measured on view modular step 1); bundled twice they cost only a page that shows a flow block and a record card together."
+    }
+  ]
 }
