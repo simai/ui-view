@@ -26,7 +26,9 @@
 //   title; a group of another name keeps it.
 // - VHF-4 (with the title giving last) and D5 (owner decision 2026-11-21,
 //   «Текст в одну строку» off by default): a tight fitted table (a 620 px box
-//   at 1440, above list-below) whose name has to give: nothing chosen it is
+//   at 1440, above list-below) whose name has to give -- a name longer than
+//   about 20 characters (round 13, LV2-1: a shorter one keeps its whole
+//   width and the table scrolls instead): nothing chosen it is
 //   off -- the name on two lines, uncut, a comment whole; on, every cell one
 //   line; off again as unset. At 390 (below list-below) the table scrolls in
 //   its frame and is not fitted: the name stays on one line (the first paint
@@ -104,8 +106,8 @@ const NARROW = (theme, box = 0) => `${HEAD(theme)}
 (function(){
   var t=document.getElementById('t');
   var C=[{key:'title',label:'Название'},{key:'owner',label:'Ответственный',propertyType:'record'},{key:'attachment',label:'Файл',propertyType:'file'},{key:'accent',label:'Цвет',propertyType:'color'},{key:'note',label:'Комментарий',propertyType:'text'}];
-  var R=[{id:'1',revision:'r1',title:'Портал клиента',owner:{value:'u-1',label:'Анна Захарова',href:'#u-1'},attachment:{value:'f-1',label:'договор.pdf',mime:'application/pdf',href:'#f-1'},accent:'#2f6feb',note:'Клиент просит перенести сдачу на неделю и добавить в договор раздел о поддержке после запуска'},
-    {id:'2',revision:'r1',title:'Каталог товаров',owner:{value:'u-2',label:'Илья Петров',href:'#u-2'},attachment:{value:'f-2',label:'схема.png',mime:'image/png',href:'#f-2'},accent:'#1a7f37',note:'Без замечаний'}];
+  var R=[{id:'1',revision:'r1',title:'Портал клиента для оптовых покупателей',owner:{value:'u-1',label:'Анна Захарова',href:'#u-1'},attachment:{value:'f-1',label:'договор.pdf',mime:'application/pdf',href:'#f-1'},accent:'#2f6feb',note:'Клиент просит перенести сдачу на неделю и добавить в договор раздел о поддержке после запуска'},
+    {id:'2',revision:'r1',title:'Каталог товаров и цен поставщиков',owner:{value:'u-2',label:'Илья Петров',href:'#u-2'},attachment:{value:'f-2',label:'схема.png',mime:'image/png',href:'#f-2'},accent:'#1a7f37',note:'Без замечаний'}];
   customElements.whenDefined('sf-view-table').then(function(){t.columns=C;t.rows=R;});
 })();
 </script></body></html>`;
@@ -321,8 +323,12 @@ try {
     {
       const label = {theme, run, width: 1440, box: 620, item: 'VHF-4'};
       const {context, page, errors} = await load(theme, 1440, NARROW(theme, 620));
-      await page.waitForFunction(() => document.querySelector('#t[data-sf-columns-fitted] tbody td[data-sf-cell="title"]'), null, {timeout: 15000})
-        .catch(() => errors.push('the fitted table did not come'));
+      // Since round 13 (LV2-1) the short columns keep their widths, so in
+      // 620 px the least widths do not fit: the table keeps its natural
+      // widths and scrolls sideways (VHF-16) instead of being fitted; the
+      // long name and the comment are measured the same.
+      await page.waitForFunction(() => document.querySelector('#t[data-sf-content-widths], #t tbody td[data-sf-cell="title"] .sf-table-cell-text'), null, {timeout: 15000})
+        .catch(() => errors.push('the table did not come'));
       await page.waitForTimeout(500);
       const names = () => page.evaluate(() => {
         const read = (node) => {
