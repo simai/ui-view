@@ -3736,6 +3736,12 @@ class SfDataView extends DataViewElement {
                 "row-actions",
                 !hostSaysNo && this.knownCapability("row-actions") ? "true" : "false",
             );
+            // A host without row actions has no row menu at all (VR5-10): the
+            // table is told so apart from row-actions="false", which also
+            // means «every action in the row menu» -- without it the «≡»
+            // column stood empty, 57 px, at the start of every row.
+            if (this.knownCapability("row-actions")) table.removeAttribute?.("data-sf-row-menu-off");
+            else table.setAttribute("data-sf-row-menu-off", "");
             // The accessible name of a list the host did not slot in. The fallback
             // table carries a name of its own, which is right for a page list and
             // wrong inside a group called «Счета»: it would announce «Записи».

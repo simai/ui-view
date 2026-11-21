@@ -3655,11 +3655,13 @@ class SfTable extends TableElement {
     settingsColumnHasUse(props = this.getPropsContext()) {
         if (props.settingsMenu !== false) return true;
         if (props.rowReorder === true) return true;
-        // The row actions use it only while they are on (view round 13,
-        // VR5-10): with row-actions="false" (or actions off) the default
-        // list of row actions is still there, and the column stayed 57 px
-        // wide and empty at the start of every row.
-        if (!props.actions || !props.rowActions) return false;
+        // The row menu uses it only while there is one (view round 13,
+        // VR5-10): actions off, or a view whose host offers no row actions
+        // (data-sf-row-menu-off) -- the default list of row actions was still
+        // there, and the column stayed 57 px wide and empty at the start of
+        // every row. row-actions="false" alone keeps it: it also means every
+        // action lives in the row menu.
+        if (!props.actions || (!props.rowActions && this.hasAttribute?.("data-sf-row-menu-off"))) return false;
         return (this.ACTIONS_SETTINGS_ROW ?? []).length > 0;
     }
 

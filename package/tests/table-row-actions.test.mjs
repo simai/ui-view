@@ -13,8 +13,9 @@ const systemColumns = new Function(body);
 const useBody = source.split('    settingsColumnHasUse(props = this.getPropsContext()) {')[1].split('\n    getSystemColumns() {')[0].trim().replace(/\}\s*$/, '');
 const settingsColumnHasUse = new Function('props = this.getPropsContext()', useBody);
 
-function table(props, actionActive = true, rowMenu = [{id: 'delete'}]) {
+function table(props, actionActive = true, rowMenu = [{id: 'delete'}], menuOff = false) {
     return {
+        hasAttribute: (name) => menuOff && name === 'data-sf-row-menu-off',
         getPropsContext: () => ({selectable: false, settings: true, actions: true, rowActions: true, ...props}),
         settingsColumnHasUse,
         ACTIONS_SETTINGS_ROW: rowMenu,
@@ -67,11 +68,13 @@ test('the settings column stays for the gear, a row menu or reordering', () => {
     assert.deepEqual(keys(table({settingsMenu: true}, true, [])), ['settings']);
     assert.deepEqual(keys(table({settingsMenu: false})), ['settings']);
     assert.deepEqual(keys(table({settingsMenu: false, rowReorder: true}, true, [])), ['settings']);
-    // A row menu that is off (row-actions="false": sf-view writes it for a
-    // host without the row-actions capability) opens nothing: no column
-    // (view round 13, VR5-10: it stood empty, 57 px, at the start of every row).
-    assert.deepEqual(keys(table({settingsMenu: false, rowActions: false})), []);
-    assert.deepEqual(keys(table({settingsMenu: false, rowActions: false, rowReorder: true}, true, [])), ['settings']);
+    // A host whose actions live in the row menu alone (row-actions="false") keeps the ≡.
+    assert.deepEqual(keys(table({settingsMenu: false, rowActions: false})), ['settings']);
+    // A view whose host offers no row actions marks the table
+    // data-sf-row-menu-off: no menu, no column (view round 13, VR5-10: it
+    // stood empty, 57 px, at the start of every row).
+    assert.deepEqual(keys(table({settingsMenu: false, rowActions: false}, true, [{id: 'delete'}], true)), []);
+    assert.deepEqual(keys(table({settingsMenu: false, rowActions: false, rowReorder: true}, true, [], true)), ['settings']);
 });
 
 test('settings false is the word of the host, whatever the table could offer', () => {
