@@ -153,7 +153,9 @@ test('the registry at the pinned revision gives the set its family and names', {
   // Each relation names a rule of this set, of a set it requires (a name the
   // registry gives that set's owner) or of SIMAI Framework (the free rule
   // exists in the overlay).
-  const own = new Set(passport.components.map((component) => component.rule));
+  // The package core's rule (package.json simai.core) is the set's own: the build writes it.
+  const core = json(join(setRoot, 'package.json')).simai?.core?.folder;
+  const own = new Set([...passport.components.map((component) => component.rule), ...(core ? [`cl-${core}`] : [])]);
   const required = new Set((passport.requires_sets ?? []).map(({id}) => id));
   const ofRequired = new Set(registry.owners
     .filter((owner) => owner.kind === 'set' && required.has(owner.id))

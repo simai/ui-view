@@ -46,6 +46,7 @@
         "cl-spinner",
         "cl-tabs",
         "cl-toast",
+        "cl-view-common",
         "cl-view-table"
       ],
       "element_aliases": [
@@ -89,7 +90,8 @@
         "cl-sortable",
         "cl-spinner",
         "cl-tabs",
-        "cl-tag"
+        "cl-tag",
+        "cl-view-common"
       ],
       "element_aliases": [
         {
@@ -146,6 +148,7 @@
         "cl-tabs",
         "cl-tag",
         "cl-view",
+        "cl-view-common",
         "cl-view-table"
       ],
       "element_aliases": [
@@ -166,7 +169,6 @@
         "cl-avatar",
         "cl-badge",
         "cl-button",
-        "cl-segmented",
         "cl-button-icon",
         "cl-checkbox",
         "cl-dropdown",
@@ -184,10 +186,12 @@
         "cl-list-item",
         "cl-progress-scale",
         "cl-reference-link",
+        "cl-segmented",
         "cl-slider-range",
         "cl-spinner",
         "cl-switch",
-        "cl-tag"
+        "cl-tag",
+        "cl-view-common"
       ]
     },
     {
@@ -209,7 +213,8 @@
         "cl-sortable",
         "cl-tabs",
         "cl-tag",
-        "cl-toast"
+        "cl-toast",
+        "cl-view-common"
       ]
     },
     {
@@ -231,7 +236,8 @@
         "cl-progress-scale",
         "cl-reference-link",
         "cl-skeleton",
-        "cl-tag"
+        "cl-tag",
+        "cl-view-common"
       ]
     },
     {
@@ -253,7 +259,8 @@
         "cl-reference-link",
         "cl-segmented",
         "cl-tag",
-        "cl-toast"
+        "cl-toast",
+        "cl-view-common"
       ]
     }
   ]
