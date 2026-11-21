@@ -93,6 +93,11 @@ try {
       return {controls: menu ? (menu.entries ?? []).length : 0};
     }));
     await page.keyboard.press('Escape');
+    // The menu opened by a click keeps the focus on its row, so Escape may
+    // leave it open, over the next row's «≡» (view round 13: the table no
+    // longer scrolls in its own box, so nothing moves the next button out
+    // from under it). A person clicks away; so does the probe.
+    await page.mouse.click(1080, 680);
     await page.waitForTimeout(200);
   }
 

@@ -218,7 +218,14 @@ const PAGINATION_LABELS = ["show-more-text", "selected-label", "total-label", "p
     "actions-label", "actions-region-label", "clear-selection-label", "page-size-label"];
 const LABEL_ATTRIBUTES = [...TABLE_LABELS, ...PAGINATION_LABELS, "pagination-aria-label"];
 
-const CHROME_PARTS = ["toolbar", "pagination", "select", "settings"];
+// The parts of the list a host can switch off (VR5, owner: everything in
+// the list can be set or switched off from the backend or by a call). The
+// four old words name whole rows; the rest are parts inside them, each
+// under its row (CHROME_WITHIN). A chrome that names no part of a row keeps
+// all of that row's parts, so chrome="toolbar pagination" of an older page
+// draws what it drew.
+const CHROME_PARTS = ["toolbar", "pagination", "select", "settings", "search", "filter", "look", "page-size"];
+const CHROME_WITHIN = {search: "toolbar", filter: "toolbar", look: "toolbar", "page-size": "pagination"};
 
 // Writes that cannot have changed a row, so the view does not re-query after
 // them. Opening a record changes nothing either; the rest of the settings layer
@@ -1301,7 +1308,9 @@ class SfDataView extends DataViewElement {
         sized(button);
         write(button, "text", pagination.sfWord?.("page-size-text", {vars: {size: pageSize}}) ?? String(pageSize));
         write(button, "aria-label", `${pagination.pageSizeLabel ?? ""} ${pageSize}`.trim());
-        if (button) button.hidden = pagination.showPageSize === false || !hasPages;
+        // A host that names the footer's parts without page-size (VR5-6)
+        // keeps the range and the pages, not the size choice.
+        if (button) button.hidden = pagination.showPageSize === false || !hasPages || !this.renders("page-size");
         const menu = part("menu");
         sized(menu);
         write(menu, "aria-label", pagination.pageSizeLabel ?? "");
@@ -1966,6 +1975,12 @@ class SfDataView extends DataViewElement {
         // asks), the chrome columns, and a table or the compact list.
         const toolbar = !this.listHead && (table ? table.getAttribute("toolbar") !== "false" : this.renders("toolbar"));
         const headRows = this.listHead && this.renders("toolbar");
+        // The head row holds «Фильтр» and the search; a part the page
+        // switched off by its chrome (VR5) holds no place (head.chrome of
+        // the view document comes with the answer).
+        const filterHeld = this.renders("filter");
+        const searchHeld = this.renders("search");
+        const headRow = filterHeld || searchHeld ? (filterHeld ? control() : "<span></span>") + (searchHeld ? control() : "") : "";
         const ownToolbar = Boolean(table) && this.renders("toolbar") && Boolean(this.querySelector(':scope > [slot="toolbar"]'));
         // The host's word is read before the view writes its own (round 12): a
         // list drawn before its bulk actions arrive writes selectable="false",
@@ -2071,7 +2086,7 @@ class SfDataView extends DataViewElement {
             ownToolbar ? '<div class="sf-data-view-skeleton-own-toolbar"></div>' : "",
             // The list head's two rows hold their height from the first paint.
             // A view zone the person left open (VZ-1) holds its framed row too.
-            headRows ? `<div class="sf-view-head-skeleton" data-size="${this.size}"><div>${bar}</div><div>${control()}${control()}</div>${this.keptPreferences?.viewZone === true ? `<div data-zone>${control()}${control()}</div>` : ""}</div>` : "",
+            headRows ? `<div class="sf-view-head-skeleton" data-size="${this.size}"><div>${bar}</div>${headRow ? `<div>${headRow}</div>` : ""}${this.keptPreferences?.viewZone === true ? `<div data-zone>${control()}${control()}</div>` : ""}</div>` : "",
             '<div class="sf-data-view-skeleton-records">',
             toolbar ? toolbarMarkup : "",
             `<div class="sf-data-view-skeleton-table">${row()}${Array.from({length: rows}, () => row()).join("")}</div>`,
@@ -2232,8 +2247,46 @@ class SfDataView extends DataViewElement {
         return declared.split(/\s+/u).filter((part) => CHROME_PARTS.includes(part));
     }
 
+    // The same list as a call (VR5): view.chrome = ["toolbar", "search"]
+    // writes the attribute; null or undefined removes it (every part).
+    set chrome(parts) {
+        if (parts === null || parts === undefined) this.removeAttribute("chrome");
+        else this.setAttribute("chrome", (Array.isArray(parts) ? parts : String(parts).split(/\s+/u)).map(String).join(" ").trim());
+    }
+
+    setChrome(parts) {
+        this.chrome = parts;
+    }
+
+    // The rows of «Настроить вид» a person sees (VR5-5): head.look of the
+    // view document, or view.look set by a call; null shows every row.
+    // locked still disables a row it does not hide.
+    get look() {
+        const own = this._look ?? this.viewConfig?.head?.look;
+        return Array.isArray(own) ? own.map(String) : null;
+    }
+
+    set look(rows) {
+        this._look = Array.isArray(rows) ? rows.map(String) : null;
+        this._renderProjection();
+    }
+
     renders(part) {
-        return this.chrome.includes(part);
+        const row = CHROME_WITHIN[part];
+        if (!row) return this.chrome.includes(part);
+        if (!this.renders(row)) return false;
+        if (this.getAttribute("chrome") !== null) {
+            const named = this.chrome.filter((word) => CHROME_WITHIN[word] === row);
+            if (named.length && !named.includes(part)) return false;
+        }
+        // The view document's own list (head.chrome): what it does not
+        // name inside a row it names a part of is not drawn either.
+        const shown = this.viewConfig?.head?.chrome;
+        if (Array.isArray(shown)) {
+            const named = shown.filter((word) => CHROME_WITHIN[word] === row);
+            if (named.length && !named.includes(part)) return false;
+        }
+        return true;
     }
 
     // Whether the list offers anything to do with marked rows: bulk actions

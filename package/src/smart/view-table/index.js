@@ -3655,6 +3655,11 @@ class SfTable extends TableElement {
     settingsColumnHasUse(props = this.getPropsContext()) {
         if (props.settingsMenu !== false) return true;
         if (props.rowReorder === true) return true;
+        // The row actions use it only while they are on (view round 13,
+        // VR5-10): with row-actions="false" (or actions off) the default
+        // list of row actions is still there, and the column stayed 57 px
+        // wide and empty at the start of every row.
+        if (!props.actions || !props.rowActions) return false;
         return (this.ACTIONS_SETTINGS_ROW ?? []).length > 0;
     }
 

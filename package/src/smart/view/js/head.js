@@ -609,7 +609,24 @@ export class ListHead {
             set(create, "split", menu.length > 1 ? "" : null);
             set(create, "menu", menu.length > 1 ? JSON.stringify(menu.slice(1)) : null);
         }
+        // The parts a host switched off (VR5): search, «Фильтр» with its
+        // bookmark and fields, «Настроить вид». A row left with nothing in
+        // it goes too, so no empty band stays (no gap).
+        const filterShown = this.filterShown;
+        set(one(".sf-view-head-search"), "hidden", this.view.renders("search") ? null : "");
+        set(one("[data-filter-group]"), "hidden", filterShown ? null : "");
+        set(one(".sf-view-head-filter-icon"), "hidden", filterShown ? null : "");
+        const lookShown = this.view.renders("look");
+        set(one('sf-popover[data-pop="view"]'), "hidden", lookShown ? null : "");
+        set(one(".sf-view-head-tune"), "hidden", lookShown ? null : "");
+        if (!lookShown && this.open?.kind === "view") this._closeAll();
         this._renderFields();
+        const row = one(":scope > .sf-view-head-row");
+        if (row) {
+            const parts = [...row.querySelectorAll(".sf-view-head-zone-toggle, [data-filter-group], .sf-view-head-filter-icon, .sf-view-head-fields, .sf-view-head-search, .sf-view-head-create, .sf-view-head-more")];
+            const filled = parts.some((node) => !node.hidden && !(node.matches(".sf-view-head-fields") && !node.firstElementChild));
+            set(row, "hidden", filled ? null : "");
+        }
         this._layRow();
         // An open window shows the state it was opened over.
         if (this.open && !this.open.kind.startsWith("value:") && this.open.kind !== "save" && !this.open.kind.startsWith("rename:")) this._renderOpen();
@@ -793,9 +810,22 @@ export class ListHead {
     // The filter fields (C300): a joined sf-button + sf-button-icon per chosen
     // field -- the name, colour when a condition is set, the number of values
     // chosen; the condition in words only in its tooltip and its window.
+    // Whether «Фильтр» is drawn (VR5-2): the host can switch it off (chrome
+    // or head.chrome without filter), and it goes by itself when the host
+    // describes no field to filter by -- the button opened an empty window.
+    get filterShown() {
+        return this.view.renders("filter") && this.fields.length > 0;
+    }
+
     _renderFields() {
         const box = this.root?.querySelector("[data-fields]");
         if (!box) return;
+        if (!this.filterShown) {
+            box.hidden = true;
+            if (box.firstChild) box.replaceChildren();
+            this._fieldsKey = null;
+            return;
+        }
         const phone = this.mode === "phone";
         const size = esc(this.size);
         const open = this.openFilter;
@@ -1098,6 +1128,11 @@ export class ListHead {
             return pairs([...own, ...described.filter((field) => !known.has(String(field.key)) && test(fieldType(field)))]);
         };
         const all = pairs(record.filter((field) => field.role !== "title" && field.title !== true));
+        // The rows the host shows (VR5-5, head.look or view.look): a row it
+        // leaves out is not drawn; a locked row is drawn, disabled.
+        const look = this.view.look;
+        const shows = (key) => !look || look.includes(key);
+        const only = (key, html) => (shows(key) ? html : "");
         let body = "";
         if (kind === "table") {
             const columns = (this.view.columns ?? []).map((column) => [column.key, column.label ?? column.key]);
@@ -1106,26 +1141,26 @@ export class ListHead {
             // stored with the view's other settings, «Вместе» by default.
             const paging = [["pages", "headPagingPages"], ["more", "headPagingMore"], ["both", "headPagingBoth"], ["endless", "headPagingEndless"]]
                 .map(([value, word]) => [value, this.text(word)]);
-            body = title("columns", this.text("headColumns")) + checks("columns", columns, settings.columns)
-                + (actions.length ? title("row_actions", this.text("headRowActions")) + checks("row_actions", actions, settings.row_actions) : "")
+            body = only("columns", title("columns", this.text("headColumns")) + checks("columns", columns, settings.columns))
+                + (actions.length ? only("row_actions", title("row_actions", this.text("headRowActions")) + checks("row_actions", actions, settings.row_actions)) : "")
                 // The table's own look (VR12A-1): under the list head the
                 // table draws no gear, so its density (D4) and «Текст в одну
                 // строку» (D5) are set here, as the gear's «Вид» set them.
-                + (this.view.table ? title("density", this.text("headDensity"))
-                    + radios("density", [["normal", this.text("headDensityNormal")], ["compact", this.text("headDensityCompact")]], settings.density)
-                    + `<div class="sf-view-head-list"><sf-checkbox data-setting="single_line" size="${size}" label="${esc(this.text("headSingleLine"))}"${settings.single_line ? " checked" : ""}${lock("single_line")}></sf-checkbox></div>` : "")
-                + (this.view.pagingOffered ? title("paging", this.text("headPaging")) + radios("paging", paging, settings.paging) : "");
+                + (this.view.table ? only("density", title("density", this.text("headDensity"))
+                    + radios("density", [["normal", this.text("headDensityNormal")], ["compact", this.text("headDensityCompact")]], settings.density))
+                    + only("single_line", `<div class="sf-view-head-list"><sf-checkbox data-setting="single_line" size="${size}" label="${esc(this.text("headSingleLine"))}"${settings.single_line ? " checked" : ""}${lock("single_line")}></sf-checkbox></div>`) : "")
+                + (this.view.pagingOffered ? only("paging", title("paging", this.text("headPaging")) + radios("paging", paging, settings.paging)) : "");
         } else if (kind === "board") {
-            body = title("lane_field", this.text("headLaneField")) + radios("lane_field", fieldsOf((type) => LIST_TYPES.has(type)), settings.lane_field)
-                + title("card_fields", this.text("headCardFields")) + checks("card_fields", all, settings.card_fields)
-                + `<sf-checkbox data-setting="empty_lanes" size="${size}" label="${esc(this.text("headEmptyLanes"))}"${settings.empty_lanes ? " checked" : ""}${lock("empty_lanes")}></sf-checkbox>`;
+            body = only("lane_field", title("lane_field", this.text("headLaneField")) + radios("lane_field", fieldsOf((type) => LIST_TYPES.has(type)), settings.lane_field))
+                + only("card_fields", title("card_fields", this.text("headCardFields")) + checks("card_fields", all, settings.card_fields))
+                + only("empty_lanes", `<sf-checkbox data-setting="empty_lanes" size="${size}" label="${esc(this.text("headEmptyLanes"))}"${settings.empty_lanes ? " checked" : ""}${lock("empty_lanes")}></sf-checkbox>`);
         } else if (kind === "cards") {
-            body = title("size", this.text("headCardSize")) + radios("size", [["s", this.text("headSizeS")], ["m", this.text("headSizeM")], ["l", this.text("headSizeL")]], settings.size)
-                + title("card_fields", this.text("headCardFields")) + checks("card_fields", all, settings.card_fields);
+            body = only("size", title("size", this.text("headCardSize")) + radios("size", [["s", this.text("headSizeS")], ["m", this.text("headSizeM")], ["l", this.text("headSizeL")]], settings.size))
+                + only("card_fields", title("card_fields", this.text("headCardFields")) + checks("card_fields", all, settings.card_fields));
         } else if (kind === "calendar") {
-            body = title("date_field", this.text("headDateField")) + radios("date_field", fieldsOf((type) => DATE_TYPES.has(type)), settings.date_field)
+            body = only("date_field", title("date_field", this.text("headDateField")) + radios("date_field", fieldsOf((type) => DATE_TYPES.has(type)), settings.date_field))
                 // The week start and the time zone are the request's (C293), never the view's.
-                + title("color_field", this.text("headColourField")) + radios("color_field", [...fieldsOf((type) => LIST_TYPES.has(type)), ["", this.text("headColourNone")]], settings.color_field ?? "");
+                + only("color_field", title("color_field", this.text("headColourField")) + radios("color_field", [...fieldsOf((type) => LIST_TYPES.has(type)), ["", this.text("headColourNone")]], settings.color_field ?? ""));
         }
         const viewName = this.currentView?.label ?? this.currentView?.name ?? "";
         const kindName = this.text(`headKind${kind[0].toUpperCase()}${kind.slice(1)}`);

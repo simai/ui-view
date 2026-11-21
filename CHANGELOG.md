@@ -22,7 +22,8 @@ View round 13 (round/view-r13, from `round/view-r12` 79f7706), candidate
 1.11.0 over the same pair `ui-b654460cad2a`: the list head and footer study,
 round 4 (owner decisions D1 and D3 of 2026-11-21; returns VHF-13..16) and the
 round 12 acceptance returns VR12A-1 and VR12A-2 (DEV msg-7e2d384f), and the
-record's owner decisions C399-C402 (DEV msg-3215bbda).
+record's owner decisions C399-C402 (DEV msg-3215bbda), and the round 5 returns
+VR5-1, VR5-2, VR5-5, VR5-6 and VR5-10 (DEV msg-b581533a).
 Numbers are above every branch of this set and of ui-pro.
 
 - `sf-view` 1.32.0. D1: «Подгрузка» in «Настроить вид» for the table, new
@@ -37,14 +38,21 @@ Numbers are above every branch of this set and of ui-pro.
   settings apply at once; their field list holds the view's own fields.
   VR12A-1: under the list head «Настроить вид» also offers «Плотность»
   (Обычная / Компактная) and «Текст в одну строку»; a setting saved there no
-  longer re-reads the list.
+  longer re-reads the list. VR5: every part of the head and footer can be
+  switched off -- `chrome` takes `search`, `filter`, `look` and `page-size`
+  (a chrome that names no part of a row keeps all of it, as before), the view
+  document takes `head.chrome` and `head.look` (the rows of «Настроить
+  вид»), and `view.chrome` / `view.setChrome()` / `view.look` do it by a
+  call; «Фильтр» goes by itself without filter fields; an emptied head row
+  is not drawn.
 - `sf-view-table` 1.31.0. VHF-14: the table head sticks by CSS, no one-frame
   lag. VHF-16: columns that do not fit keep their natural widths; the table
   moves sideways by the rail, a sideways wheel or touchpad and the keyboard
   focus, with the box, the row menu and the name held. VR12A-2: above
   list-below a long-text column keeps about 20 characters (`--sf-measure-20`)
   and a number or money column is never cut; where those do not fit, the
-  table scrolls sideways.
+  table scrolls sideways. VR5-10: with the row menu off and nothing to
+  reorder, the first column is not drawn (it was an empty 57 px band).
 - `sf-view-properties` 1.26.0, the record (owner decisions C399-C402, DEV
   msg-3215bbda). C400: a field's label is its value's size (14; 12 compact),
   in the muted ink, on the value's baseline. C402: an empty value reads «не

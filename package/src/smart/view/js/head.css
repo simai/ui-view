@@ -11,6 +11,13 @@
 }
 :is(sf-view, sf-data-view)[size="1"] > .sf-view-head { --sf-view-head--control-height: var(--sf-ui-1--control-height); }
 :is(sf-view, sf-data-view) > .sf-view-head[hidden] { display: none; }
+/* A part the host switched off (VR5: chrome without search, filter, look)
+   and a row left empty draw nothing, not an empty band. */
+.sf-view-head-row[hidden],
+.sf-view-head-search[hidden],
+.sf-view-head-join[hidden],
+.sf-view-head [data-pop][hidden],
+.sf-view-head [data-head-open][hidden] { display: none; }
 
 /* The title row: how to look. */
 .sf-view-head-title,
