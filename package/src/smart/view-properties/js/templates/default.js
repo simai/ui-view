@@ -706,8 +706,10 @@ function renderGroup(context, section, group) {
             </section>
         `;
     }
-    // Edited by sf-form (C182, C305 (1); VP-19, VP-27): the label above in a
-    // panel, beside on the full screen; «Сохранить» first, a quiet «Отмена»;
+    // Edited by sf-form (C182, C305 (1); VP-19, VP-27): the label beside its
+    // field wherever the record is wide, over it on a phone (owner decision
+    // C401: the value turns into its field in place, the label stays at the
+    // start; sf-form lays labels="start" from 40rem of its own width); «Сохранить» first, a quiet «Отмена»;
     // every field the group's whole width. The form's value and fields are
     // the edit's own (formEdit), so a render of the card never resets it.
     const form = context.formEdit;
@@ -719,7 +721,7 @@ function renderGroup(context, section, group) {
                 </header>` : nothing}
                 <sf-form class="sf-property-view-form"
                          label=${String(group.label ?? groupKey)}
-                         labels=${context.sectionsLayout === 'column' ? 'start' : 'top'}
+                         labels=${context.sectionsLayout === 'phone' ? 'top' : 'start'}
                          footer=${context.panel || context.sectionsLayout === 'phone' ? 'sticky' : 'static'}
                          .fields=${guard([form], () => form.fields)}
                          .value=${guard([form], () => form.value)}

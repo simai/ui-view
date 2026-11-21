@@ -294,8 +294,11 @@ receives.
   panel lays its sections as tabs on top (and is not widened), whatever
   `sections-as` says. Once a pair's `sf-tabs` can be told not to fold
   (proposed `fold="never"`), the panel keeps the list on the left (the
-  default) unless the widened panel would pass 60 percent of the window
-  (1024 px and below), and then lays tabs on top. The whole screen and a card
+  default): over the list always, and docked beside the list (from 64rem)
+  only while the list itself keeps at least 48rem (768 px) beside the widened
+  card; otherwise the sections are tabs on top and the list keeps its width
+  (owner decision C399, since 1.26.0; it replaced the share of 60 percent of
+  the window). The whole screen and a card
   in place keep the column wherever its tabs stay vertical; where they fold
   (a narrow box), the card lays tabs on top.
 - The panel is drawn at a step of its own width ladder (C396): `panel-size`
@@ -311,7 +314,20 @@ receives.
   otherwise it never grows. `panel-width` is a former name until
   2027-01-01: a length is mapped to the nearest step, with a console notice.
 - A record to read is an `sf-list-description`: the label beside the value,
-  each group a heading of the list with «Изменить» in it. It has no foot:
+  each group a heading of the list with «Изменить» in it. Since 1.26.0 (owner
+  decision C400) a label is its value's size (14 px; 12 at the compact
+  density), in the muted ink (`--sf-on-surface-variant`), on the value's
+  baseline. An empty value reads «не заполнено» in `--sf-on-surface-muted`,
+  paler than the label (C402).
+- «Изменить» (C401, since 1.26.0): the values turn into their fields in
+  place; the group stays a part of the record's list (no frame of its own),
+  the label stays at the start beside its field (`sf-form labels="start"`),
+  on a phone the label stands over the field. `sf-form` lays its labels beside
+  the fields only from 40rem of its own width and takes a third of the row
+  for them, so in a side panel the labels stand over the fields and on a
+  wider page the label column is the form's own, not the list's: a label
+  column the form can be given (a public width, and the beside layout below
+  40rem) is a SIMAI Framework part that does not exist yet. It has no foot:
   «Удалить», «Копировать ссылку» and «Открыть на всю страницу» are rows of the
   head's «⋯» menu; nothing stands outside the panel.
 - The head is one row. A record opened from another (a nested panel at the

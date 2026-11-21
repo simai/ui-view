@@ -49,7 +49,7 @@ export function renderFieldValue(context, field, editing, {disabled = false} = {
         {node: context.component, size: context.size, viewHost: context.viewHost, disabled});
     if (own !== null) {
         return own === nothing
-            ? html`<span class="sf-property-view-empty color-on-surface-variant">${context.emptyText}</span>`
+            ? html`<span class="sf-property-view-empty">${context.emptyText}</span>`
             : own;
     }
 
@@ -100,7 +100,7 @@ export function renderFieldValue(context, field, editing, {disabled = false} = {
     }
 
     if (content === null || typeof content === 'undefined' || content === nothing) {
-        return html`<span class="sf-property-view-empty color-on-surface-variant">${context.emptyText}</span>`;
+        return html`<span class="sf-property-view-empty">${context.emptyText}</span>`;
     }
 
     return content;

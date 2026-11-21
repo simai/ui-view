@@ -1519,4 +1519,38 @@
       column-gap: var(--sf-space-1);
     }
   }
+
+  /* ─── View round 13: owner decisions C400-C402 (the record).
+     C400: a field's label is its value's size (14; 12 at the compact
+     density), in the muted ink, on the value's baseline: the list's rung
+     size, not the rung below sf-list-description gives a label (VRS-3,
+     VRS-4). */
+  .sf-property-view-list .sf-list-description-label {
+    font-size: var(--sf-list-description--font-size);
+    line-height: var(--sf-list-description--line);
+    color: var(--sf-on-surface-variant);
+  }
+
+  /* C402: an empty value keeps its words («не заполнено») in the muted ink,
+     paler than the label (VRS-5). */
+  .sf-property-view-empty {
+    color: var(--sf-on-surface-muted);
+  }
+
+  /* C401: «Изменить» turns the values into their fields in place: the group
+     stays a part of the record's list (no frame, no fill, no inner padding,
+     its rows at the list's gap), so the labels keep their axis (VRS-6). */
+  .sf-property-view-list .sf-property-view-group--form {
+    grid-column: 1 / -1;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    --sf-form-field-gap: var(--sf-view-properties-row-gap, var(--sf-space-1\/3));
+  }
+
+  .sf-property-view-list .sf-property-view-group--form > .sf-property-view-group-header {
+    padding-block-end: 0;
+    border-block-end: 0;
+  }
 }

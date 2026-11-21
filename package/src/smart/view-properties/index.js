@@ -195,9 +195,8 @@ const PANEL_WIDTH_UNTIL = "2027-01-01";
 // vertical list, its place no longer read). Until a pair carries it, a panel
 // below the whole screen lays its sections as tabs on top and is not widened
 // for a column; once sf-tabs declares the property the slider keeps the
-// vertical list (the owner's default) unless the widened panel would pass 60
-// percent of the window (1024 px and below), and then lays tabs on top.
-const COLUMN_WINDOW_SHARE = 0.6;
+// vertical list (the owner's default): over the list always, docked beside
+// it while the list keeps 48rem (C399, sectionColumnFits); else tabs on top.
 const tabsHoldColumn = () => {
     const tabs = globalThis.customElements?.get?.("sf-tabs");
     try { return Boolean(tabs?.props && Object.prototype.hasOwnProperty.call(tabs.props, "fold")); } catch { return false; }
@@ -697,14 +696,36 @@ class SfPropertyView extends PropertyViewElement {
     // only while the widened panel stays within 60 percent of the window. The
     // whole screen and a card in place: unless the drawn tabs folded there
     // (_columnFolded, the window width they folded at; read after each render).
+    // Owner decision C399 (view round 13): a card docked beside the list
+    // keeps the column only while the list itself keeps 48rem beside the
+    // widened card; else its sections are tabs on top and the list keeps its
+    // width. A card over the list (an overlay) and the whole screen always
+    // keep the column. It replaces the share of the window (60 percent) of
+    // VR11-1. The vertical list in a panel still waits for sf-tabs that can
+    // be told not to fold (GB16): until then a panel draws tabs.
     get sectionColumnFits() {
         if (this.panel && this.drawerStep !== "full") {
             if (!tabsHoldColumn()) return false;
+            if (!this._docksBesideList()) return true;
             const width = this._widenedPanelWidth();
-            const room = globalThis.innerWidth || 0;
-            return !(width > 0 && room > 0 && width > room * COLUMN_WINDOW_SHARE);
+            const host = globalThis.document?.querySelector?.("[data-sf-drawer-dock-host]");
+            const room = host?.getBoundingClientRect?.().width || globalThis.innerWidth || 0;
+            return !(width > 0 && room > 0 && room - width < this._listLeast());
         }
         return !(this._columnFolded && (globalThis.innerWidth || 0) <= this._columnFolded);
+    }
+
+    // Whether the panel stands as a column beside the list (C305 (4)): docked,
+    // and the window as wide as the drawer docks at.
+    _docksBesideList() {
+        if (!this.docked) return false;
+        return globalThis.matchMedia?.(`(min-width: ${DOCK_BREAKPOINT})`)?.matches ?? false;
+    }
+
+    // The least width the list keeps beside a docked card (C399): 48rem.
+    _listLeast() {
+        const size = Number.parseFloat(globalThis.getComputedStyle?.(globalThis.document?.documentElement ?? {})?.fontSize ?? "") || 16;
+        return 48 * size;
     }
 
     // The widened panel's width in px (step + the column + a gutter), measured
