@@ -3480,11 +3480,27 @@ class SfTable extends TableElement {
         // cut anyway. Now the columns over a level come down to it, never
         // below their least width; the short ones keep their whole value.
         // A pixel more per column, so the rounding up leaves no sliver to scroll.
+        // The record's name gives last (VHF-4, «the title column takes its
+        // room»): the other columns come down first, to their least widths;
+        // only what they cannot give is taken from the name, which then wraps
+        // onto its two lines. The name shrinking first wrapped it at once and
+        // grew the row under the reader (typed-cells at 390: 196 -> 204).
         const need = Math.min(room, left + shrinking.length);
-        const level = fittingLevel(shrinking, need);
+        const titleKey = (columns.find((column) => column.role === "title" && !column.system)
+            ?? columns.find((column) => !column.system && !SYSTEM_COLUMN_KEYS.has(column.key)))?.key;
+        const others = shrinking.filter(([key]) => key !== titleKey);
+        const title = shrinking.find(([key]) => key === titleKey);
+        const othersRoom = others.reduce((sum, [, , spare]) => sum + spare, 0);
+        const level = fittingLevel(others, Math.min(need, othersRoom));
         let given = 0;
-        for (const [key, width, spare] of shrinking) {
+        for (const [key, width, spare] of others) {
             const next = Math.max(Math.ceil(width - spare), Math.min(Math.floor(width), level));
+            given += width - next;
+            fitted.set(key, next);
+        }
+        if (title && given < need) {
+            const [key, width, spare] = title;
+            const next = Math.max(Math.ceil(width - spare), Math.floor(width - (need - given)));
             given += width - next;
             fitted.set(key, next);
         }
