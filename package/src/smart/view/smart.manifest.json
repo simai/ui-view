@@ -1981,7 +1981,7 @@
         "from": "1.31.1",
         "to": "1.32.0",
         "changes": [
-          "View round 13 (round/view-r13): D1 index.js paging (VIEW_PAGING, get paging, applyPaging, _drawMore into slot more, _showMore, _watchEndless; the range grows from the run's first page; data-sf-view-paging-off hides the pagination for more and endless; first paint draws the button skeleton); component.json settings.paging and the manifest input; lang head-paging*. VHF-15 head.js lays --sf-view--head-offset and --sf-view--stuck-head on [part=layout]; [part=head] sticks for head=list. VHF-13 ownLayoutSettings / applyLayoutSettings; board, cards and calendar options merge the person's settings; the view panel lists the view's own fields. D3 cards skeleton draws stacked fields."
+          "View round 13 (round/view-r13): D1 index.js paging (VIEW_PAGING, get paging, applyPaging, _drawMore into slot more, _showMore, _watchEndless; the range grows from the run's first page; data-sf-view-paging-off hides the pagination for more and endless; first paint draws the button skeleton); component.json settings.paging and the manifest input; lang head-paging*. VHF-15 head.js lays --sf-view--head-offset and --sf-view--stuck-head on [part=layout]; [part=head] sticks for head=list. VHF-13 ownLayoutSettings / applyLayoutSettings; board, cards and calendar options merge the person's settings; the view panel lists the view's own fields. D3 cards skeleton draws stacked fields. VR12A-1 js/head.js: the table kind's panel adds density radios and a single_line checkbox (set through sf-view-table setTableView); lang head-density*, head-single-line. NO_REFRESH_AFTER takes settings.save."
         ]
       }
     ]
@@ -1992,7 +1992,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view/index.js",
-        "sha256": "7b915fe5c7298306dfb47b86d9989ec34ae79ce682557e1204382e207afb1f3f"
+        "sha256": "c51b89987d04a595110426d5dee2d7a18837b98ddfd10da68b67bd22f03cfa92"
       },
       {
         "path": "src/core/contracts/ports/simai.dataview-port/1.5.0/port.json",
@@ -2000,7 +2000,7 @@
       },
       {
         "path": "src/smart/view/docs.md",
-        "sha256": "e9d4b0ef6af3050cda4ef2c92ae52f425d2c103d1e4d198f60e0d95ce069ee80"
+        "sha256": "4bdf6cf31970ebd0d1fa7fd6b1a1f605d56ac68a23d5e54a3714334af8e7add0"
       },
       {
         "path": "tests/fixtures/data-view-composite-lab.html",

@@ -20,7 +20,8 @@ up). Each component.json says the same under `x-decisions`
 
 View round 13 (round/view-r13, from `round/view-r12` 79f7706), candidate
 1.11.0 over the same pair `ui-b654460cad2a`: the list head and footer study,
-round 4 (owner decisions D1 and D3 of 2026-11-21; returns VHF-13..16).
+round 4 (owner decisions D1 and D3 of 2026-11-21; returns VHF-13..16) and the
+round 12 acceptance returns VR12A-1 and VR12A-2 (DEV msg-7e2d384f).
 Numbers are above every branch of this set and of ui-pro.
 
 - `sf-view` 1.32.0. D1: «Подгрузка» in «Настроить вид» for the table, new
@@ -33,10 +34,16 @@ Numbers are above every branch of this set and of ui-pro.
   whole list head sticks at the top of the page or of the scrolling container,
   and the table head sticks under it. VHF-13: Kanban, cards and calendar
   settings apply at once; their field list holds the view's own fields.
+  VR12A-1: under the list head «Настроить вид» also offers «Плотность»
+  (Обычная / Компактная) and «Текст в одну строку»; a setting saved there no
+  longer re-reads the list.
 - `sf-view-table` 1.31.0. VHF-14: the table head sticks by CSS, no one-frame
   lag. VHF-16: columns that do not fit keep their natural widths; the table
   moves sideways by the rail, a sideways wheel or touchpad and the keyboard
-  focus, with the box, the row menu and the name held.
+  focus, with the box, the row menu and the name held. VR12A-2: above
+  list-below a long-text column keeps about 20 characters (`--sf-measure-20`)
+  and a number or money column is never cut; where those do not fit, the
+  table scrolls sideways.
 - `sf-view-cards` 1.1.0. D3: card fields one per row, the label over the
   value, a gap after the title; `card_labels` on by default.
 

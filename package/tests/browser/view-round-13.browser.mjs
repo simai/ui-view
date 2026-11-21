@@ -31,6 +31,11 @@
 // - VHF-16: 18 columns that do not fit keep their natural widths (no cell
 //   cut: the name and the INN whole), the table goes sideways under the rail
 //   by a real sideways wheel, the box, the row menu and the name stay put.
+// - VR12A-1 (round 12 acceptance, DEV msg-7e2d384f): under the list head
+//   «Настроить вид» offers «Плотность» and «Текст в одну строку», set there
+//   by real clicks: the rows go compact and one line.
+// - VR12A-2: a fitted table in a 650 px column at 1440 keeps the comment at
+//   least --sf-measure-20 wide and the sum (sent without a type) whole.
 import {resolve, join, extname, sep} from 'node:path';
 import {existsSync, readFileSync, statSync} from 'node:fs';
 import {chromium} from 'playwright';

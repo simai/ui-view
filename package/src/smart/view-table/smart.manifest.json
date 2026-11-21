@@ -3048,7 +3048,7 @@
         "from": "1.30.0",
         "to": "1.31.0",
         "changes": [
-          "View round 13 (round/view-r13): readFittedWidths gives up fitting when the held columns alone exceed the room; syncStickyHead sets --sf-view-table--toolbar and data-sf-head-stuck instead of a transform; clipsSideways, sidewaysOffset, syncSideways set --sf-view-table--x/--sf-view-table--end on the area; syncRail drives them, adds a sideways wheel and focusin; default.css: area overflow-x clip, sticky thead under --sf-view--stuck-head, table and pinned cells translated."
+          "View round 13 (round/view-r13): readFittedWidths gives up fitting when the held columns alone exceed the room; syncStickyHead sets --sf-view-table--toolbar and data-sf-head-stuck instead of a transform; clipsSideways, sidewaysOffset, syncSideways set --sf-view-table--x/--sf-view-table--end on the area; syncRail drives them, adds a sideways wheel and focusin; default.css: area overflow-x clip, sticky thead under --sf-view--stuck-head, table and pinned cells translated. VR12A-2 readFittedWidths: floors by kind (isNumberColumn or showsNumbers keep the content width; LONG_TEXT_CELL_TYPES keep longTextFloor, --sf-measure-20 over --sf-f0)."
         ]
       }
     ]
@@ -3059,7 +3059,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-table/index.js",
-        "sha256": "d054f098e60bef88bc8e75f0f7da82b19b13d6db47422705c63a98f3c5fd7d61"
+        "sha256": "1c3931daa2ebd6a3b9d6465296393a5c10f42bfb7912345bb872a49a6a8e8c1b"
       },
       {
         "path": "src/smart/view-table/js/templates/default.js",
