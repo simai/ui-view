@@ -330,7 +330,13 @@ try {
           return {lines: Math.round(node.getBoundingClientRect().height / lh), cut: node.scrollWidth > node.clientWidth + 1 || node.scrollHeight > node.clientHeight + 1};
         };
         const titles = [...document.querySelectorAll('#t tbody td[data-sf-cell="title"] .sf-table-cell-text')].map(read);
-        titles.comment = read(document.querySelector('#t tbody tr td[data-key="note"] .sf-table-cell-clip, #t tbody tr td[data-key="note"]'));
+        // The comment's lines are its text's own line boxes (the clip is a
+        // block as tall as the row).
+        const clip = document.querySelector('#t tbody tr td[data-key="note"] .sf-table-cell-clip');
+        const range = document.createRange();
+        range.selectNodeContents(clip);
+        titles.comment = {lines: new Set([...range.getClientRects()].map((rect) => Math.round(rect.top))).size,
+          cut: clip.scrollWidth > clip.clientWidth + 1 || clip.scrollHeight > clip.clientHeight + 1};
         return {titles, comment: titles.comment};
       }).then(({titles, comment}) => Object.assign(titles, {comment}));
       const set = (value) => page.evaluate((on) => document.getElementById('t').onTableSettingChanged({detail: {id: 'singleLine', value: on}, stopPropagation() {}, preventDefault() {}}), value);
