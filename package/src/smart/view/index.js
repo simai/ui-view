@@ -907,6 +907,8 @@ class SfDataView extends DataViewElement {
         this._drawnTag ??= fromTag;
         if (written === null) this.removeAttribute("layout");
         else this.setAttribute("layout", written);
+        // The list's bar follows the kind on screen at once (one bar).
+        if (fromTag !== toTag && (this._bulkBar || this._bulkBand)) this._renderBulkBand();
         // refresh: false is for a caller that asks the host itself next.
         if (refresh && this.isConnected) this.refresh("layout-change");
         return {outcome: "applied", layout: this.layoutKind};
