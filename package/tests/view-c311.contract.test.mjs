@@ -72,8 +72,8 @@ test('tabs: a list with handles and a «⋯» each; a new tab has «Поля»; 
 });
 
 test('ports 1.19.0 (GB12), 1.20.0, 1.21.0 and 1.22.0 (GB13; C311) are accepted; the new intents only for a 1.22.0 host', () => {
-  assert.match(card, /const SUPPORTED_PORT_VERSIONS = \[[^\]]*"1\.18\.0", "1\.19\.0", "1\.20\.0", "1\.21\.0", "1\.22\.0"\];/u);
-  for (const version of ['1.19.0', '1.20.0', '1.21.0', '1.22.0']) {
+  assert.match(card, /const SUPPORTED_PORT_VERSIONS = \[[^\]]*"1\.18\.0", "1\.19\.0", "1\.20\.0", "1\.21\.0", "1\.22\.0", "1\.22\.1"\];/u);
+  for (const version of ['1.19.0', '1.20.0', '1.21.0', '1.22.0', '1.22.1']) {
     assert.ok(json('src/smart/view-properties/smart.manifest.json').composition.declarative.host_port.supported_versions.includes(version));
   }
   assert.match(card, /return major > 1 \|\| \(major === 1 && minor >= 22\);/u);

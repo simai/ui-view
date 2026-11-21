@@ -437,6 +437,15 @@
     },
     {
       "unit": "smart.view-properties",
+      "version": "1.23.7",
+      "recorded_on": "2026-11-21",
+      "change": "patch",
+      "consumer": "Nothing to change for a host. The record card accepts a simai.property-view-port 1.22.1 host: a save over a moved revision may be answered refused or conflict, both with reason revision_moved and the current revision; either way the card says so, keeps what was typed and reads the record again.",
+      "summary": "Group build 15 (ui-source integration/pair-next-17 eee1ec307, A8): SUPPORTED_PORT_VERSIONS, x-port.supports and host_port.supported_versions + 1.22.1 (no new key; a conflict answer with revision_moved was already read as a conflict); hostSpeaksCardSettings reads minor >= 22, so a 1.22.1 host keeps the card settings.",
+      "evidence": "control/evidence/2026-11-21-view-1.10.1-release/README.md"
+    },
+    {
+      "unit": "smart.view-properties",
       "version": "1.23.6",
       "recorded_on": "2026-11-21",
       "change": "patch",

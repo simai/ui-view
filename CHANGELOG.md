@@ -25,9 +25,15 @@ the bulk-actions diagram readable); the round's entries below.
 - Over the same SIMAI Framework pair `ui-b654460cad2a` (ui-source
   `049a2ba3dc7d`, npm `@simai-studio/ui@5.20261120.1816`, core.runtime
   1.64.0). The set still needs core.runtime 1.51.0 or newer.
-- `sf-view` 1.29.1, `sf-view-table` 1.29.2, `sf-view-properties` 1.23.6,
+- `sf-view` 1.29.1, `sf-view-table` 1.29.2, `sf-view-properties` 1.23.7,
   `sf-view-flow` 1.1.6, `sf-view-board` 1.1.3, `sf-view-cards` 1.0.6,
   `sf-view-calendar` 1.1.3.
+- `sf-view-properties` 1.23.7: accepts `simai.property-view-port` 1.22.1
+  (SIMAI Framework group build 15, A8: a save over a moved revision may be
+  answered refused or conflict, both with reason `revision_moved` and the
+  current revision; no new key). Either answer is a conflict to the card: it
+  says so, keeps what was typed and reads the record again. `sf-view` 1.29.1
+  already accepts `simai.dataview-port` 1.16.0.
 - `sf-view-properties` docs: the content width at compact density is 284,
   340 and 424 px, inside the drawer's 12 px gutters (was 276, 332, 416;
   DEV's R10-1, text only).
