@@ -5,6 +5,15 @@
   "entries": [
     {
       "unit": "smart.view",
+      "version": "1.33.0",
+      "recorded_on": "2026-11-22",
+      "change": "minor",
+      "consumer": "Nothing to change for a host; openCustomize() now opens «Вид». The list look is fixed (owner decision C404, 2026-11-21): the search framed, «Создать» and the data menu «⋯» (more_horiz, C407) on, the presentation strip framed with «Колонки» (a table) and «Вид» at its end; a search that does not fit takes its own full-width row. The footer is the table's last band: the range at the start, the page numbers centred, «По N» at the end, «Показать ещё» under the last row. «Вид» is SIMAI Framework sf-settings in its drill look, each row applied at once, with each display kind's own rows (C405): the table density, one line, lines between columns, «Подгрузка» and row actions; the board's lane field, empty lanes and card fields; the cards' size, field labels, «Подгрузка» (new, DEV on round 13: D1 for the cards, layouts.cards.paging) and card fields; the calendar's date and colour fields. «Настроить вид» and its «Для всех моих списков» row are gone: the person's look holds for every list of the same kind (C408; the general preference sf-view/* for the cards' and the board's own rows, sf-table/* for the table's). The table's gear above «≡» is always drawn and opens the column window, under the list head too (C406). The marks stay across pages and display kinds (LV2-2, C295, C298): a bulk action takes every mark; «Выбраны все N» carried from the table marks every card (LV2-7).",
+      "summary": "C404 fixed list look and footer grid, C405 «Вид» as the sf-settings drill menu with per-kind rows, C406 the gear always, C407 more_horiz data menu, C408 the look for every list of the kind, LV2-2 marks across pages and kinds, LV2-7 «Выбраны все N» to the cards, D1 paging for the cards",
+      "evidence": "control/evidence/2026-11-22-view-r14/README.md"
+    },
+    {
+      "unit": "smart.view",
       "version": "1.32.0",
       "recorded_on": "2026-11-21",
       "change": "minor",
@@ -266,6 +275,15 @@
     },
     {
       "unit": "smart.view-table",
+      "version": "1.32.0",
+      "recorded_on": "2026-11-22",
+      "change": "minor",
+      "consumer": "Nothing to change for a host. The gear above «≡» opens the column window; under sf-view's list head it holds the columns only (data-sf-columns-only, C406). openColumnSettings(anchor) opens the same window from elsewhere («Колонки» of the list head). The look the person sets (density, one line, lines) holds for every table (C408): setTableView keeps it in the general preference by default, the «Для всех моих списков» row is gone; view-change says everywhere.",
+      "summary": "C406 column window from the gear and openColumnSettings, C408 the look kept for every table by default",
+      "evidence": "control/evidence/2026-11-22-view-r14/README.md"
+    },
+    {
+      "unit": "smart.view-table",
       "version": "1.31.0",
       "recorded_on": "2026-11-21",
       "change": "minor",
@@ -506,6 +524,15 @@
       "consumer": "Nothing to change for a host: only the SIMAI Framework file it builds in moved with the repin.",
       "summary": "Over SIMAI Framework ui-078a4b4c6f6e (ui-source 10145e63b9dc) the Framework file it builds in, src/smart/pagination/index.js (sf-pagination 1.7: «Show more» within reach, C167; a deleting action listed last, C116), moved; the provenance and the version follow. Nothing of its own; nothing to change for a host. 1.19.7 and 1.19.8 are ui-pro's own patched copies, never this set's.",
       "evidence": "https://github.com/simai/ui-view/commit/e214dd608fdcf39cea527676fc522afd718922d4"
+    },
+    {
+      "unit": "smart.view-properties",
+      "version": "1.27.0",
+      "recorded_on": "2026-11-22",
+      "change": "minor",
+      "consumer": "Nothing to change for a host. Sections when the column does not fit (owner decision C403, 2026-11-21): a side panel draws a narrow rail of the section icons and names at the start; when the fields beside it would drop below 20rem, the panel turns into the section list, each section opening as a level with «←», as on a phone (C386). The interim tabs of C399 are gone from every side panel (sections-as tabs still draws tabs). A choice drawn as its badge sits on the label's baseline (DEV on round 13: it was 1 px above).",
+      "summary": "C403 section rail and level fallback under 20rem, the interim tabs of C399 gone, the badge row on the label's baseline",
+      "evidence": "control/evidence/2026-11-22-view-r14/README.md"
     },
     {
       "unit": "smart.view-properties",
@@ -848,6 +875,15 @@
       "consumer": "New: sf-view layout=\"board\" (or Larena's kanban) draws it; a host answers the lane window (lanes, per_lane) and settles moves.",
       "summary": "New: the board layout (owner decisions C298, C304): lanes by one field from the host's lane window, cards with up to four fields in the «Кратко» place, moves as a change of the lane field the host settles (settleMove), «Показать ещё» per lane (appendLane), soft limits, folded and hidden lanes, one lane per screen on a phone, one Tab stop with the arrows inside.",
       "evidence": "control/evidence/2026-11-18-view-r2-board"
+    },
+    {
+      "unit": "smart.view-cards",
+      "version": "1.2.0",
+      "recorded_on": "2026-11-22",
+      "change": "minor",
+      "consumer": "Nothing to change for a host. New settings keep-selection (marks of records not on screen stay; sf-view sets it, LV2-2) and all-selected (every record under the filter is marked: the cards draw marked, the bar says the total, an action asks scope all; LV2-7). The select event carries all while «Выбраны все N» holds.",
+      "summary": "keep-selection and all-selected (LV2-2, LV2-7), select carries all, apply scope all",
+      "evidence": "control/evidence/2026-11-22-view-r14/README.md"
     },
     {
       "unit": "smart.view-cards",

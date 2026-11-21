@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-table",
-  "version": "1.31.0",
+  "version": "1.32.0",
   "title": "Table",
   "summary": "Complete server-backed collection view with search, filters, table preferences, row and bulk actions, and pagination.",
   "kind": "composite",
@@ -1876,7 +1876,7 @@
       "canonical": true
     },
     "sf-view-table-view-change": {
-      "summary": "view-change (vocabulary). The table look changed (density, single line, lines): view is the whole look, everywhere true when it is kept for every list of the kind (the general personal preference; since view round 14 the default, owner decision C408), false when kept for this list alone.",
+      "summary": "The table look changed (density, single line, lines): view is the whole look, everywhere true when it is kept for every list of the kind (the general personal preference; since view round 14 the default, owner decision C408), false when kept for this list alone.",
       "payload": {
         "type": "object",
         "required": [
@@ -3052,6 +3052,13 @@
           "VR5-10 (DEV msg-b581533a): settingsColumnHasUse returns false when actions is off, or rowActions is off on a table marked data-sf-row-menu-off (sf-view writes it for a host without row-actions), and rowReorder is not on.",
           "LV2-1: readFittedWidths keeps a short column's fitted width; only long-text types shrink to the text floor."
         ]
+      },
+      {
+        "from": "1.31.0",
+        "to": "1.32.0",
+        "changes": [
+          "C406 column window from the gear and openColumnSettings, C408 the look kept for every table by default"
+        ]
       }
     ]
   },
@@ -3061,7 +3068,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-table/index.js",
-        "sha256": "d6ca15fd0f8811e0a77b9b2b08f81cd942066d7545824dab551533ba6c195494"
+        "sha256": "754a4782a3761b7433d183df6ac805c67ebb11992b6943b13c2fa1fac44ee93f"
       },
       {
         "path": "src/smart/view-table/js/templates/default.js",

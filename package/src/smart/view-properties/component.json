@@ -2,8 +2,15 @@
   "$comment": "sf-property-view from its component.json (standard simai.smart-component 1.3.8, vocabulary 1.1.5), migrated from ui-control control/smart-architecture/migration/out/property-view; every x-todo decided in x-decisions.",
   "id": "smart.view-properties",
   "tag": "sf-view-properties",
-  "version": "1.26.0",
+  "version": "1.27.0",
   "x-history": [
+    {
+      "version": "1.27.0",
+      "kind": "minor",
+      "recorded_on": "2026-11-22",
+      "consumer": "Nothing to change for a host. Sections when the column does not fit (owner decision C403, 2026-11-21): a side panel draws a narrow rail of the section icons and names at the start; when the fields beside it would drop below 20rem, the panel turns into the section list, each section opening as a level with «←», as on a phone (C386). The interim tabs of C399 are gone from every side panel (sections-as tabs still draws tabs). A choice drawn as its badge sits on the label's baseline (DEV on round 13: it was 1 px above).",
+      "evidence": "control/evidence/2026-11-22-view-r14/README.md"
+    },
     {
       "version": "1.26.0",
       "kind": "minor",
@@ -2493,6 +2500,13 @@
           "to": "1.26.0",
           "changes": [
             "View round 13 (round/view-r13): C399 sectionColumnFits: docked beside the list (_docksBesideList: docked and the dock breakpoint) the list keeps _listLeast (48rem) beside the widened card, over the list always; COLUMN_WINDOW_SHARE gone. C400 default.css: .sf-property-view-list .sf-list-description-label takes the list's font size and line, ink on-surface-variant. C401 default.js: sf-form labels start except on a phone; default.css: the edited group in the list has no frame, padding or fill and the list's row gap. C402 field-value.js: the empty value drops its utility class; default.css: .sf-property-view-empty keeps --sf-on-surface-variant (muted fails 4.5:1). docs.md says it."
+          ]
+        },
+        {
+          "from": "1.26.0",
+          "to": "1.27.0",
+          "changes": [
+            "C403 section rail and level fallback under 20rem, the interim tabs of C399 gone, the badge row on the label's baseline"
           ]
         }
       ]

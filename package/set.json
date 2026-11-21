@@ -43,6 +43,7 @@
         "cl-popover",
         "cl-radio",
         "cl-segmented",
+        "cl-settings",
         "cl-spinner",
         "cl-tabs",
         "cl-toast",

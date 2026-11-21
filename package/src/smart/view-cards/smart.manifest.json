@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-cards",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "title": "Cards",
   "summary": "The cards layout of the view set: records as cards in a grid whose columns follow its width, a cover the layout draws, a title and up to four fields in the «Кратко» place; «Показать ещё» appends the next page. sf-view layout=\"cards\" draws it where the author turned it on.",
   "kind": "smart",
@@ -483,6 +483,13 @@
         "changes": [
           "View round 13 (round/view-r13): js/cards.js cardLabels defaults to true; default.css fields one column, label over value, gaps by role (space-1/2 after the title, space-1/3 between fields); the two-column, end-aligned and phone S rules are gone; docs.md says it."
         ]
+      },
+      {
+        "from": "1.1.0",
+        "to": "1.2.0",
+        "changes": [
+          "keep-selection and all-selected (LV2-2, LV2-7), select carries all, apply scope all"
+        ]
       }
     ]
   },
@@ -492,7 +499,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-cards/index.js",
-        "sha256": "e41164f4575c0b66ec0a132c3454bdf847df80df1351d3d4de6ab573baca0594"
+        "sha256": "a814422a76b8bc4ac9ae8f9b8d4423309102b4bb7755f1f26f2b3f6f7138e418"
       },
       {
         "path": "src/smart/view-cards/js/cards.js",
@@ -500,7 +507,7 @@
       },
       {
         "path": "src/smart/view-cards/js/templates/default.js",
-        "sha256": "756fcba9329d0d162606e3fbc13d8ae67f3357d7cd4aa485ceee3bc82c03acb3"
+        "sha256": "cb7dd8f7ed5f50b1d2a98b364dbb682eb02a5889a400b78619851517e5806878"
       },
       {
         "path": "src/smart/view-cards/js/templates/default.css",

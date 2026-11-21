@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-properties",
-  "version": "1.26.0",
+  "version": "1.27.0",
   "title": "Property view",
   "summary": "One object's fields shown as sections, groups and fields, each drawn by the per-type field renderer set, behind a separate host port. A group is edited and saved as one revision by the button, and a reference field is picked from the host's own candidates a page at a time. The pair to the data view: that one is a set of records, this one is a single object.",
   "kind": "composite",
@@ -2040,6 +2040,13 @@
         "changes": [
           "View round 13 (round/view-r13): C399 sectionColumnFits: docked beside the list (_docksBesideList: docked and the dock breakpoint) the list keeps _listLeast (48rem) beside the widened card, over the list always; COLUMN_WINDOW_SHARE gone. C400 default.css: .sf-property-view-list .sf-list-description-label takes the list's font size and line, ink on-surface-variant. C401 default.js: sf-form labels start except on a phone; default.css: the edited group in the list has no frame, padding or fill and the list's row gap. C402 field-value.js: the empty value drops its utility class; default.css: .sf-property-view-empty keeps --sf-on-surface-variant (muted fails 4.5:1). docs.md says it."
         ]
+      },
+      {
+        "from": "1.26.0",
+        "to": "1.27.0",
+        "changes": [
+          "C403 section rail and level fallback under 20rem, the interim tabs of C399 gone, the badge row on the label's baseline"
+        ]
       }
     ]
   },
@@ -2049,15 +2056,15 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-properties/index.js",
-        "sha256": "8b58e9c607ed0a92b3af4f07bf60f7cebd696b0eef188d34dd297ca11112c461"
+        "sha256": "3c3711c27a042c0cac36c6bef716cc60a4e6992cbfe32b7a9ac1cea480bd91bf"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.js",
-        "sha256": "51d1b2de2f8df1eea0f85eb1007b911ce74138a54cbb14462a2b9f4e5dcefc3b"
+        "sha256": "285781cbb1e48f0922fccbab38a6219b83f65646a5c56feaaa2bda5c6df14535"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.css",
-        "sha256": "111d8920f05dc8fcaeb61c71082daafc0e7c8b657884a7b47ab93c5b8bae08db"
+        "sha256": "b78b69f2c22ed19fc9f7e46a96def31109a8ee1c849f7439773533b74d707087"
       },
       {
         "path": "src/smart/view-properties/js/conditions.js",

@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view",
-  "version": "1.32.0",
+  "version": "1.33.0",
   "title": "Data view",
   "summary": "Host-driven data view that composes toolbar, content and pagination around a separate data port.",
   "kind": "composite",
@@ -44,6 +44,7 @@
       "smart.popover",
       "smart.radio",
       "smart.segmented",
+      "smart.settings",
       "smart.spinner",
       "smart.tabs",
       "smart.toast",
@@ -1987,6 +1988,13 @@
           "VR5-10 index.js: the projection writes data-sf-row-menu-off on the table when a known host offers no row-actions (_rowMenuOff); the first paint leaves the «≡» column out where the known host gives it nothing to open (_settingsColumnUnused: no row-actions, no personal-column-settings outside the list head, no row-reorder).",
           "LV2-6: layout cards get the list's page row (pagination by default, the footer range, a page size chosen there kept for the cards); the cards' grid no longer offers its own more button while the row is drawn. LV2-8: switchLayout opens the new kind on the page holding the record first on screen, held over switches back and forth until the next query change; the head's kind switch no longer resets the page to 1."
         ]
+      },
+      {
+        "from": "1.32.0",
+        "to": "1.33.0",
+        "changes": [
+          "C404 fixed list look and footer grid, C405 «Вид» as the sf-settings drill menu with per-kind rows, C406 the gear always, C407 more_horiz data menu, C408 the look for every list of the kind, LV2-2 marks across pages and kinds, LV2-7 «Выбраны все N» to the cards, D1 paging for the cards"
+        ]
       }
     ]
   },
@@ -1996,7 +2004,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view/index.js",
-        "sha256": "f1b84c049d8c3975df76b80a0e44bcb6a0430d2844dfcd904c4ea3252f64009a"
+        "sha256": "070cccd072248e43d9226787305706c44843eb7538fb7d3811a83aae7df3c14a"
       },
       {
         "path": "src/core/contracts/ports/simai.dataview-port/1.5.0/port.json",
@@ -2016,11 +2024,11 @@
       },
       {
         "path": "src/smart/view/js/first-paint.css",
-        "sha256": "1328436385e46f08b37db3728660124736fb2b248338627bf951c49b85b6db1e"
+        "sha256": "5f259dd9282377ebf8c8a13926cd8694cfa2b1b6319803955801e6840afede2f"
       },
       {
         "path": "src/smart/view/js/cards.js",
-        "sha256": "4dc33c756fd743b91ca21f995cae00b10fc2dcfb48a34619b08b8f376760d9df"
+        "sha256": "8c00bfce557b49ed7060c19ca314ba156cb56f052484f159bc916498bd537ee9"
       }
     ],
     "generated_runtime": []
