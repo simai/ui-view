@@ -1752,8 +1752,13 @@ class SfDataView extends DataViewElement {
         const toolbar = !this.listHead && (table ? table.getAttribute("toolbar") !== "false" : this.renders("toolbar"));
         const headRows = this.listHead && this.renders("toolbar");
         const ownToolbar = Boolean(table) && this.renders("toolbar") && Boolean(this.querySelector(':scope > [slot="toolbar"]'));
-        const select = this.selects() && !hostWroteOff(table, "selectable");
-        const settings = this.renders("settings") && !hostWroteOff(table, "settings");
+        // The host's word is read before the view writes its own (round 12): a
+        // list drawn before its bulk actions arrive writes selectable="false",
+        // which read later as the host's would keep the boxes off for good.
+        const hostOffSelect = hostWroteOff(table, "selectable");
+        const select = !hostOffSelect && this.selects();
+        const hostOffSettings = hostWroteOff(table, "settings");
+        const settings = !hostOffSettings && this.renders("settings");
         const layout = this._firstPaintLayout(table);
         // The saved-views control (the filter's bookmark segment), when the
         // page declared it before the first answer -- a data-sf-port that
@@ -3392,7 +3397,8 @@ class SfDataView extends DataViewElement {
             // A table written selectable="false" came back selectable="true" and
             // drew a box in every row of a list that has no bulk actions (Larena,
             // the sites list, 2026-11-05).
-            table.setAttribute("selectable", this.selects() && !refused && !hostWroteOff(table, "selectable") ? "true" : "false");
+            const hostOffSelect = hostWroteOff(table, "selectable");
+            table.setAttribute("selectable", !hostOffSelect && this.selects() && !refused ? "true" : "false");
             // A page's list becomes the compact list on a narrow container; an
             // embedded one (no toolbar) stays a table, and a layout the host
             // wrote on its table is the host's.
@@ -3413,7 +3419,8 @@ class SfDataView extends DataViewElement {
             if (this.controlSize) table.setAttribute("size", this.controlSize);
             else table.removeAttribute?.("size");
             this._tableScrollMode(table);
-            table.setAttribute("settings", this.renders("settings") && !hostWroteOff(table, "settings") ? "true" : "false");
+            const hostOffSettings = hostWroteOff(table, "settings");
+            table.setAttribute("settings", !hostOffSettings && this.renders("settings") ? "true" : "false");
             // The column settings, without the column: it also carries each
             // row's menu, which is the host's row-actions, not this.
             // No gear in the table head under the list head: the view settings
