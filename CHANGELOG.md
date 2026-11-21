@@ -16,6 +16,32 @@ same numbers with other content); every next set version is above them
 up). Each component.json says the same under `x-decisions`
 `pro-copy-versions`.
 
+## Unreleased — view round 12
+
+View round 12 (round/view-r12, from `round/view-r11` 9609c88), candidate
+1.10.3 over the same pair `ui-b654460cad2a`; the list head and footer study,
+round 2 (DEV msg-7d2d0c1e, returns VHF-3..7).
+
+- `sf-view` 1.30.1 (VHF-3): when the search, «Создать» and «⋯» wrap under the
+  filter fields, their line starts at the row's start (it stood at the row's
+  end, the start of the line empty). VHF-5: the head answers to the width the
+  list has, not to the view's box: a record card docked beside the list pads
+  the view by its own width, and below 600 px of what is left the head is the
+  phone head, together with the table's list rows (it stayed the desktop head
+  over list rows). The step itself is unchanged (a «phone under 48rem beside
+  the card» step waits for the owner).
+- `sf-view-table` 1.29.4 (VHF-4): «Текст в одну строку» shows: off, the
+  record's name takes its two lines (C146 (7)) in a fitted column too; on, one
+  line with «…». The default is unchanged. Columns that do not fit give the
+  room from the widest first, down to one common width: a short name such as
+  «Заказ №2001» stays whole beside a long client or comment (it was cut to
+  «Заказ №20…»).
+- `sf-view-properties` 1.23.10 (VHF-7): under the title the stage badge keeps
+  its whole word; the fields after it end in «…» (it was «Отправ…»). VHF-6: a
+  card in place ends that line with its «⋯» instead of a row of its own above
+  it.
+- Browser probe view-round-12 (all five, red on 9609c88).
+
 ## Unreleased — view round 11
 
 View round 11 (round/view-r11, from `main` 0c1b7ec with DEV's site branch

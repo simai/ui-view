@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-table",
-  "version": "1.29.3",
+  "version": "1.29.4",
   "title": "Table",
   "summary": "Complete server-backed collection view with search, filters, table preferences, row and bulk actions, and pagination.",
   "kind": "composite",
@@ -3029,6 +3029,13 @@
         "changes": [
           "View round 11 (round/view-r11), VR11-2 (DEV msg-239b481d, study VHF-1): templates/default.css: data-sf-view-density compact and spacious set the row's block-size one rung down or up (compact --sf-ui-1/2--control-height, size 1/2 --sf-ui-1/3--control-height; spacious --sf-ui-2--control-height, size 1/2 --sf-ui-1--control-height) on rows without a two-line title, in place of cell block padding. Browser probe table-density-rows (real clicks on the gear's «Вид» rows)."
         ]
+      },
+      {
+        "from": "1.29.3",
+        "to": "1.29.4",
+        "changes": [
+          "View round 12 (round/view-r12), VHF-4: index.js readFittedWidths shrinks the flexible columns to one level (fittingLevel, widest first) in place of a proportional share; templates/default.css: in a fitted table without data-sf-view-single-line the title cell wraps and keeps its line clamp (two), and data-sf-view-single-line sets the title's clamp to one. docs/docs.md says it."
+        ]
       }
     ]
   },
@@ -3038,7 +3045,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-table/index.js",
-        "sha256": "d7a0de20e16085a1f2efbac05c8918618f0ac7d41c630b013eaf36b756715ed1"
+        "sha256": "76a71e93853fece67af4643d3ad19d117e8ba9545cb172c112d23200075c890b"
       },
       {
         "path": "src/smart/view-table/js/templates/default.js",
@@ -3046,7 +3053,7 @@
       },
       {
         "path": "src/smart/view-table/js/templates/default.css",
-        "sha256": "e169322d2218fa777a5ab5a6f8fcb2c0f3c1fccd3d27d8d9ab2e1230a22d3040"
+        "sha256": "317b0cfd395e97da83edc28417f10a356c3a45f3cc45219c8e3b0b65c7d49203"
       },
       {
         "path": "src/smart/helpers/option-badge.js",

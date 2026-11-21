@@ -5,6 +5,15 @@
   "entries": [
     {
       "unit": "smart.view",
+      "version": "1.30.1",
+      "recorded_on": "2026-11-21",
+      "change": "patch",
+      "consumer": "Nothing to change for a host. The list head answers to the width the list has: a record card docked beside the list (data-sf-drawer-dock-host pads the view) leaves less, and below 600 px of it the head is the phone head, as the table already turns into list rows there (it stayed the desktop head over list rows). When the search, «Создать» and «⋯» wrap onto a line of their own under the filter fields, that line starts at the row's start (it stood at the row's end with the start of the line empty).",
+      "summary": "View round 12 (round/view-r12): VHF-3 js/head.css: .sf-view-head-end has no auto start margin (the growing start holds it at the row's end on one line; wrapped, it starts its line); .sf-view-head-title-end keeps its own. VHF-5 js/head.js: _measure reads the view's content box (contentWidth: the border box less the inline padding and borders) instead of its border box. docs.md says both.",
+      "evidence": "control/evidence/2026-11-21-view-r12/README.md"
+    },
+    {
+      "unit": "smart.view",
       "version": "1.30.0",
       "recorded_on": "2026-11-21",
       "change": "minor",
@@ -239,6 +248,15 @@
     },
     {
       "unit": "smart.view-table",
+      "version": "1.29.4",
+      "recorded_on": "2026-11-21",
+      "change": "patch",
+      "consumer": "Nothing to change for a host. «Текст в одну строку» (the gear's «Вид», view preference singleLine) now shows: off, the record's name takes its two lines (C146 (7)) in a fitted column too; on, it is one line with «…», as every other cell. A table whose columns do not fit at their content widths takes the room from the widest columns first, down to one common width, never below a column's least width: a short name such as «Заказ №2001» stays whole beside a long client or comment (it was cut to «Заказ №20…» while every column gave in proportion).",
+      "summary": "View round 12 (round/view-r12), VHF-4: index.js readFittedWidths shrinks the flexible columns to one level (fittingLevel, widest first) in place of a proportional share; templates/default.css: in a fitted table without data-sf-view-single-line the title cell wraps and keeps its line clamp (two), and data-sf-view-single-line sets the title's clamp to one. docs/docs.md says it.",
+      "evidence": "control/evidence/2026-11-21-view-r12/README.md"
+    },
+    {
+      "unit": "smart.view-table",
       "version": "1.29.3",
       "recorded_on": "2026-11-21",
       "change": "patch",
@@ -452,6 +470,15 @@
       "consumer": "Nothing to change for a host: only the SIMAI Framework file it builds in moved with the repin.",
       "summary": "Over SIMAI Framework ui-078a4b4c6f6e (ui-source 10145e63b9dc) the Framework file it builds in, src/smart/pagination/index.js (sf-pagination 1.7: «Show more» within reach, C167; a deleting action listed last, C116), moved; the provenance and the version follow. Nothing of its own; nothing to change for a host. 1.19.7 and 1.19.8 are ui-pro's own patched copies, never this set's.",
       "evidence": "https://github.com/simai/ui-view/commit/e214dd608fdcf39cea527676fc522afd718922d4"
+    },
+    {
+      "unit": "smart.view-properties",
+      "version": "1.23.10",
+      "recorded_on": "2026-11-21",
+      "change": "patch",
+      "consumer": "Nothing to change for a host. Under the record's title the stage badge keeps its whole word and the fields after it give way and end in «…» (a long client name squeezed the badge to «Отправ…»). A card in place (no panel) ends that line with its actions («⋯» and the host's slot actions) instead of a row of their own above it; without a stage line the actions keep their row.",
+      "summary": "View round 12 (round/view-r12): VHF-7 templates/default.css: the head line's sf-badge and its box do not shrink, the subtitle is flex 0 1 auto; VHF-6 templates/default.js: renderHeadLine(context, end) draws the in-place actions (inPlaceActions) at the end of the line (.sf-property-view-head-line-end), the host-actions row only where there is no line (headLineDrawn). docs.md says it. Test view-c311 reads the new signature.",
+      "evidence": "control/evidence/2026-11-21-view-r12/README.md"
     },
     {
       "unit": "smart.view-properties",

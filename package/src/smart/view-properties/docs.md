@@ -428,7 +428,9 @@ and the record page.
 - The head: under the title the stage (a choice field) as a tonal badge and up
   to two fields joined by « · » (`view.head {subtitle[], status}`, written in
   the layer's `head`). An admin picks them from a field's «⋯»: «Показать в
-  шапке», «Стадией в шапке».
+  шапке», «Стадией в шапке». The stage keeps its whole word; the fields after
+  it give way and end in «…» (since 1.23.10). A card in place (no panel) has
+  no title row of its own, so its «⋯» ends this line.
 - The mode: over the fields the profile picker and one line that says where an
   edit goes; «Вкладки» with handles, each with a «⋯» (name, icon, up, down,
   hide, delete -- its fields go to «Скрытые поля» --, lock); «+ Вкладка»

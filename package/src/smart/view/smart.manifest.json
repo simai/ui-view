@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view",
-  "version": "1.30.0",
+  "version": "1.30.1",
   "title": "Data view",
   "summary": "Host-driven data view that composes toolbar, content and pagination around a separate data port.",
   "kind": "composite",
@@ -1950,6 +1950,13 @@
         "changes": [
           "View round 11 (round/view-r11): index.js firstPaintRows caps the skeleton's rows by the printed page row's total from its current page (_printedRecordsLeft); listShape reads list-shape (the view, else its table) and _firstPaintMarkup draws each part as its lines ([data-lines]) or the resource row ([data-resource], the title and supporting lines on --sf-ui-2/3--control-height, the list's quarter-step padding and hairline gap); first-paint.css carries those rules; pageLayoutKind keeps the layout the page wrote at connect; head.js storedKind is the kind a system view naming no layout stands for (viewKind), and _openSavedView no longer remembers the shown kind as that view's. component.json, smart.manifest.json and docs.md declare list-shape."
         ]
+      },
+      {
+        "from": "1.30.0",
+        "to": "1.30.1",
+        "changes": [
+          "View round 12 (round/view-r12): VHF-3 js/head.css: .sf-view-head-end has no auto start margin (the growing start holds it at the row's end on one line; wrapped, it starts its line); .sf-view-head-title-end keeps its own. VHF-5 js/head.js: _measure reads the view's content box (contentWidth: the border box less the inline padding and borders) instead of its border box. docs.md says both."
+        ]
       }
     ]
   },
@@ -1967,7 +1974,7 @@
       },
       {
         "path": "src/smart/view/docs.md",
-        "sha256": "9228a81373ab1c7bc58629212059db61feac7d6d7159d0d74e58f7012b06cb22"
+        "sha256": "e4b725b22eb43a064db84aab04b3c6f85312ffdfdb20303d47e79783e6014e92"
       },
       {
         "path": "tests/fixtures/data-view-composite-lab.html",

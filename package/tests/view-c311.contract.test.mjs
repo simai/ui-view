@@ -48,7 +48,7 @@ test('the profile in the picker only (RC-6); one way to hide (RC-7); no template
 });
 
 test('the head line: the stage badge and up to two fields (RC-8)', () => {
-  assert.match(template, /function renderHeadLine\(context\) \{/u);
+  assert.match(template, /function renderHeadLine\(context, end = nothing\) \{/u);
   assert.match(template, /<sf-badge size="1\/2" appearance="tonal" scheme=\$\{line\.status\.scheme\}/u);
   assert.match(card, /toggleHeadSubtitle\(fieldKey\) \{/u);
   assert.match(card, /\.slice\(-2\);/u);

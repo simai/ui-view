@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-properties",
-  "version": "1.23.9",
+  "version": "1.23.10",
   "title": "Property view",
   "summary": "One object's fields shown as sections, groups and fields, each drawn by the per-type field renderer set, behind a separate host port. A group is edited and saved as one revision by the button, and a reference field is picked from the host's own candidates a page at a time. The pair to the data view: that one is a set of records, this one is a single object.",
   "kind": "composite",
@@ -2026,6 +2026,13 @@
         "changes": [
           "View round 11 (round/view-r11): VR11-1 index.js sectionColumnFits (one owner of the section column: panel below full needs sf-tabs with a fold property, tabsHoldColumn, and the widened panel within COLUMN_WINDOW_SHARE 0.6 of the window, _widenedPanelWidth; whole screen and in place unless _columnFolded), read by panelWidened and sectionsLayout; _checkSectionColumn after every render and every render of the column's sf-tabs lays tabs on top when the column's tablist is horizontal, _onColumnResize tries the column again past that width; templates/default.js writes fold=\"never\" on the column's sf-tabs where it is declared. The whole-record save's conflict branch calls _rereadAfterConflict (simai/ui-pro 316ee37). Browser probes property-view-section-column and property-view-revision-moved (simai/ui-pro 93f6675)."
         ]
+      },
+      {
+        "from": "1.23.9",
+        "to": "1.23.10",
+        "changes": [
+          "View round 12 (round/view-r12): VHF-7 templates/default.css: the head line's sf-badge and its box do not shrink, the subtitle is flex 0 1 auto; VHF-6 templates/default.js: renderHeadLine(context, end) draws the in-place actions (inPlaceActions) at the end of the line (.sf-property-view-head-line-end), the host-actions row only where there is no line (headLineDrawn). docs.md says it. Test view-c311 reads the new signature."
+        ]
       }
     ]
   },
@@ -2039,11 +2046,11 @@
       },
       {
         "path": "src/smart/view-properties/js/templates/default.js",
-        "sha256": "206ad290b078cc19e56a315dbe8b0ce8dd7b9700a5268c37089097b906f2979e"
+        "sha256": "35c5b4200ac3d6ba42ba0c4d3f1688e1b30296381bd0160a39c8da3720dc15a5"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.css",
-        "sha256": "db01221ec3ec89bcd52c701d8a2506663e81adc8789f54f168e27ec66a119f3b"
+        "sha256": "be947371e91f53cd92b22473d49bf480e7682ed8f523aaac333b3694493f58b3"
       },
       {
         "path": "src/smart/view-properties/js/conditions.js",
@@ -2095,7 +2102,7 @@
       },
       {
         "path": "src/smart/view-properties/docs.md",
-        "sha256": "1f7be2134e036c82e982b20d4f3ad0c42ffcf8dd6469a348adc7b3133ff3115d"
+        "sha256": "fff732f67a7d21845873b2086dbde8a0385dcf07625b4186448e81564169a4be"
       }
     ],
     "generated_runtime": []
