@@ -61,7 +61,8 @@ export function cardsOptions(options = {}, fields = []) {
         cover: {fit, ratio},
         titleField,
         cardFields,
-        cardLabels: given.card_labels === true,
+        // Labels over their values unless the view turns them off (D3).
+        cardLabels: given.card_labels !== false,
         size: SIZES.includes(String(given.size)) ? String(given.size) : "m",
         density: given.density === "compact" ? "compact" : "default",
         // Only «Показать ещё» is drawn (C306); a written pages is kept for

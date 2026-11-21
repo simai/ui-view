@@ -187,9 +187,15 @@ const TABLE_TOOLBAR_TEXT = {
 // board and cards say their count in the same words (view round 7), read
 // under sf-pagination, so words a product registers for it reach them too.
 const PAGINATION_RANGE_TEXT = {
-    en: Object.fromEntries(["range", "range-many", "page-size-text", "page-size-label"].map((key) => [key, paginationEn.runtime[key]])),
-    ru: Object.fromEntries(["range", "range-many", "page-size-text", "page-size-label"].map((key) => [key, paginationRu.runtime[key]])),
+    en: Object.fromEntries(["range", "range-many", "page-size-text", "page-size-label", "show-more-count", "show-more-text"].map((key) => [key, paginationEn.runtime[key]])),
+    ru: Object.fromEntries(["range", "range-many", "page-size-text", "page-size-label", "show-more-count", "show-more-text"].map((key) => [key, paginationRu.runtime[key]])),
 };
+// How a table's list goes on past its first page (owner decision D1,
+// 2026-11-21): «Страницами» (pages), «Показать ещё» alone (more), both --
+// the button under the last row and the page numbers below it -- (both, the
+// default), or by itself as the person scrolls (endless).
+const VIEW_PAGING = ["pages", "more", "both", "endless"];
+const VIEW_PAGING_DEFAULT = "both";
 const escapeText = (text) => String(text).replace(/[&<>"]/gu, (letter) => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"})[letter]);
 
 // The parts this element draws itself and a consumer can leave out. `status` is
@@ -344,6 +350,22 @@ class SfDataView extends DataViewElement {
           <style>
             :host { display: block; }
             [part="layout"] { display: grid; gap: var(--sf-data-view-gap, var(--sf-space-3)); }
+            /* The list head holds the top while the list scrolls (C328; view
+               round 13, VHF-15): the search, the filter fields and the view's
+               strip stay, the title row leaves (--sf-view--head-offset is
+               minus its height and the gap under it, measured by js/head.js).
+               The table's head sticks right under it (--sf-view--stuck-head,
+               the part of the head that stays). In the page or in a scrolling
+               box around the view alike: a sticky part binds to the nearest
+               scroll container. A view without the list head says 0, so a
+               list inside another view's record card is not pushed down. */
+            :host { --sf-view--stuck-head: 0px; }
+            :host([head="list"]) [part="head"] {
+              position: sticky;
+              inset-block-start: var(--sf-view--head-offset, 0px);
+              z-index: var(--sf-z-index-2, 20);
+              background-color: var(--sf-view-head--background-color, var(--sf-surface-page));
+            }
             [part="toolbar"] { display: flex; flex-wrap: wrap; gap: var(--sf-data-view-toolbar-gap, var(--sf-space-2)); }
             /* Hidden means hidden: the toolbar's own display beat the hidden
                attribute, and a related list in a record panel (chrome="")
@@ -436,6 +458,16 @@ class SfDataView extends DataViewElement {
                (data-sf-view-footer-count, view round 7). */
             :host(:not([data-sf-view-footer-count])) [part="footer"]:has(> slot[name="pagination"][hidden]) { display: none; }
             slot[name="footer"]::slotted(*) { flex: 1 1 auto; min-inline-size: 0; }
+            /* «Показать ещё» right under the last row, across the list (D1):
+               half a space step under the rows, not the layout's gap. The page
+               numbers stay in the footer below it («Вместе»), or go («Показать
+               ещё», «Бесконечно»). */
+            slot[name="more"]::slotted(*) {
+              margin-block-start: calc(-1 * var(--sf-data-view-gap, var(--sf-space-3)));
+              padding-block: var(--sf-space-1\\/2);
+            }
+            slot[name="more"]::slotted([hidden]) { display: none; }
+            slot[name="pagination"]::slotted([data-sf-view-paging-off]) { display: none; }
             slot[name="pagination"]::slotted(*) { margin-inline-start: auto; }
           </style>
           <slot name="first-paint"></slot>
@@ -453,6 +485,7 @@ class SfDataView extends DataViewElement {
             <div part="drop" hidden></div>
             <slot name="content"></slot>
             <slot name="show-all"></slot>
+            <slot name="more"></slot>
             <div part="footer"><slot name="footer"></slot><slot name="pagination"></slot></div>
             <slot name="bulk"></slot>
             <slot name="notice"></slot>
@@ -937,6 +970,34 @@ class SfDataView extends DataViewElement {
         if (answered) this._carrySelection = null;
     }
 
+    // What the person changed in «Настроить вид» for a board, the cards or
+    // the calendar (the list head's own settings, saved for them at once,
+    // C298): laid over the layout's options the host answers, so they show
+    // at once and stay through the next answer that does not echo them yet
+    // (view round 13, VHF-13).
+    ownLayoutSettings(kind) {
+        const own = this._head?._settings?.[kind];
+        return own && typeof own === "object" ? copy(own) : {};
+    }
+
+    // A layout setting changed in «Настроить вид» (VHF-13): drawn at once. A
+    // board's lane field and a calendar's date field change what is asked, so
+    // the list is asked again; the rest (card fields, empty lanes, the card
+    // size, the colour field) is drawn from what is on screen.
+    applyLayoutSettings(kind, patch = {}) {
+        if (!["board", "cards", "calendar"].includes(kind) || !patch || typeof patch !== "object") return;
+        if (kind !== this.layoutKind) return;
+        // The board asks with its new lane field and draws the lanes when they
+        // come; the calendar takes its new date field first, since the days
+        // it asks for are its own window.
+        if (kind === "board" && "lane_field" in patch) {
+            this.refresh("settings-change");
+            return;
+        }
+        this._renderProjection();
+        if (kind === "calendar" && "date_field" in patch) this.refresh("settings-change");
+    }
+
     get board() {
         const slot = this.shadowRoot?.querySelector('slot[name="content"]');
         return slot?.assignedElements?.().find((element) => isTag(element, "sf-view-board"))
@@ -1181,13 +1242,13 @@ class SfDataView extends DataViewElement {
     }
 
     _drawFooter() {
-        if (this._drawCountFooter()) return;
+        if (this._drawCountFooter()) return this._drawMore(null);
         const pagination = this.pagination;
         // Drawn from the page row's own reading of its state, so not before
         // the row is an sf-pagination (its module may still be on the way).
         if (!pagination || typeof pagination.setState !== "function" || typeof pagination.requestCount !== "function"
-            || !this.renders("pagination")) return;
-        if (!this.footerStart) return;
+            || !this.renders("pagination")) return this._drawMore(null);
+        if (!this.footerStart) return this._drawMore(null);
         this._footerStart.hidden = false;
         const part = (name) => this._footerParts?.[name] ?? null;
         const size = this.controlSize;
@@ -1203,8 +1264,15 @@ class SfDataView extends DataViewElement {
         // The «Показать ещё» look grows the list page by page: the range is
         // all the rows on screen, «1–12 из 12», not the page that came last
         // («11–12 из 12» beside «Показано 12 из 12», view round 5 R5-4).
-        const growing = pagination.getAttribute?.("appearance") === "more" && (this.records ?? []).length > 0;
-        const text = growing ? this._shownRangeText() : (pagination.rangeText ?? "");
+        const paging = this._viewPaging();
+        const growing = (pagination.getAttribute?.("appearance") === "more" || (paging !== null && paging !== "pages"))
+            && (this.records ?? []).length > 0;
+        const text = growing ? this._shownRangeText(paging === null ? 1 : this._runFrom()) : (pagination.rangeText ?? "");
+        // The page numbers go where the list goes on by «Показать ещё» alone
+        // or by itself (D1); «Вместе» and «Страницами» keep them.
+        const off = paging === "more" || paging === "endless";
+        if (pagination.hasAttribute("data-sf-view-paging-off") !== off) pagination.toggleAttribute("data-sf-view-paging-off", off);
+        this._drawMore(paging);
         if (range && range.textContent !== text) range.textContent = text;
         // «41–60 из ~450» or «из многих»: the offer to count, where the host
         // counts on request, and a short wait while it does (as the
@@ -1274,13 +1342,138 @@ class SfDataView extends DataViewElement {
 
     // «1–N из M»: the records on screen of all the host counted, in the
     // page row's words (a board, cards, and the «Показать ещё» look).
-    _shownRangeText() {
+    _shownRangeText(from = 1) {
         const shown = (this.records ?? []).length;
+        const to = from - 1 + shown;
         const words = {component: "sf-pagination"};
         const known = this.countKnown !== false && Number.isSafeInteger(this.total);
         return known
-            ? pageWord(PAGINATION_RANGE_TEXT, "range", this, {...words, vars: {from: 1, to: shown, total: this._shownTotal(Math.max(this.total, shown))}})
-            : pageWord(PAGINATION_RANGE_TEXT, "range-many", this, {...words, vars: {from: 1, to: shown}});
+            ? pageWord(PAGINATION_RANGE_TEXT, "range", this, {...words, vars: {from, to, total: this._shownTotal(Math.max(this.total, to))}})
+            : pageWord(PAGINATION_RANGE_TEXT, "range-many", this, {...words, vars: {from, to}});
+    }
+
+    // ---------- going on past the first page (owner decision D1) ----------
+
+    // How the table's list goes on: the person's choice in «Настроить вид»
+    // (the view's layouts.table.paging, saved for them), else the view's
+    // document, else what this browser kept, else the page's paging
+    // attribute, else «Вместе».
+    get paging() {
+        const valid = (value) => (VIEW_PAGING.includes(String(value)) ? String(value) : null);
+        return valid(this._head?._settings?.table?.paging)
+            ?? valid(this.viewConfig?.layouts?.table?.paging)
+            ?? valid(this.preferencesKey ? preferences()?.read(this.preferencesKey)?.paging : null)
+            ?? valid(this.getAttribute("paging"))
+            ?? VIEW_PAGING_DEFAULT;
+    }
+
+    // Whether the view chooses how the table goes on: its own page row, or
+    // one the page wrote without an appearance. A page row the page gave an
+    // appearance of its own is the page's choice, and the view leaves it.
+    get pagingOffered() {
+        const row = this.pagination;
+        if (!row || this.layoutKind !== "table") return false;
+        return !row.hasAttribute("appearance") || row.hasAttribute("data-sf-view-appearance")
+            || row.hasAttribute("data-sf-view-made") || row.hasAttribute("data-sf-view-default");
+    }
+
+    // The paging in force on a table list, or null where the page row is the
+    // page's own (or there is no table list: a tree has no pages).
+    _viewPaging() {
+        if (!this.pagingOffered || this.treeMode === "tree") return null;
+        return this.paging;
+    }
+
+    // The first record's number on screen: the page the rows start from.
+    _runFrom() {
+        const size = Number(this.query.per_page) || VIEW_DEFAULT_PAGE_SIZE;
+        return ((Number(this._runStart) || 1) - 1) * size + 1;
+    }
+
+    // Whether the host has more past the rows on screen.
+    _hasMoreRows() {
+        const shown = this._runFrom() - 1 + (this.records ?? []).length;
+        if (this.countKnown !== false && Number.isSafeInteger(this.total)) return shown < this.total;
+        return this.hasNext === true;
+    }
+
+    // A paging the person chose (D1): kept in this browser for the first
+    // paint (the view's document comes with the answer), then drawn.
+    applyPaging(value) {
+        if (!VIEW_PAGING.includes(String(value))) return;
+        if (this.preferencesKey) this._keepPreference({paging: String(value)});
+        this._endlessArmed = false;
+        this._queueFooter();
+    }
+
+    // «Показать ещё N» across the list, right under its last row (D1): in
+    // «Вместе» above the page numbers, alone in «Показать ещё», and in
+    // «Бесконечно» the button the list loads by itself from as a person's
+    // scroll brings it into view (never on load by itself), kept for the
+    // keyboard. The next page is asked with the reason show-more and appended
+    // to the rows (the view has always appended it).
+    _drawMore(paging = this._viewPaging()) {
+        const existing = this.querySelector(':scope > [slot="more"][data-sf-view-made]');
+        const state = this.getAttribute("data-state") ?? "";
+        const show = paging !== null && paging !== "pages" && this._answered && !this._queryRefused
+            && !["error", "no-access"].includes(state) && (this.records ?? []).length > 0 && this._hasMoreRows();
+        if (!show) {
+            if (existing) existing.hidden = true;
+            this._endlessObserver?.disconnect();
+            return;
+        }
+        let holder = existing;
+        if (!holder) {
+            holder = document.createElement("div");
+            holder.setAttribute("slot", "more");
+            holder.setAttribute("data-sf-view-made", "");
+            holder.className = "sf-view-more";
+            holder.innerHTML = '<sf-button class="sf-view-more-button" full-width appearance="outline" scheme="on-surface"></sf-button>';
+            holder.firstElementChild.addEventListener("click", () => this._showMore());
+            this.append(holder);
+        }
+        holder.hidden = false;
+        const button = holder.firstElementChild;
+        const size = this.controlSize;
+        if (size) button.setAttribute("size", size);
+        else button.removeAttribute("size");
+        const perPage = Number(this.query.per_page) || VIEW_DEFAULT_PAGE_SIZE;
+        const known = this.countKnown !== false && Number.isSafeInteger(this.total);
+        const left = known ? this.total - (this._runFrom() - 1 + (this.records ?? []).length) : perPage;
+        const words = {component: "sf-pagination"};
+        const text = pageWord(PAGINATION_RANGE_TEXT, "show-more-count", this, {...words, vars: {count: Math.max(1, Math.min(perPage, left))}});
+        if (button.getAttribute("text") !== text) button.setAttribute("text", text);
+        const busy = this.continuing && this.pending !== null;
+        button.toggleAttribute("loading", busy);
+        button.toggleAttribute("disabled", busy);
+        if (paging === "endless") this._watchEndless(holder);
+        else this._endlessObserver?.disconnect();
+    }
+
+    _showMore() {
+        if (this.continuing && this.pending !== null) return;
+        this.changeQuery({page: (Number(this.query.page) || 1) + 1}, "show-more");
+        this._queueFooter();
+    }
+
+    // «Бесконечно»: the next page when the button comes into view after a
+    // scroll of the person's -- a list that fits the window does not load
+    // page after page by itself.
+    _watchEndless(holder) {
+        if (typeof IntersectionObserver === "undefined") return;
+        if (!this._endlessScroll) {
+            this._endlessScroll = () => { this._endlessArmed = true; };
+            globalThis.addEventListener?.("scroll", this._endlessScroll, {capture: true, passive: true});
+        }
+        if (this._endlessWatched === holder && this._endlessObserver) return;
+        this._endlessObserver?.disconnect();
+        this._endlessWatched = holder;
+        this._endlessObserver = new IntersectionObserver((entries) => {
+            if (!entries.some((entry) => entry.isIntersecting) || !this._endlessArmed || this._viewPaging() !== "endless") return;
+            this._endlessArmed = false;
+            this._showMore();
+        });
+        this._endlessObserver.observe(holder);
     }
 
     // The menu of page sizes is made when it is first opened: a list nobody
@@ -1528,6 +1721,16 @@ class SfDataView extends DataViewElement {
     // that says nothing of its count draws no arrows, so the skeleton prints
     // none either; a list of several pages the page wrote the count of keeps
     // their line from the first paint.
+    // The paging the first paint draws (D1): as the live footer will, for
+    // the page row the page wrote (or the view's own), null where the page
+    // gave its row an appearance of its own.
+    _firstPaintPaging() {
+        const row = this.querySelector?.(':scope > sf-pagination[slot="pagination"]');
+        if (row && row.hasAttribute("appearance") && !row.hasAttribute("data-sf-view-appearance")
+            && !row.hasAttribute("data-sf-view-made") && !row.hasAttribute("data-sf-view-default")) return null;
+        return this.paging;
+    }
+
     get firstPaintHasPages() {
         const row = this.querySelector?.(':scope > sf-pagination[slot="pagination"]');
         if (!row) return false;
@@ -1847,9 +2050,17 @@ class SfDataView extends DataViewElement {
         // count is what the page wrote (firstPaintHasPages). Printed for a
         // one-page list, the arrows' line stood 48px under the range at 390
         // and went when the answer came (gate 24, view/reference @390).
-        const pageRow = `<div class="sf-data-view-skeleton-footer" data-size="${this.size}">`
+        // «Показать ещё» across the list under its last row (D1), where the
+        // list goes on past this page and the paging draws the button; the
+        // page numbers only where the paging keeps them.
+        const paging = this._firstPaintPaging();
+        const goesOn = this.firstPaintHasPages;
+        const moreRow = goesOn && paging !== null && paging !== "pages"
+            ? `<div class="sf-data-view-skeleton-more" data-size="${this.size}">${control("more")}</div>` : "";
+        const pages = goesOn && paging !== "more" && paging !== "endless";
+        const pageRow = moreRow + `<div class="sf-data-view-skeleton-footer" data-size="${this.size}">`
             + `<div class="sf-data-view-skeleton-footer-start"><span>${bar}</span>${control("size")}</div>`
-            + (this.firstPaintHasPages ? `<div class="sf-data-view-skeleton-footer-pages">${control()}${control()}${control("page")}${control()}${control()}</div>` : "")
+            + (pages ? `<div class="sf-data-view-skeleton-footer-pages">${control()}${control()}${control("page")}${control()}${control()}</div>` : "")
             + "</div>";
         return [
             // An own toolbar slot is a row of the view's layout, even empty.
@@ -1980,6 +2191,11 @@ class SfDataView extends DataViewElement {
 
     disconnectedCallback() {
         this.epoch += 1;
+        this._endlessObserver?.disconnect();
+        this._endlessObserver = null;
+        this._endlessWatched = null;
+        if (this._endlessScroll) globalThis.removeEventListener?.("scroll", this._endlessScroll, {capture: true});
+        this._endlessScroll = null;
         // Once per connection, so an element moved in the DOM asks again. Without
         // this reset a list re-attached into a different host would sit portless
         // and silent, which looks exactly like a host that chose not to answer.
@@ -2097,7 +2313,7 @@ class SfDataView extends DataViewElement {
     }
 
     static get observedAttributes() {
-        return ["chrome", "row-cap", "aria-label", "size", "preferences-key", "head", "heading", ...LIST_ATTRIBUTES, ...LABEL_ATTRIBUTES];
+        return ["chrome", "row-cap", "aria-label", "size", "preferences-key", "head", "heading", "paging", ...LIST_ATTRIBUTES, ...LABEL_ATTRIBUTES];
     }
 
     // The words of the table and the pagination the view draws itself, written
@@ -2603,6 +2819,9 @@ class SfDataView extends DataViewElement {
         // Show more continues the list; every other reason replaces it. The
         // answer carries no reason of its own, so it is remembered here.
         this.continuing = reason === "show-more";
+        // The page the rows on screen start from: «1–40 из 48» after two
+        // pages, «41–48» after a jump to page 3 (D1).
+        if (!this.continuing) this._runStart = Number(this.query.page) || 1;
         // The port's first answer over a first answer the page printed is a
         // revalidation: the rows stay as they are, usable, until it comes.
         const revalidating = this._revalidate === true && ["connected", "host-connected"].includes(reason);
@@ -3987,7 +4206,7 @@ class SfDataView extends DataViewElement {
     _boardOptions() {
         const fromHost = this._boardHostOptions;
         const fromPage = this.board?.options;
-        return {...(fromPage && typeof fromPage === "object" ? fromPage : {}), ...(fromHost ?? {})};
+        return {...(fromPage && typeof fromPage === "object" ? fromPage : {}), ...(fromHost ?? {}), ...this.ownLayoutSettings("board")};
     }
 
     // The board's part of an answer: the lanes (a continuation of one lane
@@ -4023,7 +4242,8 @@ class SfDataView extends DataViewElement {
         const board = this.board;
         if (!board || this.layoutKind !== "board") return;
         board.fields = this.columns ?? [];
-        if (this._boardHostOptions) board.options = {...(board.options ?? {}), ...this._boardHostOptions};
+        const own = this.ownLayoutSettings("board");
+        if (this._boardHostOptions || Object.keys(own).length) board.options = {...(board.options ?? {}), ...(this._boardHostOptions ?? {}), ...own};
         board.moves = this._boardMoves ?? {};
         if (this._boardFresh) {
             this._boardFresh = false;

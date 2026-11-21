@@ -28,7 +28,7 @@ export function calendarOf(view) {
 // layouts.calendar as the host's view answers it, else as the page gave it.
 function calendarOptionsOf(view) {
     const fromPage = calendarOf(view)?.options;
-    return {...(fromPage && typeof fromPage === "object" ? fromPage : {}), ...(view._calendarHostOptions ?? {})};
+    return {...(fromPage && typeof fromPage === "object" ? fromPage : {}), ...(view._calendarHostOptions ?? {}), ...(view.ownLayoutSettings?.("calendar") ?? {})};
 }
 
 // The window before the calendar has drawn (its code comes after the view's):
@@ -108,7 +108,8 @@ export function syncCalendar(view) {
     const calendar = calendarOf(view);
     if (!calendar || view.layoutKind !== "calendar") return;
     calendar.fields = view.columns ?? [];
-    if (view._calendarHostOptions) calendar.options = {...(calendar.options ?? {}), ...view._calendarHostOptions};
+    const own = view.ownLayoutSettings?.("calendar") ?? {};
+    if (view._calendarHostOptions || Object.keys(own).length) calendar.options = {...(calendar.options ?? {}), ...(view._calendarHostOptions ?? {}), ...own};
     if (view._calendarRules) calendar.rules = view._calendarRules;
     const context = view._calendarContext;
     if (context?.timeZone && calendar.getAttribute("time-zone") !== context.timeZone) calendar.setAttribute("time-zone", String(context.timeZone));

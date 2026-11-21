@@ -3478,6 +3478,12 @@ class SfTable extends TableElement {
             }
         }
         if (!room) return fitted;
+        // Columns that cannot fit even at their least widths keep their
+        // natural widths and the table scrolls sideways (view round 13,
+        // VHF-16): shrunk to their headings they were cut anyway and the
+        // table scrolled all the same (the name 86 px, «ИНН» two digits).
+        // They shrink only when that makes them fit.
+        if (left > room) return fitted;
         // The widest give first, down to one common width (view round 12,
         // VHF-4): in proportion, every column gave a share of what it held
         // over its heading, so a short value lost its last letters («Заказ
@@ -6170,40 +6176,81 @@ class SfTable extends TableElement {
     }
 
     // The head held under the toolbar while what scrolls -- the page, or a
-    // box around the table -- scrolls past it (page mode): moved down by as
-    // much as the table's top has gone above the line, never past its last
-    // row. A sticky head cannot do it, because the area it sits in scrolls
-    // sideways and so is a scroll container of its own.
+    // box around the table -- scrolls past it (page mode). Since view round
+    // 13 (VHF-14) it is CSS: the head is sticky and the area clips sideways
+    // instead of scrolling (so it is no scroll container the head would bind
+    // to); the rail moves the table sideways (syncSideways). The head used to
+    // be moved by a transform written in the frame after the scroll, so every
+    // frame painted it one wheel step behind. Here only what the head sticks
+    // under is read -- the table's own toolbar, under the list head of the
+    // view around it (--sf-view--stuck-head) -- and whether it is stuck (the
+    // line under it).
     syncStickyHead() {
         const table = this.refs.table?.value;
         const head = table?.tHead;
         if (!head) return;
+        if (head.style.transform) head.style.transform = "";
         const held = this.hasAttribute("data-sf-sticky-head");
-        let delta = 0;
-        if (held && table.isConnected) {
-            const scroller = verticalScroller(this.refs.scroll?.value?.parentElement ?? this);
-            const top = scroller ? scroller.getBoundingClientRect().top : 0;
-            const toolbar = this.querySelector(":scope > .sf-table > .sf-table-toolbar");
-            const line = Math.max(top, toolbar ? toolbar.getBoundingClientRect().bottom : top);
-            const box = table.getBoundingClientRect();
-            const room = box.height - head.offsetHeight;
-            delta = Math.round(Math.min(Math.max(line - box.top, 0), Math.max(room, 0)));
+        const toolbar = held ? this.querySelector(":scope > .sf-table > .sf-table-toolbar") : null;
+        const height = toolbar ? `${Math.round(toolbar.getBoundingClientRect().height)}px` : "";
+        if (this.style.getPropertyValue("--sf-view-table--toolbar") !== height) {
+            if (height) this.style.setProperty("--sf-view-table--toolbar", height);
+            else this.style.removeProperty("--sf-view-table--toolbar");
         }
-        head.style.transform = delta ? `translateY(${delta}px)` : "";
-        this.toggleAttribute("data-sf-head-stuck", delta > 0);
+        const stuck = held && table.isConnected && head.getBoundingClientRect().top > table.getBoundingClientRect().top + 0.5;
+        if (this.hasAttribute("data-sf-head-stuck") !== stuck) this.toggleAttribute("data-sf-head-stuck", stuck);
+    }
+
+    // Whether the area clips sideways and the rail moves the table (page mode
+    // with the head held, VHF-14), rather than scrolling sideways itself.
+    get clipsSideways() {
+        return this.hasAttribute("data-sf-page-scroll") && this.hasAttribute("data-sf-sticky-head");
+    }
+
+    // How far the table is moved sideways: the area's own scroll, or in the
+    // clipping area the rail's (negative in a right-to-left table, as the
+    // browser reports a scroll there).
+    get sidewaysOffset() {
+        if (this.clipsSideways) return this._sideways ?? 0;
+        return this.refs.scroll?.value?.scrollLeft ?? 0;
+    }
+
+    // The clipping area's sideways place, written as two lengths the table and
+    // its pinned cells read (default.css): how far the table is moved, and how
+    // far a cell pinned at the end has to come back from the table's end.
+    syncSideways(left = this.refs.rail?.value?.scrollLeft ?? 0) {
+        const scroll = this.refs.scroll?.value;
+        const table = this.refs.table?.value;
+        if (!scroll || !table) return;
+        const rtl = getComputedStyle(this).direction === "rtl";
+        const over = Math.max(0, Math.round(table.offsetWidth - scroll.clientWidth));
+        const x = Math.round(Math.max(-over, Math.min(over, left)));
+        this._sideways = x;
+        const set = (name, value) => {
+            if (scroll.style.getPropertyValue(name) !== value) scroll.style.setProperty(name, value);
+        };
+        set("--sf-view-table--x", `${x}px`);
+        set("--sf-view-table--end", `${rtl ? -over : over}px`);
+        if (Math.abs(x) > 0) scroll.setAttribute("data-sf-pin-scrolled", "");
+        else scroll.removeAttribute("data-sf-pin-scrolled");
     }
 
     // The rail under the area is its sideways bar: as wide as what the area
     // scrolls, shown only when there is something to scroll, and each follows
-    // the other.
+    // the other. In the clipping area (VHF-14) the rail alone scrolls: it
+    // moves the table, a sideways wheel or swipe over the rows moves the rail,
+    // and a cell that takes the focus out of sight brings the rail to it.
     syncRail() {
         const rail = this.refs.rail?.value;
         const scroll = this.refs.scroll?.value;
         if (!rail || !scroll) return;
-        const wide = scroll.scrollWidth > scroll.clientWidth + 1;
+        const clip = this.clipsSideways;
+        const table = this.refs.table?.value;
+        const width = clip && table ? table.offsetWidth : scroll.scrollWidth;
+        const wide = width > scroll.clientWidth + 1;
         rail.hidden = !wide;
         const track = rail.firstElementChild;
-        if (track) track.style.inlineSize = `${scroll.scrollWidth}px`;
+        if (track) track.style.inlineSize = `${width}px`;
         if (rail._sfBound !== scroll) {
             rail._sfBound = scroll;
             let following = false;
@@ -6214,7 +6261,30 @@ class SfTable extends TableElement {
                 following = false;
             };
             scroll.addEventListener("scroll", follow(scroll, rail), {passive: true});
-            rail.addEventListener("scroll", follow(rail, scroll), {passive: true});
+            rail.addEventListener("scroll", () => {
+                if (this.clipsSideways) this.syncSideways(rail.scrollLeft);
+                else follow(rail, scroll)();
+            }, {passive: true});
+            scroll.addEventListener("wheel", (event) => {
+                if (!this.clipsSideways || rail.hidden) return;
+                // Sideways only: a mostly vertical move is the page's.
+                const dx = event.shiftKey && !event.deltaX ? event.deltaY : event.deltaX;
+                if (!dx || (!event.shiftKey && Math.abs(event.deltaX) < Math.abs(event.deltaY))) return;
+                const before = rail.scrollLeft;
+                rail.scrollLeft += dx * (event.deltaMode === 1 ? 16 : 1);
+                if (rail.scrollLeft !== before) event.preventDefault();
+            }, {passive: false});
+            scroll.addEventListener("focusin", (event) => {
+                if (!this.clipsSideways || rail.hidden) return;
+                const cell = event.target?.closest?.("td, th");
+                if (!cell || cell.hasAttribute("data-sf-pinned")) return;
+                const area = scroll.getBoundingClientRect();
+                const box = cell.getBoundingClientRect();
+                const pinned = [...(cell.parentElement?.children ?? [])].filter((one) => one.hasAttribute("data-sf-pinned"))
+                    .reduce((sum, one) => sum + one.getBoundingClientRect().width, 0);
+                if (box.left < area.left + pinned) rail.scrollLeft -= area.left + pinned - box.left;
+                else if (box.right > area.right) rail.scrollLeft += box.right - area.right;
+            });
             // The columns take their widths after a render (content widths,
             // late fonts): the rail follows the table's size, not the render.
             this._railObserver?.disconnect();
@@ -6224,7 +6294,17 @@ class SfTable extends TableElement {
                 if (this.refs.table?.value) this._railObserver.observe(this.refs.table.value);
             }
         }
-        if (wide) rail.scrollLeft = scroll.scrollLeft;
+        if (clip) {
+            if (!wide && rail.scrollLeft) rail.scrollLeft = 0;
+            this.syncSideways(wide ? rail.scrollLeft : 0);
+        } else {
+            if (this._sideways) {
+                this._sideways = 0;
+                scroll.style.removeProperty("--sf-view-table--x");
+                scroll.style.removeProperty("--sf-view-table--end");
+            }
+            if (wide) rail.scrollLeft = scroll.scrollLeft;
+        }
     }
 
     bindPageScroll() {
@@ -7490,7 +7570,7 @@ class SfTable extends TableElement {
         // pinned block, so it follows the scroll position. In a right-to-left
         // table the browser reports that position as a negative number.
         if (scroll) {
-            const scrolled = Math.abs(scroll.scrollLeft) > 0;
+            const scrolled = Math.abs(this.sidewaysOffset) > 0;
             if (scrolled) scroll.setAttribute("data-sf-pin-scrolled", "");
             else scroll.removeAttribute("data-sf-pin-scrolled");
         }

@@ -170,6 +170,7 @@ export class ListHead {
         this.root = null;
         this._onResize = () => this._measure();
         this._onPartsResize = () => this._layRow();
+        this._onHeadResize = () => this._layStick();
     }
 
     // ---------- lifecycle ----------
@@ -194,8 +195,32 @@ export class ListHead {
         this._resize = typeof ResizeObserver === "function" ? new ResizeObserver(this._onResize) : null;
         this._resize?.observe(this.view);
         this._parts = typeof ResizeObserver === "function" ? new ResizeObserver(this._onPartsResize) : null;
+        this._stick = typeof ResizeObserver === "function" ? new ResizeObserver(this._onHeadResize) : null;
+        this._stick?.observe(root);
         this._measure();
         return this;
+    }
+
+    // What of the head holds the top while the list scrolls (C328, VHF-15):
+    // all of it but the title row, which leaves. Written on the view's layout
+    // in its shadow (the light DOM keeps its markup): the head part's sticky
+    // offset, minus the title row and the gap under it, and the height that
+    // stays, under which the table's head sticks. Read when the head changes
+    // size, never while the list scrolls.
+    _layStick() {
+        const root = this.root;
+        const layout = this.view.shadowRoot?.querySelector?.('[part="layout"]');
+        if (!root || !layout) return;
+        const title = root.querySelector(":scope > .sf-view-head-title");
+        const titleHeight = title ? title.getBoundingClientRect().height : 0;
+        const gap = Number.parseFloat(getComputedStyle(root).rowGap) || 0;
+        const away = titleHeight > 0 ? Math.round(titleHeight + gap) : 0;
+        const stays = Math.max(0, Math.round(root.getBoundingClientRect().height) - away);
+        const set = (name, value) => {
+            if (layout.style.getPropertyValue(name) !== value) layout.style.setProperty(name, value);
+        };
+        set("--sf-view--head-offset", `${-away}px`);
+        set("--sf-view--stuck-head", `${stays}px`);
     }
 
     detach() {
@@ -203,6 +228,11 @@ export class ListHead {
         this._resize = null;
         this._parts?.disconnect();
         this._parts = null;
+        this._stick?.disconnect();
+        this._stick = null;
+        const layout = this.view.shadowRoot?.querySelector?.('[part="layout"]');
+        layout?.style.removeProperty("--sf-view--head-offset");
+        layout?.style.removeProperty("--sf-view--stuck-head");
         this.root?.remove();
         this.root = null;
         this.mode = null;
@@ -1051,15 +1081,34 @@ export class ListHead {
         const title = (key, text) => `<p class="sf-view-head-sub">${esc(text)}${lockMark(key)}</p>`;
         const radios = (key, list, current) => `<div class="sf-view-head-list" role="radiogroup" aria-label="${esc(key)}">${list.map(([value, label]) => `<sf-radio data-setting="${esc(key)}" size="${size}" name="sf-view-head-${esc(key)}" value="${esc(value)}" label="${esc(label)}"${String(value) === String(current) ? " checked" : ""}${lock(key)}></sf-radio>`).join("")}</div>`;
         const checks = (key, list, current) => `<div class="sf-view-head-list">${list.map(([value, label]) => `<sf-checkbox data-setting="${esc(key)}" data-value="${esc(value)}" size="${size}" label="${esc(label)}"${current.includes(String(value)) ? " checked" : ""}${lock(key)}></sf-checkbox>`).join("")}</div>`;
+        // The view's own fields (VHF-13): the record fields the list draws
+        // (its columns), not the filter's -- «Сумма» on a card is no filter
+        // field and was missing from «Поля на карточке». The title is the
+        // card's own line, never a field of it. A field of a type a row
+        // needs (a lane, a date) the columns do not say is looked up among
+        // the host's described fields.
         const described = Array.isArray(this.description?.fields) ? this.description.fields : this.fields;
-        const fieldsOf = (test) => described.filter((field) => test(fieldType(field))).map((field) => [field.key, field.label ?? field.key]);
-        const all = described.map((field) => [field.key, field.label ?? field.key]);
+        const columns = (this.view.columns ?? []).filter((column) => column?.key !== undefined && column?.key !== null && !column.system
+            && !["select", "settings"].includes(String(column.key)));
+        const record = columns.length ? columns : described;
+        const pairs = (list) => list.map((field) => [field.key, field.label ?? field.key]);
+        const fieldsOf = (test) => {
+            const own = record.filter((field) => test(fieldType(field)));
+            const known = new Set(own.map((field) => String(field.key)));
+            return pairs([...own, ...described.filter((field) => !known.has(String(field.key)) && test(fieldType(field)))]);
+        };
+        const all = pairs(record.filter((field) => field.role !== "title" && field.title !== true));
         let body = "";
         if (kind === "table") {
             const columns = (this.view.columns ?? []).map((column) => [column.key, column.label ?? column.key]);
             const actions = (this.view.rowActionCatalog ?? []).map((action) => [action.id, action.label ?? action.id]);
+            // How the list goes on past its first page (owner decision D1):
+            // stored with the view's other settings, «Вместе» by default.
+            const paging = [["pages", "headPagingPages"], ["more", "headPagingMore"], ["both", "headPagingBoth"], ["endless", "headPagingEndless"]]
+                .map(([value, word]) => [value, this.text(word)]);
             body = title("columns", this.text("headColumns")) + checks("columns", columns, settings.columns)
-                + (actions.length ? title("row_actions", this.text("headRowActions")) + checks("row_actions", actions, settings.row_actions) : "");
+                + (actions.length ? title("row_actions", this.text("headRowActions")) + checks("row_actions", actions, settings.row_actions) : "")
+                + (this.view.pagingOffered ? title("paging", this.text("headPaging")) + radios("paging", paging, settings.paging) : "");
         } else if (kind === "board") {
             body = title("lane_field", this.text("headLaneField")) + radios("lane_field", fieldsOf((type) => LIST_TYPES.has(type)), settings.lane_field)
                 + title("card_fields", this.text("headCardFields")) + checks("card_fields", all, settings.card_fields)
@@ -1119,11 +1168,15 @@ export class ListHead {
             const visible = this.view.viewConfig?.fields?.visible;
             merged.columns ??= (Array.isArray(visible) ? visible : (this.view.columns ?? []).filter((column) => column.visible !== false).map((column) => column.key)).map(String);
             merged.row_actions ??= (this.view.rowActionCatalog ?? []).map((action) => String(action.id));
+            merged.paging ??= this.view.paging ?? "both";
         }
-        if (kind === "board") { merged.card_fields ??= []; merged.empty_lanes ??= true; }
+        // The card fields a board or the cards draw now (their own defaults
+        // when the view names none), so the window ticks what is on the cards.
+        const drawn = (kind === "board" ? this.view.board?.boardOptions : kind === "cards" ? this.view.cards?.cardsOptions : null)?.cardFields;
+        if (kind === "board") { merged.card_fields ??= Array.isArray(drawn) ? [...drawn] : []; merged.empty_lanes ??= true; }
         // Cards S, M, L; M by default (C306). The calendar's week start comes
         // from the request context, never from a stored view (CA-2).
-        if (kind === "cards") { merged.size ??= "m"; merged.card_fields ??= []; }
+        if (kind === "cards") { merged.size ??= "m"; merged.card_fields ??= Array.isArray(drawn) ? [...drawn] : []; }
         for (const key of ["columns", "row_actions", "card_fields"]) if (Array.isArray(merged[key])) merged[key] = merged[key].map(String);
         return merged;
     }
@@ -1480,6 +1533,10 @@ export class ListHead {
         this._settings ??= {};
         this._settings[kind] = {...(this._settings[kind] ?? {}), [key]: value};
         if (kind === "table" && key === "columns") this._showColumns(value);
+        else if (kind === "table" && key === "paging") this.view.applyPaging?.(value);
+        // A board's, the cards' and the calendar's settings show at once too
+        // (VHF-13, C298): they only went to the host and showed after a reload.
+        else if (kind !== "table") this.view.applyLayoutSettings?.(kind, {[key]: value});
         this._saveSettings("personal", {[key]: value});
     }
 

@@ -32,7 +32,7 @@ export function cardsOf(view) {
 /** layouts.cards as the host's view answers it, else as the page gave it on the cards. */
 export function cardsOptions(view) {
     const fromPage = cardsOf(view)?.options;
-    return {...(fromPage && typeof fromPage === "object" ? fromPage : {}), ...(view._cardsHostOptions ?? {})};
+    return {...(fromPage && typeof fromPage === "object" ? fromPage : {}), ...(view._cardsHostOptions ?? {}), ...(view.ownLayoutSettings?.("cards") ?? {})};
 }
 
 /** The query the cards ask (CD-4): the page and window {page, per_page}. */
@@ -56,7 +56,8 @@ export function syncCards(view) {
     const cards = cardsOf(view);
     if (!cards) return;
     cards.fields = view.columns ?? [];
-    if (view._cardsHostOptions) cards.options = {...(cards.options ?? {}), ...view._cardsHostOptions};
+    const own = view.ownLayoutSettings?.("cards") ?? {};
+    if (view._cardsHostOptions || Object.keys(own).length) cards.options = {...(cards.options ?? {}), ...(view._cardsHostOptions ?? {}), ...own};
     if (view._answered) cards.records = view.records ?? [];
     const refused = view._queryRefused === true;
     if (view.countKnown !== false && Number.isSafeInteger(view.total)) cards.setAttribute("total", String(view.total));
@@ -131,6 +132,11 @@ export function cardsSkeleton(view, bar) {
     const size = ["s", "m", "l"].includes(cards?.getAttribute?.("card-size")) ? cards.getAttribute("card-size")
         : ["s", "m", "l"].includes(options.size) ? options.size : "m";
     const cover = options.cover_field !== null;
-    const card = `<div>${cover ? '<span data-part="cover"></span>' : ""}${bar}${bar}${bar}</div>`;
+    // The title, then the fields one under the other, each its label over its
+    // value (D3): as many as the view names (four at most), else two.
+    const count = Array.isArray(options.card_fields) ? Math.min(4, options.card_fields.length) : 2;
+    const label = options.card_labels === false ? "" : '<i class="sf-skeleton-text" data-part="label"></i>';
+    const fields = count ? `<span data-part="fields">${`<span>${label}${bar}</span>`.repeat(count)}</span>` : "";
+    const card = `<div>${cover ? '<span data-part="cover"></span>' : ""}${bar}${fields}</div>`;
     return `<div class="sf-data-view-skeleton-cards" data-card-size="${size}"${cover ? "" : " data-flat"}>${card.repeat(FIRST_PAINT_CARDS)}</div>`;
 }
