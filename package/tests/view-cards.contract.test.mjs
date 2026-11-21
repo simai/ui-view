@@ -28,7 +28,7 @@ test('CD-2: options read with their defaults', () => {
   assert.equal(options.more, 'button');
   assert.equal(options.perPage, PER_PAGE);
   assert.equal(PER_PAGE, 24);
-  assert.equal(options.cardLabels, false);
+  assert.equal(options.cardLabels, true, 'D3: labels over the values by default');
 });
 
 test('CD-2: written options; cover none; an unknown card field is dropped', () => {
@@ -77,8 +77,9 @@ test('R8-1: the least card width is a width ladder step and no card field is cut
     assert.notEqual(body, '', `${selector} has a rule`);
     assert.doesNotMatch(body, /nowrap|ellipsis|overflow: hidden/u, `${selector} never cuts its value`);
   }
-  assert.match(rule('.sf-view-cards__fields'), /grid-template-columns: minmax\(min-content, 1fr\) auto;/u, 'a column never below its content');
-  assert.match(css, /\[data-card-size="s"\] \.sf-view-cards__fields \{ grid-template-columns: minmax\(min-content, 1fr\); \}/u, 'phone S: one field column');
+  // D3 (owner 2026-11-21): one field per row, the label over the value.
+  assert.match(rule('.sf-view-cards__fields'), /grid-template-columns: minmax\(0, 1fr\);/u, 'one field column');
+  assert.match(rule('.sf-view-cards__field'), /flex-direction: column;/u, 'the label over the value');
 });
 
 test('CD-6: the arrows go by the rows as drawn', () => {

@@ -93,8 +93,8 @@ test('the pinned edge carries a shadow only while something is behind it', async
 
   assert.match(
     source,
-    /const scrolled = Math\.abs\(scroll\.scrollLeft\) > 0;/u,
-    'a right-to-left table reports the scroll position as a negative number',
+    /const scrolled = Math\.abs\(this\.sidewaysOffset\) > 0;/u,
+    'a right-to-left table reports the scroll position as a negative number (the area\'s, or the rail\'s where the area clips sideways, VHF-16)',
   );
   assert.match(source, /scroll\.setAttribute\("data-sf-pin-scrolled", ""\)/u);
   assert.match(source, /cell\.setAttribute\("data-sf-pin-edge", ""\)/u, 'the cell that ends the block draws it');

@@ -1723,8 +1723,9 @@ class SfDataView extends DataViewElement {
     // gave its row an appearance of its own.
     _firstPaintPaging() {
         const row = this.querySelector?.(':scope > sf-pagination[slot="pagination"]');
-        if (row && row.hasAttribute("appearance") && !row.hasAttribute("data-sf-view-appearance")
-            && !row.hasAttribute("data-sf-view-made") && !row.hasAttribute("data-sf-view-default")) return null;
+        const has = (name) => (row?.getAttribute?.(name) ?? null) !== null;
+        if (row && has("appearance") && !has("data-sf-view-appearance")
+            && !has("data-sf-view-made") && !has("data-sf-view-default")) return null;
         return this.paging;
     }
 
