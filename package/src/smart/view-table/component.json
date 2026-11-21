@@ -2,8 +2,15 @@
   "$comment": "sf-table from its component.json (standard simai.smart-component 1.3.8, vocabulary 1.1.5), migrated from ui-control control/smart-architecture/migration/out/table (convert-1.3.8.mjs over ui-pro 9cbe061); every x-todo decided in x-decisions.",
   "id": "smart.view-table",
   "tag": "sf-view-table",
-  "version": "1.30.0",
+  "version": "1.31.0",
   "x-history": [
+    {
+      "version": "1.31.0",
+      "kind": "minor",
+      "recorded_on": "2026-11-21",
+      "consumer": "Nothing to change for a host. The table head sticks by CSS under the list head, with no one-frame lag (VHF-14). Columns that do not fit keep their natural widths and the table moves sideways by the rail under it, by a sideways wheel or touchpad and by the keyboard focus, with the box, the row menu and the name held in place (VHF-16); in a page-scrolled list with a sticky head the scroll area clips sideways so the head can stick to the page.",
+      "evidence": "control/evidence/2026-11-21-view-r13/README.md"
+    },
     {
       "version": "1.30.0",
       "kind": "minor",
@@ -3141,6 +3148,13 @@
           "to": "1.30.0",
           "changes": [
             "View round 12, owner decisions D4 and D5 (DEV msg-4de06ae6): index.js tableSettingsItems offers density normal, compact (no spacious); storedViewDensity reads a stored spacious as normal; areaDensity skips an element marked data-sf-view-density-island; applyTableView writes data-sf-density with data-sf-view-density-island on the closest sf-view and on the table, rows never spacious, and data-sf-view-wrap unless singleLine is true (storedSingleLine removed); js/templates/default.css drops the spacious row rules and draws .sf-table-cell-clip whole under data-sf-view-wrap without data-sf-view-single-line; lang view-density «Плотность»/«Density», view-density-compact «Компактная», view-density-normal «Обычная», view-density-spacious removed. index.js readFittedWidths gives no flexible room below list-below (isNarrow): the table scrolls there (first paint typed-cells at 390, 196 -> 204 under D5)."
+          ]
+        },
+        {
+          "from": "1.30.0",
+          "to": "1.31.0",
+          "changes": [
+            "View round 13 (round/view-r13): readFittedWidths gives up fitting when the held columns alone exceed the room; syncStickyHead sets --sf-view-table--toolbar and data-sf-head-stuck instead of a transform; clipsSideways, sidewaysOffset, syncSideways set --sf-view-table--x/--sf-view-table--end on the area; syncRail drives them, adds a sideways wheel and focusin; default.css: area overflow-x clip, sticky thead under --sf-view--stuck-head, table and pinned cells translated."
           ]
         }
       ]

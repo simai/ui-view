@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-table",
-  "version": "1.30.0",
+  "version": "1.31.0",
   "title": "Table",
   "summary": "Complete server-backed collection view with search, filters, table preferences, row and bulk actions, and pagination.",
   "kind": "composite",
@@ -3043,6 +3043,13 @@
         "changes": [
           "View round 12, owner decisions D4 and D5 (DEV msg-4de06ae6): index.js tableSettingsItems offers density normal, compact (no spacious); storedViewDensity reads a stored spacious as normal; areaDensity skips an element marked data-sf-view-density-island; applyTableView writes data-sf-density with data-sf-view-density-island on the closest sf-view and on the table, rows never spacious, and data-sf-view-wrap unless singleLine is true (storedSingleLine removed); js/templates/default.css drops the spacious row rules and draws .sf-table-cell-clip whole under data-sf-view-wrap without data-sf-view-single-line; lang view-density «Плотность»/«Density», view-density-compact «Компактная», view-density-normal «Обычная», view-density-spacious removed. index.js readFittedWidths gives no flexible room below list-below (isNarrow): the table scrolls there (first paint typed-cells at 390, 196 -> 204 under D5)."
         ]
+      },
+      {
+        "from": "1.30.0",
+        "to": "1.31.0",
+        "changes": [
+          "View round 13 (round/view-r13): readFittedWidths gives up fitting when the held columns alone exceed the room; syncStickyHead sets --sf-view-table--toolbar and data-sf-head-stuck instead of a transform; clipsSideways, sidewaysOffset, syncSideways set --sf-view-table--x/--sf-view-table--end on the area; syncRail drives them, adds a sideways wheel and focusin; default.css: area overflow-x clip, sticky thead under --sf-view--stuck-head, table and pinned cells translated."
+        ]
       }
     ]
   },
@@ -3052,7 +3059,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-table/index.js",
-        "sha256": "b944293b4ec8ce5de8ff0fc0fb89d1be9193dc10852478da40db0ffecc7a54f3"
+        "sha256": "d054f098e60bef88bc8e75f0f7da82b19b13d6db47422705c63a98f3c5fd7d61"
       },
       {
         "path": "src/smart/view-table/js/templates/default.js",
@@ -3060,7 +3067,7 @@
       },
       {
         "path": "src/smart/view-table/js/templates/default.css",
-        "sha256": "abad72797dce57c6cb12faca2dd195865fa5233c3bdd727204a69cbdca6b8324"
+        "sha256": "ae758c5a66f384c51f1f26dcec12d3bce2fafc9944967d555f2a447999095262"
       },
       {
         "path": "src/smart/helpers/option-badge.js",

@@ -16,6 +16,30 @@ same numbers with other content); every next set version is above them
 up). Each component.json says the same under `x-decisions`
 `pro-copy-versions`.
 
+## Unreleased — view round 13
+
+View round 13 (round/view-r13, from `round/view-r12` 79f7706), candidate
+1.11.0 over the same pair `ui-b654460cad2a`: the list head and footer study,
+round 4 (owner decisions D1 and D3 of 2026-11-21; returns VHF-13..16).
+Numbers are above every branch of this set and of ui-pro.
+
+- `sf-view` 1.32.0. D1: «Подгрузка» in «Настроить вид» for the table, new
+  setting `paging` = `pages` | `more` | `both` | `endless`, default `both`,
+  kept per view (`layouts.table.paging`). `both`: a full-width «Показать ещё»
+  right under the last row, the page numbers under it and «1–20 из 48»
+  beside them; the button appends the next page and the range grows. `more`
+  hides the page numbers; `endless` loads the next page when the end of the
+  list comes into view (offered, not recommended for tables). VHF-15: the
+  whole list head sticks at the top of the page or of the scrolling container,
+  and the table head sticks under it. VHF-13: Kanban, cards and calendar
+  settings apply at once; their field list holds the view's own fields.
+- `sf-view-table` 1.31.0. VHF-14: the table head sticks by CSS, no one-frame
+  lag. VHF-16: columns that do not fit keep their natural widths; the table
+  moves sideways by the rail, a sideways wheel or touchpad and the keyboard
+  focus, with the box, the row menu and the name held.
+- `sf-view-cards` 1.1.0. D3: card fields one per row, the label over the
+  value, a gap after the title; `card_labels` on by default.
+
 ## Unreleased — view round 12
 
 View round 12 (round/view-r12, from `round/view-r11` 9609c88), candidate

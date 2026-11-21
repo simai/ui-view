@@ -15,8 +15,8 @@
 //   ещё 8»), a second the last one (48 rows, the button gone). «Настроить
 //   вид» → «Подгрузка»: «Страницами» takes the button away and keeps the
 //   numbers; «Показать ещё» keeps the button and hides the numbers;
-//   «Бесконечно» loads the next page when the person's scroll brings the
-//   button into view. Each choice is saved for the person (settings.save,
+//   «Бесконечно» stays one page at rest and loads the next pages as the
+//   person's scroll brings the button into view. Each choice is saved for the person (settings.save,
 //   layouts.table.paging).
 // - D3: on the cards each field is its label over its value, one field per
 //   line at the same start, the first one half a space step further from the
@@ -302,9 +302,12 @@ try {
       const idle = await paging(page);
       await page.mouse.move(200, 400);
       for (let step = 0; step < 20; step += 1) { await page.mouse.wheel(0, 200); await page.waitForTimeout(50); }
-      await page.waitForFunction(() => document.querySelectorAll('#v sf-view-table tbody tr[data-row-id]').length === 40, null, {timeout: 5000}).catch(() => {});
+      await page.waitForFunction(() => document.querySelectorAll('#v sf-view-table tbody tr[data-row-id]').length > 20, null, {timeout: 5000}).catch(() => {});
+      await page.waitForTimeout(300);
       const endless = await paging(page);
-      if (idle.rows !== 20 || endless.rows !== 40) failures.push({...label, got: {idle: idle.rows, scrolled: endless.rows}, want: 'endless: 20 at rest, 40 after the scroll'});
+      // At rest the list stays one page; the scroll brings the next pages,
+      // a page per scroll that reaches the button, never past the 48.
+      if (idle.rows !== 20 || endless.rows <= 20 || endless.rows > 48 || endless.rows % 20 !== 0 && endless.rows !== 48) failures.push({...label, got: {idle: idle.rows, scrolled: endless.rows}, want: 'endless: 20 at rest, more pages after the scroll'});
       if (errors.length) failures.push({...label, errors});
       results.push({theme, item: 'D1 setting', width, seen, saves, endless: {idle: idle.rows, scrolled: endless.rows}});
       await context.close();

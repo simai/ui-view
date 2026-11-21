@@ -5,8 +5,10 @@
 // - the page is the only thing that scrolls up and down; the table has no
 //   vertical scroll of its own;
 // - scrolled, the toolbar holds the top and the head sits right under it;
-// - a table wider than its box scrolls sideways inside itself, and the rail
-//   at the bottom of the window follows it and moves it;
+// - a table wider than its box goes sideways inside it by the rail at the
+//   bottom of the window: the area clips sideways rather than scrolling, so
+//   the head can stick by CSS (view round 13, VHF-14); the rail moves the
+//   table, and a sideways wheel over the rows moves the rail;
 // - «Закреплять фильтр и шапку» off: both leave with the page.
 import {resolve, join} from 'node:path';
 import {chromium} from 'playwright';
@@ -78,7 +80,9 @@ try {
       toolbarBottom: toolbar ? Math.round(toolbar.getBoundingClientRect().bottom) : null,
       head: head ? Math.round(head.getBoundingClientRect().top) : null,
       rail: rail ? {hidden: rail.hidden, bottom: Math.round(rail.getBoundingClientRect().bottom), left: rail.scrollLeft} : null,
-      areaLeft: area?.scrollLeft ?? null,
+      // How far the table is moved sideways inside its area.
+      areaLeft: area ? Math.round(area.getBoundingClientRect().left - table.querySelector('table').getBoundingClientRect().left) : null,
+      clip: area ? getComputedStyle(area).overflowX : null,
     };
   });
   const before = await look();
@@ -89,15 +93,19 @@ try {
   if (scrolled.toolbar !== 0 || Math.abs(scrolled.head - scrolled.toolbarBottom) > 1) note({case: 'the toolbar holds the top and the head sits under it', got: scrolled});
   if (!scrolled.rail || scrolled.rail.hidden || scrolled.rail.bottom !== 700) note({case: 'the sideways rail holds the bottom of the window', got: scrolled.rail});
   // The rail moves the table sideways, and the table moves the rail.
-  const room = await page.evaluate(() => { const area = document.querySelector('#t .sf-table-scroll'); return area.scrollWidth - area.clientWidth; });
+  const room = await page.evaluate(() => { const area = document.querySelector('#t .sf-table-scroll'); return area.querySelector('table').offsetWidth - area.clientWidth; });
   if (room < 300) note({case: 'the table is wider than its box', got: room});
+  if (scrolled.clip !== 'clip') note({case: 'the held head: the area clips sideways', got: scrolled.clip});
   await page.evaluate(() => { document.querySelector('#t .sf-table-rail').scrollLeft = 300; });
   await page.waitForTimeout(150);
   const moved = await look();
-  await page.evaluate(() => { document.querySelector('#t .sf-table-scroll').scrollLeft = 120; });
+  // A sideways wheel over the rows moves the rail, and the rail the table.
+  const box = await page.locator('#t .sf-table-scroll').boundingBox();
+  await page.mouse.move(box.x + 200, 400);
+  await page.mouse.wheel(-180, 0);
   await page.waitForTimeout(150);
   const back = await look();
-  if (moved.areaLeft !== 300 || back.rail?.left !== 120) note({case: 'the rail and the table scroll together', got: {moved, back}});
+  if (moved.areaLeft !== 300 || back.rail?.left !== 120 || back.areaLeft !== 120) note({case: 'the rail moves the table, a sideways wheel the rail', got: {moved, back}});
   // Off: they leave with the page.
   await page.evaluate(() => document.getElementById('t').setTableView({stickyHead: false}));
   await page.waitForTimeout(300);

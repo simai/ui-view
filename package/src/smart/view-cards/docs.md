@@ -29,7 +29,7 @@ action, «Создать» and «Сбросить фильтр» are events.
   "cover": {"fit": "cover", "ratio": "4:3"},
   "title_field": "title",
   "card_fields": ["sku", "category", "price", "stock"],
-  "card_labels": false,
+  "card_labels": true,
   "size": "m",
   "density": "default",
   "more": "button",
@@ -47,12 +47,14 @@ action, «Создать» and «Сбросить фильтр» are events.
 - `title_field`: the record's title, two lines then «…».
 - `card_fields`: up to four fields under the title, each drawn by the
   Framework field renderers in the «Кратко» place (C300 (2)): text at the
-  start, numbers and dates at the end. `card_labels: true` shows their labels;
-  without them a screen reader reads them and a tooltip shows them.
+  start, numbers and dates at the end. Since 1.1.0 (owner decision D3) the
+  fields stand one per row, the label over the value, with a gap after the
+  title; `card_labels` is on by default, `false` hides the labels (a screen
+  reader still reads them and a tooltip shows them).
 - `size`: `s`, `m`, `l` = least card width 224, 288, 352 px at a desktop
   (the width ladder steps `--sf-measure-28`, `-36`, `-44`, C396); the columns
   follow the width. On a phone (the grid below 600 px) S draws two columns,
-  its fields one under the other, M and L one (C306). No field is cut: a
+  M and L one (C306). No field is cut: a
   value wraps at its spaces.
 - `density`: `compact` takes the card's padding a step down.
 - `more`: `button` («Показать ещё»); `per_page` 24 divides into 2, 3, 4 and 6

@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view",
-  "version": "1.31.1",
+  "version": "1.32.0",
   "title": "Data view",
   "summary": "Host-driven data view that composes toolbar, content and pagination around a separate data port.",
   "kind": "composite",
@@ -95,6 +95,7 @@
         "clear-selection-label",
         "page-size-label",
         "pagination-aria-label",
+        "paging",
         "preferences-key",
         "accept-files",
         "collection",
@@ -410,6 +411,17 @@
         "type": "string",
         "default": "",
         "description": "Passed on as aria-label to the pagination the view draws (the view's own aria-label names the view)."
+      },
+      "paging": {
+        "type": "string",
+        "enum": [
+          "pages",
+          "more",
+          "both",
+          "endless"
+        ],
+        "default": "both",
+        "description": "How the table's rows come page after page (owner decision D1): pages (page numbers only), more (a full-width «Показать ещё» under the last row), both (the button with the page numbers under it and «1–20 из 48» beside them; the default), endless (the next page loads when the end of the list comes into view; offered, not recommended for tables). The person's choice in «Настроить вид» is kept per view; a view's layouts.table.paging comes before this attribute."
       },
       "preferences-key": {
         "type": "string",
@@ -1964,6 +1976,13 @@
         "changes": [
           "View round 12, owner decision D2 (DEV msg-4de06ae6): lang head-kind-board «Канбан» / «Kanban»."
         ]
+      },
+      {
+        "from": "1.31.1",
+        "to": "1.32.0",
+        "changes": [
+          "View round 13 (round/view-r13): D1 index.js paging (VIEW_PAGING, get paging, applyPaging, _drawMore into slot more, _showMore, _watchEndless; the range grows from the run's first page; data-sf-view-paging-off hides the pagination for more and endless; first paint draws the button skeleton); component.json settings.paging and the manifest input; lang head-paging*. VHF-15 head.js lays --sf-view--head-offset and --sf-view--stuck-head on [part=layout]; [part=head] sticks for head=list. VHF-13 ownLayoutSettings / applyLayoutSettings; board, cards and calendar options merge the person's settings; the view panel lists the view's own fields. D3 cards skeleton draws stacked fields."
+        ]
       }
     ]
   },
@@ -1973,7 +1992,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view/index.js",
-        "sha256": "59a859441dd1519b5052ebafb6e25da5529c4833cb27c7c7b3ba90bc0aea91f4"
+        "sha256": "abcca9ac15a7f4f0e8f5b29997f437f430f352dd95ae9f1d0496ba05e0280b6f"
       },
       {
         "path": "src/core/contracts/ports/simai.dataview-port/1.5.0/port.json",
@@ -1981,7 +2000,7 @@
       },
       {
         "path": "src/smart/view/docs.md",
-        "sha256": "93fab0f1ebb7367aa5d387062929a3cbfe87a9d32144e4dab2fdb21f1b9ae3f4"
+        "sha256": "e9d4b0ef6af3050cda4ef2c92ae52f425d2c103d1e4d198f60e0d95ce069ee80"
       },
       {
         "path": "tests/fixtures/data-view-composite-lab.html",
@@ -1993,11 +2012,11 @@
       },
       {
         "path": "src/smart/view/js/first-paint.css",
-        "sha256": "072660083dfc858c59a60d77b90105d80ee08a0022001e7c3a7715801be8ceba"
+        "sha256": "1328436385e46f08b37db3728660124736fb2b248338627bf951c49b85b6db1e"
       },
       {
         "path": "src/smart/view/js/cards.js",
-        "sha256": "29e6c634729e0f35a9d8b8a91640a173ad40bc9ed1b83e431c2b230aca0eeb18"
+        "sha256": "3acaf4f259518498bf08c974e8ed6f96dd2f4fd800ba4b27a41400ea06bc74fe"
       }
     ],
     "generated_runtime": []
