@@ -4447,15 +4447,15 @@
             "schema_version": 2,
             "package": "view",
             "requires": "ui-b654460cad2a",
-            "mount": "_docara/framework-packages/view/32c3be4aec9889e5a52a8b4470e1c7bfad9dbaf5",
+            "mount": "_docara/framework-packages/view/705a901932564ad4f6642caa4312988f52f70e7c",
             "receipt": {
                 "schema": "simai.framework.product-package-receipt",
                 "schema_version": 1,
                 "package_source": {
                     "repository": "simai/ui-view",
-                    "revision": "32c3be4aec9889e5a52a8b4470e1c7bfad9dbaf5",
+                    "revision": "705a901932564ad4f6642caa4312988f52f70e7c",
                     "path": "package",
-                    "tree": "87cc6249678ef65db74d14a294736572dd476166"
+                    "tree": "320e5154810f9c0126a3dc6191280afa5e258554"
                 },
                 "framework_source": {
                     "repository": "simai/ui-source",
