@@ -41,9 +41,9 @@
   align-items: center;
   /* buttons of one group: 8 (C144) */
   gap: var(--sf-space-1\/3);
-  margin-inline-start: auto;
   min-inline-size: 0;
 }
+.sf-view-head-title-end { margin-inline-start: auto; }
 
 /* The head row: what to do. «Filter» and its bookmark, the filter fields and
    «Clear» at the start; the search and «Create» at the end. */
@@ -65,7 +65,11 @@
 }
 .sf-view-head-fields > * { flex: none; }
 .sf-view-head-fields:empty { display: none; }
-/* The end keeps the search and «Create» on one line; the start gives way. */
+/* The end keeps the search and «Create» on one line; the start gives way.
+   On one line the start grows and so holds the end at the row's end; once
+   the end wraps onto a line of its own it starts that line, as every line
+   of the row does (view round 12, VHF-3): an auto margin held it at the
+   end of the second line with the line's start left empty. */
 .sf-view-head-end { flex: 0 1 auto; flex-wrap: nowrap; max-inline-size: 100%; }
 /* The search: up to 20rem (C297), never wider than the row. */
 .sf-view-head-search { flex: 0 1 20rem; inline-size: 20rem; min-inline-size: 12rem; }

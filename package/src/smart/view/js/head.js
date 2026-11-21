@@ -45,6 +45,18 @@ import {menuOpen} from "../../../core/js/menu-open.js";
 
 const PHONE_WIDTH = 600;
 
+// An element's content box width: its border box less its inline padding and
+// borders (0 where it draws no box, display: contents).
+function contentWidth(element) {
+    const width = element?.getBoundingClientRect?.().width || 0;
+    if (!width) return 0;
+    const style = globalThis.getComputedStyle?.(element);
+    if (!style) return width;
+    const less = ["paddingInlineStart", "paddingInlineEnd", "borderInlineStartWidth", "borderInlineEndWidth"]
+        .reduce((sum, key) => sum + (Number.parseFloat(style[key]) || 0), 0);
+    return Math.max(0, width - less);
+}
+
 // Whether the page's sheets hold the Framework's toggle look (see
 // ListHead.toggleAppearance). Found once, it stays found; not found, it is
 // asked again only when the page has more sheets than at the last look.
@@ -182,8 +194,14 @@ export class ListHead {
         }
     }
 
+    // The head answers to the width the list has, not to the view's box: a
+    // record card docked beside the list pads the view by its own width
+    // (data-sf-drawer-dock-host), and the head measured the whole box -- a
+    // desktop head over a list the table had already turned into rows, in
+    // what the card left of it (view round 12, VHF-5). The view's content
+    // box is the list's own width, the one sf-view-table measures too.
     _measure() {
-        const width = this.view.getBoundingClientRect?.().width || globalThis.innerWidth || 0;
+        const width = contentWidth(this.view) || globalThis.innerWidth || 0;
         const mode = width > 0 && width < PHONE_WIDTH ? "phone" : "desktop";
         if (mode !== this.mode) {
             this.mode = mode;

@@ -209,6 +209,23 @@ function contentStep(width) {
     return Math.ceil(width * 64) / 64;
 }
 
+// The common width the widest columns come down to so that together they give
+// `need` pixels (readFittedWidths): the highest whole width at which the
+// columns over it, each held at its least, give at least that much. Each entry
+// is [key, width, spare], spare being what the column holds over its least.
+function fittingLevel(columns, need) {
+    const gives = (level) => columns.reduce((sum, [, width, spare]) =>
+        sum + width - Math.max(Math.ceil(width - spare), Math.min(Math.floor(width), level)), 0);
+    let low = 0;
+    let high = Math.ceil(Math.max(0, ...columns.map(([, width]) => width)));
+    while (low < high) {
+        const middle = Math.ceil((low + high) / 2);
+        if (gives(middle) >= need) low = middle;
+        else high = middle - 1;
+    }
+    return low;
+}
+
 const TableElement = elementFromManifest(manifest, {
     base: SfBaseElement,
     lang: {en, ru},
@@ -3456,11 +3473,18 @@ class SfTable extends TableElement {
             }
         }
         if (!room) return fitted;
+        // The widest give first, down to one common width (view round 12,
+        // VHF-4): in proportion, every column gave a share of what it held
+        // over its heading, so a short value lost its last letters («Заказ
+        // №20…») while a long comment beside it kept hundreds of pixels it
+        // cut anyway. Now the columns over a level come down to it, never
+        // below their least width; the short ones keep their whole value.
         // A pixel more per column, so the rounding up leaves no sliver to scroll.
-        const give = Math.min(1, (left + shrinking.length) / room);
+        const need = Math.min(room, left + shrinking.length);
+        const level = fittingLevel(shrinking, need);
         let given = 0;
         for (const [key, width, spare] of shrinking) {
-            const next = Math.max(Math.ceil(width - spare), Math.floor(width - spare * give));
+            const next = Math.max(Math.ceil(width - spare), Math.min(Math.floor(width), level));
             given += width - next;
             fitted.set(key, next);
         }

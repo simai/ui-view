@@ -1453,17 +1453,32 @@ function renderPanelHead(context) {
 // The line under the title (C289 (6), C311 (2)): the stage as a tonal badge,
 // then up to two fields' values joined by « · ». Nothing when the head names
 // none: the title alone, as before.
-function renderHeadLine(context) {
+// A card in place (no panel) has no title row of its own -- the page owns the
+// title -- so its actions («⋯», the host's) end this line rather than stand
+// alone on an empty row above it (view round 12, VHF-6).
+function renderHeadLine(context, end = nothing) {
     const line = context.headLine;
-    if (!line || (!line.status && !line.subtitle.length)) return nothing;
+    if (!headLineDrawn(context)) return nothing;
     return html`
         <div class="sf-property-view-head-line flex items-cross-center gap-1/3 min-w-0" data-head-line>
             ${line.status ? html`<sf-badge size="1/2" appearance="tonal" scheme=${line.status.scheme}
                     text=${line.status.text} data-head-status=${line.status.key}></sf-badge>` : nothing}
             ${line.subtitle.length ? html`<span class="sf-property-view-head-subtitle color-on-surface-variant min-w-0 overflow-hidden"
                     data-head-subtitle>${line.subtitle.map((item) => item.text).join(' · ')}</span>` : nothing}
+            ${end === nothing ? nothing : html`<div class="sf-property-view-head-line-end flex items-cross-center gap-1">${end}</div>`}
         </div>
     `;
+}
+
+function headLineDrawn(context) {
+    const line = context.headLine;
+    return Boolean(line && (line.status || line.subtitle.length));
+}
+
+// The actions of a card in place: the host's and the card's menu («⋯»).
+function inPlaceActions(context) {
+    return Boolean(context.hasHostSlot('actions') || context.hasHostSlot('menu') || context.panelMenuItems.length
+        || context.canDeleteRecord || (context.recordMenuItems?.length ?? 0) > 0);
 }
 
 // A section opened on a phone, inside a panel: a level of the panel (C157 (6)).
@@ -1763,15 +1778,16 @@ function renderBody(context, railOutside = false, withActions = true) {
         <div class="sf-property-view-status" role="status" aria-live="polite" ?hidden=${!context.message}>
             ${context.message}
         </div>
-        ${!context.panel && (context.hasHostSlot('actions') || context.hasHostSlot('menu') || context.panelMenuItems.length
-                || context.canDeleteRecord || (context.recordMenuItems?.length ?? 0) > 0)
+        ${!context.panel && inPlaceActions(context) && !headLineDrawn(context)
                 ? html`
                     <div class="sf-property-view-host-actions flex flex-wrap items-cross-center justify-end gap-1">
                         ${context.hasHostSlot('actions') ? context.hostSlot('actions') : nothing}
                         ${renderMenuControl(context)}
                     </div>`
                 : nothing}
-        ${context.panel ? nothing : renderHeadLine(context)}
+        ${context.panel ? nothing : renderHeadLine(context, inPlaceActions(context) ? html`
+                ${context.hasHostSlot('actions') ? context.hostSlot('actions') : nothing}
+                ${renderMenuControl(context)}` : nothing)}
         ${onPhoneSectionList(context, sections) ? renderPhoneSectionList(context, sections) : nothing}
         ${lineTabsDrawn(context, sections) ? renderSectionTabs(context, sections) : nothing}
         <div class="sf-property-view-layout"

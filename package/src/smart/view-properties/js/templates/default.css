@@ -349,10 +349,25 @@
   }
 
   .sf-property-view-head-subtitle {
+    flex: 0 1 auto;
     white-space: nowrap;
     text-overflow: ellipsis;
     font-size: var(--sf-text--size-1\/2);
     line-height: var(--sf-text--height-1\/2);
+  }
+
+  /* The stage keeps its whole word; the fields after it give way and end in
+     the ellipsis (view round 12, VHF-7: a long client name squeezed the
+     badge to «Отправ…»). sf-badge draws its box in its child. */
+  .sf-property-view-head-line > sf-badge,
+  .sf-property-view-head-line > sf-badge > .sf-badge {
+    flex: none;
+  }
+
+  /* A card in place ends its stage line with its actions (VHF-6). */
+  .sf-property-view-head-line-end {
+    flex: none;
+    margin-inline-start: auto;
   }
 
   .sf-property-view-section-grip {

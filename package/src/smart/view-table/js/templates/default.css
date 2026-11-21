@@ -447,6 +447,20 @@
     -webkit-line-clamp: none;
     line-clamp: none;
   }
+  /* «Текст в одну строку» off (view round 12, VHF-4): the record's name in a
+     fitted column takes its two lines (C146 (7)) before the ellipsis, as it
+     does in a column of its own width; every other cell stays one line. The
+     setting on keeps the name to one line too. Until now a fitted table drew
+     every cell on one line whatever the setting said. */
+  :is(sf-view-table, sf-table)[data-sf-columns-fitted]:not([data-sf-view-single-line]) table:not(.sf-table-measuring) td[data-sf-cell="title"] {
+    white-space: normal;
+  }
+  :is(sf-view-table, sf-table)[data-sf-columns-fitted]:not([data-sf-view-single-line]) table:not(.sf-table-measuring) td[data-sf-cell="title"] .sf-table-cell-text {
+    display: -webkit-box;
+    white-space: normal;
+    -webkit-line-clamp: var(--sf-table-cell--line-clamp, 2);
+    line-clamp: var(--sf-table-cell--line-clamp, 2);
+  }
   :is(sf-view-table, sf-table) table.sf-table-measuring col {
     inline-size: auto !important;
     width: auto !important;
@@ -1834,6 +1848,11 @@
   }
   :is(sf-view-table, sf-table) td[data-sf-cell="title"] {
     --sf-table-cell--line-clamp: var(--sf-view-table-title-lines, 2);
+  }
+  /* «Текст в одну строку» (the gear's «Вид», view preference singleLine):
+     the record's name is one line too (view round 12, VHF-4). */
+  :is(sf-view-table, sf-table)[data-sf-view-single-line] td[data-sf-cell="title"] {
+    --sf-table-cell--line-clamp: 1;
   }
   /* Unset, each of these leaves what was drawn: the line name is
      guaranteed-invalid and its readers fall back; the head and the edge fall
