@@ -3260,12 +3260,12 @@
             "tree_sha256": "a5df220d50816fc59bba21be1dac9af76f0ac93a41a155cac04ab0fac4084fc7"
         },
         "icon_font": "component/icons/fonts/MaterialSymbols-Outlined.woff2",
-        "packet_sha256": "e96e85ea37e6e5cc047eb690f3a3bd855df751b58756a9eaae075bd6920a14d5",
-        "files": 2254,
+        "packet_sha256": "be937bd4cf7288ddcbca555a9ddb35229ffb7319eec3b4416f7fef70adb6e743",
+        "files": 2918,
         "manifest": {
             "path": "portable/vendor/simai-framework/runtime/b654460cad2ac1ffe146261f6c301be334d8e24d/runtime-manifest.json",
             "public": "_docara/vendor/simai-framework/runtime/b654460cad2ac1ffe146261f6c301be334d8e24d/runtime-manifest.json",
-            "sha256": "c7a010c7f3a213cc6f5b1504aaac4927fd841a0374e3883f1a4aaa8a8e9def8c"
+            "sha256": "86da28faaa6d2a00a94552a608943acc4539fcf0a4bc41c3dbc8d8fde1959b98"
         }
     },
     "icon_projection": {

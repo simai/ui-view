@@ -17,7 +17,7 @@ declare(strict_types=1);
  * the project lock is read from the working tree.
  *
  * The free release is the one the set is built over (package/framework.lock.json
- * and package/set.json name its ui-source revision). Docara 3.17.0 bundles an
+ * and package/set.json name its ui-source revision). Docara 3.18.0 bundles an
  * older pair, not the one the set is built over; this script
  * replaces it with the pinned release.
  *
