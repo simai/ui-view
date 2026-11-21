@@ -37,8 +37,10 @@ test('a table the host left alone, or wrote true on, takes the view\'s chrome', 
 });
 
 test('the projection and the first paint both respect it', () => {
-  assert.match(view, /table\.setAttribute\("selectable", this\.selects\(\) && !refused && !hostWroteOff\(table, "selectable"\) \? "true" : "false"\);/u);
-  assert.match(view, /table\.setAttribute\("settings", this\.renders\("settings"\) && !hostWroteOff\(table, "settings"\) \? "true" : "false"\);/u);
-  assert.match(view, /const select = this\.selects\(\) && !hostWroteOff\(table, "selectable"\);/u);
-  assert.match(view, /const settings = this\.renders\("settings"\) && !hostWroteOff\(table, "settings"\);/u);
+  // The host's word is read before the view writes its own (view round 12):
+  // asked after selects() was false, the marker took the view's own "false".
+  assert.match(view, /const hostOffSelect = hostWroteOff\(table, "selectable"\);\s*table\.setAttribute\("selectable", !hostOffSelect && this\.selects\(\) && !refused \? "true" : "false"\);/u);
+  assert.match(view, /const hostOffSettings = hostWroteOff\(table, "settings"\);\s*table\.setAttribute\("settings", !hostOffSettings && this\.renders\("settings"\) \? "true" : "false"\);/u);
+  assert.match(view, /const hostOffSelect = hostWroteOff\(table, "selectable"\);\s*const select = !hostOffSelect && this\.selects\(\);/u);
+  assert.match(view, /const hostOffSettings = hostWroteOff\(table, "settings"\);\s*const settings = !hostOffSettings && this\.renders\("settings"\);/u);
 });

@@ -34,7 +34,11 @@ pro-f6c43828e5f2 (sf-view 1.30.1, sf-view-table 1.29.4, sf-view-properties
   left the head is the phone head, together with the table's list rows. VHF-9:
   the list title keeps its heading size in a compact area (C44). VHF-11: no
   boxes in the table, the cards or the calendar without bulk actions; a host
-  that names `select` in its own `chrome` keeps them.
+  that names `select` in its own `chrome` keeps them. Bulk actions given after
+  the first draw (`bulkActions`, or `actions` written on the page row later)
+  bring the boxes to the rows already drawn; the view reads the host's own
+  `selectable`/`settings` before it writes its own, so its first «false» is not
+  taken for the host's.
 - `sf-view-table` 1.29.5. VHF-4: columns that do not fit take the room from
   the other columns first, the widest first, and the record's name last, so a
   short name stays whole; where the name still has to give, «Текст в одну
