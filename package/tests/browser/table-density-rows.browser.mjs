@@ -13,6 +13,8 @@ const styles = [
   'smart/smart/empty-state/css/empty-state.css',
   'component/component/tabs/css/tabs.css', 'component/component/context-menu/css/context-menu.css',
   'component/component/checkbox/css/checkbox.css', 'component/component/radio/css/radio.css', 'component/component/buttons/css/buttons.css',
+  // The row menu «≡» is an icon button: without its sheet it stood a bare 30 px button in every row.
+  'component/component/icon-buttons/css/icon-buttons.css',
   'smart/smart/switch/css/switch.css', 'smart/smart/settings/css/settings.css',
   'smart/smart/view-table/css/view-table.css', 'smart/smart/resizer/css/resizer.css',
 ].map((p) => join(out, p));
@@ -40,15 +42,21 @@ const modules = [
 // - no size and size="1/2" on a normal page, and no size on a compact page;
 // - body and head rows: compact < normal < spacious, compact is the rung
 //   below normal, spacious the rung above (read from the page's own tokens).
+// - VR11A-1 (round 11 acceptance, view round 12 VHF-8): the same with row
+//   actions and personal column settings, so every row has the row menu «≡»
+//   (it held a compact row at the normal height), the gear opened by a real
+//   click on the settings column's head.
 const failures = [];
 const note = (detail) => failures.push(detail);
 const browser = await chromium.launch();
 const COLUMNS = [{key: 'name', label: 'Название', role: 'title'}, {key: 'city', label: 'Город'}, {key: 'code', label: 'Код'}];
-const RECORDS = Array.from({length: 4}, (_, i) => ({id: String(i + 1), name: `Заказ ${i + 1}`, city: 'Казань', code: `K-${i}`}));
+const RECORDS = Array.from({length: 4}, (_, i) => ({id: String(i + 1), revision: '1', actions: ['view', 'delete'], name: `Заказ ${i + 1}`, city: 'Казань', code: `K-${i}`}));
 const cases = [
   {name: 'size 1, normal page', size: null, page: null, rungs: ['--sf-ui-1\\/2--control-height', '--sf-ui-1--control-height', '--sf-ui-2--control-height']},
   {name: 'size 1/2, normal page', size: '1/2', page: null, rungs: ['--sf-ui-1\\/3--control-height', '--sf-ui-1\\/2--control-height', '--sf-ui-1--control-height']},
   {name: 'size 1, compact page', size: null, page: 'compact', rungs: null},
+  {name: 'size 1, normal page, row menu', size: null, page: null, menu: true, rungs: ['--sf-ui-1\\/2--control-height', '--sf-ui-1--control-height', '--sf-ui-2--control-height']},
+  {name: 'size 1/2, normal page, row menu', size: '1/2', page: null, menu: true, rungs: ['--sf-ui-1\\/3--control-height', '--sf-ui-1\\/2--control-height', '--sf-ui-1--control-height']},
 ];
 const results = [];
 try {
@@ -65,20 +73,26 @@ try {
     for (const path of styles) await page.addStyleTag({path}).catch(() => {});
     for (const path of modules) await page.addScriptTag({path, type: 'module'}).catch(() => {});
     await page.waitForFunction(() => customElements.get('sf-view') && customElements.get('sf-view-table'), null, {timeout: 8000});
-    await page.evaluate(([columns, records]) => document.getElementById('v').setHostPort({
-      version: '1.10.0', capabilities: [],
+    await page.evaluate(([columns, records, menu]) => document.getElementById('v').setHostPort({
+      version: '1.10.0', capabilities: menu ? ['row-actions', 'personal-column-settings'] : [],
       async raise(intent, payload) {
         if (intent !== 'query.change') return {answer: 'applied'};
         return {answer: 'applied', sequence: payload.sequence, data: {records, total: records.length, columns,
           echo: {search: '', filters: {}, sort: [], page: 1, per_page: payload.query.per_page ?? 25}}};
       },
-    }), [COLUMNS, RECORDS]);
+    }), [COLUMNS, RECORDS, Boolean(one.menu)]);
     await page.waitForFunction(() => document.querySelectorAll('#t tbody tr').length >= 4, null, {timeout: 8000});
     const PANEL = 'sf-settings[data-table-settings] .sf-settings-panel';
     const heights = {};
     for (const density of ['normal', 'compact', 'spacious']) {
       const open = await page.evaluate((panel) => Boolean(document.querySelector(`${panel}:not([hidden])`)), PANEL);
-      if (!open) {
+      if (!open && one.menu) {
+        // A person's way in: the settings column's head, clicked.
+        await page.locator('#t thead th[data-key="settings"] button, #t thead th[data-key="settings"]').first().click();
+        await page.waitForTimeout(500);
+        await page.locator(`${PANEL} .sf-settings-panel-tabs [role="tab"]`).nth(1).click();
+        await page.waitForTimeout(300);
+      } else if (!open) {
         await page.evaluate(() => {
           const table = document.getElementById('t');
           const anchor = table.querySelector('thead th') ?? table;
@@ -104,12 +118,15 @@ try {
       heights[density] = await page.evaluate((rungs) => {
         const table = document.getElementById('t');
         const px = (name) => { const probe = document.createElement('div'); probe.style.blockSize = `var(${name})`; table.append(probe); const h = probe.getBoundingClientRect().height; probe.remove(); return h; };
+        const menuButton = table.querySelector('tbody tr td[data-key="settings"] button');
         return {body: Math.round(table.querySelector('tbody tr').getBoundingClientRect().height),
+          menu: menuButton ? Math.round(menuButton.getBoundingClientRect().height) : null,
           head: Math.round(table.querySelector('thead tr').getBoundingClientRect().height),
           attr: table.getAttribute('data-sf-view-density'), rungs: rungs ? rungs.map((name) => Math.round(px(name))) : null};
       }, one.rungs);
     }
     const {normal, compact, spacious} = heights;
+    if (one.menu && normal && normal.menu === null) note({case: one.name, theme, got: 'no row menu «≡» in the rows'});
     if (normal && compact && spacious) {
       for (const part of ['body', 'head']) {
         if (!(compact[part] < normal[part] && normal[part] < spacious[part])) note({case: one.name, theme, part, got: {compact: compact[part], normal: normal[part], spacious: spacious[part]}});

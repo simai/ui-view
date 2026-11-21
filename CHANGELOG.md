@@ -54,6 +54,15 @@ pro-f6c43828e5f2 (sf-view 1.30.1, sf-view-table 1.29.4, sf-view-properties
 - `sf-view-board` 1.1.4 (VHF-10): a card at size 1 draws text step 1.
 - `sf-view-cards` 1.0.7 (VHF-12): the box and «⋯» are centred on the title's
   first line (the «⋯» sat 6 px low).
+- Round 11 acceptance returns (DEV msg-265727a8): VR11A-1 is VHF-8 above, and
+  probe table-density-rows now has the row menu and opens the gear by a click;
+  VR11A-2 the hint-less phone skeleton is said as drawn (a field to a line;
+  short values want list-shape); VFC-1 the quick edit at a value shows again
+  (`sf-view-properties` read sf-popover's former data-open, now its open
+  attribute). VR11A-3 (vertical sections in the slider) waits for sf-tabs
+  fold=never (group build 16, G9); VR11A-4 (the table's own row drop line)
+  waits for the shared SF.Sortable drop marker (group build 16, G10), which
+  pair ui-b654460cad2a does not carry.
 - Browser probes view-round-12 and view-round-12-r3 (red on 9609c88).
 
 ## Unreleased — view round 11

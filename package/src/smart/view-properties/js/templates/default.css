@@ -1412,8 +1412,12 @@
 
   /* The window draws only while sf-popover says it is open: before the
      element is defined, and before its own sheet arrives, the content would
-     stand in the row and shift the panel at the first paint (VP-29). */
-  .sf-property-view-quick:not([data-open="true"]) > [slot="content"] {
+     stand in the row and shift the panel at the first paint (VP-29). The
+     popover's open state is its reflected open attribute (its contract);
+     data-open is what it wrote before 1.8.0, which writes it no more, and
+     reading only that kept the quick edit hidden for good (view round 12,
+     VFC-1). */
+  .sf-property-view-quick:not([open]):not([data-open="true"]) > [slot="content"] {
     display: none;
   }
 

@@ -27,6 +27,8 @@
 // - VHF-4 (with the title giving last): a narrow fitted table (390) whose
 //   name has to give: nothing chosen it is one line as before; «Текст в
 //   одну строку» on, one line; turned off, the name on two lines, uncut.
+// - VFC-1: in a panel a click on a short field's value opens its quick edit
+//   window (it read data-open, which sf-popover 1.8.0 writes no more).
 // - C393 star: the favourite star stays right after the one-line title; a
 //   click flips its pressed state; no console word about it.
 // Console clean (errors and warnings) in every load.
@@ -364,6 +366,15 @@ try {
           .catch(() => failures.push({...label, item: 'VRS-8', got: 'a click on a section row did not open it'}));
         if (run === 1) results.push({theme, item: 'VRS-8', width, ...got});
         await page.locator('button[data-action="phone-back"], [data-action="phone-back"] button').first().click().catch(() => {});
+        await page.waitForTimeout(300);
+      }
+      if (width === 1440 && panel) {
+        await page.locator('button[data-quick="status"]').first().click({timeout: 5000}).catch(() => failures.push({...label, item: 'VFC-1', got: 'no quick value to click'}));
+        const shown = await page.waitForFunction(() => [...document.querySelectorAll('[data-quick-editor="status"]')].some((node) => node.getBoundingClientRect().height > 0), null, {timeout: 4000})
+          .then(() => true, () => false);
+        if (!shown) failures.push({...label, item: 'VFC-1', got: 'the quick edit window did not show'});
+        if (run === 1) results.push({theme, item: 'VFC-1', shown});
+        await page.keyboard.press('Escape');
         await page.waitForTimeout(300);
       }
       // The star: right after the one-line title; a click flips it.
