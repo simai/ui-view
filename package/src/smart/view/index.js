@@ -988,6 +988,10 @@ class SfDataView extends DataViewElement {
     // the records they name: at once from what is known, and again over the
     // answer to the switch's own query (a new result clears a table's marks).
     _applyCarriedSelection() {
+        // The list's bar follows the kind on screen: the table's and the
+        // cards' marks, none under the board or the calendar (they draw their
+        // own), so a switch never leaves two bars (owner, 2026-11-22).
+        if (this._bulkBar || this._bulkBand) this._renderBulkBand();
         // What a switch carried and what the person marked on other pages
         // (LV2-2), given to the kind on screen.
         const ids = [...new Set([...(this._carrySelection ?? []), ...this.markedIds.map(String)])];
