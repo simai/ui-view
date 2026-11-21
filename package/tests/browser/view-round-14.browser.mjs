@@ -88,7 +88,7 @@ const LIST = (theme, {key = 'a', layout = ''} = {}) => `${HEAD(theme)}
     raise:function(intent,p){p=p||{};
       if(intent==='query.change'){var qy=p.query||{},per=+qy.per_page||10,page=+qy.page||1;
         if(qy.window&&qy.window.per_page){per=+qy.window.per_page;page=+qy.window.page||1}
-        var lanes=${layout === 'board' ? '' : 'null&&'}ST.map(function(s){var r=ROWS.filter(function(x){return x.status===s.value}).slice(0,6);return {value:s.value,label:s.label,records:r,total:16}});
+        var lanes=view.getAttribute('layout')==='board'&&ST.map(function(s){var r=ROWS.filter(function(x){return x.status===s.value}).slice(0,6);return {value:s.value,label:s.label,records:r,total:16}});
         return Promise.resolve({answer:'applied',sequence:p.sequence,data:{columns:COLS,records:ROWS.slice((page-1)*per,page*per),total:ROWS.length,lanes:lanes||undefined,board:lanes?{order_field:''}:undefined,
           saved_filters:[{id:'f1',name:'Ждут оплаты',filters:{status:{operator:'in',values:['new']}}}],
           view_config:{layouts:{cards:{card_fields:['status','client','amount']},board:{lane_field:'status',card_fields:['client','amount']}}},
@@ -227,6 +227,16 @@ const marks = (page) => page.evaluate(() => {
   };
   return {count, said: said.slice(0, 120), cards: cards.length, cardsMarked: cards.filter(checked).length,
     markedIds: cards.filter(checked).map((node) => node.dataset.id ?? node.getAttribute('data-sf-sortable-item') ?? '')};
+});
+// The page row and the bars after a switch (VR13-1, owner 2026-11-22): the
+// cards keep the list's page row, and one bulk bar shows on any kind.
+const switchChrome = (page) => page.evaluate(() => {
+  const view = document.getElementById('v');
+  const nav = view.querySelector(':scope > sf-pagination nav');
+  const range = view.querySelector('.sf-view-footer-range');
+  const bars = [...document.querySelectorAll('sf-bulk-actions')]
+    .filter((bar) => bar.getClientRects().length || bar.querySelector('*')?.getClientRects().length).length;
+  return {nav: nav ? Math.round(nav.getBoundingClientRect().height) : 0, range: range?.getClientRects().length ? range.textContent.trim() : '', bars};
 });
 const markRow = async (page, index) => {
   const row = page.locator('#v sf-view-table :is(tbody tr, li)[data-row-id]').nth(index);
@@ -424,10 +434,20 @@ try {
       await page.waitForFunction(() => document.querySelectorAll('#v .sf-view-cards__card').length > 0, null, {timeout: 8000}).catch(() => errors.push('the cards did not come'));
       await page.waitForTimeout(800);
       const cards = await marks(page);
+      const cardsChrome = await switchChrome(page);
+      if (!cardsChrome.nav || !/из 48/u.test(cardsChrome.range)) failures.push({...base, item: 'VR13-1', got: cardsChrome, want: 'the cards keep the page row and the range after a click switch'});
+      if (cardsChrome.bars !== 1) failures.push({...base, item: 'one bar', got: cardsChrome, want: 'one bulk bar on the cards'});
       if (table.count !== 3) failures.push({...label, got: table, want: '3 marked over two pages'});
       if (cards.count !== 3 || !['o0', 'o1', 'o10'].every((id) => cards.markedIds.includes(id) || !cards.cards)) failures.push({...label, got: cards, want: 'the three marks on the cards'});
+      await pickKind(page, 'Канбан').catch((error) => errors.push(`board: ${error.message.slice(0, 120)}`));
+      await page.waitForFunction(() => document.querySelectorAll('#v .sf-view-board__card').length > 0, null, {timeout: 8000}).catch(() => errors.push('the board did not come'));
+      await page.waitForTimeout(800);
+      await page.locator('#v .sf-view-board__card label.sf-checkbox').first().click({timeout: 5000}).catch((error) => errors.push(`board mark: ${error.message.slice(0, 80)}`));
+      await page.waitForTimeout(400);
+      const boardChrome = await switchChrome(page);
+      if (boardChrome.bars > 1) failures.push({...base, item: 'one bar', got: boardChrome, want: 'one bulk bar on the board'});
       if (errors.length) failures.push({...label, errors});
-      results.push({...label, table, cards});
+      results.push({...label, table, cards, cardsChrome, boardChrome});
       await context.close();
       // LV2-7: «Выбрать все 48».
       const all = {...base, item: 'LV2-7'};

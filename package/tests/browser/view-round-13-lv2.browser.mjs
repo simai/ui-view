@@ -243,6 +243,9 @@ try {
         if (!step.range || startOf(step.range) !== numberOf(step.first)) failures.push({...label, step: name, got: step, want: 'the range starts at the first record on screen'});
         const kept = numberOf(steps.table2.first);
         if (name !== 'table2' && !(startOf(step.range) <= kept && kept < startOf(step.range) + step.shown)) failures.push({...label, step: name, got: step, want: `record ${kept} (first on page 2) still on screen`});
+        // A pager missing after a click switch is a failure (VR13-1: the
+        // cards lost the page row after a switch from the table).
+        if (!step.pages) failures.push({...label, step: name, got: step, want: 'the page row on screen after the switch'});
         if (step.current && step.pages && Number(step.current) !== Math.ceil(startOf(step.range) / Math.max(1, step.shown))) failures.push({...label, step: name, got: step, want: 'the page marked is the page shown'});
       }
       if (errors.length) failures.push({...label, errors});
