@@ -12,14 +12,11 @@ Framework `sf-bulk-actions`, а приложение получает одно �
 отмеченными записями и отвечает. Ответ полоса показывает сама.
 
 :::diagram {engine=mermaid title="От флажка до результата"}
-sequenceDiagram
-  participant P as Человек
-  participant V as sf-view
-  participant A as Приложение
-  P->>V: отмечает записи, нажимает действие
-  V->>A: bulk.apply_selected (код, id, ревизии)
-  A-->>V: applied или refused / conflict
-  V-->>P: отметка снята или в полосе — что не удалось
+%%{init: {"themeCSS": ".label{font-size:inherit} .node rect{fill:var(--sf-surface-2);stroke:var(--sf-outline-variant)} .nodeLabel,.nodeLabel p{color:var(--sf-on-surface);hyphens:manual} .flowchart-link{stroke:var(--sf-on-surface-variant)} .marker,.arrowMarkerPath{fill:var(--sf-on-surface-variant);stroke:var(--sf-on-surface-variant)}"}}%%
+flowchart TB
+  P["Человек отмечает записи и нажимает действие"] --> V["sf-view отправляет приложению bulk.apply_selected: код действия, id и ревизии"]
+  V --> A["Приложение отвечает: applied, refused или conflict"]
+  A --> R["sf-view снимает отметку или показывает в полосе, что не удалось"]
 :::
 
 ## Пример
