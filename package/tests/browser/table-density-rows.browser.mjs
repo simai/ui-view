@@ -90,8 +90,17 @@ try {
       }
       const row = page.locator(`${PANEL} .sf-settings-row-main[data-sf-setting="density"][data-sf-option="${density}"]`).first();
       if (!(await row.count())) { note({case: one.name, theme, density, got: 'no density row in «Вид»'}); continue; }
+      // The word on the row pressed is the density it gives (DEV msg-3d7eee66:
+      // the owner read «Компактно» as the normal look and «Обычно» as compact).
+      const word = (await row.innerText()).replace(/\s+/gu, ' ').trim();
+      const WORDS = {compact: 'Компактно', normal: 'Обычно', spacious: 'Просторно'};
+      if (!word.includes(WORDS[density])) note({case: one.name, theme, density, got: `the row pressed says «${word}»`});
       await row.click();
       await page.waitForTimeout(300);
+      const checked = await page.evaluate((panel) => [...document.querySelectorAll(`${panel} .sf-settings-row-main[data-sf-setting="density"]`)]
+        .filter((node) => node.getAttribute('aria-checked') === 'true' || node.getAttribute('aria-selected') === 'true' || node.querySelector('[aria-checked="true"], :checked'))
+        .map((node) => node.getAttribute('data-sf-option')), PANEL);
+      if (checked.length && checked.join() !== density) note({case: one.name, theme, density, got: `the panel marks ${checked.join()}`});
       heights[density] = await page.evaluate((rungs) => {
         const table = document.getElementById('t');
         const px = (name) => { const probe = document.createElement('div'); probe.style.blockSize = `var(${name})`; table.append(probe); const h = probe.getBoundingClientRect().height; probe.remove(); return h; };
