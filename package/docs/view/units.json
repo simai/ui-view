@@ -5,7 +5,7 @@
   "entries": [
     {
       "unit": "smart.view",
-      "version": "1.29.3",
+      "version": "1.30.0",
       "recorded_on": "2026-11-21",
       "change": "minor",
       "consumer": "Optional for a host: list-shape on the view (or its sf-view-table) says how a record of the phone's compact list looks -- the lines of each part, the title first (\"1 1 2 1\"), or \"resource\" for a list of resources -- and the skeleton draws that shape, so the list does not move when the records come; without it the skeleton is as before. A page row that says its total (total on sf-pagination) sizes the skeleton to the records left. «Изменено» compares a system view that names no layout with the layout the page wrote (else the host's first), not with the kind the list showed when the head first looked. 1.29.2 is simai/ui-pro's number (sf-view accepting dataview-port 1.16.0, already in this set's 1.29.1).",

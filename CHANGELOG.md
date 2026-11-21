@@ -32,7 +32,7 @@ round/view-site-1.10.1 7757233 merged), candidate 1.10.2 over the same pair
   would pass 60 percent of the window. The whole screen and a card in place
   lay tabs on top where the column's tabs fold. A whole-record save answered
   `conflict` reads the record again (the fix of simai/ui-pro 1.23.8).
-- `sf-view` 1.29.3: `list-shape`, the host's hint of a phone list record's
+- `sf-view` 1.30.0: `list-shape`, the host's hint of a phone list record's
   shape (lines per part, title first, or `resource`), drawn by the skeleton;
   a page row's printed `total` sizes the skeleton to the records left;
   «Изменено» compares a system view that names no layout with the layout the

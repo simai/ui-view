@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view",
-  "version": "1.29.3",
+  "version": "1.30.0",
   "title": "Data view",
   "summary": "Host-driven data view that composes toolbar, content and pagination around a separate data port.",
   "kind": "composite",
@@ -1946,7 +1946,7 @@
       },
       {
         "from": "1.29.1",
-        "to": "1.29.3",
+        "to": "1.30.0",
         "changes": [
           "View round 11 (round/view-r11): index.js firstPaintRows caps the skeleton's rows by the printed page row's total from its current page (_printedRecordsLeft); listShape reads list-shape (the view, else its table) and _firstPaintMarkup draws each part as its lines ([data-lines]) or the resource row ([data-resource], the title and supporting lines on --sf-ui-2/3--control-height, the list's quarter-step padding and hairline gap); first-paint.css carries those rules; pageLayoutKind keeps the layout the page wrote at connect; head.js storedKind is the kind a system view naming no layout stands for (viewKind), and _openSavedView no longer remembers the shown kind as that view's. component.json, smart.manifest.json and docs.md declare list-shape."
         ]
