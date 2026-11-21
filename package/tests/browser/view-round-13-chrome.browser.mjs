@@ -136,6 +136,7 @@ const parts = (page) => page.evaluate(() => {
     size: box('.sf-view-footer-size'),
     range: view.querySelector('.sf-view-footer-range')?.textContent ?? '',
     row: row && row.getClientRects().length ? Math.round(row.getBoundingClientRect().height) : 0,
+    inRow: row ? [...row.querySelectorAll('*')].filter((node) => node.getClientRects().length && node.getBoundingClientRect().width > 0 && node.parentElement?.closest('.sf-view-head-row') === row && !node.parentElement.closest('sf-button, sf-button-icon, sf-input, sf-popover')).map((node) => `${node.tagName.toLowerCase()}.${String(node.className).split(' ')[0]}`).slice(0, 8) : [],
     control: box('.sf-view-head-title :is(sf-button, sf-button-icon), .sf-view-head :is(.sf-view-head-zone-toggle, .sf-view-head-more, .sf-view-head-create)')?.h ?? 32,
     titleToList: title && list ? Math.round(list.top - title.bottom) : null,
     settingsColumn: box('sf-view-table th[data-key="settings"]'),
@@ -215,7 +216,7 @@ try {
       const back = await parts(page);
       check(label, back.search && back.filter && back.size, back, 'setChrome(null) brings every part back');
     });
-    await step('an emptied head row is not drawn', {chrome: 'toolbar pagination look', caps: ['row-actions'], layouts: "['table']", permissions: '{}'}, async (label, got) => {
+    await step('an emptied head row is not drawn', {chrome: 'toolbar pagination page-size', caps: ['row-actions'], layouts: "['table']", permissions: '{}'}, async (label, got) => {
       check(label, got.row === 0, got.row, 'no head row');
       check(label, got.titleToList !== null && full.titleToList !== null && got.titleToList < full.titleToList, {empty: got.titleToList, full: full.titleToList}, 'the list moves up by the row');
     });

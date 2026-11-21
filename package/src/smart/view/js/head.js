@@ -724,7 +724,12 @@ export class ListHead {
     }
 
     get zoneUseful() {
-        return this.savedViews.length > 0 || this.view.hostOffers("saved-views") || this.kinds.length > 1 || this.view.hostOffers("personal-column-settings") || Boolean(this.description);
+        // «Настроить вид» (a described list) and the column settings live
+        // in the zone: switched off by chrome (look, VR5-5), they keep no
+        // toggle that would open an empty zone.
+        const look = this.view.renders("look");
+        return this.savedViews.length > 0 || this.view.hostOffers("saved-views") || this.kinds.length > 1
+            || (look && (this.view.hostOffers("personal-column-settings") || Boolean(this.description)));
     }
 
     // The toggle look of SIMAI Framework (TG-1, C393: the background and a
