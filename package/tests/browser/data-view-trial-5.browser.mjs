@@ -53,7 +53,7 @@ await page.setContent(
      <div style="width:900px">
        <sf-view id="view">
          <sf-view-table slot="content" id="table" preferences-key="trial-5"></sf-view-table>
-         <sf-pagination slot="pagination"></sf-pagination>
+         <sf-pagination slot="pagination" actions="archive:В архив"></sf-pagination>
        </sf-view>
      </div>
    </body></html>`,

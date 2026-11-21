@@ -53,7 +53,7 @@ const open = async ({width = 1000, columnWidth = 300, rows = 10, delay = 60, hos
      <body style="margin:0"><div style="width:${width}px">
        <sf-view id="v">
          <sf-view-table slot="content" id="t"></sf-view-table>
-         <sf-pagination slot="pagination" id="p" page-size="10" current="3"></sf-pagination>
+         <sf-pagination slot="pagination" id="p" page-size="10" current="3" actions="archive:В архив"></sf-pagination>
        </sf-view>
      </div></body></html>`,
   );

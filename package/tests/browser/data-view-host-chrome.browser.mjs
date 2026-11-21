@@ -47,6 +47,7 @@ try {
     </sf-view>
     <sf-view id="plain" aria-label="Без действий"><sf-view-table slot="content"></sf-view-table></sf-view>
     <sf-view id="acting" aria-label="С действиями"><sf-view-table slot="content"></sf-view-table></sf-view>
+    <sf-view id="bulk" aria-label="С действиями над выбранными"><sf-view-table slot="content"></sf-view-table></sf-view>
   </body></html>`);
   for (const path of styles) await page.addStyleTag({path}).catch(() => {});
   for (const path of modules) await page.addScriptTag({path, type: 'module'}).catch(() => {});
@@ -73,11 +74,13 @@ try {
     document.getElementById('sites').setHostPort(port([], null));
     document.getElementById('plain').setHostPort(port([], null));
     document.getElementById('acting').setHostPort(port(['row-actions'], ['archive', 'delete']));
+    document.getElementById('bulk').bulkActions = [{id: 'archive', label: 'В архив'}];
+    document.getElementById('bulk').setHostPort(port([], null));
   });
-  await page.waitForFunction(() => ['sites', 'plain', 'acting'].every((id) => document.querySelectorAll(`#${id} sf-view-table tbody tr[data-row-id]`).length === 6));
+  await page.waitForFunction(() => ['sites', 'plain', 'acting', 'bulk'].every((id) => document.querySelectorAll(`#${id} sf-view-table tbody tr[data-row-id]`).length === 6));
   await page.waitForTimeout(400);
 
-  const read = await page.evaluate(() => Object.fromEntries(['sites', 'plain', 'acting'].map((id) => {
+  const read = await page.evaluate(() => Object.fromEntries(['sites', 'plain', 'acting', 'bulk'].map((id) => {
     const table = document.querySelector(`#${id} sf-view-table`);
     const scroller = [...table.querySelectorAll('*')].find((node) => node.scrollWidth > 0 && /auto|scroll/u.test(getComputedStyle(node).overflowX)) ?? table;
     return [id, {
@@ -101,8 +104,11 @@ try {
   if (sites.right > 1280 - 24 + 1) note(`the sites list ends at ${sites.right}px, past the page's padding`);
   if (pageWidth > 1280) note(`the page is ${pageWidth}px wide at 1280`);
 
-  // The view's own chrome still draws the boxes; the settings column has nothing to open.
-  if (!read.plain.head.includes('select')) note(`a list the host left alone lost its boxes: ${JSON.stringify(read.plain.head)}`);
+  // Boxes come with bulk actions (view round 12, VHF-11): a list the host left
+  // alone has nothing to do with marked rows, so it draws none; a list given
+  // bulk actions draws them. The settings column has nothing to open.
+  if (read.plain.head.includes('select') || read.plain.boxes) note(`a list with no bulk actions draws boxes: ${JSON.stringify(read.plain.head)}, ${read.plain.boxes}`);
+  if (!read.bulk.head.includes('select')) note(`a list given bulk actions lost its boxes: ${JSON.stringify(read.bulk.head)}`);
   if (read.plain.head.includes('settings') || read.plain.menus) note(`a list with no column settings and no row actions draws the settings column: ${JSON.stringify(read.plain.head)}`);
   // Records with actions are a row menu, and the column carries it.
   if (!read.acting.head.includes('settings') || read.acting.menus !== 6) note(`a list whose records offer actions has no row menus: ${JSON.stringify(read.acting.head)}, ${read.acting.menus}`);

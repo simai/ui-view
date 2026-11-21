@@ -662,9 +662,16 @@ class SfDataView extends DataViewElement {
     set bulkActions(list) {
         this._bulkActions = Array.isArray(list) ? list.filter((item) => item && (item.id ?? item.value)) : [];
         this._applyBulkActions();
-        // Actions given or taken away bring or take the boxes (VHF-11).
+        this._syncSelects();
+    }
+
+    // Actions given or taken away bring or take the boxes (VHF-11), whether
+    // they come as bulkActions or on the page row's actions attribute, now or
+    // after the first draw.
+    _syncSelects() {
+        const selects = this.selects();
         const table = this.table;
-        if (table && !hostWroteOff(table, "selectable")) table.setAttribute("selectable", this.selects() && this._queryRefused !== true ? "true" : "false");
+        if (table && !hostWroteOff(table, "selectable")) table.setAttribute("selectable", selects && this._queryRefused !== true ? "true" : "false");
         if (this.layoutKind === "board") this._syncBoard?.();
         if (this.layoutKind === "cards") syncCards(this);
     }
@@ -1139,7 +1146,10 @@ class SfDataView extends DataViewElement {
         if (!pagination || this._watchedPagination === pagination || typeof MutationObserver === "undefined") return;
         this._paginationObserver?.disconnect();
         this._watchedPagination = pagination;
-        this._paginationObserver = new MutationObserver(() => this._queueFooter());
+        this._paginationObserver = new MutationObserver((records) => {
+            this._queueFooter();
+            if (records.some((record) => record.attributeName === "actions")) this._syncSelects();
+        });
         this._paginationObserver.observe(pagination, {attributes: true});
         // Its words change without an attribute (a language chosen on the
         // page): it says so with sf-updated, once per draw of its own.
