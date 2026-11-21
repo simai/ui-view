@@ -57,6 +57,40 @@ function contentWidth(element) {
     return Math.max(0, width - less);
 }
 
+// The width a head part takes on one line (view round 12, VHF-3 refined): a
+// box laid out by itself is read as drawn; a display: contents host (every
+// sf-button, sf-button-icon, sf-popover) has no box of its own, so its laid
+// children are summed -- the hosts measured 0 and the one-row test came out
+// about 200 px short. A line of parts is the parts and the gaps between them;
+// the search counts at its 20rem (C297), whatever it is stretched to.
+function lineWidth(container, search) {
+    if (!container) return 0;
+    const style = globalThis.getComputedStyle?.(container);
+    const gap = Number.parseFloat(style?.columnGap) || 0;
+    const items = [];
+    const collect = (node) => {
+        for (const child of node.children) {
+            if (child.hidden) continue;
+            const look = globalThis.getComputedStyle?.(child);
+            if (!look || look.display === "none" || look.position === "absolute" || look.position === "fixed") continue;
+            if (look.display === "contents") { collect(child); continue; }
+            items.push(child);
+        }
+    };
+    collect(container);
+    let sum = 0;
+    let count = 0;
+    for (const item of items) {
+        const width = item.matches?.(".sf-view-head-search") ? search
+            : item.matches?.(".sf-view-head-start, .sf-view-head-end, .sf-view-head-fields") ? lineWidth(item, search)
+                : item.getBoundingClientRect().width;
+        if (!(width > 0)) continue;
+        sum += width;
+        count += 1;
+    }
+    return sum + gap * Math.max(0, count - 1);
+}
+
 // Whether the page's sheets hold the Framework's toggle look (see
 // ListHead.toggleAppearance). Found once, it stays found; not found, it is
 // asked again only when the page has more sheets than at the last look.
@@ -135,6 +169,7 @@ export class ListHead {
         this.tab = {filter: "saved"};
         this.root = null;
         this._onResize = () => this._measure();
+        this._onPartsResize = () => this._layRow();
     }
 
     // ---------- lifecycle ----------
@@ -158,6 +193,7 @@ export class ListHead {
         root.addEventListener("sf-button-press", (event) => this._onCreatePress(event));
         this._resize = typeof ResizeObserver === "function" ? new ResizeObserver(this._onResize) : null;
         this._resize?.observe(this.view);
+        this._parts = typeof ResizeObserver === "function" ? new ResizeObserver(this._onPartsResize) : null;
         this._measure();
         return this;
     }
@@ -165,6 +201,8 @@ export class ListHead {
     detach() {
         this._resize?.disconnect();
         this._resize = null;
+        this._parts?.disconnect();
+        this._parts = null;
         this.root?.remove();
         this.root = null;
         this.mode = null;
@@ -207,6 +245,40 @@ export class ListHead {
             this.mode = mode;
             this._build();
         }
+        this._layRow();
+    }
+
+    // The head row has two states only (view round 12, VHF-3 refined, owner
+    // remark via DEV msg-c31ccebd): everything on one row while «Filter», its
+    // fields, the search at 20rem, «Create» and the menu fit; else two rows,
+    // the search across the width on top with «Create» and the menu at its
+    // end, «Filter» and the fields wrapping below. No third state (the search
+    // alone at the end of a second row). The parts are watched, so a field
+    // added or closed decides it again.
+    _layRow() {
+        const root = this.root;
+        if (!root?.isConnected) return;
+        const row = root.querySelector(":scope > .sf-view-head-row");
+        const start = row?.querySelector(":scope > .sf-view-head-start");
+        const end = row?.querySelector(":scope > .sf-view-head-end");
+        if (this.mode !== "desktop" || !row || !start || !end) {
+            root.removeAttribute("data-stacked");
+            return;
+        }
+        if (this._parts) {
+            this._parts.disconnect();
+            for (const part of row.querySelectorAll(".sf-view-head-join, .sf-view-head-fields > *, .sf-view-head-zone-toggle > *, .sf-view-head-create > *, .sf-view-head-more > *")) this._parts.observe(part);
+        }
+        const room = contentWidth(row);
+        if (!(room > 0)) return;
+        const rem = Number.parseFloat(globalThis.getComputedStyle?.(document.documentElement)?.fontSize) || 16;
+        const search = 20 * rem;
+        const gap = Number.parseFloat(globalThis.getComputedStyle?.(row)?.columnGap) || 0;
+        const startWidth = lineWidth(start, search);
+        const need = (startWidth > 0 ? startWidth + gap : 0) + lineWidth(end, search);
+        // Half a pixel of rounding is not a reason to fold the row.
+        const stacked = need > room + 0.5;
+        if (stacked !== root.hasAttribute("data-stacked")) root.toggleAttribute("data-stacked", stacked);
     }
 
     // ---------- what the head knows ----------
@@ -508,6 +580,7 @@ export class ListHead {
             set(create, "menu", menu.length > 1 ? JSON.stringify(menu.slice(1)) : null);
         }
         this._renderFields();
+        this._layRow();
         // An open window shows the state it was opened over.
         if (this.open && !this.open.kind.startsWith("value:") && this.open.kind !== "save" && !this.open.kind.startsWith("rename:")) this._renderOpen();
     }

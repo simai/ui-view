@@ -28,8 +28,11 @@
   gap: var(--sf-space-1\/2);
   min-inline-size: 0;
   margin: 0;
-  font-size: var(--sf-text-size-2);
-  line-height: var(--sf-text-height-2);
+  /* A heading keeps its ladder whatever the density (C44; view round 12,
+     VHF-9): the text step 2 went 20 -> 16 in compact, the heading step 4 is
+     the same 20 at normal and stays 20 in compact. */
+  font-size: var(--sf-heading-4--size, var(--sf-text-size-2));
+  line-height: var(--sf-heading-4--height, var(--sf-text-height-2));
   font-weight: var(--sf-font-weight-medium);
   color: var(--sf-on-surface);
 }
@@ -71,6 +74,13 @@
    of the row does (view round 12, VHF-3): an auto margin held it at the
    end of the second line with the line's start left empty. */
 .sf-view-head-end { flex: 0 1 auto; flex-wrap: nowrap; max-inline-size: 100%; }
+/* Two states only (VHF-3 refined): what does not fit on one row stacks, the
+   search across the width on top with «Create» and the menu at its end,
+   «Filter» and the fields wrapping below (head.js _layRow decides). */
+.sf-view-head[data-stacked]:not([data-phone]) .sf-view-head-row { flex-direction: column; flex-wrap: nowrap; align-items: stretch; }
+.sf-view-head[data-stacked]:not([data-phone]) .sf-view-head-end { order: -1; inline-size: 100%; }
+.sf-view-head[data-stacked]:not([data-phone]) .sf-view-head-start { flex: none; }
+.sf-view-head[data-stacked]:not([data-phone]) .sf-view-head-search { flex: 1 1 auto; inline-size: auto; }
 /* The search: up to 20rem (C297), never wider than the row. */
 .sf-view-head-search { flex: 0 1 20rem; inline-size: 20rem; min-inline-size: 12rem; }
 .sf-view-head-search > sf-input { display: block; min-inline-size: 0; }

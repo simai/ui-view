@@ -1329,6 +1329,25 @@ class SfPropertyView extends PropertyViewElement {
         return this.hasAttribute("favourite");
     }
 
+    // The favourite star's look (C393, DEV msg-975e95fe; the twin of
+    // ui-pro's sf-view-properties 1.24.0): the Framework's toggle where
+    // sf-button-icon declares it (1.14.0), read from its own interface; with
+    // an sf-button-icon without it (pair ui-b654460cad2a carries 1.13.11) the
+    // star stays the neutral ghost toggle of C211 (1). Until the tag is
+    // defined the star is drawn as before and drawn again once it is.
+    starLook() {
+        const Button = globalThis.customElements?.get?.("sf-button-icon");
+        if (!Button) {
+            if (!this._starLookWait && globalThis.customElements?.whenDefined) {
+                this._starLookWait = globalThis.customElements.whenDefined("sf-button-icon").then(() => this.requestComponentUpdate("star-look"));
+            }
+            return null;
+        }
+        let values = null;
+        try { values = Button.sfInterface?.settings?.appearance?.values; } catch { values = null; }
+        return Array.isArray(values) && values.includes("toggle") ? "toggle" : null;
+    }
+
     get favouriteLabel() {
         return this.getAttribute("favourite-label") || pageText(PROPERTY_VIEW_TEXT, "favouriteLabel", this);
     }
@@ -2376,6 +2395,8 @@ class SfPropertyView extends PropertyViewElement {
             hasHostSlot: (name) => this.hasSlotContent(name),
             address: this.address,
             drawerWidth: this.drawerWidth,
+            // C393: the star is the Framework's toggle where sf-button-icon has the look.
+            starLook: this.starLook(),
             sectionsWidth: SECTIONS_WIDTH,
             panelWidthStyle: this.panelWidthStyle,
             conflict: this.conflict,

@@ -1436,7 +1436,22 @@ function renderPanelHead(context) {
                         @click=${() => context.component.closePhoneSection()}
                 ></sf-button-icon>` : nothing}
                 <h2 class="sf-property-view-title min-w-0 overflow-hidden" style=${TITLE_STYLE} tabindex="-1">${history ? context.word('historyText') : level ? context.phoneSectionLabel : record}</h2>
-                ${context.recordId && context.mode !== 'create' && !history ? html`<sf-button-icon
+                ${context.recordId && context.mode !== 'create' && !history ? (context.starLook
+                    // The toggle look (C393): off a quiet ghost, on the soft
+                    // primary plate with a 1 px primary ring inside, the glyph
+                    // kept outline; pressed writes aria-pressed on the native
+                    // button, one name says the action.
+                    ? html`<sf-button-icon
+                        appearance=${context.starLook}
+                        size="1/3"
+                        icon="star"
+                        pressed=${context.favourite ? 'true' : 'false'}
+                        data-action="favourite"
+                        aria-label=${context.favouriteLabel}
+                        title=${context.favouriteLabel}
+                        @click=${() => context.component.toggleFavourite()}
+                ></sf-button-icon>`
+                    : html`<sf-button-icon
                         appearance="ghost"
                         scheme="on-surface"
                         size="1/3"
@@ -1446,7 +1461,7 @@ function renderPanelHead(context) {
                         aria-pressed=${context.favourite ? 'true' : 'false'}
                         aria-label=${context.favouriteLabel}
                         @click=${() => context.component.toggleFavourite()}
-                ></sf-button-icon>` : nothing}
+                ></sf-button-icon>`) : nothing}
                 <span class="sf-property-view-head-spacer" style="flex: 1 1 auto"></span>
                 ${context.hasHostSlot('actions') ? context.hostSlot('actions') : nothing}
                 ${renderMenuControl(context)}

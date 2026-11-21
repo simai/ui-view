@@ -6099,16 +6099,25 @@ class SfTable extends TableElement {
         // area's own; «Обычно» returns the table to the normal step, the C79
         // island (data-sf-density="normal" on the table, written and removed
         // by the table only); «Просторно» adds the rows' spacious step to it.
+        // «Компактно» in a normal area is the island the other way round
+        // (view round 12, VHF-8, owner remark via DEV msg-c31ccebd): the
+        // Framework's compact density on the table, so the row's controls --
+        // the box, the row menu «≡», the badges -- step down with the row. The
+        // rows alone moved one rung while the «≡» (32 at size 1/2, 40 at 1)
+        // held a body row at the normal height.
         const density = this.shownViewDensity;
         const compactArea = this.areaDensity === "compact";
-        const island = compactArea && density !== "compact";
-        if (island && !this.hasAttribute("data-sf-density")) {
-            this.setAttribute("data-sf-density", "normal");
+        const island = compactArea ? (density !== "compact" ? "normal" : null) : (density === "compact" ? "compact" : null);
+        const ownIsland = this.hasAttribute("data-sf-view-density-island");
+        if (island && (ownIsland || !this.hasAttribute("data-sf-density"))) {
+            if (this.getAttribute("data-sf-density") !== island) this.setAttribute("data-sf-density", island);
             this.setAttribute("data-sf-view-density-island", "");
-        } else if (!island && this.hasAttribute("data-sf-view-density-island")) {
+        } else if (!island && ownIsland) {
             this.removeAttribute("data-sf-density");
             this.removeAttribute("data-sf-view-density-island");
         }
+        // A compact island still says compact rows: the Framework's density is
+        // a desktop one (60rem), and below it the rows' own rung steps down.
         const rows = compactArea ? (density === "spacious" ? "spacious" : "normal") : density;
         if (rows === "normal") this.removeAttribute("data-sf-view-density");
         else this.setAttribute("data-sf-view-density", rows);

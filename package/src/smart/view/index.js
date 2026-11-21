@@ -662,6 +662,10 @@ class SfDataView extends DataViewElement {
     set bulkActions(list) {
         this._bulkActions = Array.isArray(list) ? list.filter((item) => item && (item.id ?? item.value)) : [];
         this._applyBulkActions();
+        // Actions given or taken away bring or take the boxes (VHF-11).
+        const table = this.table;
+        if (table && !hostWroteOff(table, "selectable")) table.setAttribute("selectable", this.selects() && this._queryRefused !== true ? "true" : "false");
+        if (this.layoutKind === "board") this._syncBoard?.();
         if (this.layoutKind === "cards") syncCards(this);
     }
 
@@ -1738,7 +1742,7 @@ class SfDataView extends DataViewElement {
         const toolbar = !this.listHead && (table ? table.getAttribute("toolbar") !== "false" : this.renders("toolbar"));
         const headRows = this.listHead && this.renders("toolbar");
         const ownToolbar = Boolean(table) && this.renders("toolbar") && Boolean(this.querySelector(':scope > [slot="toolbar"]'));
-        const select = this.renders("select") && !hostWroteOff(table, "selectable");
+        const select = this.selects() && !hostWroteOff(table, "selectable");
         const settings = this.renders("settings") && !hostWroteOff(table, "settings");
         const layout = this._firstPaintLayout(table);
         // The saved-views control (the filter's bookmark segment), when the
@@ -1987,6 +1991,30 @@ class SfDataView extends DataViewElement {
 
     renders(part) {
         return this.chrome.includes(part);
+    }
+
+    // Whether the list offers anything to do with marked rows: bulk actions
+    // given to the view (bulkActions) or written on its page row (actions).
+    get hasBulkActions() {
+        if (this._bulkActions?.length) return true;
+        let pagination = null;
+        try { pagination = this.pagination; } catch { pagination = null; }
+        pagination ??= this.querySelector?.(":scope > sf-pagination") ?? null;
+        const actions = pagination?.actions;
+        if (Array.isArray(actions) && actions.length) return true;
+        return String(pagination?.getAttribute?.("actions") ?? "").trim() !== "";
+    }
+
+    // Whether the rows, cards and events carry boxes (view round 12, VHF-11,
+    // owner remark via DEV msg-c31ccebd): a box is there to mark records for
+    // a bulk action, so without one there is none -- the table drew boxes that
+    // did nothing and the cards a bar «Выбрано 1 ×», the same in every layout
+    // now. A host that names select in its own chrome keeps the boxes (it does
+    // something with the selection itself).
+    selects() {
+        if (!this.renders("select")) return false;
+        if (this.getAttribute("chrome") !== null) return true;
+        return this.hasBulkActions;
     }
 
     // How many rows an embedded list draws at most. Zero is no cap, which is what
@@ -3354,7 +3382,7 @@ class SfDataView extends DataViewElement {
             // A table written selectable="false" came back selectable="true" and
             // drew a box in every row of a list that has no bulk actions (Larena,
             // the sites list, 2026-11-05).
-            table.setAttribute("selectable", this.renders("select") && !refused && !hostWroteOff(table, "selectable") ? "true" : "false");
+            table.setAttribute("selectable", this.selects() && !refused && !hostWroteOff(table, "selectable") ? "true" : "false");
             // A page's list becomes the compact list on a narrow container; an
             // embedded one (no toolbar) stays a table, and a layout the host
             // wrote on its table is the host's.
@@ -3982,7 +4010,7 @@ class SfDataView extends DataViewElement {
         const refused = this._queryRefused === true;
         board.setAttribute("order-field", this._boardOrderField ?? "");
         board.toggleAttribute("sort-active", Array.isArray(this.query.sort) && this.query.sort.length > 0);
-        board.setAttribute("selectable", this.renders("select") && !refused ? "true" : "false");
+        board.setAttribute("selectable", this.selects() && !refused ? "true" : "false");
         board.setAttribute("creatable", this.hostOffers("create-record") && !refused ? "true" : "false");
         // A move is a change of the lane field: the host's record.set (BD-5).
         board.setAttribute("movable", this.hostOffers("inline-edit") && !refused ? "true" : "false");

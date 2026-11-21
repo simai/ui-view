@@ -124,7 +124,7 @@ export function syncCalendar(view) {
         calendar.setAttribute("undated-total", String(view._calendarUndatedTotal ?? 0));
     }
     const refused = view._queryRefused === true;
-    calendar.setAttribute("selectable", view.renders("select") && !refused ? "true" : "false");
+    calendar.setAttribute("selectable", view.selects() && !refused ? "true" : "false");
     calendar.setAttribute("creatable", view.hostOffers("create-record") && !refused ? "true" : "false");
     calendar.setAttribute("movable", view.hostOffers("inline-edit") && !refused ? "true" : "false");
     if (view._current !== undefined) calendar.current = view._current;

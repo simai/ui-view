@@ -65,7 +65,7 @@ export function syncCards(view) {
     if (typeof view.hasNext === "boolean" && !(view.countKnown !== false && Number.isSafeInteger(view.total))) cards.setAttribute("has-next", view.hasNext ? "true" : "false");
     else cards.removeAttribute("has-next");
     syncCardsState(view, view.getAttribute?.("data-state") ?? "");
-    cards.setAttribute("selectable", view.renders("select") && !refused ? "true" : "false");
+    cards.setAttribute("selectable", view.selects() && !refused ? "true" : "false");
     cards.setAttribute("creatable", view.hostOffers("create-record") && !refused ? "true" : "false");
     cards.actions = (view.bulkActions ?? []).map((item) => ({id: item.id ?? item.value, text: item.label ?? item.text ?? item.id ?? item.value, icon: item.icon}));
     cards.current = view._current ?? "";

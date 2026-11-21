@@ -1581,11 +1581,23 @@
      every size step; a two-line row keeps its two-line rung. It used to add block padding to the cells, which over
      the rung made a compact row taller than a normal one (size 1/2: 40
      against 32). */
-  :is(sf-view-table, sf-table)[data-sf-view-density="compact"] > * .table > :is(thead, tbody) > tr:not(:has(.sf-table-link-cell-subtext, .sf-table-tree-path)) {
+  :is(sf-view-table, sf-table)[data-sf-view-density="compact"]:not([data-sf-view-density-island]) > * .table > :is(thead, tbody) > tr:not(:has(.sf-table-link-cell-subtext, .sf-table-tree-path)) {
     block-size: var(--sf-ui-1\/2--control-height);
   }
-  :is(sf-view-table, sf-table)[size="1/2"][data-sf-view-density="compact"] > * .table > :is(thead, tbody) > tr:not(:has(.sf-table-link-cell-subtext, .sf-table-tree-path)) {
+  :is(sf-view-table, sf-table)[size="1/2"][data-sf-view-density="compact"]:not([data-sf-view-density-island]) > * .table > :is(thead, tbody) > tr:not(:has(.sf-table-link-cell-subtext, .sf-table-tree-path)) {
     block-size: var(--sf-ui-1\/3--control-height);
+  }
+  /* «Компактно» in a normal area is the Framework's compact density on the
+     table (VHF-8): the row and every control in it are one step down, so the
+     row is the compact rung of its step. Below 60rem the Framework has no
+     density, and the row's own rung steps down as before. */
+  @media (width < 60rem) {
+    :is(sf-view-table, sf-table)[data-sf-view-density="compact"][data-sf-view-density-island] > * .table > :is(thead, tbody) > tr:not(:has(.sf-table-link-cell-subtext, .sf-table-tree-path)) {
+      block-size: var(--sf-ui-1\/2--control-height);
+    }
+    :is(sf-view-table, sf-table)[size="1/2"][data-sf-view-density="compact"][data-sf-view-density-island] > * .table > :is(thead, tbody) > tr:not(:has(.sf-table-link-cell-subtext, .sf-table-tree-path)) {
+      block-size: var(--sf-ui-1\/3--control-height);
+    }
   }
   :is(sf-view-table, sf-table)[data-sf-view-density="spacious"] > * .table > :is(thead, tbody) > tr:not(:has(.sf-table-link-cell-subtext, .sf-table-tree-path)) {
     block-size: var(--sf-ui-2--control-height);

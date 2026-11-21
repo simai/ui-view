@@ -146,6 +146,19 @@
   .sf-view-cards__top > .sf-view-cards__title { flex: 1 1 auto; }
   .sf-view-cards__top > .sf-view-cards__box,
   .sf-view-cards__top > .sf-view-cards__menu { flex: 0 0 auto; background: transparent; }
+  /* The box and «⋯» stand on the title's first line, centred on it (view
+     round 12, VHF-12): the 32 px «⋯» was aligned to the top of a 20 px line
+     and its dots sat 6 px below the title and the box. Each takes the line's
+     height and centres its control in it; the control overflows the line
+     evenly into the card's inset. */
+  .sf-view-cards__top { --sf-view-cards--title-line: var(--sf-text-height-1\/2); }
+  .sf-view-cards[data-size="1"] .sf-view-cards__top { --sf-view-cards--title-line: var(--sf-text-height-1); }
+  .sf-view-cards__top > .sf-view-cards__box,
+  .sf-view-cards__top > .sf-view-cards__menu {
+    block-size: var(--sf-view-cards--title-line);
+    align-items: center;
+    justify-content: center;
+  }
 
   .sf-view-cards__title {
     min-inline-size: 0;
