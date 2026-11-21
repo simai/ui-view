@@ -28,6 +28,10 @@ SF.RuleLoader.registerPackage("view", {
           "name": "cl-checkbox"
         },
         {
+          "lazy": true,
+          "name": "cl-bulk-actions"
+        },
+        {
           "name": "cl-dropdown"
         },
         {
@@ -129,6 +133,10 @@ SF.RuleLoader.registerPackage("view", {
         },
         {
           "lazy": true,
+          "name": "cl-bulk-actions"
+        },
+        {
+          "lazy": true,
           "name": "cl-tabs"
         },
         {
@@ -206,6 +214,10 @@ SF.RuleLoader.registerPackage("view", {
         },
         {
           "lazy": true,
+          "name": "cl-bulk-actions"
+        },
+        {
+          "lazy": true,
           "name": "cl-toast"
         },
         {
@@ -271,6 +283,10 @@ SF.RuleLoader.registerPackage("view", {
         },
         {
           "name": "cl-checkbox"
+        },
+        {
+          "lazy": true,
+          "name": "cl-bulk-actions"
         },
         {
           "name": "cl-button"
@@ -665,6 +681,10 @@ SF.RuleLoader.registerPackage("view", {
       "relation": [
         {
           "name": "cl-checkbox"
+        },
+        {
+          "lazy": true,
+          "name": "cl-bulk-actions"
         },
         {
           "name": "cl-reference-link"

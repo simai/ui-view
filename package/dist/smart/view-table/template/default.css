@@ -69,11 +69,13 @@
 
   :is(sf-view-table, sf-table) .sf-table-toolbar .sf-table-toolbar-end {
     flex: 1 1 auto;
-    min-inline-size: var(--sf-g0);
+    /* Widths of text containers are text-measure steps (C396): N x half the
+       body text, --sf-measure-N once the pair carries it (44 was --sf-g0). */
+    min-inline-size: var(--sf-measure-44, calc(44 * var(--sf-text--size-1) / 2));
   }
 
   :is(sf-view-table, sf-table) .sf-table-toolbar .sf-search-input {
-    flex: 1 1 var(--sf-g0);
+    flex: 1 1 var(--sf-measure-44, calc(44 * var(--sf-text--size-1) / 2));
   }
 
   /* The field animates when it collapses and jumps when it expands, on
@@ -232,7 +234,7 @@
      wide as they are. --sf-table-context-menu--max-width still caps them,
      and the room the window has caps everything. */
   .sf-table-context-menu {
-    --sf-table-context-menu--width: max(var(--sf-table-context-menu--trigger-inline-size, 0px), var(--sf-popup-panel-width, var(--sf-g0)));
+    --sf-table-context-menu--width: max(var(--sf-table-context-menu--trigger-inline-size, 0px), var(--sf-popup-panel-width, var(--sf-measure-44, calc(44 * var(--sf-text--size-1) / 2))));
     min-width: min(var(--sf-table-context-menu--width), var(--sf-table-context-menu--max-width, 100vw), var(--sf-table-context-menu--available-inline-size, 100vw));
     max-width: min(var(--sf-table-context-menu--max-width, 100vw), var(--sf-table-context-menu--available-inline-size, 100vw));
     width: var(--sf-table-context-menu--width);
@@ -245,7 +247,7 @@
   }
 
   .sf-table-context-menu.sf-table-context-menu--form {
-    --sf-table-context-menu--width: var(--sf-popup-form-width, var(--sf-g0));
+    --sf-table-context-menu--width: var(--sf-popup-form-width, var(--sf-measure-44, calc(44 * var(--sf-text--size-1) / 2)));
   }
 
   .sf-table-context-menu.sf-table-context-menu--columns {
@@ -305,7 +307,7 @@
     --sf-table--column-min-inline-size: var(--sf-f0);
     /* The widest a column grows to fit its content on one line; past it the
        value wraps. A host that knows better sets a width per column. */
-    --sf-table--column-max-inline-size: var(--sf-g0);
+    --sf-table--column-max-inline-size: var(--sf-measure-44, calc(44 * var(--sf-text--size-1) / 2));
     /* Where a row's text starts: the cell spacing before the first cell plus
        that cell's leading padding. The first cell takes the Framework's table
        edge inset, a list row's inset of the step (utility.table 1.3.0, C77:
@@ -414,6 +416,37 @@
     table-layout: auto !important;
     inline-size: max-content !important;
     min-inline-size: 0 !important;
+  }
+  /* The least widths (leastContentWidths): the same moment with the rows set
+     aside, so each column is as wide as its heading on one line. */
+  :is(sf-view-table, sf-table) table.sf-table-measuring-least > tbody {
+    display: none !important;
+  }
+  /* Columns given less than their content (readFittedWidths, R67-3): a cell
+     stays one line and a value wider than its column ends in an ellipsis. */
+  :is(sf-view-table, sf-table)[data-sf-columns-fitted] table:not(.sf-table-measuring) td[data-key]:not([data-key="select"], [data-key="settings"], [data-key="actions"]) {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  :is(sf-view-table, sf-table)[data-sf-columns-fitted] table:not(.sf-table-measuring) td[data-key] .sf-table-title-link {
+    max-inline-size: 100%;
+  }
+  :is(sf-view-table, sf-table)[data-sf-columns-fitted] table:not(.sf-table-measuring) td[data-key] .sf-table-status {
+    max-inline-size: 100%;
+  }
+  :is(sf-view-table, sf-table)[data-sf-columns-fitted] table:not(.sf-table-measuring) td[data-key] .sf-table-status > :last-child {
+    min-inline-size: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  :is(sf-view-table, sf-table)[data-sf-columns-fitted] table:not(.sf-table-measuring) td[data-key] .sf-table-cell-text {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    -webkit-line-clamp: none;
+    line-clamp: none;
   }
   :is(sf-view-table, sf-table) table.sf-table-measuring col {
     inline-size: auto !important;
@@ -917,11 +950,12 @@
      title over its supporting line, the facts in columns of one width, the
      actions in a box of one width: the title is the only part that yields,
      so the facts stand in columns down the list. Two listed measures (C18):
-     the title's 26rem (--sf-g3) and a fact's 8rem (--sf-e6). */
+     the title's text measure 52 (C396; 416 px at normal density, it was
+     --sf-g3) and a fact's 8rem (--sf-e6). */
   :is(sf-view-table, sf-table) .sf-table-list--resource {
     --sf-table-resource--row: var(--sf-ui-2--control-height);
     --sf-table-resource--button: var(--sf-ui-1\/2--control-height);
-    --sf-table-resource--title-measure: var(--sf-g3);
+    --sf-table-resource--title-measure: var(--sf-measure-52, calc(52 * var(--sf-text--size-1) / 2));
     --sf-table-resource--fact: var(--sf-e6);
     container-type: inline-size;
     gap: var(--sf-px);

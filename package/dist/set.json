@@ -15,7 +15,7 @@
   },
   "framework": {
     "core_runtime": ">=1.51.0",
-    "source_revision": "1dd18375cbc23cf3392576d2e046fde52a047060"
+    "source_revision": "049a2ba3dc7d35cbec5c95eb495fab71eddac6f2"
   },
   "requires_sets": [],
   "families": [
@@ -30,6 +30,7 @@
       "status": "released",
       "requires": [
         "cl-badge",
+        "cl-bulk-actions",
         "cl-button",
         "cl-button-icon",
         "cl-checkbox",
@@ -64,6 +65,7 @@
       "requires": [
         "cl-avatar",
         "cl-badge",
+        "cl-bulk-actions",
         "cl-button",
         "cl-button-icon",
         "cl-checkbox",
@@ -196,6 +198,7 @@
       "requires": [
         "cl-avatar",
         "cl-badge",
+        "cl-bulk-actions",
         "cl-button",
         "cl-button-icon",
         "cl-checkbox",
@@ -217,6 +220,7 @@
       "requires": [
         "cl-avatar",
         "cl-badge",
+        "cl-bulk-actions",
         "cl-button",
         "cl-button-icon",
         "cl-checkbox",
@@ -238,6 +242,7 @@
       "requires": [
         "cl-avatar",
         "cl-badge",
+        "cl-bulk-actions",
         "cl-button",
         "cl-button-icon",
         "cl-checkbox",

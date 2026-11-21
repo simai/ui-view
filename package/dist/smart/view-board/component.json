@@ -2,8 +2,22 @@
   "$comment": "sf-view-board, standard simai.smart-component 1.4 (vocabulary 1.1.5): the board layout of the view set (kanban; owner decisions C298, C304). Study: ui-control control/research/2026-11-17-board-view. Drag and keys are sf-sortable's, the card is .sf-card, the card fields the Framework field renderers' cell output, menus SF.menu.open, the selection bar sf-bulk-actions where the pair has it.",
   "id": "smart.view-board",
   "tag": "sf-view-board",
-  "version": "1.1.1",
+  "version": "1.1.3",
   "x-history": [
+    {
+      "version": "1.1.3",
+      "kind": "patch",
+      "recorded_on": "2026-11-20",
+      "consumer": "Nothing to change for a host. The rule fetches sf-bulk-actions (lazy, when the bar is first drawn) over the pair ui-b654460cad2a, which carries it; over an older pair the board's own bar stays.",
+      "evidence": "control/evidence/2026-11-21-view-r9/README.md"
+    },
+    {
+      "version": "1.1.2",
+      "kind": "patch",
+      "recorded_on": "2026-11-19",
+      "consumer": "Nothing to change. The board's column head buttons stand 8 apart (4 in a compact area), the gap of buttons of one group.",
+      "evidence": "control/evidence/2026-11-19-view-r5/README.md"
+    },
     {
       "version": "1.1.1",
       "kind": "patch",
@@ -323,6 +337,13 @@
       "name": "cl-checkbox"
     },
     {
+      "name": "cl-bulk-actions",
+      "lazy": true,
+      "$comment": [
+        "The group actions bar (C295) where the pair has it: drawn while something is selected, fetched when first drawn."
+      ]
+    },
+    {
       "name": "cl-tabs",
       "lazy": true,
       "$comment": [
@@ -596,6 +617,20 @@
           "to": "1.1.1",
           "changes": [
             "The sums-pending description: sf-view asks the lane totals with the cards in one request (C304, VR2-9) and no longer sets it; the attribute and setLaneTotals stay for a page that computes the sums later."
+          ]
+        },
+        {
+          "from": "1.1.1",
+          "to": "1.1.2",
+          "changes": [
+            "DEV's open item B1 (round/view-r5): the column head's buttons (.sf-view-board__row, .sf-view-board__top) are --sf-space-1/3 apart (8; 4 compact), the gap of buttons of one group (H5), not --sf-space-1/4 (4)."
+          ]
+        },
+        {
+          "from": "1.1.2",
+          "to": "1.1.3",
+          "changes": [
+            "View round 9 (round/view-r9): rule.js and component.json relations name cl-bulk-actions (lazy), composition.uses smart.bulk-actions; the pair's field-renderers provenance hash."
           ]
         }
       ]

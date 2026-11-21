@@ -13,7 +13,9 @@ import "./default.css";
 // drawn by the Framework field renderers' cell output. Without a cover field
 // the box and «⋯» stand on the title's row. Under the grid sf-pagination in
 // its more look says «Показать ещё 24» and «Показано 24 из 40» (C306, the
-// Framework's words in every language pack); an empty list is sf-empty-state.
+// Framework's words in every language pack); inside sf-view, whose footer
+// already says «1–24 из 40», only the «Показать ещё 24» button stays, so the
+// count is said once. An empty list is sf-empty-state.
 
 function renderShape(shape, owner) {
     if (shape === null || shape === undefined || shape === false) return nothing;
@@ -116,6 +118,15 @@ function renderEmpty(context) {
 
 function renderMore(context) {
     if (!context.more) return nothing;
+    if (context.inView) {
+        // sf-view's footer says the count; the button alone, in the
+        // Framework's more look (outline, primary), asks the next page.
+        if (!context.hasNext) return nothing;
+        return html`<div class="sf-view-cards__more">
+            <sf-button size=${context.size} appearance="outline" scheme="primary" data-more
+                       ?loading=${context.loadingMore} text=${context.moreText}></sf-button>
+        </div>`;
+    }
     return html`<div class="sf-view-cards__more">
         <sf-pagination appearance="more" size=${context.size} bottom="false"
                        total=${String(Math.max(context.total, context.records.length))} page-size=${String(context.perPage)}

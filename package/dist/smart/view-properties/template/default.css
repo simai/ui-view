@@ -296,8 +296,9 @@
     color: var(--sf-on-primary-container);
   }
 
+  /* Between words only: «Доставк / а» broke inside the word in a 12rem rail. */
   .sf-property-view-section-tab-label {
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
   }
 
   /* C311 (4), TB-1: a tab row is a handle, the button that selects the tab,
@@ -364,8 +365,31 @@
      grid step of 20rem, not zero, so the two floors came to 42rem inside a 40rem
      panel and a sectioned record was clipped at the drawer's edge. Both floors
      are gone; the list keeps a width of its own and a long name wraps in it. */
+  /* View round 5 (LV-3, DEV's order from the admin list study): the list of
+     sections takes the width of its names (content-fit), up to the column's
+     width (--sf-view-properties-sections-width, 12rem), and the fields take
+     the rest. It had the whole 12rem whatever the names, so in a 30rem panel
+     the fields were left 212 px and in a 24rem one 116 px. Where the fields
+     would keep less than 20rem beside it, the fields go under the list
+     (flex-wrap, the body's basis) rather than shrinking; a panel narrower than
+     the whole screen arranges stacked (sectionsLayout). */
   .sf-property-view-sections {
-    flex: 0 0 var(--sf-property-view--sections-width);
+    flex: 0 1 auto;
+    inline-size: max-content;
+    /* A name is never broken inside a word: the longest word sets the floor,
+       and a floor above the column's width wins over it (CSS min over max). */
+    min-inline-size: min-content;
+    max-inline-size: var(--sf-property-view--sections-width);
+  }
+
+  .sf-property-view-layout:not([data-stacked="true"]) {
+    flex-wrap: wrap;
+    row-gap: var(--sf-space-3);
+  }
+
+  .sf-property-view-layout > .sf-property-view-body {
+    flex: 1 1 var(--sf-measure-44, calc(44 * var(--sf-text--size-1) / 2));
+    min-inline-size: 0;
   }
 
 
@@ -390,6 +414,19 @@
     padding: var(--sf-space-2);
   }
 
+  /* The section tabs' strip in a panel (VB-1, C394, C20): sf-tabs paints a
+     sticky strip with --sf-surface-page, which in the dark theme is darker
+     than the panel's --sf-surface-area -- a dark band over a lighter ground.
+     In a panel the strip takes the panel's ground in the dark theme; in the
+     light one it stays the page's white, as before. SIMAI Framework
+     component.tabs 1.5.4 (group build 15) paints the strip with the ground
+     it stands on itself: where the page's sheets carry that rule the panel
+     drops this class (sf-view-properties ownStripGround), and this rule
+     goes once every supported pair carries it. */
+  .sf-property-view-panel--own-strip .sf-tabs.sf-tabs--sticky > .sf-tabs-top-container {
+    background-color: light-dark(var(--sf-surface-page), var(--sf-surface-area));
+  }
+
   /* The head carries the group's name and the way into editing it, with a line
      under it: the mockup draws one, and without it the title floated among the
      fields at the same size as their labels. */
@@ -407,9 +444,10 @@
   }
 
   /* Its strip is a tab's height: the control height of the view's size, the
-     height sf-tabs gives its buttons. The hairline under it and the empty panel
-     below are the tabs' sheet's (.sf-tabs-top-container, .sf-tabs-main-container),
-     so the record's tabs take the same box when they come (simai/ui-pro#3).
+     height sf-tabs gives its buttons. The hairline under it is the tabs' sheet's
+     (.sf-tabs-top-container), so the record's tabs take the same box when they
+     come (simai/ui-pro#3); sf-tabs 1.4.5 hides an empty panel row, so the
+     skeleton draws none.
      The strip stands over the hairline by its width, as sf-tabs' underline
      strip does since the SIMAI Framework's tabs spacing (C105, in the pair
      ui-141822273efe): a tab's line is drawn on the hairline, so the box is the
@@ -996,6 +1034,17 @@
     flex: 1 1 auto;
   }
 
+  /* The title takes the focus when the panel opens (LV-9): a ring for the
+     keyboard only. */
+  .sf-property-view-title:focus {
+    outline: none;
+  }
+
+  .sf-property-view-title:focus-visible {
+    outline: var(--sf-focus--width) var(--sf-focus--style) var(--sf-focus--color);
+    outline-offset: var(--sf-focus--offset);
+  }
+
   .sf-property-view-title {
     margin: 0;
     /* A panel's title is on the window step (C157 (7) = C159 (5): h4, 20/24,
@@ -1275,7 +1324,21 @@
   }
 
   .sf-property-view-sections {
-    flex-basis: var(--sf-view-properties-sections-width, var(--sf-property-view--sections-width, 12rem));
+    max-inline-size: var(--sf-view-properties-sections-width, var(--sf-property-view--sections-width, 12rem));
+  }
+
+  /* The column of vertical sf-tabs (before sf-menu is defined) keeps the
+     column's width: sf-tabs is a size container, so its content width is
+     zero, and a content-fit column folded to its padding. */
+  .sf-property-view-sections:has(> sf-tabs) {
+    inline-size: var(--sf-view-properties-sections-width, var(--sf-property-view--sections-width, 12rem));
+  }
+
+  /* Stacked (arranging in a panel, C311 (4)), the list is a row of the panel's
+     width over the fields, not a column. */
+  .sf-property-view-layout[data-stacked="true"] > .sf-property-view-sections {
+    inline-size: auto;
+    max-inline-size: none;
   }
 
   /* The row being edited in its window, and the fields a save just wrote. */

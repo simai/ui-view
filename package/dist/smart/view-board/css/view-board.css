@@ -53,10 +53,13 @@
     flex-direction: column;
     padding: var(--sf-space-1\/3) var(--sf-space-1\/3) var(--sf-space-1\/4) var(--sf-space-1\/2);
   }
+  /* Buttons of one group stand 8 apart (C105 H5, --sf-space-1/3; 4 in the
+     compact density): the lane's + and ⋯ here, and on a card the title and
+     its ⋯ below. They stood 4 apart (view round 5, DEV's carried item). */
   .sf-view-board__row {
     display: flex;
     align-items: center;
-    gap: var(--sf-space-1\/4);
+    gap: var(--sf-space-1\/3);
     min-height: var(--sf-ui-1\/2--control-height);
     min-block-size: var(--sf-ui-1\/2--control-height);
     min-width: 0;
@@ -75,24 +78,8 @@
             font-feature-settings: "tnum";
     font-variant-numeric: tabular-nums;
   }
-  _:-ms-input-placeholder, html:not([dir="rtl"]) .sf-view-board__count{
-    margin-right: auto;
-  }
-  @supports not (margin-inline-end: initial){
-  html:not([dir="rtl"]) .sf-view-board__count{
-    margin-right: auto;
-    }
-  }
   .sf-view-board__count:where(:dir(ltr)){
     margin-right: auto;
-  }
-  _:-ms-input-placeholder, [dir="rtl"] .sf-view-board__count{
-    margin-left: auto;
-  }
-  @supports not (margin-inline-end: initial){
-  [dir="rtl"] .sf-view-board__count{
-    margin-left: auto;
-    }
   }
   .sf-view-board__count:where(:dir(rtl)){
     margin-left: auto;
@@ -163,28 +150,12 @@
   .sf-view-board__top {
     display: flex;
     align-items: flex-start;
-    gap: var(--sf-space-1\/4);
+    gap: var(--sf-space-1\/3);
     min-width: 0;
     min-inline-size: 0;
   }
-  _:-ms-input-placeholder, html:not([dir="rtl"]) .sf-view-board__title{
-    text-align: left;
-  }
-  @supports not (text-align: start){
-  html:not([dir="rtl"]) .sf-view-board__title{
-    text-align: left;
-    }
-  }
   .sf-view-board__title:where(:dir(ltr)){
     text-align: left;
-  }
-  _:-ms-input-placeholder, [dir="rtl"] .sf-view-board__title{
-    text-align: right;
-  }
-  @supports not (text-align: start){
-  [dir="rtl"] .sf-view-board__title{
-    text-align: right;
-    }
   }
   .sf-view-board__title:where(:dir(rtl)){
     text-align: right;
@@ -322,24 +293,8 @@
   .sf-view-board__bulk[hidden] {
     display: none;
   }
-  _:-ms-input-placeholder, html:not([dir="rtl"]) .sf-view-board__bulk-count{
-    margin-right: auto;
-  }
-  @supports not (margin-inline-end: initial){
-  html:not([dir="rtl"]) .sf-view-board__bulk-count{
-    margin-right: auto;
-    }
-  }
   .sf-view-board__bulk-count:where(:dir(ltr)){
     margin-right: auto;
-  }
-  _:-ms-input-placeholder, [dir="rtl"] .sf-view-board__bulk-count{
-    margin-left: auto;
-  }
-  @supports not (margin-inline-end: initial){
-  [dir="rtl"] .sf-view-board__bulk-count{
-    margin-left: auto;
-    }
   }
   .sf-view-board__bulk-count:where(:dir(rtl)){
     margin-left: auto;

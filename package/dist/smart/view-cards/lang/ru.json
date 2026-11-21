@@ -10,6 +10,8 @@
     "cleared-text": "Выбор снят",
     "create-text": "Создать",
     "deselect-text": "Снять выбор",
+    "more-text": "Показать ещё {count}",
+    "more-plain-text": "Показать ещё",
     "no-cover-text": "Нет фото",
     "open-text": "Открыть",
     "position-text": "{title}, {index} из {count}",

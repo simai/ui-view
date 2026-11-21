@@ -14,13 +14,13 @@
       "label": "Порядок изменён"
     },
     "template-delete": {
-      "label": "Шаблон удалён"
+      "label": "Представление удалено"
     },
     "template-save": {
-      "label": "Шаблон сохранён"
+      "label": "Представление сохранено"
     },
     "template-select": {
-      "label": "Шаблон выбран"
+      "label": "Представление выбрано"
     },
     "toolbar-action": {
       "label": "Действие панели"
@@ -70,9 +70,9 @@
     "context-field-filter-label": "Настройка фильтра",
     "context-filter-settings-label": "Настройки фильтра",
     "context-row-actions-label": "Действия со строкой",
-    "context-save-template-label": "Сохранение шаблона фильтра",
+    "context-save-template-label": "Сохранение представления",
     "context-table-settings-label": "Настройки таблицы",
-    "context-template-actions-label": "Действия с шаблоном",
+    "context-template-actions-label": "Действия с представлением",
     "context-view-actions-label": "Действия с представлением",
     "create-more-label": "Дополнительные действия создания",
     "create-options-label": "Варианты создания",
@@ -122,9 +122,9 @@
     "restore-text": "Восстановить",
     "retry-text": "Повторить",
     "row-actions-label": "Действия со строкой",
-    "save-filter-template-label": "Сохранить шаблон фильтра",
+    "save-filter-template-label": "Сохранить представление",
     "save-for-everyone-label": "Сохранить для всех",
-    "save-template-label": "Сохранение шаблона фильтра",
+    "save-template-label": "Сохранение представления",
     "save-text": "Сохранить",
     "search-placeholder": "Поиск",
     "select-all-label": "Выбрать все строки",
@@ -141,11 +141,11 @@
     "status-ok": "Работает",
     "status-stopped": "Остановлен",
     "status-warning": "Есть замечания",
-    "template-actions-label": "Действия с шаблоном",
-    "template-move-label": "Переместить шаблон",
+    "template-actions-label": "Действия с представлением",
+    "template-move-label": "Переместить представление",
     "template-name-placeholder": "Название",
-    "template-pin-label": "Закрепить шаблон сверху",
-    "templates-tab-text": "Шаблоны",
+    "template-pin-label": "Закрепить представление сверху",
+    "templates-tab-text": "Представления",
     "totals-all": "Всего по фильтру",
     "totals-page": "На странице",
     "tree-collapse": "Свернуть",
