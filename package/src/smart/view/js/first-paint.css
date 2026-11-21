@@ -295,7 +295,18 @@
      over the records reads the same line (sf-view-table .sf-table-list-head:
      at 1/2 its words are step-1 as well; the bar at the 1/2 line stood 25 px
      where the list draws 29). */
+  /* A part of a record the host's list-shape names as several lines: its
+     lines stand with no gap, as a wrapped value's do (view round 11, R9-1). */
+  .sf-data-view-skeleton-list > div > div > [data-lines] {
+    display: flex;
+    flex-direction: column;
+    min-inline-size: 0;
+  }
+
+  .sf-data-view-skeleton-list > div > div > [data-lines] > .sf-skeleton-text:last-child { inline-size: 45%; }
+
   .sf-data-view-skeleton-list > div[data-list-head] > .sf-skeleton-text,
+  .sf-data-view-skeleton-list > div:not([data-list-head]) > div > [data-lines] > .sf-skeleton-text,
   .sf-data-view-skeleton-list > div:not([data-list-head]) > div > .sf-skeleton-text {
     --sf-skeleton-text--height: var(--sf-text-size-1);
     --sf-skeleton-text--line: var(--sf-text-height-1);

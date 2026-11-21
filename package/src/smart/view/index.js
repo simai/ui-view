@@ -1454,11 +1454,44 @@ class SfDataView extends DataViewElement {
     // the cap of an embedded list; else the cap; else a page of the table's
     // (sf-view-table pagination-page-size, 10). A skeleton of 10 rows over a page
     // of 20 grows the list when the rows come (stand 25 D1).
+    // When the page row says how many records there are (its total, as the
+    // host printed it), the page the list will show holds no more than what is
+    // left from its current page (view round 11, R9-1: a one-page list of 10
+    // under a page of 12 drew 12 skeleton rows, and the footer moved up by
+    // 300 px at 390 when the answer came).
     get firstPaintRows() {
         const asked = this._declaredPageSize();
         const cap = this.rowCap;
-        if (asked && cap) return Math.min(asked, cap);
-        return asked || cap || FIRST_PAINT_ROWS;
+        const rows = asked && cap ? Math.min(asked, cap) : asked || cap || FIRST_PAINT_ROWS;
+        const left = this._printedRecordsLeft(asked || FIRST_PAINT_ROWS);
+        return left === null ? rows : Math.max(1, Math.min(rows, left));
+    }
+
+    // The records from the current page on, by the page row's printed total;
+    // null when the page row says no total.
+    _printedRecordsLeft(size) {
+        const row = this.querySelector?.(':scope > sf-pagination[slot="pagination"]');
+        const total = Number.parseInt(row?.getAttribute?.("total") ?? "", 10);
+        if (!Number.isInteger(total) || total < 0) return null;
+        const current = Number.parseInt(row.getAttribute("current") ?? "", 10);
+        const page = Number.isInteger(current) && current > 1 ? current : 1;
+        return total - (page - 1) * size;
+    }
+
+    // The host's hint of a record's shape in the compact list (view round 11,
+    // R9-1, DEV decision msg-2e226e69): list-shape on the view (or its table)
+    // names the lines of each part of a record on a phone, the title first --
+    // "1 1 2 1" is a title of one line and three fields, the third value
+    // taking two lines. The skeleton draws that shape, so the list does not
+    // move when the records come. Without it the skeleton keeps a title and
+    // list-fields fields of one line each (109 px at 390). Up to 12 parts of
+    // 1 to 8 lines; anything else is no hint.
+    get listShape() {
+        const table = this.querySelector?.(`:scope > ${tagSelector("sf-view-table")}[slot="content"]`);
+        const written = this.getAttribute?.("list-shape") ?? table?.getAttribute?.("list-shape") ?? "";
+        if (!/^\s*\d+(?:[\s,]+\d+)*\s*$/u.test(written)) return null;
+        const parts = written.trim().split(/[\s,]+/u).map(Number);
+        return parts.length <= 12 && parts.every((lines) => Number.isInteger(lines) && lines >= 1 && lines <= 8) ? parts : null;
     }
 
     // Whether the page row draws its navigation before the host's first
@@ -1761,7 +1794,13 @@ class SfDataView extends DataViewElement {
         const fields = Math.min(columns - 1, Number.isFinite(listFields) && listFields >= 0 ? listFields : FIRST_PAINT_LIST_FIELDS);
         // The head is a row like the others (sf-view-table 1.17.1).
         const row = () => `<div>${select ? `<span data-chrome>${bar}</span>` : ""}${settings ? `<span data-chrome>${control()}</span>` : ""}${`<span>${bar}</span>`.repeat(columns)}</div>`;
-        const record = `<div>${select ? bar : "<span></span>"}<div>${bar.repeat(fields + 1)}</div>${settings ? control() : "<span></span>"}</div>`;
+        // A part of more than one line is its lines with no gap between them,
+        // as a wrapped value is (list-shape).
+        const shape = this.listShape;
+        const parts = shape
+            ? shape.map((lines) => (lines === 1 ? bar : `<span data-lines="${lines}">${bar.repeat(lines)}</span>`)).join("")
+            : bar.repeat(fields + 1);
+        const record = `<div>${select ? bar : "<span></span>"}<div${shape ? " data-shape" : ""}>${parts}</div>${settings ? control() : "<span></span>"}</div>`;
         // The footer as the view draws it (C97 (5)): the range at the start,
         // the page-size button, and the page row in the field appearance --
         // the arrows to the first and the previous page, the page field with

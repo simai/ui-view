@@ -3589,8 +3589,12 @@ class SfPropertyView extends PropertyViewElement {
             return answer;
         }
         if (answer.answer === "conflict") {
+            // As a group save: what was typed is kept, the record is read again
+            // at its current revision (port 1.21.0, 1.22.1 revision_moved; the
+            // fix of simai/ui-pro sf-view-properties 1.23.8, 316ee37).
             this.conflict = answer.message || this.conflictText;
             this.requestComponentUpdate("conflict");
+            if (!creating) await this._rereadAfterConflict(answer);
             return answer;
         }
         if (answer.answer === "refused") {

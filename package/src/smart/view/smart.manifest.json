@@ -64,6 +64,7 @@
         "heading",
         "row-cap",
         "expected-columns",
+        "list-shape",
         "port-owner",
         "port-record",
         "port-group",
@@ -238,6 +239,11 @@
         "default": 4,
         "description": "How many columns the skeleton draws before the host first answers: the skeleton's shape, never a limit -- the answer brings its own columns. The page or server that renders a collection knows them; with the right number the list does not move when the data arrives.",
         "minimum": 1
+      },
+      "list-shape": {
+        "type": "string",
+        "default": "",
+        "description": "The host's hint of a record's shape in the compact list a phone gets (view round 11): the lines of each part of a record, the title first, space- or comma-separated -- \"1 1 2 1\" is a title of one line and three fields, the third taking two lines. The skeleton draws that shape, so the list does not move when the records come. Empty: a title and list-fields fields of one line each. Up to 12 parts of 1 to 8 lines; anything else is read as no hint. Read on the view, else on its sf-view-table."
       },
       "port-owner": {
         "type": "string",
