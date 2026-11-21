@@ -374,6 +374,13 @@
     border-block-end: var(--sf-px) solid var(--sf-outline-variant);
   }
 
+  /* The page numbers go where the list goes on by «Показать ещё» alone or
+     by itself (D1): the view marks its page row. Important: a part host
+     carries display: contents inline. */
+  :is(sf-view, sf-data-view) > sf-pagination[data-sf-view-paging-off] {
+    display: none !important;
+  }
+
   /* «Показать ещё» across the list under its last row (D1), as the live
      view draws it: half a space step under the rows, not the layout's gap. */
   .sf-data-view-skeleton-more {

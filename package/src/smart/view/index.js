@@ -1402,7 +1402,6 @@ class SfDataView extends DataViewElement {
     applyPaging(value) {
         if (!VIEW_PAGING.includes(String(value))) return;
         if (this.preferencesKey) this._keepPreference({paging: String(value)});
-        this._endlessArmed = false;
         this._queueFooter();
     }
 
@@ -1419,7 +1418,6 @@ class SfDataView extends DataViewElement {
             && !["error", "no-access"].includes(state) && (this.records ?? []).length > 0 && this._hasMoreRows();
         if (!show) {
             if (existing) existing.hidden = true;
-            this._endlessObserver?.disconnect();
             return;
         }
         let holder = existing;
@@ -1447,7 +1445,6 @@ class SfDataView extends DataViewElement {
         button.toggleAttribute("loading", busy);
         button.toggleAttribute("disabled", busy);
         if (paging === "endless") this._watchEndless(holder);
-        else this._endlessObserver?.disconnect();
     }
 
     _showMore() {
@@ -1456,24 +1453,24 @@ class SfDataView extends DataViewElement {
         this._queueFooter();
     }
 
-    // «Бесконечно»: the next page when the button comes into view after a
-    // scroll of the person's -- a list that fits the window does not load
-    // page after page by itself.
+    // «Бесконечно»: the next page when a scroll of the person's brings the
+    // button into view (or finds it there) -- a list that fits the window
+    // does not load page after page by itself, and one page at a time.
     _watchEndless(holder) {
-        if (typeof IntersectionObserver === "undefined") return;
-        if (!this._endlessScroll) {
-            this._endlessScroll = () => { this._endlessArmed = true; };
-            globalThis.addEventListener?.("scroll", this._endlessScroll, {capture: true, passive: true});
-        }
-        if (this._endlessWatched === holder && this._endlessObserver) return;
-        this._endlessObserver?.disconnect();
         this._endlessWatched = holder;
-        this._endlessObserver = new IntersectionObserver((entries) => {
-            if (!entries.some((entry) => entry.isIntersecting) || !this._endlessArmed || this._viewPaging() !== "endless") return;
-            this._endlessArmed = false;
-            this._showMore();
-        });
-        this._endlessObserver.observe(holder);
+        if (this._endlessScroll) return;
+        this._endlessScroll = () => {
+            if (this._endlessFrame) return;
+            this._endlessFrame = requestAnimationFrame(() => {
+                this._endlessFrame = 0;
+                const watched = this._endlessWatched;
+                if (!watched?.isConnected || watched.hidden || this._viewPaging() !== "endless") return;
+                if (this.continuing && this.pending !== null) return;
+                const box = watched.getBoundingClientRect();
+                if (box.height && box.top < (globalThis.innerHeight ?? 0) && box.bottom > 0) this._showMore();
+            });
+        };
+        globalThis.addEventListener?.("scroll", this._endlessScroll, {capture: true, passive: true});
     }
 
     // The menu of page sizes is made when it is first opened: a list nobody
@@ -2191,9 +2188,9 @@ class SfDataView extends DataViewElement {
 
     disconnectedCallback() {
         this.epoch += 1;
-        this._endlessObserver?.disconnect();
-        this._endlessObserver = null;
         this._endlessWatched = null;
+        globalThis.cancelAnimationFrame?.(this._endlessFrame ?? 0);
+        this._endlessFrame = 0;
         if (this._endlessScroll) globalThis.removeEventListener?.("scroll", this._endlessScroll, {capture: true});
         this._endlessScroll = null;
         // Once per connection, so an element moved in the DOM asks again. Without

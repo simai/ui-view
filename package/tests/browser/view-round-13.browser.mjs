@@ -91,7 +91,7 @@ ${box ? '<div id="box" style="block-size:600px;overflow:auto;border:1px solid va
       if(intent==='query.change'){var qy=p.query||{},per=+qy.per_page||${perPage},page=+qy.page||1;
         if(qy.window&&qy.window.per_page){per=+qy.window.per_page;page=+qy.window.page||1}
         var lanes=ST.map(function(s){var r=ROWS.filter(function(x){return x.status===s.value});return {value:s.value,label:s.label,records:r.slice(0,6),total:r.length}});
-        return Promise.resolve({answer:'applied',sequence:p.sequence,data:{columns:COLS,records:ROWS.slice((page-1)*per,page*per),total:ROWS.length,lanes:qy.window&&qy.window.lanes?lanes:undefined,board:{order_field:''},
+        return Promise.resolve({answer:'applied',sequence:p.sequence,data:{columns:COLS,records:ROWS.slice((page-1)*per,page*per),total:ROWS.length,lanes:qy.window&&('lanes' in qy.window)?lanes:undefined,board:{order_field:''},
           view_config:{layouts:{board:{lane_field:'status',card_fields:['client']},cards:{card_fields:['status','client','amount','due']}}},
           echo:{filters_chosen:qy.filters_chosen||['status','client'],filters:qy.filters||{},search:qy.search||'',sort:qy.sort||[],page:page,per_page:per,view:qy.view||{id:'all',type:'${layout || 'table'}'}}}})}
       return Promise.resolve({answer:'applied'})}};
