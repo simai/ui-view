@@ -18,7 +18,8 @@
 //   table on the head's display kind, the filter window opened and closed,
 //   a record opened in the card beside the list; each kind draws its records.
 // MODULAR_BEFORE=1 measures a build from before the core (no assertions on
-// what is fetched, only the bytes); MODULAR_QUICK=1 one load, light, 1440.
+// what is fetched, only the bytes); MODULAR_QUICK=1 one load, light, 1440;
+// MODULAR_WIDTH=<px> that width only.
 import {resolve, join, extname, sep} from 'node:path';
 import {existsSync, readFileSync, statSync} from 'node:fs';
 import {gzipSync} from 'node:zlib';
@@ -129,8 +130,9 @@ const CONTENT = {
   table: 'sf-view-table :is(tbody tr, li)[data-row-id]',
   board: 'sf-view-board .sf-view-board__card, sf-view-board [data-id]',
   cards: 'sf-view-cards [data-id], sf-view-cards .sf-card',
-  // On a phone the month is sf-input-date with a mark per event day (CL-6).
-  calendar: 'sf-view-calendar [data-ev], sf-view-calendar .sf-view-calendar__ev, sf-view-calendar .sf-view-calendar__phone-month',
+  // On a phone the month draws a dot per record in each day (or, where the
+  // pair's sf-input-date carries day marks, that panel, CL-6).
+  calendar: 'sf-view-calendar [data-ev], sf-view-calendar .sf-view-calendar__ev, sf-view-calendar .sf-view-calendar__dots > span, sf-view-calendar .sf-view-calendar__phone-month',
 };
 const drawn = (page, kind) => page.waitForFunction((selector) => [...document.querySelectorAll(`#v ${selector}`)].some((node) => node.getClientRects().length > 0),
   CONTENT[kind], {timeout: 15000});
@@ -165,7 +167,7 @@ const pickKind = async (page, kind) => {
 };
 
 const themes = QUICK ? ['light'] : ['light', 'dark'];
-const widths = QUICK ? [1440] : [1440, 390];
+const widths = process.env.MODULAR_WIDTH ? [Number(process.env.MODULAR_WIDTH)] : QUICK ? [1440] : [1440, 390];
 const loads = QUICK ? 1 : 3;
 const fail = (label, what) => failures.push({...label, what});
 try {
@@ -174,7 +176,7 @@ try {
     for (const [layout, kind, min] of [['', 'table', false], ['', 'table', true], ['bare', 'table', false], ['board', 'board', false], ['cards', 'cards', false], ['calendar', 'calendar', false], ['board', 'board', true]]) {
       const label = {theme, width, run, item: `single ${layout || 'table'}${min ? ' min' : ''}`};
       const {context, page, errors, asked} = await load(theme, width, LIST(theme, {layout, min, key: `${layout}-${kind}`}));
-      await drawn(page, kind).catch(() => errors.push(`the ${kind} did not draw its records`));
+      await drawn(page, kind).catch(async () => errors.push(`the ${kind} did not draw its records: ${await page.evaluate(() => { const node = document.querySelector('#v sf-view-calendar, #v sf-view-board, #v sf-view-cards, #v sf-view-table'); return node ? `${node.localName} mode=${node.mode ?? ''} ${[...new Set([...node.querySelectorAll('[class]')].flatMap((one) => String(one.className).split(' ')).filter((name) => /^sf-view-|^sf-input-date/u.test(name)))].join(' ').slice(0, 600)}` : 'none'; })}`));
       await settle(page);
       const got = tally(asked);
       results.push({...label, ...got});
