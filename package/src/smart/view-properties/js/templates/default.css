@@ -1387,6 +1387,12 @@
     inline-size: max-content;
     max-inline-size: 10rem;
     flex: none;
+    padding-inline: 0;
+  }
+
+  /* Narrow means narrow: the rail stands half a step from the fields. */
+  .sf-property-view-panel[data-sections-layout="rail"] .sf-property-view-layout {
+    column-gap: var(--sf-space-1\/2);
   }
 
   /* Stacked (arranging in a panel, C311 (4)), the list is a row of the panel's

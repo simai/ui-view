@@ -4618,7 +4618,10 @@ class SfDataView extends DataViewElement {
         if (event.type === "sf-view-table-select") {
             // The rows the table holds now: their marks are what it says,
             // the marks of other pages stay (LV2-2).
-            const rows = (this.table?.getTableData?.().rows ?? []).map((row) => row.id);
+            // The records the view gave it, not its own rows: a table answering a
+            // new page clears its marks while it still holds the old rows,
+            // and those were taken for unmarked.
+            const rows = (this.cappedRecords ?? this.table?.getTableData?.().rows ?? []).map((row) => row?.id);
             this._noteMarks(rows, event.detail?.ids ?? []);
             this.pagination?.setState?.({selectedCount: this._bulkIds().length});
             this._renderBulkBand();

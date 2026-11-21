@@ -782,7 +782,8 @@ class SfPropertyView extends PropertyViewElement {
     _checkRail() {
         if (this.sectionsLayout !== "rail") return;
         const root = this.panelContent?.();
-        const body = root?.querySelector?.(".sf-property-view-frame .sf-property-view-body");
+        // The fields' column beside the rail (the frame that scrolls them).
+        const body = root?.querySelector?.(".sf-property-view-frame");
         const rail = root?.querySelector?.(".sf-property-view-sections");
         if (!body || !rail) return;
         const width = body.getBoundingClientRect().width;

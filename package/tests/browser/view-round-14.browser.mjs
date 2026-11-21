@@ -290,7 +290,9 @@ try {
         // under «Показать ещё» right under it (12 px, the gap of the band).
         const last = got.more ? got.more.y + got.more.h : got.table ? got.table.y + got.table.h : null;
         const moreGap = got.more && got.table ? got.more.y - (got.table.y + got.table.h) : null;
-        if (!got.footer || last === null || got.footer.y - last < -1 || got.footer.y - last > 1 + 0 || (moreGap !== null && (moreGap < 0 || moreGap > 16))) failures.push({...label, got: {footer: got.footer, table: got.table, more: got.more}, want: 'the footer right under the last band'});
+        // Under «Показать ещё» the band keeps the gap it has above it.
+        const below = got.more ? moreGap : 0;
+        if (!got.footer || last === null || Math.abs(got.footer.y - last - below) > 1 || (moreGap !== null && (moreGap < 0 || moreGap > 16))) failures.push({...label, got: {footer: got.footer, table: got.table, more: got.more}, want: 'the footer right under the last band'});
         if (!got.nav || !got.footer || Math.abs(got.nav.cx - got.footer.cx) > 2) failures.push({...label, got: {nav: got.nav, footer: got.footer}, want: 'the pages centred'});
         if (!got.size || !got.footer || Math.abs(got.size.x + got.size.w - (got.footer.x + got.footer.w)) > 1) failures.push({...label, got: {size: got.size, footer: got.footer}, want: '«По 10» at the end'});
         if (!got.range || !got.footer || Math.abs(got.range.x - got.footer.x) > 1) failures.push({...label, got: {range: got.range, footer: got.footer}, want: 'the range at the start'});
@@ -395,7 +397,7 @@ try {
       if (!['Подгрузка', 'Подписи полей'].every((row) => cardRows.includes(row)) || cardRows.includes('Плотность')) failures.push({...label, item: 'C405', got: cardRows, want: 'the cards\' own rows'});
       await closeAll(page);
       const moreBefore = await page.evaluate(() => { const holder = document.querySelector('#v > [slot="more"]'); return Boolean(holder && !holder.hidden && holder.querySelector('button')?.getClientRects().length); });
-      await look(page, 'Подгрузка', 'Страницы').catch((error) => errors.push(`cards paging: ${error.message.slice(0, 120)}`));
+      await look(page, 'Подгрузка', 'Страницами').catch((error) => errors.push(`cards paging: ${error.message.slice(0, 120)}`));
       await page.waitForTimeout(500);
       const moreAfter = await page.evaluate(() => { const holder = document.querySelector('#v > [slot="more"]'); return Boolean(holder && !holder.hidden && holder.querySelector('button')?.getClientRects().length); });
       if (!moreBefore || moreAfter) failures.push({...label, item: 'D1 cards', got: {moreBefore, moreAfter}, want: '«Показать ещё» gone at once'});
@@ -431,7 +433,8 @@ try {
       const second = await load(theme, width, LIST(theme, {key: `m${run}b`}));
       await ready(second.page).catch(() => second.errors.push('the list did not come'));
       await second.page.waitForTimeout(700);
-      await markRow(second.page, 0).catch((error) => second.errors.push(`mark: ${error.message.slice(0, 80)}`));
+      await second.page.locator(phone ? '#v sf-view-table .sf-table-list-head label.sf-checkbox' : '#v sf-view-table thead th[data-key="select"] label.sf-checkbox').first().click({timeout: 5000}).catch((error) => second.errors.push(`mark the page: ${error.message.slice(0, 80)}`));
+      await second.page.waitForTimeout(300);
       const pick = second.page.locator('#v sf-bulk-actions button, #v sf-bulk-actions [role="button"]').filter({hasText: /Выбрать все/u}).first();
       await pick.click({timeout: 5000}).catch((error) => second.errors.push(`all: ${error.message.slice(0, 80)}`));
       await second.page.waitForTimeout(400);
