@@ -35,8 +35,10 @@ const transform = (html, file) => {
   while (at >= 0) {
     // Hidden, not removed: the shell's example script still finds its tabs.
     // The source panels are hidden already and stay.
-    const header = need(html.indexOf('<div class="docara-example-preview__header">', at), 'the example header', file);
-    html = `${html.slice(0, header)}<div class="docara-example-preview__header" style="display:none">${html.slice(header + '<div class="docara-example-preview__header">'.length)}`;
+    // Docara 3.18 adds the sf-tabs classes to the header; they are kept.
+    const header = need(html.indexOf('<div class="docara-example-preview__header', at), 'the example header', file);
+    const open = need(html.indexOf('">', header), 'the end of the example header tag', file) + 2;
+    html = `${html.slice(0, open - 1)} style="display:none">${html.slice(open)}`;
     html = `${html.slice(0, at)}<section data-view-clean-example ${html.slice(at + '<section '.length)}`;
     count += 1;
     at = html.indexOf('<section data-docara-example=', at + 1);

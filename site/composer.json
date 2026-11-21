@@ -11,7 +11,7 @@
     ],
     "require": {
         "php": "^8.2",
-        "simai/docara": "3.17.0"
+        "simai/docara": "3.18.0"
     },
     "config": {
         "allow-plugins": false,

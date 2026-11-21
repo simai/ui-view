@@ -6,7 +6,7 @@
 #      copy (scripts/materialize-framework-runtime.php; vendor/ is ignored);
 #   2. extracts the release's distr from ui's git objects into .framework/
 #      (ignored) for Docara's page composition runtime (DOCARA_SIMAI_UI_ROOT),
-#      which Docara 3.17.0 cannot project for this release itself;
+#      which Docara 3.18.0 cannot project for this release itself;
 #   3. checks that every generated part of the content is current
 #      (build-pages, build-properties, and build-reference against the
 #      workspace's receipt), so a page never drifts from the set it documents;
