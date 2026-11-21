@@ -19,9 +19,10 @@ test('sf-view: the footer is its own row, the page row in the field appearance (
   // the shadow root is out of the page's sheets, so the view writes it beside
   // the author's elements and takes it away when the author slots their own.
   assert.match(source, /\["pagination", "sf-pagination", \{appearance: "field", top: "false", bottom: "false"\}\]/);
-  // The row is as tall as the ladder says: the control of the step, the
-  // --sf-space-1 padding above and below it and the line under it.
-  assert.match(source, /min-block-size: calc\(2 \* var\(--sf-space-1\) \+ var\(--sf-view--footer-control-height\) \+ var\(--sf-px\)\);/);
+  // The row is as tall as the ladder says: the control of the step and the
+  // --sf-space-1/2 padding above and below it; it is the table's last band
+  // since view round 14 (C404), so it draws no line of its own.
+  assert.match(source, /min-block-size: calc\(2 \* var\(--sf-space-1\\\\\/2\) \+ var\(--sf-view--footer-control-height\)\);/);
   // The page row the view makes, and one a page gave without an appearance,
   // draw the navigation only: the compatible footer retires on 2027-01-01.
   assert.match(source, /pagination\.setAttribute\("appearance", "field"\);\n\s*pagination\.setAttribute\("top", "false"\);/);

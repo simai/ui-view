@@ -767,8 +767,39 @@ class SfPropertyView extends PropertyViewElement {
         this.requestComponentUpdate("section-column");
     }
 
+    // Whether the rail left the fields under 20rem the last time it was drawn
+    // at this window width, step and density (C403): then the panel is the
+    // list of sections instead. Measured after a render (_checkRail).
+    _railShort() {
+        return Boolean(this._railShortAt && this._railShortAt === this._railKey());
+    }
+
+    _railKey() {
+        return `${globalThis.innerWidth || 0}|${this.drawerStep}|${globalThis.document?.documentElement?.getAttribute?.("data-sf-density") ?? ""}`;
+    }
+
+    // After a render with the rail: the room it left the fields, against 20rem.
+    _checkRail() {
+        if (this.sectionsLayout !== "rail") return;
+        const root = this.panelContent?.();
+        const body = root?.querySelector?.(".sf-property-view-frame .sf-property-view-body");
+        const rail = root?.querySelector?.(".sf-property-view-sections");
+        if (!body || !rail) return;
+        const width = body.getBoundingClientRect().width;
+        if (!(width > 0)) return;
+        const size = Number.parseFloat(globalThis.getComputedStyle?.(globalThis.document?.documentElement ?? {})?.fontSize ?? "") || 16;
+        if (width >= 20 * size - 0.5) return;
+        this._railShortAt = this._railKey();
+        this.requestComponentUpdate("section-rail");
+    }
+
     // The window grew past where the column's tabs folded: the column is tried again.
     _onColumnResize() {
+        // A new width tries the rail again (C403).
+        if (this._railShortAt && this._railShortAt !== this._railKey()) {
+            this._railShortAt = null;
+            this.requestComponentUpdate("section-rail");
+        }
         if (!this._columnFolded || (globalThis.innerWidth || 0) <= this._columnFolded) return;
         this._columnFolded = 0;
         this.requestComponentUpdate("section-column");
@@ -854,7 +885,17 @@ class SfPropertyView extends PropertyViewElement {
         if (this.panel) {
             if (this.drawerStep === "full") return this.configuring || this.sectionColumnFits ? "column" : "tabs";
             if (this.configuring) return "tabs";
-            return this.sectionsAs === "list" && this.panelWidened ? "column" : "tabs";
+            if (this.sectionsAs !== "list") return "tabs";
+            if (this.panelWidened) return "column";
+            // Owner decision C403 (view round 14): where the column does not
+            // fit (C399: beside the list it would leave the list under 48rem;
+            // and every side panel until sf-tabs can be told not to fold), the
+            // sections are a narrow rail of icons and names at the left, as
+            // wide as the longest name (at most 10rem); where the rail would
+            // leave the fields under 20rem the panel is the list of sections,
+            // each opening as a level with «←», as on the phone (C386). No
+            // tabs on top in a side panel any more (the interim of C399).
+            return this._railShort() ? "level" : "rail";
         }
         if (this.sectionsAs === "tabs" || !this.sectionColumnFits) return "tabs";
         return "column";
@@ -1786,6 +1827,7 @@ class SfPropertyView extends PropertyViewElement {
             this._askForUndefinedTags();
             this._askForArrangingTags();
             if (this.sectionsLayout === "column") requestAnimationFrame(() => this._checkSectionColumn());
+            if (this.sectionsLayout === "rail") requestAnimationFrame(() => this._checkRail());
             // The panel's level for a related record (C289 (6)): whether this
             // panel's drawer is drawn inside another one is known once it is open.
             const nested = this._nestedLabel();

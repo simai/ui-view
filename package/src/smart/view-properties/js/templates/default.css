@@ -1381,6 +1381,14 @@
     inline-size: var(--sf-view-properties-sections-width, var(--sf-property-view--sections-width, 12rem));
   }
 
+  /* The rail of a side panel (owner decision C403): icons and names as wide
+     as the longest name, at most 10rem; a longer name is cut with «…». */
+  .sf-property-view-panel[data-sections-layout="rail"] .sf-property-view-sections {
+    inline-size: max-content;
+    max-inline-size: 10rem;
+    flex: none;
+  }
+
   /* Stacked (arranging in a panel, C311 (4)), the list is a row of the panel's
      width over the fields, not a column. */
   .sf-property-view-layout[data-stacked="true"] > .sf-property-view-sections {
@@ -1425,6 +1433,25 @@
     display: inline-flex;
     align-items: center;
     max-inline-size: 100%;
+  }
+
+  /* A choice drawn as its badge sits on the label's baseline (DEV on view
+     round 13: the badge row was 1 px off). The badge's type is a step
+     smaller, so a centred badge put its text above the label's line; in the
+     button's own line the badge aligns its text to the line's baseline, the
+     label's line of the same size and height. */
+  .sf-property-view-quick-value:has(> sf-badge) {
+    display: inline-block;
+    align-self: flex-start;
+  }
+
+  .sf-property-view-quick-value:has(> sf-badge) > sf-badge > .sf-badge {
+    display: inline-flex;
+    vertical-align: baseline;
+  }
+
+  .sf-property-view-quick-value:has(> sf-badge) > .sf-icon {
+    display: inline-flex;
   }
 
   .sf-property-view-quick-editor {

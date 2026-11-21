@@ -110,13 +110,26 @@ export function onCardsEvent(view, event) {
         return view._openRecord(String(detail.id), {action_id: "view", record_ids: [String(detail.id)], record_id: String(detail.id)});
     case "sf-view-cards-more":
         return view.changeQuery({page: (Number(view.query.page) || 1) + 1}, "show-more");
-    case "sf-view-cards-select":
+    case "sf-view-cards-select": {
         view._cardsSelection = Array.isArray(detail.ids) ? detail.ids.map(String) : [];
+        // The cards keep every page's marks (keep-selection): their list is
+        // the person's marks (LV2-2); «Выбрать все N» on their bar is the
+        // list's «for all» (LV2-7), as on the table's.
+        const known = new Map([...(view.markedIds ?? []).map((id) => [String(id), id]),
+            ...(view.records ?? []).map((record) => [String(record.id), record.id])]);
+        view._marks = null;
+        view._noteMarks?.([], view._cardsSelection.map((id) => (known.has(id) ? known.get(id) : id)));
+        if (typeof detail.all === "boolean" && Boolean(view.pagination?.actionForAll) !== detail.all) view.pagination?.setActionForAll?.(detail.all);
+        view.pagination?.setState?.({selectedCount: view._cardsSelection.length});
         return undefined;
+    }
     case "sf-view-cards-apply": {
         // The cards say ids as text; the records keep the host's own.
         const ids = (detail.ids ?? []).map((id) => (view.records ?? []).find((record) => String(record.id) === String(id))?.id ?? id);
-        return view._action({action_id: String(detail.action), record_ids: ids}, {selectedBulk: detail.scope !== "record"});
+        // «Выбраны все N» (LV2-7): the action under the filter, as the table's bar asks it.
+        if (detail.scope === "all") return view.applyUnderFilter(String(detail.action), view.total);
+        const kept = new Map(view.markedIds.map((id) => [String(id), id]));
+        return view._action({action_id: String(detail.action), record_ids: ids.map((id) => kept.get(String(id)) ?? id)}, {selectedBulk: detail.scope !== "record"});
     }
     case "sf-view-cards-create":
         return view._raise("view.create_record", {item: null});

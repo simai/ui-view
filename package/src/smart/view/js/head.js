@@ -488,7 +488,8 @@ export class ListHead {
         // placement waits one owner confirmation: moving the toggle to the end
         // of the row is the order of these two strings.
         const toggle = `<sf-button-icon class="sf-view-head-zone-toggle" data-zone-toggle size="${size}" appearance="ghost" scheme="on-surface" icon="view_quilt" aria-controls="" hidden></sf-button-icon>`;
-        const more = `<sf-button-icon class="sf-view-head-more" data-list-menu size="${size}" appearance="ghost" scheme="on-surface" icon="more_vert" aria-haspopup="menu" hidden></sf-button-icon>`;
+        // The owner's data menu is «⋯» (C407), not more_vert.
+        const more = `<sf-button-icon class="sf-view-head-more" data-list-menu size="${size}" appearance="ghost" scheme="on-surface" icon="more_horiz" aria-haspopup="menu" hidden></sf-button-icon>`;
         const changed = pop("state", "bottom-start", `<sf-button slot="trigger" class="sf-view-head-changed" size="${size}" appearance="ghost" scheme="primary" icon-start="edit_note"></sf-button>`);
         this.root.innerHTML = phone
             ? `<div class="sf-view-head-title" data-title>
@@ -497,7 +498,7 @@ export class ListHead {
                <div class="sf-view-head-row">
                  ${toggle}
                  <sf-button-icon class="sf-view-head-filter-icon" data-head-open="filter" size="${size}" icon="filter_list"></sf-button-icon>
-                 <div class="sf-view-head-search"><sf-input data-search appearance="filled" size="${size}" icon-start="search" input-type="search" clearable></sf-input></div>
+                 <div class="sf-view-head-search"><sf-input data-search appearance="bordered" size="${size}" icon-start="search" input-type="search" clearable></sf-input></div>
                  <sf-button-icon class="sf-view-head-create" data-create size="${size}" icon="add" aria-haspopup="menu" hidden></sf-button-icon>
                  ${more}
                </div>
@@ -505,7 +506,7 @@ export class ListHead {
                <div class="sf-view-head-zone" data-zone hidden>
                  <sf-button class="sf-view-head-views" data-views size="${size}" appearance="ghost" scheme="on-surface" icon-start="bookmarks" icon-end="expand_more" aria-haspopup="menu"></sf-button>
                  <sf-button-icon class="sf-view-head-kind-menu" data-kind-menu size="${size}" appearance="ghost" scheme="on-surface" icon="table_rows" aria-haspopup="menu"></sf-button-icon>
-                 <sf-button-icon class="sf-view-head-tune" data-head-open="view" size="${size}" appearance="ghost" scheme="on-surface" icon="tune"></sf-button-icon>
+                 <sf-button-icon class="sf-view-head-tune sf-view-head-look" data-look size="${size}" appearance="ghost" scheme="on-surface" icon="tune" aria-haspopup="menu"></sf-button-icon>
                  <sf-button class="sf-view-head-changed" data-head-open="state" size="${size}" appearance="ghost" scheme="primary" icon-start="edit_note" hidden></sf-button>
                </div>
                <sf-drawer data-sheet data-sf-role="head-sheet" placement="bottom"><div slot="content" data-body></div></sf-drawer>`
@@ -522,7 +523,7 @@ export class ListHead {
                    <div class="sf-view-head-fields" data-fields></div>
                  </div>
                  <div class="sf-view-head-end">
-                   <div class="sf-view-head-search"><sf-input data-search appearance="filled" size="${size}" icon-start="search" input-type="search" clearable></sf-input></div>
+                   <div class="sf-view-head-search"><sf-input data-search appearance="bordered" size="${size}" icon-start="search" input-type="search" clearable></sf-input></div>
                    <sf-button class="sf-view-head-create" size="${size}" icon-start="add" hidden></sf-button>
                    ${more}
                  </div>
@@ -531,11 +532,31 @@ export class ListHead {
                  <sf-button class="sf-view-head-views" data-views size="${size}" appearance="ghost" scheme="on-surface" icon-start="bookmarks" icon-end="expand_more" aria-haspopup="menu"></sf-button>
                  <span class="sf-view-head-zone-line" data-zone-line aria-hidden="true"></span>
                  <sf-segmented data-kinds size="${size}" hidden></sf-segmented>
-                 ${pop("view", "bottom-start", `<sf-button slot="trigger" class="sf-view-head-customize" size="${size}" appearance="ghost" scheme="on-surface" icon-start="tune"></sf-button>`)}
                  ${changed}
+                 <div class="sf-view-head-zone-end" data-zone-end>
+                   <sf-button class="sf-view-head-columns" data-columns size="${size}" appearance="ghost" scheme="on-surface" icon-start="view_column" aria-haspopup="dialog"></sf-button>
+                   <sf-button class="sf-view-head-look" data-look size="${size}" appearance="ghost" scheme="on-surface" icon-start="tune" aria-haspopup="menu"></sf-button>
+                 </div>
                </div>`;
         const zone = this.root.querySelector("[data-zone]");
         zone.id = `sf-view-head-zone-${++ZONE_IDS}`;
+        // «Вид» (C405): SIMAI Framework sf-settings in its drill look, the
+        // shown display kind's own rows, each applied at once. It opens
+        // against the «Вид» button (for=), in the head's light DOM.
+        const lookTrigger = this.root.querySelector(".sf-view-head-look");
+        if (lookTrigger) lookTrigger.id = `sf-view-head-look-${ZONE_IDS}`;
+        const lookMenu = document.createElement("sf-settings");
+        lookMenu.setAttribute("look", "drill");
+        lookMenu.setAttribute("data-look-menu", "");
+        lookMenu.setAttribute("size", this.size);
+        if (lookTrigger) lookMenu.setAttribute("for", lookTrigger.id);
+        lookMenu.addEventListener("sf-settings-changed", (event) => this._onLookChanged(event));
+        for (const name of ["sf-settings-change", "sf-settings-open", "sf-settings-opened", "sf-settings-close", "sf-settings-closed"]) {
+            lookMenu.addEventListener(name, (event) => event.stopPropagation());
+        }
+        this.root.append(lookMenu);
+        this._lookMenu = lookMenu;
+        this._lookKey = null;
         this.root.querySelector("sf-button-icon.sf-view-head-zone-toggle")?.setAttribute("aria-controls", zone.id);
         // The windows' drawers carry a role (data-sf-role): their path ids are
         // then sf-view's own (…/head-sheet). Counted among the
@@ -617,9 +638,9 @@ export class ListHead {
         set(one("[data-filter-group]"), "hidden", filterShown ? null : "");
         set(one(".sf-view-head-filter-icon"), "hidden", filterShown ? null : "");
         const lookShown = this.view.renders("look");
-        set(one('sf-popover[data-pop="view"]'), "hidden", lookShown ? null : "");
-        set(one(".sf-view-head-tune"), "hidden", lookShown ? null : "");
-        if (!lookShown && this.open?.kind === "view") this._closeAll();
+        for (const node of root.querySelectorAll(".sf-view-head-look")) set(node, "hidden", lookShown ? null : "");
+        if (!lookShown) this._lookMenu?.close?.();
+        this._renderLook(one, set, lookShown);
         this._renderFields();
         const row = one(":scope > .sf-view-head-row");
         if (row) {
@@ -657,7 +678,8 @@ export class ListHead {
         // personal layer where it offers one (port 1.16.0,
         // personal-preferences), else SF.Preferences under preferences-key.
         this.view._keepPreference?.({viewZone: this._zoneOpen});
-        if (!this._zoneOpen && ["view", "state"].includes(this.open?.kind)) this._closeOpen();
+        if (!this._zoneOpen && this.open?.kind === "state") this._closeOpen();
+        if (!this._zoneOpen) this._lookMenu?.close?.();
         this.render();
         if (this._zoneOpen) this.root?.querySelector("[data-zone]")?.focus?.({preventScroll: true});
     }
@@ -802,8 +824,6 @@ export class ListHead {
         set(kindMenu, "icon", KINDS[this.kind]);
         set(kindMenu, "hidden", this.kinds.length > 1 ? null : "");
         set(kindMenu, "aria-label", `${this.text("headDisplay")}: ${this.kindLabel(this.kind)}`);
-        set(one(".sf-view-head-customize"), "text", this.text("headCustomize"));
-        set(one(".sf-view-head-tune"), "aria-label", this.text("headCustomize"));
         for (const node of this.root.querySelectorAll(".sf-view-head-changed")) {
             const host = node.closest("sf-popover[data-pop]") ?? node;
             set(host, "hidden", changed ? null : "");
@@ -954,7 +974,7 @@ export class ListHead {
         const popover = event.target?.closest?.("sf-popover[data-pop]");
         if (!popover || !this.root?.contains(popover)) return;
         const kind = popover.getAttribute("data-pop");
-        if (["view", "filter", "save", "state"].includes(kind)) popover.setAttribute("label", this._title(kind));
+        if (["filter", "save", "state"].includes(kind)) popover.setAttribute("label", this._title(kind));
         this._show(kind, popover, popover.querySelector("[data-body]"));
     }
 
@@ -985,8 +1005,13 @@ export class ListHead {
         }
         // A window without its own button opens in its zone's: a new view in
         // «Customize view»'s, a rename in the filter's.
+        // A new view opens in «Изменено»'s window where it is drawn (the
+        // window it is asked from), else in the filter's (C405: «Вид» is a
+        // menu, it holds no window).
+        const state = this.root?.querySelector('sf-popover[data-pop="state"]');
         const popover = this.root?.querySelector(`sf-popover[data-pop="${CSS.escape(kind)}"]`)
-            ?? this.root?.querySelector(`sf-popover[data-pop="${kind === "view-new" ? "view" : "filter"}"]`);
+            ?? (kind === "view-new" && state && !state.hidden ? state : null)
+            ?? this.root?.querySelector('sf-popover[data-pop="filter"]');
         if (!popover) return;
         if (popover.getAttribute("data-pop") !== kind) {
             // a window without its own button (rename) opens in the filter's
@@ -1016,7 +1041,6 @@ export class ListHead {
     _title(kind) {
         if (kind === "filter") return this.text("headFilter");
         if (kind === "save") return this.text("headSaveFilter");
-        if (kind === "view") return this.text("headCustomize");
         if (kind === "state") return this.text("headViewState");
         if (kind === "view-new") return this.text("headViewNew");
         if (kind.startsWith("rename:")) return this.text("headRename");
@@ -1091,7 +1115,6 @@ export class ListHead {
             const item = this.savedFilter(kind.slice(6));
             return `<div class="sf-view-head-actions">${this._savedMenu(item).filter((entry) => !entry.kind).map((entry) => `<sf-button data-saved-act="${esc(entry.id)}" data-saved-id="${esc(item.id)}" size="${size}" appearance="ghost" scheme="${entry.status === "danger" ? "primary" : "on-surface"}"${entry.status === "danger" ? ' status="danger"' : ""} icon-start="${esc(entry.icon)}" text="${esc(entry.text)}"></sf-button>`).join("")}</div>`;
         }
-        if (kind === "view") return this._viewPanel();
         if (kind === "state") return this._statePanel();
         if (kind === "view-new") {
             const shared = this.permissions.shared_settings || this.permissions.share_views;
@@ -1103,25 +1126,37 @@ export class ListHead {
         return "";
     }
 
-    // «Customize view» by display kind (LH-7), at the levels of C298: a
-    // personal change applies at once; «Save for everyone» only where the host
-    // allows; a locked setting shows a lock; «Reset to everyone's» resets one's own.
-    _viewPanel() {
-        const size = esc(this.size);
+    // «Вид» (owner decisions C405, C404; LH-7 and C298 before): the drill
+    // menu of SIMAI Framework (sf-settings look="drill") with the shown
+    // display kind's own rows -- each kind its own set -- every choice
+    // applied at once and saved for the person (settings.save personal). A
+    // locked row is drawn disabled; a row head.look leaves out is not drawn
+    // (VR5-5). The columns are «Колонки» beside it (the table's own window,
+    // C406), not rows here. Saving for everyone and resetting go through
+    // «Изменено» (the state window).
+    _lookItems() {
         const kind = this.kind;
         const settings = this._kindSettings(kind);
         const locked = new Set(this._locked());
-        const lock = (key) => (locked.has(key) || locked.has(`layouts.${kind}.${key}`) ? ` disabled data-locked` : "");
-        const lockMark = (key) => (lock(key) ? `<sf-icon icon="lock" size="1/2" aria-label="${esc(this.text("headLocked"))}" title="${esc(this.text("headLocked"))}"></sf-icon>` : "");
-        const title = (key, text) => `<p class="sf-view-head-sub">${esc(text)}${lockMark(key)}</p>`;
-        const radios = (key, list, current) => `<div class="sf-view-head-list" role="radiogroup" aria-label="${esc(key)}">${list.map(([value, label]) => `<sf-radio data-setting="${esc(key)}" size="${size}" name="sf-view-head-${esc(key)}" value="${esc(value)}" label="${esc(label)}"${String(value) === String(current) ? " checked" : ""}${lock(key)}></sf-radio>`).join("")}</div>`;
-        const checks = (key, list, current) => `<div class="sf-view-head-list">${list.map(([value, label]) => `<sf-checkbox data-setting="${esc(key)}" data-value="${esc(value)}" size="${size}" label="${esc(label)}"${current.includes(String(value)) ? " checked" : ""}${lock(key)}></sf-checkbox>`).join("")}</div>`;
+        const off = (key) => locked.has(key) || locked.has(`layouts.${kind}.${key}`);
+        const look = this.view.look;
+        const shows = (key) => !look || look.includes(key);
+        const lockText = this.text("headLocked");
+        const caption = (key) => (off(key) ? {caption: lockText} : {});
+        const choice = (key, word, list, current) => ({id: key, type: "choice", text: this.text(word), value: String(current ?? ""),
+            ...(off(key) ? {disabled: true} : {}), ...caption(key),
+            options: list.map(([value, label]) => ({id: String(value), text: String(label)}))});
+        const toggle = (key, word, value) => ({id: key, type: "switch", text: this.text(word), value: Boolean(value),
+            ...(off(key) ? {disabled: true} : {}), ...caption(key)});
+        // A list of several (card fields, row actions) is a group of
+        // switches, one per entry (the drill look has no multi-choice row).
+        const switches = (key, word, list, current) => ({type: "group", text: this.text(word), items: list.map(([value, label]) => ({
+            id: `${key}:${value}`, type: "switch", text: String(label), value: current.includes(String(value)),
+            ...(off(key) ? {disabled: true} : {})}))});
         // The view's own fields (VHF-13): the record fields the list draws
-        // (its columns), not the filter's -- «Сумма» on a card is no filter
-        // field and was missing from «Поля на карточке». The title is the
-        // card's own line, never a field of it. A field of a type a row
-        // needs (a lane, a date) the columns do not say is looked up among
-        // the host's described fields.
+        // (its columns), not the filter's. The title is the card's own line,
+        // never a field of it. A field of a type a row needs (a lane, a date)
+        // the columns do not say is looked up among the host's described fields.
         const described = Array.isArray(this.description?.fields) ? this.description.fields : this.fields;
         const columns = (this.view.columns ?? []).filter((column) => column?.key !== undefined && column?.key !== null && !column.system
             && !["select", "settings"].includes(String(column.key)));
@@ -1133,46 +1168,98 @@ export class ListHead {
             return pairs([...own, ...described.filter((field) => !known.has(String(field.key)) && test(fieldType(field)))]);
         };
         const all = pairs(record.filter((field) => field.role !== "title" && field.title !== true));
-        // The rows the host shows (VR5-5, head.look or view.look): a row it
-        // leaves out is not drawn; a locked row is drawn, disabled.
-        const look = this.view.look;
-        const shows = (key) => !look || look.includes(key);
-        const only = (key, html) => (shows(key) ? html : "");
-        let body = "";
+        // How the list goes on past its first page (owner decision D1), the
+        // table's and the cards' (view round 14): «Вместе» by default.
+        const paging = [["pages", "headPagingPages"], ["more", "headPagingMore"], ["both", "headPagingBoth"], ["endless", "headPagingEndless"]]
+            .map(([value, word]) => [value, this.text(word)]);
+        const items = [];
+        const add = (key, item) => { if (shows(key) && item) items.push(item); };
         if (kind === "table") {
-            const columns = (this.view.columns ?? []).map((column) => [column.key, column.label ?? column.key]);
             const actions = (this.view.rowActionCatalog ?? []).map((action) => [action.id, action.label ?? action.id]);
-            // How the list goes on past its first page (owner decision D1):
-            // stored with the view's other settings, «Вместе» by default.
-            const paging = [["pages", "headPagingPages"], ["more", "headPagingMore"], ["both", "headPagingBoth"], ["endless", "headPagingEndless"]]
-                .map(([value, word]) => [value, this.text(word)]);
-            body = only("columns", title("columns", this.text("headColumns")) + checks("columns", columns, settings.columns))
-                + (actions.length ? only("row_actions", title("row_actions", this.text("headRowActions")) + checks("row_actions", actions, settings.row_actions)) : "")
-                // The table's own look (VR12A-1): under the list head the
-                // table draws no gear, so its density (D4) and «Текст в одну
-                // строку» (D5) are set here, as the gear's «Вид» set them.
-                + (this.view.table ? only("density", title("density", this.text("headDensity"))
-                    + radios("density", [["normal", this.text("headDensityNormal")], ["compact", this.text("headDensityCompact")]], settings.density))
-                    + only("single_line", `<div class="sf-view-head-list"><sf-checkbox data-setting="single_line" size="${size}" label="${esc(this.text("headSingleLine"))}"${settings.single_line ? " checked" : ""}${lock("single_line")}></sf-checkbox></div>`) : "")
-                + (this.view.pagingOffered ? only("paging", title("paging", this.text("headPaging")) + radios("paging", paging, settings.paging)) : "");
+            // The table's own look (VR12A-1, D4, D5): under the list head the
+            // gear holds the columns only (C406), so the density, the lines
+            // and «Текст в одну строку» are set here.
+            if (this.view.table) {
+                add("density", choice("density", "headDensity", [["normal", this.text("headDensityNormal")], ["compact", this.text("headDensityCompact")]], settings.density));
+                add("single_line", toggle("single_line", "headSingleLine", settings.single_line));
+                add("lines", toggle("lines", "headLines", settings.lines));
+            }
+            if (this.view.pagingOffered) add("paging", choice("paging", "headPaging", paging, settings.paging));
+            if (actions.length) add("row_actions", switches("row_actions", "headRowActions", actions, settings.row_actions));
         } else if (kind === "board") {
-            body = only("lane_field", title("lane_field", this.text("headLaneField")) + radios("lane_field", fieldsOf((type) => LIST_TYPES.has(type)), settings.lane_field))
-                + only("card_fields", title("card_fields", this.text("headCardFields")) + checks("card_fields", all, settings.card_fields))
-                + only("empty_lanes", `<sf-checkbox data-setting="empty_lanes" size="${size}" label="${esc(this.text("headEmptyLanes"))}"${settings.empty_lanes ? " checked" : ""}${lock("empty_lanes")}></sf-checkbox>`);
+            add("lane_field", choice("lane_field", "headLaneField", fieldsOf((type) => LIST_TYPES.has(type)), settings.lane_field));
+            add("empty_lanes", toggle("empty_lanes", "headEmptyLanes", settings.empty_lanes));
+            add("card_fields", switches("card_fields", "headCardFields", all, settings.card_fields));
         } else if (kind === "cards") {
-            body = only("size", title("size", this.text("headCardSize")) + radios("size", [["s", this.text("headSizeS")], ["m", this.text("headSizeM")], ["l", this.text("headSizeL")]], settings.size))
-                + only("card_fields", title("card_fields", this.text("headCardFields")) + checks("card_fields", all, settings.card_fields));
+            add("size", choice("size", "headCardSize", [["s", this.text("headSizeS")], ["m", this.text("headSizeM")], ["l", this.text("headSizeL")]], settings.size));
+            add("card_labels", toggle("card_labels", "headCardLabels", settings.card_labels));
+            if (this.view.pagingOffered) add("paging", choice("paging", "headPaging", paging, settings.paging));
+            add("card_fields", switches("card_fields", "headCardFields", all, settings.card_fields));
         } else if (kind === "calendar") {
-            body = only("date_field", title("date_field", this.text("headDateField")) + radios("date_field", fieldsOf((type) => DATE_TYPES.has(type)), settings.date_field))
-                // The week start and the time zone are the request's (C293), never the view's.
-                + only("color_field", title("color_field", this.text("headColourField")) + radios("color_field", [...fieldsOf((type) => LIST_TYPES.has(type)), ["", this.text("headColourNone")]], settings.color_field ?? ""));
+            // The week start and the time zone are the request's (C293), never the view's.
+            add("date_field", choice("date_field", "headDateField", fieldsOf((type) => DATE_TYPES.has(type)), settings.date_field));
+            add("color_field", choice("color_field", "headColourField", [...fieldsOf((type) => LIST_TYPES.has(type)), ["", this.text("headColourNone")]], settings.color_field ?? ""));
         }
-        const viewName = this.currentView?.label ?? this.currentView?.name ?? "";
-        const kindName = this.text(`headKind${kind[0].toUpperCase()}${kind.slice(1)}`);
-        return this._note(`${viewName ? `${viewName} · ` : ""}${kindName}. ${this.text("headCustomizeNote")}`) + body
-            + `<div class="sf-view-head-foot" data-one><sf-button data-act="view-reset" size="${size}" appearance="outline" scheme="on-surface" text="${esc(this.text("headResetToShared"))}"></sf-button>`
-            + (this.permissions.shared_settings ? `<sf-button data-act="view-share" size="${size}" text="${esc(this.text("headSaveForAll"))}"></sf-button>` : "")
-            + "</div>";
+        return items;
+    }
+
+    // «Вид» and «Колонки» as the shown kind has them: «Колонки» for a table
+    // only (the table's column window); the drill menu given its rows, anew
+    // only when they change.
+    _renderLook(one, set, lookShown) {
+        const columns = one(".sf-view-head-columns");
+        const table = this.view.table;
+        const look = this.view.look;
+        const columnsShown = lookShown && (!look || look.includes("columns")) && this.kind === "table" && typeof table?.openColumnSettings === "function" && this.view.renders("settings");
+        set(columns, "hidden", columnsShown ? null : "");
+        set(columns, "text", this.text("headColumns"));
+        set(columns, "title", this.text("headColumns"));
+        for (const node of this.root.querySelectorAll(".sf-view-head-look")) {
+            if (node.localName === "sf-button") { set(node, "text", this.text("headLook")); set(node, "title", this.text("headLook")); }
+            else set(node, "aria-label", this.text("headLook"));
+        }
+        const menu = this._lookMenu;
+        if (!menu) return;
+        set(menu, "label", this.text("headLook"));
+        set(menu, "size", this.size);
+        const items = lookShown ? this._lookItems() : [];
+        const key = JSON.stringify([this.kind, items]);
+        if (this._lookKey !== key) {
+            this._lookKey = key;
+            menu.items = items;
+        }
+    }
+
+    // «Вид» opened by a call (sf-view openCustomize): the menu against its button.
+    openLook() {
+        const menu = this._lookMenu;
+        const trigger = [...(this.root?.querySelectorAll(".sf-view-head-look") ?? [])].find((node) => !node.hidden);
+        if (!menu || !trigger || !this.view.renders("look")) return false;
+        this._lookKey = null;
+        this.render();
+        if (typeof menu.open === "function") menu.open();
+        else menu.toggle?.(trigger);
+        return true;
+    }
+
+    // A row of «Вид» changed (sf-settings changed: {id, value}): a list of
+    // switches (card fields, row actions) is one setting, the rest their own.
+    _onLookChanged(event) {
+        event.stopPropagation();
+        const {id, value} = event.detail ?? {};
+        if (typeof id !== "string" || !id) return;
+        const kind = this.kind;
+        const current = this._kindSettings(kind);
+        const at = id.indexOf(":");
+        if (at > 0) {
+            const key = id.slice(0, at);
+            const entry = id.slice(at + 1);
+            const now = Array.isArray(current[key]) ? current[key].map(String) : [];
+            const next = value === true ? (now.includes(entry) ? now : [...now, entry]) : now.filter((one) => one !== entry);
+            this._applySetting(kind, key, next);
+            return;
+        }
+        this._applySetting(kind, id, typeof value === "boolean" ? value : String(value ?? ""));
     }
 
     // «Changed» (VS-2, VS-3): what is changed and the ways out -- save for
@@ -1209,16 +1296,19 @@ export class ListHead {
     _kindSettings(kind) {
         const config = this.view.viewConfig?.layouts?.[kind] ?? {};
         const own = this._settings?.[kind] ?? {};
-        const merged = {...copy(config), ...copy(own)};
+        // The person's look of the kind in all their lists (C408) over the
+        // view's document, what they set here over both.
+        const merged = {...copy(config), ...copy(this.view.kindPreferences?.(kind) ?? {}), ...copy(own)};
         if (kind === "table") {
             const visible = this.view.viewConfig?.fields?.visible;
             merged.columns ??= (Array.isArray(visible) ? visible : (this.view.columns ?? []).filter((column) => column.visible !== false).map((column) => column.key)).map(String);
             merged.row_actions ??= (this.view.rowActionCatalog ?? []).map((action) => String(action.id));
-            merged.paging ??= this.view.paging ?? "both";
+            merged.paging ??= this.view.pagingOf?.("table") ?? "both";
             // The density and one line as the table shows them (VR12A-1).
             const table = this.view.table;
             merged.density ??= table?.shownViewDensity === "compact" ? "compact" : "normal";
             merged.single_line ??= table?.tableView?.singleLine === true;
+            merged.lines ??= table?.tableView?.lines === true;
         }
         // The card fields a board or the cards draw now (their own defaults
         // when the view names none), so the window ticks what is on the cards.
@@ -1226,7 +1316,13 @@ export class ListHead {
         if (kind === "board") { merged.card_fields ??= Array.isArray(drawn) ? [...drawn] : []; merged.empty_lanes ??= true; }
         // Cards S, M, L; M by default (C306). The calendar's week start comes
         // from the request context, never from a stored view (CA-2).
-        if (kind === "cards") { merged.size ??= "m"; merged.card_fields ??= Array.isArray(drawn) ? [...drawn] : []; }
+        if (kind === "cards") {
+            merged.size ??= "m";
+            merged.card_fields ??= Array.isArray(drawn) ? [...drawn] : [];
+            // Labels over the values by default (D3); the cards' own paging (view round 14).
+            merged.card_labels ??= this.view.cards?.cardsOptions?.cardLabels !== false;
+            merged.paging ??= this.view.pagingOf?.("cards") ?? "both";
+        }
         for (const key of ["columns", "row_actions", "card_fields"]) if (Array.isArray(merged[key])) merged[key] = merged[key].map(String);
         return merged;
     }
@@ -1369,6 +1465,12 @@ export class ListHead {
         const opener = target.closest("[data-head-open]");
         if (opener) {
             this._openKind(opener.getAttribute("data-head-open"));
+            return;
+        }
+        // «Колонки» (C404, C406): the table's own column window, against it.
+        const columns = target.closest(".sf-view-head-columns, [data-columns]");
+        if (columns) {
+            this.view.table?.openColumnSettings?.(columns.closest(".sf-view-head-columns") ?? columns);
             return;
         }
         if (target.closest("[data-zone-toggle]")) {
@@ -1550,11 +1652,6 @@ export class ListHead {
             this._useSaved(saved.getAttribute("data-saved"));
             return;
         }
-        const setting = target?.closest?.("[data-setting]");
-        if (setting && this.open?.kind === "view") {
-            if (setting.hasAttribute("data-locked")) return;
-            this._changeSetting(setting, body);
-        }
     }
 
     _checked(node) {
@@ -1569,18 +1666,11 @@ export class ListHead {
         return input?.value ?? node?.value ?? "";
     }
 
-    // A personal setting applies at once (C298): settings.save personal.
-    _changeSetting(node, body) {
-        const kind = this.kind;
-        const key = node.getAttribute("data-setting");
+    // A personal setting applies at once (C298): settings.save personal. What
+    // a person sets for how a kind looks holds in all their lists of that
+    // kind (owner decision C408): kept by the view as theirs for the kind.
+    _applySetting(kind, key, value) {
         const current = this._kindSettings(kind);
-        let value;
-        if (node.localName === "sf-radio") {
-            const checked = [...body.querySelectorAll(`sf-radio[data-setting="${CSS.escape(key)}"]`)].find((radio) => this._checked(radio));
-            value = checked?.getAttribute("value") ?? "";
-        } else if (node.hasAttribute("data-value")) {
-            value = [...body.querySelectorAll(`sf-checkbox[data-setting="${CSS.escape(key)}"]`)].filter((box) => this._checked(box)).map((box) => box.getAttribute("data-value"));
-        } else value = this._checked(node);
         if (same(current[key], value)) return;
         this._settings ??= {};
         this._settings[kind] = {...(this._settings[kind] ?? {}), [key]: value};
@@ -1589,10 +1679,15 @@ export class ListHead {
         // The table keeps them as the person's view of it, as its gear did.
         else if (kind === "table" && key === "density") this.view.table?.setTableView?.({density: value});
         else if (kind === "table" && key === "single_line") this.view.table?.setTableView?.({singleLine: value === true});
+        else if (kind === "table" && key === "lines") this.view.table?.setTableView?.({lines: value === true});
+        // The cards' paging (view round 14, D1 for the cards) shows at once too.
+        else if (kind === "cards" && key === "paging") this.view.applyPaging?.(value, "cards");
         // A board's, the cards' and the calendar's settings show at once too
         // (VHF-13, C298): they only went to the host and showed after a reload.
         else if (kind !== "table") this.view.applyLayoutSettings?.(kind, {[key]: value});
+        this.view.keepKindSetting?.(kind, key, value);
         this._saveSettings("personal", {[key]: value});
+        this.render();
     }
 
     // The table's columns as «Настроить вид» says (view round 10, V10-2): a
@@ -1705,11 +1800,6 @@ export class ListHead {
             this.raise("filter.rename", {id, name});
             return;
         }
-        case "view-reset":
-            if (this._settings) delete this._settings[this.kind];
-            this._saveSettings("personal", null);
-            this._renderOpen();
-            return;
         case "view-open-new":
             this._closeOpen();
             this._openKind("view-new");
@@ -1750,10 +1840,6 @@ export class ListHead {
             this._query({filters, filters_chosen: fields});
             return;
         }
-        case "view-share":
-            this._saveSettings("shared", this._kindSettings(this.kind));
-            this._closeOpen();
-            return;
         default:
         }
     }

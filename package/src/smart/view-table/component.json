@@ -881,7 +881,8 @@
         "view": "object",
         "everywhere": "boolean"
       },
-      "own-verb": true
+      "own-verb": true,
+      "summary": "The table look changed (density, single line, lines): view is the whole look, everywhere true when it is kept for every list of the kind (the general personal preference; since view round 14 the default, owner decision C408), false when kept for this list alone."
     },
     "window": {
       "carries": {

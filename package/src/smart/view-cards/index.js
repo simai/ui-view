@@ -91,7 +91,8 @@ class SfViewCards extends CardsElement {
         this._records = Array.isArray(value) ? copy(value) : [];
         this._loadingMore = false;
         const ids = new Set(this._records.map((record) => String(record.id)));
-        for (const id of [...this._selected]) if (!ids.has(id)) this._selected.delete(id);
+        // Under keep-selection the marks of other pages stay (sf-view, LV2-2).
+        if (!this.hasAttribute("keep-selection")) for (const id of [...this._selected]) if (!ids.has(id)) this._selected.delete(id);
         if (this._active !== null && !ids.has(this._active)) this._active = null;
         this.requestComponentUpdate("records");
     }
@@ -270,7 +271,9 @@ class SfViewCards extends CardsElement {
             skeletons: SKELETONS,
             empty,
             cardFields,
-            selected: this._selected,
+            // All under the filter draws every card marked (LV2-7).
+            selected: this.allSelected ? new Set([...this._selected, ...records.map((record) => String(record.id))]) : this._selected,
+            allSelected: this.allSelected,
             current: this._current,
             active: this._active,
             message: this._message,
@@ -301,6 +304,8 @@ class SfViewCards extends CardsElement {
         this.addEventListener("sf-empty-state-action", (event) => this._onEmptyAction(event), {signal});
         this.addEventListener("sf-bulk-actions-action", (event) => this._onBulkAction(event), {signal});
         this.addEventListener("sf-bulk-actions-clear", () => this.clearSelection(), {signal});
+        this.addEventListener("sf-bulk-actions-select-all", () => this._selectAll(true), {signal});
+        this.addEventListener("sf-bulk-actions-select-page", () => this._selectAll(false), {signal});
         const tags = ["sf-checkbox", "sf-button", "sf-button-icon", "sf-icon", "sf-pagination", "sf-empty-state", "sf-skeleton", "sf-menu-context"];
         if (bulkActionsAvailable()) tags.push("sf-bulk-actions");
         globalThis.SF?.Loader?.ensure?.(tags);
@@ -568,10 +573,30 @@ class SfViewCards extends CardsElement {
         this._setSelected(id, !this._selected.has(String(id)));
     }
 
+    // Every record under the filter marked (all-selected, LV2-7): every card
+    // is drawn marked; unmarking one ends it, the others of the page stay.
+    get allSelected() { return this.hasAttribute("all-selected"); }
+
+    _endAll() {
+        if (!this.allSelected) return false;
+        this.removeAttribute("all-selected");
+        for (const record of this.records) this._selected.add(String(record.id));
+        return true;
+    }
+
+    _selectAll(on) {
+        if (on === this.allSelected) return;
+        this.toggleAttribute("all-selected", on);
+        if (on) for (const record of this.records) this._selected.add(String(record.id));
+        this.requestComponentUpdate("selected");
+        this.sfEmit("select", {ids: [...this._selected], all: on});
+    }
+
     _setSelected(id, on, {announce = true} = {}) {
         const key = String(id);
         this._anchor = key;
-        if (on === this._selected.has(key)) return;
+        const ended = this._endAll();
+        if (on === this._selected.has(key) && !ended) return;
         if (on) this._selected.add(key);
         else this._selected.delete(key);
         if (announce) {
@@ -579,7 +604,7 @@ class SfViewCards extends CardsElement {
             this._say(this.word(on ? "selected-one-text" : "unselected-one-text", {title, count: this._selected.size}));
         }
         this.requestComponentUpdate("selected");
-        this.sfEmit("select", {ids: [...this._selected]});
+        this.sfEmit("select", {ids: [...this._selected], ...(ended ? {all: false} : {})});
     }
 
     _selectRange(from, to) {
@@ -595,12 +620,14 @@ class SfViewCards extends CardsElement {
     }
 
     clearSelection() {
-        if (!this._selected.size) return;
+        const all = this.allSelected;
+        this.removeAttribute("all-selected");
+        if (!this._selected.size && !all) return;
         this._selected.clear();
         this._anchor = null;
         this._say(this.word("cleared-text"));
         this.requestComponentUpdate("selected");
-        this.sfEmit("select", {ids: []});
+        this.sfEmit("select", {ids: [], ...(all ? {all: false} : {})});
         const card = this.querySelector(`${CARD}[data-id="${escape(this._active ?? "")}"]`);
         if (card && this.contains(this.ownerDocument?.activeElement)) this._go(card, {announce: false});
     }
@@ -612,7 +639,9 @@ class SfViewCards extends CardsElement {
     }
 
     _apply(action, scope = "selection") {
-        return this.sfEmit("apply", {action: String(action), ids: [...this._selected], scope});
+        // All under the filter: the action is for every record (LV2-7).
+        const asked = this.allSelected && scope !== "record" ? "all" : scope;
+        return this.sfEmit("apply", {action: String(action), ids: [...this._selected], scope: asked});
     }
 
     // ── messages ───────────────────────────────────────────────────────────

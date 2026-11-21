@@ -130,7 +130,8 @@ test('C310: the list head opens the Framework filter window where the pair has i
 test('VR3-1: a layout not in the running set is hidden in the head, not disabled', () => {
   assert.match(view, /if \(tag === "sf-view-table"\) return true;\n {8}return Boolean\(globalThis\.customElements\?\.get\?\.\(tag\) \|\| globalThis\.SF\?\.RuleLoader\?\.\[tag\.replace\(\/\^sf-\/u, "cl-"\)\]\);/u);
   assert.match(head, /asked\.filter\(\(kind\) => Object\.hasOwn\(KINDS, kind\) && this\.drawable\(kind\)\)/u);
-  assert.doesNotMatch(head, /disabled: true/u);
+  // A locked setting row of «Вид» is disabled (C405); a kind never is.
+  assert.doesNotMatch(head, /disabled: true, (ariaLabel|caption): this\.kindLabel/u);
 });
 
 test('VR3-2: menu separators are {type: "separator"}, as sf-menu-context reads them', () => {

@@ -364,14 +364,14 @@
      the start, the page-size button, the page field last; where they do not
      fit, the page field takes a line of its own and still ends there. */
   .sf-data-view-skeleton-footer {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     align-items: center;
-    gap: var(--sf-space-1);
+    gap: var(--sf-space-1\/2) var(--sf-space-1);
     box-sizing: border-box;
-    min-block-size: calc(2 * var(--sf-space-1) + var(--sf-data-view-skeleton--control) + var(--sf-px));
-    padding-block: var(--sf-space-1);
-    border-block-end: var(--sf-px) solid var(--sf-outline-variant);
+    min-block-size: calc(2 * var(--sf-space-1\/2) + var(--sf-data-view-skeleton--control));
+    margin-block-start: calc(-1 * var(--sf-data-view-gap, var(--sf-space-3)));
+    padding-block: var(--sf-space-1\/2);
   }
 
   /* The page numbers go where the list goes on by «Показать ещё» alone or
@@ -392,18 +392,23 @@
     inline-size: 100%;
   }
 
+  /* As the live footer (C404): the range in the first column, «По 20» in
+     the last, the page numbers in the centre. */
   .sf-data-view-skeleton-footer-start {
-    display: flex;
-    flex: 1 1 auto;
-    align-items: center;
-    gap: var(--sf-space-1);
-    min-inline-size: 0;
+    display: contents;
   }
 
   /* The range: as long as the words it stands for. */
   .sf-data-view-skeleton-footer-start > span {
-    flex: 1 1 auto;
+    grid-column: 1;
+    grid-row: 1;
     min-inline-size: 0;
+  }
+
+  .sf-data-view-skeleton-footer-start > .sf-skeleton-text[data-control="size"] {
+    grid-column: -2;
+    grid-row: 1;
+    justify-self: end;
   }
 
   .sf-data-view-skeleton-footer-start > span > .sf-skeleton-text {
@@ -414,9 +419,16 @@
      controls), next, last, with the pagination's gap between them. */
   .sf-data-view-skeleton-footer-pages {
     display: flex;
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: center;
     align-items: center;
     gap: var(--sf-pagination-gap, var(--sf-space-1\/3));
-    margin-inline-start: auto;
+  }
+
+  @container (width < 37.5rem) {
+    .sf-data-view-skeleton-footer { grid-template-columns: minmax(0, 1fr) auto; }
+    .sf-data-view-skeleton-footer-pages { grid-column: 1 / -1; grid-row: 2; }
   }
 
   .sf-data-view-skeleton-footer .sf-skeleton-text[data-control="page"] {
@@ -428,21 +440,28 @@
     inline-size: calc(var(--sf-data-view-skeleton--control) * 2.75);
   }
 
-  /* The live footer's start (slot footer of the view): the range, the offer
-     to count, then the page-size button at its end, beside the page row. */
+  /* The live footer (slot footer of the view, C404): its start holds the
+     range and the offer to count (the first column of the view's footer
+     grid) and «По 20 ▾», which stands in the last column, at the end; the
+     page numbers are in the centre. The start and the button's host are
+     display: contents, so their parts are the grid's items. */
   :is(sf-view, sf-data-view) > .sf-view-footer-start {
-    display: flex;
-    align-items: center;
-    gap: var(--sf-space-1);
-    min-inline-size: 0;
+    display: contents;
   }
 
   :is(sf-view, sf-data-view) > .sf-view-footer-start > .sf-view-footer-total {
     display: flex;
-    flex: 1 1 auto;
+    grid-column: 1;
+    grid-row: 1;
     align-items: center;
     gap: var(--sf-space-1\/3);
     min-inline-size: 0;
+  }
+
+  :is(sf-view, sf-data-view) > .sf-view-footer-start > .sf-view-footer-size > button {
+    grid-column: -2;
+    grid-row: 1;
+    justify-self: end;
   }
 
   /* The range: the step's text in the quiet ink, figures of one width so the
@@ -465,11 +484,18 @@
     display: none;
   }
 
-  /* The page row ends the footer, on its own line too where it wraps
-     (sf-pagination's host is display: contents: its nav is the footer's
-     item). */
+  /* The page numbers in the footer's centre (C404; sf-pagination's host is
+     display: contents: its nav is the footer's item); under 37.5rem of the
+     list on a line of their own, centred. */
   :is(sf-view, sf-data-view) > sf-pagination[slot="pagination"] > nav {
-    margin-inline-start: auto;
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: center;
+  }
+
+  :is(sf-view, sf-data-view)[data-sf-view-footer-narrow] > sf-pagination[slot="pagination"] > nav {
+    grid-column: 1 / -1;
+    grid-row: 2;
   }
 
   .sf-data-view-skeleton[data-layout="list"] .sf-data-view-skeleton-table {

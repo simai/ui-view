@@ -201,6 +201,9 @@ const PAGINATION_RANGE_TEXT = {
 // default), or by itself as the person scrolls (endless).
 const VIEW_PAGING = ["pages", "more", "both", "endless"];
 const VIEW_PAGING_DEFAULT = "both";
+// The person's look of a display kind, for all their lists of it (C408).
+const GENERAL_VIEW_PREFERENCE = "sf-view/*";
+const KIND_LOOK_KEYS = Object.freeze({table: ["paging"], cards: ["size", "card_labels", "paging"], board: ["empty_lanes"], calendar: []});
 const escapeText = (text) => String(text).replace(/[&<>"]/gu, (letter) => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"})[letter]);
 
 // The parts this element draws itself and a consumer can leave out. `status` is
@@ -459,24 +462,32 @@ class SfDataView extends DataViewElement {
                (slot footer) take the room at the start, the page field stands
                last; where the two do not fit, the page field wraps to a line
                of its own and still ends there. */
+            /* C404 (the list's look, owner 2026-11-21): the footer is the
+               list's last band -- no gap above it and no line of its own --
+               the range at the start, the page numbers in the centre, «По 20»
+               at the end (three columns, the outer two as wide as each
+               other); under 37.5rem of the list two columns, the page numbers
+               on a line of their own in the centre
+               (data-sf-view-footer-narrow, written by the view). */
             [part="footer"] {
               --sf-view--footer-control-height: var(--sf-ui-1--control-height);
-              display: flex;
-              flex-wrap: wrap;
+              display: grid;
+              grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
               align-items: center;
-              gap: var(--sf-space-1);
+              gap: var(--sf-space-1\\/2) var(--sf-space-1);
               box-sizing: border-box;
-              min-block-size: calc(2 * var(--sf-space-1) + var(--sf-view--footer-control-height) + var(--sf-px));
-              padding-block: var(--sf-space-1);
-              border-block-end: var(--sf-px) solid var(--sf-outline-variant);
+              min-block-size: calc(2 * var(--sf-space-1\\/2) + var(--sf-view--footer-control-height));
+              margin-block-start: calc(-1 * var(--sf-data-view-gap, var(--sf-space-3)));
+              padding-block: var(--sf-space-1\\/2);
             }
+            :host([data-sf-view-footer-narrow]) [part="footer"] { grid-template-columns: minmax(0, 1fr) auto; }
             :host([size="1/2"]) [part="footer"] { --sf-view--footer-control-height: var(--sf-ui-1\\/2--control-height); }
             /* A footer with no page row in it (the page row hidden: a tree, a
                failed or refused list) draws nothing, not an empty line. */
             /* A board and cards have no page row but say their count
                (data-sf-view-footer-count, view round 7). */
             :host(:not([data-sf-view-footer-count])) [part="footer"]:has(> slot[name="pagination"][hidden]) { display: none; }
-            slot[name="footer"]::slotted(*) { flex: 1 1 auto; min-inline-size: 0; }
+            slot[name="footer"]::slotted(*) { min-inline-size: 0; }
             /* «Показать ещё» right under the last row, across the list (D1):
                half a space step under the rows, not the layout's gap. The page
                numbers stay in the footer below it («Вместе»), or go («Показать
@@ -487,7 +498,8 @@ class SfDataView extends DataViewElement {
             }
             slot[name="more"]::slotted([hidden]) { display: none; }
             slot[name="pagination"]::slotted([data-sf-view-paging-off]) { display: none; }
-            slot[name="pagination"]::slotted(*) { margin-inline-start: auto; }
+            /* The parts' places in the grid are the light DOM sheet's
+               (js/first-paint.css): the hosts there are display: contents. */
           </style>
           <slot name="first-paint"></slot>
           <section part="layout" style="position: relative">
@@ -976,8 +988,11 @@ class SfDataView extends DataViewElement {
     // the records they name: at once from what is known, and again over the
     // answer to the switch's own query (a new result clears a table's marks).
     _applyCarriedSelection() {
-        const ids = this._carrySelection;
-        if (!ids?.length) return;
+        // What a switch carried and what the person marked on other pages
+        // (LV2-2), given to the kind on screen.
+        const ids = [...new Set([...(this._carrySelection ?? []), ...this.markedIds.map(String)])];
+        const allMarked = Boolean(this.pagination?.actionForAll);
+        if (!ids.length && !(allMarked && this._layoutTag() === "sf-view-cards")) return;
         const answered = this.pending === null && this.sequence > (this._carrySequence ?? 0);
         const tag = this._layoutTag();
         if (tag === "sf-view-board") {
@@ -990,8 +1005,15 @@ class SfDataView extends DataViewElement {
             const records = tag === "sf-view-cards" ? this.records : this._calendarRecords;
             if (!element || !Array.isArray(records) || !records.length) return;
             const shown = new Set(records.map((record) => String(record?.id)));
-            element.selected = ids.filter((id) => shown.has(id));
-            if (tag === "sf-view-cards") this._cardsSelection = element.selected;
+            if (tag === "sf-view-cards") {
+                // The cards keep the marks of other pages (keep-selection),
+                // and «Выбраны все N» carried from the table marks every card
+                // (LV2-7).
+                element.setAttribute("keep-selection", "");
+                element.toggleAttribute("all-selected", allMarked);
+                element.selected = ids;
+                this._cardsSelection = element.selected;
+            } else element.selected = ids.filter((id) => shown.has(id));
         } else {
             const table = this.table;
             if (typeof table?.applyRowSelection !== "function" || !this.cappedRecords?.length) return;
@@ -999,6 +1021,8 @@ class SfDataView extends DataViewElement {
             const marked = new Set((table.getSelectedRecordIds?.() ?? []).map(String));
             for (const id of ids) if (shown.has(id) && !marked.has(id)) table.applyRowSelection(id, true);
         }
+        // What a switch carried is the person's marks from now on (LV2-2).
+        if (answered && this._carrySelection?.length) this._noteMarks([], this._carrySelection);
         if (answered) this._carrySelection = null;
     }
 
@@ -1009,7 +1033,9 @@ class SfDataView extends DataViewElement {
     // (view round 13, VHF-13).
     ownLayoutSettings(kind) {
         const own = this._head?._settings?.[kind];
-        return own && typeof own === "object" ? copy(own) : {};
+        // What the person set for every list of the kind (C408) under what
+        // they set here.
+        return {...this.kindPreferences(kind), ...(own && typeof own === "object" ? copy(own) : {})};
     }
 
     // A layout setting changed in «Настроить вид» (VHF-13): drawn at once. A
@@ -1204,6 +1230,25 @@ class SfDataView extends DataViewElement {
         pagination.setAttribute("data-sf-view-appearance", "");
     }
 
+    // The footer under 37.5rem of the list (C404): two columns, the page
+    // numbers on a line of their own (data-sf-view-footer-narrow). The list's
+    // own width -- the content box: a record card docked beside it pads the
+    // view by its own width (VHF-5).
+    _watchFooterWidth() {
+        if (this._footerWidth || typeof ResizeObserver !== "function") return;
+        const mark = () => {
+            const style = globalThis.getComputedStyle?.(this);
+            const pad = style ? (Number.parseFloat(style.paddingInlineStart) || 0) + (Number.parseFloat(style.paddingInlineEnd) || 0) : 0;
+            const width = this.getBoundingClientRect().width - pad;
+            const rem = Number.parseFloat(globalThis.getComputedStyle?.(document.documentElement)?.fontSize) || 16;
+            const narrow = width > 0 && width < 37.5 * rem;
+            if (narrow !== this.hasAttribute("data-sf-view-footer-narrow")) this.toggleAttribute("data-sf-view-footer-narrow", narrow);
+        };
+        this._footerWidth = new ResizeObserver(mark);
+        this._footerWidth.observe(this);
+        mark();
+    }
+
     // The start of the footer: the range (and the offer to count), then the
     // page size. In the light DOM, slotted, so the Framework's styles reach
     // the buttons and the menu (the band of bulk controls is placed so too).
@@ -1390,17 +1435,52 @@ class SfDataView extends DataViewElement {
 
     // ---------- going on past the first page (owner decision D1) ----------
 
-    // How the table's list goes on: the person's choice in «Настроить вид»
-    // (the view's layouts.table.paging, saved for them), else the view's
-    // document, else what this browser kept, else the page's paging
-    // attribute, else «Вместе».
-    get paging() {
+    // How the list goes on: the table's and, since view round 14, the
+    // cards' own (D1 for the cards, DEV r13 answer). The person's choice in
+    // «Вид» (layouts.<kind>.paging, saved for them), else theirs for every
+    // list of the kind (C408), else the view's document, else what this
+    // browser kept for the list, else the page's paging attribute, else
+    // «Вместе».
+    pagingOf(kind = "table") {
+        const own = kind === "cards" ? "cards" : "table";
         const valid = (value) => (VIEW_PAGING.includes(String(value)) ? String(value) : null);
-        return valid(this._head?._settings?.table?.paging)
-            ?? valid(this.viewConfig?.layouts?.table?.paging)
-            ?? valid(this.preferencesKey ? preferences()?.read(this.preferencesKey)?.paging : null)
+        return valid(this._head?._settings?.[own]?.paging)
+            ?? valid(this.kindPreferences(own).paging)
+            ?? valid(this.viewConfig?.layouts?.[own]?.paging)
+            ?? valid(this.preferencesKey ? preferences()?.read(this.preferencesKey)?.[own === "cards" ? "cardsPaging" : "paging"] : null)
             ?? valid(this.getAttribute("paging"))
             ?? VIEW_PAGING_DEFAULT;
+    }
+
+    // The paging of the kind on screen (a table list, or the cards).
+    get paging() {
+        return this.pagingOf(this.layoutKind === "cards" ? "cards" : "table");
+    }
+
+    // What a person set for how a kind looks, kept for all their lists of
+    // that kind (owner decision C408, «похожие списки» = the lists of the
+    // same kind, C410): SF.Preferences sf-view/* {kinds: {<kind>: {...}}}.
+    // Only the look of the kind travels -- the paging, the card size and
+    // labels, the empty lanes; fields (card fields, a lane or a date field)
+    // belong to a list's own data and stay that list's.
+    kindPreferences(kind) {
+        let kept = null;
+        try { kept = preferences()?.read(GENERAL_VIEW_PREFERENCE)?.kinds?.[kind]; } catch { kept = null; }
+        if (!kept || typeof kept !== "object") return {};
+        const keys = KIND_LOOK_KEYS[kind] ?? [];
+        return Object.fromEntries(Object.entries(kept).filter(([key]) => keys.includes(key)));
+    }
+
+    keepKindSetting(kind, key, value) {
+        if (!(KIND_LOOK_KEYS[kind] ?? []).includes(key)) return;
+        try {
+            const stored = preferences()?.read(GENERAL_VIEW_PREFERENCE) ?? {};
+            const kinds = {...(stored.kinds ?? {})};
+            kinds[kind] = {...(kinds[kind] ?? {}), [key]: copy(value)};
+            preferences()?.write(GENERAL_VIEW_PREFERENCE, {...stored, v: 1, kinds});
+        } catch {
+            // No store (a page without SF.Preferences): the choice holds for this list.
+        }
     }
 
     // Whether the view chooses how the table goes on: its own page row, or
@@ -1434,11 +1514,13 @@ class SfDataView extends DataViewElement {
     }
 
     // A paging the person chose (D1): kept in this browser for the first
-    // paint (the view's document comes with the answer), then drawn.
-    applyPaging(value) {
+    // paint (the view's document comes with the answer), then drawn. The
+    // cards keep theirs apart (view round 14).
+    applyPaging(value, kind = "table") {
         if (!VIEW_PAGING.includes(String(value))) return;
-        if (this.preferencesKey) this._keepPreference({paging: String(value)});
+        if (this.preferencesKey) this._keepPreference({[kind === "cards" ? "cardsPaging" : "paging"]: String(value)});
         this._queueFooter();
+        if (kind === "cards") this._renderProjection?.();
     }
 
     // «Показать ещё N» across the list, right under its last row (D1): in
@@ -1658,6 +1740,7 @@ class SfDataView extends DataViewElement {
             this.addEventListener("keydown", this._onStepKey);
         }
         if (this.getAttribute("data-sf-instance")) this._ownParts();
+        this._watchFooterWidth();
         this._askForParts(["sf-view-table", "sf-pagination"]);
         // Dated aliases (§16.20), installed once per element as the Smart base does.
         if (!this.__sfAliases) {
@@ -1903,9 +1986,11 @@ class SfDataView extends DataViewElement {
 
     // The table's «≡» column has nothing to open: no row menu, no column
     // gear (personal-column-settings outside the list head), no reordering.
+    // Since C406 the column always holds the gear in its head, so the view
+    // never leaves it out on its own (VR5-10 stays for a table whose host
+    // writes settings-menu="false" itself, and chrome without settings).
     _settingsColumnUnused() {
-        return this._rowMenuOff() && !(this.knownCapability("personal-column-settings") && !this.listHead)
-            && !(this.knownCapability("row-reorder") && this.treeMode !== "tree");
+        return false;
     }
 
     // The query the page printed: the first answer's own (first-answer.query),
@@ -2250,6 +2335,8 @@ class SfDataView extends DataViewElement {
     }
 
     disconnectedCallback() {
+        this._footerWidth?.disconnect();
+        this._footerWidth = null;
         this.epoch += 1;
         this._endlessWatched = null;
         globalThis.cancelAnimationFrame?.(this._endlessFrame ?? 0);
@@ -2495,13 +2582,13 @@ class SfDataView extends DataViewElement {
     // it the table draws its own toolbar, as before.
     get listHead() { return this.getAttribute("head") === "list"; }
 
-    // «Настроить вид» of the list head (head="list"), opened from outside the
-    // head: the table's column menu «Все колонки…» (C296, VR2-1). Answers an
-    // outcome; without the list head nothing opens.
+    // «Вид» of the list head (head="list", C405: the drill menu of the shown
+    // display kind), opened from outside the head. Answers an outcome;
+    // without the list head nothing opens. The table's «Все колонки…» opens
+    // its own column window since C406 (the gear is always there).
     openCustomize() {
         if (!this.listHead || !this._head) return {outcome: "refused", reason: "no-list-head"};
-        this._head._openKind("view");
-        return {outcome: "applied"};
+        return this._head.openLook() ? {outcome: "applied"} : {outcome: "refused", reason: "look-off"};
     }
 
     _syncHead() {
@@ -2521,7 +2608,7 @@ class SfDataView extends DataViewElement {
                 raise: (intent, payload) => this._raise(intent, payload),
             });
             this._ensureElements(["sf-button", "sf-button-icon", "sf-segmented", "sf-badge", "sf-input", "sf-popover", "sf-drawer",
-                "sf-tabs", "sf-checkbox", "sf-radio", "sf-icon", "sf-menu-context"])?.catch?.(() => {});
+                "sf-tabs", "sf-checkbox", "sf-radio", "sf-icon", "sf-menu-context", "sf-settings"])?.catch?.(() => {});
         }
         if (!this.isConnected) return;
         this._head.attach();
@@ -3084,7 +3171,8 @@ class SfDataView extends DataViewElement {
     _renderBulkBand() {
         const pagination = this.pagination;
         const table = this.table;
-        const selected = table?.getSelectedRecordIds?.() ?? [];
+        // The cards, the board and the calendar draw their own bar.
+        const selected = this._layoutTag() === "sf-view-table" ? this._bulkIds() : [];
         const actions = pagination?.actions ?? [];
         if (bulkBarAvailable()) return this._renderBulkBar({pagination, selected, actions});
         if (!pagination || !selected.length || !actions.length) {
@@ -3257,7 +3345,7 @@ class SfDataView extends DataViewElement {
         const id = event.detail?.id;
         if (id === undefined || id === null || id === "") return undefined;
         const scope = event.detail?.scope === "all" ? "all" : "selection";
-        const ids = this.table?.getSelectedRecordIds?.() ?? [];
+        const ids = this._bulkIds();
         let answer;
         if (scope === "all") answer = await this.applyUnderFilter(String(id), this.total);
         else {
@@ -3320,15 +3408,55 @@ class SfDataView extends DataViewElement {
         if (!action) return undefined;
         if (pagination.actionForAll) return this.applyUnderFilter(action, this.total);
         return this._action(
-            {action_id: action, record_ids: this.table?.getSelectedRecordIds?.() ?? []},
+            {action_id: action, record_ids: this._bulkIds()},
             {selectedBulk: true},
         );
     }
 
     clearSelection() {
         this.table?.clearSelection?.();
+        this._marks = null;
+        this._carrySelection = null;
+        if (this.layoutKind === "cards") {
+            const cards = this.cards;
+            cards?.removeAttribute?.("all-selected");
+            cards?.clearSelection?.();
+        }
         this.pagination?.setState?.({selectedCount: 0});
         return this._renderBulkBand();
+    }
+
+    // The marks kept across pages and display kinds (C295, C298; list study
+    // v2 LV2-2): the records a person marked on one page stay marked on the
+    // others and in the other kinds, while the search and the filters stay
+    // the same; a new search or filter, a bulk action done, or «Снять
+    // выделение» clears them. Kept as the host's own ids, by their text.
+    _markKey() {
+        return JSON.stringify([this.query?.search ?? "", this.query?.filters ?? {}]);
+    }
+
+    _noteMarks(shown, marked) {
+        const key = this._markKey();
+        if (!this._marks || this._marks.key !== key) this._marks = {key, ids: new Map()};
+        const on = new Map((Array.isArray(marked) ? marked : []).map((id) => [String(id), id]));
+        for (const id of Array.isArray(shown) ? shown : []) {
+            const text = String(id);
+            if (on.has(text)) this._marks.ids.set(text, on.get(text));
+            else this._marks.ids.delete(text);
+        }
+        for (const [text, id] of on) this._marks.ids.set(text, id);
+    }
+
+    get markedIds() {
+        if (!this._marks || this._marks.key !== this._markKey()) return [];
+        return [...this._marks.ids.values()];
+    }
+
+    // The records a bulk action is for: every marked one, else the table's
+    // own marks (a page that drives the table itself).
+    _bulkIds() {
+        const kept = this.markedIds;
+        return kept.length ? kept : (this.table?.getSelectedRecordIds?.() ?? []);
     }
 
     // One record, changed in place. A write that touches a row does not need
@@ -3743,15 +3871,17 @@ class SfDataView extends DataViewElement {
             this._tableScrollMode(table);
             const hostOffSettings = hostWroteOff(table, "settings");
             table.setAttribute("settings", !hostOffSettings && this.renders("settings") ? "true" : "false");
-            // The column settings, without the column: it also carries each
-            // row's menu, which is the host's row-actions, not this.
-            // No gear in the table head under the list head: the view settings
-            // are «Customize view» above the list (C301 (1)); the row menu stays.
-            table.setAttribute("settings-menu", this.hostOffers("personal-column-settings") && !this.listHead ? "true" : "false");
-            // The column head menu keeps pin, hide and «Все колонки…» under the
-            // list head (C296, VR2-1): «Все колонки…» opens «Настроить вид».
-            if (this.hostOffers("personal-column-settings") && this.listHead) table.setAttribute("data-sf-view-columns", "head");
-            else table.removeAttribute?.("data-sf-view-columns");
+            // The gear in the table's header row is always there (owner
+            // decision C406): a bare table switches its columns on and off,
+            // and under the list head it duplicates «Колонки» -- the columns
+            // alone (data-sf-columns-only), the look being the head's «Вид».
+            // Where the host keeps no personal column settings a change holds
+            // for the page (the table's session), as before on a bare table.
+            table.setAttribute("settings-menu", "true");
+            table.toggleAttribute?.("data-sf-columns-only", this.listHead);
+            // «Все колонки…» of the column head menu opens the same column
+            // window at the gear (C406); it opened «Настроить вид» before.
+            table.removeAttribute?.("data-sf-view-columns");
             table.setAttribute("creatable", this.hostOffers("create-record") && !refused ? "true" : "false");
             table.setAttribute("row-reorder", this.hostOffers("row-reorder") && this.treeMode !== "tree" ? "true" : "false");
             table.setAttribute("inline-edit", this.hostOffers("inline-edit") ? "true" : "false");
@@ -4470,7 +4600,12 @@ class SfDataView extends DataViewElement {
             return event.detail?.expanded ? this.collapseNode(id) : this.expandNode(id);
         }
         if (event.type === "sf-view-table-load-more") return this.loadMoreNodes(event.detail?.parent, event.detail?.cursor);
-        if (event.type === "sf-view-table-apply") return this._action({action_id: event.detail?.action, record_ids: event.detail?.ids}, {selectedBulk: event.detail?.scope === "selection"});
+        if (event.type === "sf-view-table-apply") {
+            // A bulk action names every marked record, of every page (LV2-2);
+            // a row's own action names its row.
+            const bulk = event.detail?.scope === "selection";
+            return this._action({action_id: event.detail?.action, record_ids: bulk && this._bulkIds().length ? this._bulkIds() : event.detail?.ids}, {selectedBulk: bulk});
+        }
         if (event.type === "sf-view-table-save") {
             return this.saveColumnSettings(event.detail?.columnSettings ?? event.detail, {
                 shared: event.detail?.target === "shared", base_revision: event.detail?.base_revision,
@@ -4478,10 +4613,14 @@ class SfDataView extends DataViewElement {
         }
         if (event.type === "sf-pagination-apply") {
             if (event.detail?.scope === "filter") return this.applyUnderFilter(event.detail.action, event.detail.total);
-            return this._action({action_id: event.detail?.action, record_ids: this.table?.getSelectedRecordIds?.() ?? []}, {selectedBulk: true});
+            return this._action({action_id: event.detail?.action, record_ids: this._bulkIds()}, {selectedBulk: true});
         }
         if (event.type === "sf-view-table-select") {
-            this.pagination?.setState?.({selectedCount: event.detail?.ids?.length ?? 0});
+            // The rows the table holds now: their marks are what it says,
+            // the marks of other pages stay (LV2-2).
+            const rows = (this.table?.getTableData?.().rows ?? []).map((row) => row.id);
+            this._noteMarks(rows, event.detail?.ids ?? []);
+            this.pagination?.setState?.({selectedCount: this._bulkIds().length});
             this._renderBulkBand();
             return;
         }

@@ -159,6 +159,16 @@
       "default": [],
       "summary": "The ids marked."
     },
+    "keep-selection": {
+      "type": "boolean",
+      "default": false,
+      "summary": "The marks of records not on screen stay (sf-view sets it: the marks hold across pages and display kinds, C295, C298; view round 14 LV2-2): selected may name records of other pages, and the bar counts every mark."
+    },
+    "all-selected": {
+      "type": "boolean",
+      "default": false,
+      "summary": "Every record under the filter is marked (the bar's «Выбрать все N», or «Выбраны все N» carried from the table, LV2-7): every card is drawn marked, the bar says the total, an action asks scope all; unmarking one card ends it."
+    },
     "current": {
       "type": "string",
       "default": "",
@@ -181,9 +191,10 @@
     },
     "select": {
       "carries": {
-        "ids": "list"
+        "ids": "list",
+        "all": "boolean"
       },
-      "summary": "The selection changed (vocabulary select)."
+      "summary": "The selection changed (vocabulary select); all is true while «Выбраны все N» holds the whole list under its filter and false once it ends (LV2-7, view round 14)."
     },
     "more": {
       "carries": {
@@ -209,7 +220,7 @@
         "scope": "string"
       },
       "own-verb": true,
-      "summary": "A host action chosen on the selection (scope selection) or in a card's menu (scope record)."
+      "summary": "A host action chosen on the selection (scope selection) or in a card's menu (scope record); scope all while every record under the filter is chosen."
     },
     "create": {
       "carries": {},

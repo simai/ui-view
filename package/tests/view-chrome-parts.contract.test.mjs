@@ -89,7 +89,8 @@ test('the head hides each part and an emptied row, and «Фильтр» without 
   assert.match(head, /get filterShown\(\) \{\s*return this\.view\.renders\("filter"\) && this\.fields\.length > 0;/u);
   assert.match(head, /set\(one\("\.sf-view-head-search"\), "hidden", this\.view\.renders\("search"\) \? null : ""\);/u);
   assert.match(head, /set\(one\("\[data-filter-group\]"\), "hidden", filterShown \? null : ""\);/u);
-  assert.match(head, /set\(one\('sf-popover\[data-pop="view"\]'\), "hidden", lookShown \? null : ""\);/u);
+  // «Вид» is the drill menu since view round 14 (C405): its triggers hide.
+  assert.match(head, /for \(const node of root\.querySelectorAll\("\.sf-view-head-look"\)\) set\(node, "hidden", lookShown \? null : ""\);/u);
   assert.match(head, /set\(row, "hidden", filled \? null : ""\);/u);
   assert.match(css, /\.sf-view-head-row\[hidden\],[\s\S]*?\{ display: none; \}/u);
   assert.match(view, /button\.hidden = pagination\.showPageSize === false \|\| !hasPages \|\| !this\.renders\("page-size"\);/u);
@@ -97,9 +98,11 @@ test('the head hides each part and an emptied row, and «Фильтр» without 
 
 test('head.look draws only the rows it names', () => {
   assert.match(head, /const look = this\.view\.look;\s*const shows = \(key\) => !look \|\| look\.includes\(key\);/u);
-  for (const key of ['columns', 'row_actions', 'density', 'single_line', 'paging', 'lane_field', 'card_fields', 'empty_lanes', 'size', 'date_field', 'color_field']) {
-    assert.match(head, new RegExp(`only\\("${key}", `, 'u'), key);
+  for (const key of ['row_actions', 'density', 'single_line', 'paging', 'lane_field', 'card_fields', 'empty_lanes', 'size', 'date_field', 'color_field']) {
+    assert.match(head, new RegExp(`add\\("${key}", `, 'u'), key);
   }
+  // «Колонки» is a button of the strip beside «Вид» (C404), named by columns.
+  assert.match(head, /lookShown && \(!look \|\| look\.includes\("columns"\)\) && this\.kind === "table"/u);
 });
 
 test('the view document and the manifest declare the keys', () => {

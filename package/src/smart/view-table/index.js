@@ -5515,6 +5515,18 @@ class SfTable extends TableElement {
         this.openContextMenu(e, {menu: 'table-settings'});
     }
 
+    // The column window opened against another control (C406: the list
+    // head's «Колонки» duplicates the gear): the same panel, the same
+    // toggle, against that control.
+    openColumnSettings(anchor) {
+        const host = anchor instanceof Element ? anchor : null;
+        if (!host) return null;
+        const button = host.matches?.("button, [role=\"button\"]") ? host : (host.querySelector?.("button, [role=\"button\"]") ?? host);
+        this._settingsTab = "columns";
+        return this.toggleTableSettings({currentTarget: host, target: button, timeStamp: performance.now(),
+            composedPath: () => [button, host], preventDefault() {}, stopPropagation() {}});
+    }
+
     renderTableSettingsContextMenu(data) {
         return html`
             <sf-settings
@@ -5569,10 +5581,14 @@ class SfTable extends TableElement {
                 toggle("lines", "viewLines"),
                 toggle("singleLine", "viewSingleLine"),
                 ...(this.getAttribute("vertical-scroll") === "page" ? [toggle("stickyHead", "viewStickyHead")] : []),
-                ...(this.viewPreferenceKey ? [{type: "separator"},
-                    {id: "everywhere", type: "switch", text: this.text("viewEverywhere"), value: this._viewEverywhere === true}] : []),
+                // No «Для всех моих таблиц» row (owner decision C408): what a
+                // person sets for their own view holds in every table of theirs.
             ]},
         ];
+        // Under the list head (sf-view head="list", C406) the gear holds the
+        // columns only: the view's look is «Вид» in the list head, and the
+        // gear duplicates «Колонки» there.
+        if (this.hasAttribute("data-sf-columns-only")) items.length = 1;
         const key = JSON.stringify(items);
         if (this._settingsItems?.key !== key) this._settingsItems = {key, items};
         return this._settingsItems.items;
@@ -5595,9 +5611,8 @@ class SfTable extends TableElement {
         const settings = event.currentTarget;
         const {id, value} = event.detail ?? {};
         if (id === "columns") this.applyColumnsSetting(value);
-        else if (id === "everywhere") this._viewEverywhere = value === true;
         else if (["density", "lines", "singleLine", "stickyHead"].includes(id)) {
-            this.setTableView({[id]: value}, {everywhere: this._viewEverywhere === true});
+            this.setTableView({[id]: value});
         }
         // A change the table did not take (a system column's pin or place)
         // goes back in the panel; one it took is already the same.
@@ -6380,9 +6395,11 @@ class SfTable extends TableElement {
         this._pageScrollFrame = 0;
     }
 
-    // One option changed. «Для всех моих таблиц» writes it to the person's
-    // tables and takes it off this one, so this one follows them.
-    setTableView(patch = {}, {everywhere = false} = {}) {
+    // One option changed. A person's look of a table holds in all their
+    // tables (owner decision C408): it is written to the person's tables and
+    // taken off this one, so this one follows them. everywhere: false keeps
+    // it for this table alone (a host's own choice; no row offers it).
+    setTableView(patch = {}, {everywhere = true} = {}) {
         const key = this.viewPreferenceKey;
         if (everywhere || !key) {
             if (everywhere) {

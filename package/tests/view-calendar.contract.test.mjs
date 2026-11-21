@@ -130,7 +130,7 @@ test('CA-1: sf-view registers the calendar layout and draws it with no page row'
 test('C293: the list head offers no week start; the colour setting is color_field', () => {
   const head = read('src/smart/view/js/head.js');
   assert.doesNotMatch(head, /week_start/u);
-  assert.match(head, /radios\("color_field",/u);
+  assert.match(head, /choice\("color_field",/u);
 });
 
 test('the calendar is declared and its words are in every language pack', () => {

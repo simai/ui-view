@@ -885,7 +885,7 @@ function renderSectionList(context, sections) {
         // 48rem into the line with «Ещё (n)», full screen at 1440 too.
         return html`
             <div class="sf-property-view-sections self-cross-stretch flex flex-col min-w-0">
-                ${context.sectionColumnTabs ? renderSectionVerticalTabs(context, sections) : renderSectionMenu(context, sections)}
+                ${context.sectionColumnTabs && context.sectionsLayout !== 'rail' ? renderSectionVerticalTabs(context, sections) : renderSectionMenu(context, sections)}
             </div>
         `;
     }
@@ -1510,9 +1510,15 @@ function inPlaceActions(context) {
         || context.canDeleteRecord || (context.recordMenuItems?.length ?? 0) > 0);
 }
 
+// The sections as a list, each a level with «←» (C386): on a phone, and in a
+// side panel the rail would leave the fields under 20rem (C403).
+function sectionLevels(context) {
+    return !context.wide || context.sectionsLayout === 'level';
+}
+
 // A section opened on a phone, inside a panel: a level of the panel (C157 (6)).
 function phoneLevel(context) {
-    return Boolean(context.panel && !context.wide && (context.sections?.length ?? 0) > 1 && context.phoneSection !== null);
+    return Boolean(context.panel && sectionLevels(context) && (context.sections?.length ?? 0) > 1 && context.phoneSection !== null);
 }
 
 // The phone's list screen: below the breakpoint, with more than one section and
@@ -1523,7 +1529,7 @@ function phoneLevel(context) {
 function onPhoneSectionList(context, sections) {
     // Arranging draws «Вкладки» over the fields at every width (C311 (4)): the
     // phone's list screen is a way to read, not to arrange.
-    return !context.configuring && !context.wide && sections.length > 1 && context.phoneSection === null;
+    return !context.configuring && sectionLevels(context) && sections.length > 1 && context.phoneSection === null;
 }
 
 // The section being arranged, named where its areas are. The section list is
@@ -1667,7 +1673,8 @@ function renderAddSection(context) {
 // column reaches the top of the panel the way a rail of tabs does.
 function sidebarDrawn(context) {
     const sections = listed(context, context.sections);
-    return Boolean(context.sectionsLayout === 'column'
+    // The rail of a side panel (C403) stands where the column does.
+    return Boolean((context.sectionsLayout === 'column' || context.sectionsLayout === 'rail')
         && (sections.length > 1 || context.configuring));
 }
 

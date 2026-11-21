@@ -39,6 +39,7 @@ test('the intents are refused without the capability, and the table draws only w
   assert.match(source, /"view\.create_record": "create-record", "settings\.save_personal": "personal-column-settings"/u);
   assert.match(source, /if \(capability && !this\.hostOffers\(capability\)\)/u);
   assert.match(source, /setAttribute\("creatable", this\.hostOffers\("create-record"\)/u);
-  assert.match(source, /setAttribute\("settings-menu", this\.hostOffers\("personal-column-settings"\)/u);
+  // C406: the gear above «≡» is always there; under the list head it holds the columns only.
+  assert.match(source, /table\.setAttribute\("settings-menu", "true"\);\n\s*table\.toggleAttribute\?\.\("data-sf-columns-only", this\.listHead\);/u);
   assert.match(source, /setAttribute\("filter-templates", this\.hostOffers\("saved-views"\)/u);
 });

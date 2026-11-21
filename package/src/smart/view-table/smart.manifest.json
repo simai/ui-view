@@ -1876,7 +1876,7 @@
       "canonical": true
     },
     "sf-view-table-view-change": {
-      "summary": "view-change (vocabulary).",
+      "summary": "view-change (vocabulary). The table look changed (density, single line, lines): view is the whole look, everywhere true when it is kept for every list of the kind (the general personal preference; since view round 14 the default, owner decision C408), false when kept for this list alone.",
       "payload": {
         "type": "object",
         "required": [

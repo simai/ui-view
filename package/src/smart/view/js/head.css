@@ -93,14 +93,15 @@
 .sf-view-head-search > sf-input { display: block; min-inline-size: 0; }
 
 /* The view zone (VZ-1, option D; owner C393, C394): below the head row, its
-   own frame (--sf-outline-variant 1 px, --sf-radius--surface), as wide as
-   what it holds; opened and closed by the view toggle first in the head row. */
+   own frame (--sf-outline-variant 1 px, --sf-radius--surface) across the
+   list's whole width (C404), «Колонки» and «Вид» at its end; opened and
+   closed by the view toggle first in the head row. */
 .sf-view-head-zone {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--sf-space-1\/3);
-  inline-size: fit-content;
+  inline-size: 100%;
   max-inline-size: 100%;
   min-inline-size: 0;
   box-sizing: border-box;
@@ -118,6 +119,17 @@
   background: var(--sf-outline-variant);
 }
 .sf-view-head-zone-line[hidden] { display: none; }
+.sf-view-head-zone-end {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: var(--sf-space-1\/3);
+  margin-inline-start: auto;
+  min-inline-size: 0;
+}
+.sf-view-head-zone-end > [hidden] { display: none; }
+/* The drill menu of «Вид» draws nothing in the head's flow. */
+.sf-view-head > sf-settings[data-look-menu] { display: contents; }
 
 /* The view toggle's look until the pair's sf-button-icon carries the toggle
    look of C393 (TG-1): the icon stays outline in both states; on is the soft
@@ -247,7 +259,7 @@ sf-popover:not([open]) > .sf-view-head-panel[slot="content"] { display: none; }
 /* The view zone left open (VZ-1): its frame and one control row inside. */
 .sf-view-head-skeleton > div[data-zone] {
   justify-content: flex-start;
-  inline-size: fit-content;
+  inline-size: 100%;
   box-sizing: border-box;
   block-size: calc(var(--sf-view-head--control-height) + 2 * var(--sf-space-1\/3) + 2 * var(--sf-px));
   padding: var(--sf-space-1\/3) var(--sf-space-1\/2);
