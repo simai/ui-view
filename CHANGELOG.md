@@ -42,6 +42,12 @@ round/view-site-1.10.1 7757233 merged), candidate 1.10.2 over the same pair
   28 / 32 / 40 for «Компактно» / «Обычно» / «Просторно»). «Компактно» used
   to add block padding over the rung and drew rows taller than «Обычно»
   (size 1: 48 against 40). A two-line row keeps its two-line rung.
+- VR11-3 (study VHF-2): the phone head row of a list (the view-panel
+  toggle, the filter, the search, «+» and the list menu) stays inside its
+  list down to 320 px with no change: the 25 px overflow the study measured
+  came from its own strip buttons («Колонки», «Вид» with their names), a page
+  mock that widened the head to 338 px. Browser probe view-head-phone-fit
+  keeps it (lists of 320, 326, 360 and 390 px, on a phone and in a box).
 - 1.29.2 and 1.23.8 are simai/ui-pro's numbers (pro-93f6675545e2); this set
   steps over them.
 
