@@ -66,6 +66,24 @@ for id in $(node -e "console.log((require('$here/set.json').requires_sets ?? [])
 done
 export PLAYWRIGHT_BROWSERS_PATH=${PLAYWRIGHT_BROWSERS_PATH:-$repo/../.playwright-browsers}
 
+# Playwright for the probes (view round 10, R9-G): the browser probes import
+# it, and Node resolves it from the overlay's parent folders. A clone with no
+# node_modules above it stopped at the manifest step; the gate reuses the one
+# Node finds from package/, else installs the version the pinned ui-source
+# names (its package.json) into package/node_modules (ignored), and makes
+# sure that version's Chromium is in PLAYWRIGHT_BROWSERS_PATH (a no-op when
+# it is there already).
+playwright_version=$(git -C "$ui_source" show "$source_revision:package.json" | node -e "let t='';process.stdin.on('data',(c)=>t+=c).on('end',()=>{const p=JSON.parse(t);console.log((p.devDependencies??{}).playwright??(p.dependencies??{}).playwright??'')})")
+[ -n "$playwright_version" ] || { echo "ui-source $source_revision names no playwright version" >&2; exit 2; }
+playwright_dir=$(cd "$here" && node -e "try{console.log(require('path').dirname(require.resolve('playwright/package.json')))}catch{}")
+if [ -z "$playwright_dir" ]; then
+  echo "== playwright $playwright_version (install into $here/node_modules)"
+  npm install --prefix "$here" --no-save --no-package-lock --no-audit --no-fund "playwright@$playwright_version" > "$logs/playwright-install.log" 2>&1
+  playwright_dir=$(cd "$here" && node -e "console.log(require('path').dirname(require.resolve('playwright/package.json')))")
+fi
+echo "== playwright $(node -e "console.log(require('$playwright_dir/package.json').version)") from $playwright_dir, browsers in $PLAYWRIGHT_BROWSERS_PATH"
+node "$playwright_dir/cli.js" install chromium > "$logs/playwright-browsers.log" 2>&1
+
 step() { echo "== $1"; }
 step "build ($revision over ui-source $source_revision, pair $(basename "$lock" .lock.json))"
 node "$builder/scripts/verify-package-reproducibility.cjs" "$ui_source" "$build" --package view \
