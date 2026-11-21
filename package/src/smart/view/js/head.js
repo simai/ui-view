@@ -566,16 +566,23 @@ export class ListHead {
     }
 
     // The display kind a view stands for: the one it was saved with, else the
-    // one the list showed when the view was opened (view round 10, V10-3: a
-    // system view that names no layout got «Изменено» after a filter change
-    // and not after a change of the display kind -- the kind was compared
-    // only with a saved one). Remembered per open view.
+    // kind of the list as stored -- the layout the page wrote on the view, else
+    // the first the host names (view round 10, V10-3: a system view that names
+    // no layout got «Изменено» after a filter change and not after a change of
+    // the display kind). View round 11: not the kind the list showed when the
+    // head first looked at it -- a personal state restored before that (the
+    // host's echo of the person's last kind, a kept layer) became the
+    // baseline, and a list the person had turned into a board read as the
+    // stored view.
     viewKind(view) {
         const own = view?.settings?.layout ?? view?.layout;
         if (typeof own === "string" && own) return own;
-        const key = String(view?.key ?? "");
-        if (this._openedKind?.key !== key) this._openedKind = {key, kind: this.kind};
-        return this._openedKind.kind;
+        return this.storedKind;
+    }
+
+    get storedKind() {
+        const written = this.view.pageLayoutKind ?? this.view.layoutKind;
+        return this.kinds.includes(written) ? written : this.kinds[0];
     }
 
     get zoneUseful() {
@@ -1252,7 +1259,6 @@ export class ListHead {
         // Another view starts from what is saved for it: no change of the
         // person's carries over from the view they left.
         this._settings = null;
-        this._openedKind = {key: String(key), kind: type};
         // A view saved as a board opens as one (and a table view as a table):
         // the layout's own query first, then the view.
         if (type !== this.view.layoutKind && this.drawable(type)) this.view.switchLayout?.(type);

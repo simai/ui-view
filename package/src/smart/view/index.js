@@ -740,6 +740,16 @@ class SfDataView extends DataViewElement {
         return "table";
     }
 
+    // The kind of the layout the page wrote when the view was connected (no
+    // switch, no person's state): null before it is connected.
+    get pageLayoutKind() {
+        if (this._pageLayout === undefined) return null;
+        const written = this._pageLayout;
+        if (written === null || written === "") return "table";
+        const name = layoutName(written);
+        return LAYOUTS.has(name) ? (LAYOUT_KINDS[LAYOUTS.get(name)] ?? name) : "table";
+    }
+
     static registerLayout(name, tag) {
         if (!/^[a-z][a-z0-9-]*$/u.test(String(name)) || !/^sf-[a-z0-9-]+$/u.test(String(tag))) throw new TypeError("A layout is a name and an sf- element");
         LAYOUTS.set(String(name), String(tag));
@@ -1374,6 +1384,9 @@ class SfDataView extends DataViewElement {
     }
 
     connectedCallback() {
+        // The layout the page wrote, before any switch (view round 11): the
+        // kind a stored view that names none stands for (head.js storedKind).
+        if (this._pageLayout === undefined) this._pageLayout = this.getAttribute("layout");
         this._lightDefaults();
         this._readPrintedPageSize();
         super.connectedCallback();
