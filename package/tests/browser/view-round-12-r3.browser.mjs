@@ -24,6 +24,9 @@
 //   a «›»; a click opens the section.
 // - VRS-9: a section whose only group has the section's name draws no group
 //   title; a group of another name keeps it.
+// - VHF-4 (with the title giving last): a narrow fitted table (390) whose
+//   name has to give: nothing chosen it is one line as before; «Текст в
+//   одну строку» on, one line; turned off, the name on two lines, uncut.
 // - C393 star: the favourite star stays right after the one-line title; a
 //   click flips its pressed state; no console word about it.
 // Console clean (errors and warnings) in every load.
@@ -85,6 +88,19 @@ const LIST = (theme, {fields = 8, size = '1/2', layout = '', bulk = false, densi
           echo:{filters_chosen:qy.filters_chosen||CHOSEN,filters:qy.filters||{},search:qy.search||'',sort:qy.sort||[],page:page,per_page:per,view:qy.view||{id:'all',type:'table'}}}})}
       return Promise.resolve({answer:'applied'})}};
   customElements.whenDefined('sf-view').then(function(){table&&table.setFilterFields&&table.setFilterFields(FIELDS);view.setHostPort(port)});
+})();
+</script></body></html>`;
+
+// A bare table, narrow: the name has to give room (typed-cells' columns).
+const NARROW = (theme) => `${HEAD(theme)}
+<sf-view-table id="t" layout="table" aria-label="Решения" preferences-key="r12b-narrow"></sf-view-table></main>
+<script>
+(function(){
+  var t=document.getElementById('t');
+  var C=[{key:'title',label:'Название'},{key:'owner',label:'Ответственный',propertyType:'record'},{key:'attachment',label:'Файл',propertyType:'file'},{key:'accent',label:'Цвет',propertyType:'color'}];
+  var R=[{id:'1',revision:'r1',title:'Портал клиента',owner:{value:'u-1',label:'Анна Захарова',href:'#u-1'},attachment:{value:'f-1',label:'договор.pdf',mime:'application/pdf',href:'#f-1'},accent:'#2f6feb'},
+    {id:'2',revision:'r1',title:'Каталог товаров',owner:{value:'u-2',label:'Илья Петров',href:'#u-2'},attachment:{value:'f-2',label:'схема.png',mime:'image/png',href:'#f-2'},accent:'#1a7f37'}];
+  customElements.whenDefined('sf-view-table').then(function(){t.columns=C;t.rows=R;});
 })();
 </script></body></html>`;
 
@@ -275,6 +291,30 @@ try {
       if (text !== want) failures.push({...label, got: `card title ${text} px`, want});
       if (errors.length) failures.push({...label, errors});
       if (run === 1) results.push({theme, item: 'VHF-10', size, text});
+      await context.close();
+    }
+    // VHF-4: the narrow fitted table.
+    {
+      const label = {theme, run, width: 390, item: 'VHF-4'};
+      const {context, page, errors} = await load(theme, 390, NARROW(theme));
+      await page.waitForFunction(() => document.querySelector('#t[data-sf-columns-fitted] tbody td[data-sf-cell="title"]'), null, {timeout: 15000})
+        .catch(() => errors.push('the fitted table did not come'));
+      await page.waitForTimeout(500);
+      const names = () => page.evaluate(() => [...document.querySelectorAll('#t tbody td[data-sf-cell="title"] .sf-table-cell-text')].map((node) => {
+        const lh = parseFloat(getComputedStyle(node).lineHeight);
+        return {lines: Math.round(node.getBoundingClientRect().height / lh), cut: node.scrollWidth > node.clientWidth + 1 || node.scrollHeight > node.clientHeight + 1};
+      }));
+      const set = (value) => page.evaluate((on) => document.getElementById('t').onTableSettingChanged({detail: {id: 'singleLine', value: on}, stopPropagation() {}, preventDefault() {}}), value);
+      const unset = await names();
+      await set(true); await page.waitForTimeout(400);
+      const on = await names();
+      await set(false); await page.waitForTimeout(400);
+      const off = await names();
+      if (unset.some((one) => one.lines !== 1) || !unset.some((one) => one.cut)) failures.push({...label, got: 'nothing chosen: not one cut line as before', unset});
+      if (on.some((one) => one.lines !== 1)) failures.push({...label, got: 'on: not one line', on});
+      if (off.some((one) => one.cut || one.lines > 2) || !off.some((one) => one.lines === 2)) failures.push({...label, got: 'off: the name not on its two lines, uncut', off});
+      if (errors.length) failures.push({...label, errors});
+      if (run === 1) results.push({theme, item: 'VHF-4', width: 390, unset, on, off});
       await context.close();
     }
     // VRS-7, VRS-9 and the star at 1440 (in place, history beside); VRS-8 and the star at 390.
