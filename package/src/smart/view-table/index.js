@@ -1,10 +1,11 @@
 import SfBaseElement, {canonicalTag, isTag} from "../../core/js/smart-base";
 import {elementFromManifest} from "../../core/js/element-manifest";
-import {settingSetters} from "./js/manifest-actions.js";
+import {settingSetters} from "../view-common/manifest-actions.js";
 import manifest from "./component.json";
 import aliases from "./aliases.json";
-import en from "./lang/en.json";
-import ru from "./lang/ru.json";
+// Its dictionaries come through the package core: sf-view reads two of their
+// words too (view modular step 1).
+import {en, ru} from "../view-common/table-words.js";
 import {renderTableTemplate, columnStyle} from "./js/templates/default";
 import {optionBadgeProps} from "../view-common/option-badge.js";
 import {dateTimeAttribute, renderCellField, renderEditField, renderFilterField} from "../view-common/field-renderers.js";
