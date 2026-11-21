@@ -47,6 +47,8 @@ export function cardsQuery(view, query) {
     // was first on screen, in the cards' page size.
     if (Number.isSafeInteger(view._keepFirst)) {
         query.page = view.query.page = Math.floor((view._keepFirst - 1) / perPage) + 1;
+        // The rows on screen start from this page («1–24 из 48»).
+        if (!view.continuing) view._runStart = query.page;
         view._keepFirst = null;
     }
     query.window = {page: Number.isSafeInteger(query.page) && query.page > 0 ? query.page : 1, per_page: perPage};
