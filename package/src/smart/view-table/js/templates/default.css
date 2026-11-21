@@ -1561,17 +1561,23 @@
   /* The person's view of the table (the gear's «Вид», owner 2026-10-14),
      kept as a view preference and written on the host as data attributes.
      Density moves the rows' vertical space one ladder step either way. */
-  :is(sf-view-table, sf-table)[data-sf-view-density="compact"] > * .table > :not(caption) > * > * {
-    padding-block: var(--sf-space-1\/2);
+  /* Since the one row model (C146 (1)) a row is its rung's control height
+     and its cells have no block padding, so density moves the row one rung
+     (view round 11, VR11-2): compact one rung down, spacious one rung up, on
+     every size step; a two-line row keeps its two-line rung. It used to add block padding to the cells, which over
+     the rung made a compact row taller than a normal one (size 1/2: 40
+     against 32). */
+  :is(sf-view-table, sf-table)[data-sf-view-density="compact"] > * .table > :is(thead, tbody) > tr:not(:has(.sf-table-link-cell-subtext, .sf-table-tree-path)) {
+    block-size: var(--sf-ui-1\/2--control-height);
   }
-  :is(sf-view-table, sf-table)[size="1/2"][data-sf-view-density="compact"] > * .table > :not(caption) > * > * {
-    padding-block: var(--sf-space-1\/4);
+  :is(sf-view-table, sf-table)[size="1/2"][data-sf-view-density="compact"] > * .table > :is(thead, tbody) > tr:not(:has(.sf-table-link-cell-subtext, .sf-table-tree-path)) {
+    block-size: var(--sf-ui-1\/3--control-height);
   }
-  :is(sf-view-table, sf-table)[data-sf-view-density="spacious"] > * .table > :not(caption) > * > * {
-    padding-block: var(--sf-space-2);
+  :is(sf-view-table, sf-table)[data-sf-view-density="spacious"] > * .table > :is(thead, tbody) > tr:not(:has(.sf-table-link-cell-subtext, .sf-table-tree-path)) {
+    block-size: var(--sf-ui-2--control-height);
   }
-  :is(sf-view-table, sf-table)[size="1/2"][data-sf-view-density="spacious"] > * .table > :not(caption) > * > * {
-    padding-block: var(--sf-space-1\/2);
+  :is(sf-view-table, sf-table)[size="1/2"][data-sf-view-density="spacious"] > * .table > :is(thead, tbody) > tr:not(:has(.sf-table-link-cell-subtext, .sf-table-tree-path)) {
+    block-size: var(--sf-ui-1--control-height);
   }
 
   /* Alternate rows on the container surface, under the hover and selection

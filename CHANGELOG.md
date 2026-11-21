@@ -37,6 +37,11 @@ round/view-site-1.10.1 7757233 merged), candidate 1.10.2 over the same pair
   a page row's printed `total` sizes the skeleton to the records left;
   «Изменено» compares a system view that names no layout with the layout the
   page wrote, not with a restored personal kind.
+- `sf-view-table` 1.29.3 (VR11-2, study VHF-1): the person's row density
+  moves a row one rung on every size step (size 1: 32 / 40 / 48; size 1/2:
+  28 / 32 / 40 for «Компактно» / «Обычно» / «Просторно»). «Компактно» used
+  to add block padding over the rung and drew rows taller than «Обычно»
+  (size 1: 48 against 40). A two-line row keeps its two-line rung.
 - 1.29.2 and 1.23.8 are simai/ui-pro's numbers (pro-93f6675545e2); this set
   steps over them.
 
