@@ -1,10 +1,10 @@
 {
-  "title": "Board",
+  "title": "Kanban",
   "runtime": {
     "actions-text": "Actions",
     "add-short-text": "Add",
     "add-text": "New record in “{lane}”",
-    "board-label": "Board",
+    "board-label": "Kanban",
     "bulk-label": "Actions on the selection",
     "card-menu-text": "Actions: {title}",
     "clear-text": "Clear selection",

@@ -56,7 +56,7 @@
     "head-filter-actions": "Действия с фильтром «{name}»",
     "head-filter-changed": "(изменён, не сохранён)",
     "head-filter-named": "Фильтр: {name}",
-    "head-kind-board": "Доска",
+    "head-kind-board": "Канбан",
     "head-kind-calendar": "Календарь",
     "head-kind-cards": "Карточки",
     "head-kind-list": "Список",

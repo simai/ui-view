@@ -21,8 +21,8 @@
 //   gives the record's name its whole value where the long columns can give
 //   the room (it was «Заказ №30…»); where it cannot, «Текст в одну строку»
 //   turned off draws the name on two lines, uncut, and on draws one line
-//   with the ellipsis (the setting changed nothing before). Nothing chosen,
-//   the table looks as before (one line): the default waits for the owner.
+//   with the ellipsis (the setting changed nothing before). Nothing chosen
+//   is off (owner decision D5, 2026-11-21).
 // - VHF-6, VHF-7: a record card in place (no panel) ends its stage line with
 //   its «⋯» (it stood alone on an empty row above it); in a 360 px box and in
 //   a panel the stage badge keeps its whole word beside a long client name
@@ -219,11 +219,12 @@ try {
           const on = await listMeasure(page);
           await set(false); await page.waitForTimeout(500);
           const off = await listMeasure(page);
-          const cutUnset = unset.titles.filter((one) => one.cut).length;
-          if (unset.titles.some((one) => one.lines !== 1)) failures.push({...label, item: 'VHF-4', got: 'nothing chosen: the name not on one line as before', titles: unset.titles});
-          if (off.titles.some((one) => one.lines > 2) || (cutUnset && off.titles.every((one) => one.lines < 2)) || off.titles.filter((one) => one.cut).length >= Math.max(1, cutUnset)) failures.push({...label, item: 'VHF-4', got: 'off: the name not on its two lines', titles: off.titles});
+          const cutOn = on.titles.filter((one) => one.cut).length;
+          const offOk = (titles) => !titles.some((one) => one.lines > 2) && !(cutOn && titles.every((one) => one.lines < 2)) && titles.filter((one) => one.cut).length < Math.max(1, cutOn);
+          if (!offOk(unset.titles)) failures.push({...label, item: 'VHF-4', got: 'nothing chosen (off, D5): the name not on its two lines', titles: unset.titles});
+          if (!offOk(off.titles)) failures.push({...label, item: 'VHF-4', got: 'off: the name not on its two lines', titles: off.titles});
           if (on.titles.some((one) => one.lines !== 1)) failures.push({...label, item: 'VHF-4', got: 'on: the name not on one line', titles: on.titles});
-          if (run === 1) results.push({theme, item: 'VHF-4', own: unset.own, unset: unset.titles[0], off: off.titles[0], on: on.titles[0], cut: {unset: cutUnset, off: off.titles.filter((one) => one.cut).length, on: on.titles.filter((one) => one.cut).length}});
+          if (run === 1) results.push({theme, item: 'VHF-4', own: unset.own, unset: unset.titles[0], off: off.titles[0], on: on.titles[0], cut: {unset: unset.titles.filter((one) => one.cut).length, off: off.titles.filter((one) => one.cut).length, on: on.titles.filter((one) => one.cut).length}});
         }
       }
       if (errors.length) failures.push({...label, errors});

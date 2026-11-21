@@ -2,8 +2,15 @@
   "$comment": "sf-table from its component.json (standard simai.smart-component 1.3.8, vocabulary 1.1.5), migrated from ui-control control/smart-architecture/migration/out/table (convert-1.3.8.mjs over ui-pro 9cbe061); every x-todo decided in x-decisions.",
   "id": "smart.view-table",
   "tag": "sf-view-table",
-  "version": "1.29.5",
+  "version": "1.30.0",
   "x-history": [
+    {
+      "version": "1.30.0",
+      "kind": "minor",
+      "recorded_on": "2026-11-21",
+      "consumer": "Nothing to change for a host; a person's saved view keeps working. One density for the whole list (owner decision D4, 2026-11-21): the gear's «Вид» offers «Плотность» — «Обычная» or «Компактная»; «Просторно» and the rows' own height setting are gone, and a «Просторно» stored before reads as «Обычная». The choice is written as the list's density island on the sf-view the table stands in and on the table (outside a view, on the table alone), so the list head, the rows with everything in them (box, row menu «≡», badges) and the page row follow it; a data-sf-density the host wrote itself on the view or the table is left alone. «Текст в одну строку» is off by default (owner decision D5): the record's name takes up to two lines and a long text (a comment) is drawn whole; on, every cell is one line with «…».",
+      "evidence": "control/evidence/2026-11-21-view-r12/README.md"
+    },
     {
       "version": "1.29.5",
       "kind": "patch",
@@ -2153,7 +2160,7 @@
           },
           "view": {
             "type": "object",
-            "description": "The table's look: density (compact, normal, spacious), stripes, lines, singleLine, stickyHead. Under sf-table/* it is the person's look for every table, read under this table's own.",
+            "description": "The table's look: density (normal or compact, the whole list's, owner decision D4; a spacious stored before 1.30.0 reads as normal), stripes, lines, singleLine, stickyHead. Under sf-table/* it is the person's look for every table, read under this table's own.",
             "seed": true,
             "written_by": [
               "sf-view-table"
@@ -3127,6 +3134,13 @@
           "to": "1.29.5",
           "changes": [
             "View round 12 (round/view-r12), VHF-4: index.js readFittedWidths shrinks the flexible columns to one level (fittingLevel, widest first) in place of a proportional share; templates/default.css: in a fitted table without data-sf-view-single-line the title cell wraps and keeps its line clamp (two), and data-sf-view-single-line sets the title's clamp to one. docs/docs.md says it. View round 12, set 3 (DEV msg-c31ccebd): VHF-8 index.js applyTableView writes data-sf-density=compact with data-sf-view-density-island in a normal area (the island the other way round from C79's normal island in a compact area); js/templates/default.css keeps the compact row rule for a table without the island and, below 60rem, for one with it. Numbered above ui-pro's copies in pro-f6c43828e5f2 (sf-view 1.30.1, sf-view-table 1.29.4, sf-view-properties 1.24.0, group build 15), the highest on any origin branch of simai/ui-view and simai/ui-pro; this round's own step was 1.30.1, 1.29.4 and 1.23.10 on round/view-r12 a26f636 before Pro took those numbers. VHF-4 as it ships: readFittedWidths takes the room from the other columns first (fittingLevel over them) and only the rest from the title column; index.js storedSingleLine writes data-sf-view-wrap when the person chose «off», and the fitted title rule reads it (it read the absence of data-sf-view-single-line, which is also the default, and the first paint gate saw typed-cells grow 196 -> 204 at 390). VR11A-1 (round 11 acceptance, DEV msg-265727a8) is VHF-8: probe table-density-rows now has rows with the row menu (row actions, personal column settings), loads the icon buttons' sheet (without it the «≡» was a bare 30 px button that hid the defect) and opens the gear by a real click on the settings column's head."
+          ]
+        },
+        {
+          "from": "1.29.5",
+          "to": "1.30.0",
+          "changes": [
+            "View round 12, owner decisions D4 and D5 (DEV msg-4de06ae6): index.js tableSettingsItems offers density normal, compact (no spacious); storedViewDensity reads a stored spacious as normal; areaDensity skips an element marked data-sf-view-density-island; applyTableView writes data-sf-density with data-sf-view-density-island on the closest sf-view and on the table, rows never spacious, and data-sf-view-wrap unless singleLine is true (storedSingleLine removed); js/templates/default.css drops the spacious row rules and draws .sf-table-cell-clip whole under data-sf-view-wrap without data-sf-view-single-line; lang view-density «Плотность»/«Density», view-density-compact «Компактная», view-density-normal «Обычная», view-density-spacious removed."
           ]
         }
       ]

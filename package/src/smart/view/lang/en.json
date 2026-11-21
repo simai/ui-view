@@ -56,7 +56,7 @@
     "head-filter-actions": "Actions on the filter «{name}»",
     "head-filter-changed": "(changed, not saved)",
     "head-filter-named": "Filter: {name}",
-    "head-kind-board": "Board",
+    "head-kind-board": "Kanban",
     "head-kind-calendar": "Calendar",
     "head-kind-cards": "Cards",
     "head-kind-list": "List",

@@ -2,8 +2,15 @@
   "$comment": "sf-data-view from its component.json (standard simai.smart-component 1.3.8, vocabulary 1.1.5), migrated from ui-control control/smart-architecture/migration/out/data-view; every x-todo decided in x-decisions.",
   "id": "smart.view",
   "tag": "sf-view",
-  "version": "1.31.0",
+  "version": "1.31.1",
   "x-history": [
+    {
+      "version": "1.31.1",
+      "kind": "patch",
+      "recorded_on": "2026-11-21",
+      "consumer": "Nothing to change for a host. The list head's display kind for the board reads «Канбан» (owner decision D2, 2026-11-21; it was «Доска»); layout=\"board\" and every name in code stay.",
+      "evidence": "control/evidence/2026-11-21-view-r12/README.md"
+    },
     {
       "version": "1.31.0",
       "kind": "minor",
@@ -2077,6 +2084,13 @@
           "to": "1.31.0",
           "changes": [
             "View round 12 (round/view-r12): VHF-3 js/head.css: .sf-view-head-end has no auto start margin (the growing start holds it at the row's end on one line; wrapped, it starts its line); .sf-view-head-title-end keeps its own. VHF-5 js/head.js: _measure reads the view's content box (contentWidth: the border box less the inline padding and borders) instead of its border box. docs.md says both. View round 12, sets 2-3 (DEV msg-c31ccebd): VHF-3 js/head.js _layRow measures the laid parts (a display: contents host by its children; the search at 20rem) and writes data-stacked; js/head.css lays the stacked row as a column, the end first across the width. VHF-9 js/head.css .sf-view-head-name reads --sf-heading-4--size/height. VHF-11 index.js hasBulkActions and selects() (bulkActions, or actions on the page row; chrome written keeps select), read where the table, board, cards (js/cards.js) and calendar (js/calendar.js) are told selectable and by the first paint; the bulkActions setter tells them again. Numbered above ui-pro's copies in pro-f6c43828e5f2 (sf-view 1.30.1, sf-view-table 1.29.4, sf-view-properties 1.24.0, group build 15), the highest on any origin branch of simai/ui-view and simai/ui-pro; this round's own step was 1.30.1, 1.29.4 and 1.23.10 on round/view-r12 a26f636 before Pro took those numbers. VR11A-2 (round 11 acceptance, DEV msg-265727a8): settings.list-shape's summary and docs.md say what the hint-less skeleton draws and when a hint is needed; the skeleton is unchanged (the phone-list example's records are one field to a line, and its first paint holds)."
+          ]
+        },
+        {
+          "from": "1.31.0",
+          "to": "1.31.1",
+          "changes": [
+            "View round 12, owner decision D2 (DEV msg-4de06ae6): lang head-kind-board «Канбан» / «Kanban»."
           ]
         }
       ]

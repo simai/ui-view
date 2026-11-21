@@ -5,6 +5,15 @@
   "entries": [
     {
       "unit": "smart.view",
+      "version": "1.31.1",
+      "recorded_on": "2026-11-21",
+      "change": "patch",
+      "consumer": "Nothing to change for a host. The list head's display kind for the board reads «Канбан» (owner decision D2, 2026-11-21; it was «Доска»); layout=\"board\" and every name in code stay.",
+      "summary": "View round 12, owner decision D2 (DEV msg-4de06ae6): lang head-kind-board «Канбан» / «Kanban».",
+      "evidence": "control/evidence/2026-11-21-view-r12/README.md"
+    },
+    {
+      "unit": "smart.view",
       "version": "1.31.0",
       "recorded_on": "2026-11-21",
       "change": "minor",
@@ -245,6 +254,15 @@
       "consumer": "Nothing to change for a host: the compact list toolbar keeps its spacing when the list comes.",
       "summary": "C144: the skeleton's compact list toolbar holds the field, filter and Создать --sf-space-1 apart, as sf-view-table 1.20.1 draws them (the field no longer moves 8 when the list comes)",
       "evidence": "https://github.com/simai/ui-view/commit/961bdae11e2749f69ac7fbb744b197b74e8c4a23"
+    },
+    {
+      "unit": "smart.view-table",
+      "version": "1.30.0",
+      "recorded_on": "2026-11-21",
+      "change": "minor",
+      "consumer": "Nothing to change for a host; a person's saved view keeps working. One density for the whole list (owner decision D4, 2026-11-21): the gear's «Вид» offers «Плотность» — «Обычная» or «Компактная»; «Просторно» and the rows' own height setting are gone, and a «Просторно» stored before reads as «Обычная». The choice is written as the list's density island on the sf-view the table stands in and on the table (outside a view, on the table alone), so the list head, the rows with everything in them (box, row menu «≡», badges) and the page row follow it; a data-sf-density the host wrote itself on the view or the table is left alone. «Текст в одну строку» is off by default (owner decision D5): the record's name takes up to two lines and a long text (a comment) is drawn whole; on, every cell is one line with «…».",
+      "summary": "View round 12, owner decisions D4 and D5 (DEV msg-4de06ae6): index.js tableSettingsItems offers density normal, compact (no spacious); storedViewDensity reads a stored spacious as normal; areaDensity skips an element marked data-sf-view-density-island; applyTableView writes data-sf-density with data-sf-view-density-island on the closest sf-view and on the table, rows never spacious, and data-sf-view-wrap unless singleLine is true (storedSingleLine removed); js/templates/default.css drops the spacious row rules and draws .sf-table-cell-clip whole under data-sf-view-wrap without data-sf-view-single-line; lang view-density «Плотность»/«Density», view-density-compact «Компактная», view-density-normal «Обычная», view-density-spacious removed.",
+      "evidence": "control/evidence/2026-11-21-view-r12/README.md"
     },
     {
       "unit": "smart.view-table",
@@ -731,6 +749,15 @@
       "consumer": "Nothing to change for a host: only the SIMAI Framework file it builds in moved with the repin.",
       "summary": "Over SIMAI Framework ui-078a4b4c6f6e (ui-source 10145e63b9dc) the Framework file it builds in, src/smart/helpers/confirm-surface.js, moved; the provenance and the version follow. Nothing of its own; nothing to change for a host.",
       "evidence": "https://github.com/simai/ui-view/commit/e214dd608fdcf39cea527676fc522afd718922d4"
+    },
+    {
+      "unit": "smart.view-board",
+      "version": "1.1.5",
+      "recorded_on": "2026-11-21",
+      "change": "patch",
+      "consumer": "Nothing to change for a host. The board's own name reads «Канбан» (owner decision D2, 2026-11-21; it was «Доска»): its title and the region's name when the host gives no aria-label; sf-view-board and its attributes stay.",
+      "summary": "View round 12, owner decision D2 (DEV msg-4de06ae6): lang title and board-label «Канбан» / «Kanban»; component.json and smart.manifest.json focus note.",
+      "evidence": "control/evidence/2026-11-21-view-r12/README.md"
     },
     {
       "unit": "smart.view-board",

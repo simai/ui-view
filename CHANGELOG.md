@@ -39,14 +39,25 @@ pro-f6c43828e5f2 (sf-view 1.30.1, sf-view-table 1.29.4, sf-view-properties
   bring the boxes to the rows already drawn; the view reads the host's own
   `selectable`/`settings` before it writes its own, so its first «false» is not
   taken for the host's.
+- `sf-view` 1.31.1 and `sf-view-board` 1.1.5 (owner decision D2,
+  2026-11-21): the board reads «Канбан» in the list head and as its own name
+  (it was «Доска»); `layout="board"` and the component names stay.
 - `sf-view-table` 1.29.5. VHF-4: columns that do not fit take the room from
   the other columns first, the widest first, and the record's name last, so a
   short name stays whole; where the name still has to give, «Текст в одну
   строку» turned off draws it on its two lines and on draws one line with «…».
-  Nothing chosen, a fitted table looks as before (one line): the default waits
-  for the owner. VHF-8: «Компактно» on a normal page is the
+  VHF-8: «Компактно» on a normal page is the
   Framework's compact density on the table, so the row menu «≡» and the box
   step down with the row (28 at size 1/2, 32 at 1; the «≡» held 32 and 40).
+- `sf-view-table` 1.30.0 (owner decisions D4 and D5, DEV msg-4de06ae6,
+  2026-11-21). D4: one density for the whole list: «Вид» → «Плотность» is
+  «Обычная» or «Компактная»; «Просторно» and the rows' own height setting are
+  gone, a stored «Просторно» reads as «Обычная»; the choice is the list's
+  density island on its `sf-view` and on the table, so the head, the rows with
+  their box and row menu, and the page row follow one density (this closes
+  VHF-8 / VR11A-1 by design). D5: «Текст в одну строку» is off by default: the
+  record's name up to two lines, a long text (a comment) whole; on, every cell
+  one line with «…».
 - `sf-view-properties` 1.25.0. VHF-7: the stage badge keeps its whole word;
   VHF-6: a card in place ends that line with its «⋯». VRS-7: the whole
   screen's history draws the card's text step (16 beside 14 px fields). VRS-8:

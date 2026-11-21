@@ -447,14 +447,11 @@
     -webkit-line-clamp: none;
     line-clamp: none;
   }
-  /* «Текст в одну строку» turned off by the person (view round 12, VHF-4;
+  /* «Текст в одну строку» off, the default (owner decision D5, 2026-11-21;
      data-sf-view-wrap): the record's name in a fitted column takes its two
      lines (C146 (7)) before the ellipsis, as it does in a column of its own
-     width; every other cell stays one line. On, the name is one line too.
-     Nothing chosen, a fitted table looks as before, every cell on one line:
-     the default waits for the owner (one line off by default), and a fitted
-     name wrapping by default grew the rows when the code fitted the columns
-     (first paint, typed-cells at 390: 196 -> 204). */
+     width; a long text (a comment) is drawn whole, below. On
+     (data-sf-view-single-line), every cell is one line with «…». */
   :is(sf-view-table, sf-table)[data-sf-columns-fitted][data-sf-view-wrap]:not([data-sf-view-single-line]) table:not(.sf-table-measuring) td[data-key][data-sf-cell="title"]:not([data-key="select"], [data-key="settings"], [data-key="actions"]) {
     white-space: normal;
   }
@@ -503,6 +500,13 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+  /* A long text (a comment) with «Текст в одну строку» off is drawn whole,
+     on as many lines as it takes (owner decision D5, 2026-11-21). */
+  :is(sf-view-table, sf-table)[data-sf-view-wrap]:not([data-sf-view-single-line]) table:not(.sf-table-measuring) td[data-key] .sf-table-cell-clip {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    text-overflow: clip;
   }
 
   :is(sf-view-table, sf-table) table {
@@ -1580,7 +1584,7 @@
      Density moves the rows' vertical space one ladder step either way. */
   /* Since the one row model (C146 (1)) a row is its rung's control height
      and its cells have no block padding, so density moves the row one rung
-     (view round 11, VR11-2): compact one rung down, spacious one rung up, on
+     (view round 11, VR11-2): compact one rung down on
      every size step; a two-line row keeps its two-line rung. It used to add block padding to the cells, which over
      the rung made a compact row taller than a normal one (size 1/2: 40
      against 32). */
@@ -1602,12 +1606,8 @@
       block-size: var(--sf-ui-1\/3--control-height);
     }
   }
-  :is(sf-view-table, sf-table)[data-sf-view-density="spacious"] > * .table > :is(thead, tbody) > tr:not(:has(.sf-table-link-cell-subtext, .sf-table-tree-path)) {
-    block-size: var(--sf-ui-2--control-height);
-  }
-  :is(sf-view-table, sf-table)[size="1/2"][data-sf-view-density="spacious"] > * .table > :is(thead, tbody) > tr:not(:has(.sf-table-link-cell-subtext, .sf-table-tree-path)) {
-    block-size: var(--sf-ui-1--control-height);
-  }
+  /* No «Просторно» since owner decision D4 (2026-11-21): one density for the
+     whole list, «Обычная» or «Компактная»; a stored spacious reads as normal. */
 
   /* Alternate rows on the container surface, under the hover and selection
      layers, which are images over it. Opaque: the container surface is an

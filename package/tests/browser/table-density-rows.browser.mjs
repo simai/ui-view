@@ -40,8 +40,12 @@ const modules = [
 // normal one (Обычно 32, Компактно 40, Просторно 56). The gear's «Вид» rows
 // are pressed with the mouse; each case, light and dark:
 // - no size and size="1/2" on a normal page, and no size on a compact page;
-// - body and head rows: compact < normal < spacious, compact is the rung
-//   below normal, spacious the rung above (read from the page's own tokens).
+// - body and head rows: compact < normal, compact the rung below normal
+//   (read from the page's own tokens).
+// - D4 (owner decision 2026-11-21): one density for the whole list, the
+//   choices «Обычная» and «Компактная» in that order, no «Просторно»; the
+//   list (its sf-view) carries the density, so its head and page row follow;
+//   a stored «Просторно» reads as «Обычная».
 // - VR11A-1 (round 11 acceptance, view round 12 VHF-8): the same with row
 //   actions and personal column settings, so every row has the row menu «≡»
 //   (it held a compact row at the normal height), the gear opened by a real
@@ -52,11 +56,11 @@ const browser = await chromium.launch();
 const COLUMNS = [{key: 'name', label: 'Название', role: 'title'}, {key: 'city', label: 'Город'}, {key: 'code', label: 'Код'}];
 const RECORDS = Array.from({length: 4}, (_, i) => ({id: String(i + 1), revision: '1', actions: ['view', 'delete'], name: `Заказ ${i + 1}`, city: 'Казань', code: `K-${i}`}));
 const cases = [
-  {name: 'size 1, normal page', size: null, page: null, rungs: ['--sf-ui-1\\/2--control-height', '--sf-ui-1--control-height', '--sf-ui-2--control-height']},
-  {name: 'size 1/2, normal page', size: '1/2', page: null, rungs: ['--sf-ui-1\\/3--control-height', '--sf-ui-1\\/2--control-height', '--sf-ui-1--control-height']},
+  {name: 'size 1, normal page', size: null, page: null, rungs: ['--sf-ui-1\\/2--control-height', '--sf-ui-1--control-height']},
+  {name: 'size 1/2, normal page', size: '1/2', page: null, rungs: ['--sf-ui-1\\/3--control-height', '--sf-ui-1\\/2--control-height']},
   {name: 'size 1, compact page', size: null, page: 'compact', rungs: null},
-  {name: 'size 1, normal page, row menu', size: null, page: null, menu: true, rungs: ['--sf-ui-1\\/2--control-height', '--sf-ui-1--control-height', '--sf-ui-2--control-height']},
-  {name: 'size 1/2, normal page, row menu', size: '1/2', page: null, menu: true, rungs: ['--sf-ui-1\\/3--control-height', '--sf-ui-1\\/2--control-height', '--sf-ui-1--control-height']},
+  {name: 'size 1, normal page, row menu', size: null, page: null, menu: true, rungs: ['--sf-ui-1\\/2--control-height', '--sf-ui-1--control-height']},
+  {name: 'size 1/2, normal page, row menu', size: '1/2', page: null, menu: true, rungs: ['--sf-ui-1\\/3--control-height', '--sf-ui-1\\/2--control-height']},
 ];
 const results = [];
 try {
@@ -83,8 +87,25 @@ try {
     }), [COLUMNS, RECORDS, Boolean(one.menu)]);
     await page.waitForFunction(() => document.querySelectorAll('#t tbody tr').length >= 4, null, {timeout: 8000});
     const PANEL = 'sf-settings[data-table-settings] .sf-settings-panel';
+    // A «Просторно» stored before D4 reads as «Обычная» (before any click,
+    // so the list's own key holds nothing yet).
+    if (!one.page) {
+      const stored = await page.evaluate(async () => {
+        const table = document.getElementById('t');
+        if (!window.SF?.Preferences?.preload) return null;
+        window.SF.Preferences.preload({'sf-table/*': {v: 1, view: {density: 'spacious'}}});
+        table.applyTableView();
+        await new Promise((done) => setTimeout(done, 200));
+        const out = {shown: table.shownViewDensity, attr: table.getAttribute('data-sf-view-density'), list: document.getElementById('v').getAttribute('data-sf-density')};
+        window.SF.Preferences.preload({'sf-table/*': {v: 1, view: {}}});
+        table.applyTableView();
+        return out;
+      });
+      if (!stored) note({case: one.name, theme, got: 'no SF.Preferences.preload'});
+      else if (stored.shown !== 'normal' || stored.attr || stored.list) note({case: one.name, theme, got: stored, expected: 'a stored spacious shows and draws as normal'});
+    }
     const heights = {};
-    for (const density of ['normal', 'compact', 'spacious']) {
+    for (const density of ['normal', 'compact']) {
       const open = await page.evaluate((panel) => Boolean(document.querySelector(`${panel}:not([hidden])`)), PANEL);
       if (!open && one.menu) {
         // A person's way in: the settings column's head, clicked.
@@ -102,12 +123,15 @@ try {
         await page.locator(`${PANEL} .sf-settings-panel-tabs [role="tab"]`).nth(1).click();
         await page.waitForTimeout(300);
       }
+      const offered = await page.evaluate((panel) => [...document.querySelectorAll(`${panel} .sf-settings-row-main[data-sf-setting="density"]`)]
+        .map((node) => node.getAttribute('data-sf-option')), PANEL);
+      if (offered.join() !== 'normal,compact') note({case: one.name, theme, got: `«Вид» offers ${offered.join()}`, expected: 'normal,compact (D4)'});
       const row = page.locator(`${PANEL} .sf-settings-row-main[data-sf-setting="density"][data-sf-option="${density}"]`).first();
       if (!(await row.count())) { note({case: one.name, theme, density, got: 'no density row in «Вид»'}); continue; }
       // The word on the row pressed is the density it gives (DEV msg-3d7eee66:
       // the owner read «Компактно» as the normal look and «Обычно» as compact).
       const word = (await row.innerText()).replace(/\s+/gu, ' ').trim();
-      const WORDS = {compact: 'Компактно', normal: 'Обычно', spacious: 'Просторно'};
+      const WORDS = {compact: 'Компактная', normal: 'Обычная'};
       if (!word.includes(WORDS[density])) note({case: one.name, theme, density, got: `the row pressed says «${word}»`});
       await row.click();
       await page.waitForTimeout(300);
@@ -122,18 +146,27 @@ try {
         return {body: Math.round(table.querySelector('tbody tr').getBoundingClientRect().height),
           menu: menuButton ? Math.round(menuButton.getBoundingClientRect().height) : null,
           head: Math.round(table.querySelector('thead tr').getBoundingClientRect().height),
-          attr: table.getAttribute('data-sf-view-density'), rungs: rungs ? rungs.map((name) => Math.round(px(name))) : null};
+          attr: table.getAttribute('data-sf-view-density'), list: document.getElementById('v').getAttribute('data-sf-density'),
+          rungs: rungs ? rungs.map((name) => Math.round(px(name))) : null};
       }, one.rungs);
     }
-    const {normal, compact, spacious} = heights;
+    const {normal, compact} = heights;
     if (one.menu && normal && normal.menu === null) note({case: one.name, theme, got: 'no row menu «≡» in the rows'});
-    if (normal && compact && spacious) {
+    if (normal && compact) {
       for (const part of ['body', 'head']) {
-        if (!(compact[part] < normal[part] && normal[part] < spacious[part])) note({case: one.name, theme, part, got: {compact: compact[part], normal: normal[part], spacious: spacious[part]}});
+        if (!(compact[part] < normal[part])) note({case: one.name, theme, part, got: {compact: compact[part], normal: normal[part]}});
       }
       if (normal.rungs) {
-        const [down, here, up] = normal.rungs;
-        if (compact.body !== down || normal.body !== here || spacious.body !== up) note({case: `${one.name}: one rung either way`, theme, got: {compact: compact.body, normal: normal.body, spacious: spacious.body}, rungs: normal.rungs});
+        const [down, here] = normal.rungs;
+        if (compact.body !== down || normal.body !== here) note({case: `${one.name}: one rung down`, theme, got: {compact: compact.body, normal: normal.body}, rungs: normal.rungs});
+      }
+      // The row menu follows the list's density with the row (VHF-8, D4).
+      if (one.menu && compact.menu !== null && compact.menu > compact.body) note({case: one.name, theme, got: {menu: compact.menu, row: compact.body}, expected: 'the row menu within the compact row'});
+      // The density is the whole list's: its sf-view carries it (D4).
+      const listWord = one.page === 'compact' ? {compact: null, normal: 'normal'} : {compact: 'compact', normal: null};
+      for (const [density, expected] of Object.entries(listWord)) {
+        const got = heights[density].list;
+        if ((got ?? null) !== expected) note({case: one.name, theme, density, got: `the list says data-sf-density=${got}`, expected});
       }
     }
     if (errors.length) note({case: one.name, theme, errors});

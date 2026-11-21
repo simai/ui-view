@@ -5496,7 +5496,10 @@ class SfTable extends TableElement {
             // The box and the row menu are always pinned (offered nothing).
             pinned: Boolean(column.system) || this.isColumnPinned(column),
         }));
-        const density = {compact: "viewDensityCompact", normal: "viewDensityNormal", spacious: "viewDensitySpacious"};
+        // One density for the whole list (owner decision D4, 2026-11-21):
+        // «Обычная» and «Компактная», no «Просторно»; the rows' own height
+        // setting is gone, and every part of the list follows the one choice.
+        const density = {normal: "viewDensityNormal", compact: "viewDensityCompact"};
         const toggle = (id, word) => ({id, type: "switch", text: this.text(word), value: view[id] === true});
         const items = [
             {type: "group", text: this.text("settingsFieldsTab"), items: [
@@ -6079,23 +6082,15 @@ class SfTable extends TableElement {
         return {...TABLE_VIEW_DEFAULTS, ...general, ...own};
     }
 
-    // «Текст в одну строку» as the person chose it, or undefined (view round
-    // 12, VHF-4): only a chosen «off» wraps a fitted name.
-    get storedSingleLine() {
-        const key = this.viewPreferenceKey;
-        const general = preferences()?.read(GENERAL_TABLE_PREFERENCE)?.view ?? {};
-        const own = key ? preferences()?.read(key)?.view ?? {} : this._sessionView ?? {};
-        const value = own.singleLine ?? general.singleLine;
-        return typeof value === "boolean" ? value : undefined;
-    }
-
     // The density a person chose in the gear's «Вид», or none.
     get storedViewDensity() {
         const key = this.viewPreferenceKey;
         const general = preferences()?.read(GENERAL_TABLE_PREFERENCE)?.view ?? {};
         const own = key ? preferences()?.read(key)?.view ?? {} : this._sessionView ?? {};
         const density = own.density ?? general.density;
-        return ["compact", "normal", "spacious"].includes(density) ? density : null;
+        // A stored «Просторно» (before D4) reads as the nearest, «Обычная».
+        if (density === "spacious") return "normal";
+        return ["compact", "normal"].includes(density) ? density : null;
     }
 
     // The density of the area the table stands in (C22): the nearest
@@ -6104,7 +6099,8 @@ class SfTable extends TableElement {
     get areaDensity() {
         let node = this.parentElement ?? this.getRootNode?.()?.host ?? null;
         while (node) {
-            const area = node.closest?.("[data-sf-density]");
+            // The list's own island (D4: written on its sf-view) is not the area.
+            const area = node.closest?.("[data-sf-density]:not([data-sf-view-density-island])");
             if (area) return area.getAttribute("data-sf-density") === "compact" ? "compact" : "normal";
             node = node.getRootNode?.()?.host ?? null;
         }
@@ -6131,20 +6127,27 @@ class SfTable extends TableElement {
         // the box, the row menu «≡», the badges -- step down with the row. The
         // rows alone moved one rung while the «≡» (32 at size 1/2, 40 at 1)
         // held a body row at the normal height.
+        // The density is the whole list's (owner decision D4, 2026-11-21): the
+        // island stands on the sf-view the table is in -- its head, rows, cards
+        // and page row -- and on the table, or on the table alone outside a
+        // view. A host's own data-sf-density on either is left alone.
         const density = this.shownViewDensity;
         const compactArea = this.areaDensity === "compact";
         const island = compactArea ? (density !== "compact" ? "normal" : null) : (density === "compact" ? "compact" : null);
-        const ownIsland = this.hasAttribute("data-sf-view-density-island");
-        if (island && (ownIsland || !this.hasAttribute("data-sf-density"))) {
-            if (this.getAttribute("data-sf-density") !== island) this.setAttribute("data-sf-density", island);
-            this.setAttribute("data-sf-view-density-island", "");
-        } else if (!island && ownIsland) {
-            this.removeAttribute("data-sf-density");
-            this.removeAttribute("data-sf-view-density-island");
+        const list = this.closest?.("sf-view") ?? null;
+        for (const holder of list ? [list, this] : [this]) {
+            const ownIsland = holder.hasAttribute("data-sf-view-density-island");
+            if (island && (ownIsland || !holder.hasAttribute("data-sf-density"))) {
+                if (holder.getAttribute("data-sf-density") !== island) holder.setAttribute("data-sf-density", island);
+                holder.setAttribute("data-sf-view-density-island", "");
+            } else if (!island && ownIsland) {
+                holder.removeAttribute("data-sf-density");
+                holder.removeAttribute("data-sf-view-density-island");
+            }
         }
         // A compact island still says compact rows: the Framework's density is
         // a desktop one (60rem), and below it the rows' own rung steps down.
-        const rows = compactArea ? (density === "spacious" ? "spacious" : "normal") : density;
+        const rows = compactArea ? "normal" : density;
         if (rows === "normal") this.removeAttribute("data-sf-view-density");
         else this.setAttribute("data-sf-view-density", rows);
         // Zebra is the author's (C146 (4)): a person's stored choice is no
@@ -6152,8 +6155,10 @@ class SfTable extends TableElement {
         flag("data-sf-view-stripes", this.hasAttribute("stripes") && this.getAttribute("stripes") !== "false");
         flag("data-sf-view-lines", view.lines === true);
         flag("data-sf-view-single-line", view.singleLine === true);
-        // «Текст в одну строку» turned off by the person, not by default (VHF-4).
-        flag("data-sf-view-wrap", this.storedSingleLine === false);
+        // «Текст в одну строку» is off unless the person turned it on (owner
+        // decision D5, 2026-11-21): the name takes two lines, a long text
+        // (a comment) its whole length; on, every cell is one line with «…».
+        flag("data-sf-view-wrap", view.singleLine !== true);
         const page = this.getAttribute("vertical-scroll") === "page" && !this.isList;
         flag("data-sf-page-scroll", page);
         flag("data-sf-sticky-head", page && view.stickyHead !== false);

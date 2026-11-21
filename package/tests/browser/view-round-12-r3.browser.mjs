@@ -24,9 +24,10 @@
 //   a «›»; a click opens the section.
 // - VRS-9: a section whose only group has the section's name draws no group
 //   title; a group of another name keeps it.
-// - VHF-4 (with the title giving last): a narrow fitted table (390) whose
-//   name has to give: nothing chosen it is one line as before; «Текст в
-//   одну строку» on, one line; turned off, the name on two lines, uncut.
+// - VHF-4 (with the title giving last) and D5 (owner decision 2026-11-21,
+//   «Текст в одну строку» off by default): a narrow fitted table (390) whose
+//   name has to give: nothing chosen it is off -- the name on two lines,
+//   uncut, a comment whole; on, every cell one line; off again as unset.
 // - VFC-1: in a panel a click on a short field's value opens its quick edit
 //   window (it read data-open, which sf-popover 1.8.0 writes no more).
 // - C393 star: the favourite star stays right after the one-line title; a
@@ -99,9 +100,9 @@ const NARROW = (theme) => `${HEAD(theme)}
 <script>
 (function(){
   var t=document.getElementById('t');
-  var C=[{key:'title',label:'Название'},{key:'owner',label:'Ответственный',propertyType:'record'},{key:'attachment',label:'Файл',propertyType:'file'},{key:'accent',label:'Цвет',propertyType:'color'}];
-  var R=[{id:'1',revision:'r1',title:'Портал клиента',owner:{value:'u-1',label:'Анна Захарова',href:'#u-1'},attachment:{value:'f-1',label:'договор.pdf',mime:'application/pdf',href:'#f-1'},accent:'#2f6feb'},
-    {id:'2',revision:'r1',title:'Каталог товаров',owner:{value:'u-2',label:'Илья Петров',href:'#u-2'},attachment:{value:'f-2',label:'схема.png',mime:'image/png',href:'#f-2'},accent:'#1a7f37'}];
+  var C=[{key:'title',label:'Название'},{key:'owner',label:'Ответственный',propertyType:'record'},{key:'attachment',label:'Файл',propertyType:'file'},{key:'accent',label:'Цвет',propertyType:'color'},{key:'note',label:'Комментарий',propertyType:'text'}];
+  var R=[{id:'1',revision:'r1',title:'Портал клиента',owner:{value:'u-1',label:'Анна Захарова',href:'#u-1'},attachment:{value:'f-1',label:'договор.pdf',mime:'application/pdf',href:'#f-1'},accent:'#2f6feb',note:'Клиент просит перенести сдачу на неделю и добавить в договор раздел о поддержке после запуска'},
+    {id:'2',revision:'r1',title:'Каталог товаров',owner:{value:'u-2',label:'Илья Петров',href:'#u-2'},attachment:{value:'f-2',label:'схема.png',mime:'image/png',href:'#f-2'},accent:'#1a7f37',note:'Без замечаний'}];
   customElements.whenDefined('sf-view-table').then(function(){t.columns=C;t.rows=R;});
 })();
 </script></body></html>`;
@@ -302,21 +303,27 @@ try {
       await page.waitForFunction(() => document.querySelector('#t[data-sf-columns-fitted] tbody td[data-sf-cell="title"]'), null, {timeout: 15000})
         .catch(() => errors.push('the fitted table did not come'));
       await page.waitForTimeout(500);
-      const names = () => page.evaluate(() => [...document.querySelectorAll('#t tbody td[data-sf-cell="title"] .sf-table-cell-text')].map((node) => {
-        const lh = parseFloat(getComputedStyle(node).lineHeight);
-        return {lines: Math.round(node.getBoundingClientRect().height / lh), cut: node.scrollWidth > node.clientWidth + 1 || node.scrollHeight > node.clientHeight + 1};
-      }));
+      const names = () => page.evaluate(() => {
+        const read = (node) => {
+          const lh = parseFloat(getComputedStyle(node).lineHeight);
+          return {lines: Math.round(node.getBoundingClientRect().height / lh), cut: node.scrollWidth > node.clientWidth + 1 || node.scrollHeight > node.clientHeight + 1};
+        };
+        const titles = [...document.querySelectorAll('#t tbody td[data-sf-cell="title"] .sf-table-cell-text')].map(read);
+        titles.comment = read(document.querySelector('#t tbody tr td[data-key="note"] .sf-table-cell-clip, #t tbody tr td[data-key="note"]'));
+        return {titles, comment: titles.comment};
+      }).then(({titles, comment}) => Object.assign(titles, {comment}));
       const set = (value) => page.evaluate((on) => document.getElementById('t').onTableSettingChanged({detail: {id: 'singleLine', value: on}, stopPropagation() {}, preventDefault() {}}), value);
       const unset = await names();
       await set(true); await page.waitForTimeout(400);
       const on = await names();
       await set(false); await page.waitForTimeout(400);
       const off = await names();
-      if (unset.some((one) => one.lines !== 1) || !unset.some((one) => one.cut)) failures.push({...label, got: 'nothing chosen: not one cut line as before', unset});
-      if (on.some((one) => one.lines !== 1)) failures.push({...label, got: 'on: not one line', on});
-      if (off.some((one) => one.cut || one.lines > 2) || !off.some((one) => one.lines === 2)) failures.push({...label, got: 'off: the name not on its two lines, uncut', off});
+      const offOk = (list) => !list.some((one) => one.cut || one.lines > 2) && list.some((one) => one.lines === 2) && list.comment.lines > 1 && !list.comment.cut;
+      if (!offOk(unset)) failures.push({...label, got: 'nothing chosen (off, D5): the name not on its two lines uncut, or the comment not whole', unset, comment: unset.comment});
+      if (on.some((one) => one.lines !== 1) || on.comment.lines !== 1) failures.push({...label, got: 'on: not one line', on, comment: on.comment});
+      if (!offOk(off)) failures.push({...label, got: 'off: the name not on its two lines uncut, or the comment not whole', off, comment: off.comment});
       if (errors.length) failures.push({...label, errors});
-      if (run === 1) results.push({theme, item: 'VHF-4', width: 390, unset, on, off});
+      if (run === 1) results.push({theme, item: 'VHF-4', width: 390, unset: [...unset, unset.comment], on: [...on, on.comment], off: [...off, off.comment]});
       await context.close();
     }
     // VRS-7, VRS-9 and the star at 1440 (in place, history beside); VRS-8 and the star at 390.
