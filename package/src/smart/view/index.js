@@ -671,7 +671,15 @@ class SfDataView extends DataViewElement {
     _syncSelects() {
         const selects = this.selects();
         const table = this.table;
-        if (table && !hostWroteOff(table, "selectable")) table.setAttribute("selectable", selects && this._queryRefused !== true ? "true" : "false");
+        if (table && !hostWroteOff(table, "selectable")) {
+            const on = selects && this._queryRefused !== true;
+            table.setAttribute("selectable", on ? "true" : "false");
+            // Rows drawn before carry no box cell: the table writes them when
+            // rows are set, so the rows it has are set again (the head showed
+            // the box column over rows without boxes).
+            const rows = on ? (table.getTableData?.().rows ?? []) : [];
+            if (rows.length && rows.some((row) => row && typeof row === "object" && row.select === undefined)) table.setRows?.(rows.map((row) => ({...row})));
+        }
         if (this.layoutKind === "board") this._syncBoard?.();
         if (this.layoutKind === "cards") syncCards(this);
     }

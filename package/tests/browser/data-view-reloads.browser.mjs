@@ -203,6 +203,9 @@ try {
     const pagination = document.getElementById('p');
     pagination.setAttribute('actions', 'archive:В архив|delete:Удалить');
     pagination.setAttribute('show-action-for-all', 'true');
+    // Boxes come with bulk actions (view round 12, VHF-11): the rows take
+    // theirs once the view has seen the page row's actions.
+    await new Promise((done) => setTimeout(done, 350));
     const data = table.getTableData().rows;
     if (data[0]?.select?.component?.props) data[0].select.component.props.checked = true;
     table.setRows(data.map((record) => ({...record})));
