@@ -23,7 +23,7 @@
 // controls are Smart elements whose stylesheets are document-level.
 import SfBaseElement from "../../core/js/smart-base";
 import {applied, elementFromManifest, refused} from "../../core/js/element-manifest";
-import {confirmSurface} from "../view-common/confirm-surface.js";
+import {confirmSurface} from "../helpers/confirm-surface.js";
 import {renderViewFlowTemplate} from "./js/templates/default.js";
 import {answerValues, groupsOf, missingRequired, readSettle} from "./js/answer.js";
 import manifest from "./component.json";

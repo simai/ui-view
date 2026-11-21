@@ -1,9 +1,8 @@
 import {html, nothing} from 'lit';
 import {guard} from 'lit/directives/guard.js';
 import "./default.css";
-import "../set-fields.css";
 import {renderViewField, renderEditField} from '../../../view-common/field-renderers.js';
-import {renderFieldValue} from '../../../view-common/property-field-value.js';
+import {renderFieldValue} from '../field-value.js';
 
 // The arrangement, drawn in the component's own light DOM. Not in a shadow root:
 // the field controls are Smart elements whose stylesheets are document-level, and

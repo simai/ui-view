@@ -5,7 +5,7 @@
 //
 // The field descriptors are sf-view-properties' (simai.property-view-port), and
 // a field's `when` is read with that component's own conditions module.
-import {fieldConditions} from "../../view-common/property-conditions.js";
+import {fieldConditions} from "../../view-properties/js/conditions.js";
 
 const keyOf = (field) => (field && field.key !== undefined && field.key !== null ? String(field.key) : "");
 

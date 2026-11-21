@@ -1,5 +1,5 @@
 import {html, nothing} from 'lit';
-import {renderViewField, renderEditField} from '../../field-renderers/index.js';
+import {renderViewField, renderEditField} from '../../view-common/field-renderers.js';
 import {renderSetField} from './set-fields.js';
 
 // One field's value, shown or edited, drawn by the SIMAI Framework field

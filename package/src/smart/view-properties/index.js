@@ -32,8 +32,8 @@ import {noteDeprecated} from "../../core/js/deprecations.js";
 import {renderPropertyViewTemplate} from "./js/templates/default";
 // The day-and-time reading is the field renderers' (A-14): this view kept a
 // copy from before it was lifted into the Framework.
-import {fieldConditions} from "../view-common/property-conditions.js";
-import {drawsSetField} from "../view-common/property-set-fields.js";
+import {fieldConditions} from "./js/conditions.js";
+import {drawsSetField} from "./js/set-fields.js";
 import {propertyModes} from "../view-common/field-renderers.js";
 import {historyFromRevisions, timelineItems, valueText} from "./js/history.js";
 

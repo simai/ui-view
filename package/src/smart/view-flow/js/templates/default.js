@@ -1,7 +1,6 @@
 import {html, nothing} from "lit";
 import "./default.css";
-import "../../../view-properties/js/set-fields.css";
-import {renderFieldValue} from "../../../view-common/property-field-value.js";
+import {renderFieldValue} from "../../../view-properties/js/field-value.js";
 import {allFields, conditionedField, fieldDisabled, shownFields, valuesOnScreen} from "../answer.js";
 
 // A few properties in a flow: the header line, the fields, the status line and
