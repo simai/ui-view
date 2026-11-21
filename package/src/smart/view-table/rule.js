@@ -6,6 +6,8 @@ SF.RuleLoader['cl-view-table'] = {
   js: true,
   css: true,
   relation: [
+    // The View package core (view-common): the shared code every View bundle takes once (field renderers, formats, conditions, the filter window, and what two View components share), fetched before the component runs.
+    { name: 'cl-view-common' },
     { name: 'cl-checkbox' },
     // The group actions bar (C295) where the pair has it: drawn while something is selected, fetched when first drawn.
     { name: 'cl-bulk-actions', lazy: true },

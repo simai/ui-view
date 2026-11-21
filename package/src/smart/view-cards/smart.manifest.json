@@ -40,7 +40,8 @@
       "smart.progress-scale",
       "smart.reference-link",
       "smart.skeleton",
-      "smart.tag"
+      "smart.tag",
+      "smart.view-common"
     ],
     "public_parts": []
   },

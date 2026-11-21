@@ -1,4 +1,4 @@
-import {renderCellField} from '../../field-renderers/index.js';
+import {renderCellField} from '../../view-common/field-renderers.js';
 import {HISTORY_KINDS, cellText} from './history-port.js';
 
 export {HISTORY_KINDS, historyFromRevisions} from './history-port.js';

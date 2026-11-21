@@ -16,7 +16,7 @@
 // beside the slot. A consumer found it on their stand.
 import SfBaseElement from "../../core/js/smart-base";
 import {elementFromManifest} from "../../core/js/element-manifest";
-import {answerActions, settingSetters} from "../view-table/js/manifest-actions.js";
+import {answerActions, settingSetters} from "../view-common/manifest-actions.js";
 import manifest from "./component.json";
 import aliases from "./aliases.json";
 import en from "./lang/en.json";
@@ -26,15 +26,15 @@ import ru from "./lang/ru.json";
 import {ICON_CHOICES} from "../../core/js/icon-choices.js";
 import {pageText} from "../../core/js/page-language";
 import {FOCUSABLE, hasLayer, hasLayerAbove, openLayers} from "../../core/js/layer-stack";
-import {followDensity} from "../../core/js/density.js";
+import {followDensity} from "../view-common/density.js";
 import {copyText} from "../../core/js/clipboard.js";
 import {noteDeprecated} from "../../core/js/deprecations.js";
 import {renderPropertyViewTemplate} from "./js/templates/default";
 // The day-and-time reading is the field renderers' (A-14): this view kept a
 // copy from before it was lifted into the Framework.
-import {fieldConditions} from "./js/conditions.js";
-import {drawsSetField} from "./js/set-fields.js";
-import {propertyModes} from "../field-renderers/index.js";
+import {fieldConditions} from "../view-common/property-conditions.js";
+import {drawsSetField} from "../view-common/property-set-fields.js";
+import {propertyModes} from "../view-common/field-renderers.js";
 import {historyFromRevisions, timelineItems, valueText} from "./js/history.js";
 
 // Whether the page's sheets hold SIMAI Framework's own ground for the sticky

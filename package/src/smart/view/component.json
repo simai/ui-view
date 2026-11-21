@@ -1156,10 +1156,20 @@
   },
   "relations": [
     {
+      "name": "cl-view-common",
+      "$comment": [
+        "The View package core (view-common): the shared code every View bundle takes once (field renderers, formats, conditions, the filter window, and what two View components share), fetched before the component runs."
+      ]
+    },
+    {
       "name": "icons"
     },
     {
-      "name": "cl-view-table"
+      "name": "cl-view-table",
+      "lazy": true,
+      "$comment": [
+        "The table is a presentation like the board, the cards and the calendar: fetched when the list draws it (a table in the page's markup, or the list's own when it shows the table), not with a list that shows only another kind."
+      ]
     },
     {
       "name": "cl-pagination"

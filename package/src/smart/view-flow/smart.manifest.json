@@ -52,7 +52,8 @@
       "smart.slider-range",
       "smart.spinner",
       "smart.switch",
-      "smart.tag"
+      "smart.tag",
+      "smart.view-common"
     ],
     "public_parts": []
   },

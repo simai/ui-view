@@ -12,6 +12,8 @@ SF.RuleLoader['cl-view-properties'] = {
   js: true,
   css: true,
   relation: [
+    // The View package core (view-common): the shared code every View bundle takes once (field renderers, formats, conditions, the filter window, and what two View components share), fetched before the component runs.
+    { name: 'cl-view-common' },
     { name: 'icons' },
     // The panel draws an <sf-icon> of its own now -- the chevron that folds the
     // not-placed bin -- and a tag the panel renders is a tag the panel has to

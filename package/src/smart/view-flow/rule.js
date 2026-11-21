@@ -10,6 +10,8 @@ SF.RuleLoader['cl-view-flow'] = {
   js: true,
   css: true,
   relation: [
+    // The View package core (view-common): the shared code every View bundle takes once (field renderers, formats, conditions, the filter window, and what two View components share), fetched before the component runs.
+    { name: 'cl-view-common' },
     { name: 'icons' },
     // The status glyph and a collapsible group's chevron are sf-icon; a tag the
     // block renders is a tag it fetches.

@@ -6,9 +6,9 @@ import aliases from "./aliases.json";
 import en from "./lang/en.json";
 import ru from "./lang/ru.json";
 import {renderTableTemplate, columnStyle} from "./js/templates/default";
-import {optionBadgeProps} from "../helpers/option-badge.js";
-import {dateTimeAttribute, renderCellField, renderEditField, renderFilterField} from "../field-renderers/index.js";
-import {htmlText} from "../field-renderers/html.js";
+import {optionBadgeProps} from "../view-common/option-badge.js";
+import {dateTimeAttribute, renderCellField, renderEditField, renderFilterField} from "../view-common/field-renderers.js";
+import {htmlText} from "../view-common/field-html.js";
 import {html, nothing, render} from "lit";
 import {ref} from "lit/directives/ref.js";
 import {pageText} from "../../core/js/page-language";
@@ -17,7 +17,7 @@ import {setLoaderDragState} from "../helpers/loaderDragState";
 import BundledPosition from "../../core/js/position.js";
 import {holdOpenSurfaceMark} from "../../core/js/open-surface-mark.js";
 import {closeLayer, layerZIndex, openLayer} from "../../core/js/layer-stack.js";
-import {followDensity} from "../../core/js/density.js";
+import {followDensity} from "../view-common/density.js";
 
 // The local day of a date ("2026-11-19") or a date and time (ISO 8601) for
 // the relative date template: a date alone is that day where the page is, a
@@ -31,10 +31,10 @@ function relativeDay(value) {
     if (Number.isNaN(moment.getTime())) return null;
     return new Date(moment.getFullYear(), moment.getMonth(), moment.getDate());
 }
-import {menuOpen} from "../../core/js/menu-open.js";
+import {menuOpen} from "../view-common/menu-open.js";
 import {noteDeprecated} from "../../core/js/deprecations.js";
 import {roving} from "../../core/js/roving.js";
-import BundledPreferences from "../../core/js/preferences.js";
+import BundledPreferences from "../view-common/preferences.js";
 
 // Sized for what they hold rather than for reading, so they take no floor.
 // Every word this table says, in the two languages the Framework speaks. The

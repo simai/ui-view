@@ -47,6 +47,7 @@
       "smart.spinner",
       "smart.tabs",
       "smart.toast",
+      "smart.view-common",
       "smart.view-table"
     ],
     "public_parts": [],

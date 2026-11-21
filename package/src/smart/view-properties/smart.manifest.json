@@ -75,6 +75,7 @@
       "smart.tabs",
       "smart.tag",
       "smart.view",
+      "smart.view-common",
       "smart.view-table"
     ],
     "public_parts": [],

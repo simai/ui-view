@@ -21,7 +21,7 @@
 // pair has it, else the same strip of sf-button.
 import SfBaseElement from "../../core/js/smart-base";
 import {applied, elementFromManifest, refused} from "../../core/js/element-manifest";
-import {renderCellField} from "../field-renderers/index.js";
+import {renderCellField} from "../view-common/field-renderers.js";
 import {renderViewCardsTemplate} from "./js/templates/default.js";
 import {RATIOS, cardsOptions, coverOf, fieldAlign, format, gridStep, phoneColumns, titleOf} from "./js/cards.js";
 import manifest from "./component.json";

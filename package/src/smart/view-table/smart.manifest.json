@@ -60,7 +60,8 @@
       "smart.sortable",
       "smart.spinner",
       "smart.tabs",
-      "smart.tag"
+      "smart.tag",
+      "smart.view-common"
     ],
     "public_parts": [],
     "declarative": {

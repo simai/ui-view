@@ -10,8 +10,11 @@ SF.RuleLoader['cl-view'] = {
   js: true,
   css: true,
   relation: [
+    // The View package core (view-common): the shared code every View bundle takes once (field renderers, formats, conditions, the filter window, and what two View components share), fetched before the component runs.
+    { name: 'cl-view-common' },
     { name: 'icons' },
-    { name: 'cl-view-table' },
+    // The table is a presentation like the board, the cards and the calendar: fetched when the list draws it (a table in the page's markup, or the list's own when it shows the table), not with a list that shows only another kind.
+    { name: 'cl-view-table', lazy: true },
     { name: 'cl-pagination' },
     { name: 'cl-toast', lazy: true },
     { name: 'cl-button' },

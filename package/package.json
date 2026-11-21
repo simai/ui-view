@@ -23,7 +23,11 @@
   ],
   "simai": {
     "set": "view",
-    "base": "dist/smart"
+    "base": "dist/smart",
+    "core": {
+      "folder": "view-common",
+      "abi": 1
+    }
   },
   "scripts": {
     "test": "node scripts/test.mjs",

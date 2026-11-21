@@ -1,5 +1,4 @@
 import {html, nothing} from 'lit';
-import "./set-fields.css";
 import {renderViewField, renderEditField} from '../../field-renderers/index.js';
 import {pageLocale, pageText} from '../../../core/js/page-language';
 import {compare, decimalString, editableDecimal, formatDecimal, fractionDigits, readDecimal, toDecimal} from './decimal.js';

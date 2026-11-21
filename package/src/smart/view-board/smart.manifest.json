@@ -41,7 +41,8 @@
       "smart.sortable",
       "smart.tabs",
       "smart.tag",
-      "smart.toast"
+      "smart.toast",
+      "smart.view-common"
     ],
     "public_parts": []
   },

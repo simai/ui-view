@@ -18,16 +18,15 @@ import {defineTagAliases, isTag, tagSelector} from "../../core/js/smart-base";
 import {installAliases} from "../../core/js/aliases.js";
 import {isDestructiveAction, orderActions} from "../pagination/js/actions.js";
 import {noteDeprecated} from "../../core/js/deprecations.js";
-import {answerActions, settingSetters} from "../view-table/js/manifest-actions.js";
+import {answerActions, settingSetters} from "../view-common/manifest-actions.js";
 import manifest from "./component.json";
 import aliases from "./aliases.json";
 import en from "./lang/en.json";
 import ru from "./lang/ru.json";
-import tableEn from "../view-table/lang/en.json";
-import tableRu from "../view-table/lang/ru.json";
+import {en as tableEn, ru as tableRu} from "../view-common/table-words.js";
 import paginationEn from "../pagination/lang/en.json";
 import paginationRu from "../pagination/lang/ru.json";
-import BundledPreferences from "../../core/js/preferences.js";
+import BundledPreferences from "../view-common/preferences.js";
 import {acceptLevel, collapse, createTree, expandKnown, hasLevel, knownRecords, markLoading, visibleRows} from "./js/tree.js";
 import {ListHead} from "./js/head.js";
 import {CARDS_EVENTS, acceptCards, cardsDrawn, cardsOf, cardsQuery, cardsSkeleton, onCardsEvent, syncCards, syncCardsState} from "./js/cards.js";
@@ -1658,7 +1657,11 @@ class SfDataView extends DataViewElement {
             this.addEventListener("keydown", this._onStepKey);
         }
         if (this.getAttribute("data-sf-instance")) this._ownParts();
-        this._askForParts(["sf-view-table", "sf-pagination"]);
+        // The current layout's element only: the table is a lazy relation now
+        // (view modular step 1), so a list that shows only the board, the cards
+        // or the calendar never fetches it; a switch to the table asks for it
+        // then (_swapContent's _askForParts).
+        this._askForParts([this._layoutTag(), "sf-pagination"]);
         // Dated aliases (§16.20), installed once per element as the Smart base does.
         if (!this.__sfAliases) {
             this.__sfAliases = installAliases(this, aliases, {tag: this.localName, adapters: {}});
