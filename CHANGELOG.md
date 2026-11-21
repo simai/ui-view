@@ -16,6 +16,51 @@ same numbers with other content); every next set version is above them
 up). Each component.json says the same under `x-decisions`
 `pro-copy-versions`.
 
+## Unreleased — view round 14
+
+View round 14 (round/view-r14, from `round/view-r13` ccea5c6), candidate
+1.12.0 over the same pair `ui-b654460cad2a`: the owner decisions C403-C408
+(DEV msg-3ed3de7b), the list study v2 returns LV2-2 and LV2-7
+(msg-04ef4018), DEV's answers on round 13 (the cards' «Подгрузка», the
+record's badge row), the owner's list review v3 (msg-2733819c: LV3-9, 11, 12,
+13, 16, 20, 21, 23, 24) and the round 13 acceptance returns VR13-1 and VR13-2
+with the owner's complaints of 2026-11-22. Numbers are above every branch of
+this set and of ui-pro.
+
+- `sf-view` 1.33.0. C404 the fixed list look (search framed, «Создать» and
+  the data menu on, the presentation strip framed with «Колонки» and «Вид»,
+  the footer the table's last band: range, pages centred, «По N» at the end,
+  «Показать ещё» under the last row; a search that does not fit takes its own
+  row). C405 «Вид» is the SIMAI Framework sf-settings drill menu with each
+  kind's own rows, applying at once; the cards get «Подгрузка» (D1). C407 and
+  LV3-23 the data menu and the saved filter rows use «⋯» (more_horiz); LV3-9
+  its look is `head.menu` (outline, tonal, ghost; default outline). C408 the
+  look applies to every list of the kind («Для всех моих списков» gone). LV2-2
+  marks hold across pages and kinds; LV2-7 «Выбраны все N» reaches the cards.
+  One bulk bar: under sf-view the list's bar stands for the table and the
+  cards, the board keeps its own (it moves records) and the list's hides
+  there. VR13-1: the cards keep the page row after a click switch.
+- `sf-view-table` 1.32.0. C406, LV3-21 the gear above «≡» is always there and
+  opens the same window as «Колонки». LV3-20 no «Просторно», no «Для всех моих
+  таблиц». LV3-11 «На телефоне» switches in the columns window
+  (`phoneFields`); LV3-12 the phone row's roles no longer change the desktop
+  table; LV3-13 the phone row formats its values by type and shows every fact
+  (the due date fits); LV3-24 the phone status label for every status.
+- `sf-view-cards` 1.2.0. `keep-selection`, `all-selected`, `bulk-bar` and
+  `selectAll(on)`: the marks of other pages, every record under the filter,
+  and no bar of their own under sf-view.
+- `sf-view-properties` 1.27.0. C403 a side panel whose fields would keep less
+  than 20rem beside the sections shows a rail of icons and names, below that
+  the section list opening as a level with «←»; the interim tabs of C399 are
+  gone. The full screen's section column fills its 12rem (was 99 px).
+  VR13-2: «Изменить» on the full screen keeps the two columns of reading, each
+  label on its axis (label x 0, was −403). The badge row of the record head
+  sits on the line (1 px).
+- `sf-view-board` 1.1.6. LV3-16 the card's box, title line and «⋯» on one
+  line.
+- C402: the ink of «не заполнено» is unchanged (a SIMAI Framework token
+  later); measured contrasts are in the evidence.
+
 ## Unreleased — view round 13
 
 View round 13 (round/view-r13, from `round/view-r12` 79f7706), candidate
