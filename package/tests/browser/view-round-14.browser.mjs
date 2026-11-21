@@ -70,7 +70,7 @@ window.SF_BOOT_CONFIG = {cacheVersion: 'r14', pluginListVersion: 'r14', preloade
 const LIST = (theme, {key = 'a', layout = ''} = {}) => `${HEAD(theme)}
 <sf-view id="v" aria-label="Заказы" heading="Заказы" head="list" collection="orders" size="1/2" preferences-key="r14-${key}"${layout ? ` layout="${layout}"` : ''}>
   ${layout ? '' : '<sf-view-table slot="content" aria-label="Заказы"></sf-view-table>'}
-  <sf-pagination slot="pagination" top="false" page-size="10" actions="paid:Отметить оплаченными|archive:В архив"></sf-pagination>
+  <sf-pagination slot="pagination" top="false" page-size="10" show-action-for-all actions="paid:Отметить оплаченными|archive:В архив"></sf-pagination>
 </sf-view>
 <div style="block-size:300px"></div></main>
 <script>
@@ -88,8 +88,8 @@ const LIST = (theme, {key = 'a', layout = ''} = {}) => `${HEAD(theme)}
     raise:function(intent,p){p=p||{};
       if(intent==='query.change'){var qy=p.query||{},per=+qy.per_page||10,page=+qy.page||1;
         if(qy.window&&qy.window.per_page){per=+qy.window.per_page;page=+qy.window.page||1}
-        var lanes=ST.map(function(s){var r=ROWS.filter(function(x){return x.status===s.value}).slice(0,6);return {value:s.value,label:s.label,records:r,total:16}});
-        return Promise.resolve({answer:'applied',sequence:p.sequence,data:{columns:COLS,records:ROWS.slice((page-1)*per,page*per),total:ROWS.length,lanes:lanes,board:{order_field:''},
+        var lanes=${layout === 'board' ? '' : 'null&&'}ST.map(function(s){var r=ROWS.filter(function(x){return x.status===s.value}).slice(0,6);return {value:s.value,label:s.label,records:r,total:16}});
+        return Promise.resolve({answer:'applied',sequence:p.sequence,data:{columns:COLS,records:ROWS.slice((page-1)*per,page*per),total:ROWS.length,lanes:lanes||undefined,board:lanes?{order_field:''}:undefined,
           saved_filters:[{id:'f1',name:'Ждут оплаты',filters:{status:{operator:'in',values:['new']}}}],
           view_config:{layouts:{cards:{card_fields:['status','client','amount']},board:{lane_field:'status',card_fields:['client','amount']}}},
           echo:{filters_chosen:qy.filters_chosen||['status'],filters:qy.filters||{},search:qy.search||'',sort:qy.sort||[],page:page,per_page:per,view:qy.view||{id:'all',type:'table'}}}})}
@@ -100,9 +100,9 @@ const LIST = (theme, {key = 'a', layout = ''} = {}) => `${HEAD(theme)}
 
 // A record docked beside a list (C403): four sections with icons, a status
 // shown as its badge.
-const CARD = (theme) => `${HEAD(theme)}
-<div id="list" data-sf-drawer-dock-host style="block-size:600px;border:1px solid var(--sf-outline-variant)">the list</div>
-<sf-view-properties id="c" aria-label="Заказ" size="1/2" mode="auto" panel panel-size="2"></sf-view-properties></main>
+const CARD = (theme, {inplace = false} = {}) => `${HEAD(theme)}
+${inplace ? '' : '<div id="list" data-sf-drawer-dock-host style="block-size:600px;border:1px solid var(--sf-outline-variant)">the list</div>'}
+<sf-view-properties id="c" aria-label="Заказ" size="1/2" mode="auto"${inplace ? '' : ' panel panel-size="2"'}></sf-view-properties></main>
 <script>
 (function(){
   var ST=[{value:'new',label:'Новый'},{value:'sent',label:'Отправлен'}];
@@ -116,7 +116,7 @@ const CARD = (theme) => `${HEAD(theme)}
   card.setAttribute('record-id','r1');
   customElements.whenDefined('sf-view-properties').then(function(){card.setHostPort({version:'1.17.0',capabilities:['view-settings','record-open','record-edit'],
     raise:function(intent){return Promise.resolve(intent==='record.load'?{answer:'applied',record:rec}:{answer:'applied'})}});
-    card.setAttribute('panel-label','Заказ №3002');card.removeAttribute('hidden');card.setAttribute('open','true');});
+    ${inplace ? '' : "card.setAttribute('panel-label','Заказ №3002');card.removeAttribute('hidden');card.setAttribute('open','true');"}});
 })();
 </script></body></html>`;
 
@@ -340,7 +340,8 @@ try {
           const items = [...document.querySelectorAll('#v sf-view-table li[data-row-id]')].filter((node) => node.getClientRects().length).slice(0, 3);
           return items.map((item) => {
             const facts = [...item.querySelectorAll('.sf-table-resource-fact, .sf-table-list-end > *')].filter((node) => node.getClientRects().length && node.textContent.trim());
-            const cut = facts.filter((node) => [node, ...node.querySelectorAll('*')].some((one) => one.scrollWidth > one.clientWidth + 1 && getComputedStyle(one).overflowX !== 'visible'));
+            // The label a screen reader hears is clipped on purpose.
+            const cut = facts.filter((node) => [node, ...node.querySelectorAll('*')].some((one) => !one.closest('.sf-table-visually-hidden') && one.scrollWidth > one.clientWidth + 1 && getComputedStyle(one).overflowX !== 'visible'));
             return {text: item.innerText.replace(/\s+/gu, ' ').slice(0, 160), facts: facts.map((node) => node.textContent.replace(/\s+/gu, ' ').trim()), cut: cut.length,
               lead: item.querySelector('.sf-table-resource-lead')?.getClientRects().length ? item.querySelector('.sf-table-resource-lead').textContent.trim() : ''};
           });
@@ -487,7 +488,7 @@ try {
         const layout = panel?.getAttribute('data-sections-layout') ?? null;
         const visible = (node) => Boolean(node && node.getClientRects().length);
         const rail = document.querySelector('.sf-property-view-sections');
-        const body = document.querySelector('.sf-property-view-frame .sf-property-view-body');
+        const body = document.querySelector('.sf-property-view-frame');
         const tabs = [...document.querySelectorAll('#c sf-tabs')].filter(visible).length;
         const levels = [...document.querySelectorAll('.sf-property-view-phone-sections .sf-list__row')].filter(visible).length;
         return {layout, rail: visible(rail) ? Math.round(rail.getBoundingClientRect().width) : 0, fields: visible(body) ? Math.round(body.getBoundingClientRect().width) : 0,
@@ -502,8 +503,17 @@ try {
         got.back = await page.evaluate(() => [...document.querySelectorAll('#c button, #c sf-button-icon')].some((node) => node.getClientRects().length && /arrow_back|chevron_left/u.test(node.textContent + (node.getAttribute('icon') ?? ''))));
         if (!got.back) failures.push({...label, got, want: '«←» in the opened section'});
       }
+      if (run === 1) await shot(page, `record-${width}-${theme}`);
+      if (errors.length) failures.push({...label, errors});
+      results.push({...label, ...got});
+      await context.close();
+      // The badge row on the label's baseline: a record in place, the label
+      // beside its value.
+      const inPlace = await load(theme, width, CARD(theme, {inplace: true}));
+      await inPlace.page.waitForFunction(() => document.querySelector('.sf-property-view-row[data-field="status"]')?.getClientRects().length, null, {timeout: 15000}).catch(() => inPlace.errors.push('the record did not come'));
+      await inPlace.page.waitForTimeout(800);
       // The badge row on the label's baseline.
-      const badge = await page.evaluate(() => {
+      const badge = await inPlace.page.evaluate(() => {
         const row = [...document.querySelectorAll('.sf-property-view-row[data-field="status"]')].find((node) => node.getClientRects().length);
         if (!row) return null;
         const base = (node) => {
@@ -516,13 +526,13 @@ try {
         };
         const label = base(row.querySelector('.sf-list-description-label'));
         const value = base(row.querySelector('.sf-list-description-value'));
-        return {delta: Math.round((value - label) * 10) / 10, row: Math.round(row.getBoundingClientRect().height)};
+        const beside = Math.abs(row.querySelector('.sf-list-description-label').getBoundingClientRect().top - row.querySelector('.sf-list-description-value').getBoundingClientRect().top) < 8;
+        return {delta: Math.round((value - label) * 10) / 10, row: Math.round(row.getBoundingClientRect().height), beside};
       });
-      if (badge && Math.abs(badge.delta) > 0.5) failures.push({...label, item: 'badge row', got: badge, want: 'on the label\'s baseline'});
-      if (run === 1) await shot(page, `record-${width}-${theme}`);
-      if (errors.length) failures.push({...label, errors});
-      results.push({...label, ...got, badge});
-      await context.close();
+      if (!badge?.beside || Math.abs(badge.delta) > 0.5) failures.push({...label, item: 'badge row', got: badge, want: 'beside the label, on its baseline'});
+      if (inPlace.errors.length) failures.push({...label, item: 'badge row', errors: inPlace.errors});
+      results.push({...label, item: 'badge row', badge});
+      await inPlace.context.close();
     }
   }
 } finally {

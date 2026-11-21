@@ -3069,7 +3069,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-table/index.js",
-        "sha256": "619fd5937cb410db829195e930396ba31519bdf66c7f8c460056290ec783d293"
+        "sha256": "348e936608b04d55d3675513574df0f6145b55075f00e58803343d7df5b61a99"
       },
       {
         "path": "src/smart/view-table/js/templates/default.js",

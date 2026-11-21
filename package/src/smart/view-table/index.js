@@ -3132,7 +3132,10 @@ class SfTable extends TableElement {
             ? column.options.find((item) => String(item?.value) === String(value))
             : null;
         const named = String(option?.status ?? (typeof raw === "object" ? raw.status : "") ?? "") || String(value);
-        const dot = STATUS_DOTS[named] ?? "neutral";
+        // The option's colour (its badge scheme, C140 (2)) colours the dot of
+        // a value the status words do not name (LV3-24: a choice in colours
+        // drew grey dots and a quiet title on every row).
+        const dot = STATUS_DOTS[named] ?? STATUS_DOTS[String(option?.scheme ?? "")] ?? "neutral";
         const word = (typeof raw === "object" ? raw.label ?? raw.text : null)
             ?? option?.label
             ?? (STATUS_WORDS[named] ? this.text(STATUS_WORDS[named]) : String(value));
