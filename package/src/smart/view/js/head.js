@@ -1474,7 +1474,10 @@ export class ListHead {
         // «Колонки» (C404, C406): the table's own column window, against it.
         const columns = target.closest(".sf-view-head-columns, [data-columns]");
         if (columns) {
-            this.view.table?.openColumnSettings?.(columns.closest(".sf-view-head-columns") ?? columns);
+            // After this click has gone by: the window opened during it took
+            // the same click for one outside it and closed at once.
+            const anchor = columns.closest(".sf-view-head-columns") ?? columns;
+            setTimeout(() => this.view.table?.openColumnSettings?.(anchor), 0);
             return;
         }
         if (target.closest("[data-zone-toggle]")) {
