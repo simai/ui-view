@@ -489,7 +489,7 @@ export class ListHead {
         // of the row is the order of these two strings.
         const toggle = `<sf-button-icon class="sf-view-head-zone-toggle" data-zone-toggle size="${size}" appearance="ghost" scheme="on-surface" icon="view_quilt" aria-controls="" hidden></sf-button-icon>`;
         // The owner's data menu is «⋯» (C407), not more_vert.
-        const more = `<sf-button-icon class="sf-view-head-more" data-list-menu size="${size}" appearance="ghost" scheme="on-surface" icon="more_horiz" aria-haspopup="menu" hidden></sf-button-icon>`;
+        const more = `<sf-button-icon class="sf-view-head-more" data-list-menu size="${size}" appearance="outline" scheme="on-surface" icon="more_horiz" aria-haspopup="menu" hidden></sf-button-icon>`;
         const changed = pop("state", "bottom-start", `<sf-button slot="trigger" class="sf-view-head-changed" size="${size}" appearance="ghost" scheme="primary" icon-start="edit_note"></sf-button>`);
         this.root.innerHTML = phone
             ? `<div class="sf-view-head-title" data-title>
@@ -620,6 +620,10 @@ export class ListHead {
         set(search, "disabled", refused ? "" : null);
         const typed = String(this.query.search ?? "");
         if (search && !search.contains(document.activeElement) && (search.value ?? "") !== typed) search.value = typed;
+        // The data menu's look (LV3-9): outline by default, the height and
+        // frame of the search and «Создать»; the view's head.menu tonal or ghost.
+        const menuLook = String(this.view.viewConfig?.head?.menu ?? "").trim();
+        set(one(".sf-view-head-more"), "appearance", ["outline", "tonal", "ghost"].includes(menuLook) ? menuLook : "outline");
         const create = one(".sf-view-head-create");
         set(create, "hidden", this.creatable ? null : "");
         set(create, phone ? "aria-label" : "text", this.text("headCreate"));
@@ -1088,7 +1092,7 @@ export class ListHead {
                     item.shared || item.kind === "shared" ? `<sf-icon icon="group" size="1/2" aria-label="${esc(this.text("headSharedMark"))}" title="${esc(item.owner_name ? `${this.text("headSharedMark")}: ${item.owner_name}` : this.text("headSharedMark"))}"></sf-icon>` : "",
                 ].join("");
                 return `<div class="sf-view-head-saved"><sf-radio data-saved="${esc(id)}" size="${size}" name="sf-view-head-saved" value="${esc(id)}" label="${esc(label)}"${id === open ? " checked" : ""}></sf-radio>${marks}`
-                    + `<sf-button-icon data-saved-menu="${esc(id)}" size="${size}" icon="more_vert" appearance="ghost" scheme="on-surface" aria-haspopup="menu" aria-label="${esc(this.text("headFilterActions").replace("{name}", item.name ?? id))}"></sf-button-icon></div>`;
+                    + `<sf-button-icon data-saved-menu="${esc(id)}" size="${size}" icon="more_horiz" appearance="ghost" scheme="on-surface" aria-haspopup="menu" aria-label="${esc(this.text("headFilterActions").replace("{name}", item.name ?? id))}"></sf-button-icon></div>`;
             }).join("")}</div>`;
         }
         if (kind === "filter:fields") {

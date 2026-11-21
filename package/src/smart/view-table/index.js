@@ -1680,7 +1680,7 @@ class SfTable extends TableElement {
         if (column.system || column.component || column.renderer === "link" || column.role === "title") return null;
         // A status or a fact (C31) is the full renderer's: the dot with its
         // word, the badge.
-        if (column.list === "status" || column.list === "fact") return null;
+        if (column.list === "status" || (column.list === "fact" && this.factMarked(column, row))) return null;
         if (this.isTree() || row.path || this.cellEditable(row, column)) return null;
         const value = row[key];
         if (value === null || typeof value === "undefined") return {kind: "empty"};
@@ -3015,7 +3015,7 @@ class SfTable extends TableElement {
     listRoles(columns = this.getColumns?.() ?? []) {
         const roles = {status: null, title: null, supporting: [], facts: [], any: false};
         for (const column of columns) {
-            const role = column?.list;
+            const role = this.phoneRole(column, columns);
             if (!column?.key || SYSTEM_COLUMN_KEYS.has(column.key) || column.system) continue;
             if (!LIST_ROLES.has(role)) continue;
             roles.any = true;
@@ -3025,6 +3025,62 @@ class SfTable extends TableElement {
             else if (role === "fact") roles.facts.push(column);
         }
         return roles;
+    }
+
+    // The fields a person keeps in a phone row («На телефоне» in the column
+    // window, LV3-11): the keys, or null while they chose none and the
+    // host's columns[].list and list-fields decide. Kept for this table.
+    get phoneFields() {
+        const chosen = this.tableView?.phoneFields;
+        return Array.isArray(chosen) ? chosen.map(String) : null;
+    }
+
+    // The data columns a phone row may show beside its title and state.
+    phoneColumns(columns = this.getColumns?.() ?? []) {
+        const data = columns.filter((column) => column?.key && !SYSTEM_COLUMN_KEYS.has(column.key) && !column.system);
+        const hostRoles = data.some((column) => LIST_ROLES.has(column.list));
+        const title = data.find((column) => column.list === "title") ?? data.find((column) => column.role === "title")
+            ?? (hostRoles ? data.find((column) => !column.list) : data.find((column) => column.visible !== false)) ?? data[0];
+        return data.filter((column) => column !== title && column.list !== "status" && column.list !== "title");
+    }
+
+    // The fields a phone row shows now: the person's, else the host's
+    // supporting lines and facts, else the first list-fields by priority.
+    phoneShownKeys(columns = this.getColumns?.() ?? []) {
+        const candidates = this.phoneColumns(columns);
+        const chosen = this.phoneFields;
+        if (chosen) return candidates.filter((column) => chosen.includes(String(column.key))).map((column) => String(column.key));
+        if (candidates.some((column) => LIST_ROLES.has(column.list))) {
+            return candidates.filter((column) => column.list === "supporting" || column.list === "fact").map((column) => String(column.key));
+        }
+        const limit = Math.max(0, Number(this.getProp?.("listFields") ?? 3) || 0);
+        return candidates.filter((column) => column.visible !== false)
+            .map((column, order) => ({column, order}))
+            .sort((a, b) => ((a.column.priority ?? 1e6) - (b.column.priority ?? 1e6)) || (a.order - b.order))
+            .slice(0, limit).map(({column}) => String(column.key));
+    }
+
+    // A column's place in a phone row: the host's (columns[].list), or, when
+    // the person chose the fields of a list whose host names roles, shown as
+    // the host's role (a number, money or a date at the end as a figure, the
+    // rest on the line under the title) or hidden.
+    phoneRole(column, columns) {
+        const chosen = this.phoneFields;
+        if (!chosen || !column?.key || column.list === "status" || column.list === "title") return column?.list;
+        if (!columns.some((one) => LIST_ROLES.has(one?.list))) return column.list;
+        if (!this.phoneColumns(columns).includes(column)) return column.list;
+        if (!chosen.includes(String(column.key))) return "hidden";
+        if (column.list === "supporting" || column.list === "fact") return column.list;
+        const type = column.propertyType ?? column.property_type ?? column.type;
+        return this.isNumberColumn(column) || type === "date" || type === "datetime" ? "fact" : "supporting";
+    }
+
+    // Whether a fact says more than its value (a status, a warning, a
+    // colour): only such a fact is a badge in a table cell (LV3-12); a plain
+    // value of a fact column draws as its type does.
+    factMarked(column, row) {
+        const fact = this.listFact(column, row);
+        return Boolean(fact && (fact.level > 0 || fact.scheme));
     }
 
     // The ids of the quick actions, in the order written, at most three.
@@ -3057,6 +3113,11 @@ class SfTable extends TableElement {
             ? column.options.find((item) => String(item?.value) === String(value))
             : null;
         if (option) return String(option.label ?? option.value);
+        // A typed value as its cell shows it (LV3-13: money read «9800»).
+        if (typeof value !== "boolean") {
+            const typed = this.cellValue?.(column, value);
+            if (typeof typed === "string" || typeof typed === "number") return String(typed);
+        }
         return String(this.cellText?.(column, value) ?? value);
     }
 
@@ -5571,9 +5632,16 @@ class SfTable extends TableElement {
         // setting is gone, and every part of the list follows the one choice.
         const density = {normal: "viewDensityNormal", compact: "viewDensityCompact"};
         const toggle = (id, word) => ({id, type: "switch", text: this.text(word), value: view[id] === true});
+        // «На телефоне» (LV3-11): which fields a record shows as a phone row,
+        // flat rows after the fields (a second group would be a tab).
+        const phone = this.phoneColumns();
+        const shown = new Set(this.phoneShownKeys());
+        const phoneRows = phone.length ? [{type: "separator"}, {type: "heading", text: this.text("settingsPhoneHeading")},
+            ...phone.map((column) => ({id: `phone:${column.key}`, type: "switch", text: column.label || String(column.key), value: shown.has(String(column.key))}))] : [];
         const items = [
             {type: "group", text: this.text("settingsFieldsTab"), items: [
                 {id: "columns", type: "fields", text: this.text("settingsFieldsTab"), sortable: true, pinnable: true, options},
+                ...phoneRows,
             ]},
             {type: "group", text: this.text("settingsViewTab"), items: [
                 {id: "density", type: "choice", text: this.text("viewDensity"), value: this.shownViewDensity,
@@ -5611,7 +5679,13 @@ class SfTable extends TableElement {
         const settings = event.currentTarget;
         const {id, value} = event.detail ?? {};
         if (id === "columns") this.applyColumnsSetting(value);
-        else if (["density", "lines", "singleLine", "stickyHead"].includes(id)) {
+        else if (String(id ?? "").startsWith("phone:")) {
+            const key = String(id).slice(6);
+            const keys = new Set(this.phoneShownKeys());
+            if (value) keys.add(key); else keys.delete(key);
+            const order = this.phoneColumns().map((column) => String(column.key));
+            this.setTableView({phoneFields: order.filter((one) => keys.has(one))}, {everywhere: false});
+        } else if (["density", "lines", "singleLine", "stickyHead"].includes(id)) {
             this.setTableView({[id]: value});
         }
         // A change the table did not take (a system column's pin or place)

@@ -8,7 +8,7 @@
       "version": "1.32.0",
       "kind": "minor",
       "recorded_on": "2026-11-22",
-      "consumer": "Nothing to change for a host. The gear above «≡» opens the column window; under sf-view's list head it holds the columns only (data-sf-columns-only, C406). openColumnSettings(anchor) opens the same window from elsewhere («Колонки» of the list head). The look the person sets (density, one line, lines) holds for every table (C408): setTableView keeps it in the general preference by default, the «Для всех моих списков» row is gone; view-change says everywhere.",
+      "consumer": "Nothing to change for a host. The gear above «≡» opens the column window; under sf-view's list head it holds the columns only (data-sf-columns-only, C406). openColumnSettings(anchor) opens the same window from elsewhere («Колонки» of the list head). The look the person sets (density, one line, lines) holds for every table (C408): setTableView keeps it in the general preference by default, the «Для всех моих списков» row is gone; view-change says everywhere.  «На телефоне» in the column window: the person chooses the fields a record shows as a phone row (kept for this table; columns[].list and list-fields stay the host's defaults, LV3-11). A fact column draws its plain values as its type in a table cell; only a fact with a status or a colour is a badge (LV3-12). A phone row formats its values by the column's type, shows every figure one under another and the due date whole (LV3-13), and the state's word for every state (LV3-24).",
       "evidence": "control/evidence/2026-11-22-view-r14/README.md"
     },
     {
@@ -3171,7 +3171,8 @@
           "from": "1.31.0",
           "to": "1.32.0",
           "changes": [
-            "C406 column window from the gear and openColumnSettings, C408 the look kept for every table by default"
+            "C406 column window from the gear and openColumnSettings, C408 the look kept for every table by default",
+            "LV3-11 phone fields, LV3-12 plain facts in cells, LV3-13 typed phone row figures, LV3-24 state word"
           ]
         }
       ]

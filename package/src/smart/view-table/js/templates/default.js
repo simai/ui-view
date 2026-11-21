@@ -899,12 +899,17 @@ export function renderTableTemplate(context) {
         const listTitle = (row) => (title.role === 'title'
             ? renderTitleLink(context, row, renderCellValue(row, title))
             : renderCellValue(row, title));
+        // The person's «На телефоне» fields, else the first list-fields by
+        // priority (LV3-11; phoneShownKeys).
+        const phoneKeys = context.component.phoneShownKeys?.(columns);
         const limit = Math.max(0, Number(context.component.getProp?.('listFields') ?? 3) || 0);
-        const fields = data.filter((column) => column !== title)
-            .map((column, order) => ({column, order}))
-            .sort((a, b) => ((a.column.priority ?? 1e6) - (b.column.priority ?? 1e6)) || (a.order - b.order))
-            .slice(0, limit)
-            .map(({column}) => column);
+        const fields = phoneKeys
+            ? phoneKeys.map((key) => data.find((column) => String(column.key) === key && column !== title)).filter(Boolean)
+            : data.filter((column) => column !== title)
+                .map((column, order) => ({column, order}))
+                .sort((a, b) => ((a.column.priority ?? 1e6) - (b.column.priority ?? 1e6)) || (a.order - b.order))
+                .slice(0, limit)
+                .map(({column}) => column);
         const filled = (value) => !(value === null || value === undefined || value === '' || (Array.isArray(value) && !value.length));
         // A record list (C259, VT-2): «≡» right after the box, where the
         // table has it; the quick actions of a resource list (C31) keep the end.
@@ -984,7 +989,8 @@ export function renderTableTemplate(context) {
     function listAmountColumn(columns) {
         const data = columns.filter((column) => column?.key && !SYSTEM_COLUMNS.has(column.key) && !column.system && column.visible !== false);
         const type = (column) => column.propertyType ?? column.property_type ?? column.type;
-        return data.find((column) => type(column) === 'money') ?? data.find((column) => context.component.isNumberColumn?.(column) && column.list !== 'hidden') ?? null;
+        const kept = (column) => (context.component.phoneRole?.(column, columns) ?? column.list) !== 'hidden';
+        return data.find((column) => type(column) === 'money' && kept(column)) ?? data.find((column) => context.component.isNumberColumn?.(column) && kept(column)) ?? null;
     }
 
     // ─── the list of resources (owner decision C31) ─────────────────────────
@@ -1005,7 +1011,9 @@ export function renderTableTemplate(context) {
         // A record list (C259, VT-2): no quick actions -- «≡» after the box,
         // the title over its second line, then every fact and the amount.
         const record = !context.quickActionIds?.length;
-        const amount = record ? listAmountColumn(columns) : null;
+        // The amount once: a money column the facts already show is not drawn again.
+        const amountColumn = record ? listAmountColumn(columns) : null;
+        const amount = amountColumn && !facts.includes(amountColumn) ? amountColumn : null;
         const titleOf = (row) => {
             const text = component.listText(title, row[title?.key]);
             return title?.role === 'title' || roles.title || opensRow
@@ -1027,7 +1035,10 @@ export function renderTableTemplate(context) {
                     // The most worrying fact, the one a narrow list keeps.
                     const worst = shown.reduce((found, item) => ((item.fact?.level ?? 0) > (found?.fact?.level ?? 0) ? item : found), null);
                     const words = supporting.map((column) => component.listText(column, row[column.key])).filter(Boolean);
-                    const lead = state?.dot === 'neutral' ? state.word : '';
+                    // The state's word leads the line for every state (LV3-24); a
+                    // wide list keeps it for a stopped one only (C31).
+                    const lead = state?.word ?? '';
+                    const coloured = state && state.dot !== 'neutral';
                     return keyed(`item:${component.rowsGeneration?.() ?? 0}:${row.id ?? rowIndex}`, html`
                         <li class="sf-table-list-item sf-table-resource"
                             data-sf-record=${record && menu ? '' : nothing}
@@ -1056,7 +1067,7 @@ export function renderTableTemplate(context) {
                                     ? (row.__tree || row.path ? renderTreeCell(context, row, titleOf(row)) : titleOf(row))
                                     : nothing}</span>
                                 ${lead || words.length ? html`<span class="sf-table-resource-supporting">${lead
-                                    ? html`<span class="sf-table-resource-lead">${lead}</span>${words.length ? ' · ' : ''}`
+                                    ? html`<span class="sf-table-resource-lead" data-coloured=${coloured ? '' : nothing}>${lead}${words.length ? ' · ' : ''}</span>`
                                     : nothing}${words.join(' · ')}</span>` : nothing}
                             </span>
                             ${record && menu ? html`<span class="sf-table-list-end">
@@ -1396,9 +1407,10 @@ export function renderTableTemplate(context) {
                 <span class="sf-dot sf-dot--${state.dot}" aria-hidden="true"><span class="sf-dot-item"></span></span>
                 <span>${state.word}</span></span>` : nothing;
         }
-        if (column.list === 'fact') {
-            const fact = context.component.listFact(column, row);
-            return fact ? renderFactBadge(fact) : nothing;
+        // A plain value of a fact column draws as its type does (LV3-12: the
+        // phone row's roles put money and dates raw in pills in the table).
+        if (column.list === 'fact' && context.component.factMarked?.(column, row)) {
+            return renderFactBadge(context.component.listFact(column, row));
         }
 
         // A boolean the host lets this person write is a checkbox in the cell;

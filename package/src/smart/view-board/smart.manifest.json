@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-board",
-  "version": "1.1.5",
+  "version": "1.1.6",
   "title": "Board",
   "summary": "The board layout of the view set: lanes by one field, cards with up to four fields in the «Кратко» place, a move is a change of that field the host settles. sf-view layout=\"board\" draws it over the lane window.",
   "kind": "smart",
@@ -549,6 +549,13 @@
         "changes": [
           "View round 12, owner decision D2 (DEV msg-4de06ae6): lang title and board-label «Канбан» / «Kanban»; component.json and smart.manifest.json focus note."
         ]
+      },
+      {
+        "from": "1.1.5",
+        "to": "1.1.6",
+        "changes": [
+          "LV3-16 box and «⋯» on the title's first line"
+        ]
       }
     ]
   },
@@ -566,11 +573,11 @@
       },
       {
         "path": "src/smart/view-board/js/templates/default.js",
-        "sha256": "0b7679cef18470e755b04df36b808c146b19e7a3d55fe42223005efa3d542c15"
+        "sha256": "c26310cf4b5497aa1c524e473d6c33621fa549d097c2ed63c3b62352eaa15704"
       },
       {
         "path": "src/smart/view-board/js/templates/default.css",
-        "sha256": "297880db2d93b3b0ded5f81c74a557c6fe3a269c8792bcd355637f0aa5da9436"
+        "sha256": "a01644e66d892b63cdd6229966293c16d3e52da53194eadae84c1de4ad88cf1c"
       },
       {
         "path": "src/smart/field-renderers/index.js",

@@ -156,6 +156,23 @@
   .sf-view-board__title:hover { text-decoration: underline; }
 
   .sf-view-board__box { flex: 0 0 auto; display: inline-flex; opacity: 0; }
+
+  /* The box and «⋯» stand on the title's first line (LV3-16: «⋯» stood
+     6 px below it): each is as tall as that line and centres its control,
+     which may be taller and overhangs it evenly. */
+  .sf-view-board__box,
+  .sf-view-board__end {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    block-size: var(--sf-text-height-1\/2);
+    overflow: visible;
+  }
+
+  .sf-view-board[data-size="1"] .sf-view-board__box,
+  .sf-view-board[data-size="1"] .sf-view-board__end {
+    block-size: var(--sf-text-height-1);
+  }
   .sf-view-board__card:hover .sf-view-board__box,
   .sf-view-board__card:focus-within .sf-view-board__box,
   .sf-view-board__card:focus .sf-view-board__box,

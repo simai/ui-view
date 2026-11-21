@@ -1088,6 +1088,14 @@
     color: var(--sf-on-surface);
   }
 
+  /* A coloured state's word stays for a narrow list and a phone (LV3-24);
+     a wide resource list says it by the dot and its tip (C31). */
+  @container (inline-size >= 37.5rem) {
+    :is(sf-view-table, sf-table) .sf-table-resource-lead[data-coloured] {
+      display: none;
+    }
+  }
+
   :is(sf-view-table, sf-table) .sf-table-resource-facts {
     gap: var(--sf-space-1\/2);
   }
@@ -1127,13 +1135,25 @@
      quick actions fold into «more», and of the facts only the most worrying
      stays -- none when all is well. */
   @container (inline-size < 37.5rem) {
-    :is(sf-view-table, sf-table) .sf-table-resource-quick,
-    :is(sf-view-table, sf-table) .sf-table-resource-fact:not([data-worst]) {
+    :is(sf-view-table, sf-table) .sf-table-resource-quick {
+      display: none;
+    }
+
+    /* Every figure a row has, one under another at the end (LV3-13: one
+       fact only hid the due date); an empty place takes no line. */
+    :is(sf-view-table, sf-table) .sf-table-resource-facts {
+      flex-direction: column;
+      align-items: flex-end;
+      gap: var(--sf-a4);
+    }
+
+    :is(sf-view-table, sf-table) .sf-table-resource-fact:not(:has(sf-badge)) {
       display: none;
     }
 
     :is(sf-view-table, sf-table) .sf-table-resource-fact {
       inline-size: auto;
+      white-space: nowrap;
     }
 
     :is(sf-view-table, sf-table) .sf-table-resource-actions {

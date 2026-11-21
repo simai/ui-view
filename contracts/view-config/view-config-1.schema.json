@@ -64,7 +64,8 @@
           "properties": {
             "filter_fields": {"type": "array", "items": {"$ref": "#/$defs/key"}},
             "chrome": {"type": "array", "uniqueItems": true, "items": {"type": "string", "enum": ["search", "filter", "look", "page-size"]}},
-            "look": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^[a-z_]+$"}}
+            "look": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^[a-z_]+$"}},
+            "menu": {"type": "string", "enum": ["outline", "tonal", "ghost"], "default": "outline"}
           }
         },
         "required": {"type": "boolean"},

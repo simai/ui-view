@@ -416,7 +416,7 @@
       "paging": {
         "type": "string",
         "default": "both",
-        "description": "How the table's rows come page after page (owner decision D1): pages (page numbers only), more (a full-width «Показать ещё» under the last row), both (the button with the page numbers under it and «1–20 из 48» beside them; the default), endless (the next page loads when the end of the list comes into view; offered, not recommended for tables). The person's choice in «Настроить вид» is kept per view; a view's layouts.table.paging comes before this attribute.",
+        "description": "How the table's rows come page after page (owner decision D1): pages (page numbers only), more (a full-width «Показать ещё» under the last row), both (the button with the page numbers under it and «1–20 из 48» beside them; the default), endless (the next page loads when the end of the list comes into view; offered, not recommended for tables). The person's choice in «Вид» is kept per view; a view's layouts.table.paging comes before this attribute.",
         "enum": [
           "pages",
           "more",
@@ -1993,7 +1993,8 @@
         "from": "1.32.0",
         "to": "1.33.0",
         "changes": [
-          "C404 fixed list look and footer grid, C405 «Вид» as the sf-settings drill menu with per-kind rows, C406 the gear always, C407 more_horiz data menu, C408 the look for every list of the kind, LV2-2 marks across pages and kinds, LV2-7 «Выбраны все N» to the cards, D1 paging for the cards"
+          "C404 fixed list look and footer grid, C405 «Вид» as the sf-settings drill menu with per-kind rows, C406 the gear always, C407 more_horiz data menu, C408 the look for every list of the kind, LV2-2 marks across pages and kinds, LV2-7 «Выбраны все N» to the cards, D1 paging for the cards",
+          "LV3-9 head.menu, LV3-23 saved sets «⋯»"
         ]
       }
     ]
@@ -2012,7 +2013,7 @@
       },
       {
         "path": "src/smart/view/docs.md",
-        "sha256": "fce3a0a39f18b25b542d4acef9c107a2da5fb574365c7c0a7bc8d075365522ab"
+        "sha256": "00f76e0b4fc7c8f135eb3f55c92a61597be87238896e5c75fa7e288f800914d2"
       },
       {
         "path": "tests/fixtures/data-view-composite-lab.html",

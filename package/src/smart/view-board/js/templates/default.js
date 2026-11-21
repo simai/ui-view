@@ -48,9 +48,9 @@ function renderCard(context, lane, record) {
                                  aria-label=${component.word("select-text", {title})}></sf-checkbox>
                 </span>` : nothing}
                 <button type="button" class="sf-view-board__title" data-open=${id}>${title}</button>
-                <sf-button-icon class="sf-view-board__menu" size=${context.size} appearance="ghost" scheme="on-surface-variant"
+                <span class="sf-view-board__end"><sf-button-icon class="sf-view-board__menu" size=${context.size} appearance="ghost" scheme="on-surface-variant"
                                 icon="more_horiz" data-menu=${id} aria-label=${component.word("card-menu-text", {title})}
-                                tooltip=${component.word("actions-text")}></sf-button-icon>
+                                tooltip=${component.word("actions-text")}></sf-button-icon></span>
             </div>
             ${context.cardFields.length ? html`<div class="sf-view-board__fields">
                 ${context.cardFields.map((field) => html`<span class="sf-view-board__field" data-key=${String(field.key)}

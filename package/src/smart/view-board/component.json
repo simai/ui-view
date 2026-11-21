@@ -2,8 +2,15 @@
   "$comment": "sf-view-board, standard simai.smart-component 1.4 (vocabulary 1.1.5): the board layout of the view set (kanban; owner decisions C298, C304). Study: ui-control control/research/2026-11-17-board-view. Drag and keys are sf-sortable's, the card is .sf-card, the card fields the Framework field renderers' cell output, menus SF.menu.open, the selection bar sf-bulk-actions where the pair has it.",
   "id": "smart.view-board",
   "tag": "sf-view-board",
-  "version": "1.1.5",
+  "version": "1.1.6",
   "x-history": [
+    {
+      "version": "1.1.6",
+      "kind": "patch",
+      "recorded_on": "2026-11-22",
+      "consumer": "Nothing to change for a host. The card's box and «⋯» stand on the title's first line (LV3-16: «⋯» was 6 px below it).",
+      "evidence": "control/evidence/2026-11-22-view-r14/README.md"
+    },
     {
       "version": "1.1.5",
       "kind": "patch",
@@ -659,6 +666,13 @@
           "to": "1.1.5",
           "changes": [
             "View round 12, owner decision D2 (DEV msg-4de06ae6): lang title and board-label «Канбан» / «Kanban»; component.json and smart.manifest.json focus note."
+          ]
+        },
+        {
+          "from": "1.1.5",
+          "to": "1.1.6",
+          "changes": [
+            "LV3-16 box and «⋯» on the title's first line"
           ]
         }
       ]

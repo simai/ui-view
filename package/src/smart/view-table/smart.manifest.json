@@ -3057,7 +3057,8 @@
         "from": "1.31.0",
         "to": "1.32.0",
         "changes": [
-          "C406 column window from the gear and openColumnSettings, C408 the look kept for every table by default"
+          "C406 column window from the gear and openColumnSettings, C408 the look kept for every table by default",
+          "LV3-11 phone fields, LV3-12 plain facts in cells, LV3-13 typed phone row figures, LV3-24 state word"
         ]
       }
     ]
@@ -3068,15 +3069,15 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-table/index.js",
-        "sha256": "754a4782a3761b7433d183df6ac805c67ebb11992b6943b13c2fa1fac44ee93f"
+        "sha256": "619fd5937cb410db829195e930396ba31519bdf66c7f8c460056290ec783d293"
       },
       {
         "path": "src/smart/view-table/js/templates/default.js",
-        "sha256": "8c4b92ffe8f97d0079e06066fabc886542156c40435bb785c42ee35dbebdd4f8"
+        "sha256": "966d3b33d218f64bf0d5bb52e146910f00c1536d9dea848cf7066b704324189d"
       },
       {
         "path": "src/smart/view-table/js/templates/default.css",
-        "sha256": "ae758c5a66f384c51f1f26dcec12d3bce2fafc9944967d555f2a447999095262"
+        "sha256": "e320e690ec849ceb81769087ff488b39e41711d63117afb22e724ff839d88132"
       },
       {
         "path": "src/smart/helpers/option-badge.js",

@@ -94,6 +94,14 @@ A card without a cover centres its box and «⋯» on the title's first line
 shows its box. The marks go to `sf-bulk-actions` (C295) with the host's
 actions where the pair has it, else to the same strip of `sf-button`.
 
+Since 1.2.0 `keep-selection` keeps the marks of records not on screen (sf-view
+sets it: the marks hold across pages and display kinds, LV2-2), and
+`all-selected` marks every record under the filter («Выбрать все N» in the
+bar, or «Выбраны все N» carried from the table, LV2-7): every card is drawn
+marked, the bar says the total, an action asks `scope: "all"`, and unmarking
+one card ends it. `select` carries `all` while it holds. Under sf-view the
+cards' «Подгрузка» is `layouts.cards.paging` (pages, more, both, endless).
+
 ## Events
 
 | Event | Detail | When |
