@@ -180,6 +180,28 @@ const panelMeasure = (step) => {
     return `var(--sf-measure-${n}, calc(${n} * var(--sf-text--size-1) / 2))`;
 };
 const PANEL_WIDTH_UNTIL = "2027-01-01";
+
+// One owner of the sections' column (VR11-1, owner remark via DEV msg-0ded9f0c):
+// where the card lays its sections as a column it reserves 12rem for them, and
+// the vertical sf-tabs in that column must draw the vertical list. sf-tabs
+// folds a vertical list into its underline row below the h1 step (44rem) of
+// the first box around the column wider than it (VP-26, C181 (2)); in a panel
+// below the whole screen that box is the panel's scroller, at most 43rem (step
+// 2: 32rem + 12rem + a gutter, less the panel's gutters), so the column was
+// reserved and the tabs drew the row inside it (688 px scroller, 192 px
+// column, aria-orientation horizontal). The pair's sf-tabs has no way to be
+// told not to fold; the set asks the SIMAI Framework for one (proposed:
+// fold="auto|never" on sf-tabs, never = type="vertical" always draws the
+// vertical list, its place no longer read). Until a pair carries it, a panel
+// below the whole screen lays its sections as tabs on top and is not widened
+// for a column; once sf-tabs declares the property the slider keeps the
+// vertical list (the owner's default) unless the widened panel would pass 60
+// percent of the window (1024 px and below), and then lays tabs on top.
+const COLUMN_WINDOW_SHARE = 0.6;
+const tabsHoldColumn = () => {
+    const tabs = globalThis.customElements?.get?.("sf-tabs");
+    try { return Boolean(tabs?.props && Object.prototype.hasOwnProperty.call(tabs.props, "fold")); } catch { return false; }
+};
 const nearestPanelStep = (width) => {
     const found = /^\s*(\d+(?:\.\d+)?)\s*(rem|em|px)\s*$/u.exec(String(width ?? ""));
     if (!found) return "2";
@@ -663,8 +685,72 @@ class SfPropertyView extends PropertyViewElement {
         // drawn wide from its first frame, so a sectioned record does not
         // widen it under the person (first paint gate); a record of one
         // section takes the step's width when it comes.
+        if (!this.sectionColumnFits) return false;
         if (!this.record) return true;
         return (this.sections?.length ?? 0) > 1 || this.configuring;
+    }
+
+    // Whether a column of sections is drawn as the vertical list (VR11-1): the
+    // one place that decides it, read by panelWidened and sectionsLayout, so
+    // the card never reserves a column the tabs fold out of. A panel below the
+    // whole screen: only with an sf-tabs that can be told not to fold, and
+    // only while the widened panel stays within 60 percent of the window. The
+    // whole screen and a card in place: unless the drawn tabs folded there
+    // (_columnFolded, the window width they folded at; read after each render).
+    get sectionColumnFits() {
+        if (this.panel && this.drawerStep !== "full") {
+            if (!tabsHoldColumn()) return false;
+            const width = this._widenedPanelWidth();
+            const room = globalThis.innerWidth || 0;
+            return !(width > 0 && room > 0 && width > room * COLUMN_WINDOW_SHARE);
+        }
+        return !(this._columnFolded && (globalThis.innerWidth || 0) <= this._columnFolded);
+    }
+
+    // The widened panel's width in px (step + the column + a gutter), measured
+    // once per window width and density: the step is a text measure, so it
+    // moves with the body text size.
+    _widenedPanelWidth() {
+        const doc = globalThis.document;
+        if (!doc?.body) return 0;
+        const key = `${globalThis.innerWidth}|${this.drawerStep}|${doc.documentElement.getAttribute("data-sf-density") ?? ""}`;
+        if (this._widenedWidth?.key === key) return this._widenedWidth.value;
+        const probe = doc.createElement("div");
+        probe.setAttribute("aria-hidden", "true");
+        probe.style.cssText = `position: absolute; visibility: hidden; pointer-events: none; inset-block-start: 0; inset-inline-start: 0; inline-size: calc(${panelMeasure(this.drawerStep)} + ${SECTIONS_WIDTH} + var(--sf-drawer-gutter, var(--sf-space-1)));`;
+        doc.body.append(probe);
+        const value = probe.getBoundingClientRect().width;
+        probe.remove();
+        this._widenedWidth = {key, value};
+        return value;
+    }
+
+    // After a render (VR11-1): a column whose vertical tabs drew the folded
+    // row is laid as tabs on top instead, until the window is wider than where
+    // they folded. Only where the column is not decided before drawing (the
+    // whole screen, a card in place).
+    _checkSectionColumn() {
+        if (this.sectionsLayout !== "column" || this.configuring) return;
+        const root = this.panel ? this.panelContent?.() : this;
+        const tabs = root?.querySelector?.(".sf-property-view-sections sf-tabs");
+        if (!tabs) return;
+        // The tabs fold later too (their place narrows): every render of theirs is read.
+        this._watchedColumnTabs ??= new WeakSet();
+        if (!this._watchedColumnTabs.has(tabs)) {
+            this._watchedColumnTabs.add(tabs);
+            tabs.onAfterRender?.(() => requestAnimationFrame(() => this._checkSectionColumn()), {once: false, immediate: false});
+        }
+        const list = tabs.querySelector("[role=tablist]");
+        if (!list || list.getAttribute("aria-orientation") === "vertical") return;
+        this._columnFolded = globalThis.innerWidth || 1;
+        this.requestComponentUpdate("section-column");
+    }
+
+    // The window grew past where the column's tabs folded: the column is tried again.
+    _onColumnResize() {
+        if (!this._columnFolded || (globalThis.innerWidth || 0) <= this._columnFolded) return;
+        this._columnFolded = 0;
+        this.requestComponentUpdate("section-column");
     }
 
     // The drawer's width: the step's text measure (C396), and with the
@@ -745,11 +831,12 @@ class SfPropertyView extends PropertyViewElement {
         // round 5, LV-3). There it arranges stacked, as tabs do (C311 (4)):
         // the picker, «Вкладки» (dragged as before), then the fields.
         if (this.panel) {
-            if (this.drawerStep === "full") return "column";
+            if (this.drawerStep === "full") return this.configuring || this.sectionColumnFits ? "column" : "tabs";
             if (this.configuring) return "tabs";
             return this.sectionsAs === "list" && this.panelWidened ? "column" : "tabs";
         }
-        return this.sectionsAs === "tabs" ? "tabs" : "column";
+        if (this.sectionsAs === "tabs" || !this.sectionColumnFits) return "tabs";
+        return "column";
     }
 
     // Once per element: a former `panel-width` is said in the console with
@@ -1658,6 +1745,7 @@ class SfPropertyView extends PropertyViewElement {
             }
             this._askForUndefinedTags();
             this._askForArrangingTags();
+            if (this.sectionsLayout === "column") requestAnimationFrame(() => this._checkSectionColumn());
             // The panel's level for a related record (C289 (6)): whether this
             // panel's drawer is drawn inside another one is known once it is open.
             const nested = this._nestedLabel();
@@ -1743,6 +1831,8 @@ class SfPropertyView extends PropertyViewElement {
             this.requestComponentUpdate("viewport");
         };
         this.sideMedia?.addEventListener?.("change", this._onSideChange);
+        this._onColumnResizeEvent = () => this._onColumnResize();
+        globalThis.addEventListener?.("resize", this._onColumnResizeEvent, {passive: true});
         // Alt+↓ / Alt+↑: the next or the previous record of the view (C305 (4)).
         // The panel is portalled out of the element, so the keys are read on
         // the document for a press inside this card's panel.
@@ -1821,6 +1911,7 @@ class SfPropertyView extends PropertyViewElement {
         this._onDocumentSortableIntent = null;
         if (this._onWideChange) this.wideMedia?.removeEventListener?.("change", this._onWideChange);
         if (this._onSideChange) this.sideMedia?.removeEventListener?.("change", this._onSideChange);
+        if (this._onColumnResizeEvent) globalThis.removeEventListener?.("resize", this._onColumnResizeEvent);
         this._onSideChange = null;
         this.sideMedia = null;
         if (this._onStepKey) document.removeEventListener("keydown", this._onStepKey);
@@ -2407,6 +2498,8 @@ class SfPropertyView extends PropertyViewElement {
             // until then sf-menu, and sf-tabs where sf-menu is not defined.
             sectionColumnTabs: typeof globalThis.customElements?.get?.("sf-tabs")?.prototype?.placeBox === "function"
                 || !globalThis.customElements?.get?.("sf-menu"),
+            // VR11-1: the column's tabs told not to fold, where sf-tabs can be.
+            tabsHoldColumn: tabsHoldColumn(),
             word: (key) => pageText(PROPERTY_VIEW_TEXT, key, this),
             // C311: levels, locks, the head, the tabs' and fields' menus.
             canWriteShared: this.canWriteShared,

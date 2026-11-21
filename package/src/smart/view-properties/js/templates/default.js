@@ -911,6 +911,7 @@ function renderSectionVerticalTabs(context, sections) {
         <sf-tabs
                 class="sf-property-view-section-list"
                 type="vertical"
+                fold=${context.tabsHoldColumn ? 'never' : nothing}
                 size=${context.controlSize ?? nothing}
                 selected=${selected}
                 aria-label=${context.sectionsLabel}
