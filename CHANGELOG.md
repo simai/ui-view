@@ -16,10 +16,37 @@ same numbers with other content); every next set version is above them
 up). Each component.json says the same under `x-decisions`
 `pro-copy-versions`.
 
-## Unreleased — view round 13
+## 1.11.0 — 2026-11-22
 
-View round 13 (round/view-r13, from `round/view-r12` 79f7706), candidate
-1.11.0 over the same pair `ui-b654460cad2a`: the list head and footer study,
+View rounds 11 to 13 (round/view-r11 .. round/view-r13; each accepted by DEV
+with returns, round 13 on 2026-11-22) and the site's home example with the
+full record card and bulk actions (round/view-site-full-card); the rounds'
+entries below.
+
+- Over the same SIMAI Framework pair `ui-b654460cad2a` (ui-source
+  `049a2ba3dc7d`, npm `@simai-studio/ui@5.20261120.1816`, core.runtime
+  1.64.0). The set still needs core.runtime 1.51.0 or newer.
+- `sf-view` 1.32.0, `sf-view-table` 1.31.0, `sf-view-properties` 1.26.0,
+  `sf-view-flow` 1.1.7, `sf-view-board` 1.1.5, `sf-view-cards` 1.1.0,
+  `sf-view-calendar` 1.1.3.
+- Known issues, open in this release (returns of the acceptances, for the
+  next round):
+  - VR13-1: cards reached by a switch from the table show «Показать ещё»
+    without the page row (page numbers, «По 24», the range); a view opened on
+    cards draws the row.
+  - VR13-2: «Изменить» on the full-page record lays the fields again (the
+    two-column read layout becomes one column; C401 holds in the panel).
+  - VR11A-3: the vertical sections list in the record slider waits for
+    sf-tabs fold=never (SIMAI Framework group build 16, G9); tabs on top until
+    then.
+  - VR11A-4: the table's own row drop line waits for the shared SF.Sortable
+    drop marker (group build 16, G10), which pair ui-b654460cad2a does not
+    carry.
+
+### view round 13
+
+View round 13 (round/view-r13, from `round/view-r12` 79f7706), over
+the same pair `ui-b654460cad2a`: the list head and footer study,
 round 4 (owner decisions D1 and D3 of 2026-11-21; returns VHF-13..16) and the
 round 12 acceptance returns VR12A-1 and VR12A-2 (DEV msg-7e2d384f), and the
 record's owner decisions C399-C402 (DEV msg-3215bbda), and the round 5 returns
@@ -79,10 +106,10 @@ Numbers are above every branch of this set and of ui-pro.
 - `sf-view-cards` 1.1.0. D3: card fields one per row, the label over the
   value, a gap after the title; `card_labels` on by default.
 
-## Unreleased — view round 12
+### view round 12
 
-View round 12 (round/view-r12, from `round/view-r11` 9609c88), candidate
-1.10.3 over the same pair `ui-b654460cad2a`: the list head and footer study,
+View round 12 (round/view-r12, from `round/view-r11` 9609c88), over
+the same pair `ui-b654460cad2a`: the list head and footer study,
 rounds 2 and 3 (DEV msg-7d2d0c1e, msg-c31ccebd; returns VHF-3..12), the record
 study (DEV msg-3e47ce93; VRS-7..9) and the favourite star of C393 (the twin of
 ui-pro pro-f6c43828e5f2). Numbers are above ui-pro's copies of the set in
@@ -146,10 +173,10 @@ pro-f6c43828e5f2 (sf-view 1.30.1, sf-view-table 1.29.4, sf-view-properties
   pair ui-b654460cad2a does not carry.
 - Browser probes view-round-12 and view-round-12-r3 (red on 9609c88).
 
-## Unreleased — view round 11
+### view round 11
 
 View round 11 (round/view-r11, from `main` 0c1b7ec with DEV's site branch
-round/view-site-1.10.1 7757233 merged), candidate 1.10.2 over the same pair
+round/view-site-1.10.1 7757233 merged), over the same pair
 `ui-b654460cad2a`.
 
 - `sf-view-properties` 1.23.9 (VR11-1, owner remark): one owner of the
