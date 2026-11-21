@@ -40,7 +40,7 @@ Numbers are above every branch of this set and of ui-pro.
   (Обычная / Компактная) and «Текст в одну строку»; a setting saved there no
   longer re-reads the list. VR5: every part of the head and footer can be
   switched off -- `chrome` takes `search`, `filter`, `look` and `page-size`
-  (a chrome that names no part of a row keeps all of it, as before), the view
+  (a chrome that names none of them keeps them all, as before; one that names any is the whole list), the view
   document takes `head.chrome` and `head.look` (the rows of «Настроить
   вид»), and `view.chrome` / `view.setChrome()` / `view.look` do it by a
   call; «Фильтр» goes by itself without filter fields; an emptied head row

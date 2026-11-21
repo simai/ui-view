@@ -11,9 +11,9 @@
 //   draws the search alone in the head row: «Фильтр» with its bookmark and
 //   fields, «Настроить вид» and «По 20» take no box, the head row stands at
 //   the control height (no gap where they stood), the footer keeps its range
-//   and pages. chrome naming filter and look keeps those and drops the
-//   search; a page that names no part (chrome="toolbar pagination") keeps
-//   everything, as before.
+//   and pages. chrome naming filter, look and page-size keeps those and drops
+//   the search; a page that names no part (chrome="toolbar pagination")
+//   keeps everything, as before.
 // - VR5-2: a host that describes no filter field gets no «Фильтр».
 // - head.chrome of the view document hides what chrome does; a call
 //   (view.chrome = [...], view.setChrome()) changes the head at once.
@@ -56,7 +56,7 @@ window.SF_BOOT_CONFIG = {cacheVersion: 'r13', pluginListVersion: 'r13', preloade
 </head><body><main id="root">`;
 
 const LIST = (theme, {chrome = null, caps = ['row-actions', 'saved-views', 'personal-column-settings', 'create-record'], fields = true,
-  head = null, bulk = true, layouts = "['table','cards','board']"} = {}) => `${HEAD(theme)}
+  head = null, bulk = true, layouts = "['table','cards','board']", permissions = '{record_fields:true}'} = {}) => `${HEAD(theme)}
 <sf-view id="v" aria-label="Заказы" heading="Заказы" head="list" collection="orders" size="1/2"${chrome === null ? '' : ` chrome="${chrome}"`}>
   <sf-view-table slot="content" aria-label="Заказы"></sf-view-table>
   <sf-pagination slot="pagination" top="false" page-size="20"${bulk ? ' actions="paid:Отметить оплаченными|archive:В архив"' : ''}></sf-pagination>
@@ -70,7 +70,7 @@ const LIST = (theme, {chrome = null, caps = ['row-actions', 'saved-views', 'pers
   var ROWS=[];for(var i=0;i<48;i++)ROWS.push({id:'o'+i,revision:'1',actions:['view','delete'],title:'Заказ №'+(2001+i),status:ST[i%3].value,client:i%2?'ООО «Северное сияние»':'ИП Орлов',amount:(10000+i*70)+',00 ₽'});
   var view=document.getElementById('v');
   var port={version:'1.15.0',capabilities:${JSON.stringify(caps)},
-    describe:function(){return {fields:FIELDS,layouts:${layouts},permissions:{record_fields:true}}},
+    describe:function(){return {fields:FIELDS,layouts:${layouts},permissions:${permissions}}},
     raise:function(intent,p){p=p||{};
       if(intent==='query.change'){var qy=p.query||{},per=+qy.per_page||20,page=+qy.page||1;
         return Promise.resolve({answer:'applied',sequence:p.sequence,data:{columns:COLS,records:ROWS.slice((page-1)*per,page*per),total:ROWS.length,
@@ -143,7 +143,8 @@ const parts = (page) => page.evaluate(() => {
   };
 });
 
-// «Настроить вид» by real clicks, the setting rows it shows.
+// «Настроить вид» by real clicks, the setting rows it shows (a setting is
+// an sf-radio or sf-checkbox drawn as display: contents: read by its box).
 const lookRows = async (page) => {
   const zone = await page.evaluate(() => {
     const node = document.querySelector('#v .sf-view-head-zone');
@@ -151,8 +152,10 @@ const lookRows = async (page) => {
   });
   if (!zone) await page.locator('#v .sf-view-head-zone-toggle button').click({timeout: 5000});
   await page.locator('#v :is(.sf-view-head-customize, .sf-view-head-tune) button').first().click({timeout: 5000});
-  await page.waitForFunction(() => [...document.querySelectorAll('[data-setting]')].some((node) => node.getClientRects().length), null, {timeout: 5000});
-  return page.evaluate(() => [...new Set([...document.querySelectorAll('[data-setting]')].filter((node) => node.getClientRects().length).map((node) => node.getAttribute('data-setting')))]);
+  const drawn = () => [...document.querySelectorAll('[data-setting]')].filter((node) => node.getClientRects().length
+    || [...node.querySelectorAll('*')].some((child) => child.getClientRects().length));
+  await page.waitForFunction(`(${drawn})().length > 0`, null, {timeout: 5000});
+  return page.evaluate(`[...new Set((${drawn})().map((node) => node.getAttribute('data-setting')))]`);
 };
 
 const themes = QUICK ? ['light'] : ['light', 'dark'];
@@ -200,7 +203,7 @@ try {
       check(label, !got.filter && got.search, got, 'no «Фильтр» without fields; the search stays');
     });
     await step('head.chrome of the view document', {head: {chrome: ['search']}}, async (label, got) => {
-      check(label, got.search && !got.filter && got.size, got, 'search only in the head; the footer untouched');
+      check(label, got.search && !got.filter && !got.size, got, 'search only: no «Фильтр», no «По 20»');
     });
     await step('a call: view.chrome and setChrome', {}, async (label, got, page, errors) => {
       await page.evaluate(() => { document.getElementById('v').chrome = ['toolbar', 'filter', 'pagination']; });
@@ -212,7 +215,7 @@ try {
       const back = await parts(page);
       check(label, back.search && back.filter && back.size, back, 'setChrome(null) brings every part back');
     });
-    await step('an emptied head row is not drawn', {chrome: 'toolbar pagination look', caps: ['row-actions']}, async (label, got) => {
+    await step('an emptied head row is not drawn', {chrome: 'toolbar pagination look', caps: ['row-actions'], layouts: "['table']", permissions: '{}'}, async (label, got) => {
       check(label, got.row === 0, got.row, 'no head row');
       check(label, got.titleToList !== null && full.titleToList !== null && got.titleToList < full.titleToList, {empty: got.titleToList, full: full.titleToList}, 'the list moves up by the row');
     });

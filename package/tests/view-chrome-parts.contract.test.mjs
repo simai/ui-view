@@ -2,8 +2,9 @@
 // (view round 13, DEV round 5 returns VR5-1, VR5-2, VR5-5, VR5-6; owner:
 // everything in the list can be set or switched off from the backend or by
 // a call). The words are chrome's: search, filter and look inside toolbar,
-// page-size inside pagination. A chrome that names no part of a row keeps
-// all of that row's parts, so a page written before draws what it drew.
+// page-size inside pagination. A chrome that names none of them keeps them
+// all, so a page written before draws what it drew; one that names any is
+// the whole list (what it does not name is not drawn).
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {resolve} from 'node:path';
@@ -48,16 +49,15 @@ test('no chrome, or a chrome that names no part, keeps every part', () => {
   }
 });
 
-test('naming one part of a row hides the others of that row only', () => {
+test('naming one part makes the list whole', () => {
   const element = list('toolbar search pagination');
   assert.equal(element.renders('search'), true);
   assert.equal(element.renders('filter'), false);
   assert.equal(element.renders('look'), false);
-  assert.equal(element.renders('page-size'), true, 'the footer names none of its parts: kept');
-  const footer = list('toolbar pagination page-size');
-  assert.equal(footer.renders('page-size'), true);
-  assert.equal(footer.renders('search'), true);
-  assert.equal(list('toolbar filter look pagination').renders('search'), false);
+  assert.equal(element.renders('page-size'), false);
+  const all = list('toolbar filter look pagination page-size');
+  assert.equal(all.renders('search'), false);
+  for (const part of ['filter', 'look', 'page-size']) assert.equal(all.renders(part), true, part);
 });
 
 test('a part goes with its row', () => {
@@ -72,8 +72,10 @@ test('head.chrome of the view document hides what chrome does', () => {
   assert.equal(element.renders('search'), true);
   assert.equal(element.renders('filter'), false);
   assert.equal(element.renders('look'), false);
-  assert.equal(element.renders('page-size'), true);
+  assert.equal(element.renders('page-size'), false);
   assert.equal(list(null, {chrome: ['page-size', 'filter']}).renders('search'), false);
+  assert.equal(list(null, {chrome: ['page-size', 'filter']}).renders('page-size'), true);
+  assert.equal(list(null, {chrome: []}).renders('search'), false);
   assert.equal(list(null, {filter_fields: ['status']}).renders('search'), true);
 });
 

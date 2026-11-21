@@ -221,9 +221,10 @@ const LABEL_ATTRIBUTES = [...TABLE_LABELS, ...PAGINATION_LABELS, "pagination-ari
 // The parts of the list a host can switch off (VR5, owner: everything in
 // the list can be set or switched off from the backend or by a call). The
 // four old words name whole rows; the rest are parts inside them, each
-// under its row (CHROME_WITHIN). A chrome that names no part of a row keeps
-// all of that row's parts, so chrome="toolbar pagination" of an older page
-// draws what it drew.
+// under its row (CHROME_WITHIN). A chrome that names none of the parts
+// keeps every part, so chrome="toolbar pagination" of an older page draws
+// what it drew; one that names a part is the whole list: a part it does
+// not name is not drawn.
 const CHROME_PARTS = ["toolbar", "pagination", "select", "settings", "search", "filter", "look", "page-size"];
 const CHROME_WITHIN = {search: "toolbar", filter: "toolbar", look: "toolbar", "page-size": "pagination"};
 
@@ -2275,17 +2276,12 @@ class SfDataView extends DataViewElement {
         const row = CHROME_WITHIN[part];
         if (!row) return this.chrome.includes(part);
         if (!this.renders(row)) return false;
-        if (this.getAttribute("chrome") !== null) {
-            const named = this.chrome.filter((word) => CHROME_WITHIN[word] === row);
-            if (named.length && !named.includes(part)) return false;
-        }
-        // The view document's own list (head.chrome): what it does not
-        // name inside a row it names a part of is not drawn either.
+        const chrome = this.chrome;
+        if (this.getAttribute("chrome") !== null && chrome.some((word) => CHROME_WITHIN[word]) && !chrome.includes(part)) return false;
+        // The view document's own list (head.chrome): the parts shown; a
+        // part it does not name is not drawn.
         const shown = this.viewConfig?.head?.chrome;
-        if (Array.isArray(shown)) {
-            const named = shown.filter((word) => CHROME_WITHIN[word] === row);
-            if (named.length && !named.includes(part)) return false;
-        }
+        if (Array.isArray(shown) && !shown.map(String).includes(part)) return false;
         return true;
     }
 
