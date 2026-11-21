@@ -1400,6 +1400,21 @@
     inline-size: var(--sf-view-properties-sections-width, var(--sf-property-view--sections-width, 12rem));
   }
 
+  /* The column of the full screen and of «Поверх» (C399: always a column on
+     the left) is the column's width, its sections as wide as it: the
+     vertical tabs kept the width of their longest name, so the full screen
+     showed a column of 99 px inside its 192 (owner, 2026-11-22). */
+  .sf-property-view-panel[data-sections-layout="column"] .sf-property-view-sections :is(.sf-tabs-top-container, .sf-tabs-top) {
+    flex: 1 1 auto;
+    inline-size: 100%;
+    align-items: stretch;
+  }
+
+  .sf-property-view-panel[data-sections-layout="column"] .sf-property-view-sections .sf-tabs-top > sf-button > button {
+    inline-size: 100%;
+    justify-content: flex-start;
+  }
+
   /* The rail of a side panel (owner decision C403): icons and names as wide
      as the longest name, at most 10rem; a longer name is cut with «…». */
   .sf-property-view-panel[data-sections-layout="rail"] .sf-property-view-sections {
@@ -1549,6 +1564,21 @@
     .sf-property-view-list .sf-property-view-group--list > .sf-property-view-group-fields > .sf-property-view-row {
       grid-column: auto;
       display: grid;
+      grid-template-columns: minmax(0, var(--sf-view-properties-label-width, 10rem)) minmax(0, 1fr);
+      column-gap: var(--sf-space-1);
+    }
+
+    /* C401 on the full screen (VR13-2): «Изменить» keeps the two columns of
+       reading, each label beside its field on the same axis, so a value
+       becomes its field in place: the form went to one column with a third
+       of the width for its labels, moving «Клиент» 403 px left and the values
+       99 px right. */
+    .sf-property-view-list .sf-property-view-group--form .sf-form-fields {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: var(--sf-space-2);
+    }
+
+    .sf-property-view-list .sf-property-view-group--form .sf-form-field {
       grid-template-columns: minmax(0, var(--sf-view-properties-label-width, 10rem)) minmax(0, 1fr);
       column-gap: var(--sf-space-1);
     }
