@@ -317,8 +317,12 @@ receives.
   each group a heading of the list with «Изменить» in it. Since 1.26.0 (owner
   decision C400) a label is its value's size (14 px; 12 at the compact
   density), in the muted ink (`--sf-on-surface-variant`), on the value's
-  baseline. An empty value reads «не заполнено» in `--sf-on-surface-muted`,
-  paler than the label (C402).
+  baseline. An empty value reads «не заполнено» (C402) in
+  `--sf-on-surface-variant`, the label's ink: C402 asks for
+  `--sf-on-surface-muted`, paler than the label, but that role is the
+  disabled ink at 3.10:1 on the light page, below the 4.5:1 text needs, and
+  the SIMAI Framework keeps it off readable text; the paler ink waits for the
+  owner's answer.
 - «Изменить» (C401, since 1.26.0): the values turn into their fields in
   place; the group stays a part of the record's list (no frame of its own),
   the label stays at the start beside its field (`sf-form labels="start"`),

@@ -509,6 +509,15 @@
     },
     {
       "unit": "smart.view-properties",
+      "version": "1.26.0",
+      "recorded_on": "2026-11-21",
+      "change": "minor",
+      "consumer": "Nothing to change for a host. The record (owner decisions C399-C402, 2026-11-21): a field's label is its value's size (14 px; 12 at the compact density), in the muted ink, on the value's baseline (C400). An empty value reads «не заполнено» (C402), in the label's ink: --sf-on-surface-muted, which C402 names, is the disabled ink at 3.10:1 and the Framework keeps it off readable text; the paler ink waits for the owner. «Изменить» turns the values into their fields in place: the group stays a part of the record's list with no frame of its own, the label at the start beside its field, over it on a phone (C401; sf-form lays labels beside from 40rem of its own width, so in a side panel they stand over the fields). A card docked beside the list keeps its section column only while the list keeps 48rem; over the list and on the whole screen the column stays (C399; with the pair's sf-tabs, which cannot be told not to fold, a side panel still lays tabs on top).",
+      "summary": "View round 13 (round/view-r13): C399 sectionColumnFits: docked beside the list (_docksBesideList: docked and the dock breakpoint) the list keeps _listLeast (48rem) beside the widened card, over the list always; COLUMN_WINDOW_SHARE gone. C400 default.css: .sf-property-view-list .sf-list-description-label takes the list's font size and line, ink on-surface-variant. C401 default.js: sf-form labels start except on a phone; default.css: the edited group in the list has no frame, padding or fill and the list's row gap. C402 field-value.js: the empty value drops its utility class; default.css: .sf-property-view-empty keeps --sf-on-surface-variant (muted fails 4.5:1). docs.md says it.",
+      "evidence": "control/evidence/2026-11-21-view-r13/README.md"
+    },
+    {
+      "unit": "smart.view-properties",
       "version": "1.25.0",
       "recorded_on": "2026-11-21",
       "change": "minor",
@@ -731,6 +740,15 @@
       "consumer": "Nothing to change for a host: the panel's title and foot follow the drawer's window steps.",
       "summary": "In its panel (VP-5, VP-8 of the 2026-11-16 re-check; C157 (3), C157 (7) = C159 (4), (5)): (1) the title reads the window title step the drawer's panel publishes, --sf-drawer--title-size / --sf-drawer--title-height (sf-drawer 1.16.4), before the h4 role: the head stands inside the drawer's body, where sf-drawer 1.16.0 moves the heading roles down for the content, and the title drew 16/18 (a phone 14/16) instead of 20/24 (16). --sf-property-view--title-* still come first; with no drawer, or a drawer before 1.16.4, the h4 role as before. (2) On a phone (below 48rem) Save (or Create) and Cancel in the foot share the row in equal halves, 8 apart, the main one first; what else the bar holds wraps under them. The desktop foot is unchanged. Markup, settings, events and the host port unchanged.",
       "evidence": "https://github.com/simai/ui-view/commit/85b747fe0b6d2682ff478130d431c2412d5d0b96"
+    },
+    {
+      "unit": "smart.view-flow",
+      "version": "1.1.7",
+      "recorded_on": "2026-11-21",
+      "change": "patch",
+      "consumer": "Nothing to change for a host and nothing changes on screen: the shared field renderer js/field-value.js of sf-view-properties (view round 13, C402) writes an empty value's ink in its sheet instead of a utility class; the ink is the same.",
+      "summary": "View round 13 (round/view-r13): the bundled view-properties js/field-value.js draws the empty value as <span class=\"sf-property-view-empty\"> without color-on-surface-variant (the sheet gives the same ink).",
+      "evidence": "control/evidence/2026-11-21-view-r13/README.md"
     },
     {
       "unit": "smart.view-flow",

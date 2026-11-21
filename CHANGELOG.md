@@ -21,7 +21,8 @@ up). Each component.json says the same under `x-decisions`
 View round 13 (round/view-r13, from `round/view-r12` 79f7706), candidate
 1.11.0 over the same pair `ui-b654460cad2a`: the list head and footer study,
 round 4 (owner decisions D1 and D3 of 2026-11-21; returns VHF-13..16) and the
-round 12 acceptance returns VR12A-1 and VR12A-2 (DEV msg-7e2d384f).
+round 12 acceptance returns VR12A-1 and VR12A-2 (DEV msg-7e2d384f), and the
+record's owner decisions C399-C402 (DEV msg-3215bbda).
 Numbers are above every branch of this set and of ui-pro.
 
 - `sf-view` 1.32.0. D1: «Подгрузка» in «Настроить вид» for the table, new
@@ -44,6 +45,20 @@ Numbers are above every branch of this set and of ui-pro.
   list-below a long-text column keeps about 20 characters (`--sf-measure-20`)
   and a number or money column is never cut; where those do not fit, the
   table scrolls sideways.
+- `sf-view-properties` 1.26.0, the record (owner decisions C399-C402, DEV
+  msg-3215bbda). C400: a field's label is its value's size (14; 12 compact),
+  in the muted ink, on the value's baseline. C402: an empty value reads «не
+  заполнено» in the label's ink (`--sf-on-surface-muted`, which C402 names,
+  is the disabled ink at 3.10:1 and the Framework keeps it off readable text;
+  the paler ink waits for the owner). C401:
+  «Изменить» turns the values into their fields in place, the label at the
+  start beside its field (over it on a phone); `sf-form` lays labels beside
+  only from 40rem of its own width, so a side panel still stacks them. C399:
+  a card docked beside the list keeps its section column only while the list
+  keeps 48rem; over the list and on the whole screen the column stays (a side
+  panel keeps tabs until a pair's `sf-tabs` can be told not to fold).
+- `sf-view-flow` 1.1.7: nothing changes on screen; the shared field renderer
+  gives an empty value its ink from the sheet (C402).
 - `sf-view-cards` 1.1.0. D3: card fields one per row, the label over the
   value, a gap after the title; `card_labels` on by default.
 
