@@ -121,6 +121,7 @@ export function onCardsEvent(view, event) {
         view._noteMarks?.([], view._cardsSelection.map((id) => (known.has(id) ? known.get(id) : id)));
         if (typeof detail.all === "boolean" && Boolean(view.pagination?.actionForAll) !== detail.all) view.pagination?.setActionForAll?.(detail.all);
         view.pagination?.setState?.({selectedCount: view._cardsSelection.length});
+        view._renderBulkBand?.();
         return undefined;
     }
     case "sf-view-cards-apply": {

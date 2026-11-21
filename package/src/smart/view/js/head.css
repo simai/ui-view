@@ -232,11 +232,15 @@ sf-popover:not([open]) > .sf-view-head-panel[slot="content"] { display: none; }
    host's own content. */
 /* Both hosts may be display: contents, so their content stands aside too.
    The footer start stays where the view says the count of a board or cards
-   (data-sf-view-footer-count, view round 8 R67-1): «1–16 из 60». */
-:is(sf-view, sf-data-view)[data-display]:not([data-display="table"]) > :is(:is(sf-view-table, sf-table)[slot="content"], sf-pagination[slot="pagination"]),
-:is(sf-view, sf-data-view)[data-display]:not([data-display="table"]) > :is(:is(sf-view-table, sf-table)[slot="content"], sf-pagination[slot="pagination"]) > *,
-:is(sf-view, sf-data-view)[data-display]:not([data-display="table"]):not([data-sf-view-footer-count]) > [slot="footer"][data-sf-view-made],
-:is(sf-view, sf-data-view)[data-display]:not([data-display="table"]):not([data-sf-view-footer-count]) > [slot="footer"][data-sf-view-made] > * { display: none; }
+   (data-sf-view-footer-count, view round 8 R67-1): «1–16 из 60». The cards
+   keep the list's page row (LV2-6): switched to by a click they lost it
+   (VR13-1), as this rule took the row of every kind but the table. */
+:is(sf-view, sf-data-view)[data-display]:not([data-display="table"]) > :is(sf-view-table, sf-table)[slot="content"],
+:is(sf-view, sf-data-view)[data-display]:not([data-display="table"]) > :is(sf-view-table, sf-table)[slot="content"] > *,
+:is(sf-view, sf-data-view)[data-display]:not([data-display="table"]):not([data-display="cards"]) > sf-pagination[slot="pagination"],
+:is(sf-view, sf-data-view)[data-display]:not([data-display="table"]):not([data-display="cards"]) > sf-pagination[slot="pagination"] > *,
+:is(sf-view, sf-data-view)[data-display]:not([data-display="table"]):not([data-display="cards"]):not([data-sf-view-footer-count]) > [slot="footer"][data-sf-view-made],
+:is(sf-view, sf-data-view)[data-display]:not([data-display="table"]):not([data-display="cards"]):not([data-sf-view-footer-count]) > [slot="footer"][data-sf-view-made] > * { display: none; }
 
 /* The head's place in the first paint: its two rows, the control height each. */
 .sf-view-head-skeleton {

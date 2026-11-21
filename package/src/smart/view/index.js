@@ -1010,6 +1010,8 @@ class SfDataView extends DataViewElement {
                 // and «Выбраны все N» carried from the table marks every card
                 // (LV2-7).
                 element.setAttribute("keep-selection", "");
+                // One bar: the list's stands for the cards (owner, 2026-11-22).
+                element.setAttribute("bulk-bar", "false");
                 element.toggleAttribute("all-selected", allMarked);
                 element.selected = ids;
                 this._cardsSelection = element.selected;
@@ -3171,8 +3173,10 @@ class SfDataView extends DataViewElement {
     _renderBulkBand() {
         const pagination = this.pagination;
         const table = this.table;
-        // The cards, the board and the calendar draw their own bar.
-        const selected = this._layoutTag() === "sf-view-table" ? this._bulkIds() : [];
+        // The board and the calendar draw their own bar; the list's bar
+        // stands for the table and the cards (one bar, owner 2026-11-22).
+        const kind = this._layoutTag();
+        const selected = kind === "sf-view-table" || kind === "sf-view-cards" ? this._bulkIds() : [];
         const actions = pagination?.actions ?? [];
         if (bulkBarAvailable()) return this._renderBulkBar({pagination, selected, actions});
         if (!pagination || !selected.length || !actions.length) {
@@ -3338,6 +3342,8 @@ class SfDataView extends DataViewElement {
 
     _setBulkForAll(on) {
         this.pagination?.setActionForAll?.(on);
+        // «Выбрать все N» on the list's bar marks every card too (LV2-7).
+        if (this._layoutTag() === "sf-view-cards") this.cards?.selectAll?.(Boolean(on));
         this._renderBulkBand();
     }
 

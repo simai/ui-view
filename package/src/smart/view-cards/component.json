@@ -8,7 +8,7 @@
       "version": "1.2.0",
       "kind": "minor",
       "recorded_on": "2026-11-22",
-      "consumer": "Nothing to change for a host. New settings keep-selection (marks of records not on screen stay; sf-view sets it, LV2-2) and all-selected (every record under the filter is marked: the cards draw marked, the bar says the total, an action asks scope all; LV2-7). The select event carries all while «Выбраны все N» holds.",
+      "consumer": "Nothing to change for a host. New settings keep-selection (marks of records not on screen stay; sf-view sets it, LV2-2) and all-selected (every record under the filter is marked: the cards draw marked, the bar says the total, an action asks scope all; LV2-7). The select event carries all while «Выбраны все N» holds. New setting bulk-bar (default true): false draws no bar of the cards; sf-view sets it and its own bar stands for the cards, so a switch from the table shows one bar (owner, 2026-11-22). New method selectAll(on).",
       "evidence": "control/evidence/2026-11-22-view-r14/README.md"
     },
     {
@@ -175,6 +175,11 @@
       "type": "boolean",
       "default": false,
       "summary": "Every record under the filter is marked (the bar's «Выбрать все N», or «Выбраны все N» carried from the table, LV2-7): every card is drawn marked, the bar says the total, an action asks scope all; unmarking one card ends it."
+    },
+    "bulk-bar": {
+      "type": "boolean",
+      "default": true,
+      "summary": "Whether the cards draw their own selection bar. sf-view sets it false: the list's bar stands for the cards, so a switch from the table shows one bar, not two (owner, 2026-11-22; view round 14)."
     },
     "current": {
       "type": "string",
@@ -619,7 +624,7 @@
           "from": "1.1.0",
           "to": "1.2.0",
           "changes": [
-            "keep-selection and all-selected (LV2-2, LV2-7), select carries all, apply scope all"
+            "keep-selection and all-selected (LV2-2, LV2-7), select carries all, apply scope all; bulk-bar and selectAll(on): one bar under sf-view"
           ]
         }
       ]

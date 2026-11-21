@@ -280,6 +280,9 @@ class SfViewCards extends CardsElement {
             selectable: this.getProp("selectable") !== false,
             creatable: this.getProp("creatable") === true,
             bulkActions: bulkActionsAvailable(),
+            // The list's own bar stands for the cards under sf-view (bulk-bar
+            // false): one bar, not two (owner, 2026-11-22).
+            bulkBar: this.getAttribute("bulk-bar") !== "false",
             actions: this._actions,
         };
     }
@@ -582,6 +585,12 @@ class SfViewCards extends CardsElement {
         this.removeAttribute("all-selected");
         for (const record of this.records) this._selected.add(String(record.id));
         return true;
+    }
+
+    // «Выбрать все N» from the list's bar (sf-view, bulk-bar false): every
+    // record under the filter marked, or back to the marks of the page.
+    selectAll(on = true) {
+        this._selectAll(Boolean(on));
     }
 
     _selectAll(on) {

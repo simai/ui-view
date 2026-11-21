@@ -173,6 +173,6 @@ export function renderViewCardsTemplate(context) {
                 </div>
                 ${skeleton ? nothing : renderMore(context)}`}
             <div class="sf-view-cards__live" role="status" aria-live="polite">${context.message}</div>
-            ${context.selectable && (context.selected.size > 0 || !context.bulkActions) ? renderBulk(context) : nothing}
+            ${context.selectable && context.bulkBar && (context.selected.size > 0 || !context.bulkActions) ? renderBulk(context) : nothing}
         </div>`;
 }

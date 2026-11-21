@@ -152,6 +152,11 @@
         "default": false,
         "description": "Every record under the filter is marked (the bar's «Выбрать все N», or «Выбраны все N» carried from the table, LV2-7): every card is drawn marked, the bar says the total, an action asks scope all; unmarking one card ends it."
       },
+      "bulk-bar": {
+        "type": "boolean",
+        "default": true,
+        "description": "Whether the cards draw their own selection bar; sf-view sets it false, its own bar stands for the cards (one bar, owner 2026-11-22)."
+      },
       "empty-context": {
         "type": "object",
         "default": {},
@@ -499,7 +504,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-cards/index.js",
-        "sha256": "a814422a76b8bc4ac9ae8f9b8d4423309102b4bb7755f1f26f2b3f6f7138e418"
+        "sha256": "c2b775cd7161ec48fcc5456ebff4e32e0bddd9cc718d9dab7a8e1aad6f4cfd5e"
       },
       {
         "path": "src/smart/view-cards/js/cards.js",
@@ -507,7 +512,7 @@
       },
       {
         "path": "src/smart/view-cards/js/templates/default.js",
-        "sha256": "cb7dd8f7ed5f50b1d2a98b364dbb682eb02a5889a400b78619851517e5806878"
+        "sha256": "afc2f3c53b91c203c908c4af0693ee5df0b6ef505110edecc55ae191e68517ca"
       },
       {
         "path": "src/smart/view-cards/js/templates/default.css",
@@ -523,7 +528,7 @@
       },
       {
         "path": "src/smart/view-cards/docs.md",
-        "sha256": "698ce869ca7fbf05a8957caf2c2fce5a54b42849c21df0d84ef0f21cf58f0e1b"
+        "sha256": "7154684681d2a7b563e45d99f4fa9a564d3c6750c220c009280e919e04c01962"
       }
     ],
     "generated_runtime": []
