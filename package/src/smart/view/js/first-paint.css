@@ -309,7 +309,36 @@
      title's line and the supporting line under it, in the list's own air and
      with no rule between rows (sf-view-table .sf-table-resource-*). */
   .sf-data-view-skeleton-list > div[data-resource] {
+    box-sizing: border-box;
+    block-size: var(--sf-ui-2--control-height);
+    align-items: center;
+    padding-block: 0;
     border-block-end: 0;
+  }
+
+  .sf-data-view-skeleton:not([data-size="1/2"]) .sf-data-view-skeleton-list > div[data-resource] {
+    block-size: var(--sf-ui-3--control-height);
+  }
+
+  @media (max-width: 31.98rem) {
+    .sf-data-view-skeleton .sf-data-view-skeleton-list > div[data-resource] {
+      block-size: var(--sf-ui-3--control-height);
+    }
+  }
+
+  /* The list of resources is padded by a quarter step and its rows stand a
+     hairline apart (sf-view-table .sf-table-list--resource). */
+  .sf-data-view-skeleton-list > div[data-resource] + div[data-resource] {
+    margin-block-start: var(--sf-px);
+  }
+
+  .sf-data-view-skeleton-list > div[data-list-head] + div[data-resource],
+  .sf-data-view-skeleton-list > div[data-resource]:first-child {
+    margin-block-start: var(--sf-space-1\/4);
+  }
+
+  .sf-data-view-skeleton-list > div[data-resource]:last-child {
+    margin-block-end: var(--sf-space-1\/4);
   }
 
   .sf-data-view-skeleton-list > div[data-resource] > div {
