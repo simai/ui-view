@@ -25,9 +25,12 @@
 // - VRS-9: a section whose only group has the section's name draws no group
 //   title; a group of another name keeps it.
 // - VHF-4 (with the title giving last) and D5 (owner decision 2026-11-21,
-//   «Текст в одну строку» off by default): a narrow fitted table (390) whose
-//   name has to give: nothing chosen it is off -- the name on two lines,
-//   uncut, a comment whole; on, every cell one line; off again as unset.
+//   «Текст в одну строку» off by default): a tight fitted table (a 620 px box
+//   at 1440, above list-below) whose name has to give: nothing chosen it is
+//   off -- the name on two lines, uncut, a comment whole; on, every cell one
+//   line; off again as unset. At 390 (below list-below) the table scrolls in
+//   its frame and is not fitted: the name stays on one line (the first paint
+//   drew it so; fitted, it went to two lines after it, typed-cells 196 -> 204).
 // - VFC-1: in a panel a click on a short field's value opens its quick edit
 //   window (it read data-open, which sf-popover 1.8.0 writes no more).
 // - C393 star: the favourite star stays right after the one-line title; a
@@ -95,8 +98,8 @@ const LIST = (theme, {fields = 8, size = '1/2', layout = '', bulk = false, densi
 </script></body></html>`;
 
 // A bare table, narrow: the name has to give room (typed-cells' columns).
-const NARROW = (theme) => `${HEAD(theme)}
-<sf-view-table id="t" layout="table" aria-label="Решения" preferences-key="r12b-narrow"></sf-view-table></main>
+const NARROW = (theme, box = 0) => `${HEAD(theme)}
+<div style="${box ? `inline-size:${box}px` : ''}"><sf-view-table id="t" layout="table" aria-label="Решения" preferences-key="r12b-narrow"></sf-view-table></div></main>
 <script>
 (function(){
   var t=document.getElementById('t');
@@ -296,10 +299,28 @@ try {
       if (run === 1) results.push({theme, item: 'VHF-10', size, text});
       await context.close();
     }
-    // VHF-4: the narrow fitted table.
+    // Below list-below the table scrolls and is not fitted.
     {
-      const label = {theme, run, width: 390, item: 'VHF-4'};
+      const label = {theme, run, width: 390, item: 'VHF-4 narrow'};
       const {context, page, errors} = await load(theme, 390, NARROW(theme));
+      await page.waitForFunction(() => document.querySelector('#t tbody td[data-sf-cell="title"] .sf-table-cell-text'), null, {timeout: 15000})
+        .catch(() => errors.push('the table did not come'));
+      await page.waitForTimeout(600);
+      const got = await page.evaluate(() => {
+        const t = document.getElementById('t');
+        const scroller = [...t.querySelectorAll('*')].find((node) => /auto|scroll/u.test(getComputedStyle(node).overflowX) && node.scrollWidth > node.clientWidth + 1);
+        const titles = [...t.querySelectorAll('tbody td[data-sf-cell="title"] .sf-table-cell-text')].map((node) => Math.round(node.getBoundingClientRect().height / parseFloat(getComputedStyle(node).lineHeight)));
+        return {fitted: t.hasAttribute('data-sf-columns-fitted'), scrolls: Boolean(scroller), titles, page: document.documentElement.scrollWidth};
+      });
+      if (got.fitted || !got.scrolls || got.titles.some((lines) => lines !== 1) || got.page > 390) failures.push({...label, got, expected: 'not fitted, scrolls in its frame, the name on one line, the page not wider'});
+      if (errors.length) failures.push({...label, errors});
+      if (run === 1) results.push({theme, item: 'VHF-4 narrow', width: 390, ...got});
+      await context.close();
+    }
+    // VHF-4: the tight fitted table.
+    {
+      const label = {theme, run, width: 1440, box: 620, item: 'VHF-4'};
+      const {context, page, errors} = await load(theme, 1440, NARROW(theme, 620));
       await page.waitForFunction(() => document.querySelector('#t[data-sf-columns-fitted] tbody td[data-sf-cell="title"]'), null, {timeout: 15000})
         .catch(() => errors.push('the fitted table did not come'));
       await page.waitForTimeout(500);
@@ -323,7 +344,7 @@ try {
       if (on.some((one) => one.lines !== 1) || on.comment.lines !== 1) failures.push({...label, got: 'on: not one line', on, comment: on.comment});
       if (!offOk(off)) failures.push({...label, got: 'off: the name not on its two lines uncut, or the comment not whole', off, comment: off.comment});
       if (errors.length) failures.push({...label, errors});
-      if (run === 1) results.push({theme, item: 'VHF-4', width: 390, unset: [...unset, unset.comment], on: [...on, on.comment], off: [...off, off.comment]});
+      if (run === 1) results.push({theme, item: 'VHF-4', width: 1440, box: 620, unset: [...unset, unset.comment], on: [...on, on.comment], off: [...off, off.comment]});
       await context.close();
     }
     // VRS-7, VRS-9 and the star at 1440 (in place, history beside); VRS-8 and the star at 390.

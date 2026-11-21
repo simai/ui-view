@@ -58,6 +58,9 @@ pro-f6c43828e5f2 (sf-view 1.30.1, sf-view-table 1.29.4, sf-view-properties
   VHF-8 / VR11A-1 by design). D5: «Текст в одну строку» is off by default: the
   record's name up to two lines, a long text (a comment) whole; on, every cell
   one line with «…».
+  Below `list-below` a `layout="table"` table scrolls in its frame with its
+  first column held, as the docs say, and its columns are not squeezed to fit
+  (squeezed, the name went to two lines after the first paint).
 - `sf-view-properties` 1.25.0. VHF-7: the stage badge keeps its whole word;
   VHF-6: a card in place ends that line with its «⋯». VRS-7: the whole
   screen's history draws the card's text step (16 beside 14 px fields). VRS-8:

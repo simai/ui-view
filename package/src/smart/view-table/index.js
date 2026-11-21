@@ -3457,7 +3457,12 @@ class SfTable extends TableElement {
             fitted.set(key, next);
         }
         const left = excess - gave;
-        if (left <= 0 || !flexible.length) return fitted;
+        // Below list-below a table scrolls in its frame with its first column
+        // held (the narrow-screen rule of the docs): the flexible columns keep
+        // their content widths. Squeezed there, the name went to two lines
+        // once the code fitted the columns, after the first paint had drawn
+        // it on one (view round 12, D5: typed-cells at 390, 196 -> 204).
+        if (left <= 0 || !flexible.length || this.isNarrow) return fitted;
         // The least widths are read only now, when they are needed: one more
         // layout of the table, the content widths' measuring at min-content.
         const leastWidths = this.leastContentWidths();

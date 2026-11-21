@@ -3041,7 +3041,7 @@
         "from": "1.29.5",
         "to": "1.30.0",
         "changes": [
-          "View round 12, owner decisions D4 and D5 (DEV msg-4de06ae6): index.js tableSettingsItems offers density normal, compact (no spacious); storedViewDensity reads a stored spacious as normal; areaDensity skips an element marked data-sf-view-density-island; applyTableView writes data-sf-density with data-sf-view-density-island on the closest sf-view and on the table, rows never spacious, and data-sf-view-wrap unless singleLine is true (storedSingleLine removed); js/templates/default.css drops the spacious row rules and draws .sf-table-cell-clip whole under data-sf-view-wrap without data-sf-view-single-line; lang view-density «Плотность»/«Density», view-density-compact «Компактная», view-density-normal «Обычная», view-density-spacious removed."
+          "View round 12, owner decisions D4 and D5 (DEV msg-4de06ae6): index.js tableSettingsItems offers density normal, compact (no spacious); storedViewDensity reads a stored spacious as normal; areaDensity skips an element marked data-sf-view-density-island; applyTableView writes data-sf-density with data-sf-view-density-island on the closest sf-view and on the table, rows never spacious, and data-sf-view-wrap unless singleLine is true (storedSingleLine removed); js/templates/default.css drops the spacious row rules and draws .sf-table-cell-clip whole under data-sf-view-wrap without data-sf-view-single-line; lang view-density «Плотность»/«Density», view-density-compact «Компактная», view-density-normal «Обычная», view-density-spacious removed. index.js readFittedWidths gives no flexible room below list-below (isNarrow): the table scrolls there (first paint typed-cells at 390, 196 -> 204 under D5)."
         ]
       }
     ]
@@ -3052,7 +3052,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-table/index.js",
-        "sha256": "2d0114456ff592e664ed25e24c68a04242fa42912986a7a28422b029a95a031d"
+        "sha256": "b944293b4ec8ce5de8ff0fc0fb89d1be9193dc10852478da40db0ffecc7a54f3"
       },
       {
         "path": "src/smart/view-table/js/templates/default.js",
