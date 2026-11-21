@@ -3408,6 +3408,30 @@ class SfTable extends TableElement {
     // line): a value wider than its column ends in an ellipsis
     // (data-sf-columns-fitted). The box scrolls only when the least widths
     // themselves do not fit.
+    // Whether a column without a type shows numbers or money on every row
+    // drawn («10000,00 ₽» from a host that names no type): such a column is
+    // never cut either (VR12A-2).
+    showsNumbers(key) {
+        const values = [...this.querySelectorAll(`tbody td[data-key="${CSS.escape(String(key))}"]`)].slice(0, 12)
+            .map((cell) => cell.textContent.trim()).filter(Boolean);
+        return values.length > 0 && values.every((value) => /^[-+\u2212]?[\d\s\u00a0\u202f.,]+\s?[%\u20bd$\u20ac\u00a3\u00a5]?$/u.test(value) && /\d/u.test(value));
+    }
+
+    // A long text's least width in pixels: --sf-measure-20 (C396, 20
+    // characters of the text size; the pair's --sf-f0 where the ladder step
+    // is not there yet), read once per layout pass.
+    longTextFloor() {
+        const cached = this._layoutReads?.get('textFloor');
+        if (cached !== undefined && cached !== null) return cached;
+        const probe = document.createElement('div');
+        probe.style.cssText = 'position:absolute;visibility:hidden;inline-size:var(--sf-measure-20, var(--sf-f0, 10rem));block-size:0;';
+        this.append(probe);
+        const width = Math.ceil(probe.getBoundingClientRect().width) || 160;
+        probe.remove();
+        this._layoutReads?.set('textFloor', width);
+        return width;
+    }
+
     readFittedWidths() {
         const fitted = new Map();
         this._fittedInlineSize = null;
@@ -3469,9 +3493,20 @@ class SfTable extends TableElement {
         if (!leastWidths) return fitted;
         let room = 0;
         const shrinking = [];
+        // Floors by what a column holds (view round 13, VR12A-2): a number
+        // or money is never cut, so it keeps its content width; a long text
+        // keeps about 20 characters (--sf-measure-20, C396), not its
+        // heading's width -- at 124 px a comment was a column of single words
+        // 13 lines tall and still cut the sum beside it. Where the floors do
+        // not fit, the table scrolls sideways (below).
+        const byKey = new Map(columns.map((column) => [column.key, column]));
+        const typeOf = (key) => { const column = byKey.get(key); return column?.propertyType ?? column?.property_type ?? column?.type; };
+        const textFloor = this.longTextFloor();
         for (const [key, own, declaredLeast] of flexible) {
             const width = fitted.get(key) ?? own;
-            const least = Math.min(width, Math.max(leastWidths.get(key) ?? width, declaredLeast));
+            const type = typeOf(key);
+            const kept = this.isNumberColumn(byKey.get(key)) || this.showsNumbers(key) ? width : LONG_TEXT_CELL_TYPES.has(type) ? textFloor : 0;
+            const least = Math.min(width, Math.max(leastWidths.get(key) ?? width, declaredLeast, kept));
             if (width > least) {
                 shrinking.push([key, width, width - least]);
                 room += width - least;

@@ -1108,6 +1108,12 @@ export class ListHead {
                 .map(([value, word]) => [value, this.text(word)]);
             body = title("columns", this.text("headColumns")) + checks("columns", columns, settings.columns)
                 + (actions.length ? title("row_actions", this.text("headRowActions")) + checks("row_actions", actions, settings.row_actions) : "")
+                // The table's own look (VR12A-1): under the list head the
+                // table draws no gear, so its density (D4) and «Текст в одну
+                // строку» (D5) are set here, as the gear's «Вид» set them.
+                + (this.view.table ? title("density", this.text("headDensity"))
+                    + radios("density", [["normal", this.text("headDensityNormal")], ["compact", this.text("headDensityCompact")]], settings.density)
+                    + `<div class="sf-view-head-list"><sf-checkbox data-setting="single_line" size="${size}" label="${esc(this.text("headSingleLine"))}"${settings.single_line ? " checked" : ""}${lock("single_line")}></sf-checkbox></div>` : "")
                 + (this.view.pagingOffered ? title("paging", this.text("headPaging")) + radios("paging", paging, settings.paging) : "");
         } else if (kind === "board") {
             body = title("lane_field", this.text("headLaneField")) + radios("lane_field", fieldsOf((type) => LIST_TYPES.has(type)), settings.lane_field)
@@ -1169,6 +1175,10 @@ export class ListHead {
             merged.columns ??= (Array.isArray(visible) ? visible : (this.view.columns ?? []).filter((column) => column.visible !== false).map((column) => column.key)).map(String);
             merged.row_actions ??= (this.view.rowActionCatalog ?? []).map((action) => String(action.id));
             merged.paging ??= this.view.paging ?? "both";
+            // The density and one line as the table shows them (VR12A-1).
+            const table = this.view.table;
+            merged.density ??= table?.shownViewDensity === "compact" ? "compact" : "normal";
+            merged.single_line ??= table?.tableView?.singleLine === true;
         }
         // The card fields a board or the cards draw now (their own defaults
         // when the view names none), so the window ticks what is on the cards.
@@ -1534,6 +1544,9 @@ export class ListHead {
         this._settings[kind] = {...(this._settings[kind] ?? {}), [key]: value};
         if (kind === "table" && key === "columns") this._showColumns(value);
         else if (kind === "table" && key === "paging") this.view.applyPaging?.(value);
+        // The table keeps them as the person's view of it, as its gear did.
+        else if (kind === "table" && key === "density") this.view.table?.setTableView?.({density: value});
+        else if (kind === "table" && key === "single_line") this.view.table?.setTableView?.({singleLine: value === true});
         // A board's, the cards' and the calendar's settings show at once too
         // (VHF-13, C298): they only went to the host and showed after a reload.
         else if (kind !== "table") this.view.applyLayoutSettings?.(kind, {[key]: value});

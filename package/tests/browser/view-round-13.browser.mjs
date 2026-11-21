@@ -65,12 +65,12 @@ window.SF_BOOT_CONFIG = {cacheVersion: 'r13', pluginListVersion: 'r13', preloade
 
 // A list of orders: 48 records, 20 a page; optionally many columns (VHF-16),
 // in a scrolling box (VHF-15), as cards or a board.
-const LIST = (theme, {layout = '', cols = 4, rows = 48, perPage = 20, box = false, key = 'a'} = {}) => `${HEAD(theme)}
-${box ? '<div id="box" style="block-size:600px;overflow:auto;border:1px solid var(--sf-outline-variant)">' : ''}
+const LIST = (theme, {layout = '', cols = 4, rows = 48, perPage = 20, box = false, key = 'a', long = false, max = 0} = {}) => `${HEAD(theme)}
+${max ? `<div style="max-inline-size:${max}px">` : ''}${box ? '<div id="box" style="block-size:600px;overflow:auto;border:1px solid var(--sf-outline-variant)">' : ''}
 <sf-view id="v" aria-label="Заказы" heading="Заказы" head="list" collection="orders" size="1/2"${layout ? ` layout="${layout}"` : ''} preferences-key="r13-${key}-${layout}-${cols}">
   ${layout ? '' : '<sf-view-table slot="content" aria-label="Заказы"></sf-view-table>'}
   <sf-pagination slot="pagination" top="false" page-size="${perPage}" actions="paid:Отметить оплаченными|archive:В архив"></sf-pagination>
-</sf-view>${box ? '</div>' : ''}
+</sf-view>${box ? '</div>' : ''}${max ? '</div>' : ''}
 <div style="block-size:400px"></div></main>
 <script>
 (function(){
@@ -79,9 +79,11 @@ ${box ? '<div id="box" style="block-size:600px;overflow:auto;border:1px solid va
   var COLS=[{key:'title',label:'Заказ',role:'title'},{key:'status',label:'Состояние',property_type:'choice',options:ST},{key:'client',label:'Клиент'},{key:'amount',label:'Сумма',property_type:'number'},{key:'due',label:'Срок',property_type:'date'}];
   var EXTRA=['inn','city','street','phone','email','manager','channel','payment','priority','method','comment','source','region'];
   var NAMES={inn:'ИНН',city:'Город',street:'Улица',phone:'Телефон',email:'Почта',manager:'Менеджер',channel:'Канал',payment:'Оплата',priority:'Срочность',method:'Способ доставки',comment:'Комментарий',source:'Источник',region:'Регион'};
+  // long: a comment column of long text, and the sum as a host that names no type sends it (VR12A-2).
+  if (${long}) { COLS[3] = {key:'amount',label:'Сумма'}; COLS.push({key:'note',label:'Комментарий',property_type:'text'}); }
   if (${cols} > 5) EXTRA.slice(0, ${cols} - 5).forEach(function(k){COLS.push({key:k,label:NAMES[k]})});
   var ROWS=[];for(var i=0;i<${rows};i++){var r={id:'o'+i,revision:'1',actions:['view','delete'],title:'Заказ №'+(2001+i),status:ST[i%3].value,client:i%2?'ООО «Торговый дом Северное сияние»':'ИП Орлов',amount:(10000+i*70)+',00 ₽',due:'2026-12-'+String(1+i%28).padStart(2,'0')};
-    EXTRA.forEach(function(k){r[k]=k==='inn'?'77012345'+String(10+i):NAMES[k]+' — значение строки '+(i+1)});ROWS.push(r)}
+    r.note='Позвонить клиенту перед отгрузкой, уточнить адрес склада и время приёмки, согласовать замену позиции, которой нет в наличии, и выставить счёт на остаток';EXTRA.forEach(function(k){r[k]=k==='inn'?'77012345'+String(10+i):NAMES[k]+' — значение строки '+(i+1)});ROWS.push(r)}
   var saves=window.__saves=[];
   var view=document.getElementById('v');
   var port={version:'1.15.0',capabilities:['row-actions','saved-views','personal-column-settings','create-record'],
@@ -100,6 +102,11 @@ ${box ? '<div id="box" style="block-size:600px;overflow:auto;border:1px solid va
 </script></body></html>`;
 
 const QUICK = process.env.R13_QUICK === '1';
+// R13_WIDTH=<px>: the quick run at that width instead of 1440.
+const QUICK_WIDTH = Number(process.env.R13_WIDTH) || 1440;
+// R13_SHOTS=<folder>: screenshots of each item at its first load (evidence).
+const SHOTS = process.env.R13_SHOTS;
+const shot = async (page, name) => { if (SHOTS) await page.screenshot({path: join(SHOTS, `${name}.png`)}).catch(() => {}); };
 const failures = [];
 const results = [];
 const browser = await chromium.launch({ignoreDefaultArgs: ['--hide-scrollbars']});
@@ -124,18 +131,18 @@ const load = async (theme, width, body) => {
   await page.goto('http://probe.test/');
   return {context, page, errors};
 };
-const ready = (page, what = 'sf-view-table tbody [data-row-id]') => page.waitForFunction((selector) => document.querySelectorAll(`#v ${selector}`).length > 0
+const ready = (page, what = 'sf-view-table :is(tbody tr, li)[data-row-id]') => page.waitForFunction((selector) => document.querySelectorAll(`#v ${selector}`).length > 0
   && document.querySelector('#v .sf-view-head-row button')?.getClientRects().length, what, {timeout: 15000});
 
 // The table list's paging as drawn.
 const paging = (page) => page.evaluate(() => {
   const view = document.getElementById('v');
-  const rows = [...view.querySelectorAll('sf-view-table tbody tr[data-row-id]')];
+  const rows = [...view.querySelectorAll('sf-view-table :is(tbody tr, li)[data-row-id]')];
   const last = rows.at(-1)?.getBoundingClientRect();
   const holder = view.querySelector(':scope > [slot="more"]');
   const button = holder && !holder.hidden ? holder.querySelector('button') : null;
   const box = button?.getBoundingClientRect();
-  const table = view.querySelector('sf-view-table .sf-table-scroll')?.getBoundingClientRect();
+  const table = [...view.querySelectorAll('sf-view-table :is(.sf-table-scroll, .sf-table-list)')].find((node) => node.getClientRects().length && node.getBoundingClientRect().width > 0)?.getBoundingClientRect();
   const row = view.querySelector(':scope > sf-pagination[slot="pagination"]');
   const nav = row?.querySelector('nav')?.getBoundingClientRect() ?? null;
   return {
@@ -161,12 +168,13 @@ const openCustomize = async (page) => {
   await page.waitForFunction(() => [...document.querySelectorAll('[data-kind="view"], .sf-view-head-panel')].some((node) => node.querySelector('[data-setting]') && node.getClientRects().length), null, {timeout: 5000});
 };
 const pick = async (page, key, value) => {
-  const radio = page.locator(`sf-radio[data-setting="${key}"][value="${value}"] input`).first();
-  await radio.click({timeout: 5000, force: true});
+  const radio = page.locator(`sf-radio[data-setting="${key}"][value="${value}"]`).first();
+  await radio.scrollIntoViewIfNeeded({timeout: 5000});
+  await radio.locator('input').click({timeout: 5000, force: true});
 };
 
 try {
-  const widths = QUICK ? [1440] : [1440, 1280, 1024, 390];
+  const widths = QUICK ? [QUICK_WIDTH] : [1440, 1280, 1024, 390];
   for (const theme of QUICK ? ['light'] : ['light', 'dark']) for (let run = 1; run <= (QUICK ? 1 : 3); run += 1) for (const width of widths) {
     // D1: «Вместе» by default, real clicks on «Показать ещё».
     {
@@ -175,17 +183,18 @@ try {
       await ready(page).catch(() => errors.push('the list did not come'));
       await page.waitForTimeout(400);
       const first = await paging(page);
+      if (run === 1) { await page.locator('#v > [slot="more"], #v > sf-pagination').last().scrollIntoViewIfNeeded().catch(() => {}); await shot(page, `d1-${width}-${theme}`); }
       if (first.rows !== 20 || first.range !== '1–20 из 48' || first.more !== 'Показать ещё 20' || !first.pages) failures.push({...label, got: first, want: 'Вместе: 20 rows, «Показать ещё 20», numbers, «1–20 из 48»'});
       if (first.gap === null || first.gap < 8 || first.gap > 16) failures.push({...label, got: `the button ${first.gap} px under the last row`});
       if (first.width !== 0) failures.push({...label, got: `the button ${first.width} px off the list width`});
       if (first.sideways) failures.push({...label, got: 'the page scrolls sideways'});
       await page.locator('#v > [slot="more"] button').click({timeout: 5000});
-      await page.waitForFunction(() => document.querySelectorAll('#v sf-view-table tbody tr[data-row-id]').length === 40, null, {timeout: 5000}).catch(() => {});
+      await page.waitForFunction(() => document.querySelectorAll('#v sf-view-table :is(tbody tr, li)[data-row-id]').length === 40, null, {timeout: 5000}).catch(() => {});
       await page.waitForTimeout(300);
       const second = await paging(page);
       if (second.rows !== 40 || second.range !== '1–40 из 48' || second.more !== 'Показать ещё 8') failures.push({...label, got: second, want: '40 rows, «1–40 из 48», «Показать ещё 8»'});
       await page.locator('#v > [slot="more"] button').click({timeout: 5000});
-      await page.waitForFunction(() => document.querySelectorAll('#v sf-view-table tbody tr[data-row-id]').length === 48, null, {timeout: 5000}).catch(() => {});
+      await page.waitForFunction(() => document.querySelectorAll('#v sf-view-table :is(tbody tr, li)[data-row-id]').length === 48, null, {timeout: 5000}).catch(() => {});
       await page.waitForTimeout(300);
       const third = await paging(page);
       if (third.rows !== 48 || third.range !== '1–48 из 48' || third.more !== null) failures.push({...label, got: third, want: '48 rows, no button'});
@@ -204,23 +213,26 @@ try {
         const head = view.querySelector(':scope > .sf-view-head');
         const row = head.querySelector('.sf-view-head-row');
         const title = head.querySelector('.sf-view-head-title');
-        const thead = view.querySelector('sf-view-table thead');
+        // On a phone the table draws list rows without a head (the phone
+        // layout stays as it is this round): the list head alone holds the top.
+        const thead = [...view.querySelectorAll('sf-view-table thead')].find((node) => node.getClientRects().length) ?? null;
         const scroller = document.getElementById('box');
         const top = () => (scroller ? scroller.getBoundingClientRect().top + scroller.clientTop : 0);
         window.__frames = [];
         const read = () => {
           window.__frames.push({row: Math.round(row.getBoundingClientRect().top - top()), title: Math.round(title.getBoundingClientRect().bottom - top()),
-            gap: Math.round(thead.getBoundingClientRect().top - head.getBoundingClientRect().bottom), scrolled: Math.round(scroller ? scroller.scrollTop : scrollY)});
+            gap: thead ? Math.round(thead.getBoundingClientRect().top - head.getBoundingClientRect().bottom) : 0, scrolled: Math.round(scroller ? scroller.scrollTop : scrollY)});
           if (window.__frames.length < 400) requestAnimationFrame(read);
         };
         requestAnimationFrame(read);
       });
-      const target = box ? page.locator('#box') : page.locator('#v sf-view-table .sf-table-scroll');
+      const target = box ? page.locator('#box') : page.locator('#v sf-view-table :is(.sf-table-scroll, .sf-table-list)').first();
       const area = await target.boundingBox();
       await page.mouse.move(Math.min(area.x + area.width / 2, width - 40), Math.min(area.y + 200, (width < 768 ? 844 : 900) - 50));
       for (let step = 0; step < 14; step += 1) { await page.mouse.wheel(0, 120); await page.waitForTimeout(40); }
       await page.waitForTimeout(300);
       const frames = await page.evaluate(() => window.__frames);
+      if (run === 1) await shot(page, `sticky-${box ? 'box' : 'page'}-${width}-${theme}`);
       const moving = frames.filter((frame) => frame.scrolled > 200);
       const rowTops = new Set(moving.map((frame) => frame.row));
       const gaps = new Set(moving.map((frame) => frame.gap));
@@ -260,6 +272,7 @@ try {
       for (let step = 0; step < 4; step += 1) { await page.mouse.wheel(150, 0); await page.waitForTimeout(60); }
       await page.waitForTimeout(300);
       const after = await read();
+      if (run === 1) await shot(page, `columns-${width}-${theme}`);
       if (before.table <= before.area) failures.push({...label, got: `the table ${before.table} fits ${before.area}`});
       if (before.cut.length) failures.push({...label, got: `cells cut: ${before.cut.join(', ')}`});
       if (before.rail === null) failures.push({...label, got: 'no rail'});
@@ -273,7 +286,7 @@ try {
   }
 
   // The rest at 1440 and 390, light and dark.
-  for (const theme of QUICK ? ['light'] : ['light', 'dark']) for (const width of QUICK ? [1440] : [1440, 390]) {
+  for (const theme of QUICK ? ['light'] : ['light', 'dark']) for (const width of QUICK ? [QUICK_WIDTH] : [1440, 390]) {
     // D1: the paging row of «Настроить вид».
     {
       const label = {theme, width, item: 'D1 setting'};
@@ -302,7 +315,7 @@ try {
       const idle = await paging(page);
       await page.mouse.move(200, 400);
       for (let step = 0; step < 20; step += 1) { await page.mouse.wheel(0, 200); await page.waitForTimeout(50); }
-      await page.waitForFunction(() => document.querySelectorAll('#v sf-view-table tbody tr[data-row-id]').length > 20, null, {timeout: 5000}).catch(() => {});
+      await page.waitForFunction(() => document.querySelectorAll('#v sf-view-table :is(tbody tr, li)[data-row-id]').length > 20, null, {timeout: 5000}).catch(() => {});
       await page.waitForTimeout(300);
       const endless = await paging(page);
       // At rest the list stays one page; the scroll brings the next pages,
@@ -310,6 +323,66 @@ try {
       if (idle.rows !== 20 || endless.rows <= 20 || endless.rows > 48 || endless.rows % 20 !== 0 && endless.rows !== 48) failures.push({...label, got: {idle: idle.rows, scrolled: endless.rows}, want: 'endless: 20 at rest, more pages after the scroll'});
       if (errors.length) failures.push({...label, errors});
       results.push({theme, item: 'D1 setting', width, seen, saves, endless: {idle: idle.rows, scrolled: endless.rows}});
+      await context.close();
+    }
+    // VR12A-1: under the list head «Настроить вид» sets the density and one
+    // line, by real clicks (the table draws no gear there).
+    {
+      const label = {theme, width, item: 'VR12A-1'};
+      const {context, page, errors} = await load(theme, width, LIST(theme, {key: 'vr1', long: true}));
+      await ready(page).catch(() => errors.push('the list did not come'));
+      await page.waitForTimeout(400);
+      const look = () => page.evaluate(() => {
+        const view = document.getElementById('v');
+        const row = view.querySelector('sf-view-table :is(tbody tr, li)[data-row-id]');
+        return {density: view.getAttribute('data-sf-density') ?? '', row: Math.round(row?.getBoundingClientRect().height ?? 0),
+          singleLine: view.querySelector('sf-view-table')?.hasAttribute('data-sf-view-single-line') ?? false,
+          gear: Boolean([...view.querySelectorAll('sf-view-table thead [data-key="settings"] button, sf-view-table .sf-table-settings-button')].find((node) => node.getClientRects().length))};
+      });
+      const before = await look();
+      await openCustomize(page).catch((error) => errors.push(`«Настроить вид» did not open: ${error.message.slice(0, 80)}`));
+      const offered = await page.evaluate(() => ({density: [...document.querySelectorAll('sf-radio[data-setting="density"]')].map((node) => node.getAttribute('label')),
+        singleLine: [...document.querySelectorAll('sf-checkbox[data-setting="single_line"]')].map((node) => node.getAttribute('label'))}));
+      await pick(page, 'density', 'compact').catch((error) => errors.push(`«Компактная» could not be picked: ${error.message.slice(0, 80)}`));
+      await page.waitForTimeout(300);
+      const box = page.locator('sf-checkbox[data-setting="single_line"]').first();
+      await box.scrollIntoViewIfNeeded({timeout: 5000}).catch(() => {});
+      await box.locator('input').click({timeout: 5000, force: true}).catch(() => errors.push('«Текст в одну строку» could not be ticked'));
+      await page.keyboard.press('Escape');
+      await page.waitForTimeout(500);
+      const after = await look();
+      const saves = await page.evaluate(() => window.__saves.map((save) => Object.keys(save.patch ?? {}).join('+')).filter(Boolean));
+      if (offered.density.join('|') !== 'Обычная|Компактная' || offered.singleLine.join('|') !== 'Текст в одну строку') failures.push({...label, got: offered});
+      if (after.density !== 'compact' || !after.singleLine || !(after.row < before.row)) failures.push({...label, got: {before, after}, want: 'compact rows on one line'});
+      if (errors.length) failures.push({...label, errors});
+      results.push({theme, item: 'VR12A-1', width, offered, before, after, saves});
+      await context.close();
+    }
+    // VR12A-2: a fitted table just above 600 px keeps a long text at about
+    // 20 characters and the sum whole; where that does not fit it scrolls.
+    if (width === 1440) for (const max of [650, 900]) {
+      const label = {theme, width, max, item: 'VR12A-2'};
+      const {context, page, errors} = await load(theme, width, LIST(theme, {key: `vr2-${max}`, long: true, max}));
+      await ready(page).catch(() => errors.push('the list did not come'));
+      await page.waitForTimeout(700);
+      const got = await page.evaluate(() => {
+        const table = document.querySelector('#v sf-view-table');
+        const row = table.querySelector('tbody tr[data-row-id]');
+        const cell = (key) => row.querySelector(`td[data-key="${key}"]`);
+        const cutIn = (td) => [td, ...td.querySelectorAll('*')].some((node) => node.scrollWidth > node.clientWidth + 1 && getComputedStyle(node).textOverflow === 'ellipsis');
+        const area = table.querySelector('.sf-table-scroll');
+        const tableWidth = table.querySelector('table').offsetWidth;
+        const floor = document.createElement('div'); floor.style.cssText = 'position:absolute;inline-size:var(--sf-measure-20, var(--sf-f0, 10rem))'; document.body.append(floor);
+        const measure = Math.round(floor.getBoundingClientRect().width); floor.remove();
+        return {note: Math.round(cell('note').getBoundingClientRect().width), measure, amountCut: cutIn(cell('amount')), amount: cell('amount').textContent.trim(),
+          row: Math.round(row.getBoundingClientRect().height), scrolls: tableWidth > area.clientWidth + 1, table: tableWidth, area: area.clientWidth,
+          sideways: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1};
+      });
+      if (got.note < got.measure - 1) failures.push({...label, got, want: `the comment at least ${got.measure}`});
+      if (got.amountCut) failures.push({...label, got, want: 'the sum whole'});
+      if (got.sideways) failures.push({...label, got: 'the page scrolls sideways'});
+      if (errors.length) failures.push({...label, errors});
+      results.push({theme, item: 'VR12A-2', width, max, ...got});
       await context.close();
     }
     // D3: stacked card fields.
@@ -335,6 +408,7 @@ try {
           labels: fields.map((field) => field.querySelector('.sf-view-cards__label')?.textContent),
         };
       });
+      await shot(page, `cards-${width}-${theme}`);
       if (got.count !== 4 || !got.stacked || !got.oneStart || !got.oneByOne) failures.push({...label, got});
       if (got.afterTitle <= got.cardGap) failures.push({...label, got: `the first field ${got.afterTitle} px under the title, the card gap ${got.cardGap}`});
       if (errors.length) failures.push({...label, errors});
@@ -351,6 +425,7 @@ try {
       const before = await cardText();
       await openCustomize(page).catch((error) => errors.push(`«Настроить вид» did not open: ${error.message.slice(0, 80)}`));
       const listed = await page.evaluate(() => [...document.querySelectorAll('sf-checkbox[data-setting="card_fields"]')].map((box) => box.getAttribute('label')));
+      await page.locator('sf-checkbox[data-setting="card_fields"][data-value="amount"]').first().scrollIntoViewIfNeeded({timeout: 5000}).catch(() => {});
       await page.locator('sf-checkbox[data-setting="card_fields"][data-value="amount"] input').first().click({timeout: 5000, force: true}).catch(() => errors.push('«Сумма» could not be ticked'));
       await page.waitForTimeout(500);
       const after = await cardText();

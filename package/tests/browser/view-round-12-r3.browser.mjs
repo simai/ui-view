@@ -20,7 +20,7 @@
 //   them the boxes come, and a click on one brings the bar.
 // - VHF-12: a card's «⋯» and box are centred on the title's first line.
 // - VRS-7: the record history beside the fields draws the fields' text step.
-// - VRS-8: on a phone the section rows are list rows of the ladder (48) with
+// - VRS-8: on a phone the section rows are list rows of the phone ladder (44, size 2 of 28/36/44/52) with
 //   a «›»; a click opens the section.
 // - VRS-9: a section whose only group has the section's name draws no group
 //   title; a group of another name keeps it.
