@@ -1959,7 +1959,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view/index.js",
-        "sha256": "6104ca85f8df84d13369ee07e6957ab31e4ffbda37bef29c157266050aa6475a"
+        "sha256": "4838602ba6fbbc6624c338c9349f2de7ca9f771ae688b18816c691fbd28b12a6"
       },
       {
         "path": "src/core/contracts/ports/simai.dataview-port/1.5.0/port.json",
@@ -1967,7 +1967,7 @@
       },
       {
         "path": "src/smart/view/docs.md",
-        "sha256": "55025924d0761a7df1b64f4feecc801c65d06e14ce19146e4b00c991bf5c9f9c"
+        "sha256": "9228a81373ab1c7bc58629212059db61feac7d6d7159d0d74e58f7012b06cb22"
       },
       {
         "path": "tests/fixtures/data-view-composite-lab.html",

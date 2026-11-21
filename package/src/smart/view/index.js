@@ -1468,11 +1468,13 @@ class SfDataView extends DataViewElement {
     }
 
     // The records from the current page on, by the page row's printed total;
-    // null when the page row says no total.
+    // null when the page row says no total. A printed total of 0 is a page
+    // row's placeholder before the first answer (it is how a server page
+    // prints an unknown count), not a count: it does not size the skeleton.
     _printedRecordsLeft(size) {
         const row = this.querySelector?.(':scope > sf-pagination[slot="pagination"]');
         const total = Number.parseInt(row?.getAttribute?.("total") ?? "", 10);
-        if (!Number.isInteger(total) || total < 0) return null;
+        if (!Number.isInteger(total) || total < 1) return null;
         const current = Number.parseInt(row.getAttribute("current") ?? "", 10);
         const page = Number.isInteger(current) && current > 1 ? current : 1;
         return total - (page - 1) * size;

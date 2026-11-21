@@ -1101,7 +1101,9 @@ try {
     // Framework's component stylesheets reach the field controls.
     const root = view;
     const read = () => ({
-      sectionItems: root.querySelectorAll('.sf-property-view-sections [role="tab"], .sf-property-view-sections [data-sf-menu-link]').length,
+      // View round 11 (VR11-1): where the column's sf-tabs would fold, the
+      // card lays its sections as tabs on top instead (data-sections-layout).
+      sectionItems: root.querySelectorAll('.sf-property-view-sections [role="tab"], .sf-property-view-sections [data-sf-menu-link], sf-tabs.sf-property-view-tabs [role="tab"]').length,
       groups: [...root.querySelectorAll('.sf-property-view-group')].map((node) => node.dataset.group),
       fields: [...root.querySelectorAll('.sf-property-view-field')].map((node) => node.dataset.field),
       // Which element drew each value: the renderer set's choice, not the host's.
@@ -1142,9 +1144,24 @@ try {
     // a named vertical navigation list with the open section current; the card
     // takes sf-tabs back by a feature check once the pair carries it.
     const menu = root.querySelector('.sf-property-view-sections sf-menu');
-    const tablist = root.querySelector('.sf-property-view-sections [role="tablist"]');
-    const tabs = [...root.querySelectorAll('.sf-property-view-sections [role="tab"], .sf-property-view-sections [data-sf-menu-link]')];
-    const sectionList = menu ? {
+    // View round 11 (VR11-1): one owner of the column. Where the column's
+    // vertical sf-tabs would fold into its row, the card lays the sections as
+    // tabs on top (data-sections-layout="tabs") and draws no column.
+    const onTop = !root.querySelector('.sf-property-view-sections') && Boolean(root.querySelector('sf-tabs.sf-property-view-tabs'));
+    const topTabs = root.querySelector('sf-tabs.sf-property-view-tabs');
+    const tablist = onTop ? topTabs?.querySelector('[role="tablist"]') : root.querySelector('.sf-property-view-sections [role="tablist"]');
+    const tabs = onTop ? [...(topTabs?.querySelectorAll('[role="tab"]') ?? [])]
+      : [...root.querySelectorAll('.sf-property-view-sections [role="tab"], .sf-property-view-sections [data-sf-menu-link]')];
+    const sectionList = onTop ? {
+      onTop: true,
+      vertical: topTabs?.getAttribute('type') ?? null,
+      orientation: tablist?.getAttribute('aria-orientation') ?? null,
+      column: Boolean(root.querySelector('.sf-property-view-sections')),
+      named: topTabs?.getAttribute('aria-label') ?? null,
+      selected: tabs.filter((tab) => tab.getAttribute('aria-selected') === 'true').length,
+      tree: Boolean(root.querySelector('sf-tabs.sf-property-view-tabs sf-tree')),
+      glyphs: tabs.map((tab) => [...tab.querySelectorAll('.sf-icon')].map((icon) => icon.textContent.trim()).join(' ')),
+    } : menu ? {
       vertical: menu.querySelector('nav')?.getAttribute('data-orientation') ?? null,
       orientation: null,
       place: null,
@@ -1419,13 +1436,21 @@ try {
     const list = measured.sectionList ?? {};
     const folds = list.place ? list.place.width < list.place.md : null;
     const orientation = folds === null ? null : folds ? 'horizontal' : 'vertical';
-    if (list.vertical !== 'vertical' || list.orientation !== orientation || !list.named
-        || list.selected !== 1 || list.tree !== false || list.landmark !== 'div') {
+    if (list.onTop) {
+      // VR11-1: tabs on top are the underline row, and no column is reserved.
+      if (list.vertical !== 'underline' || list.orientation === 'vertical' || list.column || !list.named
+          || list.selected !== 1 || list.tree !== false) {
+        note({case: 'sections laid as tabs on top are a named underline tablist with one tab selected and no column',
+          got: list, expected: {vertical: 'underline', column: false, named: 'the sections label', selected: 1, tree: false}});
+      }
+    } else if (list.vertical !== 'vertical' || list.orientation !== orientation || !list.named
+        || list.selected !== 1 || list.tree !== false || list.landmark !== 'div' || list.orientation === 'horizontal') {
       note({case: 'the section list is a named vertical tablist with one tab selected, no tree, no landmark around it',
         got: list, expected: {vertical: 'vertical', orientation: `${orientation} (sf-tabs 1.4.0 folds below 44rem of its place)`, named: 'the sections label',
           selected: 1, tree: false, landmark: 'div'}});
     }
-    if (JSON.stringify(list.glyphs) !== JSON.stringify(['', 'search'])) {
+    // Tabs on top name their sections in words (the underline row carries no icons).
+    if (!list.onTop && JSON.stringify(list.glyphs) !== JSON.stringify(['', 'search'])) {
       note({case: 'a section\'s own icon is on its tab, and a section without one draws no folder',
         got: list.glyphs, expected: ['', 'search']});
     }
