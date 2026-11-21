@@ -1984,7 +1984,8 @@
           "View round 13 (round/view-r13): D1 index.js paging (VIEW_PAGING, get paging, applyPaging, _drawMore into slot more, _showMore, _watchEndless; the range grows from the run's first page; data-sf-view-paging-off hides the pagination for more and endless; first paint draws the button skeleton); component.json settings.paging and the manifest input; lang head-paging*. VHF-15 head.js lays --sf-view--head-offset and --sf-view--stuck-head on [part=layout]; [part=head] sticks for head=list. VHF-13 ownLayoutSettings / applyLayoutSettings; board, cards and calendar options merge the person's settings; the view panel lists the view's own fields. D3 cards skeleton draws stacked fields. VR12A-1 js/head.js: the table kind's panel adds density radios and a single_line checkbox (set through sf-view-table setTableView); lang head-density*, head-single-line. NO_REFRESH_AFTER takes settings.save.",
           "VR5 (DEV msg-b581533a): index.js CHROME_PARTS + search, filter, look, page-size; CHROME_WITHIN maps them to toolbar and pagination; renders(part) hides a part the chrome attribute does not name once it names any part, and a part head.chrome does not name; chrome setter and setChrome(); look getter/setter (head.look or view.look); the first-paint head row holds only the filter and search the chrome keeps; _drawFooter hides .sf-view-footer-size without page-size. js/head.js filterShown (renders filter and describe() fields), render hides .sf-view-head-search, [data-filter-group], .sf-view-head-filter-icon, sf-popover[data-pop=view], .sf-view-head-tune and an empty .sf-view-head-row; _renderFields empties the fields box when the filter is off; _viewPanel draws only the rows head.look names. js/head.css display: none for those parts when hidden.",
           "VR5-5 js/head.js zoneUseful: a described list and personal-column-settings count only while look is drawn.",
-          "VR5-10 index.js: the projection writes data-sf-row-menu-off on the table when a known host offers no row-actions (_rowMenuOff); the first paint leaves the «≡» column out where the known host gives it nothing to open (_settingsColumnUnused: no row-actions, no personal-column-settings outside the list head, no row-reorder)."
+          "VR5-10 index.js: the projection writes data-sf-row-menu-off on the table when a known host offers no row-actions (_rowMenuOff); the first paint leaves the «≡» column out where the known host gives it nothing to open (_settingsColumnUnused: no row-actions, no personal-column-settings outside the list head, no row-reorder).",
+          "LV2-6: layout cards get the list's page row (pagination by default, the footer range, a page size chosen there kept for the cards); the cards' grid no longer offers its own more button while the row is drawn. LV2-8: switchLayout opens the new kind on the page holding the record first on screen; the head's kind switch no longer resets the page to 1."
         ]
       }
     ]
@@ -1995,7 +1996,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view/index.js",
-        "sha256": "19b2bd472966d91ba7f4fd4d33bc24bed14af03e86863c1b83d0db83b73d336b"
+        "sha256": "3611bacba59969dcc2a383b1a0e635aba6e4928358c189b6ff7f1ea6b2659032"
       },
       {
         "path": "src/core/contracts/ports/simai.dataview-port/1.5.0/port.json",
@@ -2003,7 +2004,7 @@
       },
       {
         "path": "src/smart/view/docs.md",
-        "sha256": "1dac41efd65b396f11d4d8d79d69b8efcddb56fc588a9cb02ff9a88776c64d5c"
+        "sha256": "67a9c39cff3927fbb06bcddb0c2115a241abcb059b586163915f939f74eaff70"
       },
       {
         "path": "tests/fixtures/data-view-composite-lab.html",
@@ -2019,7 +2020,7 @@
       },
       {
         "path": "src/smart/view/js/cards.js",
-        "sha256": "3acaf4f259518498bf08c974e8ed6f96dd2f4fd800ba4b27a41400ea06bc74fe"
+        "sha256": "62b679cfbe0d6f2e82717ebb02b7ebe82197640e47360cf20943e6be75a4dc69"
       }
     ],
     "generated_runtime": []

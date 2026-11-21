@@ -33,7 +33,10 @@ test('the switch works over every layout and carries the marks', () => {
   // The list's page size is kept over the cards and the calendar and given back with the table or the board.
   assert.match(view, /const OWN_PAGING = new Set\(\["sf-view-cards", "sf-view-calendar"\]\);/u);
   assert.match(body, /if \(OWN_PAGING\.has\(toTag\)\) this\._perPageOfList \?\?= \{value: this\.query\?\.per_page\};/u);
-  assert.match(body, /else this\.query\.per_page = this\._perPageOfList\.value;\n\s+this\.query\.page = 1;/u);
+  assert.match(body, /else this\.query\.per_page = this\._perPageOfList\.value;\n\s+this\._perPageOfList = null;/u);
+  // LV2-8: the new kind opens on the page holding the record first on screen.
+  assert.match(body, /this\._keepFirst = \(\(Number\(this\._runStart \?\? this\.query\?\.page\) \|\| 1\) - 1\) \* perBefore \+ 1;/u);
+  assert.match(body, /if \(toTag === "sf-view-table"\) this\.query\.page = pageHolding\(this\._keepFirst, this\.query\.per_page\);/u);
   assert.match(body, /delete this\.query\.window;/u);
   for (const tag of ['sf-view-board', 'sf-view-cards', 'sf-view-calendar']) assert.ok(body.includes(`tag === "${tag}"`), tag);
   const swap = view.slice(view.indexOf('    _swapContent() {'), view.indexOf('    get board() {'));

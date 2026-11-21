@@ -61,7 +61,8 @@ test('R67-1: a board and cards keep the footer start that says their count', () 
   assert.match(rule, /:not\(\[data-sf-view-footer-count\]\) > \[slot="footer"\]\[data-sf-view-made\]/u, 'the footer start is hidden only without the count');
   assert.doesNotMatch(rule.split('\n')[0], /\[slot="footer"\]/u, 'the table and page row rule does not name the footer');
   const view = read('src/smart/view/index.js');
-  assert.match(view, /if \(kind !== "board" && kind !== "cards"\) \{\n\s+\/\/ Back to a table[^\n]*\n\s+this\.removeAttribute\?\.\("data-sf-view-footer-count"\);/u);
+  // Cards with the list's page row (LV2-6) draw the table's footer.
+  assert.match(view, /if \(kind !== "board" && !\(kind === "cards" && !this\.pagination\)\) \{\n\s+\/\/ Back to a table[^\n]*\n\s+this\.removeAttribute\?\.\("data-sf-view-footer-count"\);/u);
 });
 
 test('R67-3: flexible columns give back room down to their least width before the box scrolls', () => {

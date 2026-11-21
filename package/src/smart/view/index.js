@@ -70,6 +70,11 @@ const layoutsOfBoard = (value) => LAYOUTS.get(layoutName(value)) === "sf-view-bo
 // The layouts that ask their own window instead of the list's page (cards:
 // page and per_page 24; calendar: days).
 const OWN_PAGING = new Set(["sf-view-cards", "sf-view-calendar"]);
+// The page of a page size that holds record number first (1-based, LV2-8).
+function pageHolding(first, perPage) {
+    const per = Number(perPage) || VIEW_DEFAULT_PAGE_SIZE;
+    return Number.isSafeInteger(first) && first > 0 ? Math.floor((first - 1) / per) + 1 : 1;
+}
 const LAYOUT_KINDS = Object.freeze({"sf-view-board": "board", "sf-view-cards": "cards", "sf-view-calendar": "calendar"});
 // A layout of the table (auto, table, list): the page's own value kept over a switch.
 const tableLayout = (value) => value !== null && value !== undefined && (LAYOUTS.get(layoutName(value)) ?? "sf-view-table") === "sf-view-table";
@@ -753,6 +758,9 @@ class SfDataView extends DataViewElement {
         // Cards (layout="cards") too: «Показать ещё» is under their grid (C306);
         // and the calendar, whose period is its own window (C307).
         const board = this.layoutKind === "board" || this.layoutKind === "cards" || this.layoutKind === "calendar";
+        // The cards have the table's page row (list study v2, LV2-6): their
+        // pages and «Показать ещё» are the list's, as D1 draws them.
+        const noPageRow = this.layoutKind === "board" || this.layoutKind === "calendar";
         const defaults = [
             ["content", "sf-view-table", {}],
             ["pagination", "sf-pagination", {appearance: "field", top: "false", bottom: "false"}],
@@ -762,7 +770,7 @@ class SfDataView extends DataViewElement {
             // A part the view does not draw (chrome without pagination, an
             // embedded list) gets no default element: it would print a page
             // row nobody sees into the first paint.
-            if (slot === "pagination" && (board || !this.renders("pagination"))) {
+            if (slot === "pagination" && (noPageRow || !this.renders("pagination"))) {
                 [...(this.children ?? [])].filter((child) => child.getAttribute?.("slot") === slot
                     && child.hasAttribute?.("data-sf-view-default")).forEach((child) => child.remove());
                 continue;
@@ -858,6 +866,11 @@ class SfDataView extends DataViewElement {
         const own = tableLayout(this._tableLayout) ? this._tableLayout : null;
         const written = toTag === "sf-view-table" ? (name === "table" ? own : name) : (LAYOUT_KINDS[toTag] ?? name);
         if (fromTag !== toTag) {
+            // The record first on screen stays on screen (LV2-8): the new
+            // kind opens on the page that holds it, in its own page size, so
+            // the page row and the records never disagree.
+            const perBefore = Number(this.query?.per_page) || VIEW_DEFAULT_PAGE_SIZE;
+            this._keepFirst = ((Number(this._runStart ?? this.query?.page) || 1) - 1) * perBefore + 1;
             this._carrySelection = marked.map(String);
             this._carrySequence = this.sequence;
             // The cards ask their own page size (24, C306) and the calendar
@@ -869,9 +882,11 @@ class SfDataView extends DataViewElement {
             else if (this._perPageOfList) {
                 if (this._perPageOfList.value === undefined) delete this.query.per_page;
                 else this.query.per_page = this._perPageOfList.value;
-                this.query.page = 1;
                 this._perPageOfList = null;
             }
+            if (toTag === "sf-view-table") this.query.page = pageHolding(this._keepFirst, this.query.per_page);
+            else if (!OWN_PAGING.has(toTag)) this.query.page = 1;
+            if (toTag !== "sf-view-cards") this._keepFirst = null;
             if (this.query && typeof this.query === "object") delete this.query.window;
         }
         this._drawnTag ??= fromTag;
@@ -1325,7 +1340,9 @@ class SfDataView extends DataViewElement {
     // the page turned the page row off. True when the view draws such a kind.
     _drawCountFooter() {
         const kind = this.layoutKind;
-        if (kind !== "board" && kind !== "cards") {
+        // Cards with a page row draw the table's footer (LV2-6); without
+        // one they say their count as the board does.
+        if (kind !== "board" && !(kind === "cards" && !this.pagination)) {
             // Back to a table or on to a calendar: the mark goes with the kind.
             this.removeAttribute?.("data-sf-view-footer-count");
             return false;
@@ -1388,7 +1405,7 @@ class SfDataView extends DataViewElement {
     // appearance of its own is the page's choice, and the view leaves it.
     get pagingOffered() {
         const row = this.pagination;
-        if (!row || this.layoutKind !== "table") return false;
+        if (!row || !["table", "cards"].includes(this.layoutKind)) return false;
         return !row.hasAttribute("appearance") || row.hasAttribute("data-sf-view-appearance")
             || row.hasAttribute("data-sf-view-made") || row.hasAttribute("data-sf-view-default");
     }
@@ -1587,6 +1604,7 @@ class SfDataView extends DataViewElement {
                 this.append(board);
             }
             globalThis.SF?.Loader?.ensure?.([tag]);
+            if (this.layoutKind === "cards") this._ownPageRow();
             this._applyBulkActions();
             this._applyForAll();
             return;
@@ -1598,17 +1616,20 @@ class SfDataView extends DataViewElement {
             table.toggleAttribute("data-sf-view-made", true);
             this.append(table);
         }
-        if (!this.querySelector(':scope > [slot="pagination"]')) {
-            const pagination = document.createElement("sf-pagination");
-            pagination.slot = "pagination";
-            pagination.setAttribute("appearance", "field");
-            pagination.setAttribute("top", "false");
-            pagination.setAttribute("bottom", "false");
-            pagination.toggleAttribute("data-sf-view-made", true);
-            this.append(pagination);
-        }
+        this._ownPageRow();
         this._applyBulkActions();
         this._applyForAll();
+    }
+
+    _ownPageRow() {
+        if (this.querySelector(':scope > [slot="pagination"]') || !this.renders("pagination")) return;
+        const pagination = document.createElement("sf-pagination");
+        pagination.slot = "pagination";
+        pagination.setAttribute("appearance", "field");
+        pagination.setAttribute("top", "false");
+        pagination.setAttribute("bottom", "false");
+        pagination.toggleAttribute("data-sf-view-made", true);
+        this.append(pagination);
     }
 
     connectedCallback() {
@@ -2919,6 +2940,7 @@ class SfDataView extends DataViewElement {
         if (!patch || typeof patch !== "object" || Array.isArray(patch)) throw new TypeError("Query patch must be an object");
         this.query = {...this.query, ...copy(patch)};
         if (!["page-change", "page-size-change", "show-more"].includes(reason)) this.query.page = 1;
+        if (reason === "page-size-change" && this.layoutKind === "cards" && Number.isSafeInteger(Number(patch.per_page))) this._cardsPageSize = Number(patch.per_page);
         return this.refresh(reason);
     }
 
@@ -3927,7 +3949,7 @@ class SfDataView extends DataViewElement {
         // said «Всего: 10» over a loading, failed or refused list (docs trial 4).
         // A board has none either: each lane has its own «Показать ещё» (C304).
         const nothingToCount = !this._answered || this._queryRefused || ["error", "no-access"].includes(this.getAttribute("data-state"));
-        if (pageRow) pageRow.hidden = !this.renders("pagination") || this.treeMode === "tree" || this.layoutKind === "board" || this.layoutKind === "cards" || this.layoutKind === "calendar" || nothingToCount;
+        if (pageRow) pageRow.hidden = !this.renders("pagination") || this.treeMode === "tree" || this.layoutKind === "board" || this.layoutKind === "calendar" || nothingToCount;
         if (!this.capHidesRows) {
             if (this._showAll?.isConnected) this._showAll.remove();
             this._showAll = null;

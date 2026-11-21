@@ -115,7 +115,8 @@ test('CA-1: sf-view registers the calendar layout and draws it with no page row'
   assert.match(view, /\["board", "sf-view-board"\], \["cards", "sf-view-cards"\], \["calendar", "sf-view-calendar"\]\]\)/u);
   assert.match(view, /\.\.\.CALENDAR_EVENTS,/u);
   assert.match(view, /if \(layout === "calendar"\) return calendarSkeleton\(\);/u);
-  assert.match(view, /this\.layoutKind === "board" \|\| this\.layoutKind === "cards" \|\| this\.layoutKind === "calendar" \|\| nothingToCount/u);
+  // The cards have the list's page row since LV2-6; the board and the calendar have none.
+  assert.match(view, /this\.layoutKind === "board" \|\| this\.layoutKind === "calendar" \|\| nothingToCount/u);
   assert.match(view, /if \(this\.layoutKind === "calendar"\) return calendarQuery\(this, query, extra\);/u);
   const adapter = read('src/smart/view/js/calendar.js');
   assert.match(adapter, /query\.window = \{\.\.\.window, \.\.\.\(extra \?\? \{\}\)\};[\s\S]{0,400}?query\.context = contextOf\(view\);/u);

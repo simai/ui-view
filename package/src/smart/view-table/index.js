@@ -3505,7 +3505,12 @@ class SfTable extends TableElement {
         for (const [key, own, declaredLeast] of flexible) {
             const width = fitted.get(key) ?? own;
             const type = typeOf(key);
-            const kept = this.isNumberColumn(byKey.get(key)) || this.showsNumbers(key) ? width : LONG_TEXT_CELL_TYPES.has(type) ? textFloor : 0;
+            // A short value (an id, a date, a status, the name of a record)
+            // keeps its whole width (list study v2, LV2-1: «Заказ №20…»,
+            // «20 нояб. 202…» at 106 and 124 px); only a value longer than
+            // about 20 characters gives way, down to them.
+            const kept = this.isNumberColumn(byKey.get(key)) || this.showsNumbers(key) ? width
+                : LONG_TEXT_CELL_TYPES.has(type) ? textFloor : Math.min(width, textFloor);
             const least = Math.min(width, Math.max(leastWidths.get(key) ?? width, declaredLeast, kept));
             if (width > least) {
                 shrinking.push([key, width, width - least]);

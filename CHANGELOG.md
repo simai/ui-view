@@ -23,7 +23,8 @@ View round 13 (round/view-r13, from `round/view-r12` 79f7706), candidate
 round 4 (owner decisions D1 and D3 of 2026-11-21; returns VHF-13..16) and the
 round 12 acceptance returns VR12A-1 and VR12A-2 (DEV msg-7e2d384f), and the
 record's owner decisions C399-C402 (DEV msg-3215bbda), and the round 5 returns
-VR5-1, VR5-2, VR5-5, VR5-6 and VR5-10 (DEV msg-b581533a).
+VR5-1, VR5-2, VR5-5, VR5-6 and VR5-10 (DEV msg-b581533a), and the list
+study v2 returns LV2-1, LV2-6 and LV2-8 (DEV msg-04ef4018).
 Numbers are above every branch of this set and of ui-pro.
 
 - `sf-view` 1.32.0. D1: «Подгрузка» in «Настроить вид» for the table, new
@@ -44,7 +45,12 @@ Numbers are above every branch of this set and of ui-pro.
   document takes `head.chrome` and `head.look` (the rows of «Настроить
   вид»), and `view.chrome` / `view.setChrome()` / `view.look` do it by a
   call; «Фильтр» goes by itself without filter fields; an emptied head row
-  is not drawn.
+  is not drawn. LV2-6: the cards have the list's page row (page numbers,
+  «Показать ещё», the page size and «1–24 из 48» under the grid; the grid's
+  own more button goes while the row is on). LV2-8: a display kind switch
+  keeps the record first on screen on screen -- the new kind opens on the
+  page that holds it, in its own page size, so the page marked and the
+  records shown agree (it reopened on page 1 before).
 - `sf-view-table` 1.31.0. VHF-14: the table head sticks by CSS, no one-frame
   lag. VHF-16: columns that do not fit keep their natural widths; the table
   moves sideways by the rail, a sideways wheel or touchpad and the keyboard
@@ -53,6 +59,9 @@ Numbers are above every branch of this set and of ui-pro.
   and a number or money column is never cut; where those do not fit, the
   table scrolls sideways. VR5-10: with the row menu off and nothing to
   reorder, the first column is not drawn (it was an empty 57 px band).
+  LV2-1: a short one-line column (an id, a date, a status, a record name)
+  keeps its content width up to about 20 characters; beside a record card
+  «Заказ №20…» and «20 нояб. 202…» are no longer cut.
 - `sf-view-properties` 1.26.0, the record (owner decisions C399-C402, DEV
   msg-3215bbda). C400: a field's label is its value's size (14; 12 compact),
   in the muted ink, on the value's baseline. C402: an empty value reads «не

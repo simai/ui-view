@@ -1488,7 +1488,9 @@ export class ListHead {
         if (typeof this.view.switchLayout !== "function") return this._query({view});
         // The query names the kind, then the view swaps its layout and asks
         // the host once, with the layout's own query (a board's lane window).
-        this.view.query = {...this.view.query, view, page: 1};
+        // The page is the view's to keep (LV2-8): the record first on screen
+        // stays on screen in the new kind.
+        this.view.query = {...this.view.query, view};
         this.view.switchLayout(kind);
     }
 

@@ -37,10 +37,18 @@ export function cardsOptions(view) {
 
 /** The query the cards ask (CD-4): the page and window {page, per_page}. */
 export function cardsQuery(view, query) {
-    const asked = Number(cardsOptions(view).per_page);
+    // A page size the person chose in the footer (LV2-6: the cards have the
+    // list's page row) goes over the cards' own 24.
+    const asked = Number(cardsOptions(view).per_page ?? view._cardsPageSize);
     const perPage = Number.isSafeInteger(asked) && asked > 0 ? asked : CARDS_PER_PAGE;
     view.query.per_page = perPage;
     query.per_page = perPage;
+    // Switched in from another kind (LV2-8): the page holding the record that
+    // was first on screen, in the cards' page size.
+    if (Number.isSafeInteger(view._keepFirst)) {
+        query.page = view.query.page = Math.floor((view._keepFirst - 1) / perPage) + 1;
+        view._keepFirst = null;
+    }
     query.window = {page: Number.isSafeInteger(query.page) && query.page > 0 ? query.page : 1, per_page: perPage};
     return query;
 }
@@ -63,7 +71,10 @@ export function syncCards(view) {
     if (view.countKnown !== false && Number.isSafeInteger(view.total)) cards.setAttribute("total", String(view.total));
     else cards.removeAttribute("total");
     cards.setAttribute("count-known", view.countKnown === false ? "false" : "true");
-    if (typeof view.hasNext === "boolean" && !(view.countKnown !== false && Number.isSafeInteger(view.total))) cards.setAttribute("has-next", view.hasNext ? "true" : "false");
+    // The list's paging (D1, LV2-6) draws «Показать ещё» and the pages
+    // under the cards; the grid draws no button of its own then.
+    if (view._viewPaging?.() != null) cards.setAttribute("has-next", "false");
+    else if (typeof view.hasNext === "boolean" && !(view.countKnown !== false && Number.isSafeInteger(view.total))) cards.setAttribute("has-next", view.hasNext ? "true" : "false");
     else cards.removeAttribute("has-next");
     syncCardsState(view, view.getAttribute?.("data-state") ?? "");
     cards.setAttribute("selectable", view.selects() && !refused ? "true" : "false");
