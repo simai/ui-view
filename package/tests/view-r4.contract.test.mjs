@@ -35,7 +35,8 @@ test('the switch works over every layout and carries the marks', () => {
   assert.match(body, /if \(OWN_PAGING\.has\(toTag\)\) this\._perPageOfList \?\?= \{value: this\.query\?\.per_page\};/u);
   assert.match(body, /else this\.query\.per_page = this\._perPageOfList\.value;\n\s+this\._perPageOfList = null;/u);
   // LV2-8: the new kind opens on the page holding the record first on screen.
-  assert.match(body, /this\._keepFirst = \(\(Number\(this\._runStart \?\? this\.query\?\.page\) \|\| 1\) - 1\) \* perBefore \+ 1;/u);
+  assert.match(body, /this\._anchorFirst \?\?= \(\(Number\(this\._runStart \?\? this\.query\?\.page\) \|\| 1\) - 1\) \* perBefore \+ 1;/u);
+  assert.match(view, /this\.query = \{\.\.\.this\.query, \.\.\.copy\(patch\)\};\n\s+this\._anchorFirst = null;/u);
   assert.match(body, /if \(toTag === "sf-view-table"\) this\.query\.page = pageHolding\(this\._keepFirst, this\.query\.per_page\);/u);
   assert.match(body, /delete this\.query\.window;/u);
   for (const tag of ['sf-view-board', 'sf-view-cards', 'sf-view-calendar']) assert.ok(body.includes(`tag === "${tag}"`), tag);

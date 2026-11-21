@@ -868,9 +868,12 @@ class SfDataView extends DataViewElement {
         if (fromTag !== toTag) {
             // The record first on screen stays on screen (LV2-8): the new
             // kind opens on the page that holds it, in its own page size, so
-            // the page row and the records never disagree.
+            // the page row and the records never disagree. It is held over
+            // switches back and forth until the person turns a page or asks
+            // anything else: table page 2 -> cards 1-24 -> table page 2.
             const perBefore = Number(this.query?.per_page) || VIEW_DEFAULT_PAGE_SIZE;
-            this._keepFirst = ((Number(this._runStart ?? this.query?.page) || 1) - 1) * perBefore + 1;
+            this._anchorFirst ??= ((Number(this._runStart ?? this.query?.page) || 1) - 1) * perBefore + 1;
+            this._keepFirst = this._anchorFirst;
             this._carrySelection = marked.map(String);
             this._carrySequence = this.sequence;
             // The cards ask their own page size (24, C306) and the calendar
@@ -2939,6 +2942,7 @@ class SfDataView extends DataViewElement {
     changeQuery(patch, reason = "query-change") {
         if (!patch || typeof patch !== "object" || Array.isArray(patch)) throw new TypeError("Query patch must be an object");
         this.query = {...this.query, ...copy(patch)};
+        this._anchorFirst = null;
         if (!["page-change", "page-size-change", "show-more"].includes(reason)) this.query.page = 1;
         if (reason === "page-size-change" && this.layoutKind === "cards" && Number.isSafeInteger(Number(patch.per_page))) this._cardsPageSize = Number(patch.per_page);
         return this.refresh(reason);
