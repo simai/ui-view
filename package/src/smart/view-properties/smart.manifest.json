@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-properties",
-  "version": "1.23.10",
+  "version": "1.25.0",
   "title": "Property view",
   "summary": "One object's fields shown as sections, groups and fields, each drawn by the per-type field renderer set, behind a separate host port. A group is edited and saved as one revision by the button, and a reference field is picked from the host's own candidates a page at a time. The pair to the data view: that one is a set of records, this one is a single object.",
   "kind": "composite",
@@ -2029,9 +2029,9 @@
       },
       {
         "from": "1.23.9",
-        "to": "1.23.10",
+        "to": "1.25.0",
         "changes": [
-          "View round 12 (round/view-r12): VHF-7 templates/default.css: the head line's sf-badge and its box do not shrink, the subtitle is flex 0 1 auto; VHF-6 templates/default.js: renderHeadLine(context, end) draws the in-place actions (inPlaceActions) at the end of the line (.sf-property-view-head-line-end), the host-actions row only where there is no line (headLineDrawn). docs.md says it. Test view-c311 reads the new signature."
+          "View round 12 (round/view-r12): VHF-7 templates/default.css: the head line's sf-badge and its box do not shrink, the subtitle is flex 0 1 auto; VHF-6 templates/default.js: renderHeadLine(context, end) draws the in-place actions (inPlaceActions) at the end of the line (.sf-property-view-head-line-end), the host-actions row only where there is no line (headLineDrawn). docs.md says it. Test view-c311 reads the new signature. View round 12, sets 2-3 (DEV msg-3e47ce93, msg-c31ccebd, C393): VRS-7 js/templates/default.js sf-list-timeline size 1/2 with the card's size; VRS-8 renderPhoneSectionList sf-list size 1 and default.css a «›» mask on each row; VRS-9 renderGroup hides the title of a section's only group named as the section; C393 index.js starLook() reads sf-button-icon's appearance values (the twin of ui-pro's sf-view-properties 1.24.0 star), the template draws appearance=toggle and pressed when it is there, else the former star. The record panel's step-plus-aside column of Pro 1.24.0 is not taken: it needs sf-drawer 1.20.0 aside-width, which pair ui-b654460cad2a does not carry (sf-drawer 1.18.1); VR11-1 (no folded tab row in a column) is r11's own and its probe property-view-section-column holds it. Numbered above ui-pro's copies in pro-f6c43828e5f2 (sf-view 1.30.1, sf-view-table 1.29.4, sf-view-properties 1.24.0, group build 15), the highest on any origin branch of simai/ui-view and simai/ui-pro; this round's own step was 1.30.1, 1.29.4 and 1.23.10 on round/view-r12 a26f636 before Pro took those numbers."
         ]
       }
     ]
@@ -2042,15 +2042,15 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-properties/index.js",
-        "sha256": "e0d763137a303e2d9b8542c53538c41c3733df0e720447363afa661e8e949bea"
+        "sha256": "da1c1253b64d137e8b6ed20ae3734048a904476800e8f49c08a2e4fd0982a089"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.js",
-        "sha256": "35c5b4200ac3d6ba42ba0c4d3f1688e1b30296381bd0160a39c8da3720dc15a5"
+        "sha256": "2d66c106ae90a8eda1f6efaa6f9f3cf7162d58dd24d7a22e4dc48a522f839153"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.css",
-        "sha256": "be947371e91f53cd92b22473d49bf480e7682ed8f523aaac333b3694493f58b3"
+        "sha256": "21bf7b43bfe4f1ad302e5d41a6f6d47016b01d1a2e109baaa7745429f1bfacb1"
       },
       {
         "path": "src/smart/view-properties/js/conditions.js",
@@ -2102,7 +2102,7 @@
       },
       {
         "path": "src/smart/view-properties/docs.md",
-        "sha256": "fff732f67a7d21845873b2086dbde8a0385dcf07625b4186448e81564169a4be"
+        "sha256": "a38b9a5c117407c3d7f160fbbee4ed7addc2cc553d9d2edca77ce6e36b92d4fa"
       }
     ],
     "generated_runtime": []

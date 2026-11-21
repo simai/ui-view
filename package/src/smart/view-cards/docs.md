@@ -87,7 +87,8 @@ back to it.
 
 ## Selection
 
-The box of a card (or Space) marks it; once something is marked every card
+A card without a cover centres its box and «⋯» on the title's first line
+(since 1.0.7). The box of a card (or Space) marks it; once something is marked every card
 shows its box. The marks go to `sf-bulk-actions` (C295) with the host's
 actions where the pair has it, else to the same strip of `sf-button`.
 

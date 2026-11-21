@@ -19,28 +19,40 @@ up). Each component.json says the same under `x-decisions`
 ## Unreleased — view round 12
 
 View round 12 (round/view-r12, from `round/view-r11` 9609c88), candidate
-1.10.3 over the same pair `ui-b654460cad2a`; the list head and footer study,
-round 2 (DEV msg-7d2d0c1e, returns VHF-3..7).
+1.10.3 over the same pair `ui-b654460cad2a`: the list head and footer study,
+rounds 2 and 3 (DEV msg-7d2d0c1e, msg-c31ccebd; returns VHF-3..12), the record
+study (DEV msg-3e47ce93; VRS-7..9) and the favourite star of C393 (the twin of
+ui-pro pro-f6c43828e5f2). Numbers are above ui-pro's copies of the set in
+pro-f6c43828e5f2 (sf-view 1.30.1, sf-view-table 1.29.4, sf-view-properties
+1.24.0), which took this round's first numbers.
 
-- `sf-view` 1.30.1 (VHF-3): when the search, «Создать» and «⋯» wrap under the
-  filter fields, their line starts at the row's start (it stood at the row's
-  end, the start of the line empty). VHF-5: the head answers to the width the
-  list has, not to the view's box: a record card docked beside the list pads
-  the view by its own width, and below 600 px of what is left the head is the
-  phone head, together with the table's list rows (it stayed the desktop head
-  over list rows). The step itself is unchanged (a «phone under 48rem beside
-  the card» step waits for the owner).
-- `sf-view-table` 1.29.4 (VHF-4): «Текст в одну строку» shows: off, the
-  record's name takes its two lines (C146 (7)) in a fitted column too; on, one
-  line with «…». The default is unchanged. Columns that do not fit give the
-  room from the widest first, down to one common width: a short name such as
-  «Заказ №2001» stays whole beside a long client or comment (it was cut to
-  «Заказ №20…»).
-- `sf-view-properties` 1.23.10 (VHF-7): under the title the stage badge keeps
-  its whole word; the fields after it end in «…» (it was «Отправ…»). VHF-6: a
-  card in place ends that line with its «⋯» instead of a row of its own above
-  it.
-- Browser probe view-round-12 (all five, red on 9609c88).
+- `sf-view` 1.31.0. VHF-3: the head row has two states only: everything on
+  one row while it fits; else the search across the width on top with
+  «Создать» and «⋯», «Фильтр» and the fields below (the search stood alone at
+  the end of a second row). VHF-5: the head answers to the width the list has,
+  not to the view's box: beside a docked record card, below 600 px of what is
+  left the head is the phone head, together with the table's list rows. VHF-9:
+  the list title keeps its heading size in a compact area (C44). VHF-11: no
+  boxes in the table, the cards or the calendar without bulk actions; a host
+  that names `select` in its own `chrome` keeps them.
+- `sf-view-table` 1.29.5. VHF-4: «Текст в одну строку» shows (off, the name
+  takes its two lines in a fitted column too; on, one line with «…»; the
+  default is unchanged), and columns that do not fit give room from the widest
+  first, so a short name stays whole. VHF-8: «Компактно» on a normal page is the
+  Framework's compact density on the table, so the row menu «≡» and the box
+  step down with the row (28 at size 1/2, 32 at 1; the «≡» held 32 and 40).
+- `sf-view-properties` 1.25.0. VHF-7: the stage badge keeps its whole word;
+  VHF-6: a card in place ends that line with its «⋯». VRS-7: the whole
+  screen's history draws the card's text step (16 beside 14 px fields). VRS-8:
+  phone section rows are sf-list rows of the ladder with «›». VRS-9: no group
+  title that repeats the section's name. C393: the favourite star is the
+  Framework's toggle where sf-button-icon has the look (the pair's 1.13.11 has
+  not: the neutral ghost toggle stays). Pro's record panel step plus aside
+  column (sf-drawer 1.20.0) is not in this pair and not taken.
+- `sf-view-board` 1.1.4 (VHF-10): a card at size 1 draws text step 1.
+- `sf-view-cards` 1.0.7 (VHF-12): the box and «⋯» are centred on the title's
+  first line (the «⋯» sat 6 px low).
+- Browser probes view-round-12 and view-round-12-r3 (red on 9609c88).
 
 ## Unreleased — view round 11
 

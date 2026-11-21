@@ -5,11 +5,11 @@
   "entries": [
     {
       "unit": "smart.view",
-      "version": "1.30.1",
+      "version": "1.31.0",
       "recorded_on": "2026-11-21",
-      "change": "patch",
-      "consumer": "Nothing to change for a host. The list head answers to the width the list has: a record card docked beside the list (data-sf-drawer-dock-host pads the view) leaves less, and below 600 px of it the head is the phone head, as the table already turns into list rows there (it stayed the desktop head over list rows). When the search, «Создать» and «⋯» wrap onto a line of their own under the filter fields, that line starts at the row's start (it stood at the row's end with the start of the line empty).",
-      "summary": "View round 12 (round/view-r12): VHF-3 js/head.css: .sf-view-head-end has no auto start margin (the growing start holds it at the row's end on one line; wrapped, it starts its line); .sf-view-head-title-end keeps its own. VHF-5 js/head.js: _measure reads the view's content box (contentWidth: the border box less the inline padding and borders) instead of its border box. docs.md says both.",
+      "change": "minor",
+      "consumer": "Nothing to change for a host. The list head answers to the width the list has: a record card docked beside the list (data-sf-drawer-dock-host pads the view) leaves less, and below 600 px of it the head is the phone head, as the table already turns into list rows there (it stayed the desktop head over list rows). When the search, «Создать» and «⋯» wrap onto a line of their own under the filter fields, that line starts at the row's start (it stood at the row's end with the start of the line empty). The head row has two states only (round 3, VHF-3 refined): everything on one row while «Фильтр», its fields, the search at 20rem, «Создать» and «⋯» fit; else two rows, the search across the width on top with «Создать» and «⋯» at its end, «Фильтр» and the fields below (the search stood alone at the end of a second row). The list title keeps its heading size in a compact area (VHF-9, C44: it went 20 -> 16). Without bulk actions the rows, cards and calendar events draw no boxes (VHF-11): a box is there to mark records for an action; a host that names select in its own chrome keeps them.",
+      "summary": "View round 12 (round/view-r12): VHF-3 js/head.css: .sf-view-head-end has no auto start margin (the growing start holds it at the row's end on one line; wrapped, it starts its line); .sf-view-head-title-end keeps its own. VHF-5 js/head.js: _measure reads the view's content box (contentWidth: the border box less the inline padding and borders) instead of its border box. docs.md says both. View round 12, sets 2-3 (DEV msg-c31ccebd): VHF-3 js/head.js _layRow measures the laid parts (a display: contents host by its children; the search at 20rem) and writes data-stacked; js/head.css lays the stacked row as a column, the end first across the width. VHF-9 js/head.css .sf-view-head-name reads --sf-heading-4--size/height. VHF-11 index.js hasBulkActions and selects() (bulkActions, or actions on the page row; chrome written keeps select), read where the table, board, cards (js/cards.js) and calendar (js/calendar.js) are told selectable and by the first paint; the bulkActions setter tells them again. Numbered above ui-pro's copies in pro-f6c43828e5f2 (sf-view 1.30.1, sf-view-table 1.29.4, sf-view-properties 1.24.0, group build 15), the highest on any origin branch of simai/ui-view and simai/ui-pro; this round's own step was 1.30.1, 1.29.4 and 1.23.10 on round/view-r12 a26f636 before Pro took those numbers.",
       "evidence": "control/evidence/2026-11-21-view-r12/README.md"
     },
     {
@@ -248,11 +248,11 @@
     },
     {
       "unit": "smart.view-table",
-      "version": "1.29.4",
+      "version": "1.29.5",
       "recorded_on": "2026-11-21",
       "change": "patch",
-      "consumer": "Nothing to change for a host. «Текст в одну строку» (the gear's «Вид», view preference singleLine) now shows: off, the record's name takes its two lines (C146 (7)) in a fitted column too; on, it is one line with «…», as every other cell. A table whose columns do not fit at their content widths takes the room from the widest columns first, down to one common width, never below a column's least width: a short name such as «Заказ №2001» stays whole beside a long client or comment (it was cut to «Заказ №20…» while every column gave in proportion).",
-      "summary": "View round 12 (round/view-r12), VHF-4: index.js readFittedWidths shrinks the flexible columns to one level (fittingLevel, widest first) in place of a proportional share; templates/default.css: in a fitted table without data-sf-view-single-line the title cell wraps and keeps its line clamp (two), and data-sf-view-single-line sets the title's clamp to one. docs/docs.md says it.",
+      "consumer": "Nothing to change for a host. «Текст в одну строку» (the gear's «Вид», view preference singleLine) now shows: off, the record's name takes its two lines (C146 (7)) in a fitted column too; on, it is one line with «…», as every other cell. A table whose columns do not fit at their content widths takes the room from the widest columns first, down to one common width, never below a column's least width: a short name such as «Заказ №2001» stays whole beside a long client or comment (it was cut to «Заказ №20…» while every column gave in proportion). «Компактно» on a normal page is the Framework's compact density on the table (VHF-8): the row and its controls (the box, the row menu «≡», badges) step down together, 28 at size 1/2 and 32 at 1 (the «≡» held a row at 32 and 40). Below 60rem, where the Framework has no density, the row's own rung steps down as before.",
+      "summary": "View round 12 (round/view-r12), VHF-4: index.js readFittedWidths shrinks the flexible columns to one level (fittingLevel, widest first) in place of a proportional share; templates/default.css: in a fitted table without data-sf-view-single-line the title cell wraps and keeps its line clamp (two), and data-sf-view-single-line sets the title's clamp to one. docs/docs.md says it. View round 12, set 3 (DEV msg-c31ccebd): VHF-8 index.js applyTableView writes data-sf-density=compact with data-sf-view-density-island in a normal area (the island the other way round from C79's normal island in a compact area); js/templates/default.css keeps the compact row rule for a table without the island and, below 60rem, for one with it. Numbered above ui-pro's copies in pro-f6c43828e5f2 (sf-view 1.30.1, sf-view-table 1.29.4, sf-view-properties 1.24.0, group build 15), the highest on any origin branch of simai/ui-view and simai/ui-pro; this round's own step was 1.30.1, 1.29.4 and 1.23.10 on round/view-r12 a26f636 before Pro took those numbers.",
       "evidence": "control/evidence/2026-11-21-view-r12/README.md"
     },
     {
@@ -473,11 +473,11 @@
     },
     {
       "unit": "smart.view-properties",
-      "version": "1.23.10",
+      "version": "1.25.0",
       "recorded_on": "2026-11-21",
-      "change": "patch",
-      "consumer": "Nothing to change for a host. Under the record's title the stage badge keeps its whole word and the fields after it give way and end in «…» (a long client name squeezed the badge to «Отправ…»). A card in place (no panel) ends that line with its actions («⋯» and the host's slot actions) instead of a row of their own above it; without a stage line the actions keep their row.",
-      "summary": "View round 12 (round/view-r12): VHF-7 templates/default.css: the head line's sf-badge and its box do not shrink, the subtitle is flex 0 1 auto; VHF-6 templates/default.js: renderHeadLine(context, end) draws the in-place actions (inPlaceActions) at the end of the line (.sf-property-view-head-line-end), the host-actions row only where there is no line (headLineDrawn). docs.md says it. Test view-c311 reads the new signature.",
+      "change": "minor",
+      "consumer": "Nothing to change for a host. Under the record's title the stage badge keeps its whole word and the fields after it give way and end in «…» (a long client name squeezed the badge to «Отправ…»). A card in place (no panel) ends that line with its actions («⋯» and the host's slot actions) instead of a row of their own above it; without a stage line the actions keep their row. The whole screen's history beside the fields draws the card's text step (VRS-7: 16 beside 14 px fields). On a phone the section rows are list rows of the ladder (sf-list size 1, 44 px with touch) with a «›» that says the row opens (VRS-8: 28 px, no mark). A section whose only group has the section's own name draws no group title (VRS-9). The favourite star is the Framework's toggle (appearance toggle, pressed; C393) where sf-button-icon declares that look; with the pair's sf-button-icon 1.13.11 it stays the neutral ghost toggle of C211 (1); the title keeps one line with the star right after it.",
+      "summary": "View round 12 (round/view-r12): VHF-7 templates/default.css: the head line's sf-badge and its box do not shrink, the subtitle is flex 0 1 auto; VHF-6 templates/default.js: renderHeadLine(context, end) draws the in-place actions (inPlaceActions) at the end of the line (.sf-property-view-head-line-end), the host-actions row only where there is no line (headLineDrawn). docs.md says it. Test view-c311 reads the new signature. View round 12, sets 2-3 (DEV msg-3e47ce93, msg-c31ccebd, C393): VRS-7 js/templates/default.js sf-list-timeline size 1/2 with the card's size; VRS-8 renderPhoneSectionList sf-list size 1 and default.css a «›» mask on each row; VRS-9 renderGroup hides the title of a section's only group named as the section; C393 index.js starLook() reads sf-button-icon's appearance values (the twin of ui-pro's sf-view-properties 1.24.0 star), the template draws appearance=toggle and pressed when it is there, else the former star. The record panel's step-plus-aside column of Pro 1.24.0 is not taken: it needs sf-drawer 1.20.0 aside-width, which pair ui-b654460cad2a does not carry (sf-drawer 1.18.1); VR11-1 (no folded tab row in a column) is r11's own and its probe property-view-section-column holds it. Numbered above ui-pro's copies in pro-f6c43828e5f2 (sf-view 1.30.1, sf-view-table 1.29.4, sf-view-properties 1.24.0, group build 15), the highest on any origin branch of simai/ui-view and simai/ui-pro; this round's own step was 1.30.1, 1.29.4 and 1.23.10 on round/view-r12 a26f636 before Pro took those numbers.",
       "evidence": "control/evidence/2026-11-21-view-r12/README.md"
     },
     {
@@ -734,6 +734,15 @@
     },
     {
       "unit": "smart.view-board",
+      "version": "1.1.4",
+      "recorded_on": "2026-11-21",
+      "change": "patch",
+      "consumer": "Nothing to change for a host. A board card at size 1 draws its title and fields at text step 1 (16 at normal density), as sf-view-cards does; they stayed at 14.",
+      "summary": "View round 12, set 3 (DEV msg-c31ccebd, VHF-10): js/templates/default.css .sf-view-board[data-size=\"1\"] .sf-view-board__title, .sf-view-board__fields take --sf-text-size-1 and --sf-text-height-1.",
+      "evidence": "control/evidence/2026-11-21-view-r12/README.md"
+    },
+    {
+      "unit": "smart.view-board",
       "version": "1.1.3",
       "recorded_on": "2026-11-20",
       "change": "patch",
@@ -776,6 +785,15 @@
       "consumer": "New: sf-view layout=\"board\" (or Larena's kanban) draws it; a host answers the lane window (lanes, per_lane) and settles moves.",
       "summary": "New: the board layout (owner decisions C298, C304): lanes by one field from the host's lane window, cards with up to four fields in the «Кратко» place, moves as a change of the lane field the host settles (settleMove), «Показать ещё» per lane (appendLane), soft limits, folded and hidden lanes, one lane per screen on a phone, one Tab stop with the arrows inside.",
       "evidence": "control/evidence/2026-11-18-view-r2-board"
+    },
+    {
+      "unit": "smart.view-cards",
+      "version": "1.0.7",
+      "recorded_on": "2026-11-21",
+      "change": "patch",
+      "consumer": "Nothing to change for a host. A card without a cover centres its box and «⋯» on the title's first line (the «⋯» sat 6 px below it).",
+      "summary": "View round 12, set 3 (DEV msg-c31ccebd, VHF-12): js/templates/default.css .sf-view-cards__top > .sf-view-cards__box, .sf-view-cards__menu take the title's line height (--sf-view-cards--title-line, text height 1/2 or 1 by size) and centre their control in it.",
+      "evidence": "control/evidence/2026-11-21-view-r12/README.md"
     },
     {
       "unit": "smart.view-cards",

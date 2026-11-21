@@ -42,7 +42,7 @@ test('the head switches through the view and hides the kinds it cannot draw (VR3
 });
 
 test('a group named \'\' draws no head unless it has an action', () => {
-  assert.match(card, /const titled = String\(group\.label \?\? groupKey\) !== '' \|\| Boolean\(group\.rare\);/u);
+  assert.match(card, /const titled = \(String\(group\.label \?\? groupKey\) !== '' \|\| Boolean\(group\.rare\)\) && !repeats;/u);
   assert.match(card, /\$\{titled \|\| readEdit \? html`<div class="sf-list-description-head sf-property-view-group-header">/u);
   assert.match(card, /\$\{titled \? html`<header class="sf-property-view-group-header/u);
   assert.match(card, /\$\{titled \|\| configuring \|\| cardEdit \? html`<header class="sf-property-view-group-header/u);

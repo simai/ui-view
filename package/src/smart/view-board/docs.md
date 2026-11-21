@@ -52,6 +52,11 @@ and a lane folded or hidden are events; the host answers a move with
   the source declares an order field and no sort is on (C304 (2)).
 - `swimlane_field`: reserved; no rows by a second field now (C304 (4)).
 
+## Size
+
+A card takes the text step of the board's size: at `size="1"` its title and
+fields are text step 1, at `1/2` step 1/2 (since 1.1.4, as sf-view-cards).
+
 ## Moves
 
 ```js

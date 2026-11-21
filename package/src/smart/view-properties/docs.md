@@ -429,8 +429,16 @@ and the record page.
   to two fields joined by « · » (`view.head {subtitle[], status}`, written in
   the layer's `head`). An admin picks them from a field's «⋯»: «Показать в
   шапке», «Стадией в шапке». The stage keeps its whole word; the fields after
-  it give way and end in «…» (since 1.23.10). A card in place (no panel) has
+  it give way and end in «…» (since 1.25.0). A card in place (no panel) has
   no title row of its own, so its «⋯» ends this line.
+- The favourite star (since 1.25.0, C393) is the Framework's toggle
+  (`sf-button-icon appearance="toggle"`, `pressed`) where the pair's
+  sf-button-icon has that look, else the neutral ghost toggle; the title keeps
+  one line and the star stands right after it.
+- The whole screen's history column draws the card's text step (since
+  1.25.0). On a phone the sections are list rows of the ladder with «›»; a
+  section whose only group carries the section's own name draws no group
+  title.
 - The mode: over the fields the profile picker and one line that says where an
   edit goes; «Вкладки» with handles, each with a «⋯» (name, icon, up, down,
   hide, delete -- its fields go to «Скрытые поля» --, lock); «+ Вкладка»

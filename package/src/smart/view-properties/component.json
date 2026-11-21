@@ -2,13 +2,13 @@
   "$comment": "sf-property-view from its component.json (standard simai.smart-component 1.3.8, vocabulary 1.1.5), migrated from ui-control control/smart-architecture/migration/out/property-view; every x-todo decided in x-decisions.",
   "id": "smart.view-properties",
   "tag": "sf-view-properties",
-  "version": "1.23.10",
+  "version": "1.25.0",
   "x-history": [
     {
-      "version": "1.23.10",
-      "kind": "patch",
+      "version": "1.25.0",
+      "kind": "minor",
       "recorded_on": "2026-11-21",
-      "consumer": "Nothing to change for a host. Under the record's title the stage badge keeps its whole word and the fields after it give way and end in «…» (a long client name squeezed the badge to «Отправ…»). A card in place (no panel) ends that line with its actions («⋯» and the host's slot actions) instead of a row of their own above it; without a stage line the actions keep their row.",
+      "consumer": "Nothing to change for a host. Under the record's title the stage badge keeps its whole word and the fields after it give way and end in «…» (a long client name squeezed the badge to «Отправ…»). A card in place (no panel) ends that line with its actions («⋯» and the host's slot actions) instead of a row of their own above it; without a stage line the actions keep their row. The whole screen's history beside the fields draws the card's text step (VRS-7: 16 beside 14 px fields). On a phone the section rows are list rows of the ladder (sf-list size 1, 44 px with touch) with a «›» that says the row opens (VRS-8: 28 px, no mark). A section whose only group has the section's own name draws no group title (VRS-9). The favourite star is the Framework's toggle (appearance toggle, pressed; C393) where sf-button-icon declares that look; with the pair's sf-button-icon 1.13.11 it stays the neutral ghost toggle of C211 (1); the title keeps one line with the star right after it.",
       "evidence": "control/evidence/2026-11-21-view-r12/README.md"
     },
     {
@@ -2476,9 +2476,9 @@
         },
         {
           "from": "1.23.9",
-          "to": "1.23.10",
+          "to": "1.25.0",
           "changes": [
-            "View round 12 (round/view-r12): VHF-7 templates/default.css: the head line's sf-badge and its box do not shrink, the subtitle is flex 0 1 auto; VHF-6 templates/default.js: renderHeadLine(context, end) draws the in-place actions (inPlaceActions) at the end of the line (.sf-property-view-head-line-end), the host-actions row only where there is no line (headLineDrawn). docs.md says it. Test view-c311 reads the new signature."
+            "View round 12 (round/view-r12): VHF-7 templates/default.css: the head line's sf-badge and its box do not shrink, the subtitle is flex 0 1 auto; VHF-6 templates/default.js: renderHeadLine(context, end) draws the in-place actions (inPlaceActions) at the end of the line (.sf-property-view-head-line-end), the host-actions row only where there is no line (headLineDrawn). docs.md says it. Test view-c311 reads the new signature. View round 12, sets 2-3 (DEV msg-3e47ce93, msg-c31ccebd, C393): VRS-7 js/templates/default.js sf-list-timeline size 1/2 with the card's size; VRS-8 renderPhoneSectionList sf-list size 1 and default.css a «›» mask on each row; VRS-9 renderGroup hides the title of a section's only group named as the section; C393 index.js starLook() reads sf-button-icon's appearance values (the twin of ui-pro's sf-view-properties 1.24.0 star), the template draws appearance=toggle and pressed when it is there, else the former star. The record panel's step-plus-aside column of Pro 1.24.0 is not taken: it needs sf-drawer 1.20.0 aside-width, which pair ui-b654460cad2a does not carry (sf-drawer 1.18.1); VR11-1 (no folded tab row in a column) is r11's own and its probe property-view-section-column holds it. Numbered above ui-pro's copies in pro-f6c43828e5f2 (sf-view 1.30.1, sf-view-table 1.29.4, sf-view-properties 1.24.0, group build 15), the highest on any origin branch of simai/ui-view and simai/ui-pro; this round's own step was 1.30.1, 1.29.4 and 1.23.10 on round/view-r12 a26f636 before Pro took those numbers."
           ]
         }
       ]

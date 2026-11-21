@@ -37,8 +37,8 @@ test('a table the host left alone, or wrote true on, takes the view\'s chrome', 
 });
 
 test('the projection and the first paint both respect it', () => {
-  assert.match(view, /table\.setAttribute\("selectable", this\.renders\("select"\) && !refused && !hostWroteOff\(table, "selectable"\) \? "true" : "false"\);/u);
+  assert.match(view, /table\.setAttribute\("selectable", this\.selects\(\) && !refused && !hostWroteOff\(table, "selectable"\) \? "true" : "false"\);/u);
   assert.match(view, /table\.setAttribute\("settings", this\.renders\("settings"\) && !hostWroteOff\(table, "settings"\) \? "true" : "false"\);/u);
-  assert.match(view, /const select = this\.renders\("select"\) && !hostWroteOff\(table, "selectable"\);/u);
+  assert.match(view, /const select = this\.selects\(\) && !hostWroteOff\(table, "selectable"\);/u);
   assert.match(view, /const settings = this\.renders\("settings"\) && !hostWroteOff\(table, "settings"\);/u);
 });

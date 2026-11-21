@@ -6,11 +6,11 @@
 // View round 12 (DEV msg-7d2d0c1e, study view-head-footer round 2, returns
 // VHF-3..7). The page loads the set through the SIMAI Framework loader, as a
 // site does. Light and dark, three loads each:
-// - VHF-3: eight filter fields at 1440 fill the head row's start, so its end
-//   (the search, «Создать», the list menu) wraps onto a line of its own; that
-//   line starts at the row's start (it stood at the row's end, the start of
-//   the line left empty). With two fields the end stays on the first line, at
-//   the row's end.
+// - VHF-3: eight filter fields at 1440 do not fit one row, so the head row
+//   is two (round 3's rule): the end (the search, «Создать», the list menu)
+//   on top across the whole width, «Фильтр» and the fields below. It stood at
+//   the end of a second line, the start of that line left empty. With two
+//   fields everything stays on one row, the end at the row's end.
 // - VHF-5: a record card docked beside the list pads the view by its width
 //   (data-sf-drawer-dock-host); here the view is padded by hand. The head
 //   answers to what is left, as the table does: below 600 px left the phone
@@ -132,7 +132,7 @@ const listMeasure = (page) => page.evaluate(() => {
     left: Math.round(left), edge: Math.round(edge), own: Math.round(edge - left), phone: head?.hasAttribute('data-phone') ?? null,
     list: table ? !view.querySelector('sf-view-table tbody td') : null,
     start: start && rect(start) ? {l: Math.round(rect(start).left), t: Math.round(rect(start).top), b: Math.round(rect(start).bottom)} : null,
-    end: end && rect(end) ? {l: Math.round(rect(end).left), r: Math.round(rect(end).right), t: Math.round(rect(end).top)} : null,
+    end: end && rect(end) ? {l: Math.round(rect(end).left), r: Math.round(rect(end).right), t: Math.round(rect(end).top), b: Math.round(rect(end).bottom)} : null,
     rowRight: row ? Math.round(rect(row).right) : null, rowLeft: row ? Math.round(rect(row).left) : null,
     past: parts.filter((node) => node.getBoundingClientRect().right > edge + 1).length,
     scrollerRight: scroller ? Math.round(rect(scroller).right) : null,
@@ -188,9 +188,11 @@ try {
         && document.querySelector('#v .sf-view-head-row button')?.getClientRects().length, null, {timeout: 15000}).catch(() => errors.push('the list and its head did not come'));
       await page.waitForTimeout(600);
       const got = await listMeasure(page);
-      const wrapped = got.end && got.start && got.end.t >= got.start.b - 1;
+      // Two rows: the end on top of the start, across the row.
+      const wrapped = Boolean(got.end && got.start && got.end.b <= got.start.t + 1);
       if (!got.phone && got.end) {
-        if (wrapped && Math.abs(got.end.l - got.rowLeft) > 1) failures.push({...label, item: 'VHF-3', got: `the wrapped end starts ${got.end.l - got.rowLeft} px into its line`});
+        if (got.end.t >= got.start.b - 1) failures.push({...label, item: 'VHF-3', got: 'the end below the start (a third state)'});
+        if (wrapped && (Math.abs(got.end.l - got.rowLeft) > 1 || Math.abs(got.end.r - got.rowRight) > 1)) failures.push({...label, item: 'VHF-3', got: `the top row ${got.end.l - got.rowLeft} px in, ${got.rowRight - got.end.r} px short`});
         if (!wrapped && Math.abs(got.end.r - got.rowRight) > 1) failures.push({...label, item: 'VHF-3', got: `the end on the first line stops ${got.rowRight - got.end.r} px short of the row's end`});
       }
       if (spec.fields === 8 && !spec.pad && !wrapped) failures.push({...label, item: 'VHF-3', got: 'eight fields did not wrap the end'});

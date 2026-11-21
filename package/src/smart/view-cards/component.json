@@ -2,8 +2,15 @@
   "$comment": "sf-view-cards, standard simai.smart-component 1.4 (vocabulary 1.1.5): the cards layout of the view set (a gallery of record cards; owner decisions C297, C306). Study: ui-control control/research/2026-11-18-cards-view. The card is .sf-card, the cover the layout's own frame, the card fields the Framework field renderers' cell output, «Показать ещё» sf-pagination in its more look, empty states sf-empty-state, menus SF.menu.open, the selection bar sf-bulk-actions where the pair has it.",
   "id": "smart.view-cards",
   "tag": "sf-view-cards",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "x-history": [
+    {
+      "version": "1.0.7",
+      "kind": "patch",
+      "recorded_on": "2026-11-21",
+      "consumer": "Nothing to change for a host. A card without a cover centres its box and «⋯» on the title's first line (the «⋯» sat 6 px below it).",
+      "evidence": "control/evidence/2026-11-21-view-r12/README.md"
+    },
     {
       "version": "1.0.6",
       "kind": "patch",
@@ -567,6 +574,13 @@
           "to": "1.0.6",
           "changes": [
             "View round 9 (round/view-r9): rule.js and component.json relations name cl-bulk-actions (lazy), composition.uses smart.bulk-actions; the pair's field-renderers provenance hash."
+          ]
+        },
+        {
+          "from": "1.0.6",
+          "to": "1.0.7",
+          "changes": [
+            "View round 12, set 3 (DEV msg-c31ccebd, VHF-12): js/templates/default.css .sf-view-cards__top > .sf-view-cards__box, .sf-view-cards__menu take the title's line height (--sf-view-cards--title-line, text height 1/2 or 1 by size) and centre their control in it."
           ]
         }
       ]

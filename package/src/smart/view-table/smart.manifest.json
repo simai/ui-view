@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-table",
-  "version": "1.29.4",
+  "version": "1.29.5",
   "title": "Table",
   "summary": "Complete server-backed collection view with search, filters, table preferences, row and bulk actions, and pagination.",
   "kind": "composite",
@@ -3032,9 +3032,9 @@
       },
       {
         "from": "1.29.3",
-        "to": "1.29.4",
+        "to": "1.29.5",
         "changes": [
-          "View round 12 (round/view-r12), VHF-4: index.js readFittedWidths shrinks the flexible columns to one level (fittingLevel, widest first) in place of a proportional share; templates/default.css: in a fitted table without data-sf-view-single-line the title cell wraps and keeps its line clamp (two), and data-sf-view-single-line sets the title's clamp to one. docs/docs.md says it."
+          "View round 12 (round/view-r12), VHF-4: index.js readFittedWidths shrinks the flexible columns to one level (fittingLevel, widest first) in place of a proportional share; templates/default.css: in a fitted table without data-sf-view-single-line the title cell wraps and keeps its line clamp (two), and data-sf-view-single-line sets the title's clamp to one. docs/docs.md says it. View round 12, set 3 (DEV msg-c31ccebd): VHF-8 index.js applyTableView writes data-sf-density=compact with data-sf-view-density-island in a normal area (the island the other way round from C79's normal island in a compact area); js/templates/default.css keeps the compact row rule for a table without the island and, below 60rem, for one with it. Numbered above ui-pro's copies in pro-f6c43828e5f2 (sf-view 1.30.1, sf-view-table 1.29.4, sf-view-properties 1.24.0, group build 15), the highest on any origin branch of simai/ui-view and simai/ui-pro; this round's own step was 1.30.1, 1.29.4 and 1.23.10 on round/view-r12 a26f636 before Pro took those numbers."
         ]
       }
     ]
@@ -3045,7 +3045,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-table/index.js",
-        "sha256": "76a71e93853fece67af4643d3ad19d117e8ba9545cb172c112d23200075c890b"
+        "sha256": "2e7dc91ea33a39e4f8457bea0441bd6bcfed97f84f784a2fe380a389a1169f0f"
       },
       {
         "path": "src/smart/view-table/js/templates/default.js",
@@ -3053,7 +3053,7 @@
       },
       {
         "path": "src/smart/view-table/js/templates/default.css",
-        "sha256": "317b0cfd395e97da83edc28417f10a356c3a45f3cc45219c8e3b0b65c7d49203"
+        "sha256": "92a957fa97346ff7c7e730a37c2bfeafd8ebc8438b3e3d7c2f22c24e54735c4c"
       },
       {
         "path": "src/smart/helpers/option-badge.js",

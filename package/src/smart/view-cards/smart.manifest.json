@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-cards",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "title": "Cards",
   "summary": "The cards layout of the view set: records as cards in a grid whose columns follow its width, a cover the layout draws, a title and up to four fields in the «Кратко» place; «Показать ещё» appends the next page. sf-view layout=\"cards\" draws it where the author turned it on.",
   "kind": "smart",
@@ -456,6 +456,13 @@
         "changes": [
           "View round 9 (round/view-r9): rule.js and component.json relations name cl-bulk-actions (lazy), composition.uses smart.bulk-actions; the pair's field-renderers provenance hash."
         ]
+      },
+      {
+        "from": "1.0.6",
+        "to": "1.0.7",
+        "changes": [
+          "View round 12, set 3 (DEV msg-c31ccebd, VHF-12): js/templates/default.css .sf-view-cards__top > .sf-view-cards__box, .sf-view-cards__menu take the title's line height (--sf-view-cards--title-line, text height 1/2 or 1 by size) and centre their control in it."
+        ]
       }
     ]
   },
@@ -477,7 +484,7 @@
       },
       {
         "path": "src/smart/view-cards/js/templates/default.css",
-        "sha256": "2efe943fc74ec82b828c505252dcef9579c0ddee91972a012f5aef70e652eb55"
+        "sha256": "8ca17c59bb9b5e0bba46407b693d2511bd53c9dbf050524497dbd1dc1f489c87"
       },
       {
         "path": "src/smart/field-renderers/index.js",
@@ -489,7 +496,7 @@
       },
       {
         "path": "src/smart/view-cards/docs.md",
-        "sha256": "d5ae4f29776db258ca4998431f43c1d980d45881c8a9535b228d07652fd92f88"
+        "sha256": "93c9e072564614f0d1545819293e4c87e333cd7712d4439f2060808dad5330ed"
       }
     ],
     "generated_runtime": []

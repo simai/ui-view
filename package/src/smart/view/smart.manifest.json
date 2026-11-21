@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view",
-  "version": "1.30.1",
+  "version": "1.31.0",
   "title": "Data view",
   "summary": "Host-driven data view that composes toolbar, content and pagination around a separate data port.",
   "kind": "composite",
@@ -1953,9 +1953,9 @@
       },
       {
         "from": "1.30.0",
-        "to": "1.30.1",
+        "to": "1.31.0",
         "changes": [
-          "View round 12 (round/view-r12): VHF-3 js/head.css: .sf-view-head-end has no auto start margin (the growing start holds it at the row's end on one line; wrapped, it starts its line); .sf-view-head-title-end keeps its own. VHF-5 js/head.js: _measure reads the view's content box (contentWidth: the border box less the inline padding and borders) instead of its border box. docs.md says both."
+          "View round 12 (round/view-r12): VHF-3 js/head.css: .sf-view-head-end has no auto start margin (the growing start holds it at the row's end on one line; wrapped, it starts its line); .sf-view-head-title-end keeps its own. VHF-5 js/head.js: _measure reads the view's content box (contentWidth: the border box less the inline padding and borders) instead of its border box. docs.md says both. View round 12, sets 2-3 (DEV msg-c31ccebd): VHF-3 js/head.js _layRow measures the laid parts (a display: contents host by its children; the search at 20rem) and writes data-stacked; js/head.css lays the stacked row as a column, the end first across the width. VHF-9 js/head.css .sf-view-head-name reads --sf-heading-4--size/height. VHF-11 index.js hasBulkActions and selects() (bulkActions, or actions on the page row; chrome written keeps select), read where the table, board, cards (js/cards.js) and calendar (js/calendar.js) are told selectable and by the first paint; the bulkActions setter tells them again. Numbered above ui-pro's copies in pro-f6c43828e5f2 (sf-view 1.30.1, sf-view-table 1.29.4, sf-view-properties 1.24.0, group build 15), the highest on any origin branch of simai/ui-view and simai/ui-pro; this round's own step was 1.30.1, 1.29.4 and 1.23.10 on round/view-r12 a26f636 before Pro took those numbers."
         ]
       }
     ]
@@ -1966,7 +1966,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view/index.js",
-        "sha256": "4838602ba6fbbc6624c338c9349f2de7ca9f771ae688b18816c691fbd28b12a6"
+        "sha256": "8d7e301ce4abeade5fb68c3bd80966519e9ac88d8f37d52b1a403e26790323fa"
       },
       {
         "path": "src/core/contracts/ports/simai.dataview-port/1.5.0/port.json",
@@ -1974,7 +1974,7 @@
       },
       {
         "path": "src/smart/view/docs.md",
-        "sha256": "e4b725b22eb43a064db84aab04b3c6f85312ffdfdb20303d47e79783e6014e92"
+        "sha256": "37b5be2daa4b21128d156de568ae6aad7fae8415b930530740eca48692073a5d"
       },
       {
         "path": "tests/fixtures/data-view-composite-lab.html",
@@ -1990,7 +1990,7 @@
       },
       {
         "path": "src/smart/view/js/cards.js",
-        "sha256": "ebf2faa1ff6a36c0d12778c551c14910bef09c7bdad4cda32beb1e1c54f0d9b9"
+        "sha256": "29e6c634729e0f35a9d8b8a91640a173ad40bc9ed1b83e431c2b230aca0eeb18"
       }
     ],
     "generated_runtime": []
