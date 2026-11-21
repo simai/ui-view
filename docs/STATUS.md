@@ -56,6 +56,7 @@ Every remote branch ahead of `main`, with the release that takes it.
 
 | Branch | Release that takes it |
 |---|---|
+| `release/view-*` | the release branch of one set version (`release/view-1.10.0`: view rounds 5 to 9 and the site structure); `main` is fast-forwarded to its bind when the version is released |
 | `round/view-r9` | view round 9 (from `round/view-r8` 3a51d35): the set on the pair ui-b654460cad2a, Larena L-2 row selection through sf-bulk-actions (sf-view 1.29.0; sf-view-table 1.29.1, sf-view-board 1.1.3, sf-view-cards 1.0.6, sf-view-calendar 1.1.3 fetch the bar); the view 1.10.0 release |
 | `round/view-r8` | view round 8 (from `round/view-site` abd3ca8): DEV's returns R67-1..3 and VSA-1..5 (sf-view 1.28.0, sf-view-table 1.28.0, sf-view-properties 1.23.3, the set's candidate 1.10.0), then R8-1 no cut card field (sf-view-cards 1.0.5) and the site build that runs twice in a row; the view 1.10.0 release |
 | `round/view-site` | view site round (from `round/view-r7` 0a6d6bf): the site orders VS-SITE-1..14 (first paint of the home example, repin to pair ui-dc9fc39aeb26, home, guide, recipes, reference text), the cards count said once, the person's last view opened from their layer (sf-view 1.27.0, sf-view-cards 1.0.4); the next view release, with round 7 |
