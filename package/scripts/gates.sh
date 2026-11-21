@@ -16,9 +16,9 @@
 # The free side is the distr of the released pair whose source the lock pins,
 # taken from the ui checkout's git objects (never its working tree). Sibling
 # checkouts are the defaults: ../ui-source, ../ui, ../ui-builder beside this
-# repository. The overlay is package/.overlay (ignored): the browser probes
-# import Playwright, which Node resolves from the overlay's parent folders, so
-# it stays inside the checkout. Each gate's output lands in <workspace>/logs/; the summary in
+# repository. The overlay is package/.overlay (ignored); the probes take
+# Playwright of the version ui-source pins from package/node_modules (ignored),
+# which the gate installs when it is missing and links into the overlay. Each gate's output lands in <workspace>/logs/; the summary in
 # <workspace>/gates.json. Long: start it with nohup and read the log.
 set -eu
 here=$(cd "$(dirname "$0")/.." && pwd)
@@ -66,20 +66,21 @@ for id in $(node -e "console.log((require('$here/set.json').requires_sets ?? [])
 done
 export PLAYWRIGHT_BROWSERS_PATH=${PLAYWRIGHT_BROWSERS_PATH:-$repo/../.playwright-browsers}
 
-# Playwright for the probes (view round 10, R9-G): the browser probes import
-# it, and Node resolves it from the overlay's parent folders. A clone with no
-# node_modules above it stopped at the manifest step; the gate reuses the one
-# Node finds from package/, else installs the version the pinned ui-source
-# names (its package.json) into package/node_modules (ignored), and makes
-# sure that version's Chromium is in PLAYWRIGHT_BROWSERS_PATH (a no-op when
-# it is there already).
+# Playwright for the probes (view round 10, R9-G): ui-source's probe tools
+# (scripts/playwright-local.mjs) take Playwright only from the overlay's own
+# node_modules, at exactly the version the pinned ui-source declares, and a
+# fresh clone has none, so the gate stopped at the manifest step. The gate
+# keeps that version in package/node_modules (ignored; installed once, reused
+# after), links it into the overlay once the unit step has laid it, and makes
+# sure that version's Chromium is in PLAYWRIGHT_BROWSERS_PATH (a no-op when it
+# is there already).
 playwright_version=$(git -C "$ui_source" show "$source_revision:package.json" | node -e "let t='';process.stdin.on('data',(c)=>t+=c).on('end',()=>{const p=JSON.parse(t);console.log((p.devDependencies??{}).playwright??(p.dependencies??{}).playwright??'')})")
 [ -n "$playwright_version" ] || { echo "ui-source $source_revision names no playwright version" >&2; exit 2; }
-playwright_dir=$(cd "$here" && node -e "try{console.log(require('path').dirname(require.resolve('playwright/package.json')))}catch{}")
-if [ -z "$playwright_dir" ]; then
-  echo "== playwright $playwright_version (install into $here/node_modules)"
+playwright_dir="$here/node_modules/playwright"
+playwright_have=$(node -e "try{console.log(require('$playwright_dir/package.json').version)}catch{}")
+if [ "$playwright_have" != "$playwright_version" ]; then
+  echo "== playwright $playwright_version (install into $here/node_modules${playwright_have:+, was $playwright_have})"
   npm install --prefix "$here" --no-save --no-package-lock --no-audit --no-fund "playwright@$playwright_version" > "$logs/playwright-install.log" 2>&1
-  playwright_dir=$(cd "$here" && node -e "console.log(require('path').dirname(require.resolve('playwright/package.json')))")
 fi
 echo "== playwright $(node -e "console.log(require('$playwright_dir/package.json').version)") from $playwright_dir, browsers in $PLAYWRIGHT_BROWSERS_PATH"
 node "$playwright_dir/cli.js" install chromium > "$logs/playwright-browsers.log" 2>&1
@@ -93,6 +94,7 @@ curl -fsS https://raw.githubusercontent.com/simai/ui-source/main/contracts/regis
 python3 "$builder/scripts/write-package-receipt.py" --report "$build/report.json" --ui "$ui" --registry "$workspace/names-main.json" > "$logs/receipt.json"
 step unit
 (cd "$here" && node scripts/test.mjs --committed --ui-source "$ui_source") > "$logs/unit.log" 2>&1
+[ -e "$here/.overlay/node_modules" ] || ln -s "$here/node_modules" "$here/.overlay/node_modules"
 step registry
 node "$here/scripts/check-registry.mjs" --registry "$workspace/names-main.json" > "$logs/registry.json"
 step manifest
