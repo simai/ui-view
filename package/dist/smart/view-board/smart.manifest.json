@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-board",
-  "version": "1.1.1",
+  "version": "1.1.3",
   "title": "Board",
   "summary": "The board layout of the view set: lanes by one field, cards with up to four fields in the «Кратко» place, a move is a change of that field the host settles. sf-view layout=\"board\" draws it over the lane window.",
   "kind": "smart",
@@ -30,6 +30,7 @@
       "component.icons",
       "smart.avatar",
       "smart.badge",
+      "smart.bulk-actions",
       "smart.button",
       "smart.button-icon",
       "smart.checkbox",
@@ -520,6 +521,20 @@
         "changes": [
           "The sums-pending description: sf-view asks the lane totals with the cards in one request (C304, VR2-9) and no longer sets it; the attribute and setLaneTotals stay for a page that computes the sums later."
         ]
+      },
+      {
+        "from": "1.1.1",
+        "to": "1.1.2",
+        "changes": [
+          "DEV's open item B1 (round/view-r5): the column head's buttons (.sf-view-board__row, .sf-view-board__top) are --sf-space-1/3 apart (8; 4 compact), the gap of buttons of one group (H5), not --sf-space-1/4 (4)."
+        ]
+      },
+      {
+        "from": "1.1.2",
+        "to": "1.1.3",
+        "changes": [
+          "View round 9 (round/view-r9): rule.js and component.json relations name cl-bulk-actions (lazy), composition.uses smart.bulk-actions; the pair's field-renderers provenance hash."
+        ]
       }
     ]
   },
@@ -541,15 +556,15 @@
       },
       {
         "path": "src/smart/view-board/js/templates/default.css",
-        "sha256": "aa177e7533c89f614c23f84ac0fdad659d564c3d6b7fea469afc62c87e78d39d"
+        "sha256": "540dbef2cfec991b62036ffab17b1f60d8b5e05bd70588923fb26f4429961784"
       },
       {
         "path": "src/smart/field-renderers/index.js",
-        "sha256": "6ac942637adeecab6d761d81589d6cc2ec40c5fe2971adb8eedbf28f54a2e631"
+        "sha256": "10defcf40a022bd86cd32235fb21649008e2e8cf8d94464d2c61a557214dddd8"
       },
       {
         "path": "src/smart/view-board/rule.js",
-        "sha256": "d11831555a2b25d23778a165fac94e98793193c6a19ef34c66ca83045c7b5ed9"
+        "sha256": "a7399b0df3f2ea2c18fe8f93439bb889edc91c62a5f230d887218d8f506b2d33"
       },
       {
         "path": "src/smart/view-board/docs.md",

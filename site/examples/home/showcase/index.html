@@ -1,9 +1,9 @@
 <div class="flex flex-col gap-3" data-showcase>
-  <sf-tabs type="pills" scheme="link" overflow="wrap" aria-label="Виды представления" items="Таблица|Виды списка|Карточка|Таблица и карточка|В потоке">
+  <sf-tabs type="pills" scheme="link" overflow="wrap" aria-label="Примеры SIMAI View" items="Таблица|Способы показа|Карточка|Таблица и карточка|В потоке">
     <section slot="panel-0" class="flex flex-col gap-2 p-top-2" data-demo="table" aria-label="Таблица">
       <p class="m-0 color-on-surface-variant">Умная таблица заказов: поиск, фильтр по состоянию, сортировка по колонкам, страницы. Отметьте несколько заказов — внизу появятся действия с выбранными.</p>
       <figure class="showcase-card m-0">
-        <figcaption class="showcase-head"><a href="/ru/components/views/view/" target="_top">Представление данных</a><span aria-hidden="true">·</span><a href="/ru/components/views/view-table/" target="_top">Умная таблица</a></figcaption>
+        <figcaption class="showcase-head"><a href="/ru/components/view/" target="_top">Представление данных</a><span aria-hidden="true">·</span><a href="/ru/components/view-table/" target="_top">Умная таблица</a></figcaption>
         <div class="flex flex-wrap gap-1 items-cross-center" role="group" aria-label="Состояние заказа" data-status-filter>
           <button type="button" class="sf-button sf-button--outline sf-button--on-surface sf-button--size-1/2 active" data-status="" aria-pressed="true"><span class="sf-button-text-container">Все</span></button>
           <button type="button" class="sf-button sf-button--outline sf-button--on-surface sf-button--size-1/2" data-status="new" aria-pressed="false"><span class="sf-button-text-container">Новые</span></button>
@@ -18,13 +18,13 @@
       </figure>
     </section>
 
-    <section slot="panel-1" class="flex flex-col gap-2 p-top-2" data-demo="layouts" aria-label="Виды списка">
-      <p class="m-0 color-on-surface-variant">Один список заказов в разных видах: откройте зону представления значком в начале строки действий и переключите «Таблица», «Доска», «Карточки» и «Календарь» — фильтр и поиск остаются, а приложение отвечает тем же данным в форме нужного вида.</p>
+    <section slot="panel-1" class="flex flex-col gap-2 p-top-2" data-demo="layouts" aria-label="Способы показа">
+      <p class="m-0 color-on-surface-variant">Один список заказов разными способами показа: откройте зону представления значком в начале строки действий и переключите «Таблица», «Доска», «Карточки» и «Календарь» — фильтр и поиск остаются, а приложение отвечает тем же данным в форме нужного способа.</p>
       <figure class="showcase-card m-0">
-        <figcaption class="showcase-head"><a href="/ru/components/views/view-head/" target="_top">Шапка списка</a><span aria-hidden="true">·</span><a href="/ru/components/views/view-board/" target="_top">Доска</a><span aria-hidden="true">·</span><a href="/ru/components/views/view-cards/" target="_top">Карточки</a><span aria-hidden="true">·</span><a href="/ru/components/views/view-calendar/" target="_top">Календарь</a></figcaption>
+        <figcaption class="showcase-head"><a href="/ru/components/view-head/" target="_top">Шапка списка</a><span aria-hidden="true">·</span><a href="/ru/components/view-board/" target="_top">Доска</a><span aria-hidden="true">·</span><a href="/ru/components/view-cards/" target="_top">Карточки</a><span aria-hidden="true">·</span><a href="/ru/components/view-calendar/" target="_top">Календарь</a></figcaption>
         <sf-view id="layouts-view" aria-label="Заказы" heading="Заказы" head="list" size="1/2" preferences-key="view.home-layouts">
           <sf-view-table slot="content" aria-label="Заказы"></sf-view-table>
-          <sf-pagination slot="pagination" top="false" page-size="8" page-sizes="8,16"></sf-pagination>
+          <sf-pagination slot="pagination" top="false" page-size="10" page-sizes="10,20,50,100"></sf-pagination>
         </sf-view>
         <p class="m-0 color-on-surface-variant" role="status" data-log></p>
       </figure>
@@ -33,7 +33,7 @@
     <section slot="panel-2" class="flex flex-col gap-2 p-top-2" data-demo="card" aria-label="Карточка">
       <p class="m-0 color-on-surface-variant">Карточка сотрудника — одна запись, разложенная по группам: строки, даты, выбор, люди, файлы, числа и флажки. Переключите, как её показать.</p>
       <figure class="showcase-card m-0">
-        <figcaption class="showcase-head"><a href="/ru/components/views/view-properties/" target="_top">Карточка записи</a></figcaption>
+        <figcaption class="showcase-head"><a href="/ru/components/view-properties/" target="_top">Карточка записи</a></figcaption>
         <div class="flex flex-wrap gap-1 items-cross-center" role="group" aria-label="Режим карточки" data-card-mode>
           <button type="button" class="sf-button sf-button--outline sf-button--on-surface sf-button--size-1/2 active" data-mode="view" aria-pressed="true"><span class="sf-button-text-container">Просмотр</span></button>
           <button type="button" class="sf-button sf-button--outline sf-button--on-surface sf-button--size-1/2" data-mode="auto" aria-pressed="false"><span class="sf-button-text-container">Правка по группам</span></button>
@@ -47,7 +47,7 @@
     <section slot="panel-3" class="flex flex-col gap-2 p-top-2" data-demo="master" aria-label="Таблица и карточка">
       <p class="m-0 color-on-surface-variant">Список сотрудников и карточка открытой записи: нажмите имя — карточка откроется панелью сбоку, список останется на месте.</p>
       <figure class="showcase-card m-0">
-        <figcaption class="showcase-head"><a href="/ru/components/views/view/" target="_top">Представление данных</a><span aria-hidden="true">·</span><a href="/ru/components/views/view-properties/" target="_top">Карточка записи</a></figcaption>
+        <figcaption class="showcase-head"><a href="/ru/components/view/" target="_top">Представление данных</a><span aria-hidden="true">·</span><a href="/ru/components/view-properties/" target="_top">Карточка записи</a></figcaption>
         <sf-view id="staff-view" aria-label="Сотрудники" preferences-key="view.home-staff-list">
           <sf-view-table slot="content" aria-label="Сотрудники" layout="auto" search-placeholder="Имя, должность или отдел"></sf-view-table>
           <sf-pagination slot="pagination" page-size="10" page-sizes="10,20,50,100" top="false"></sf-pagination>
@@ -58,7 +58,7 @@
     <section slot="panel-4" class="flex flex-col gap-2 p-top-2" data-demo="feed" aria-label="В потоке">
       <p class="m-0 color-on-surface-variant">Данные внутри ленты сообщений: ассистент показывает найденную заявку и просит заполнить несколько полей. Блок во всю ширину ленты и после ответа остаётся в ней записью того, что отправлено. Попробуйте отправить пустую форму или указать город «Москва».</p>
       <figure class="showcase-card m-0">
-        <figcaption class="showcase-head"><a href="/ru/components/views/view-flow/" target="_top">Блок в потоке</a></figcaption>
+        <figcaption class="showcase-head"><a href="/ru/components/view-flow/" target="_top">Блок в потоке</a></figcaption>
         <div class="feed-box radius-2 border border-outline-variant">
           <sf-list-feed id="feed" label="Диалог с ассистентом"></sf-list-feed>
         </div>

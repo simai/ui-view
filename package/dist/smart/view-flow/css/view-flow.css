@@ -80,8 +80,6 @@
     cursor: pointer;
   }
   .sf-view-flow__toggle sf-icon {
-    transition: -webkit-transform var(--sf-duration-normal);
-    transition: transform var(--sf-duration-normal);
     transition: transform var(--sf-duration-normal), -webkit-transform var(--sf-duration-normal);
   }
   .sf-view-flow__group[data-collapsed] .sf-view-flow__toggle sf-icon {
@@ -203,31 +201,8 @@
   }
   /* A control in a cell or a part fills its track: a native input's own
      width (twenty characters) pushed a cell over its neighbour. */
-  .sf-view-items-cell .sf-input {
-    width: 100%;
-    inline-size: 100%;
-    min-width: 0;
-    min-inline-size: 0;
-  }
-  .sf-view-items-cell .sf-dropdown {
-    width: 100%;
-    inline-size: 100%;
-    min-width: 0;
-    min-inline-size: 0;
-  }
-  .sf-view-items-cell .sf-input-date {
-    width: 100%;
-    inline-size: 100%;
-    min-width: 0;
-    min-inline-size: 0;
-  }
-  .sf-view-fields-part .sf-input {
-    width: 100%;
-    inline-size: 100%;
-    min-width: 0;
-    min-inline-size: 0;
-  }
-  .sf-view-fields-part .sf-dropdown {
+  .sf-view-items-cell :is(.sf-input, .sf-dropdown, .sf-input-date),
+  .sf-view-fields-part :is(.sf-input, .sf-dropdown) {
     width: 100%;
     inline-size: 100%;
     min-width: 0;
@@ -240,24 +215,8 @@
   }
   /* A number reads right-aligned where numbers stand in a column (a row's
      cells, totals); a lone amount in a field keeps the field's start. */
-  _:-ms-input-placeholder, html:not([dir="rtl"]) .sf-view-items .sf-view-fields-decimal input {
-    text-align: right;
-  }
-  @supports not (text-align: end) {
-  html:not([dir="rtl"]) .sf-view-items .sf-view-fields-decimal input {
-    text-align: right;
-    }
-  }
   .sf-view-items .sf-view-fields-decimal input:where(:dir(ltr)) {
     text-align: right;
-  }
-  _:-ms-input-placeholder, [dir="rtl"] .sf-view-items .sf-view-fields-decimal input {
-    text-align: left;
-  }
-  @supports not (text-align: end) {
-  [dir="rtl"] .sf-view-items .sf-view-fields-decimal input {
-    text-align: left;
-    }
   }
   .sf-view-items .sf-view-fields-decimal input:where(:dir(rtl)) {
     text-align: left;
@@ -279,9 +238,7 @@
     grid-column: span 2;
   }
   .sf-view-fields-part-label {
-    font-size: var(--sf-text-size-1);
     font-size: var(--sf-label-medium--size, var(--sf-text-size-1));
-    line-height: var(--sf-text-height-1);
     line-height: var(--sf-label-medium--height, var(--sf-text-height-1));
   }
   @container (max-width: 24rem) {
@@ -304,24 +261,8 @@
     min-inline-size: 0;
     flex: 1 1 100%;
   }
-  _:-ms-input-placeholder, html:not([dir="rtl"]) .sf-view-items {
-    text-align: left;
-  }
-  @supports not (text-align: start) {
-  html:not([dir="rtl"]) .sf-view-items {
-    text-align: left;
-    }
-  }
   .sf-view-items:where(:dir(ltr)) {
     text-align: left;
-  }
-  _:-ms-input-placeholder, [dir="rtl"] .sf-view-items {
-    text-align: right;
-  }
-  @supports not (text-align: start) {
-  [dir="rtl"] .sf-view-items {
-    text-align: right;
-    }
   }
   .sf-view-items:where(:dir(rtl)) {
     text-align: right;
@@ -332,7 +273,6 @@
     inline-size: 100%;
     min-width: 0;
     min-inline-size: 0;
-    grid-template-columns: 1fr;
     grid-template-columns: var(--sf-view-items-columns, 1fr);
     grid-column-gap: var(--sf-space-1);
     -webkit-column-gap: var(--sf-space-1);
@@ -356,9 +296,7 @@
             border-block-end: var(--sf-px) solid var(--sf-outline-variant);
   }
   .sf-view-items-heading {
-    font-size: var(--sf-text-size-1);
     font-size: var(--sf-label-medium--size, var(--sf-text-size-1));
-    line-height: var(--sf-text-height-1);
     line-height: var(--sf-label-medium--height, var(--sf-text-height-1));
     color: var(--sf-on-surface-variant);
     min-width: 0;
@@ -383,24 +321,8 @@
     min-width: 0;
     min-inline-size: 0;
   }
-  _:-ms-input-placeholder, html:not([dir="rtl"]) .sf-view-items-numeric {
-    text-align: right;
-  }
-  @supports not (text-align: end) {
-  html:not([dir="rtl"]) .sf-view-items-numeric {
-    text-align: right;
-    }
-  }
   .sf-view-items-numeric:where(:dir(ltr)) {
     text-align: right;
-  }
-  _:-ms-input-placeholder, [dir="rtl"] .sf-view-items-numeric {
-    text-align: left;
-  }
-  @supports not (text-align: end) {
-  [dir="rtl"] .sf-view-items-numeric {
-    text-align: left;
-    }
   }
   .sf-view-items-numeric:where(:dir(rtl)) {
     text-align: left;
@@ -420,9 +342,7 @@
   }
   .sf-view-items-cell-label {
     display: none;
-    font-size: var(--sf-text-size-1);
     font-size: var(--sf-label-medium--size, var(--sf-text-size-1));
-    line-height: var(--sf-text-height-1);
     line-height: var(--sf-label-medium--height, var(--sf-text-height-1));
   }
   .sf-view-items-totals {
@@ -457,29 +377,9 @@
     .sf-view-items:not(.sf-view-items--edit) .sf-view-items-row {
       padding: var(--sf-space-1) var(--sf-space-2);
     }
-    _:-ms-input-placeholder, html:not([dir="rtl"]) .sf-view-items-cell,html:not([dir="rtl"])
-    .sf-view-items-numeric {
-      text-align: left;
-    }
-    @supports not (text-align: start) {
-    html:not([dir="rtl"]) .sf-view-items-cell,html:not([dir="rtl"])
-    .sf-view-items-numeric {
-      text-align: left;
-      }
-    }
     .sf-view-items-cell:where(:dir(ltr)),
     .sf-view-items-numeric:where(:dir(ltr)) {
       text-align: left;
-    }
-    _:-ms-input-placeholder, [dir="rtl"] .sf-view-items-cell,[dir="rtl"]
-    .sf-view-items-numeric {
-      text-align: right;
-    }
-    @supports not (text-align: start) {
-    [dir="rtl"] .sf-view-items-cell,[dir="rtl"]
-    .sf-view-items-numeric {
-      text-align: right;
-      }
     }
     .sf-view-items-cell:where(:dir(rtl)),
     .sf-view-items-numeric:where(:dir(rtl)) {
@@ -491,29 +391,9 @@
       text-align: start;
       gap: calc(var(--sf-space-1) / 4);
     }
-    _:-ms-input-placeholder, html:not([dir="rtl"]) .sf-view-items-numeric .sf-view-items-text,html:not([dir="rtl"])
-    .sf-view-items .sf-view-fields-decimal input {
-      text-align: left;
-    }
-    @supports not (text-align: start) {
-    html:not([dir="rtl"]) .sf-view-items-numeric .sf-view-items-text,html:not([dir="rtl"])
-    .sf-view-items .sf-view-fields-decimal input {
-      text-align: left;
-      }
-    }
     .sf-view-items-numeric .sf-view-items-text:where(:dir(ltr)),
     .sf-view-items .sf-view-fields-decimal input:where(:dir(ltr)) {
       text-align: left;
-    }
-    _:-ms-input-placeholder, [dir="rtl"] .sf-view-items-numeric .sf-view-items-text,[dir="rtl"]
-    .sf-view-items .sf-view-fields-decimal input {
-      text-align: right;
-    }
-    @supports not (text-align: start) {
-    [dir="rtl"] .sf-view-items-numeric .sf-view-items-text,[dir="rtl"]
-    .sf-view-items .sf-view-fields-decimal input {
-      text-align: right;
-      }
     }
     .sf-view-items-numeric .sf-view-items-text:where(:dir(rtl)),
     .sf-view-items .sf-view-fields-decimal input:where(:dir(rtl)) {

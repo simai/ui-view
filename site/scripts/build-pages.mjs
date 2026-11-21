@@ -2,7 +2,7 @@
 // Writes the parts of the site that the set itself already says, so nothing
 // is typed twice (set standard draft 1.1 §11.8-11.11):
 //
-//   - the top of each component page, content/ru/components/<group>/<folder>.md
+//   - the top of each component page, content/ru/components/<folder>.md
 //     and .page.json: front matter, the title in words, the badges (the
 //     element's tag, its version from component.json, «Предварительная
 //     версия» while package/set.json calls it preview) and the introduction,
@@ -54,8 +54,10 @@ const attribute = (value) => String(value).replace(/&/gu, '&amp;').replace(/"/gu
 // ---- Component pages ------------------------------------------------------
 const known = new Map();
 const overview = [];
-for (const [groupIndex, group] of config.groups.entries()) {
-  put(`content/ru/components/${group.id}/section.json`, JSON.stringify({schema: 'docara.section.v1', title: group.title, navigation: {order: (groupIndex + 1) * 10}}, null, 2));
+for (const group of config.groups) {
+  // The pages stand right under «Компоненты»: one group, no folder of its own
+  // (a folder named «Представления данных» beside the page «Представление
+  // данных» and the guide's «Представления» read as one thing).
   overview.push(`## ${group.title}`, '', '| Компонент | Элемент | Что делает |', '|:---|:---|:---|');
   for (const [index, component] of group.components.entries()) {
     // A page about a part of a component (part_of: the list head of sf-view,
@@ -75,13 +77,13 @@ for (const [groupIndex, group] of config.groups.entries()) {
       `:badge[Версия ${manifest.version}]{variant=tonal scheme=neutral size=1}`,
       ...(entry.status === 'preview' ? [':badge[Предварительная версия]{variant=tonal scheme=warning size=1}'] : []),
     ].join(' ');
-    const path = `content/ru/components/${group.id}/${folder}.md`;
+    const path = `content/ru/components/${folder}.md`;
     const old = existsSync(join(site, path)) ? readFileSync(join(site, path), 'utf8') : '';
     const rest = old.slice(old.search(/^## /mu));
     if (!old || old.search(/^## /mu) < 0) throw new Error(`${path}: no hand-written part (a «##» heading) to keep`);
     put(path, ['---', `description: ${description}`, 'profile: reference', '---', '', `# ${title}`, '', badges, '', intro.join('\n\n'), '', rest].join('\n'));
-    put(`content/ru/components/${group.id}/${folder}.page.json`, JSON.stringify({schema: 'docara.page.v1', title, navigation: {order: (index + 1) * 10}}));
-    overview.push(`| [${title}](${group.id}/${folder}/) | \`${element}\` | ${what}${entry.status === 'preview' ? '; предварительная версия' : ''} |`);
+    put(`content/ru/components/${folder}.page.json`, JSON.stringify({schema: 'docara.page.v1', title, navigation: {order: (index + 1) * 10}}));
+    overview.push(`| [${title}](/ru/components/${folder}/) | \`${element}\` | ${what}${entry.status === 'preview' ? '; предварительная версия' : ''} |`);
   }
   overview.push('');
 }
@@ -99,7 +101,7 @@ const panels = config.showcase.tabs.map((tab, position) => {
   const heads = tab.components.map((folder) => {
     const entry = known.get(folder);
     if (!entry) throw new Error(`showcase ${tab.id}: unknown component ${folder}`);
-    return `<a href="/ru/components/${entry.group.id}/${folder}/" target="_top">${entry.component.title}</a>`;
+    return `<a href="/ru/components/${folder}/" target="_top">${entry.component.title}</a>`;
   });
   const body = readFileSync(join(site, 'config/showcase', `${tab.id}.html`), 'utf8').trimEnd().split('\n').map((line) => `        ${line}`).join('\n');
   return [

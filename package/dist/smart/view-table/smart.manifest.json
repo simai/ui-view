@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-table",
-  "version": "1.25.1",
+  "version": "1.29.2",
   "title": "Table",
   "summary": "Complete server-backed collection view with search, filters, table preferences, row and bulk actions, and pagination.",
   "kind": "composite",
@@ -36,6 +36,7 @@
       "component.tooltip",
       "smart.avatar",
       "smart.badge",
+      "smart.bulk-actions",
       "smart.button",
       "smart.button-icon",
       "smart.checkbox",
@@ -2972,6 +2973,55 @@
         "changes": [
           "DEV's round 3 return VR3-2 (round/view-r4): the column head menu (columnMenuEntries) passes its separators as {type: \"separator\"}, the key sf-menu-context reads; {kind: \"separator\"} drew each as an empty focusable menu item."
         ]
+      },
+      {
+        "from": "1.25.1",
+        "to": "1.25.2",
+        "changes": [
+          "DEV msg-b353fce8 (round/view-r5-shadow-menu): the row menu's for is the table's own areas as elements (rowMenuAreas: the <table> and the list, refreshed on every draw), which SIMAI Framework sf-menu-context 1.27.0 reaches inside a shadow root; bindShadowRowMenu, the table's own right button, menu key and Shift+F10 listeners for a table in sf-view's shadow root, is removed. Same menu, same entries, same gestures."
+        ]
+      },
+      {
+        "from": "1.25.2",
+        "to": "1.26.0",
+        "changes": [
+          "Round 5 (round/view-r5): LV-4 Фильтр and its saved-filter segment are outline on-surface (tonal primary while conditions are set), Сохранить tonal, Создать and its arrow default primary, the phone filter and sort icons tonal while active and + filled (C301); LV-6 renderListToolbar draws a settings button (sf-table-list-settings) that calls toggleTableSettings, the method the desktop gear now calls too; LV-8 storedViewDensity, areaDensity and shownViewDensity: the View tab's density shows the stored choice or the area's density (C22), and a choice other than compact in a compact area draws the table as a normal-density island (data-sf-density=normal, C79). LV-13 (C388, C301 (3)): filterName, the open saved filter's label (not the default one), is the filter button's text."
+        ]
+      },
+      {
+        "from": "1.26.0",
+        "to": "1.27.0",
+        "changes": [
+          "Round 6 (round/view-r6, DEV msg-b137d217): fittedWidth/readFittedWidths: where the sum of the declared column widths (width or size in pixels; never the person's colWidth) and the system columns exceeds the scroll box, each declared column gives back what it holds above its measured content width (or its min_width), in proportion, before the box scrolls; columnStyle uses it. Measured: sites list beside a record panel at 1440, box 1024, columns 1100 -> 1024, no scroll, no cut cell. C396 (round 6): text-container widths moved from --sf-g* to var(--sf-measure-N, calc(N * var(--sf-text--size-1) / 2)): column max g0 -> 44, toolbar end min and search basis g0 -> 44, context menu fallbacks g0 -> 44, resource title measure g3 -> 52."
+        ]
+      },
+      {
+        "from": "1.27.0",
+        "to": "1.27.1",
+        "changes": [
+          "Round 7 (round/view-r7, DEV round-5 return R5-2 and question Q1, C301 (3)): context.filterHeld (filterTemplateHolds: the template's active tags, values, or a saved view's query.filters) joins the tags count in the tonal/primary look of the list toolbar's filter icon and the table toolbar's filter button and save segment; the list toolbar's filter icon is named «<filter-text>: <saved filter name>» while a saved filter is open."
+        ]
+      },
+      {
+        "from": "1.27.1",
+        "to": "1.28.0",
+        "changes": [
+          "Round 8 (round/view-r8, R67-3, R67-2): readFittedWidths shrinks flexible columns (no colWidth, width in pixels or none) after the declared ones, in proportion, to leastContentWidths (the measuring pass with tbody set aside, class sf-table-measuring-least: each heading on one line; read only when needed and cached with the content widths); applyColumnWidths writes the fitted sum as --sf-table--content-inline-size and sets data-sf-columns-fitted, under which data cells are nowrap with an ellipsis. lang ru/en: the template words of the filter window become view words."
+        ]
+      },
+      {
+        "from": "1.28.0",
+        "to": "1.29.0",
+        "changes": [
+          "View site round 2 (round/view-r8, Larena L-1, L-3): TABLE_SETTINGS_COLUMN.label = text(settingsColumnLabel); cellIsRelative / relativeDate (Intl.RelativeTimeFormat numeric auto: days under 7, weeks under 30, months under 365, then years; relativeDay reads a date as the local day and a moment as its local day) / cellTitle (the full date from the field renderers without the variant); cellValue answers the relative words first; the time cell of the markup path and the full path carry title."
+        ]
+      },
+      {
+        "from": "1.29.0",
+        "to": "1.29.2",
+        "changes": [
+          "View round 9 (round/view-r9): rule.js and component.json relations name cl-bulk-actions (lazy), composition.uses smart.bulk-actions; the pair's option-badge and pagination provenance hashes. anchorContextMenu takes the menu surface's stylesheet cap only when it is in pixels: over the pair the context menu's box says max-inline-size: 100% (component.context-menu F-2), which getComputedStyle returns as \"100%\" and parseFloat read as a 100px cap (ported from simai/ui-pro df0604f, sf-view-table 1.29.1 there). 1.29.2 is above simai/ui-pro's 1.29.1."
+        ]
       }
     ]
   },
@@ -2981,23 +3031,23 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-table/index.js",
-        "sha256": "97032fff6ba5f1aa158dd1e10889f0b90bf2565d580b1e0f188a8c2bc3d10429"
+        "sha256": "d7a0de20e16085a1f2efbac05c8918618f0ac7d41c630b013eaf36b756715ed1"
       },
       {
         "path": "src/smart/view-table/js/templates/default.js",
-        "sha256": "db84cc813140377b68c96a7586163bf125b0184a65de33a80a1fc1e8005296d2"
+        "sha256": "8c4b92ffe8f97d0079e06066fabc886542156c40435bb785c42ee35dbebdd4f8"
       },
       {
         "path": "src/smart/view-table/js/templates/default.css",
-        "sha256": "dd7c409a95cff85fe2b34c4dcd9d0c9710281627d4d6dc714d8aa2b9932b734a"
+        "sha256": "1b4b36505898c12bb856c27b694e8e3a43f2bc419b36aea1bf83d5077122234a"
       },
       {
         "path": "src/smart/helpers/option-badge.js",
-        "sha256": "bc56841fbeb1689e492d3e47b754ab76ca7de9502740a05c105eb26ead44ee2d"
+        "sha256": "ad7638a3bc1c7baf8895dcd10b3eebcd08f47843c8f56a973a4e18974dc0dfca"
       },
       {
         "path": "src/smart/view-table/rule.js",
-        "sha256": "321138086622411b2f57f5c08dce41326e551b0c5af831447dae0870bb85f463"
+        "sha256": "4b63aae2d02533f4ff00c26be9843b39c6a5804a40745997dbf4f04dc2cb6b7c"
       },
       {
         "path": "src/smart/view-table/docs/smart-table-guide.md",
@@ -3005,7 +3055,7 @@
       },
       {
         "path": "src/smart/pagination/index.js",
-        "sha256": "942192f5112be7e05271f8ffbc7f1145ddad789217b4844753ce68bc2464007e"
+        "sha256": "b3edc530b8c4c41533f25ad23b1ea134dfbda9fb910366e1e7784211dcf35bd9"
       }
     ],
     "generated_runtime": []

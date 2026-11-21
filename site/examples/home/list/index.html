@@ -1,0 +1,8 @@
+<div class="flex flex-col gap-2" data-list-demo>
+  <sf-view id="home-orders" aria-label="Заказы" heading="Заказы" head="list" size="1/2" record-card="home-order" preferences-key="view.home-list">
+    <sf-view-table slot="content" aria-label="Заказы"></sf-view-table>
+    <sf-pagination slot="pagination" top="false" page-size="10" page-sizes="10,20,50,100"></sf-pagination>
+  </sf-view>
+  <sf-view-properties id="home-order" aria-label="Карточка заказа" panel hidden mode="view"></sf-view-properties>
+  <p class="m-0 color-on-surface-variant" role="status" data-log>Переключите вид в зоне представления — «Таблица», «Доска», «Карточки», «Календарь» — и откройте заказ: карточка встанет рядом со списком.</p>
+</div>

@@ -4,7 +4,8 @@
 // scheme). Each check names its rule; a failure prints the file and line.
 //
 //   sections    the header navigation is exactly Руководство, Компоненты,
-//               Рецепты, Свойства, and content/ru holds no other section
+//               Свойства, Рецепты (the details before the ready tasks, docs
+//               structure 2026-11-20), and content/ru holds no other section
 //               (C290 (1), (2));
 //   properties  config/properties.json lists the property types of the
 //               Framework field renderers' registry of the pair the site is
@@ -60,7 +61,7 @@ const lineOf = (text, index) => text.slice(0, index).split('\n').length;
 const contentFiles = walk('content/ru').filter((path) => path.endsWith('.md'));
 
 // ---- sections --------------------------------------------------------------
-const SECTIONS = [['guide', 'Руководство'], ['components', 'Компоненты'], ['recipes', 'Рецепты'], ['properties', 'Свойства']];
+const SECTIONS = [['guide', 'Руководство'], ['components', 'Компоненты'], ['properties', 'Свойства'], ['recipes', 'Рецепты']];
 {
   const root = json('content/ru/section.json');
   const items = root.header_navigation?.items ?? root.navigation?.header?.items ?? [];

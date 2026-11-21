@@ -62,7 +62,7 @@
     "previous_next": true
   },
   "effects": {
-    "catalogue": "https://cdn.jsdelivr.net/gh/simai/ui-effects@ffc71ca14ee8ed689f1e4dbfc8a6f221ebe1b140/"
+    "catalogue": "https://cdn.jsdelivr.net/npm/@simai-studio/effects@1.1.0/"
   },
   "translation_tracking": {
     "enabled": true,

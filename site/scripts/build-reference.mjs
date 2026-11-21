@@ -37,13 +37,13 @@ const checkOnly = args.has('--check');
 const listMissing = args.has('--missing');
 
 const PAGES = {
-  view: 'content/ru/components/views/view.md',
-  'view-table': 'content/ru/components/views/view-table.md',
-  'view-board': 'content/ru/components/views/view-board.md',
-  'view-cards': 'content/ru/components/views/view-cards.md',
-  'view-properties': 'content/ru/components/views/view-properties.md',
-  'view-flow': 'content/ru/components/views/view-flow.md',
-  'view-calendar': 'content/ru/components/views/view-calendar.md',
+  view: 'content/ru/components/view.md',
+  'view-table': 'content/ru/components/view-table.md',
+  'view-board': 'content/ru/components/view-board.md',
+  'view-cards': 'content/ru/components/view-cards.md',
+  'view-properties': 'content/ru/components/view-properties.md',
+  'view-flow': 'content/ru/components/view-flow.md',
+  'view-calendar': 'content/ru/components/view-calendar.md',
 };
 const START = '## Параметры';
 const END = '## См. также';

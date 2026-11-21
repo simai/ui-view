@@ -45,11 +45,11 @@ view.setHostPort({
 - `version` — версия порта, которую понимает приложение. `sf-view` говорит
   на порту `simai.dataview-port`, `sf-view-properties` — на порту
   `simai.property-view-port`; какие версии принимает каждый, сказано в
-  строке «Порт» его справочника ([представление данных](/ru/components/views/view/#параметры),
-  [карточка записи](/ru/components/views/view-properties/#параметры)).
+  строке «Порт» его справочника ([представление данных](/ru/components/view/#параметры),
+  [карточка записи](/ru/components/view-properties/#параметры)).
 - `capabilities` — что приложение умеет сверх обязательного: например
-  `row-actions` (действия над строками) или `saved-views` (сохранённые
-  виды). Компонент не предлагает человеку того, чего приложение не умеет.
+  `row-actions` (действия над строками) или `saved-views`
+  ([представления](/ru/guide/list/views/)). Компонент не предлагает человеку того, чего приложение не умеет.
 - `raise(intent, payload)` — функция, которая получает намерение и
   возвращает ответ сразу или обещанием (Promise).
 
@@ -83,7 +83,7 @@ view.setHostPort({
 | `bulk.apply_under_filter` | действие над всеми записями под фильтром (возможность `bulk-under-filter`) | ничего; приложение получает подтверждённое число записей |
 | `query.count` | человек попросил точное число записей (возможность `count-on-request`) | число записей |
 | `settings.save_personal` | человек поменял колонки | новая ревизия слоя настроек |
-| `view.open`, `view.save`, `view.delete` | сохранённые виды (возможность `saved-views`) | вид и его записи |
+| `view.open`, `view.save`, `view.save_shared`, `view.delete` | [представления](/ru/guide/list/views/) (возможность `saved-views`) | список представлений и записи открытого |
 | `view.create_record` | кнопка «Создать» (возможность `create-record`) | ничего; форму открывает приложение |
 | `tree.expand`, `node.targets`, `node.move` | дерево записей (возможности `tree`, `tree-move`) | один уровень дерева; места, куда можно перенести узел |
 | `record.set` | человек поставил флажок прямо в ячейке (возможность `inline-edit`) | изменённая запись |
@@ -104,7 +104,7 @@ view.setHostPort({
 | `group.load` | чтение по группам (возможность `group-load`) |
 | `field.options`, `field.upload` | варианты для поля-ссылки; загрузка файла |
 | `record.open`, `record.delete` | переход по ссылке на другую запись; удаление |
-| `view.save`, `view.reset`, `view.profile`, `view.create`, `view.rename`, `view.delete` | раскладка карточки и её именованные виды (возможность `view-settings`) |
+| `view.save`, `view.reset`, `view.profile`, `view.create`, `view.rename`, `view.delete` | раскладка карточки и её именованные раскладки (возможность `view-settings`) |
 
 ## Пример
 
@@ -136,4 +136,4 @@ view.setHostPort({
 
 - [Данные](../data/)
 - [Связь с сервером](../../server/)
-- [Представление данных sf-view](/ru/components/views/view/)
+- [Представление данных sf-view](/ru/components/view/)

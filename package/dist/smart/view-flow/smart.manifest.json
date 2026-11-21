@@ -513,7 +513,7 @@
       },
       {
         "path": "src/smart/helpers/confirm-surface.js",
-        "sha256": "ecb8f3ad977b27cb344a0369bcb32e073847f2a8281e113d688a53b8c3ae71af"
+        "sha256": "99d1bdb61234ed478fa55db65b30a21b4716a7d474ed68880b40310bf9d48c8c"
       },
       {
         "path": "src/smart/view-flow/rule.js",

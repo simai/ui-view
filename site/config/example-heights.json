@@ -43,10 +43,6 @@
     "wide": 320,
     "narrow": 656
   },
-  "guide/bulk-actions": {
-    "wide": 723,
-    "narrow": 1778
-  },
   "guide/flow-chat": {
     "wide": 526,
     "narrow": 518
@@ -63,9 +59,34 @@
     "wide": 294,
     "narrow": 598
   },
+  "home/list": {
+    "wide": 693,
+    "narrow": 1550
+  },
+  "home/set-board": {
+    "narrow": 302
+  },
+  "home/set-calendar": {
+    "narrow": 302
+  },
+  "home/set-card": {
+    "narrow": 294
+  },
+  "home/set-cards": {
+    "narrow": 302
+  },
+  "home/set-flow": {
+    "narrow": 302
+  },
+  "home/set-head": {
+    "narrow": 302
+  },
+  "home/set-table": {
+    "narrow": 302
+  },
   "home/showcase": {
-    "wide": 957,
-    "narrow": 1900
+    "wide": 840,
+    "narrow": 1940
   },
   "properties/all": {
     "wide": 4346,
@@ -87,7 +108,7 @@
     "wide": 1036,
     "narrow": 1304
   },
-  "properties/compound": {
+  "properties/complex": {
     "wide": 1473,
     "narrow": 1889
   },
@@ -110,10 +131,6 @@
   "properties/include": {
     "wide": 1300,
     "narrow": 1716
-  },
-  "properties/integer": {
-    "wide": 956,
-    "narrow": 1244
   },
   "properties/items": {
     "wide": 2949,

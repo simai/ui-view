@@ -20,7 +20,7 @@ up). Each component.json says the same under `x-decisions`
 
 Over view round 9 (round/view-r10 from round/view-r9 71f1c5a), on the same
 pair `ui-b654460cad2a`: Larena R9-1 and L-4, DEV's V10-1..5. The set's
-candidate is **1.10.1** (1.10.0 ships round 9).
+candidate is **1.10.1**.
 
 - `sf-view` 1.29.1: a phone list (size 1/2) skeleton row is sized at text
   step 1, as the answered row is (109 px at 390, was 93); a new example
@@ -44,13 +44,31 @@ candidate is **1.10.1** (1.10.0 ships round 9).
   package when none resolves, and its Chromium into the gate's own browsers
   folder (R9-G).
 
-## Unreleased — view round 9
+## 1.10.0 — 2026-11-21
+
+View rounds 5 to 9 and the site round (round/view-r5 .. round/view-r9,
+round/view-site; round 9 accepted by DEV on 2026-11-21), with the set site's
+new structure (round/view-site-structure); their entries below.
+
+- Over the SIMAI Framework pair `ui-b654460cad2a` (ui-source `049a2ba3dc7d`,
+  npm `@simai-studio/ui@5.20261120.1816`, core.runtime 1.64.0). The set still
+  needs core.runtime 1.51.0 or newer. Former names keep ending on 2027-01-01.
+- `sf-view` 1.29.0, `sf-view-table` 1.29.2, `sf-view-properties` 1.23.5,
+  `sf-view-flow` 1.1.6, `sf-view-board` 1.1.3, `sf-view-cards` 1.0.6,
+  `sf-view-calendar` 1.1.3.
+- Row selection through the SIMAI Framework group actions bar
+  `sf-bulk-actions` (Larena L-2): «Выбрано N», the actions as buttons, «Выбрать
+  все N», the host's answer in the bar.
+- The view configuration contract `contracts/view-config` 1.0.1 (text only:
+  whole documents per level, the merge order, host keys).
+
+### view round 9
 
 The set moves to the SIMAI Framework pair `ui-b654460cad2a` (npm
 `@simai-studio/ui` 5.20261120.1816, ui-source `049a2ba3d`): the lock and the
 passport pin its source; the units follow the pair (the page row's band is
 sf-bulk-actions, three more field keys the port 1.20.0 declares, the
-registry's statuses). The set's candidate stays **1.10.0**.
+registry's statuses).
 
 - `sf-view` 1.29.0: row selection through the group actions bar (Larena
   L-2, C295). While rows are marked the view draws `sf-bulk-actions` under
@@ -78,7 +96,7 @@ registry's statuses). The set's candidate stays **1.10.0**.
   pair draws none, so the first group no longer jumps up by 32 px (24 px at
   size 1/2) when the record comes.
 
-## Unreleased — view round 8
+### view round 8
 
 Over the site round (round/view-r8 from round/view-site abd3ca8, not released
 yet): DEV's returns of rounds 6+7 (R67-1..3) and of the site round
@@ -138,9 +156,9 @@ yet): DEV's returns of rounds 6+7 (R67-1..3) and of the site round
   (VSA-4); an example is held hidden only for its first paint, not while a
   layout switched to loads (VSA-5).
 
-## Unreleased — view site round
+### view site round
 
-Over round 7 (round/view-site from round/view-r7 0a6d6bf, not released yet):
+Over round 7 (round/view-site from round/view-r7 0a6d6bf):
 the set site's orders VS-SITE-1..14 and two items of round 7.
 
 - `sf-view` 1.27.0: with `simai.dataview-port` 1.16.0 and
@@ -153,9 +171,9 @@ the set site's orders VS-SITE-1..14 and two items of round 7.
   button stays, and the focus stays on it while the next page loads. Cards
   drawn on their own keep the line.
 
-## Unreleased — view round 7
+### view round 7
 
-Over round 6 (round/view-r7 from round/view-r6 a237bbd, not released yet):
+Over round 6 (round/view-r7 from round/view-r6 a237bbd):
 VS-8 of the views study (prototypes/views-switcher-study.html) and the count
 of a board and cards.
 
@@ -190,9 +208,9 @@ of a board and cards.
   itself only while the page's sheets lack SIMAI Framework component.tabs
   1.5.4, which paints it with the ground it stands on.
 
-## Unreleased — view round 6
+### view round 6
 
-Over round 5 (round/view-r6 from round/view-r5 279c7f5, not released yet):
+Over round 5 (round/view-r6 from round/view-r5 279c7f5):
 VZ-1 (owner C393, C394, views study option D), the table's columns before
 scroll and VB-1 (DEV msg-b137d217, C394 revised).
 
@@ -225,9 +243,9 @@ scroll and VB-1 (DEV msg-b137d217, C394 revised).
   were 320); the places window 52 (416, was 448); the resource list title 52
   (416, unchanged). The card sizes keep their C306 steps.
 
-## Unreleased — view round 5
+### view round 5
 
-Over `view` 1.9.0 (round/view-r5, not released yet): DEV's open items B1-B3
+Over `view` 1.9.0 (round/view-r5): DEV's open items B1-B3
 and the list study order LV-2..LV-13 (V1, V5, V7 and the record window not built; LV-14 is the Framework's).
 
 - `sf-view-table` 1.25.2: a table in sf-view's shadow root opens its row

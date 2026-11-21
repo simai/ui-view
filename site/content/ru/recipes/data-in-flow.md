@@ -70,6 +70,6 @@ profile: how_to
 
 ## См. также
 
-- [Блок в потоке sf-view-flow](/ru/components/views/view-flow/)
+- [Блок в потоке sf-view-flow](/ru/components/view-flow/)
 - [Правка записей](../editing/)
 - [Свойства](/ru/properties/)

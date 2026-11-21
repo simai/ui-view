@@ -2,8 +2,43 @@
   "$comment": "sf-property-view from its component.json (standard simai.smart-component 1.3.8, vocabulary 1.1.5), migrated from ui-control control/smart-architecture/migration/out/property-view; every x-todo decided in x-decisions.",
   "id": "smart.view-properties",
   "tag": "sf-view-properties",
-  "version": "1.21.0",
+  "version": "1.23.5",
   "x-history": [
+    {
+      "version": "1.23.5",
+      "kind": "patch",
+      "recorded_on": "2026-11-20",
+      "consumer": "Nothing to change for a host. With sections-as tabs the loading skeleton draws the tabs' strip and hairline without an empty panel row, as sf-tabs 1.4.5 (pair ui-b654460cad2a) draws the record's section tabs, so the first group no longer moves up by 32px (24px at size 1/2) when the record comes.",
+      "evidence": "control/evidence/2026-11-21-view-r9/README.md"
+    },
+    {
+      "version": "1.23.3",
+      "kind": "patch",
+      "recorded_on": "2026-11-20",
+      "consumer": "Nothing to change for a host. The English default of variant-text is «Look» (it was «Template»), as the Russian «Вид».",
+      "evidence": "control/evidence/2026-11-21-view-r8/README.md"
+    },
+    {
+      "version": "1.23.1",
+      "kind": "patch",
+      "recorded_on": "2026-11-20",
+      "consumer": "Nothing to change. Where the page's sheets carry SIMAI Framework component.tabs 1.5.4 (the sticky tab strip painted with the ground it stands on), the record panel no longer paints the strip itself; with an earlier pair it keeps the set's own ground as before.",
+      "evidence": "control/evidence/2026-11-20-view-r7/README.md"
+    },
+    {
+      "version": "1.23.0",
+      "kind": "minor",
+      "recorded_on": "2026-11-19",
+      "consumer": "The panel widths follow the body text (C396): panel-size 1/2, 1 and 2 are 352, 416 and 512 px at normal density (were 320, 384 and 480), and smaller at compact density. The default panel-size is now 2, so a panel without the attribute is 512 px wide (was 384): a page that wants the former width writes panel-size=\"1\". In a side panel in the dark theme the section tabs strip and the edited group cards are no longer darker than the panel; the light theme is unchanged. The record body starts from 44 text steps (352 px at normal density, was 320) beside the section list.",
+      "evidence": "control/evidence/2026-11-19-view-r6/README.md"
+    },
+    {
+      "version": "1.22.0",
+      "kind": "minor",
+      "recorded_on": "2026-11-19",
+      "consumer": "Nothing to change. A docked record panel beside a list keeps the list usable without a dim; when the page has no dock host the panel names the sf-view it belongs to. Arranging in a panel narrower than the full step stacks the sections over the fields; beside them the section list takes its content width (--sf-view-properties-sections-width is now its cap). Opening a record puts the focus on its title, with the ring for the keyboard only. The arranging tags are asked of the Loader before they are drawn. Since this step the default of sections-as depends on the place (C386): list in a side panel (panel), tabs on a page; a written sections-as wins. A page that relied on the list default writes sections-as=\"list\". A side panel with its sections on the left is wider by the section list (--sf-drawer-width: the step's width + the sections column + the gutter), so the fields keep the panel-size width.",
+      "evidence": "control/evidence/2026-11-19-view-r5/README.md"
+    },
     {
       "version": "1.21.0",
       "kind": "minor",
@@ -348,8 +383,8 @@
         "2",
         "full"
       ],
-      "default": "1",
-      "summary": "How wide the panel is, on the drawer's own ladder."
+      "default": "2",
+      "summary": "How wide the panel is (C396): 1/2, 1 and 2 are the text-measure steps 44, 52 and 64 (352, 416 and 512 px at normal density), full is the whole screen; the record card defaults to 64."
     },
     "size": {
       "type": "enum",
@@ -448,7 +483,7 @@
         "tabs"
       ],
       "default": "list",
-      "summary": "Where the sections of an inline view are read: as a list beside the groups, which suits a settings screen with many of them, or as a row of tabs above them, which suits a record with a few. A panel lays them out by its width since 1.17.0 (C289 (5)): tabs with «Ещё (n)» in a panel, the column in a panel of size full, a list of rows on a phone; there this setting is not read."
+      "summary": "Where the sections are read: as a list beside the groups (sections on the left), which suits many of them, or as a row of tabs above them, which suits a few. The default depends on the place (C386, since 1.22.0): list in a side panel (panel), tabs on a page; a written value always wins. A side panel with the list is wider by the section column, so the fields keep the panel-size width; arranging there is stacked (C311 (4)), a panel of size full keeps the column, a phone shows a list of rows."
     },
     "sections-label": {
       "type": "string",
@@ -2352,6 +2387,41 @@
           "changes": [
             "Release of round/view-r4 in view 1.9.0: the code of 1.20.0 (port range 1.0.0..1.22.0, card settings only for a 1.22.0 host) merged with the released line 1.19.2 and 1.20.2 (view 1.8.2, 1.8.3: port widening of the 1.16.3 panel), numbered above both and above ui-pro's 1.20.1. A 1.20.0 or 1.21.0 host is offered no card settings (they need 1.22.0).",
             "The released 1.19.2 and 1.20.2 (view 1.8.2, 1.8.3) were steps of the 1.16.3 panel that only widened the accepted port range (1.19.0, then 1.20.0..1.22.0); 1.21.0 holds the same range, so a host of 1.20.2 gets everything of 1.16.4..1.20.0 above with nothing taken away."
+          ]
+        },
+        {
+          "from": "1.21.0",
+          "to": "1.22.0",
+          "changes": [
+            "Round 5 (round/view-r5): LV-2 a docked panel marks its sf-view (record-card id, the only sf-view, or the parent) as [data-sf-drawer-dock-host] when the page has none, so the list ends where the panel starts; LV-3 sectionsLayout in a panel is column only at the full step, tabs (stacked) otherwise, the section column is max-content capped by --sf-property-view--sections-width, the fields take the rest, and the row wraps instead of squeezing; LV-9 the title takes the focus of a docked panel and keeps the watch until the person acts or two seconds pass (a phone sheet's second focus pick no longer takes it), outline on :focus-visible only; B3 sf-profile-picker, sf-sortable, sf-dropdown and sf-switch are asked of the Loader once a view can be arranged, so arranging draws without a late shift. LV-10 (C386): sectionsAs defaults to list with panel and tabs without it. LV-11 (C386): a panel below the full step keeps sections-as (column for list, then the panel is widened: panelWidened, panelWidthStyle writes --sf-drawer-width as calc(step + sections width + gutter) in the drawer's panel-style); arranging there stays stacked (C311 (4))."
+          ]
+        },
+        {
+          "from": "1.22.0",
+          "to": "1.23.0",
+          "changes": [
+            "Round 6 (round/view-r6, VB-1, owner C394, C20): in a panel a group card takes bg-surface-card (light: white as before; dark: --sf-surface-2 over the panel's --sf-surface-area), on a page it keeps bg-surface-page; the sticky section tabs strip in a panel takes light-dark(--sf-surface-page, --sf-surface-area) over sf-tabs' --sf-surface-page (dark: #1a1b1f instead of #0f1115 on #1a1b1f). C396 (WM-7): panel-size 1/2, 1 and 2 draw the drawer at the text-measure steps 44, 52 and 64 (panelWidthStyle writes --sf-drawer-width: var(--sf-measure-N, calc(N * var(--sf-text--size-1) / 2)) on every wide panel below full, plus the sections column and gutter when widened; 352, 416, 512 px at normal density, 308, 364, 448 at compact); the panel-size default is 2 (the record card at 64); a former panel-width still maps by the old 20, 24, 30rem steps. C396 (round 6): the record body's flex basis g0 -> var(--sf-measure-44, calc(44 * var(--sf-text--size-1) / 2))."
+          ]
+        },
+        {
+          "from": "1.23.0",
+          "to": "1.23.1",
+          "changes": [
+            "Round 7 (round/view-r7, dispatcher order 2026-11-20): the VB-1 strip rule in a panel moved to .sf-property-view-panel--own-strip; the panel takes that class while frameworkStripGround() finds no sheet rule .sf-tabs.sf-tabs--sticky > .sf-tabs-top-container reading --sf-surface-place-ground (component.tabs 1.5.4, simai/ui-source feat/view-port-levels 72c8b6547, group build 15). Remove the class and the rule once every supported pair carries 1.5.4."
+          ]
+        },
+        {
+          "from": "1.23.1",
+          "to": "1.23.3",
+          "changes": [
+            "Round 8 (round/view-r8, R67-2): lang/en.json and index.js variantText default «Look»; 1.23.2 is left to the parallel branch fix/property-view-scroll."
+          ]
+        },
+        {
+          "from": "1.23.3",
+          "to": "1.23.5",
+          "changes": [
+            "View round 9 (round/view-r9): js/templates/default.js renderLoading and skeleton.html drop the skeleton's empty .sf-tabs-main-container, since sf-tabs 1.4.5 hides a panel row whose panels hold nothing (data-sf-panels-empty); probe property-view-pro-issues-3-4 #3 measured the strip 72 against tabs 40 (64 against 32 at 1/2) over the pair. The same fix as simai/ui-pro d7c4cf6 (sf-view-properties 1.23.4 there); 1.23.5 is above it."
           ]
         }
       ]

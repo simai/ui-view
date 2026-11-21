@@ -52,10 +52,10 @@ const SHOTS = [
   ['properties-date', 'ru/properties/date/'],
   ['quick-start', 'ru/guide/quick-start/'],
   ['concepts-data', 'ru/guide/concepts/data/'],
-  ['recipe-bulk-actions', 'ru/recipes/selection-and-bulk-actions/'],
+  ['guide-bulk-actions', 'ru/guide/list/bulk-actions/'],
   ['recipe-data-in-flow', 'ru/recipes/data-in-flow/'],
-  ['reference-view-table', 'ru/components/views/view-table/'],
-  ['reference-view-flow', 'ru/components/views/view-flow/'],
+  ['reference-view-table', 'ru/components/view-table/'],
+  ['reference-view-flow', 'ru/components/view-flow/'],
 ];
 
 // The pages with a live example, by their content files.

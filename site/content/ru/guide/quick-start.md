@@ -28,10 +28,10 @@ profile: tutorial
      <meta charset="utf-8">
      <meta name="viewport" content="width=device-width, initial-scale=1">
      <title>Клиенты</title>
-     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@simai-studio/ui@5.20261118.1205/distr/core/css/core.min.css">
+     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@simai-studio/ui@5.20261120.1816/distr/core/css/core.min.css">
    </head>
    <body class="p-4">
-     <script src="https://cdn.jsdelivr.net/npm/@simai-studio/ui@5.20261118.1205/distr/core/js/core.min.js" data-sf-sets="view"></script>
+     <script src="https://cdn.jsdelivr.net/npm/@simai-studio/ui@5.20261120.1816/distr/core/js/core.min.js" data-sf-sets="view"></script>
    </body>
    </html>
    ```
@@ -109,7 +109,7 @@ profile: tutorial
 
 Так таблицу наполняют, когда записей десятки и все они уже на странице.
 Когда записей тысячи и они живут на сервере, поставьте таблицу внутрь
-[`sf-view`](/ru/components/views/view/): тогда представление само
+[`sf-view`](/ru/components/view/): тогда представление само
 собирает поиск, сортировку и страницу в один запрос `query.change`, сервер
 отвечает одной страницей записей, а компонент рисует ответ.
 Как это устроено — в разделе [Основные понятия](../concepts/).
@@ -118,4 +118,4 @@ profile: tutorial
 
 - [Подключение](../connection/) — версии, npm и своя копия набора.
 - [Загрузка данных с сервера](/ru/recipes/load-from-server/)
-- [Умная таблица sf-view-table](/ru/components/views/view-table/)
+- [Умная таблица sf-view-table](/ru/components/view-table/)

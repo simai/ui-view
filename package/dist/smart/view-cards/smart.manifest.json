@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-cards",
-  "version": "1.0.3",
+  "version": "1.0.6",
   "title": "Cards",
   "summary": "The cards layout of the view set: records as cards in a grid whose columns follow its width, a cover the layout draws, a title and up to four fields in the «Кратко» place; «Показать ещё» appends the next page. sf-view layout=\"cards\" draws it where the author turned it on.",
   "kind": "smart",
@@ -29,6 +29,7 @@
       "component.icons",
       "smart.avatar",
       "smart.badge",
+      "smart.bulk-actions",
       "smart.button",
       "smart.button-icon",
       "smart.checkbox",
@@ -74,7 +75,7 @@
       "card-size": {
         "type": "string",
         "default": "",
-        "description": "The card size over layouts.cards size: s, m, l = least card width 12, 15, 20rem (--sf-f2, --sf-f5, --sf-g0); the columns follow the width (C306). Empty: the options' size (m).",
+        "description": "The card size over layouts.cards size: s, m, l = least card width 224, 288, 352 px at a desktop (--sf-measure-28, --sf-measure-36, --sf-measure-44, C396); the columns follow the width (C306). Empty: the options' size (m).",
         "enum": [
           "",
           "s",
@@ -434,6 +435,27 @@
         "changes": [
           "Release numbering (view 1.9.0): the same code as 1.0.1 of round/view-r4; 1.0.2 is the same VC-1 change on the superseded round/view-cards f85ac5a (not merged, not released), so the release takes 1.0.3."
         ]
+      },
+      {
+        "from": "1.0.3",
+        "to": "1.0.4",
+        "changes": [
+          "View site round (round/view-site, view round 7 open item O1): renderMore draws sf-button (outline, primary, data-more, words more-text / more-plain-text in en and ru) instead of sf-pagination when the cards stand inside sf-view (context.inView); a click on [data-more] asks showMore(). Once the next page is drawn the focus goes back to the more button (or to the last card on the last page) instead of falling to the page."
+        ]
+      },
+      {
+        "from": "1.0.4",
+        "to": "1.0.5",
+        "changes": [
+          "R8-1 (round/view-r8): js/templates/default.css --sf-view-cards-min reads var(--sf-measure-28|36|44, var(--sf-f4|f8|g1)); the fields grid is minmax(min-content, 1fr) auto, the field and its values wrap (no nowrap, overflow or ellipsis); the phone S grid lays the fields in one column."
+        ]
+      },
+      {
+        "from": "1.0.5",
+        "to": "1.0.6",
+        "changes": [
+          "View round 9 (round/view-r9): rule.js and component.json relations name cl-bulk-actions (lazy), composition.uses smart.bulk-actions; the pair's field-renderers provenance hash."
+        ]
       }
     ]
   },
@@ -443,7 +465,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-cards/index.js",
-        "sha256": "ef957e7b3ae5f3bd6ff6a1fee8eb266bf48a38158b37578b1b6db5f288911438"
+        "sha256": "e41164f4575c0b66ec0a132c3454bdf847df80df1351d3d4de6ab573baca0594"
       },
       {
         "path": "src/smart/view-cards/js/cards.js",
@@ -451,23 +473,23 @@
       },
       {
         "path": "src/smart/view-cards/js/templates/default.js",
-        "sha256": "45384448ae6a49612e5fa86d45312ec429cc44037747282f2d72ab11b620b5f8"
+        "sha256": "756fcba9329d0d162606e3fbc13d8ae67f3357d7cd4aa485ceee3bc82c03acb3"
       },
       {
         "path": "src/smart/view-cards/js/templates/default.css",
-        "sha256": "8d1d17ca49f9d2f8dd600fd63e3078d06d3ab67c8b685ed8cdcdd8cf3038e30d"
+        "sha256": "2efe943fc74ec82b828c505252dcef9579c0ddee91972a012f5aef70e652eb55"
       },
       {
         "path": "src/smart/field-renderers/index.js",
-        "sha256": "6ac942637adeecab6d761d81589d6cc2ec40c5fe2971adb8eedbf28f54a2e631"
+        "sha256": "10defcf40a022bd86cd32235fb21649008e2e8cf8d94464d2c61a557214dddd8"
       },
       {
         "path": "src/smart/view-cards/rule.js",
-        "sha256": "3159e5e905946c5609062417247252016d99282d5f39b07d20aba1f4f6d12719"
+        "sha256": "18499d538cee331e73dee23975c05407d3404be6105487a332b382a49fc6550d"
       },
       {
         "path": "src/smart/view-cards/docs.md",
-        "sha256": "96a2e95ec96344ac0e6c01c7af0d6e5f075d133c6ce7389a0689f1b03cc473fa"
+        "sha256": "d5ae4f29776db258ca4998431f43c1d980d45881c8a9535b228d07652fd92f88"
       }
     ],
     "generated_runtime": []

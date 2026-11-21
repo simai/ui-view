@@ -15,15 +15,11 @@
   /* Until the host's first answer only the skeleton shows: the table and the
      page row the page gave stand back, before the view's code too (in its
      shadow root they are in the layout it hides). */
-  sf-view[data-sf-awaiting] > :not([slot=first-paint]) {
+  :is(sf-view, sf-data-view)[data-sf-awaiting] > :not([slot=first-paint]) {
     /* Important: a printed part host carries display: contents inline. */
     display: none !important;
   }
-  sf-data-view[data-sf-awaiting] > :not([slot=first-paint]) {
-    /* Important: a printed part host carries display: contents inline. */
-    display: none !important;
-  }
-  sf-view > .sf-data-view-skeleton {
+  :is(sf-view, sf-data-view) > .sf-data-view-skeleton {
     --sf-data-view-skeleton--control: var(--sf-ui-1--control-height);
     --sf-data-view-skeleton--switch: calc(var(--sf-data-view-skeleton--control) * 2 - (var(--sf-ui-1--space-y-tightness-default) - var(--sf-ui-1--space-y-tightness-low)));
     /* A labelled button of the step, from the button's own lengths (sf-button
@@ -39,47 +35,11 @@
     --sf-data-view-skeleton--row-pad: 0px;
     --sf-data-view-skeleton--row: var(--sf-ui-1--control-height);
     display: grid;
-    grid-gap: var(--sf-space-3);
-    gap: var(--sf-space-3);
-    grid-gap: var(--sf-space-3);
     grid-gap: var(--sf-data-view-gap, var(--sf-space-3));
     gap: var(--sf-data-view-gap, var(--sf-space-3));
     container-type: inline-size;
   }
-  sf-data-view > .sf-data-view-skeleton {
-    --sf-data-view-skeleton--control: var(--sf-ui-1--control-height);
-    --sf-data-view-skeleton--switch: calc(var(--sf-data-view-skeleton--control) * 2 - (var(--sf-ui-1--space-y-tightness-default) - var(--sf-ui-1--space-y-tightness-low)));
-    /* A labelled button of the step, from the button's own lengths (sf-button
-       size 1): its side padding, its icon a line of the step's text, the
-       label's padding and its text. */
-    --sf-data-view-skeleton--button-x: var(--sf-ui-1--space-x);
-    --sf-data-view-skeleton--label-x: var(--sf-ui-1--text-space-x);
-    --sf-data-view-skeleton--icon: var(--sf-text-height-1);
-    --sf-data-view-skeleton--label-size: var(--sf-text-size-1);
-    /* The table's row model (owner decision C146 (1), sf-view-table 1.19.0):
-       a row is the control of its step, with no padding of its own. It was
-       the rung above, with a padding from the two-line rung (C31). */
-    --sf-data-view-skeleton--row-pad: 0px;
-    --sf-data-view-skeleton--row: var(--sf-ui-1--control-height);
-    display: grid;
-    grid-gap: var(--sf-space-3);
-    gap: var(--sf-space-3);
-    grid-gap: var(--sf-space-3);
-    grid-gap: var(--sf-data-view-gap, var(--sf-space-3));
-    gap: var(--sf-data-view-gap, var(--sf-space-3));
-    container-type: inline-size;
-  }
-  sf-view > .sf-data-view-skeleton[data-size="1/2"] {
-    --sf-data-view-skeleton--control: var(--sf-ui-1\/2--control-height);
-    --sf-data-view-skeleton--switch: calc(var(--sf-data-view-skeleton--control) * 2 - (var(--sf-ui-1\/2--space-y-tightness-default) - var(--sf-ui-1\/2--space-y-tightness-low)));
-    --sf-data-view-skeleton--button-x: var(--sf-ui-1\/2--space-x);
-    --sf-data-view-skeleton--label-x: var(--sf-ui-1\/2--text-space-x);
-    --sf-data-view-skeleton--icon: var(--sf-text-height-1\/2);
-    --sf-data-view-skeleton--label-size: var(--sf-text-size-1\/2);
-    --sf-data-view-skeleton--row-pad: 0px;
-    --sf-data-view-skeleton--row: var(--sf-ui-1\/2--control-height);
-  }
-  sf-data-view > .sf-data-view-skeleton[data-size="1/2"] {
+  :is(sf-view, sf-data-view) > .sf-data-view-skeleton[data-size="1/2"] {
     --sf-data-view-skeleton--control: var(--sf-ui-1\/2--control-height);
     --sf-data-view-skeleton--switch: calc(var(--sf-data-view-skeleton--control) * 2 - (var(--sf-ui-1\/2--space-y-tightness-default) - var(--sf-ui-1\/2--space-y-tightness-low)));
     --sf-data-view-skeleton--button-x: var(--sf-ui-1\/2--space-x);
@@ -134,7 +94,7 @@
      side padding, the filter's icon, the label's padding and its words --
      whatever the language or the words a product gave (sf-view 1.11.1; a
      fixed three controls was 9.72 / 16.5 px short of the filter button). */
-  .sf-data-view-skeleton .sf-skeleton-text[data-control=filter] {
+  .sf-data-view-skeleton .sf-skeleton-text:is([data-control=filter], [data-control=create]) {
     box-sizing: border-box;
     width: auto;
     inline-size: auto;
@@ -147,39 +107,9 @@
     font-weight: var(--sf-font-weight-medium);
     line-height: var(--sf-data-view-skeleton--control);
     white-space: nowrap;
-  }
-  .sf-data-view-skeleton .sf-skeleton-text[data-control=create] {
-    box-sizing: border-box;
-    width: auto;
-    inline-size: auto;
-    padding-left: calc(var(--sf-data-view-skeleton--button-x) + var(--sf-data-view-skeleton--label-x));
-    padding-right: calc(var(--sf-data-view-skeleton--button-x) + var(--sf-data-view-skeleton--label-x));
-    padding-inline: calc(var(--sf-data-view-skeleton--button-x) + var(--sf-data-view-skeleton--label-x));
-    color: transparent;
-    font-family: var(--sf-text--family);
-    font-size: var(--sf-data-view-skeleton--label-size);
-    font-weight: var(--sf-font-weight-medium);
-    line-height: var(--sf-data-view-skeleton--control);
-    white-space: nowrap;
-  }
-  _:-ms-input-placeholder, html:not([dir="rtl"]) .sf-data-view-skeleton .sf-skeleton-text[data-control=filter]{
-    padding-left: calc(var(--sf-data-view-skeleton--button-x) + var(--sf-data-view-skeleton--icon) + var(--sf-data-view-skeleton--label-x));
-  }
-  @supports not (padding-inline-start: initial){
-  html:not([dir="rtl"]) .sf-data-view-skeleton .sf-skeleton-text[data-control=filter]{
-    padding-left: calc(var(--sf-data-view-skeleton--button-x) + var(--sf-data-view-skeleton--icon) + var(--sf-data-view-skeleton--label-x));
-    }
   }
   .sf-data-view-skeleton .sf-skeleton-text[data-control=filter]:where(:dir(ltr)){
     padding-left: calc(var(--sf-data-view-skeleton--button-x) + var(--sf-data-view-skeleton--icon) + var(--sf-data-view-skeleton--label-x));
-  }
-  _:-ms-input-placeholder, [dir="rtl"] .sf-data-view-skeleton .sf-skeleton-text[data-control=filter]{
-    padding-right: calc(var(--sf-data-view-skeleton--button-x) + var(--sf-data-view-skeleton--icon) + var(--sf-data-view-skeleton--label-x));
-  }
-  @supports not (padding-inline-start: initial){
-  [dir="rtl"] .sf-data-view-skeleton .sf-skeleton-text[data-control=filter]{
-    padding-right: calc(var(--sf-data-view-skeleton--button-x) + var(--sf-data-view-skeleton--icon) + var(--sf-data-view-skeleton--label-x));
-    }
   }
   .sf-data-view-skeleton .sf-skeleton-text[data-control=filter]:where(:dir(rtl)){
     padding-right: calc(var(--sf-data-view-skeleton--button-x) + var(--sf-data-view-skeleton--icon) + var(--sf-data-view-skeleton--label-x));
@@ -198,12 +128,12 @@
     min-inline-size: calc(var(--sf-data-view-skeleton--control) * 2.5);
     flex: 1 1 auto;
   }
-  /* The toolbar's search field, as the table's (.sf-search-input): from g0,
-     taking the room the end group has. */
+  /* The toolbar's search field, as the table's (.sf-search-input): from the
+     text measure 44 (C396; it was --sf-g0), taking the room the end group has. */
   .sf-data-view-skeleton-toolbar .sf-skeleton-text[data-control=field] {
     min-width: 0;
     min-inline-size: 0;
-    flex: 1 1 var(--sf-g0);
+    flex: 1 1 var(--sf-measure-44, calc(44 * var(--sf-text--size-1) / 2));
   }
   /* The optional controls (sf-view 1.12.0): the layout switch is the
      segmented track of two icon segments (sf-button-group--segmented: two
@@ -251,8 +181,8 @@
   .sf-data-view-skeleton-toolbar > [data-part=end] {
     flex: 1 1 auto;
     gap: var(--sf-space-1\/3);
-    min-width: var(--sf-g0);
-    min-inline-size: var(--sf-g0);
+    min-width: var(--sf-measure-44, calc(44 * var(--sf-text--size-1) / 2));
+    min-inline-size: var(--sf-measure-44, calc(44 * var(--sf-text--size-1) / 2));
   }
   /* The compact list's toolbar (.sf-table-toolbar--list): one line, the field
      first and taking what is left, the filter and create as squares of the
@@ -273,31 +203,35 @@
     order: -1;
     flex: 1 1 0;
   }
-  .sf-data-view-skeleton[data-layout=list]:not([data-layout-switch]) .sf-data-view-skeleton-toolbar [data-control=filter] {
+  .sf-data-view-skeleton[data-layout=list]:not([data-layout-switch]) .sf-data-view-skeleton-toolbar :is([data-control=filter], [data-control=create]) {
     width: var(--sf-data-view-skeleton--control);
     inline-size: var(--sf-data-view-skeleton--control);
     padding: 0;
     overflow: hidden;
     font-size: 0;
   }
-  .sf-data-view-skeleton[data-layout=list]:not([data-layout-switch]) .sf-data-view-skeleton-toolbar [data-control=create] {
-    width: var(--sf-data-view-skeleton--control);
-    inline-size: var(--sf-data-view-skeleton--control);
-    padding: 0;
-    overflow: hidden;
-    font-size: 0;
-  }
-  .sf-data-view-skeleton[data-layout=list]:not([data-layout-switch]) .sf-data-view-skeleton-toolbar [data-control=split] {
-    display: none;
-  }
-  .sf-data-view-skeleton[data-layout=list]:not([data-layout-switch]) .sf-data-view-skeleton-toolbar [data-control=switch] {
-    display: none;
-  }
-  .sf-data-view-skeleton[data-layout=list]:not([data-layout-switch]) .sf-data-view-skeleton-toolbar [data-control=actions] {
-    display: none;
-  }
+  .sf-data-view-skeleton[data-layout=list]:not([data-layout-switch]) .sf-data-view-skeleton-toolbar :is([data-control=split], [data-control=switch], [data-control=actions]),
   .sf-data-view-skeleton[data-layout=list]:not([data-layout-switch]) .sf-data-view-skeleton-toolbar [data-control=segment] {
     display: none;
+  }
+  /* The compact list's settings button (sf-view-table 1.26.0, LV-6): a square
+     of the step's control in the filter's group, 1/3 after it. The table's
+     toolbar has none (its gear is in the head). */
+  .sf-data-view-skeleton-toolbar [data-control=settings] {
+    display: none;
+  }
+  .sf-data-view-skeleton[data-layout=list]:not([data-layout-switch]) .sf-data-view-skeleton-toolbar [data-control=settings]:where(:dir(ltr)){
+    margin-left: calc(var(--sf-space-1\/3) - var(--sf-space-1));
+  }
+  .sf-data-view-skeleton[data-layout=list]:not([data-layout-switch]) .sf-data-view-skeleton-toolbar [data-control=settings]:where(:dir(rtl)){
+    margin-right: calc(var(--sf-space-1\/3) - var(--sf-space-1));
+  }
+  .sf-data-view-skeleton[data-layout=list]:not([data-layout-switch]) .sf-data-view-skeleton-toolbar [data-control=settings] {
+    display: block;
+    width: var(--sf-data-view-skeleton--control);
+    inline-size: var(--sf-data-view-skeleton--control);
+    -webkit-margin-start: calc(var(--sf-space-1\/3) - var(--sf-space-1));
+            margin-inline-start: calc(var(--sf-space-1\/3) - var(--sf-space-1));
   }
   /* A row (the head first) as tall as the table's: the step's control, the
      line under it drawn inside, as the table draws its line inside the cell
@@ -433,24 +367,8 @@
   }
   /* The page row: first, previous, the field of one digit with «из N» (2.5
      controls), next, last, with the pagination's gap between them. */
-  _:-ms-input-placeholder, html:not([dir="rtl"]) .sf-data-view-skeleton-footer-pages{
-    margin-left: auto;
-  }
-  @supports not (margin-inline-start: initial){
-  html:not([dir="rtl"]) .sf-data-view-skeleton-footer-pages{
-    margin-left: auto;
-    }
-  }
   .sf-data-view-skeleton-footer-pages:where(:dir(ltr)){
     margin-left: auto;
-  }
-  _:-ms-input-placeholder, [dir="rtl"] .sf-data-view-skeleton-footer-pages{
-    margin-right: auto;
-  }
-  @supports not (margin-inline-start: initial){
-  [dir="rtl"] .sf-data-view-skeleton-footer-pages{
-    margin-right: auto;
-    }
   }
   .sf-data-view-skeleton-footer-pages:where(:dir(rtl)){
     margin-right: auto;
@@ -458,7 +376,6 @@
   .sf-data-view-skeleton-footer-pages {
     display: flex;
     align-items: center;
-    gap: var(--sf-space-1\/3);
     gap: var(--sf-pagination-gap, var(--sf-space-1\/3));
     -webkit-margin-start: auto;
             margin-inline-start: auto;
@@ -474,29 +391,14 @@
   }
   /* The live footer's start (slot footer of the view): the range, the offer
      to count, then the page-size button at its end, beside the page row. */
-  sf-view > .sf-view-footer-start {
+  :is(sf-view, sf-data-view) > .sf-view-footer-start {
     display: flex;
     align-items: center;
     gap: var(--sf-space-1);
     min-width: 0;
     min-inline-size: 0;
   }
-  sf-data-view > .sf-view-footer-start {
-    display: flex;
-    align-items: center;
-    gap: var(--sf-space-1);
-    min-width: 0;
-    min-inline-size: 0;
-  }
-  sf-view > .sf-view-footer-start > .sf-view-footer-total {
-    display: flex;
-    flex: 1 1 auto;
-    align-items: center;
-    gap: var(--sf-space-1\/3);
-    min-width: 0;
-    min-inline-size: 0;
-  }
-  sf-data-view > .sf-view-footer-start > .sf-view-footer-total {
+  :is(sf-view, sf-data-view) > .sf-view-footer-start > .sf-view-footer-total {
     display: flex;
     flex: 1 1 auto;
     align-items: center;
@@ -506,7 +408,7 @@
   }
   /* The range: the step's text in the quiet ink, figures of one width so the
      number does not move its neighbours while a person pages. */
-  sf-view > .sf-view-footer-start .sf-view-footer-range {
+  :is(sf-view, sf-data-view) > .sf-view-footer-start .sf-view-footer-range {
     color: var(--sf-on-surface-variant);
     font-family: var(--sf-text--family);
     font-size: var(--sf-text-size-1);
@@ -516,82 +418,23 @@
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
   }
-  sf-data-view > .sf-view-footer-start .sf-view-footer-range {
-    color: var(--sf-on-surface-variant);
-    font-family: var(--sf-text--family);
-    font-size: var(--sf-text-size-1);
-    line-height: var(--sf-text-height-1);
-    -webkit-font-feature-settings: "tnum";
-            font-feature-settings: "tnum";
-    font-variant-numeric: tabular-nums;
-    white-space: nowrap;
-  }
-  sf-view[size="1/2"] > .sf-view-footer-start .sf-view-footer-range {
+  :is(sf-view, sf-data-view)[size="1/2"] > .sf-view-footer-start .sf-view-footer-range {
     font-size: var(--sf-text-size-1\/2);
     line-height: var(--sf-text-height-1\/2);
   }
-  sf-data-view[size="1/2"] > .sf-view-footer-start .sf-view-footer-range {
-    font-size: var(--sf-text-size-1\/2);
-    line-height: var(--sf-text-height-1\/2);
-  }
-  sf-view > .sf-view-footer-start [hidden] {
-    display: none;
-  }
-  sf-data-view > .sf-view-footer-start [hidden] {
+  :is(sf-view, sf-data-view) > .sf-view-footer-start [hidden] {
     display: none;
   }
   /* The page row ends the footer, on its own line too where it wraps
      (sf-pagination's host is display: contents: its nav is the footer's
      item). */
-  _:-ms-input-placeholder, html:not([dir="rtl"]) sf-view > sf-pagination[slot=pagination] > nav{
+  :is(sf-view, sf-data-view) > sf-pagination[slot=pagination] > nav:where(:dir(ltr)){
     margin-left: auto;
   }
-  @supports not (margin-inline-start: initial){
-  html:not([dir="rtl"]) sf-view > sf-pagination[slot=pagination] > nav{
-    margin-left: auto;
-    }
-  }
-  sf-view > sf-pagination[slot=pagination] > nav:where(:dir(ltr)){
-    margin-left: auto;
-  }
-  _:-ms-input-placeholder, [dir="rtl"] sf-view > sf-pagination[slot=pagination] > nav{
+  :is(sf-view, sf-data-view) > sf-pagination[slot=pagination] > nav:where(:dir(rtl)){
     margin-right: auto;
   }
-  @supports not (margin-inline-start: initial){
-  [dir="rtl"] sf-view > sf-pagination[slot=pagination] > nav{
-    margin-right: auto;
-    }
-  }
-  sf-view > sf-pagination[slot=pagination] > nav:where(:dir(rtl)){
-    margin-right: auto;
-  }
-  sf-view > sf-pagination[slot=pagination] > nav {
-    -webkit-margin-start: auto;
-            margin-inline-start: auto;
-  }
-  _:-ms-input-placeholder, html:not([dir="rtl"]) sf-data-view > sf-pagination[slot=pagination] > nav{
-    margin-left: auto;
-  }
-  @supports not (margin-inline-start: initial){
-  html:not([dir="rtl"]) sf-data-view > sf-pagination[slot=pagination] > nav{
-    margin-left: auto;
-    }
-  }
-  sf-data-view > sf-pagination[slot=pagination] > nav:where(:dir(ltr)){
-    margin-left: auto;
-  }
-  _:-ms-input-placeholder, [dir="rtl"] sf-data-view > sf-pagination[slot=pagination] > nav{
-    margin-right: auto;
-  }
-  @supports not (margin-inline-start: initial){
-  [dir="rtl"] sf-data-view > sf-pagination[slot=pagination] > nav{
-    margin-right: auto;
-    }
-  }
-  sf-data-view > sf-pagination[slot=pagination] > nav:where(:dir(rtl)){
-    margin-right: auto;
-  }
-  sf-data-view > sf-pagination[slot=pagination] > nav {
+  :is(sf-view, sf-data-view) > sf-pagination[slot=pagination] > nav {
     -webkit-margin-start: auto;
             margin-inline-start: auto;
   }
@@ -606,79 +449,40 @@
       display: none;
     }
     /* Below list-below the list's compact toolbar, as above. */
-    .sf-data-view-skeleton[data-layout=auto] .sf-data-view-skeleton-toolbar {
+    .sf-data-view-skeleton:is([data-layout=auto], [data-layout=list]) .sf-data-view-skeleton-toolbar {
       flex-wrap: nowrap;
       gap: var(--sf-space-1);
     }
-    .sf-data-view-skeleton[data-layout=list] .sf-data-view-skeleton-toolbar {
-      flex-wrap: nowrap;
-      gap: var(--sf-space-1);
-    }
-    .sf-data-view-skeleton[data-layout=auto] .sf-data-view-skeleton-toolbar > [data-part] {
+    .sf-data-view-skeleton:is([data-layout=auto], [data-layout=list]) .sf-data-view-skeleton-toolbar > [data-part] {
       display: contents;
     }
-    .sf-data-view-skeleton[data-layout=list] .sf-data-view-skeleton-toolbar > [data-part] {
-      display: contents;
-    }
-    .sf-data-view-skeleton[data-layout=auto] .sf-data-view-skeleton-toolbar [data-control=field] {
+    .sf-data-view-skeleton:is([data-layout=auto], [data-layout=list]) .sf-data-view-skeleton-toolbar [data-control=field] {
       order: -1;
       flex: 1 1 0;
     }
-    .sf-data-view-skeleton[data-layout=list] .sf-data-view-skeleton-toolbar [data-control=field] {
-      order: -1;
-      flex: 1 1 0;
-    }
-    .sf-data-view-skeleton[data-layout=auto] .sf-data-view-skeleton-toolbar [data-control=filter] {
+    .sf-data-view-skeleton:is([data-layout=auto], [data-layout=list]) .sf-data-view-skeleton-toolbar :is([data-control=filter], [data-control=create]) {
       width: var(--sf-data-view-skeleton--control);
       inline-size: var(--sf-data-view-skeleton--control);
       padding: 0;
       overflow: hidden;
       font-size: 0;
     }
-    .sf-data-view-skeleton[data-layout=auto] .sf-data-view-skeleton-toolbar [data-control=create] {
+    .sf-data-view-skeleton:is([data-layout=auto], [data-layout=list]) .sf-data-view-skeleton-toolbar :is([data-control=split], [data-control=switch], [data-control=actions]),
+    .sf-data-view-skeleton:is([data-layout=auto], [data-layout=list]) .sf-data-view-skeleton-toolbar [data-control=segment] {
+      display: none;
+    }
+    .sf-data-view-skeleton:is([data-layout=auto], [data-layout=list]) .sf-data-view-skeleton-toolbar [data-control=settings]:where(:dir(ltr)){
+      margin-left: calc(var(--sf-space-1\/3) - var(--sf-space-1));
+    }
+    .sf-data-view-skeleton:is([data-layout=auto], [data-layout=list]) .sf-data-view-skeleton-toolbar [data-control=settings]:where(:dir(rtl)){
+      margin-right: calc(var(--sf-space-1\/3) - var(--sf-space-1));
+    }
+    .sf-data-view-skeleton:is([data-layout=auto], [data-layout=list]) .sf-data-view-skeleton-toolbar [data-control=settings] {
+      display: block;
       width: var(--sf-data-view-skeleton--control);
       inline-size: var(--sf-data-view-skeleton--control);
-      padding: 0;
-      overflow: hidden;
-      font-size: 0;
-    }
-    .sf-data-view-skeleton[data-layout=list] .sf-data-view-skeleton-toolbar [data-control=filter] {
-      width: var(--sf-data-view-skeleton--control);
-      inline-size: var(--sf-data-view-skeleton--control);
-      padding: 0;
-      overflow: hidden;
-      font-size: 0;
-    }
-    .sf-data-view-skeleton[data-layout=list] .sf-data-view-skeleton-toolbar [data-control=create] {
-      width: var(--sf-data-view-skeleton--control);
-      inline-size: var(--sf-data-view-skeleton--control);
-      padding: 0;
-      overflow: hidden;
-      font-size: 0;
-    }
-    .sf-data-view-skeleton[data-layout=auto] .sf-data-view-skeleton-toolbar [data-control=split] {
-      display: none;
-    }
-    .sf-data-view-skeleton[data-layout=auto] .sf-data-view-skeleton-toolbar [data-control=switch] {
-      display: none;
-    }
-    .sf-data-view-skeleton[data-layout=auto] .sf-data-view-skeleton-toolbar [data-control=actions] {
-      display: none;
-    }
-    .sf-data-view-skeleton[data-layout=list] .sf-data-view-skeleton-toolbar [data-control=split] {
-      display: none;
-    }
-    .sf-data-view-skeleton[data-layout=list] .sf-data-view-skeleton-toolbar [data-control=switch] {
-      display: none;
-    }
-    .sf-data-view-skeleton[data-layout=list] .sf-data-view-skeleton-toolbar [data-control=actions] {
-      display: none;
-    }
-    .sf-data-view-skeleton[data-layout=auto] .sf-data-view-skeleton-toolbar [data-control=segment] {
-      display: none;
-    }
-    .sf-data-view-skeleton[data-layout=list] .sf-data-view-skeleton-toolbar [data-control=segment] {
-      display: none;
+      -webkit-margin-start: calc(var(--sf-space-1\/3) - var(--sf-space-1));
+              margin-inline-start: calc(var(--sf-space-1\/3) - var(--sf-space-1));
     }
     .sf-data-view-skeleton[data-layout=auto] .sf-data-view-skeleton-list {
       display: block;
@@ -706,24 +510,8 @@
     border-radius: var(--sf-radius--surface);
     background: var(--sf-surface-container);
   }
-  _:-ms-input-placeholder, html:not([dir="rtl"]) .sf-data-view-skeleton-board [data-part=head]{
-    padding-left: var(--sf-space-1\/4);
-  }
-  @supports not (padding-inline-start: initial){
-  html:not([dir="rtl"]) .sf-data-view-skeleton-board [data-part=head]{
-    padding-left: var(--sf-space-1\/4);
-    }
-  }
   .sf-data-view-skeleton-board [data-part=head]:where(:dir(ltr)){
     padding-left: var(--sf-space-1\/4);
-  }
-  _:-ms-input-placeholder, [dir="rtl"] .sf-data-view-skeleton-board [data-part=head]{
-    padding-right: var(--sf-space-1\/4);
-  }
-  @supports not (padding-inline-start: initial){
-  [dir="rtl"] .sf-data-view-skeleton-board [data-part=head]{
-    padding-right: var(--sf-space-1\/4);
-    }
   }
   .sf-data-view-skeleton-board [data-part=head]:where(:dir(rtl)){
     padding-right: var(--sf-space-1\/4);
@@ -765,24 +553,8 @@
     min-height: var(--sf-ui-1\/2--control-height);
     min-block-size: var(--sf-ui-1\/2--control-height);
   }
-  _:-ms-input-placeholder, html:not([dir="rtl"]) .sf-data-view-skeleton-calendar [data-part=bar] > .sf-skeleton-text:not([data-control]){
-    margin-right: auto;
-  }
-  @supports not (margin-inline-end: initial){
-  html:not([dir="rtl"]) .sf-data-view-skeleton-calendar [data-part=bar] > .sf-skeleton-text:not([data-control]){
-    margin-right: auto;
-    }
-  }
   .sf-data-view-skeleton-calendar [data-part=bar] > .sf-skeleton-text:not([data-control]):where(:dir(ltr)){
     margin-right: auto;
-  }
-  _:-ms-input-placeholder, [dir="rtl"] .sf-data-view-skeleton-calendar [data-part=bar] > .sf-skeleton-text:not([data-control]){
-    margin-left: auto;
-  }
-  @supports not (margin-inline-end: initial){
-  [dir="rtl"] .sf-data-view-skeleton-calendar [data-part=bar] > .sf-skeleton-text:not([data-control]){
-    margin-left: auto;
-    }
   }
   .sf-data-view-skeleton-calendar [data-part=bar] > .sf-skeleton-text:not([data-control]):where(:dir(rtl)){
     margin-left: auto;
@@ -802,24 +574,8 @@
     min-height: var(--sf-text-height-1\/2);
     min-block-size: var(--sf-text-height-1\/2);
   }
-  _:-ms-input-placeholder, html:not([dir="rtl"]) .sf-data-view-skeleton-calendar [data-part=month]{
-    border-left: var(--sf-px) solid var(--sf-outline-variant);
-  }
-  @supports not (border-inline-start: initial){
-  html:not([dir="rtl"]) .sf-data-view-skeleton-calendar [data-part=month]{
-    border-left: var(--sf-px) solid var(--sf-outline-variant);
-    }
-  }
   .sf-data-view-skeleton-calendar [data-part=month]:where(:dir(ltr)){
     border-left: var(--sf-px) solid var(--sf-outline-variant);
-  }
-  _:-ms-input-placeholder, [dir="rtl"] .sf-data-view-skeleton-calendar [data-part=month]{
-    border-right: var(--sf-px) solid var(--sf-outline-variant);
-  }
-  @supports not (border-inline-start: initial){
-  [dir="rtl"] .sf-data-view-skeleton-calendar [data-part=month]{
-    border-right: var(--sf-px) solid var(--sf-outline-variant);
-    }
   }
   .sf-data-view-skeleton-calendar [data-part=month]:where(:dir(rtl)){
     border-right: var(--sf-px) solid var(--sf-outline-variant);
@@ -831,24 +587,8 @@
     -webkit-border-start: var(--sf-px) solid var(--sf-outline-variant);
             border-inline-start: var(--sf-px) solid var(--sf-outline-variant);
   }
-  _:-ms-input-placeholder, html:not([dir="rtl"]) .sf-data-view-skeleton-calendar [data-part=month] span{
-    border-right: var(--sf-px) solid var(--sf-outline-variant);
-  }
-  @supports not (border-inline-end: initial){
-  html:not([dir="rtl"]) .sf-data-view-skeleton-calendar [data-part=month] span{
-    border-right: var(--sf-px) solid var(--sf-outline-variant);
-    }
-  }
   .sf-data-view-skeleton-calendar [data-part=month] span:where(:dir(ltr)){
     border-right: var(--sf-px) solid var(--sf-outline-variant);
-  }
-  _:-ms-input-placeholder, [dir="rtl"] .sf-data-view-skeleton-calendar [data-part=month] span{
-    border-left: var(--sf-px) solid var(--sf-outline-variant);
-  }
-  @supports not (border-inline-end: initial){
-  [dir="rtl"] .sf-data-view-skeleton-calendar [data-part=month] span{
-    border-left: var(--sf-px) solid var(--sf-outline-variant);
-    }
   }
   .sf-data-view-skeleton-calendar [data-part=month] span:where(:dir(rtl)){
     border-left: var(--sf-px) solid var(--sf-outline-variant);
@@ -962,15 +702,7 @@
    C299, C300, C301). Light DOM, slot head: the Framework's own sheets reach
    its parts. Every length is a system value: the space steps, the control
    height of the size, the owner's 20rem search and 22rem windows. */
-sf-view > .sf-view-head {
-  --sf-view-head--control-height: var(--sf-ui-1\/2--control-height);
-  display: flex;
-  flex-direction: column;
-  gap: var(--sf-space-1\/2);
-  min-width: 0;
-  min-inline-size: 0;
-}
-sf-data-view > .sf-view-head {
+:is(sf-view, sf-data-view) > .sf-view-head {
   --sf-view-head--control-height: var(--sf-ui-1\/2--control-height);
   display: flex;
   flex-direction: column;
@@ -979,19 +711,11 @@ sf-data-view > .sf-view-head {
   min-inline-size: 0;
 }
 
-sf-view[size="1"] > .sf-view-head {
+:is(sf-view, sf-data-view)[size="1"] > .sf-view-head {
   --sf-view-head--control-height: var(--sf-ui-1--control-height);
 }
 
-sf-data-view[size="1"] > .sf-view-head {
-  --sf-view-head--control-height: var(--sf-ui-1--control-height);
-}
-
-sf-view > .sf-view-head[hidden] {
-  display: none;
-}
-
-sf-data-view > .sf-view-head[hidden] {
+:is(sf-view, sf-data-view) > .sf-view-head[hidden] {
   display: none;
 }
 
@@ -1135,6 +859,105 @@ _:-ms-input-placeholder, [dir="rtl"] .sf-view-head-title-end,[dir="rtl"]
   min-inline-size: 0;
 }
 
+/* The view zone (VZ-1, option D; owner C393, C394): below the head row, its
+   own frame (--sf-outline-variant 1 px, --sf-radius--surface), as wide as
+   what it holds; opened and closed by the view toggle first in the head row. */
+.sf-view-head-zone {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sf-space-1\/3);
+  width: -webkit-fit-content;
+  width: -moz-fit-content;
+  width: fit-content;
+  inline-size: -webkit-fit-content;
+  inline-size: -moz-fit-content;
+  inline-size: fit-content;
+  max-width: 100%;
+  max-inline-size: 100%;
+  min-width: 0;
+  min-inline-size: 0;
+  box-sizing: border-box;
+  padding: var(--sf-space-1\/3) var(--sf-space-1\/2);
+  border: var(--sf-px) solid var(--sf-outline-variant);
+  border-radius: var(--sf-radius--surface);
+}
+
+.sf-view-head-zone[hidden] {
+  display: none;
+}
+
+.sf-view-head-zone:focus {
+  outline: none;
+}
+
+.sf-view-head-zone > * {
+  flex: none;
+}
+
+.sf-view-head-zone-line {
+  width: var(--sf-px);
+  inline-size: var(--sf-px);
+  align-self: stretch;
+  margin-top: var(--sf-space-1\/4);
+  margin-bottom: var(--sf-space-1\/4);
+  margin-block: var(--sf-space-1\/4);
+  background: var(--sf-outline-variant);
+}
+
+.sf-view-head-zone-line[hidden] {
+  display: none;
+}
+
+/* The view toggle's look until the pair's sf-button-icon carries the toggle
+   look of C393 (TG-1): the icon stays outline in both states; on is the soft
+   primary container with a 1 px primary ring inside. Same tokens as TG-1;
+   remove with the class once the pair names the look (head.js
+   toggleAppearance). The subset icon font's .sf-icon rule reads only the
+   private --sf-icon--fill (TG-2), so it is set too. */
+.sf-view-head-zone-toggle--own {
+  --sf-icon-fill: 0;
+}
+
+/* A view other than the default is open: the glyph in primary while the
+   zone is closed (open, the pressed ink says it). */
+.sf-view-head-zone-toggle--tinted .sf-icon-button.sf-icon-button.sf-icon-button.sf-icon-button:not(.sf-icon-button--pressed) .sf-icon {
+  color: var(--sf-primary);
+}
+
+/* The pressed rules set it at (0,5,0): one step over them. */
+.sf-view-head-zone-toggle--own .sf-icon-button.sf-icon-button.sf-icon-button.sf-icon-button .sf-icon.sf-icon {
+  --sf-icon--fill: 0;
+}
+
+.sf-view-head-zone-toggle--own .sf-icon-button.sf-icon-button.sf-icon-button.sf-icon-button.sf-icon-button--pressed {
+  box-shadow: inset 0 0 0 var(--sf-px) var(--sf-primary);
+}
+
+/* Open (R8-3): the head draws the pressed toggle's look over a disclosure
+   button, so the glyph is never asked in its filled form -- the soft
+   primary container, the icon in on-primary-container, the 1 px ring. The
+   hover and press steps are the container's own. */
+.sf-view-head-zone-toggle--own.sf-view-head-zone-toggle--open .sf-icon-button.sf-icon-button.sf-icon-button.sf-icon-button.sf-icon-button:not(:disabled):not([aria-disabled=true]) {
+  --sf-icon-button--background-color: var(--sf-icon-button-pressed-background-color, var(--sf-primary-container));
+  --sf-icon-button--border-color: transparent;
+  --sf-icon--color: var(--sf-icon-button-pressed-color, var(--sf-on-primary-container));
+  box-shadow: inset 0 0 0 var(--sf-px) var(--sf-primary);
+}
+
+.sf-view-head-zone-toggle--own.sf-view-head-zone-toggle--open .sf-icon-button.sf-icon-button.sf-icon-button.sf-icon-button.sf-icon-button:not(:disabled):not([aria-disabled=true]):hover {
+  --sf-icon-button--background-color: var(--sf-primary-container-hover);
+}
+
+.sf-view-head-zone-toggle--own.sf-view-head-zone-toggle--open .sf-icon-button.sf-icon-button.sf-icon-button.sf-icon-button.sf-icon-button:not(:disabled):not([aria-disabled=true]):active {
+  --sf-icon-button--background-color: var(--sf-primary-container-active);
+}
+
+.sf-view-head-zone-toggle--own.sf-view-head-zone-toggle--open .sf-icon-button.sf-icon-button.sf-icon-button.sf-icon-button.sf-icon-button .sf-icon.sf-icon {
+  color: var(--sf-on-primary-container);
+  color: var(--sf-icon-button-pressed-color, var(--sf-on-primary-container));
+}
+
 /* The phone (the view under 600 px): one row of «Filter», the search and «+»;
    the filter fields one row that scrolls sideways. */
 .sf-view-head[data-phone] .sf-view-head-row {
@@ -1142,12 +965,15 @@ _:-ms-input-placeholder, [dir="rtl"] .sf-view-head-title-end,[dir="rtl"]
   gap: var(--sf-space-1\/3);
 }
 
+/* The field's own width (an input of 20 characters) is not the row's least
+   width: in a 286 px frame the head stood 306 px wide (VSA-1). */
 .sf-view-head[data-phone] .sf-view-head-search {
   flex: 1 1 auto;
   width: auto;
   inline-size: auto;
   min-width: 0;
   min-inline-size: 0;
+  contain: inline-size;
 }
 
 .sf-view-head[data-phone] .sf-view-head-title {
@@ -1291,53 +1117,13 @@ sf-popover:not([open]) > .sf-view-head-panel[slot=content] {
 /* A display kind the view does not draw itself (board, cards, calendar until
    their layouts come, C298): the table and its page row stand aside for the
    host's own content. */
-/* Both hosts may be display: contents, so their content stands aside too. */
-sf-view[data-display]:not([data-display=table]) > sf-view-table[slot=content]:not(.does-not-exist) {
-  display: none;
-}
-sf-view[data-display]:not([data-display=table]) > sf-table[slot=content]:not(.does-not-exist) {
-  display: none;
-}
-sf-view[data-display]:not([data-display=table]) > sf-pagination[slot=pagination]:not(.does-not-exist) {
-  display: none;
-}
-sf-view[data-display]:not([data-display=table]) > [slot=footer][data-sf-view-made] {
-  display: none;
-}
-sf-data-view[data-display]:not([data-display=table]) > sf-view-table[slot=content]:not(.does-not-exist) {
-  display: none;
-}
-sf-data-view[data-display]:not([data-display=table]) > sf-table[slot=content]:not(.does-not-exist) {
-  display: none;
-}
-sf-data-view[data-display]:not([data-display=table]) > sf-pagination[slot=pagination]:not(.does-not-exist) {
-  display: none;
-}
-sf-data-view[data-display]:not([data-display=table]) > [slot=footer][data-sf-view-made] {
-  display: none;
-}
-sf-view[data-display]:not([data-display=table]) > sf-view-table[slot=content]:not(.does-not-exist) > * {
-  display: none;
-}
-sf-view[data-display]:not([data-display=table]) > sf-table[slot=content]:not(.does-not-exist) > * {
-  display: none;
-}
-sf-view[data-display]:not([data-display=table]) > sf-pagination[slot=pagination]:not(.does-not-exist) > * {
-  display: none;
-}
-sf-view[data-display]:not([data-display=table]) > [slot=footer][data-sf-view-made] > * {
-  display: none;
-}
-sf-data-view[data-display]:not([data-display=table]) > sf-view-table[slot=content]:not(.does-not-exist) > * {
-  display: none;
-}
-sf-data-view[data-display]:not([data-display=table]) > sf-table[slot=content]:not(.does-not-exist) > * {
-  display: none;
-}
-sf-data-view[data-display]:not([data-display=table]) > sf-pagination[slot=pagination]:not(.does-not-exist) > * {
-  display: none;
-}
-sf-data-view[data-display]:not([data-display=table]) > [slot=footer][data-sf-view-made] > * {
+/* Both hosts may be display: contents, so their content stands aside too.
+   The footer start stays where the view says the count of a board or cards
+   (data-sf-view-footer-count, view round 8 R67-1): «1–16 из 60». */
+:is(sf-view, sf-data-view)[data-display]:not([data-display=table]) > :is(:is(sf-view-table, sf-table)[slot=content], sf-pagination[slot=pagination]),
+:is(sf-view, sf-data-view)[data-display]:not([data-display=table]) > :is(:is(sf-view-table, sf-table)[slot=content], sf-pagination[slot=pagination]) > *,
+:is(sf-view, sf-data-view)[data-display]:not([data-display=table]):not([data-sf-view-footer-count]) > [slot=footer][data-sf-view-made],
+:is(sf-view, sf-data-view)[data-display]:not([data-display=table]):not([data-sf-view-footer-count]) > [slot=footer][data-sf-view-made] > * {
   display: none;
 }
 
@@ -1379,4 +1165,34 @@ sf-data-view[data-display]:not([data-display=table]) > [slot=footer][data-sf-vie
   inline-size: 20rem;
   height: var(--sf-view-head--control-height);
   block-size: var(--sf-view-head--control-height);
+}
+
+/* The view zone left open (VZ-1): its frame and one control row inside. */
+.sf-view-head-skeleton > div[data-zone] {
+  justify-content: flex-start;
+  width: -webkit-fit-content;
+  width: -moz-fit-content;
+  width: fit-content;
+  inline-size: -webkit-fit-content;
+  inline-size: -moz-fit-content;
+  inline-size: fit-content;
+  box-sizing: border-box;
+  height: calc(var(--sf-view-head--control-height) + 2 * var(--sf-space-1\/3) + 2 * var(--sf-px));
+  block-size: calc(var(--sf-view-head--control-height) + 2 * var(--sf-space-1\/3) + 2 * var(--sf-px));
+  padding: var(--sf-space-1\/3) var(--sf-space-1\/2);
+  border: var(--sf-px) solid var(--sf-outline-variant);
+  border-radius: var(--sf-radius--surface);
+}
+
+.sf-view-head-skeleton > div[data-zone] > i[data-control] {
+  width: 10rem;
+  inline-size: 10rem;
+}
+
+/* The view's footer draws the line under the page row itself ([part=footer]);
+   a page row without a look of its own leaves its own line out, so there is
+   never a second line (sf-pagination's --sf-pagination-divider-color,
+   SIMAI Framework GB15; a pair without it draws one line as before). */
+:is(sf-view, sf-data-view) > sf-pagination[slot=pagination]:not([appearance]) {
+  --sf-pagination-divider-color: transparent;
 }
