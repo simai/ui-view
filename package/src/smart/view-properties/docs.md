@@ -292,9 +292,10 @@ receives.
   screen; the default is 2 (64). Measured on the pair ui-b654460cad2a at
   1440 px: the panel is 352, 416 and 512 px wide at normal density (308, 364,
   448 at compact), and its content inside the drawer's 16 px gutters is 320,
-  384 and 480 px (276, 332, 416 at compact). With its sections on the left
-  (sections-as list, from 48rem) it is wider by the section column (C386):
-  560, 624 and 720 px at normal density, 512, 568 and 652 at compact;
+  384 and 480 px (284, 340, 424 inside the 12 px gutters at compact). With
+  its sections on the left (sections-as list, from 48rem) it is wider by the
+  section column (C386): 560, 624 and 720 px at normal density, 512, 568 and
+  652 at compact;
   otherwise it never grows. `panel-width` is a former name until
   2027-01-01: a length is mapped to the nearest step, with a console notice.
 - A record to read is an `sf-list-description`: the label beside the value,

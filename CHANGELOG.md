@@ -16,11 +16,26 @@ same numbers with other content); every next set version is above them
 up). Each component.json says the same under `x-decisions`
 `pro-copy-versions`.
 
-## Unreleased — view round 10
+## 1.10.1 — 2026-11-21
+
+View round 10 (round/view-r10, accepted by DEV on 2026-11-21) and the site
+over the release view-705a90193256 (round/view-site-1.10.0: generated lines,
+the bulk-actions diagram readable); the round's entries below.
+
+- Over the same SIMAI Framework pair `ui-b654460cad2a` (ui-source
+  `049a2ba3dc7d`, npm `@simai-studio/ui@5.20261120.1816`, core.runtime
+  1.64.0). The set still needs core.runtime 1.51.0 or newer.
+- `sf-view` 1.29.1, `sf-view-table` 1.29.2, `sf-view-properties` 1.23.6,
+  `sf-view-flow` 1.1.6, `sf-view-board` 1.1.3, `sf-view-cards` 1.0.6,
+  `sf-view-calendar` 1.1.3.
+- `sf-view-properties` docs: the content width at compact density is 284,
+  340 and 424 px, inside the drawer's 12 px gutters (was 276, 332, 416;
+  DEV's R10-1, text only).
+
+### view round 10
 
 Over view round 9 (round/view-r10 from round/view-r9 71f1c5a), on the same
-pair `ui-b654460cad2a`: Larena R9-1 and L-4, DEV's V10-1..5. The set's
-candidate is **1.10.1**.
+pair `ui-b654460cad2a`: Larena R9-1 and L-4, DEV's V10-1..5.
 
 - `sf-view` 1.29.1: a phone list (size 1/2) skeleton row is sized at text
   step 1, as the answered row is (109 px at 390, was 93); a new example
