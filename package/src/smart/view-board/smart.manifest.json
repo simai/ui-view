@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-board",
-  "version": "1.1.5",
+  "version": "1.2.0",
   "title": "Board",
   "summary": "The board layout of the view set: lanes by one field, cards with up to four fields in the «Кратко» place, a move is a change of that field the host settles. sf-view layout=\"board\" draws it over the lane window.",
   "kind": "smart",
@@ -550,6 +550,13 @@
         "changes": [
           "View round 12, owner decision D2 (DEV msg-4de06ae6): lang title and board-label «Канбан» / «Kanban»; component.json and smart.manifest.json focus note."
         ]
+      },
+      {
+        "from": "1.1.5",
+        "to": "1.2.0",
+        "changes": [
+          "View modular step 1 (round/view-modular-1): takes its shared code (the Framework field renderers, formats, conditions and filter window, and what two View components share) from the package core smart/view-common once per page, instead of a copy in its own bundle; relation cl-view-common."
+        ]
       }
     ]
   },
@@ -559,7 +566,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-board/index.js",
-        "sha256": "c435d8d663f22b6ec149179882b5a8d1db740c70b096c0ba2c73884f91fa1f27"
+        "sha256": "5c6a1be4304468fd1f1b4370927f8acc1bb921fe4edc20a33bd55e57896bcc01"
       },
       {
         "path": "src/smart/view-board/js/board.js",
@@ -579,7 +586,7 @@
       },
       {
         "path": "src/smart/view-board/rule.js",
-        "sha256": "a7399b0df3f2ea2c18fe8f93439bb889edc91c62a5f230d887218d8f506b2d33"
+        "sha256": "450a1da6d5e7bd052cf24bed4597de453017a0207cd895329949a82278261d13"
       },
       {
         "path": "src/smart/view-board/docs.md",

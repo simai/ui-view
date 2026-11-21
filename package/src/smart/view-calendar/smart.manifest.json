@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-calendar",
-  "version": "1.1.3",
+  "version": "1.2.0",
   "title": "Calendar",
   "summary": "The calendar layout of the view set: month, week, day and list; records on the days of their date field, a move or a stretch is a change of the date fields the host settles. sf-view layout=\"calendar\" draws it over the date window.",
   "kind": "smart",
@@ -594,6 +594,13 @@
         "changes": [
           "View round 9 (round/view-r9): rule.js and component.json relations name cl-bulk-actions (lazy), composition.uses smart.bulk-actions; the pair's field-renderers provenance hash."
         ]
+      },
+      {
+        "from": "1.1.3",
+        "to": "1.2.0",
+        "changes": [
+          "View modular step 1 (round/view-modular-1): takes its shared code (the Framework field renderers, formats, conditions and filter window, and what two View components share) from the package core smart/view-common once per page, instead of a copy in its own bundle; relation cl-view-common."
+        ]
       }
     ]
   },
@@ -603,7 +610,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-calendar/index.js",
-        "sha256": "00e31bd5597bfe1268f732e91f2ca8af3f273171d4a73f97c3d383a961c02c64"
+        "sha256": "7a006fa8690c3d020897f682d0bb563dbabfc0137708a0dd0bc4a1e9a702bc21"
       },
       {
         "path": "src/smart/view-calendar/js/calendar.js",
@@ -623,7 +630,7 @@
       },
       {
         "path": "src/smart/view-calendar/rule.js",
-        "sha256": "bd35ff4d36aa21b3d6aaeab77eae627f867923acbe78a04a5d8be0de6193052f"
+        "sha256": "f37e91b8f2bc688e6379054682088285d3e3be24e1e6be4101b3eeda47428720"
       },
       {
         "path": "src/smart/view-calendar/docs.md",

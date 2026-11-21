@@ -1,0 +1,73 @@
+{
+  "$comment": [
+    "Gzip budgets of the set's bundles in bytes (min.js.gz, min.css.gz), checked by scripts/check-bundles.mjs (gates.sh step «bundles»).",
+    "Each budget is the size measured on the build of view modular step 1 (round/view-modular-1, pair ui-b654460cad2a) plus 5 % and at least 1 KB, rounded up to 256 bytes; measured is that size.",
+    "A change that grows a bundle past its budget moves the budget in the same commit and says why; a bundle without a budget fails the gate."
+  ],
+  "bundles": {
+    "view": {
+      "js_gz": 59392,
+      "css_gz": 5632,
+      "measured": {
+        "js_gz": 56561,
+        "css_gz": 4407
+      }
+    },
+    "view-board": {
+      "js_gz": 13312,
+      "css_gz": 2816,
+      "measured": {
+        "js_gz": 12046,
+        "css_gz": 1691
+      }
+    },
+    "view-calendar": {
+      "js_gz": 23296,
+      "css_gz": 4352,
+      "measured": {
+        "js_gz": 22043,
+        "css_gz": 3328
+      }
+    },
+    "view-cards": {
+      "js_gz": 11264,
+      "css_gz": 2816,
+      "measured": {
+        "js_gz": 10097,
+        "css_gz": 1651
+      }
+    },
+    "view-common": {
+      "js_gz": 68864,
+      "css_gz": 0,
+      "measured": {
+        "js_gz": 65579,
+        "css_gz": 0
+      }
+    },
+    "view-flow": {
+      "js_gz": 7680,
+      "css_gz": 2816,
+      "measured": {
+        "js_gz": 6419,
+        "css_gz": 1788
+      }
+    },
+    "view-properties": {
+      "js_gz": 54016,
+      "css_gz": 6656,
+      "measured": {
+        "js_gz": 51242,
+        "css_gz": 5499
+      }
+    },
+    "view-table": {
+      "js_gz": 71936,
+      "css_gz": 8960,
+      "measured": {
+        "js_gz": 68278,
+        "css_gz": 7769
+      }
+    }
+  }
+}

@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view",
-  "version": "1.32.0",
+  "version": "1.33.0",
   "title": "Data view",
   "summary": "Host-driven data view that composes toolbar, content and pagination around a separate data port.",
   "kind": "composite",
@@ -1988,6 +1988,13 @@
           "VR5-10 index.js: the projection writes data-sf-row-menu-off on the table when a known host offers no row-actions (_rowMenuOff); the first paint leaves the «≡» column out where the known host gives it nothing to open (_settingsColumnUnused: no row-actions, no personal-column-settings outside the list head, no row-reorder).",
           "LV2-6: layout cards get the list's page row (pagination by default, the footer range, a page size chosen there kept for the cards); the cards' grid no longer offers its own more button while the row is drawn. LV2-8: switchLayout opens the new kind on the page holding the record first on screen, held over switches back and forth until the next query change; the head's kind switch no longer resets the page to 1."
         ]
+      },
+      {
+        "from": "1.32.0",
+        "to": "1.33.0",
+        "changes": [
+          "View modular step 1 (round/view-modular-1): takes its shared code (the Framework field renderers, formats, conditions and filter window, and what two View components share) from the package core smart/view-common once per page, instead of a copy in its own bundle; relation cl-view-common; cl-view-table is a lazy relation and connectedCallback asks for the current layout's element only (the table on a switch, _swapContent)."
+        ]
       }
     ]
   },
@@ -1997,7 +2004,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view/index.js",
-        "sha256": "f1b84c049d8c3975df76b80a0e44bcb6a0430d2844dfcd904c4ea3252f64009a"
+        "sha256": "e44a28a3ca6baa5d8e4293d501e8561a6f113f267333a4f9a054a0730c7bd8de"
       },
       {
         "path": "src/core/contracts/ports/simai.dataview-port/1.5.0/port.json",

@@ -76,7 +76,9 @@ test('no window of the set places itself beyond the named waits', () => {
 
 test('the action menus open the Framework\'s shared menu, not a window of the table', () => {
   const table = read('src/smart/view-table/index.js');
-  assert.match(table, /import \{menuOpen\} from "\.\.\/\.\.\/core\/js\/menu-open\.js";/u);
+  // The Framework's menu-open, through the package core (view modular step 1).
+  assert.match(table, /import \{menuOpen\} from "\.\.\/view-common\/menu-open\.js";/u);
+  assert.match(read('src/smart/view-common/menu-open.js'), /export \* from '\.\.\/\.\.\/core\/js\/menu-open\.js';/u);
   for (const gone of ['renderCreateContextMenu', 'renderListSortContextMenu', 'renderToolbarActionsContextMenu', 'renderContextSubmenu']) {
     assert.doesNotMatch(table, new RegExp(gone, 'u'), gone);
   }

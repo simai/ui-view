@@ -5,6 +5,9 @@
 # in order, over the committed set at HEAD, stopping at the first red one:
 #
 #   1. build   ui-builder verify-package-reproducibility.cjs: two builds, byte-identical
+#   1b. bundles scripts/check-bundles.mjs: no module of the set in two bundles (the
+#              package core holds what they share) and each bundle within its gzip
+#              budget (bundle-budgets.json)
 #   2. receipt ui-builder write-package-receipt.py, checked against the released pair
 #              and the passport against the name registry at ui-source main
 #   3. unit    scripts/test.mjs: the suite in the overlay of the pinned ui-source
@@ -89,6 +92,8 @@ step() { echo "== $1"; }
 step "build ($revision over ui-source $source_revision, pair $(basename "$lock" .lock.json))"
 node "$builder/scripts/verify-package-reproducibility.cjs" "$ui_source" "$build" --package view \
   --package-source "$repo" --package-path package --package-revision "$revision" > "$logs/build.json"
+step bundles
+node "$here/scripts/check-bundles.mjs" "$output" > "$logs/bundles.json"
 step receipt
 curl -fsS https://raw.githubusercontent.com/simai/ui-source/main/contracts/registry/names.json -o "$workspace/names-main.json"
 python3 "$builder/scripts/write-package-receipt.py" --report "$build/report.json" --ui "$ui" --registry "$workspace/names-main.json" > "$logs/receipt.json"
@@ -115,9 +120,12 @@ const build = JSON.parse(read('build.json'));
 const browser = JSON.parse(read('browser.json'));
 const manifest = lastJson(read('manifest.log'));
 const paint = lastJson(read('first-paint-gate.log'));
+const bundles = JSON.parse(read('bundles.json'));
 const summary = {
   set: 'view', revision, pair: lock.replace(/^.*\/|\.lock\.json$/gu, ''),
   build: {status: build.status, byte_identical: build.products.package.byte_identical, files: build.products.package.files_count},
+  bundles: {bundles: bundles.bundles, modules: bundles.modules, duplicates: bundles.duplicates.length, over_budget: bundles.budgets.over.length,
+    total_js_gz: bundles.budgets.total_js_gz, total_css_gz: bundles.budgets.total_css_gz},
   receipt: JSON.parse(read('receipt.json')),
   unit, registry: JSON.parse(read('registry.json')),
   manifest: {checks: manifest.checks, passed: manifest.passed, failed: manifest.failed},

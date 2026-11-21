@@ -78,7 +78,9 @@ test('the passport takes the form the pinned SIMAI Framework gives', {skip: !set
 
 test('the passport lists every component of the set and only them', {skip: !setRoot && 'SET_ROOT is not given'}, () => {
   const passport = json(join(setRoot, 'set.json'));
-  const folders = readdirSync(join(setRoot, 'src', 'smart'), {withFileTypes: true}).filter((entry) => entry.isDirectory()).map((entry) => entry.name).sort();
+  // The package core (package.json simai.core) is a helper folder, not a component.
+  const core = json(join(setRoot, 'package.json')).simai?.core?.folder;
+  const folders = readdirSync(join(setRoot, 'src', 'smart'), {withFileTypes: true}).filter((entry) => entry.isDirectory() && entry.name !== core).map((entry) => entry.name).sort();
   assert.deepEqual(passport.components.map((component) => component.folder).sort(), folders);
   for (const component of passport.components) {
     const where = new URL(`src/smart/${component.folder}/`, overlay);

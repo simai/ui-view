@@ -2,8 +2,15 @@
   "$comment": "sf-property-view from its component.json (standard simai.smart-component 1.3.8, vocabulary 1.1.5), migrated from ui-control control/smart-architecture/migration/out/property-view; every x-todo decided in x-decisions.",
   "id": "smart.view-properties",
   "tag": "sf-view-properties",
-  "version": "1.26.0",
+  "version": "1.27.0",
   "x-history": [
+    {
+      "version": "1.27.0",
+      "kind": "minor",
+      "recorded_on": "2026-11-22",
+      "consumer": "Nothing to change for a page that loads the set through the SIMAI Framework Loader (the documented way): the rule relates to cl-view-common, which the Loader fetches first. A page that includes View bundles by hand adds smart/view-common/js/view-common.min.js before them.",
+      "evidence": "control/evidence/2026-11-22-view-modular-1/README.md"
+    },
     {
       "version": "1.26.0",
       "kind": "minor",
@@ -2499,6 +2506,13 @@
           "to": "1.26.0",
           "changes": [
             "View round 13 (round/view-r13): C399 sectionColumnFits: docked beside the list (_docksBesideList: docked and the dock breakpoint) the list keeps _listLeast (48rem) beside the widened card, over the list always; COLUMN_WINDOW_SHARE gone. C400 default.css: .sf-property-view-list .sf-list-description-label takes the list's font size and line, ink on-surface-variant. C401 default.js: sf-form labels start except on a phone; default.css: the edited group in the list has no frame, padding or fill and the list's row gap. C402 field-value.js: the empty value drops its utility class; default.css: .sf-property-view-empty keeps --sf-on-surface-variant (muted fails 4.5:1). docs.md says it."
+          ]
+        },
+        {
+          "from": "1.26.0",
+          "to": "1.27.0",
+          "changes": [
+            "View modular step 1 (round/view-modular-1): takes its shared code (the Framework field renderers, formats, conditions and filter window, and what two View components share) from the package core smart/view-common once per page, instead of a copy in its own bundle, its own field value, set fields and conditions included (sf-view-flow draws with them); set-fields.css is imported by the template, so the sheet is unchanged; relation cl-view-common."
           ]
         }
       ]

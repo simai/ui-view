@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-flow",
-  "version": "1.1.7",
+  "version": "1.2.0",
   "title": "Flow block",
   "summary": "A few properties as a block in a flow (a chat message, a feed, any stream): shows a record's fields, or asks for a few and sends them, then keeps the answer read-only. Fields are sf-view-properties' descriptors drawn by the Framework field renderers; a press is an event, the host answers with settle.",
   "kind": "smart",
@@ -488,6 +488,13 @@
         "changes": [
           "View round 13 (round/view-r13): the bundled view-properties js/field-value.js draws the empty value as <span class=\"sf-property-view-empty\"> without color-on-surface-variant (the sheet gives the same ink)."
         ]
+      },
+      {
+        "from": "1.1.7",
+        "to": "1.2.0",
+        "changes": [
+          "View modular step 1 (round/view-modular-1): takes its shared code (the Framework field renderers, formats, conditions and filter window, and what two View components share) from the package core smart/view-common once per page, instead of a copy in its own bundle, sf-view-properties' field value and conditions and the Framework confirm surface included; the template imports set-fields.css, so the sheet is unchanged; relation cl-view-common."
+        ]
       }
     ]
   },
@@ -497,15 +504,15 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-flow/index.js",
-        "sha256": "f0adf66f71fc8f1d69379a9810d564ebf01b820e87d414a24281b6884607ef3a"
+        "sha256": "4a9428f61181d54ea6b6e54a0745ab3eaf14622ba4bc8b53f834c311c6ea98e0"
       },
       {
         "path": "src/smart/view-flow/js/answer.js",
-        "sha256": "7ade765807ce11ef2ebeb813f8d91e6e742a8cf94ea147e01738e928d6a348fc"
+        "sha256": "747e7ae34b1a947ab9cc52b0cddbf0f66eae254f2b5e028ed1135651417e3be2"
       },
       {
         "path": "src/smart/view-flow/js/templates/default.js",
-        "sha256": "2b047f617c5213802084904bc97419e6d6cea20ac564f9a0e0ca9a302ba1235d"
+        "sha256": "c29a4f899e0fe119e26ac486a2bb6756cc08c28ae068fbac1c2bde3d1098ae01"
       },
       {
         "path": "src/smart/view-flow/js/templates/default.css",
@@ -525,7 +532,7 @@
       },
       {
         "path": "src/smart/view-flow/rule.js",
-        "sha256": "7dcd2bb147ab45091906a27e898fb4a41788fbb028a8c104854d40c3494b1580"
+        "sha256": "05569fbdd20b30f66d51ab0c824a1b70639db00349ff10be31a2541c0f6ee09b"
       },
       {
         "path": "src/smart/view-flow/docs.md",

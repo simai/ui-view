@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-properties",
-  "version": "1.26.0",
+  "version": "1.27.0",
   "title": "Property view",
   "summary": "One object's fields shown as sections, groups and fields, each drawn by the per-type field renderer set, behind a separate host port. A group is edited and saved as one revision by the button, and a reference field is picked from the host's own candidates a page at a time. The pair to the data view: that one is a set of records, this one is a single object.",
   "kind": "composite",
@@ -2041,6 +2041,13 @@
         "changes": [
           "View round 13 (round/view-r13): C399 sectionColumnFits: docked beside the list (_docksBesideList: docked and the dock breakpoint) the list keeps _listLeast (48rem) beside the widened card, over the list always; COLUMN_WINDOW_SHARE gone. C400 default.css: .sf-property-view-list .sf-list-description-label takes the list's font size and line, ink on-surface-variant. C401 default.js: sf-form labels start except on a phone; default.css: the edited group in the list has no frame, padding or fill and the list's row gap. C402 field-value.js: the empty value drops its utility class; default.css: .sf-property-view-empty keeps --sf-on-surface-variant (muted fails 4.5:1). docs.md says it."
         ]
+      },
+      {
+        "from": "1.26.0",
+        "to": "1.27.0",
+        "changes": [
+          "View modular step 1 (round/view-modular-1): takes its shared code (the Framework field renderers, formats, conditions and filter window, and what two View components share) from the package core smart/view-common once per page, instead of a copy in its own bundle, its own field value, set fields and conditions included (sf-view-flow draws with them); set-fields.css is imported by the template, so the sheet is unchanged; relation cl-view-common."
+        ]
       }
     ]
   },
@@ -2050,11 +2057,11 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-properties/index.js",
-        "sha256": "8b58e9c607ed0a92b3af4f07bf60f7cebd696b0eef188d34dd297ca11112c461"
+        "sha256": "41e86e2d214d4abaa592a5ac5819e5aec2790d7915ab7f0608d074bf31b97fcd"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.js",
-        "sha256": "51d1b2de2f8df1eea0f85eb1007b911ce74138a54cbb14462a2b9f4e5dcefc3b"
+        "sha256": "2ee371ce1c9c2cedcfb42017772bab72fa79fd59085cae37e9a5f4b5e3b86347"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.css",
@@ -2070,7 +2077,7 @@
       },
       {
         "path": "src/smart/view-properties/js/history.js",
-        "sha256": "7b6fe4d1c1bd88686edb70e31a2b13e508f6f075d7116d5e7da36af2489a359b"
+        "sha256": "a1650f3276eae38bf6370a0d71c04be0a8191cbe3a0b8621c65d3b07d9149d54"
       },
       {
         "path": "src/smart/view-properties/js/history-port.js",
@@ -2098,11 +2105,11 @@
       },
       {
         "path": "src/smart/view-properties/js/set-fields.js",
-        "sha256": "8b5c3d72c4359bdbee46e6d1cc3f58abdf84c6a57bffa829e1695d84356622bc"
+        "sha256": "7f9de935757cca5a4030c8363552d20636d9fa0572553a8a958d7f2d671267ef"
       },
       {
         "path": "src/smart/view-properties/rule.js",
-        "sha256": "7ee0d5f20ac88d2d56663eba2fd9a0a3db183273009d54a494a9461f899eae1e"
+        "sha256": "7fab6edf91100e63b5ef6309c9623901d5dd178f36d9e58668342537e62049d1"
       },
       {
         "path": "src/core/contracts/ports/simai.property-view-port/1.4.0/port.json",

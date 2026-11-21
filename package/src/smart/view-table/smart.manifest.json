@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-table",
-  "version": "1.31.0",
+  "version": "1.32.0",
   "title": "Table",
   "summary": "Complete server-backed collection view with search, filters, table preferences, row and bulk actions, and pagination.",
   "kind": "composite",
@@ -3053,6 +3053,13 @@
           "VR5-10 (DEV msg-b581533a): settingsColumnHasUse returns false when actions is off, or rowActions is off on a table marked data-sf-row-menu-off (sf-view writes it for a host without row-actions), and rowReorder is not on.",
           "LV2-1: readFittedWidths keeps a short column's fitted width; only long-text types shrink to the text floor."
         ]
+      },
+      {
+        "from": "1.31.0",
+        "to": "1.32.0",
+        "changes": [
+          "View modular step 1 (round/view-modular-1): takes its shared code (the Framework field renderers, formats, conditions and filter window, and what two View components share) from the package core smart/view-common once per page, instead of a copy in its own bundle, its dictionaries and manifest actions included (sf-view reads them too); relation cl-view-common."
+        ]
       }
     ]
   },
@@ -3062,7 +3069,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-table/index.js",
-        "sha256": "d6ca15fd0f8811e0a77b9b2b08f81cd942066d7545824dab551533ba6c195494"
+        "sha256": "151da917018f7b8f0b20525a9569664407485b1fd8789f1f5e6c2e182c91b725"
       },
       {
         "path": "src/smart/view-table/js/templates/default.js",
@@ -3078,7 +3085,7 @@
       },
       {
         "path": "src/smart/view-table/rule.js",
-        "sha256": "4b63aae2d02533f4ff00c26be9843b39c6a5804a40745997dbf4f04dc2cb6b7c"
+        "sha256": "5a2542d11e049b606820a67eb7aeb15d4f421536bd2c633f0d66cd03a7a44747"
       },
       {
         "path": "src/smart/view-table/docs/smart-table-guide.md",

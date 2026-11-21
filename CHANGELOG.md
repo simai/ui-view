@@ -16,6 +16,39 @@ same numbers with other content); every next set version is above them
 up). Each component.json says the same under `x-decisions`
 `pro-copy-versions`.
 
+## Unreleased — view modular step 1
+
+View modular step 1 (round/view-modular-1, from `round/view-r13` ccea5c6),
+candidate 1.12.0 over the same pair `ui-b654460cad2a`: the first step of the
+C409 modularity study (DEV msg-8ccf829d, ui-control
+control/research/2026-11-21-view-modular). Nothing an author sees changes.
+Numbers are above every branch of this set and of ui-pro.
+
+- The package core `smart/view-common` (package.json `simai.core`, ui-builder
+  libs/packageCore.js, as SIMAI Chart's chart-core): the code two or more View
+  bundles share is built once and registered with the page's runtime; every
+  other bundle takes it as `SF.runtimeModule("view/<module>", 1)`. That is the
+  Framework field renderers (cell, view, edit and filter output, formats,
+  conditions, the filter window, the rich-text subset, decimal, phone and mask),
+  density, menu-open, preferences, the option badge and confirm surface, and
+  what two View components share: sf-view-table's words and manifest actions
+  (sf-view), sf-view-properties' field value, set fields and conditions
+  (sf-view-flow). Each component's rule relates to `cl-view-common`, so the
+  Loader fetches it first. A page that includes View bundles by hand adds
+  `smart/view-common/js/view-common.min.js` before them.
+- `sf-view` 1.33.0: `cl-view-table` is a lazy relation, and the list asks for
+  the current layout's element only: a list that shows the board, the cards or
+  the calendar does not fetch the table; a switch to the table fetches it then.
+- `sf-view-table` 1.32.0, `sf-view-board` 1.2.0, `sf-view-cards` 1.2.0,
+  `sf-view-calendar` 1.2.0, `sf-view-properties` 1.27.0, `sf-view-flow` 1.2.0:
+  their imports of the shared code go through the core. The record's and the
+  flow's sheets are unchanged (set-fields.css is imported by their templates).
+- Gates: `scripts/check-bundles.mjs` (gates.sh step «bundles», after the
+  build): no module of the set in two bundles, and each bundle's min.js.gz and
+  min.css.gz within its budget in `bundle-budgets.json`.
+- Sizes (JS + CSS gzip): the seven bundles 542.6 → 318.4 KB; see the evidence
+  for the full list and the single views.
+
 ## Unreleased — view round 13
 
 View round 13 (round/view-r13, from `round/view-r12` 79f7706), candidate

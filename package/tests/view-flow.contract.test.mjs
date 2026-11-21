@@ -76,13 +76,18 @@ test('the block draws fields through the shared field value and answers through 
   const view = read('src/smart/view-flow/index.js');
   const template = read('src/smart/view-flow/js/templates/default.js');
   const answer = read('src/smart/view-flow/js/answer.js');
-  assert.match(view, /import \{confirmSurface\} from "\.\.\/helpers\/confirm-surface\.js";/u);
-  assert.match(template, /import \{renderFieldValue\} from "\.\.\/\.\.\/\.\.\/view-properties\/js\/field-value\.js";/u);
-  assert.match(answer, /import \{fieldConditions\} from "\.\.\/\.\.\/view-properties\/js\/conditions\.js";/u);
+  // Through the package core (view modular step 1): each module is one copy, in
+  // smart/view-common, which re-exports the Framework's and sf-view-properties' own.
+  assert.match(view, /import \{confirmSurface\} from "\.\.\/view-common\/confirm-surface\.js";/u);
+  assert.match(template, /import \{renderFieldValue\} from "\.\.\/\.\.\/\.\.\/view-common\/property-field-value\.js";/u);
+  assert.match(answer, /import \{fieldConditions\} from "\.\.\/\.\.\/view-common\/property-conditions\.js";/u);
+  assert.match(read('src/smart/view-common/confirm-surface.js'), /export \* from '\.\.\/helpers\/confirm-surface\.js';/u);
+  assert.match(read('src/smart/view-common/property-field-value.js'), /export \* from '\.\.\/view-properties\/js\/field-value\.js';/u);
+  assert.match(read('src/smart/view-common/property-conditions.js'), /export \* from '\.\.\/view-properties\/js\/conditions\.js';/u);
   // No field code of its own: the renderers are reached only through the shared module.
   for (const source of [view, template, answer]) assert.doesNotMatch(source, /render(Edit|View|Cell)Field\(|field-renderers\/index/u);
   // sf-view-properties draws its values with the same function.
-  assert.match(read('src/smart/view-properties/js/templates/default.js'), /import \{renderFieldValue\} from '\.\.\/field-value\.js';/u);
+  assert.match(read('src/smart/view-properties/js/templates/default.js'), /import \{renderFieldValue\} from '\.\.\/\.\.\/\.\.\/view-common\/property-field-value\.js';/u);
 });
 
 test('the rule and the component agree', () => {
