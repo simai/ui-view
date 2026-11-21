@@ -14,6 +14,12 @@
 // measure is no longer a fixed floor but that nothing in a data column wraps --
 // its heading and its values each stay on one line -- and that the table
 // scrolls when the columns do not fit.
+//
+// Since owner decision D5 (2026-11-21, view round 12) «Текст в одну строку»
+// is off by default and a long text (a comment, here the description) is
+// drawn whole, on as many lines as it takes, inside its column's cap; every
+// other data column still stays on one line. Turned on, the long text is one
+// line again, cut, with its whole in the title.
 import {resolve, join} from 'node:path';
 import {existsSync} from 'node:fs';
 import {chromium} from 'playwright';
@@ -76,7 +82,7 @@ try {
   await page.addScriptTag({path: join(out, 'smart/smart/reference-link/js/reference-link.js'), type: 'module'});
   await page.waitForTimeout(800);
 
-  const measured = await page.evaluate(() => {
+  const measure = () => page.evaluate(() => {
     const table = document.querySelector('#t table');
     const floor = Number.parseFloat(getComputedStyle(table).getPropertyValue('--sf-table--column-min-inline-size'))
       * Number.parseFloat(getComputedStyle(document.documentElement).fontSize);
@@ -135,8 +141,26 @@ try {
           width: Math.round(cell.closest('td').getBoundingClientRect().width)} : null;
       })(),
       scrollBy: scroller ? scroller.scrollWidth - scroller.clientWidth : 0,
+      summaryLines: (() => {
+        const cell = table.querySelector('tbody td[data-key="summary"] .sf-table-cell-clip');
+        if (!cell) return 0;
+        const range = document.createRange();
+        range.selectNodeContents(cell);
+        return new Set([...range.getClientRects()].filter((r) => r.width > 0).map((r) => Math.round(r.top))).size;
+      })(),
     };
   });
+  // Nothing chosen: off (D5).
+  const unset = await measure();
+  await page.evaluate(() => document.getElementById('t').onTableSettingChanged({detail: {id: 'singleLine', value: true}, stopPropagation() {}, preventDefault() {}}));
+  await page.waitForTimeout(500);
+  const measured = await measure();
+  if (unset.summary?.clipped || unset.summaryLines < 2 || (unset.summary?.width ?? 0) > 330) {
+    failures.push({said: 'off by default (D5): the long text is not drawn whole inside its column cap', summary: unset.summary, lines: unset.summaryLines});
+  }
+  const otherWrapped = unset.wrapped.filter((one) => one !== 'td:summary');
+  if (otherWrapped.length) failures.push({said: 'off by default: a data column other than the long text wraps', wrapped: otherWrapped, widths: unset.dataWidths});
+  if (unset.scrollBy <= 0) failures.push({said: 'off by default: the table does not scroll', scrollBy: unset.scrollBy});
 
   // A build with no floor at all answers NaN here, and every comparison below
   // would quietly be false -- which is how the first version of this probe
@@ -146,7 +170,7 @@ try {
   }
 
   if (!measured.summary?.clipped || measured.summary.title < 50) {
-    failures.push({said: 'a long text is not cut to one line with its whole in the title', summary: measured.summary});
+    failures.push({said: '«Текст в одну строку» on: a long text is not cut to one line with its whole in the title', summary: measured.summary});
   }
   if (!measured.tags || measured.tags.lines !== 1 || !/^\+\d+$/u.test(measured.tags.more ?? '')
       || !measured.tags.title || !measured.tags.fits || !measured.tags.read) {
