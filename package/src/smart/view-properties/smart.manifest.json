@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-properties",
-  "version": "1.23.7",
+  "version": "1.23.9",
   "title": "Property view",
   "summary": "One object's fields shown as sections, groups and fields, each drawn by the per-type field renderer set, behind a separate host port. A group is edited and saved as one revision by the button, and a reference field is picked from the host's own candidates a page at a time. The pair to the data view: that one is a set of records, this one is a single object.",
   "kind": "composite",
@@ -2019,6 +2019,13 @@
         "changes": [
           "Group build 15 (ui-source integration/pair-next-17 eee1ec307, A8): SUPPORTED_PORT_VERSIONS, x-port.supports and host_port.supported_versions + 1.22.1 (no new key; a conflict answer with revision_moved was already read as a conflict); hostSpeaksCardSettings reads minor >= 22, so a 1.22.1 host keeps the card settings."
         ]
+      },
+      {
+        "from": "1.23.7",
+        "to": "1.23.9",
+        "changes": [
+          "View round 11 (round/view-r11): VR11-1 index.js sectionColumnFits (one owner of the section column: panel below full needs sf-tabs with a fold property, tabsHoldColumn, and the widened panel within COLUMN_WINDOW_SHARE 0.6 of the window, _widenedPanelWidth; whole screen and in place unless _columnFolded), read by panelWidened and sectionsLayout; _checkSectionColumn after every render and every render of the column's sf-tabs lays tabs on top when the column's tablist is horizontal, _onColumnResize tries the column again past that width; templates/default.js writes fold=\"never\" on the column's sf-tabs where it is declared. The whole-record save's conflict branch calls _rereadAfterConflict (simai/ui-pro 316ee37). Browser probes property-view-section-column and property-view-revision-moved (simai/ui-pro 93f6675)."
+        ]
       }
     ]
   },
@@ -2028,11 +2035,11 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-properties/index.js",
-        "sha256": "b32c773226070c7e528269cd7303c1a7058cf55071a26dfd9c7f71898c7a0183"
+        "sha256": "e0d763137a303e2d9b8542c53538c41c3733df0e720447363afa661e8e949bea"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.js",
-        "sha256": "ad8ad55224d7c25fc21497de7afc7547663eeab420497aff4b0a0e5debb00d8a"
+        "sha256": "206ad290b078cc19e56a315dbe8b0ce8dd7b9700a5268c37089097b906f2979e"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.css",
@@ -2088,7 +2095,7 @@
       },
       {
         "path": "src/smart/view-properties/docs.md",
-        "sha256": "d7e0045445a9389e839d492110b12fcbe380cb234b5a619dfcb74a04b3d2994b"
+        "sha256": "1f7be2134e036c82e982b20d4f3ad0c42ffcf8dd6469a348adc7b3133ff3115d"
       }
     ],
     "generated_runtime": []

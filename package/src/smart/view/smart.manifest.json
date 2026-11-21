@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view",
-  "version": "1.29.1",
+  "version": "1.29.3",
   "title": "Data view",
   "summary": "Host-driven data view that composes toolbar, content and pagination around a separate data port.",
   "kind": "composite",
@@ -1943,6 +1943,13 @@
         "changes": [
           "View round 10 (round/view-r10): first-paint.css sizes the phone list skeleton line at text step 1 (R9-1); index.js draws the bulk bar together with the list and clears the selection before the bar's result (V10-1); head.js viewKind() keeps the kind the view opened with for the «Изменено» mark (V10-3) and _showColumns() applies «Настроить вид» columns to the table (V10-2); examples.json phone-list example in the first-paint gate."
         ]
+      },
+      {
+        "from": "1.29.1",
+        "to": "1.29.3",
+        "changes": [
+          "View round 11 (round/view-r11): index.js firstPaintRows caps the skeleton's rows by the printed page row's total from its current page (_printedRecordsLeft); listShape reads list-shape (the view, else its table) and _firstPaintMarkup draws each part as its lines ([data-lines]) or the resource row ([data-resource], the title and supporting lines on --sf-ui-2/3--control-height, the list's quarter-step padding and hairline gap); first-paint.css carries those rules; pageLayoutKind keeps the layout the page wrote at connect; head.js storedKind is the kind a system view naming no layout stands for (viewKind), and _openSavedView no longer remembers the shown kind as that view's. component.json, smart.manifest.json and docs.md declare list-shape."
+        ]
       }
     ]
   },
@@ -1952,7 +1959,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view/index.js",
-        "sha256": "7034af437cda303cc008d5b97ae675723ded89820a09085c395ebd20869a86ec"
+        "sha256": "6104ca85f8df84d13369ee07e6957ab31e4ffbda37bef29c157266050aa6475a"
       },
       {
         "path": "src/core/contracts/ports/simai.dataview-port/1.5.0/port.json",
@@ -1960,7 +1967,7 @@
       },
       {
         "path": "src/smart/view/docs.md",
-        "sha256": "984b750441005a165f6b59e6afa12a85d103ba4338ea538d9c3c94bf15f98e3f"
+        "sha256": "91d60dc87f7d9c0c2f8a8fd2745cb825959090052499b6344360d9d34449aab9"
       },
       {
         "path": "tests/fixtures/data-view-composite-lab.html",
@@ -1972,7 +1979,7 @@
       },
       {
         "path": "src/smart/view/js/first-paint.css",
-        "sha256": "a0f636698a7e11576c1bca440e3eda3dfed8d9dee499226e34129ff155e58ba9"
+        "sha256": "072660083dfc858c59a60d77b90105d80ee08a0022001e7c3a7715801be8ceba"
       },
       {
         "path": "src/smart/view/js/cards.js",

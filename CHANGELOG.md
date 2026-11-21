@@ -16,6 +16,30 @@ same numbers with other content); every next set version is above them
 up). Each component.json says the same under `x-decisions`
 `pro-copy-versions`.
 
+## Unreleased — view round 11
+
+View round 11 (round/view-r11, from `main` 0c1b7ec with DEV's site branch
+round/view-site-1.10.1 7757233 merged), candidate 1.10.2 over the same pair
+`ui-b654460cad2a`.
+
+- `sf-view-properties` 1.23.9 (VR11-1, owner remark): one owner of the
+  section column. A record panel below the whole screen reserved the 12rem
+  column while the vertical `sf-tabs` in it folded into its row (it folds
+  below 44rem of the box around the column; the panel's scroller is at most
+  43rem). On this pair such a panel now lays its sections as tabs on top and
+  is not widened; with an `sf-tabs` that declares `fold` (proposed to the
+  SIMAI Framework) it keeps the list on the left unless the widened panel
+  would pass 60 percent of the window. The whole screen and a card in place
+  lay tabs on top where the column's tabs fold. A whole-record save answered
+  `conflict` reads the record again (the fix of simai/ui-pro 1.23.8).
+- `sf-view` 1.29.3: `list-shape`, the host's hint of a phone list record's
+  shape (lines per part, title first, or `resource`), drawn by the skeleton;
+  a page row's printed `total` sizes the skeleton to the records left;
+  «Изменено» compares a system view that names no layout with the layout the
+  page wrote, not with a restored personal kind.
+- 1.29.2 and 1.23.8 are simai/ui-pro's numbers (pro-93f6675545e2); this set
+  steps over them.
+
 ## 1.10.1 — 2026-11-21
 
 View round 10 (round/view-r10, accepted by DEV on 2026-11-21) and the site

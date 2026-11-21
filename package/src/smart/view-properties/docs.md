@@ -286,6 +286,18 @@ receives.
   the left) in a side panel, `tabs` (on top) on a page; a written value wins.
   A side panel with the list is wider by the section column, so the fields
   keep the `panel-size` width.
+- One owner of the section column (since 1.23.9, view round 11): where the
+  card lays its sections as a column, the vertical `sf-tabs` in it draws the
+  vertical list, never its folded row. `sf-tabs` folds below the h1 step
+  (44rem) of the box around the column, and a panel below the whole screen is
+  narrower than that, so on the SIMAI Framework pair ui-b654460cad2a such a
+  panel lays its sections as tabs on top (and is not widened), whatever
+  `sections-as` says. Once a pair's `sf-tabs` can be told not to fold
+  (proposed `fold="never"`), the panel keeps the list on the left (the
+  default) unless the widened panel would pass 60 percent of the window
+  (1024 px and below), and then lays tabs on top. The whole screen and a card
+  in place keep the column wherever its tabs stay vertical; where they fold
+  (a narrow box), the card lays tabs on top.
 - The panel is drawn at a step of its own width ladder (C396): `panel-size`
   1/2, 1 and 2 are the text-measure steps 44, 52 and 64 (N times half the
   body text; `--sf-measure-N` once the pair carries it), `full` the whole
