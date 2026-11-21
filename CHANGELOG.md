@@ -19,10 +19,11 @@ up). Each component.json says the same under `x-decisions`
 ## Unreleased — view modular step 1
 
 View modular step 1 (round/view-modular-1, from `round/view-r13` ccea5c6),
-candidate 1.12.0 over the same pair `ui-b654460cad2a`: the first step of the
+candidate 1.13.0 over the same pair `ui-b654460cad2a`: the first step of the
 C409 modularity study (DEV msg-8ccf829d, ui-control
 control/research/2026-11-21-view-modular). Nothing an author sees changes.
-Numbers are above every branch of this set and of ui-pro.
+Numbers are above every branch of this set (round/view-r14 included) and of
+ui-pro.
 
 - The package core `smart/view-common` (package.json `simai.core`, ui-builder
   libs/packageCore.js, as SIMAI Chart's chart-core): the code two or more View
@@ -41,19 +42,21 @@ Numbers are above every branch of this set and of ui-pro.
   would ride with every list (12 KB gzip more on a table-only list); bundled
   twice they cost only a page with a flow block and a record card together.
   `bundle-budgets.json` names it, with a gzip cap.
-- `sf-view` 1.33.0: `cl-view-table` is a lazy relation, and the list asks for
+- `sf-view` 1.34.0: `cl-view-table` is a lazy relation, and the list asks for
   the current layout's element only: a list that shows the board, the cards or
   the calendar does not fetch the table; a switch to the table fetches it then.
-- `sf-view-table` 1.32.0, `sf-view-board` 1.2.0, `sf-view-cards` 1.2.0,
-  `sf-view-calendar` 1.2.0, `sf-view-properties` 1.27.0, `sf-view-flow` 1.2.0:
+- `sf-view-table` 1.33.0, `sf-view-board` 1.2.0, `sf-view-cards` 1.3.0,
+  `sf-view-calendar` 1.2.0, `sf-view-properties` 1.28.0, `sf-view-flow` 1.2.0:
   their imports of the shared code go through the core. `sf-view` no longer
   warns of a row action without a catalogue entry before sf-view-table is
   defined (the projection is drawn again then).
 - Gates: `scripts/check-bundles.mjs` (gates.sh step «bundles», after the
   build): no module of the set in two bundles but the allowed one, and each
   bundle's min.js.gz and min.css.gz within its budget in `bundle-budgets.json`.
-- Sizes (JS + CSS gzip): the seven bundles 542.6 → 318.4 KB; see the evidence
-  for the full list and the single views.
+- Sizes (JS + CSS gzip): the seven bundles 542.6 KB → the seven and the core
+  327.1 KB (JS 516.5 → 300.9, CSS 26.1 unchanged); a board, cards or calendar
+  list fetches about half the View bytes it did. The evidence has the full list
+  and the single views in a browser.
 
 ## Unreleased — view round 13
 

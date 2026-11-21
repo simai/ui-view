@@ -129,7 +129,8 @@ const CONTENT = {
   table: 'sf-view-table :is(tbody tr, li)[data-row-id]',
   board: 'sf-view-board .sf-view-board__card, sf-view-board [data-id]',
   cards: 'sf-view-cards [data-id], sf-view-cards .sf-card',
-  calendar: 'sf-view-calendar [data-ev], sf-view-calendar .sf-view-calendar__ev',
+  // On a phone the month is sf-input-date with a mark per event day (CL-6).
+  calendar: 'sf-view-calendar [data-ev], sf-view-calendar .sf-view-calendar__ev, sf-view-calendar .sf-view-calendar__phone-month',
 };
 const drawn = (page, kind) => page.waitForFunction((selector) => [...document.querySelectorAll(`#v ${selector}`)].some((node) => node.getClientRects().length > 0),
   CONTENT[kind], {timeout: 15000});
@@ -199,8 +200,9 @@ try {
         steps.push([kind, tally(asked).total_kb]);
       }
       // The filter window, by a real click on «Фильтр», closed by Escape.
-      const filter = page.locator('#v .sf-view-head-filter button, #v [data-sf-head-filter] button, #v sf-button.sf-view-head-filter button').first();
-      const filterButton = await filter.count() ? filter : page.locator('#v button', {hasText: 'Фильтр'}).first();
+      // On a phone the head shows the filter as an icon button (data-head-open="filter").
+      const wide = page.locator('#v sf-button.sf-view-head-filter button').first();
+      const filterButton = await wide.count() && await wide.isVisible() ? wide : page.locator('#v sf-button-icon.sf-view-head-filter-icon button').first();
       await filterButton.click({timeout: 5000}).catch((error) => errors.push(`«Фильтр» could not be clicked: ${error.message.split('\n')[0]}`));
       const windowOpen = await page.waitForFunction(() => [...document.querySelectorAll('sf-popover, sf-drawer, [role="dialog"], .sf-filter-window, sf-menu-context')]
         .some((node) => node.getClientRects().length && /Состояние|Применить|Фильтр/u.test(node.textContent ?? '')), null, {timeout: 8000}).then(() => true, () => false);

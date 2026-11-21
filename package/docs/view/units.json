@@ -5,7 +5,7 @@
   "entries": [
     {
       "unit": "smart.view",
-      "version": "1.33.0",
+      "version": "1.34.0",
       "recorded_on": "2026-11-22",
       "change": "minor",
       "consumer": "Nothing to change for a page that loads the set through the SIMAI Framework Loader (the documented way): the rule relates to cl-view-common, which the Loader fetches first. A page that includes View bundles by hand adds smart/view-common/js/view-common.min.js before them. A list that shows only the board, the cards or the calendar no longer fetches sf-view-table; it comes when the list switches to the table.",
@@ -275,7 +275,7 @@
     },
     {
       "unit": "smart.view-table",
-      "version": "1.32.0",
+      "version": "1.33.0",
       "recorded_on": "2026-11-22",
       "change": "minor",
       "consumer": "Nothing to change for a page that loads the set through the SIMAI Framework Loader (the documented way): the rule relates to cl-view-common, which the Loader fetches first. A page that includes View bundles by hand adds smart/view-common/js/view-common.min.js before them.",
@@ -527,7 +527,7 @@
     },
     {
       "unit": "smart.view-properties",
-      "version": "1.27.0",
+      "version": "1.28.0",
       "recorded_on": "2026-11-22",
       "change": "minor",
       "consumer": "Nothing to change for a page that loads the set through the SIMAI Framework Loader (the documented way): the rule relates to cl-view-common, which the Loader fetches first. A page that includes View bundles by hand adds smart/view-common/js/view-common.min.js before them.",
@@ -896,7 +896,7 @@
     },
     {
       "unit": "smart.view-cards",
-      "version": "1.2.0",
+      "version": "1.3.0",
       "recorded_on": "2026-11-22",
       "change": "minor",
       "consumer": "Nothing to change for a page that loads the set through the SIMAI Framework Loader (the documented way): the rule relates to cl-view-common, which the Loader fetches first. A page that includes View bundles by hand adds smart/view-common/js/view-common.min.js before them.",
