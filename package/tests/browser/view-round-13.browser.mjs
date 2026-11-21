@@ -168,9 +168,11 @@ const openCustomize = async (page) => {
   await page.waitForFunction(() => [...document.querySelectorAll('[data-kind="view"], .sf-view-head-panel')].some((node) => node.querySelector('[data-setting]') && node.getClientRects().length), null, {timeout: 5000});
 };
 const pick = async (page, key, value) => {
-  const radio = page.locator(`sf-radio[data-setting="${key}"][value="${value}"]`).first();
-  await radio.scrollIntoViewIfNeeded({timeout: 5000});
-  await radio.locator('input').click({timeout: 5000, force: true});
+  // The sf-radio host draws no box (display: contents): its input is brought
+  // into view (the phone's sheet scrolls) and clicked.
+  const input = page.locator(`sf-radio[data-setting="${key}"][value="${value}"] input`).first();
+  await input.scrollIntoViewIfNeeded({timeout: 5000});
+  await input.click({timeout: 5000, force: true});
 };
 
 try {
@@ -346,7 +348,7 @@ try {
       await pick(page, 'density', 'compact').catch((error) => errors.push(`«Компактная» could not be picked: ${error.message.slice(0, 80)}`));
       await page.waitForTimeout(300);
       const box = page.locator('sf-checkbox[data-setting="single_line"]').first();
-      await box.scrollIntoViewIfNeeded({timeout: 5000}).catch(() => {});
+      await box.locator('input').scrollIntoViewIfNeeded({timeout: 5000}).catch(() => {});
       await box.locator('input').click({timeout: 5000, force: true}).catch(() => errors.push('«Текст в одну строку» could not be ticked'));
       await page.keyboard.press('Escape');
       await page.waitForTimeout(500);
@@ -425,7 +427,7 @@ try {
       const before = await cardText();
       await openCustomize(page).catch((error) => errors.push(`«Настроить вид» did not open: ${error.message.slice(0, 80)}`));
       const listed = await page.evaluate(() => [...document.querySelectorAll('sf-checkbox[data-setting="card_fields"]')].map((box) => box.getAttribute('label')));
-      await page.locator('sf-checkbox[data-setting="card_fields"][data-value="amount"]').first().scrollIntoViewIfNeeded({timeout: 5000}).catch(() => {});
+      await page.locator('sf-checkbox[data-setting="card_fields"][data-value="amount"] input').first().scrollIntoViewIfNeeded({timeout: 5000}).catch(() => {});
       await page.locator('sf-checkbox[data-setting="card_fields"][data-value="amount"] input').first().click({timeout: 5000, force: true}).catch(() => errors.push('«Сумма» could not be ticked'));
       await page.waitForTimeout(500);
       const after = await cardText();
