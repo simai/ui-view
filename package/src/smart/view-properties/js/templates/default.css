@@ -1166,6 +1166,25 @@
     --sf-icon--color: var(--sf-on-surface-variant);
   }
 
+  /* A choice drawn as its badge sits on the label's baseline (DEV on view
+     round 13: the badge row was 1 px off). The badge's type is a step
+     smaller, so a centred badge put its text above the label's line; in the
+     button's own line the badge aligns its text to the line's baseline, the
+     label's line of the same size and height. */
+  .sf-property-view-field-open.sf-property-view-quick-value:has(> sf-badge) {
+    display: inline-block;
+    align-self: flex-start;
+  }
+
+  .sf-property-view-field-open.sf-property-view-quick-value:has(> sf-badge) > sf-badge > .sf-badge {
+    display: inline-flex;
+    vertical-align: baseline;
+  }
+
+  .sf-property-view-field-open.sf-property-view-quick-value:has(> sf-badge) > .sf-icon {
+    display: inline-flex;
+  }
+
   .sf-property-view-field-open:hover .sf-property-view-pen,
   .sf-property-view-field-open:focus-visible .sf-property-view-pen {
     opacity: 1;
@@ -1391,7 +1410,7 @@
   }
 
   /* Narrow means narrow: the rail stands half a step from the fields. */
-  .sf-property-view-panel[data-sections-layout="rail"] .sf-property-view-layout {
+  .sf-property-view-panel[data-sections-layout="rail"] .sf-property-view-scroll {
     column-gap: var(--sf-space-1\/2);
   }
 
@@ -1441,24 +1460,6 @@
     max-inline-size: 100%;
   }
 
-  /* A choice drawn as its badge sits on the label's baseline (DEV on view
-     round 13: the badge row was 1 px off). The badge's type is a step
-     smaller, so a centred badge put its text above the label's line; in the
-     button's own line the badge aligns its text to the line's baseline, the
-     label's line of the same size and height. */
-  .sf-property-view-quick-value:has(> sf-badge) {
-    display: inline-block;
-    align-self: flex-start;
-  }
-
-  .sf-property-view-quick-value:has(> sf-badge) > sf-badge > .sf-badge {
-    display: inline-flex;
-    vertical-align: baseline;
-  }
-
-  .sf-property-view-quick-value:has(> sf-badge) > .sf-icon {
-    display: inline-flex;
-  }
 
   .sf-property-view-quick-editor {
     display: flex;
