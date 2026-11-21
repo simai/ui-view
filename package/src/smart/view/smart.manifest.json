@@ -243,7 +243,7 @@
       "list-shape": {
         "type": "string",
         "default": "",
-        "description": "The host's hint of a record's shape in the compact list a phone gets (view round 11): the lines of each part of a record, the title first, space- or comma-separated -- \"1 1 2 1\" is a title of one line and three fields, the third taking two lines. The skeleton draws that shape, so the list does not move when the records come. Empty: a title and list-fields fields of one line each. Up to 12 parts of 1 to 8 lines; \"resource\" is the row of a list of resources (C31 roles: the title line and the supporting line). Anything else is read as no hint. Read on the view, else on its sf-view-table."
+        "description": "The host's hint of a record's shape in the compact list a phone gets: the lines of each part of a record, the title first, space- or comma-separated -- \"1 1 2 1\" is a title of one line and three fields, the third taking two lines. The skeleton draws that shape, so the list does not move when the records come. Empty: a title and list-fields fields of one line each. Up to 12 parts of 1 to 8 lines; \"resource\" is the row of a list of resources (the title line and the supporting line under it). Anything else is read as no hint. Read on the view, else on its sf-view-table."
       },
       "port-owner": {
         "type": "string",
@@ -1967,7 +1967,7 @@
       },
       {
         "path": "src/smart/view/docs.md",
-        "sha256": "91d60dc87f7d9c0c2f8a8fd2745cb825959090052499b6344360d9d34449aab9"
+        "sha256": "55025924d0761a7df1b64f4feecc801c65d06e14ce19146e4b00c991bf5c9f9c"
       },
       {
         "path": "tests/fixtures/data-view-composite-lab.html",
