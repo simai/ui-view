@@ -6,3 +6,7 @@ body:has(:is(sf-tabs, sf-view, sf-view-table, sf-table, sf-view-properties, sf-v
 body { min-block-size: 693px; }
 @media (max-width: 640px) { body { min-block-size: 1550px; } }
 /* reserve: end */
+/* The record on the list's place (the card's «⋯ → Открыть на всю страницу»): the page draws the record's title, the
+   card draws no title of its own there. */
+[data-list-demo] > :is([data-list-place], [data-record-place])[hidden] { display: none; }
+[data-record-title] { font-size: var(--sf-text-size-2); line-height: var(--sf-text-height-2); font-weight: var(--sf-font-weight-medium); }
