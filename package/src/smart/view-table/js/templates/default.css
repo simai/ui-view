@@ -1495,8 +1495,11 @@
     inset-block-start: calc(var(--sf-view--stuck-head, 0px) + var(--sf-view-table--toolbar, 0px));
   }
 
+  /* No easing on the move: the table's own transition (the utility on it)
+     made the rows trail the rail by a quarter of a second. */
   :is(sf-view-table, sf-table)[data-sf-page-scroll][data-sf-sticky-head] .sf-table-scroll[data-sf-vertical-scroll="page"] > table {
     transform: translateX(calc(-1 * var(--sf-view-table--x, 0px)));
+    transition-property: none;
   }
 
   :is(sf-view-table, sf-table)[data-sf-page-scroll][data-sf-sticky-head] .sf-table-scroll[data-sf-vertical-scroll="page"] > table :is(th, td)[data-sf-pinned] {
