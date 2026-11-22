@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-properties",
-  "version": "1.23.7",
+  "version": "1.26.0",
   "title": "Property view",
   "summary": "One object's fields shown as sections, groups and fields, each drawn by the per-type field renderer set, behind a separate host port. A group is edited and saved as one revision by the button, and a reference field is picked from the host's own candidates a page at a time. The pair to the data view: that one is a set of records, this one is a single object.",
   "kind": "composite",
@@ -2019,6 +2019,27 @@
         "changes": [
           "Group build 15 (ui-source integration/pair-next-17 eee1ec307, A8): SUPPORTED_PORT_VERSIONS, x-port.supports and host_port.supported_versions + 1.22.1 (no new key; a conflict answer with revision_moved was already read as a conflict); hostSpeaksCardSettings reads minor >= 22, so a 1.22.1 host keeps the card settings."
         ]
+      },
+      {
+        "from": "1.23.7",
+        "to": "1.23.9",
+        "changes": [
+          "View round 11 (round/view-r11): VR11-1 index.js sectionColumnFits (one owner of the section column: panel below full needs sf-tabs with a fold property, tabsHoldColumn, and the widened panel within COLUMN_WINDOW_SHARE 0.6 of the window, _widenedPanelWidth; whole screen and in place unless _columnFolded), read by panelWidened and sectionsLayout; _checkSectionColumn after every render and every render of the column's sf-tabs lays tabs on top when the column's tablist is horizontal, _onColumnResize tries the column again past that width; templates/default.js writes fold=\"never\" on the column's sf-tabs where it is declared. The whole-record save's conflict branch calls _rereadAfterConflict (simai/ui-pro 316ee37). Browser probes property-view-section-column and property-view-revision-moved (simai/ui-pro 93f6675)."
+        ]
+      },
+      {
+        "from": "1.23.9",
+        "to": "1.25.0",
+        "changes": [
+          "View round 12 (round/view-r12): VHF-7 templates/default.css: the head line's sf-badge and its box do not shrink, the subtitle is flex 0 1 auto; VHF-6 templates/default.js: renderHeadLine(context, end) draws the in-place actions (inPlaceActions) at the end of the line (.sf-property-view-head-line-end), the host-actions row only where there is no line (headLineDrawn). docs.md says it. Test view-c311 reads the new signature. View round 12, sets 2-3 (DEV msg-3e47ce93, msg-c31ccebd, C393): VRS-7 js/templates/default.js sf-list-timeline size 1/2 with the card's size; VRS-8 renderPhoneSectionList sf-list size 1 and default.css a «›» mask on each row; VRS-9 renderGroup hides the title of a section's only group named as the section; C393 index.js starLook() reads sf-button-icon's appearance values (the twin of ui-pro's sf-view-properties 1.24.0 star), the template draws appearance=toggle and pressed when it is there, else the former star. The record panel's step-plus-aside column of Pro 1.24.0 is not taken: it needs sf-drawer 1.20.0 aside-width, which pair ui-b654460cad2a does not carry (sf-drawer 1.18.1); VR11-1 (no folded tab row in a column) is r11's own and its probe property-view-section-column holds it. Numbered above ui-pro's copies in pro-f6c43828e5f2 (sf-view 1.30.1, sf-view-table 1.29.4, sf-view-properties 1.24.0, group build 15), the highest on any origin branch of simai/ui-view and simai/ui-pro; this round's own step was 1.30.1, 1.29.4 and 1.23.10 on round/view-r12 a26f636 before Pro took those numbers. VFC-1 (DEV msg-265727a8): js/templates/default.css hides the quick window's content while the popover has neither its reflected open attribute (its contract) nor the former data-open=\"true\"."
+        ]
+      },
+      {
+        "from": "1.25.0",
+        "to": "1.26.0",
+        "changes": [
+          "View round 13 (round/view-r13): C399 sectionColumnFits: docked beside the list (_docksBesideList: docked and the dock breakpoint) the list keeps _listLeast (48rem) beside the widened card, over the list always; COLUMN_WINDOW_SHARE gone. C400 default.css: .sf-property-view-list .sf-list-description-label takes the list's font size and line, ink on-surface-variant. C401 default.js: sf-form labels start except on a phone; default.css: the edited group in the list has no frame, padding or fill and the list's row gap. C402 field-value.js: the empty value drops its utility class; default.css: .sf-property-view-empty keeps --sf-on-surface-variant (muted fails 4.5:1). docs.md says it."
+        ]
       }
     ]
   },
@@ -2028,15 +2049,15 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-properties/index.js",
-        "sha256": "b32c773226070c7e528269cd7303c1a7058cf55071a26dfd9c7f71898c7a0183"
+        "sha256": "8b58e9c607ed0a92b3af4f07bf60f7cebd696b0eef188d34dd297ca11112c461"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.js",
-        "sha256": "ad8ad55224d7c25fc21497de7afc7547663eeab420497aff4b0a0e5debb00d8a"
+        "sha256": "51d1b2de2f8df1eea0f85eb1007b911ce74138a54cbb14462a2b9f4e5dcefc3b"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.css",
-        "sha256": "db01221ec3ec89bcd52c701d8a2506663e81adc8789f54f168e27ec66a119f3b"
+        "sha256": "111d8920f05dc8fcaeb61c71082daafc0e7c8b657884a7b47ab93c5b8bae08db"
       },
       {
         "path": "src/smart/view-properties/js/conditions.js",
@@ -2044,7 +2065,7 @@
       },
       {
         "path": "src/smart/view-properties/js/field-value.js",
-        "sha256": "aa04dbf2f3f8a979966af613c82e2bcffa13020371a5884f88728f50c1145b8e"
+        "sha256": "8773043c226a0aba2b261086d53522be5d40444f15559447d0937cbcc1afc8df"
       },
       {
         "path": "src/smart/view-properties/js/history.js",
@@ -2088,7 +2109,7 @@
       },
       {
         "path": "src/smart/view-properties/docs.md",
-        "sha256": "d7e0045445a9389e839d492110b12fcbe380cb234b5a619dfcb74a04b3d2994b"
+        "sha256": "5e5b408aa8bc44b88592394e8a189a93adbdf01904fc0e59cddfd6097eda3cae"
       }
     ],
     "generated_runtime": []

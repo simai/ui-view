@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-board",
-  "version": "1.1.3",
+  "version": "1.1.5",
   "title": "Board",
   "summary": "The board layout of the view set: lanes by one field, cards with up to four fields in the «Кратко» place, a move is a change of that field the host settles. sf-view layout=\"board\" draws it over the lane window.",
   "kind": "smart",
@@ -450,7 +450,7 @@
       "Space",
       "Escape"
     ],
-    "focus": "A region named by aria-label (else «Доска»); one Tab stop for the board, the arrows inside (lanes left and right, a lane's head, cards and «Показать ещё» up and down); a polite live region says every move and refusal; after a settled move focus stays on the card."
+    "focus": "A region named by aria-label (else «Канбан»); one Tab stop for the board, the arrows inside (lanes left and right, a lane's head, cards and «Показать ещё» up and down); a polite live region says every move and refusal; after a settled move focus stays on the card."
   },
   "presentation": {
     "themes": [
@@ -535,6 +535,20 @@
         "changes": [
           "View round 9 (round/view-r9): rule.js and component.json relations name cl-bulk-actions (lazy), composition.uses smart.bulk-actions; the pair's field-renderers provenance hash."
         ]
+      },
+      {
+        "from": "1.1.3",
+        "to": "1.1.4",
+        "changes": [
+          "View round 12, set 3 (DEV msg-c31ccebd, VHF-10): js/templates/default.css .sf-view-board[data-size=\"1\"] .sf-view-board__title, .sf-view-board__fields take --sf-text-size-1 and --sf-text-height-1."
+        ]
+      },
+      {
+        "from": "1.1.4",
+        "to": "1.1.5",
+        "changes": [
+          "View round 12, owner decision D2 (DEV msg-4de06ae6): lang title and board-label «Канбан» / «Kanban»; component.json and smart.manifest.json focus note."
+        ]
       }
     ]
   },
@@ -556,7 +570,7 @@
       },
       {
         "path": "src/smart/view-board/js/templates/default.css",
-        "sha256": "540dbef2cfec991b62036ffab17b1f60d8b5e05bd70588923fb26f4429961784"
+        "sha256": "297880db2d93b3b0ded5f81c74a557c6fe3a269c8792bcd355637f0aa5da9436"
       },
       {
         "path": "src/smart/field-renderers/index.js",
@@ -568,7 +582,7 @@
       },
       {
         "path": "src/smart/view-board/docs.md",
-        "sha256": "bacbeab2c9eb489d649d148d26a504d34b6d8dbc175581833e4e72debae45887"
+        "sha256": "a1d9d047de0ba2186af57f0c50b1be154ba066cc709690d71eb15877c27a0c86"
       }
     ],
     "generated_runtime": []

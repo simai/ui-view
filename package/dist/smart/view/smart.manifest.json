@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view",
-  "version": "1.29.1",
+  "version": "1.32.0",
   "title": "Data view",
   "summary": "Host-driven data view that composes toolbar, content and pagination around a separate data port.",
   "kind": "composite",
@@ -64,6 +64,7 @@
         "heading",
         "row-cap",
         "expected-columns",
+        "list-shape",
         "port-owner",
         "port-record",
         "port-group",
@@ -94,6 +95,7 @@
         "clear-selection-label",
         "page-size-label",
         "pagination-aria-label",
+        "paging",
         "preferences-key",
         "accept-files",
         "collection",
@@ -211,7 +213,7 @@
       "chrome": {
         "type": "string",
         "default": "toolbar pagination select settings",
-        "description": "Which chrome this list renders, as a space-separated list. `toolbar` and `pagination` are this element own parts; `select` and `settings` are the table two chrome columns, named here because they are furniture of the same kind -- a checkbox column exists to feed a bulk band and a gear column exists to reach column settings, and an embedded list has neither. Empty renders none of them, for a list inside something that already carries a heading. Named explicitly rather than inferred from the toolbar, so a consumer who wants a selection in an embedded list can ask for it alone. `status` is not in the list and cannot be switched off: a list that could not say a load failed would look empty when it is broken."
+        "description": "Which chrome this list renders, as a space-separated list. `toolbar` and `pagination` are this element own parts; `select` and `settings` are the table two chrome columns, named here because they are furniture of the same kind -- a checkbox column exists to feed a bulk band and a gear column exists to reach column settings, and an embedded list has neither. Empty renders none of them, for a list inside something that already carries a heading. Named explicitly rather than inferred from the toolbar, so a consumer who wants a selection in an embedded list can ask for it alone. `status` is not in the list and cannot be switched off: a list that could not say a load failed would look empty when it is broken. Parts inside the rows (sf-view 1.32.0, VR5): `search`, `filter` (with its bookmark and fields) and `look` («Настроить вид») inside `toolbar`, `page-size` («По 10 ▾») inside `pagination`. A chrome that names none of these parts keeps them all, so a chrome written before keeps what it drew; one that names any is the whole list, and a part it does not name is not drawn: chrome=\"toolbar search pagination\" draws the search alone in the head row and the footer without its size choice. The same list goes in the view document as head.chrome (only the parts) and by a call as view.chrome = [...] or view.setChrome([...]). «Фильтр» also goes by itself when the host describes no field to filter by."
       },
       "head": {
         "type": "string",
@@ -238,6 +240,11 @@
         "default": 4,
         "description": "How many columns the skeleton draws before the host first answers: the skeleton's shape, never a limit -- the answer brings its own columns. The page or server that renders a collection knows them; with the right number the list does not move when the data arrives.",
         "minimum": 1
+      },
+      "list-shape": {
+        "type": "string",
+        "default": "",
+        "description": "The host's hint of a record's shape in the compact list a phone gets: the lines of each part of a record, the title first, space- or comma-separated -- \"1 1 2 1\" is a title of one line and three fields, the third taking two lines. The skeleton draws that shape, so the list does not move when the records come. Empty: a title and list-fields fields of one line each, each field on a line of its own (values of a phrase's length, as the phone-list example's; view round 12, VR11A-2): the list lays short values side by side, two or three to a line, so a list of short values -- a status, a sum, a city -- draws shorter records than that and should say so (a title and three short fields on two lines: \"1 1 1\", 85 px at 390, where the hint-less skeleton holds 109). Up to 12 parts of 1 to 8 lines; \"resource\" is the row of a list of resources (the title line and the supporting line under it). Anything else is read as no hint. Read on the view, else on its sf-view-table."
       },
       "port-owner": {
         "type": "string",
@@ -404,6 +411,17 @@
         "type": "string",
         "default": "",
         "description": "Passed on as aria-label to the pagination the view draws (the view's own aria-label names the view)."
+      },
+      "paging": {
+        "type": "string",
+        "default": "both",
+        "description": "How the table's rows come page after page (owner decision D1): pages (page numbers only), more (a full-width «Показать ещё» under the last row), both (the button with the page numbers under it and «1–20 из 48» beside them; the default), endless (the next page loads when the end of the list comes into view; offered, not recommended for tables). The person's choice in «Настроить вид» is kept per view; a view's layouts.table.paging comes before this attribute.",
+        "enum": [
+          "pages",
+          "more",
+          "both",
+          "endless"
+        ]
       },
       "preferences-key": {
         "type": "string",
@@ -1937,6 +1955,38 @@
         "changes": [
           "View round 10 (round/view-r10): first-paint.css sizes the phone list skeleton line at text step 1 (R9-1); index.js draws the bulk bar together with the list and clears the selection before the bar's result (V10-1); head.js viewKind() keeps the kind the view opened with for the «Изменено» mark (V10-3) and _showColumns() applies «Настроить вид» columns to the table (V10-2); examples.json phone-list example in the first-paint gate."
         ]
+      },
+      {
+        "from": "1.29.1",
+        "to": "1.30.0",
+        "changes": [
+          "View round 11 (round/view-r11): index.js firstPaintRows caps the skeleton's rows by the printed page row's total from its current page (_printedRecordsLeft); listShape reads list-shape (the view, else its table) and _firstPaintMarkup draws each part as its lines ([data-lines]) or the resource row ([data-resource], the title and supporting lines on --sf-ui-2/3--control-height, the list's quarter-step padding and hairline gap); first-paint.css carries those rules; pageLayoutKind keeps the layout the page wrote at connect; head.js storedKind is the kind a system view naming no layout stands for (viewKind), and _openSavedView no longer remembers the shown kind as that view's. component.json, smart.manifest.json and docs.md declare list-shape."
+        ]
+      },
+      {
+        "from": "1.30.0",
+        "to": "1.31.0",
+        "changes": [
+          "View round 12 (round/view-r12): VHF-3 js/head.css: .sf-view-head-end has no auto start margin (the growing start holds it at the row's end on one line; wrapped, it starts its line); .sf-view-head-title-end keeps its own. VHF-5 js/head.js: _measure reads the view's content box (contentWidth: the border box less the inline padding and borders) instead of its border box. docs.md says both. View round 12, sets 2-3 (DEV msg-c31ccebd): VHF-3 js/head.js _layRow measures the laid parts (a display: contents host by its children; the search at 20rem) and writes data-stacked; js/head.css lays the stacked row as a column, the end first across the width. VHF-9 js/head.css .sf-view-head-name reads --sf-heading-4--size/height. VHF-11 index.js hasBulkActions and selects() (bulkActions, or actions on the page row; chrome written keeps select), read where the table, board, cards (js/cards.js) and calendar (js/calendar.js) are told selectable and by the first paint; the bulkActions setter tells them again. Numbered above ui-pro's copies in pro-f6c43828e5f2 (sf-view 1.30.1, sf-view-table 1.29.4, sf-view-properties 1.24.0, group build 15), the highest on any origin branch of simai/ui-view and simai/ui-pro; this round's own step was 1.30.1, 1.29.4 and 1.23.10 on round/view-r12 a26f636 before Pro took those numbers. VR11A-2 (round 11 acceptance, DEV msg-265727a8): settings.list-shape's summary and docs.md say what the hint-less skeleton draws and when a hint is needed; the skeleton is unchanged (the phone-list example's records are one field to a line, and its first paint holds)."
+        ]
+      },
+      {
+        "from": "1.31.0",
+        "to": "1.31.1",
+        "changes": [
+          "View round 12, owner decision D2 (DEV msg-4de06ae6): lang head-kind-board «Канбан» / «Kanban»."
+        ]
+      },
+      {
+        "from": "1.31.1",
+        "to": "1.32.0",
+        "changes": [
+          "View round 13 (round/view-r13): D1 index.js paging (VIEW_PAGING, get paging, applyPaging, _drawMore into slot more, _showMore, _watchEndless; the range grows from the run's first page; data-sf-view-paging-off hides the pagination for more and endless; first paint draws the button skeleton); component.json settings.paging and the manifest input; lang head-paging*. VHF-15 head.js lays --sf-view--head-offset and --sf-view--stuck-head on [part=layout]; [part=head] sticks for head=list. VHF-13 ownLayoutSettings / applyLayoutSettings; board, cards and calendar options merge the person's settings; the view panel lists the view's own fields. D3 cards skeleton draws stacked fields. VR12A-1 js/head.js: the table kind's panel adds density radios and a single_line checkbox (set through sf-view-table setTableView); lang head-density*, head-single-line. NO_REFRESH_AFTER takes settings.save.",
+          "VR5 (DEV msg-b581533a): index.js CHROME_PARTS + search, filter, look, page-size; CHROME_WITHIN maps them to toolbar and pagination; renders(part) hides a part the chrome attribute does not name once it names any part, and a part head.chrome does not name; chrome setter and setChrome(); look getter/setter (head.look or view.look); the first-paint head row holds only the filter and search the chrome keeps; _drawFooter hides .sf-view-footer-size without page-size. js/head.js filterShown (renders filter and describe() fields), render hides .sf-view-head-search, [data-filter-group], .sf-view-head-filter-icon, sf-popover[data-pop=view], .sf-view-head-tune and an empty .sf-view-head-row; _renderFields empties the fields box when the filter is off; _viewPanel draws only the rows head.look names. js/head.css display: none for those parts when hidden.",
+          "VR5-5 js/head.js zoneUseful: a described list and personal-column-settings count only while look is drawn.",
+          "VR5-10 index.js: the projection writes data-sf-row-menu-off on the table when a known host offers no row-actions (_rowMenuOff); the first paint leaves the «≡» column out where the known host gives it nothing to open (_settingsColumnUnused: no row-actions, no personal-column-settings outside the list head, no row-reorder).",
+          "LV2-6: layout cards get the list's page row (pagination by default, the footer range, a page size chosen there kept for the cards); the cards' grid no longer offers its own more button while the row is drawn. LV2-8: switchLayout opens the new kind on the page holding the record first on screen, held over switches back and forth until the next query change; the head's kind switch no longer resets the page to 1."
+        ]
       }
     ]
   },
@@ -1946,7 +1996,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view/index.js",
-        "sha256": "7034af437cda303cc008d5b97ae675723ded89820a09085c395ebd20869a86ec"
+        "sha256": "f1b84c049d8c3975df76b80a0e44bcb6a0430d2844dfcd904c4ea3252f64009a"
       },
       {
         "path": "src/core/contracts/ports/simai.dataview-port/1.5.0/port.json",
@@ -1954,7 +2004,7 @@
       },
       {
         "path": "src/smart/view/docs.md",
-        "sha256": "984b750441005a165f6b59e6afa12a85d103ba4338ea538d9c3c94bf15f98e3f"
+        "sha256": "fce3a0a39f18b25b542d4acef9c107a2da5fb574365c7c0a7bc8d075365522ab"
       },
       {
         "path": "tests/fixtures/data-view-composite-lab.html",
@@ -1966,11 +2016,11 @@
       },
       {
         "path": "src/smart/view/js/first-paint.css",
-        "sha256": "a0f636698a7e11576c1bca440e3eda3dfed8d9dee499226e34129ff155e58ba9"
+        "sha256": "1328436385e46f08b37db3728660124736fb2b248338627bf951c49b85b6db1e"
       },
       {
         "path": "src/smart/view/js/cards.js",
-        "sha256": "ebf2faa1ff6a36c0d12778c551c14910bef09c7bdad4cda32beb1e1c54f0d9b9"
+        "sha256": "4dc33c756fd743b91ca21f995cae00b10fc2dcfb48a34619b08b8f376760d9df"
       }
     ],
     "generated_runtime": []

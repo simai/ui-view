@@ -492,6 +492,20 @@
     -webkit-line-clamp: none;
     line-clamp: none;
   }
+  /* «Текст в одну строку» off, the default (owner decision D5, 2026-11-21;
+     data-sf-view-wrap): the record's name in a fitted column takes its two
+     lines (C146 (7)) before the ellipsis, as it does in a column of its own
+     width; a long text (a comment) is drawn whole, below. On
+     (data-sf-view-single-line), every cell is one line with «…». */
+  :is(sf-view-table, sf-table)[data-sf-columns-fitted][data-sf-view-wrap]:not([data-sf-view-single-line]) table:not(.sf-table-measuring) td[data-key][data-sf-cell=title]:not([data-key=select]):not([data-key=settings]):not([data-key=actions]) {
+    white-space: normal;
+  }
+  :is(sf-view-table, sf-table)[data-sf-columns-fitted][data-sf-view-wrap]:not([data-sf-view-single-line]) table:not(.sf-table-measuring) td[data-key][data-sf-cell=title]:not([data-key=select]):not([data-key=settings]):not([data-key=actions]) .sf-table-cell-text {
+    display: -webkit-box;
+    white-space: normal;
+    -webkit-line-clamp: var(--sf-table-cell--line-clamp, 2);
+    line-clamp: var(--sf-table-cell--line-clamp, 2);
+  }
   :is(sf-view-table, sf-table) table.sf-table-measuring col {
     width: auto !important;
     inline-size: auto !important;
@@ -534,6 +548,13 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+  /* A long text (a comment) with «Текст в одну строку» off is drawn whole,
+     on as many lines as it takes (owner decision D5, 2026-11-21). */
+  :is(sf-view-table, sf-table)[data-sf-view-wrap]:not([data-sf-view-single-line]) table:not(.sf-table-measuring) td[data-key] .sf-table-cell-clip {
+    white-space: normal;
+    word-wrap: anywhere;
+    text-overflow: clip;
   }
   :is(sf-view-table, sf-table) table {
     border-spacing: var(--sf-table--cell-spacing);
@@ -1654,11 +1675,13 @@
     height: var(--sf-px);
     block-size: var(--sf-px);
   }
-  /* Held: the toolbar at the top of what scrolls, the head under it. */
+  /* Held: the toolbar at the top of what scrolls, the head under it; under
+     the list head of the view around the table when it holds the top
+     (--sf-view--stuck-head, sf-view, VHF-15). */
   :is(sf-view-table, sf-table)[data-sf-sticky-head] .sf-table-toolbar {
     position: sticky;
-    top: 0;
-    inset-block-start: 0;
+    top: var(--sf-view--stuck-head, 0px);
+    inset-block-start: var(--sf-view--stuck-head, 0px);
     z-index: 6;
     background-color: var(--sf-table-head--background-color, var(--sf-surface-page));
   }
@@ -1668,6 +1691,41 @@
   }
   :is(sf-view-table, sf-table)[data-sf-head-stuck] thead {
     box-shadow: 0 var(--sf-px) 0 var(--sf-outline-variant);
+  }
+  /* The head held by CSS (view round 13, VHF-14): it used to be moved by a
+     transform written in the frame after the scroll, so every frame painted
+     it one wheel step behind. A sticky head binds to its nearest scroll
+     container, so the area stops being one: it clips sideways instead of
+     scrolling, and the rail under it moves the table (syncSideways writes
+     --sf-view-table--x), the pinned cells moving back by as much, a cell
+     pinned at the end from the table's end (--sf-view-table--end). The head
+     sticks under the list head of the view (--sf-view--stuck-head) and the
+     table's own toolbar (--sf-view-table--toolbar); it stops at the table's
+     last row. Off («Закреплять фильтр и шапку»), the area scrolls sideways
+     itself as before and the head leaves with the page. */
+  :is(sf-view-table, sf-table)[data-sf-page-scroll][data-sf-sticky-head] .sf-table-scroll[data-sf-vertical-scroll=page] {
+    overflow-x: clip;
+    overflow-y: visible;
+  }
+  :is(sf-view-table, sf-table)[data-sf-page-scroll][data-sf-sticky-head] thead {
+    position: sticky;
+    top: calc(var(--sf-view--stuck-head, 0px) + var(--sf-view-table--toolbar, 0px));
+    inset-block-start: calc(var(--sf-view--stuck-head, 0px) + var(--sf-view-table--toolbar, 0px));
+  }
+  /* No easing on the move: the table's own transition (the utility on it)
+     made the rows trail the rail by a quarter of a second. */
+  :is(sf-view-table, sf-table)[data-sf-page-scroll][data-sf-sticky-head] .sf-table-scroll[data-sf-vertical-scroll=page] > table {
+    -webkit-transform: translateX(calc(-1 * var(--sf-view-table--x, 0px)));
+            transform: translateX(calc(-1 * var(--sf-view-table--x, 0px)));
+    transition-property: none;
+  }
+  :is(sf-view-table, sf-table)[data-sf-page-scroll][data-sf-sticky-head] .sf-table-scroll[data-sf-vertical-scroll=page] > table :is(th, td)[data-sf-pinned] {
+    -webkit-transform: translateX(var(--sf-view-table--x, 0px));
+            transform: translateX(var(--sf-view-table--x, 0px));
+  }
+  :is(sf-view-table, sf-table)[data-sf-page-scroll][data-sf-sticky-head] .sf-table-scroll[data-sf-vertical-scroll=page] > table :is(th, td)[data-sf-pinned][style*=inset-inline-end] {
+    -webkit-transform: translateX(calc(var(--sf-view-table--x, 0px) - var(--sf-view-table--end, 0px)));
+            transform: translateX(calc(var(--sf-view-table--x, 0px) - var(--sf-view-table--end, 0px)));
   }
   /* A re-query over rows already on screen dims them and shows one spinner in
      the middle of what the person can see. `sticky` centres it against the
@@ -1799,26 +1857,36 @@
   /* The person's view of the table (the gear's «Вид», owner 2026-10-14),
      kept as a view preference and written on the host as data attributes.
      Density moves the rows' vertical space one ladder step either way. */
-  :is(sf-view-table, sf-table)[data-sf-view-density=compact] > * .table > :not(caption) > * > * {
-    padding-top: var(--sf-space-1\/2);
-    padding-bottom: var(--sf-space-1\/2);
-    padding-block: var(--sf-space-1\/2);
+  /* Since the one row model (C146 (1)) a row is its rung's control height
+     and its cells have no block padding, so density moves the row one rung
+     (view round 11, VR11-2): compact one rung down on
+     every size step; a two-line row keeps its two-line rung. It used to add block padding to the cells, which over
+     the rung made a compact row taller than a normal one (size 1/2: 40
+     against 32). */
+  :is(sf-view-table, sf-table)[data-sf-view-density=compact]:not([data-sf-view-density-island]) > * .table > :is(thead, tbody) > tr:not(:has(.sf-table-link-cell-subtext, .sf-table-tree-path)) {
+    height: var(--sf-ui-1\/2--control-height);
+    block-size: var(--sf-ui-1\/2--control-height);
   }
-  :is(sf-view-table, sf-table)[size="1/2"][data-sf-view-density=compact] > * .table > :not(caption) > * > * {
-    padding-top: var(--sf-space-1\/4);
-    padding-bottom: var(--sf-space-1\/4);
-    padding-block: var(--sf-space-1\/4);
+  :is(sf-view-table, sf-table)[size="1/2"][data-sf-view-density=compact]:not([data-sf-view-density-island]) > * .table > :is(thead, tbody) > tr:not(:has(.sf-table-link-cell-subtext, .sf-table-tree-path)) {
+    height: var(--sf-ui-1\/3--control-height);
+    block-size: var(--sf-ui-1\/3--control-height);
   }
-  :is(sf-view-table, sf-table)[data-sf-view-density=spacious] > * .table > :not(caption) > * > * {
-    padding-top: var(--sf-space-2);
-    padding-bottom: var(--sf-space-2);
-    padding-block: var(--sf-space-2);
+  /* «Компактно» in a normal area is the Framework's compact density on the
+     table (VHF-8): the row and every control in it are one step down, so the
+     row is the compact rung of its step. Below 60rem the Framework has no
+     density, and the row's own rung steps down as before. */
+  @media (max-width: 59.999rem) {
+    :is(sf-view-table, sf-table)[data-sf-view-density=compact][data-sf-view-density-island] > * .table > :is(thead, tbody) > tr:not(:has(.sf-table-link-cell-subtext, .sf-table-tree-path)) {
+      height: var(--sf-ui-1\/2--control-height);
+      block-size: var(--sf-ui-1\/2--control-height);
+    }
+    :is(sf-view-table, sf-table)[size="1/2"][data-sf-view-density=compact][data-sf-view-density-island] > * .table > :is(thead, tbody) > tr:not(:has(.sf-table-link-cell-subtext, .sf-table-tree-path)) {
+      height: var(--sf-ui-1\/3--control-height);
+      block-size: var(--sf-ui-1\/3--control-height);
+    }
   }
-  :is(sf-view-table, sf-table)[size="1/2"][data-sf-view-density=spacious] > * .table > :not(caption) > * > * {
-    padding-top: var(--sf-space-1\/2);
-    padding-bottom: var(--sf-space-1\/2);
-    padding-block: var(--sf-space-1\/2);
-  }
+  /* No «Просторно» since owner decision D4 (2026-11-21): one density for the
+     whole list, «Обычная» or «Компактная»; a stored spacious reads as normal. */
   /* Alternate rows on the container surface, under the hover and selection
      layers, which are images over it. Opaque: the container surface is an
      alpha colour, and a pinned cell inherits its row's colour, so the rows
@@ -2155,6 +2223,11 @@
   }
   :is(sf-view-table, sf-table) td[data-sf-cell=title] {
     --sf-table-cell--line-clamp: var(--sf-view-table-title-lines, 2);
+  }
+  /* «Текст в одну строку» (the gear's «Вид», view preference singleLine):
+     the record's name is one line too (view round 12, VHF-4). */
+  :is(sf-view-table, sf-table)[data-sf-view-single-line] td[data-sf-cell=title] {
+    --sf-table-cell--line-clamp: 1;
   }
   /* Unset, each of these leaves what was drawn: the line name is
      guaranteed-invalid and its readers fall back; the head and the edge fall

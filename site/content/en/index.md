@@ -19,7 +19,12 @@ Tables, boards, cards and a calendar for SIMAI Framework: the application gives 
 A live list of orders. Its view zone is open: switch «Table», «Board»,
 «Cards» and «Calendar» — the filter and the search stay, and the application
 answers the same data in the shape of each layout. Open an order — the
-record card stands beside the list.
+record card stands beside the list: the stage, the client and the sum in its
+head, short fields edited at the value, a group with «Изменить», and in «⋯»
+editing the whole record, the change history, the link, the record on the
+whole page, the card's view settings and delete. «Создать» in the list head
+opens a new order. Mark a few orders — the bulk actions and «Выбрать все»
+under the filter appear below the list.
 
 :::example {id="home/list" label="Orders" fullscreen=false wrap=false}
 :::
@@ -33,7 +38,7 @@ page.
 
 :::::grid {columns=2 gap=4}
 ::::card {variant=plain}
-### [Smart table](/ru/components/views/view-table/)
+### [Smart table](/ru/components/view-table/)
 
 Records as rows: columns by type, sorting, selection, a row menu.
 
@@ -41,7 +46,7 @@ Records as rows: columns by type, sorting, selection, a row menu.
 :::
 ::::
 ::::card {variant=plain}
-### [List head](/ru/components/views/view-head/)
+### [List head](/ru/components/view-head/)
 
 The name, views, filter, search and «Create» above the list.
 
@@ -49,7 +54,7 @@ The name, views, filter, search and «Create» above the list.
 :::
 ::::
 ::::card {variant=plain}
-### [Board](/ru/components/views/view-board/)
+### [Board](/ru/components/view-board/)
 
 Records in columns by a field value; moving a card changes the field.
 
@@ -57,7 +62,7 @@ Records in columns by a field value; moving a card changes the field.
 :::
 ::::
 ::::card {variant=plain}
-### [Cards](/ru/components/views/view-cards/)
+### [Cards](/ru/components/view-cards/)
 
 Records as a grid of cards: the name and up to four fields.
 
@@ -65,7 +70,7 @@ Records as a grid of cards: the name and up to four fields.
 :::
 ::::
 ::::card {variant=plain}
-### [Calendar](/ru/components/views/view-calendar/)
+### [Calendar](/ru/components/view-calendar/)
 
 Records on the days of their date: month, week, day or a list.
 
@@ -73,7 +78,7 @@ Records on the days of their date: month, week, day or a list.
 :::
 ::::
 ::::card {variant=plain}
-### [Record card](/ru/components/views/view-properties/)
+### [Record card](/ru/components/view-properties/)
 
 One record by sections and groups: viewing and editing.
 
@@ -81,7 +86,7 @@ One record by sections and groups: viewing and editing.
 :::
 ::::
 ::::card {variant=plain}
-### [Block in a flow](/ru/components/views/view-flow/)
+### [Block in a flow](/ru/components/view-flow/)
 
 A record or a short form inside a message feed.
 
