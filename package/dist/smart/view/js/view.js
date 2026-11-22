@@ -929,7 +929,13 @@ const layoutsOfBoard = value => LAYOUTS.get(layoutName(value)) === "sf-view-boar
 // page and per_page 24; calendar: days).
 
 
-const OWN_PAGING = new Set(["sf-view-cards", "sf-view-calendar"]);
+const OWN_PAGING = new Set(["sf-view-cards", "sf-view-calendar"]); // The page of a page size that holds record number first (1-based, LV2-8).
+
+function pageHolding(first, perPage) {
+  const per = Number(perPage) || VIEW_DEFAULT_PAGE_SIZE;
+  return Number.isSafeInteger(first) && first > 0 ? Math.floor((first - 1) / per) + 1 : 1;
+}
+
 const LAYOUT_KINDS = Object.freeze({
   "sf-view-board": "board",
   "sf-view-cards": "cards",
@@ -1063,9 +1069,15 @@ const TABLE_TOOLBAR_TEXT = {
 // under sf-pagination, so words a product registers for it reach them too.
 
 const PAGINATION_RANGE_TEXT = {
-  en: Object.fromEntries(["range", "range-many", "page-size-text", "page-size-label"].map(key => [key, _pagination_lang_en_json__WEBPACK_IMPORTED_MODULE_15__.runtime[key]])),
-  ru: Object.fromEntries(["range", "range-many", "page-size-text", "page-size-label"].map(key => [key, _pagination_lang_ru_json__WEBPACK_IMPORTED_MODULE_16__.runtime[key]]))
-};
+  en: Object.fromEntries(["range", "range-many", "page-size-text", "page-size-label", "show-more-count", "show-more-text"].map(key => [key, _pagination_lang_en_json__WEBPACK_IMPORTED_MODULE_15__.runtime[key]])),
+  ru: Object.fromEntries(["range", "range-many", "page-size-text", "page-size-label", "show-more-count", "show-more-text"].map(key => [key, _pagination_lang_ru_json__WEBPACK_IMPORTED_MODULE_16__.runtime[key]]))
+}; // How a table's list goes on past its first page (owner decision D1,
+// 2026-11-21): «Страницами» (pages), «Показать ещё» alone (more), both --
+// the button under the last row and the page numbers below it -- (both, the
+// default), or by itself as the person scrolls (endless).
+
+const VIEW_PAGING = ["pages", "more", "both", "endless"];
+const VIEW_PAGING_DEFAULT = "both";
 
 const escapeText = text => String(text).replace(/[&<>"]/gu, letter => ({
   "&": "&amp;",
@@ -1090,14 +1102,32 @@ const escapeText = text => String(text).replace(/[&<>"]/gu, letter => ({
 
 const TABLE_LABELS = ["column-search-placeholder", "column-search-empty-text", "column-move-label", "filter-apply-text"];
 const PAGINATION_LABELS = ["show-more-text", "selected-label", "total-label", "pages-label", "first-label", "previous-label", "page-label", "next-label", "last-label", "page-field-label", "action-choose-label", "actions-label", "actions-region-label", "clear-selection-label", "page-size-label"];
-const LABEL_ATTRIBUTES = [...TABLE_LABELS, ...PAGINATION_LABELS, "pagination-aria-label"];
-const CHROME_PARTS = ["toolbar", "pagination", "select", "settings"]; // Writes that cannot have changed a row, so the view does not re-query after
+const LABEL_ATTRIBUTES = [...TABLE_LABELS, ...PAGINATION_LABELS, "pagination-aria-label"]; // The parts of the list a host can switch off (VR5, owner: everything in
+// the list can be set or switched off from the backend or by a call). The
+// four old words name whole rows; the rest are parts inside them, each
+// under its row (CHROME_WITHIN). A chrome that names none of the parts
+// keeps every part, so chrome="toolbar pagination" of an older page draws
+// what it drew; one that names a part is the whole list: a part it does
+// not name is not drawn.
+
+const CHROME_PARTS = ["toolbar", "pagination", "select", "settings", "search", "filter", "look", "page-size"];
+const CHROME_WITHIN = {
+  search: "toolbar",
+  filter: "toolbar",
+  look: "toolbar",
+  "page-size": "pagination"
+}; // Writes that cannot have changed a row, so the view does not re-query after
 // them. Opening a record changes nothing either; the rest of the settings layer
 // is the person's own view of the same rows.
 
 const ANSWER_ONLY = new Set(["node.targets"]);
 const TREE_INTENTS = new Set(["tree.expand", "node.targets", "node.move"]);
-const NO_REFRESH_AFTER = new Set(["record.open", "tree.expand", "node.targets", "settings.save_personal", "settings.save_shared"]);
+const NO_REFRESH_AFTER = new Set(["record.open", "tree.expand", "node.targets", "settings.save_personal", "settings.save_shared", // The list head's «Настроить вид» (view round 13): a setting is shown at
+// once by the part it belongs to, and one that needs other rows (a
+// board's lanes, a calendar's date field) asks for them itself. Re-read
+// after the save, the rows «Показать ещё» had added collapsed to the last
+// page («41–48 из 48») when the person changed «Подгрузка».
+"settings.save"]);
 
 const copy = value => value == null ? value : JSON.parse(JSON.stringify(value)); // Whether a filter value holds anything: an empty string, list or object is
 // no filter.
@@ -1246,6 +1276,22 @@ class SfDataView extends DataViewElement {
           <style>
             :host { display: block; }
             [part="layout"] { display: grid; gap: var(--sf-data-view-gap, var(--sf-space-3)); }
+            /* The list head holds the top while the list scrolls (C328; view
+               round 13, VHF-15): the search, the filter fields and the view's
+               strip stay, the title row leaves (--sf-view--head-offset is
+               minus its height and the gap under it, measured by js/head.js).
+               The table's head sticks right under it (--sf-view--stuck-head,
+               the part of the head that stays). In the page or in a scrolling
+               box around the view alike: a sticky part binds to the nearest
+               scroll container. A view without the list head says 0, so a
+               list inside another view's record card is not pushed down. */
+            :host { --sf-view--stuck-head: 0px; }
+            :host([head="list"]) [part="head"] {
+              position: sticky;
+              inset-block-start: var(--sf-view--head-offset, 0px);
+              z-index: var(--sf-z-index-2, 20);
+              background-color: var(--sf-view-head--background-color, var(--sf-surface-page));
+            }
             [part="toolbar"] { display: flex; flex-wrap: wrap; gap: var(--sf-data-view-toolbar-gap, var(--sf-space-2)); }
             /* Hidden means hidden: the toolbar's own display beat the hidden
                attribute, and a related list in a record panel (chrome="")
@@ -1338,6 +1384,16 @@ class SfDataView extends DataViewElement {
                (data-sf-view-footer-count, view round 7). */
             :host(:not([data-sf-view-footer-count])) [part="footer"]:has(> slot[name="pagination"][hidden]) { display: none; }
             slot[name="footer"]::slotted(*) { flex: 1 1 auto; min-inline-size: 0; }
+            /* «Показать ещё» right under the last row, across the list (D1):
+               half a space step under the rows, not the layout's gap. The page
+               numbers stay in the footer below it («Вместе»), or go («Показать
+               ещё», «Бесконечно»). */
+            slot[name="more"]::slotted(*) {
+              margin-block-start: calc(-1 * var(--sf-data-view-gap, var(--sf-space-3)));
+              padding-block: var(--sf-space-1\\/2);
+            }
+            slot[name="more"]::slotted([hidden]) { display: none; }
+            slot[name="pagination"]::slotted([data-sf-view-paging-off]) { display: none; }
             slot[name="pagination"]::slotted(*) { margin-inline-start: auto; }
           </style>
           <slot name="first-paint"></slot>
@@ -1355,6 +1411,7 @@ class SfDataView extends DataViewElement {
             <div part="drop" hidden></div>
             <slot name="content"></slot>
             <slot name="show-all"></slot>
+            <slot name="more"></slot>
             <div part="footer"><slot name="footer"></slot><slot name="pagination"></slot></div>
             <slot name="bulk"></slot>
             <slot name="notice"></slot>
@@ -1602,6 +1659,28 @@ class SfDataView extends DataViewElement {
 
     this._applyBulkActions();
 
+    this._syncSelects();
+  } // Actions given or taken away bring or take the boxes (VHF-11), whether
+  // they come as bulkActions or on the page row's actions attribute, now or
+  // after the first draw.
+
+
+  _syncSelects() {
+    const selects = this.selects();
+    const table = this.table;
+
+    if (table && !hostWroteOff(table, "selectable")) {
+      const on = selects && this._queryRefused !== true;
+      table.setAttribute("selectable", on ? "true" : "false"); // Rows drawn before carry no box cell: the table writes them when
+      // rows are set, so the rows it has are set again (the head showed
+      // the box column over rows without boxes).
+
+      const rows = on ? table.getTableData?.().rows ?? [] : [];
+      if (rows.length && rows.some(row => row && typeof row === "object" && row.select === undefined)) table.setRows?.(rows.map(row => ({ ...row
+      })));
+    }
+
+    if (this.layoutKind === "board") this._syncBoard?.();
     if (this.layoutKind === "cards") (0,_js_cards_js__WEBPACK_IMPORTED_MODULE_20__.syncCards)(this);
   }
 
@@ -1631,7 +1710,10 @@ class SfDataView extends DataViewElement {
     // each lane has its own «Показать ещё» (C304).
     // Cards (layout="cards") too: «Показать ещё» is under their grid (C306);
     // and the calendar, whose period is its own window (C307).
-    const board = this.layoutKind === "board" || this.layoutKind === "cards" || this.layoutKind === "calendar";
+    const board = this.layoutKind === "board" || this.layoutKind === "cards" || this.layoutKind === "calendar"; // The cards have the table's page row (list study v2, LV2-6): their
+    // pages and «Показать ещё» are the list's, as D1 draws them.
+
+    const noPageRow = this.layoutKind === "board" || this.layoutKind === "calendar";
     const defaults = [["content", "sf-view-table", {}], ["pagination", "sf-pagination", {
       appearance: "field",
       top: "false",
@@ -1643,7 +1725,7 @@ class SfDataView extends DataViewElement {
       // A part the view does not draw (chrome without pagination, an
       // embedded list) gets no default element: it would print a page
       // row nobody sees into the first paint.
-      if (slot === "pagination" && (board || !this.renders("pagination"))) {
+      if (slot === "pagination" && (noPageRow || !this.renders("pagination"))) {
         [...(this.children ?? [])].filter(child => child.getAttribute?.("slot") === slot && child.hasAttribute?.("data-sf-view-default")).forEach(child => child.remove());
         continue;
       } // The layout hold (VSA-5) stands in the list place only while the
@@ -1695,6 +1777,16 @@ class SfDataView extends DataViewElement {
     }
 
     return "table";
+  } // The kind of the layout the page wrote when the view was connected (no
+  // switch, no person's state): null before it is connected.
+
+
+  get pageLayoutKind() {
+    if (this._pageLayout === undefined) return null;
+    const written = this._pageLayout;
+    if (written === null || written === "") return "table";
+    const name = layoutName(written);
+    return LAYOUTS.has(name) ? LAYOUT_KINDS[LAYOUTS.get(name)] ?? name : "table";
   }
 
   static registerLayout(name, tag) {
@@ -1749,6 +1841,14 @@ class SfDataView extends DataViewElement {
     const written = toTag === "sf-view-table" ? name === "table" ? own : name : LAYOUT_KINDS[toTag] ?? name;
 
     if (fromTag !== toTag) {
+      // The record first on screen stays on screen (LV2-8): the new
+      // kind opens on the page that holds it, in its own page size, so
+      // the page row and the records never disagree. It is held over
+      // switches back and forth until the person turns a page or asks
+      // anything else: table page 2 -> cards 1-24 -> table page 2.
+      const perBefore = Number(this.query?.per_page) || VIEW_DEFAULT_PAGE_SIZE;
+      this._anchorFirst ??= ((Number(this._runStart ?? this.query?.page) || 1) - 1) * perBefore + 1;
+      this._keepFirst = this._anchorFirst;
       this._carrySelection = marked.map(String);
       this._carrySequence = this.sequence; // The cards ask their own page size (24, C306) and the calendar
       // asks days, not pages: the list's page size is kept while either
@@ -1760,9 +1860,10 @@ class SfDataView extends DataViewElement {
         value: this.query?.per_page
       };else if (this._perPageOfList) {
         if (this._perPageOfList.value === undefined) delete this.query.per_page;else this.query.per_page = this._perPageOfList.value;
-        this.query.page = 1;
         this._perPageOfList = null;
       }
+      if (toTag === "sf-view-table") this.query.page = pageHolding(this._keepFirst, this.query.per_page);else if (!OWN_PAGING.has(toTag)) this.query.page = 1;
+      if (toTag !== "sf-view-cards") this._keepFirst = null;
       if (this.query && typeof this.query === "object") delete this.query.window;
     }
 
@@ -1889,6 +1990,36 @@ class SfDataView extends DataViewElement {
     }
 
     if (answered) this._carrySelection = null;
+  } // What the person changed in «Настроить вид» for a board, the cards or
+  // the calendar (the list head's own settings, saved for them at once,
+  // C298): laid over the layout's options the host answers, so they show
+  // at once and stay through the next answer that does not echo them yet
+  // (view round 13, VHF-13).
+
+
+  ownLayoutSettings(kind) {
+    const own = this._head?._settings?.[kind];
+    return own && typeof own === "object" ? copy(own) : {};
+  } // A layout setting changed in «Настроить вид» (VHF-13): drawn at once. A
+  // board's lane field and a calendar's date field change what is asked, so
+  // the list is asked again; the rest (card fields, empty lanes, the card
+  // size, the colour field) is drawn from what is on screen.
+
+
+  applyLayoutSettings(kind, patch = {}) {
+    if (!["board", "cards", "calendar"].includes(kind) || !patch || typeof patch !== "object") return;
+    if (kind !== this.layoutKind) return; // The board asks with its new lane field and draws the lanes when they
+    // come; the calendar takes its new date field first, since the days
+    // it asks for are its own window.
+
+    if (kind === "board" && "lane_field" in patch) {
+      this.refresh("settings-change");
+      return;
+    }
+
+    this._renderProjection();
+
+    if (kind === "calendar" && "date_field" in patch) this.refresh("settings-change");
   }
 
   get board() {
@@ -2119,7 +2250,11 @@ class SfDataView extends DataViewElement {
     if (!pagination || this._watchedPagination === pagination || typeof MutationObserver === "undefined") return;
     this._paginationObserver?.disconnect();
     this._watchedPagination = pagination;
-    this._paginationObserver = new MutationObserver(() => this._queueFooter());
+    this._paginationObserver = new MutationObserver(records => {
+      this._queueFooter();
+
+      if (records.some(record => record.attributeName === "actions")) this._syncSelects();
+    });
 
     this._paginationObserver.observe(pagination, {
       attributes: true
@@ -2150,12 +2285,12 @@ class SfDataView extends DataViewElement {
   }
 
   _drawFooter() {
-    if (this._drawCountFooter()) return;
+    if (this._drawCountFooter()) return this._drawMore(null);
     const pagination = this.pagination; // Drawn from the page row's own reading of its state, so not before
     // the row is an sf-pagination (its module may still be on the way).
 
-    if (!pagination || typeof pagination.setState !== "function" || typeof pagination.requestCount !== "function" || !this.renders("pagination")) return;
-    if (!this.footerStart) return;
+    if (!pagination || typeof pagination.setState !== "function" || typeof pagination.requestCount !== "function" || !this.renders("pagination")) return this._drawMore(null);
+    if (!this.footerStart) return this._drawMore(null);
     this._footerStart.hidden = false;
 
     const part = name => this._footerParts?.[name] ?? null;
@@ -2175,8 +2310,17 @@ class SfDataView extends DataViewElement {
     // all the rows on screen, «1–12 из 12», not the page that came last
     // («11–12 из 12» beside «Показано 12 из 12», view round 5 R5-4).
 
-    const growing = pagination.getAttribute?.("appearance") === "more" && (this.records ?? []).length > 0;
-    const text = growing ? this._shownRangeText() : pagination.rangeText ?? "";
+    const paging = this._viewPaging();
+
+    const growing = (pagination.getAttribute?.("appearance") === "more" || paging !== null && paging !== "pages") && (this.records ?? []).length > 0;
+    const text = growing ? this._shownRangeText(paging === null ? 1 : this._runFrom()) : pagination.rangeText ?? ""; // The page numbers go where the list goes on by «Показать ещё» alone
+    // or by itself (D1); «Вместе» and «Страницами» keep them.
+
+    const off = paging === "more" || paging === "endless";
+    if (pagination.hasAttribute("data-sf-view-paging-off") !== off) pagination.toggleAttribute("data-sf-view-paging-off", off);
+
+    this._drawMore(paging);
+
     if (range && range.textContent !== text) range.textContent = text; // «41–60 из ~450» or «из многих»: the offer to count, where the host
     // counts on request, and a short wait while it does (as the
     // compatible footer offered it).
@@ -2202,8 +2346,10 @@ class SfDataView extends DataViewElement {
         size: pageSize
       }
     }) ?? String(pageSize));
-    write(button, "aria-label", `${pagination.pageSizeLabel ?? ""} ${pageSize}`.trim());
-    if (button) button.hidden = pagination.showPageSize === false || !hasPages;
+    write(button, "aria-label", `${pagination.pageSizeLabel ?? ""} ${pageSize}`.trim()); // A host that names the footer's parts without page-size (VR5-6)
+    // keeps the range and the pages, not the size choice.
+
+    if (button) button.hidden = pagination.showPageSize === false || !hasPages || !this.renders("page-size");
     const menu = part("menu");
     sized(menu);
     write(menu, "aria-label", pagination.pageSizeLabel ?? "");
@@ -2216,9 +2362,10 @@ class SfDataView extends DataViewElement {
 
 
   _drawCountFooter() {
-    const kind = this.layoutKind;
+    const kind = this.layoutKind; // Cards with a page row draw the table's footer (LV2-6); without
+    // one they say their count as the board does.
 
-    if (kind !== "board" && kind !== "cards") {
+    if (kind !== "board" && !(kind === "cards" && !this.pagination)) {
       // Back to a table or on to a calendar: the mark goes with the kind.
       this.removeAttribute?.("data-sf-view-footer-count");
       return false;
@@ -2265,23 +2412,160 @@ class SfDataView extends DataViewElement {
   // page row's words (a board, cards, and the «Показать ещё» look).
 
 
-  _shownRangeText() {
+  _shownRangeText(from = 1) {
     const shown = (this.records ?? []).length;
+    const to = from - 1 + shown;
     const words = {
       component: "sf-pagination"
     };
     const known = this.countKnown !== false && Number.isSafeInteger(this.total);
     return known ? (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_2__.pageWord)(PAGINATION_RANGE_TEXT, "range", this, { ...words,
       vars: {
-        from: 1,
-        to: shown,
-        total: this._shownTotal(Math.max(this.total, shown))
+        from,
+        to,
+        total: this._shownTotal(Math.max(this.total, to))
       }
     }) : (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_2__.pageWord)(PAGINATION_RANGE_TEXT, "range-many", this, { ...words,
       vars: {
-        from: 1,
-        to: shown
+        from,
+        to
       }
+    });
+  } // ---------- going on past the first page (owner decision D1) ----------
+  // How the table's list goes on: the person's choice in «Настроить вид»
+  // (the view's layouts.table.paging, saved for them), else the view's
+  // document, else what this browser kept, else the page's paging
+  // attribute, else «Вместе».
+
+
+  get paging() {
+    const valid = value => VIEW_PAGING.includes(String(value)) ? String(value) : null;
+
+    return valid(this._head?._settings?.table?.paging) ?? valid(this.viewConfig?.layouts?.table?.paging) ?? valid(this.preferencesKey ? preferences()?.read(this.preferencesKey)?.paging : null) ?? valid(this.getAttribute("paging")) ?? VIEW_PAGING_DEFAULT;
+  } // Whether the view chooses how the table goes on: its own page row, or
+  // one the page wrote without an appearance. A page row the page gave an
+  // appearance of its own is the page's choice, and the view leaves it.
+
+
+  get pagingOffered() {
+    const row = this.pagination;
+    if (!row || !["table", "cards"].includes(this.layoutKind)) return false;
+    return !row.hasAttribute("appearance") || row.hasAttribute("data-sf-view-appearance") || row.hasAttribute("data-sf-view-made") || row.hasAttribute("data-sf-view-default");
+  } // The paging in force on a table list, or null where the page row is the
+  // page's own (or there is no table list: a tree has no pages).
+
+
+  _viewPaging() {
+    if (!this.pagingOffered || this.treeMode === "tree") return null;
+    return this.paging;
+  } // The first record's number on screen: the page the rows start from.
+
+
+  _runFrom() {
+    const size = Number(this.query.per_page) || VIEW_DEFAULT_PAGE_SIZE;
+    return ((Number(this._runStart) || 1) - 1) * size + 1;
+  } // Whether the host has more past the rows on screen.
+
+
+  _hasMoreRows() {
+    const shown = this._runFrom() - 1 + (this.records ?? []).length;
+    if (this.countKnown !== false && Number.isSafeInteger(this.total)) return shown < this.total;
+    return this.hasNext === true;
+  } // A paging the person chose (D1): kept in this browser for the first
+  // paint (the view's document comes with the answer), then drawn.
+
+
+  applyPaging(value) {
+    if (!VIEW_PAGING.includes(String(value))) return;
+    if (this.preferencesKey) this._keepPreference({
+      paging: String(value)
+    });
+
+    this._queueFooter();
+  } // «Показать ещё N» across the list, right under its last row (D1): in
+  // «Вместе» above the page numbers, alone in «Показать ещё», and in
+  // «Бесконечно» the button the list loads by itself from as a person's
+  // scroll brings it into view (never on load by itself), kept for the
+  // keyboard. The next page is asked with the reason show-more and appended
+  // to the rows (the view has always appended it).
+
+
+  _drawMore(paging = this._viewPaging()) {
+    const existing = this.querySelector(':scope > [slot="more"][data-sf-view-made]');
+    const state = this.getAttribute("data-state") ?? "";
+
+    const show = paging !== null && paging !== "pages" && this._answered && !this._queryRefused && !["error", "no-access"].includes(state) && (this.records ?? []).length > 0 && this._hasMoreRows();
+
+    if (!show) {
+      if (existing) existing.hidden = true;
+      return;
+    }
+
+    let holder = existing;
+
+    if (!holder) {
+      holder = document.createElement("div");
+      holder.setAttribute("slot", "more");
+      holder.setAttribute("data-sf-view-made", "");
+      holder.className = "sf-view-more";
+      holder.innerHTML = '<sf-button class="sf-view-more-button" full-width appearance="outline" scheme="on-surface"></sf-button>';
+      holder.firstElementChild.addEventListener("click", () => this._showMore());
+      this.append(holder);
+    }
+
+    holder.hidden = false;
+    const button = holder.firstElementChild;
+    const size = this.controlSize;
+    if (size) button.setAttribute("size", size);else button.removeAttribute("size");
+    const perPage = Number(this.query.per_page) || VIEW_DEFAULT_PAGE_SIZE;
+    const known = this.countKnown !== false && Number.isSafeInteger(this.total);
+    const left = known ? this.total - (this._runFrom() - 1 + (this.records ?? []).length) : perPage;
+    const words = {
+      component: "sf-pagination"
+    };
+    const text = (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_2__.pageWord)(PAGINATION_RANGE_TEXT, "show-more-count", this, { ...words,
+      vars: {
+        count: Math.max(1, Math.min(perPage, left))
+      }
+    });
+    if (button.getAttribute("text") !== text) button.setAttribute("text", text);
+    const busy = this.continuing && this.pending !== null;
+    button.toggleAttribute("loading", busy);
+    button.toggleAttribute("disabled", busy);
+    if (paging === "endless") this._watchEndless(holder);
+  }
+
+  _showMore() {
+    if (this.continuing && this.pending !== null) return;
+    this.changeQuery({
+      page: (Number(this.query.page) || 1) + 1
+    }, "show-more");
+
+    this._queueFooter();
+  } // «Бесконечно»: the next page when a scroll of the person's brings the
+  // button into view (or finds it there) -- a list that fits the window
+  // does not load page after page by itself, and one page at a time.
+
+
+  _watchEndless(holder) {
+    this._endlessWatched = holder;
+    if (this._endlessScroll) return;
+
+    this._endlessScroll = () => {
+      if (this._endlessFrame) return;
+      this._endlessFrame = requestAnimationFrame(() => {
+        this._endlessFrame = 0;
+        const watched = this._endlessWatched;
+        if (!watched?.isConnected || watched.hidden || this._viewPaging() !== "endless") return;
+        if (this.continuing && this.pending !== null) return;
+        const box = watched.getBoundingClientRect();
+        if (box.height && box.top < (globalThis.innerHeight ?? 0) && box.bottom > 0) this._showMore();
+      });
+    };
+
+    globalThis.addEventListener?.("scroll", this._endlessScroll, {
+      capture: true,
+      passive: true
     });
   } // The menu of page sizes is made when it is first opened: a list nobody
   // opens carries no menu element.
@@ -2418,6 +2702,7 @@ class SfDataView extends DataViewElement {
       }
 
       globalThis.SF?.Loader?.ensure?.([tag]);
+      if (this.layoutKind === "cards") this._ownPageRow();
 
       this._applyBulkActions();
 
@@ -2434,22 +2719,29 @@ class SfDataView extends DataViewElement {
       this.append(table);
     }
 
-    if (!this.querySelector(':scope > [slot="pagination"]')) {
-      const pagination = document.createElement("sf-pagination");
-      pagination.slot = "pagination";
-      pagination.setAttribute("appearance", "field");
-      pagination.setAttribute("top", "false");
-      pagination.setAttribute("bottom", "false");
-      pagination.toggleAttribute("data-sf-view-made", true);
-      this.append(pagination);
-    }
+    this._ownPageRow();
 
     this._applyBulkActions();
 
     this._applyForAll();
   }
 
+  _ownPageRow() {
+    if (this.querySelector(':scope > [slot="pagination"]') || !this.renders("pagination")) return;
+    const pagination = document.createElement("sf-pagination");
+    pagination.slot = "pagination";
+    pagination.setAttribute("appearance", "field");
+    pagination.setAttribute("top", "false");
+    pagination.setAttribute("bottom", "false");
+    pagination.toggleAttribute("data-sf-view-made", true);
+    this.append(pagination);
+  }
+
   connectedCallback() {
+    // The layout the page wrote, before any switch (view round 11): the
+    // kind a stored view that names none stands for (head.js storedKind).
+    if (this._pageLayout === undefined) this._pageLayout = this.getAttribute("layout");
+
     this._lightDefaults();
 
     this._readPrintedPageSize();
@@ -2544,14 +2836,54 @@ class SfDataView extends DataViewElement {
   // the cap of an embedded list; else the cap; else a page of the table's
   // (sf-view-table pagination-page-size, 10). A skeleton of 10 rows over a page
   // of 20 grows the list when the rows come (stand 25 D1).
+  // When the page row says how many records there are (its total, as the
+  // host printed it), the page the list will show holds no more than what is
+  // left from its current page (view round 11, R9-1: a one-page list of 10
+  // under a page of 12 drew 12 skeleton rows, and the footer moved up by
+  // 300 px at 390 when the answer came).
 
 
   get firstPaintRows() {
     const asked = this._declaredPageSize();
 
     const cap = this.rowCap;
-    if (asked && cap) return Math.min(asked, cap);
-    return asked || cap || FIRST_PAINT_ROWS;
+    const rows = asked && cap ? Math.min(asked, cap) : asked || cap || FIRST_PAINT_ROWS;
+
+    const left = this._printedRecordsLeft(asked || FIRST_PAINT_ROWS);
+
+    return left === null ? rows : Math.max(1, Math.min(rows, left));
+  } // The records from the current page on, by the page row's printed total;
+  // null when the page row says no total. A printed total of 0 is a page
+  // row's placeholder before the first answer (it is how a server page
+  // prints an unknown count), not a count: it does not size the skeleton.
+
+
+  _printedRecordsLeft(size) {
+    const row = this.querySelector?.(':scope > sf-pagination[slot="pagination"]');
+    const total = Number.parseInt(row?.getAttribute?.("total") ?? "", 10);
+    if (!Number.isInteger(total) || total < 1) return null;
+    const current = Number.parseInt(row.getAttribute("current") ?? "", 10);
+    const page = Number.isInteger(current) && current > 1 ? current : 1;
+    return total - (page - 1) * size;
+  } // The host's hint of a record's shape in the compact list (view round 11,
+  // R9-1, DEV decision msg-2e226e69): list-shape on the view (or its table)
+  // names the lines of each part of a record on a phone, the title first --
+  // "1 1 2 1" is a title of one line and three fields, the third value
+  // taking two lines. The skeleton draws that shape, so the list does not
+  // move when the records come. Without it the skeleton keeps a title and
+  // list-fields fields of one line each (109 px at 390). Up to 12 parts of
+  // 1 to 8 lines; "resource" is the row of a list of resources (C31 roles:
+  // the title's line and the supporting line under it, 52 px); anything
+  // else is no hint.
+
+
+  get listShape() {
+    const table = this.querySelector?.(`:scope > ${(0,_core_js_smart_base__WEBPACK_IMPORTED_MODULE_4__.tagSelector)("sf-view-table")}[slot="content"]`);
+    const written = this.getAttribute?.("list-shape") ?? table?.getAttribute?.("list-shape") ?? "";
+    if (written.trim() === "resource") return "resource";
+    if (!/^\s*\d+(?:[\s,]+\d+)*\s*$/u.test(written)) return null;
+    const parts = written.trim().split(/[\s,]+/u).map(Number);
+    return parts.length <= 12 && parts.every(lines => Number.isInteger(lines) && lines >= 1 && lines <= 8) ? parts : null;
   } // Whether the page row draws its navigation before the host's first
   // answer: the rule of sf-pagination 1.10.0 (singlePage: no page before
   // and none after) over what the page wrote on its page row -- a current
@@ -2559,7 +2891,19 @@ class SfDataView extends DataViewElement {
   // that says nothing of its count draws no arrows, so the skeleton prints
   // none either; a list of several pages the page wrote the count of keeps
   // their line from the first paint.
+  // The paging the first paint draws (D1): as the live footer will, for
+  // the page row the page wrote (or the view's own), null where the page
+  // gave its row an appearance of its own.
 
+
+  _firstPaintPaging() {
+    const row = this.querySelector?.(':scope > sf-pagination[slot="pagination"]');
+
+    const has = name => (row?.getAttribute?.(name) ?? null) !== null;
+
+    if (row && has("appearance") && !has("data-sf-view-appearance") && !has("data-sf-view-made") && !has("data-sf-view-default")) return null;
+    return this.paging;
+  }
 
   get firstPaintHasPages() {
     const row = this.querySelector?.(':scope > sf-pagination[slot="pagination"]');
@@ -2699,6 +3043,18 @@ class SfDataView extends DataViewElement {
 
   knownCapability(capability) {
     return Boolean(this.knownPort?.capabilities?.includes?.(capability));
+  } // A known host that offers no row actions: its rows have no menu
+  // (VR5-10, data-sf-row-menu-off on the table).
+
+
+  _rowMenuOff() {
+    return Boolean(this.knownPort) && !this.knownCapability("row-actions");
+  } // The table's «≡» column has nothing to open: no row menu, no column
+  // gear (personal-column-settings outside the list head), no reordering.
+
+
+  _settingsColumnUnused() {
+    return this._rowMenuOff() && !(this.knownCapability("personal-column-settings") && !this.listHead) && !(this.knownCapability("row-reorder") && this.treeMode !== "tree");
   } // The query the page printed: the first answer's own (first-answer.query),
   // else the declared port's first query.change. The view asks exactly that,
   // so an early call the page started is the view's own (one request) and
@@ -2814,10 +3170,24 @@ class SfDataView extends DataViewElement {
 
 
     const toolbar = !this.listHead && (table ? table.getAttribute("toolbar") !== "false" : this.renders("toolbar"));
-    const headRows = this.listHead && this.renders("toolbar");
-    const ownToolbar = Boolean(table) && this.renders("toolbar") && Boolean(this.querySelector(':scope > [slot="toolbar"]'));
-    const select = this.renders("select") && !hostWroteOff(table, "selectable");
-    const settings = this.renders("settings") && !hostWroteOff(table, "settings");
+    const headRows = this.listHead && this.renders("toolbar"); // The head row holds «Фильтр» and the search; a part the page
+    // switched off by its chrome (VR5) holds no place (head.chrome of
+    // the view document comes with the answer).
+
+    const filterHeld = this.renders("filter");
+    const searchHeld = this.renders("search");
+    const headRow = filterHeld || searchHeld ? (filterHeld ? control() : "<span></span>") + (searchHeld ? control() : "") : "";
+    const ownToolbar = Boolean(table) && this.renders("toolbar") && Boolean(this.querySelector(':scope > [slot="toolbar"]')); // The host's word is read before the view writes its own (round 12): a
+    // list drawn before its bulk actions arrive writes selectable="false",
+    // which read later as the host's would keep the boxes off for good.
+
+    const hostOffSelect = hostWroteOff(table, "selectable");
+    const select = !hostOffSelect && this.selects();
+    const hostOffSettings = hostWroteOff(table, "settings");
+    const settings = !hostOffSettings && this.renders("settings"); // The «≡» column goes where the known host gives it nothing to open
+    // (VR5-10), as the table will draw it.
+
+    const settingsColumn = settings && !this._settingsColumnUnused();
 
     const layout = this._firstPaintLayout(table); // The saved-views control (the filter's bookmark segment), when the
     // page declared it before the first answer -- a data-sf-port that
@@ -2885,9 +3255,13 @@ class SfDataView extends DataViewElement {
     const listFields = Number.parseInt(table?.getAttribute("list-fields") ?? "", 10);
     const fields = Math.min(columns - 1, Number.isFinite(listFields) && listFields >= 0 ? listFields : FIRST_PAINT_LIST_FIELDS); // The head is a row like the others (sf-view-table 1.17.1).
 
-    const row = () => `<div>${select ? `<span data-chrome>${bar}</span>` : ""}${settings ? `<span data-chrome>${control()}</span>` : ""}${`<span>${bar}</span>`.repeat(columns)}</div>`;
+    const row = () => `<div>${select ? `<span data-chrome>${bar}</span>` : ""}${settingsColumn ? `<span data-chrome>${control()}</span>` : ""}${`<span>${bar}</span>`.repeat(columns)}</div>`; // A part of more than one line is its lines with no gap between them,
+    // as a wrapped value is (list-shape).
 
-    const record = `<div>${select ? bar : "<span></span>"}<div>${bar.repeat(fields + 1)}</div>${settings ? control() : "<span></span>"}</div>`; // The footer as the view draws it (C97 (5)): the range at the start,
+
+    const shape = this.listShape;
+    const parts = shape === "resource" ? `${bar}<i class="sf-skeleton-text" data-supporting></i>` : shape ? shape.map(lines => lines === 1 ? bar : `<span data-lines="${lines}">${bar.repeat(lines)}</span>`).join("") : bar.repeat(fields + 1);
+    const record = `<div${shape === "resource" ? " data-resource" : ""}>${select ? bar : "<span></span>"}<div${shape ? " data-shape" : ""}>${parts}</div>${settings ? control() : "<span></span>"}</div>`; // The footer as the view draws it (C97 (5)): the range at the start,
     // the page-size button, and the page row in the field appearance --
     // the arrows to the first and the previous page, the page field with
     // «из N», the arrows to the next and the last. The view's sheet lays
@@ -2899,12 +3273,20 @@ class SfDataView extends DataViewElement {
     // count is what the page wrote (firstPaintHasPages). Printed for a
     // one-page list, the arrows' line stood 48px under the range at 390
     // and went when the answer came (gate 24, view/reference @390).
+    // «Показать ещё» across the list under its last row (D1), where the
+    // list goes on past this page and the paging draws the button; the
+    // page numbers only where the paging keeps them.
 
-    const pageRow = `<div class="sf-data-view-skeleton-footer" data-size="${this.size}">` + `<div class="sf-data-view-skeleton-footer-start"><span>${bar}</span>${control("size")}</div>` + (this.firstPaintHasPages ? `<div class="sf-data-view-skeleton-footer-pages">${control()}${control()}${control("page")}${control()}${control()}</div>` : "") + "</div>";
+    const paging = this._firstPaintPaging();
+
+    const goesOn = this.firstPaintHasPages;
+    const moreRow = goesOn && paging !== null && paging !== "pages" ? `<div class="sf-data-view-skeleton-more" data-size="${this.size}">${control("more")}</div>` : "";
+    const pages = goesOn && paging !== "more" && paging !== "endless";
+    const pageRow = moreRow + `<div class="sf-data-view-skeleton-footer" data-size="${this.size}">` + `<div class="sf-data-view-skeleton-footer-start"><span>${bar}</span>${control("size")}</div>` + (pages ? `<div class="sf-data-view-skeleton-footer-pages">${control()}${control()}${control("page")}${control()}${control()}</div>` : "") + "</div>";
     return [// An own toolbar slot is a row of the view's layout, even empty.
     ownToolbar ? '<div class="sf-data-view-skeleton-own-toolbar"></div>' : "", // The list head's two rows hold their height from the first paint.
     // A view zone the person left open (VZ-1) holds its framed row too.
-    headRows ? `<div class="sf-view-head-skeleton" data-size="${this.size}"><div>${bar}</div><div>${control()}${control()}</div>${this.keptPreferences?.viewZone === true ? `<div data-zone>${control()}${control()}</div>` : ""}</div>` : "", '<div class="sf-data-view-skeleton-records">', toolbar ? toolbarMarkup : "", `<div class="sf-data-view-skeleton-table">${row()}${Array.from({
+    headRows ? `<div class="sf-view-head-skeleton" data-size="${this.size}"><div>${bar}</div>${headRow ? `<div>${headRow}</div>` : ""}${this.keptPreferences?.viewZone === true ? `<div data-zone>${control()}${control()}</div>` : ""}</div>` : "", '<div class="sf-data-view-skeleton-records">', toolbar ? toolbarMarkup : "", `<div class="sf-data-view-skeleton-table">${row()}${Array.from({
       length: rows
     }, () => row()).join("")}</div>`, // The list's page box over its records (sf-view-table 1.24.0, VT-2).
     `<div class="sf-data-view-skeleton-list">${select ? `<div data-list-head>${bar}${bar}</div>` : ""}${record.repeat(rows)}</div>`, "</div>", this.renders("pagination") ? pageRow : ""].join("");
@@ -3041,7 +3423,14 @@ class SfDataView extends DataViewElement {
   }
 
   disconnectedCallback() {
-    this.epoch += 1; // Once per connection, so an element moved in the DOM asks again. Without
+    this.epoch += 1;
+    this._endlessWatched = null;
+    globalThis.cancelAnimationFrame?.(this._endlessFrame ?? 0);
+    this._endlessFrame = 0;
+    if (this._endlessScroll) globalThis.removeEventListener?.("scroll", this._endlessScroll, {
+      capture: true
+    });
+    this._endlessScroll = null; // Once per connection, so an element moved in the DOM asks again. Without
     // this reset a list re-attached into a different host would sit portless
     // and silent, which looks exactly like a host that chose not to answer.
 
@@ -3075,10 +3464,73 @@ class SfDataView extends DataViewElement {
     const declared = this.getAttribute("chrome");
     if (declared === null) return [...CHROME_PARTS];
     return declared.split(/\s+/u).filter(part => CHROME_PARTS.includes(part));
+  } // The same list as a call (VR5): view.chrome = ["toolbar", "search"]
+  // writes the attribute; null or undefined removes it (every part).
+
+
+  set chrome(parts) {
+    if (parts === null || parts === undefined) this.removeAttribute("chrome");else this.setAttribute("chrome", (Array.isArray(parts) ? parts : String(parts).split(/\s+/u)).map(String).join(" ").trim());
+  }
+
+  setChrome(parts) {
+    this.chrome = parts;
+  } // The rows of «Настроить вид» a person sees (VR5-5): head.look of the
+  // view document, or view.look set by a call; null shows every row.
+  // locked still disables a row it does not hide.
+
+
+  get look() {
+    const own = this._look ?? this.viewConfig?.head?.look;
+    return Array.isArray(own) ? own.map(String) : null;
+  }
+
+  set look(rows) {
+    this._look = Array.isArray(rows) ? rows.map(String) : null;
+
+    this._renderProjection();
   }
 
   renders(part) {
-    return this.chrome.includes(part);
+    const row = CHROME_WITHIN[part];
+    if (!row) return this.chrome.includes(part);
+    if (!this.renders(row)) return false;
+    const chrome = this.chrome;
+    if (this.getAttribute("chrome") !== null && chrome.some(word => CHROME_WITHIN[word]) && !chrome.includes(part)) return false; // The view document's own list (head.chrome): the parts shown; a
+    // part it does not name is not drawn.
+
+    const shown = this.viewConfig?.head?.chrome;
+    if (Array.isArray(shown) && !shown.map(String).includes(part)) return false;
+    return true;
+  } // Whether the list offers anything to do with marked rows: bulk actions
+  // given to the view (bulkActions) or written on its page row (actions).
+
+
+  get hasBulkActions() {
+    if (this._bulkActions?.length) return true;
+    let pagination = null;
+
+    try {
+      pagination = this.pagination;
+    } catch {
+      pagination = null;
+    }
+
+    pagination ??= this.querySelector?.(":scope > sf-pagination") ?? null;
+    const actions = pagination?.actions;
+    if (Array.isArray(actions) && actions.length) return true;
+    return String(pagination?.getAttribute?.("actions") ?? "").trim() !== "";
+  } // Whether the rows, cards and events carry boxes (view round 12, VHF-11,
+  // owner remark via DEV msg-c31ccebd): a box is there to mark records for
+  // a bulk action, so without one there is none -- the table drew boxes that
+  // did nothing and the cards a bar «Выбрано 1 ×», the same in every layout
+  // now. A host that names select in its own chrome keeps the boxes (it does
+  // something with the selection itself).
+
+
+  selects() {
+    if (!this.renders("select")) return false;
+    if (this.getAttribute("chrome") !== null) return true;
+    return this.hasBulkActions;
   } // How many rows an embedded list draws at most. Zero is no cap, which is what
   // a page list is. Not `limit`, which reads like a query limit the host owns,
   // and not `page-size`, which the pagination and the table already use for the
@@ -3145,7 +3597,7 @@ class SfDataView extends DataViewElement {
   }
 
   static get observedAttributes() {
-    return ["chrome", "row-cap", "aria-label", "size", "preferences-key", "head", "heading", ...LIST_ATTRIBUTES, ...LABEL_ATTRIBUTES];
+    return ["chrome", "row-cap", "aria-label", "size", "preferences-key", "head", "heading", "paging", ...LIST_ATTRIBUTES, ...LABEL_ATTRIBUTES];
   } // The words of the table and the pagination the view draws itself, written
   // on the view and passed on: a host that let the view draw its own table
   // had no way to word it, so a list inside the CMS settings spoke the
@@ -3817,7 +4269,10 @@ class SfDataView extends DataViewElement {
     this._queryReason = reason; // Show more continues the list; every other reason replaces it. The
     // answer carries no reason of its own, so it is remembered here.
 
-    this.continuing = reason === "show-more"; // The port's first answer over a first answer the page printed is a
+    this.continuing = reason === "show-more"; // The page the rows on screen start from: «1–40 из 48» after two
+    // pages, «41–48» after a jump to page 3 (D1).
+
+    if (!this.continuing) this._runStart = Number(this.query.page) || 1; // The port's first answer over a first answer the page printed is a
     // revalidation: the rows stay as they are, usable, until it comes.
 
     const revalidating = this._revalidate === true && ["connected", "host-connected"].includes(reason);
@@ -3859,7 +4314,9 @@ class SfDataView extends DataViewElement {
     this.query = { ...this.query,
       ...copy(patch)
     };
+    this._anchorFirst = null;
     if (!["page-change", "page-size-change", "show-more"].includes(reason)) this.query.page = 1;
+    if (reason === "page-size-change" && this.layoutKind === "cards" && Number.isSafeInteger(Number(patch.per_page))) this._cardsPageSize = Number(patch.per_page);
     return this.refresh(reason);
   }
 
@@ -4831,7 +5288,8 @@ class SfDataView extends DataViewElement {
       // drew a box in every row of a list that has no bulk actions (Larena,
       // the sites list, 2026-11-05).
 
-      table.setAttribute("selectable", this.renders("select") && !refused && !hostWroteOff(table, "selectable") ? "true" : "false"); // A page's list becomes the compact list on a narrow container; an
+      const hostOffSelect = hostWroteOff(table, "selectable");
+      table.setAttribute("selectable", !hostOffSelect && this.selects() && !refused ? "true" : "false"); // A page's list becomes the compact list on a narrow container; an
       // embedded one (no toolbar) stays a table, and a layout the host
       // wrote on its table is the host's.
 
@@ -4856,7 +5314,8 @@ class SfDataView extends DataViewElement {
 
       this._tableScrollMode(table);
 
-      table.setAttribute("settings", this.renders("settings") && !hostWroteOff(table, "settings") ? "true" : "false"); // The column settings, without the column: it also carries each
+      const hostOffSettings = hostWroteOff(table, "settings");
+      table.setAttribute("settings", !hostOffSettings && this.renders("settings") ? "true" : "false"); // The column settings, without the column: it also carries each
       // row's menu, which is the host's row-actions, not this.
       // No gear in the table head under the list head: the view settings
       // are «Customize view» above the list (C301 (1)); the row menu stays.
@@ -4888,7 +5347,14 @@ class SfDataView extends DataViewElement {
       }
 
       const hostSaysNo = table.getAttribute?.("data-sf-host-row-actions") === "false";
-      table.setAttribute("row-actions", !hostSaysNo && this.knownCapability("row-actions") ? "true" : "false"); // The accessible name of a list the host did not slot in. The fallback
+      table.setAttribute("row-actions", !hostSaysNo && this.knownCapability("row-actions") ? "true" : "false"); // A host without row actions has no row menu at all (VR5-10): the
+      // table is told so apart from row-actions="false", which also
+      // means «every action in the row menu» -- without it the «≡»
+      // column stood empty, 57 px, at the start of every row.
+      // Only once the host is known: before it, the column holds its
+      // place as the first paint drew it.
+
+      if (this._rowMenuOff()) table.setAttribute("data-sf-row-menu-off", "");else table.removeAttribute?.("data-sf-row-menu-off"); // The accessible name of a list the host did not slot in. The fallback
       // table carries a name of its own, which is right for a page list and
       // wrong inside a group called «Счета»: it would announce «Записи».
       // Only the fallback is renamed -- a table a host slotted in keeps the
@@ -5117,7 +5583,7 @@ class SfDataView extends DataViewElement {
     // A board has none either: each lane has its own «Показать ещё» (C304).
 
     const nothingToCount = !this._answered || this._queryRefused || ["error", "no-access"].includes(this.getAttribute("data-state"));
-    if (pageRow) pageRow.hidden = !this.renders("pagination") || this.treeMode === "tree" || this.layoutKind === "board" || this.layoutKind === "cards" || this.layoutKind === "calendar" || nothingToCount;
+    if (pageRow) pageRow.hidden = !this.renders("pagination") || this.treeMode === "tree" || this.layoutKind === "board" || this.layoutKind === "calendar" || nothingToCount;
 
     if (!this.capHidesRows) {
       if (this._showAll?.isConnected) this._showAll.remove();
@@ -5631,7 +6097,8 @@ class SfDataView extends DataViewElement {
     const fromHost = this._boardHostOptions;
     const fromPage = this.board?.options;
     return { ...(fromPage && typeof fromPage === "object" ? fromPage : {}),
-      ...(fromHost ?? {})
+      ...(fromHost ?? {}),
+      ...this.ownLayoutSettings("board")
     };
   } // The board's part of an answer: the lanes (a continuation of one lane
   // after «Показать ещё»), the move rules and the order field.
@@ -5681,8 +6148,10 @@ class SfDataView extends DataViewElement {
     const board = this.board;
     if (!board || this.layoutKind !== "board") return;
     board.fields = this.columns ?? [];
-    if (this._boardHostOptions) board.options = { ...(board.options ?? {}),
-      ...this._boardHostOptions
+    const own = this.ownLayoutSettings("board");
+    if (this._boardHostOptions || Object.keys(own).length) board.options = { ...(board.options ?? {}),
+      ...(this._boardHostOptions ?? {}),
+      ...own
     };
     board.moves = this._boardMoves ?? {};
 
@@ -5698,7 +6167,7 @@ class SfDataView extends DataViewElement {
     const refused = this._queryRefused === true;
     board.setAttribute("order-field", this._boardOrderField ?? "");
     board.toggleAttribute("sort-active", Array.isArray(this.query.sort) && this.query.sort.length > 0);
-    board.setAttribute("selectable", this.renders("select") && !refused ? "true" : "false");
+    board.setAttribute("selectable", this.selects() && !refused ? "true" : "false");
     board.setAttribute("creatable", this.hostOffers("create-record") && !refused ? "true" : "false"); // A move is a change of the lane field: the host's record.set (BD-5).
 
     board.setAttribute("movable", this.hostOffers("inline-edit") && !refused ? "true" : "false");
@@ -6019,7 +6488,8 @@ function calendarOf(view) {
 function calendarOptionsOf(view) {
   const fromPage = calendarOf(view)?.options;
   return { ...(fromPage && typeof fromPage === "object" ? fromPage : {}),
-    ...(view._calendarHostOptions ?? {})
+    ...(view._calendarHostOptions ?? {}),
+    ...(view.ownLayoutSettings?.("calendar") ?? {})
   };
 } // The window before the calendar has drawn (its code comes after the view's):
 // the month around today, Monday first unless the page says otherwise.
@@ -6131,8 +6601,10 @@ function syncCalendar(view) {
   const calendar = calendarOf(view);
   if (!calendar || view.layoutKind !== "calendar") return;
   calendar.fields = view.columns ?? [];
-  if (view._calendarHostOptions) calendar.options = { ...(calendar.options ?? {}),
-    ...view._calendarHostOptions
+  const own = view.ownLayoutSettings?.("calendar") ?? {};
+  if (view._calendarHostOptions || Object.keys(own).length) calendar.options = { ...(calendar.options ?? {}),
+    ...(view._calendarHostOptions ?? {}),
+    ...own
   };
   if (view._calendarRules) calendar.rules = view._calendarRules;
   const context = view._calendarContext;
@@ -6152,7 +6624,7 @@ function syncCalendar(view) {
   }
 
   const refused = view._queryRefused === true;
-  calendar.setAttribute("selectable", view.renders("select") && !refused ? "true" : "false");
+  calendar.setAttribute("selectable", view.selects() && !refused ? "true" : "false");
   calendar.setAttribute("creatable", view.hostOffers("create-record") && !refused ? "true" : "false");
   calendar.setAttribute("movable", view.hostOffers("inline-edit") && !refused ? "true" : "false");
   if (view._current !== undefined) calendar.current = view._current;
@@ -6333,16 +6805,28 @@ function cardsOf(view) {
 function cardsOptions(view) {
   const fromPage = cardsOf(view)?.options;
   return { ...(fromPage && typeof fromPage === "object" ? fromPage : {}),
-    ...(view._cardsHostOptions ?? {})
+    ...(view._cardsHostOptions ?? {}),
+    ...(view.ownLayoutSettings?.("cards") ?? {})
   };
 }
 /** The query the cards ask (CD-4): the page and window {page, per_page}. */
 
 function cardsQuery(view, query) {
-  const asked = Number(cardsOptions(view).per_page);
+  // A page size the person chose in the footer (LV2-6: the cards have the
+  // list's page row) goes over the cards' own 24.
+  const asked = Number(cardsOptions(view).per_page ?? view._cardsPageSize);
   const perPage = Number.isSafeInteger(asked) && asked > 0 ? asked : CARDS_PER_PAGE;
   view.query.per_page = perPage;
-  query.per_page = perPage;
+  query.per_page = perPage; // Switched in from another kind (LV2-8): the page holding the record that
+  // was first on screen, in the cards' page size.
+
+  if (Number.isSafeInteger(view._keepFirst)) {
+    query.page = view.query.page = Math.floor((view._keepFirst - 1) / perPage) + 1; // The rows on screen start from this page («1–24 из 48»).
+
+    if (!view.continuing) view._runStart = query.page;
+    view._keepFirst = null;
+  }
+
   query.window = {
     page: Number.isSafeInteger(query.page) && query.page > 0 ? query.page : 1,
     per_page: perPage
@@ -6361,16 +6845,20 @@ function syncCards(view) {
   const cards = cardsOf(view);
   if (!cards) return;
   cards.fields = view.columns ?? [];
-  if (view._cardsHostOptions) cards.options = { ...(cards.options ?? {}),
-    ...view._cardsHostOptions
+  const own = view.ownLayoutSettings?.("cards") ?? {};
+  if (view._cardsHostOptions || Object.keys(own).length) cards.options = { ...(cards.options ?? {}),
+    ...(view._cardsHostOptions ?? {}),
+    ...own
   };
   if (view._answered) cards.records = view.records ?? [];
   const refused = view._queryRefused === true;
   if (view.countKnown !== false && Number.isSafeInteger(view.total)) cards.setAttribute("total", String(view.total));else cards.removeAttribute("total");
-  cards.setAttribute("count-known", view.countKnown === false ? "false" : "true");
-  if (typeof view.hasNext === "boolean" && !(view.countKnown !== false && Number.isSafeInteger(view.total))) cards.setAttribute("has-next", view.hasNext ? "true" : "false");else cards.removeAttribute("has-next");
+  cards.setAttribute("count-known", view.countKnown === false ? "false" : "true"); // The list's paging (D1, LV2-6) draws «Показать ещё» and the pages
+  // under the cards; the grid draws no button of its own then.
+
+  if (view._viewPaging?.() != null) cards.setAttribute("has-next", "false");else if (typeof view.hasNext === "boolean" && !(view.countKnown !== false && Number.isSafeInteger(view.total))) cards.setAttribute("has-next", view.hasNext ? "true" : "false");else cards.removeAttribute("has-next");
   syncCardsState(view, view.getAttribute?.("data-state") ?? "");
-  cards.setAttribute("selectable", view.renders("select") && !refused ? "true" : "false");
+  cards.setAttribute("selectable", view.selects() && !refused ? "true" : "false");
   cards.setAttribute("creatable", view.hostOffers("create-record") && !refused ? "true" : "false");
   cards.actions = (view.bulkActions ?? []).map(item => ({
     id: item.id ?? item.value,
@@ -6471,8 +6959,13 @@ function cardsSkeleton(view, bar) {
   const cards = cardsOf(view);
   const options = cardsOptions(view);
   const size = ["s", "m", "l"].includes(cards?.getAttribute?.("card-size")) ? cards.getAttribute("card-size") : ["s", "m", "l"].includes(options.size) ? options.size : "m";
-  const cover = options.cover_field !== null;
-  const card = `<div>${cover ? '<span data-part="cover"></span>' : ""}${bar}${bar}${bar}</div>`;
+  const cover = options.cover_field !== null; // The title, then the fields one under the other, each its label over its
+  // value (D3): as many as the view names (four at most), else two.
+
+  const count = Array.isArray(options.card_fields) ? Math.min(4, options.card_fields.length) : 2;
+  const label = options.card_labels === false ? "" : '<i class="sf-skeleton-text" data-part="label"></i>';
+  const fields = count ? `<span data-part="fields">${`<span>${label}${bar}</span>`.repeat(count)}</span>` : "";
+  const card = `<div>${cover ? '<span data-part="cover"></span>' : ""}${bar}${fields}</div>`;
   return `<div class="sf-data-view-skeleton-cards" data-card-size="${size}"${cover ? "" : " data-flat"}>${card.repeat(FIRST_PAINT_CARDS)}</div>`;
 }
 
@@ -6532,9 +7025,61 @@ __webpack_require__.r(__webpack_exports__);
 // contract settles the wire format (ui-control research
 // 2026-11-17-views-architecture/view-config-1-draft.md).
 
-const PHONE_WIDTH = 600; // Whether the page's sheets hold the Framework's toggle look (see
+const PHONE_WIDTH = 600; // An element's content box width: its border box less its inline padding and
+// borders (0 where it draws no box, display: contents).
+
+function contentWidth(element) {
+  const width = element?.getBoundingClientRect?.().width || 0;
+  if (!width) return 0;
+  const style = globalThis.getComputedStyle?.(element);
+  if (!style) return width;
+  const less = ["paddingInlineStart", "paddingInlineEnd", "borderInlineStartWidth", "borderInlineEndWidth"].reduce((sum, key) => sum + (Number.parseFloat(style[key]) || 0), 0);
+  return Math.max(0, width - less);
+} // The width a head part takes on one line (view round 12, VHF-3 refined): a
+// box laid out by itself is read as drawn; a display: contents host (every
+// sf-button, sf-button-icon, sf-popover) has no box of its own, so its laid
+// children are summed -- the hosts measured 0 and the one-row test came out
+// about 200 px short. A line of parts is the parts and the gaps between them;
+// the search counts at its 20rem (C297), whatever it is stretched to.
+
+
+function lineWidth(container, search) {
+  if (!container) return 0;
+  const style = globalThis.getComputedStyle?.(container);
+  const gap = Number.parseFloat(style?.columnGap) || 0;
+  const items = [];
+
+  const collect = node => {
+    for (const child of node.children) {
+      if (child.hidden) continue;
+      const look = globalThis.getComputedStyle?.(child);
+      if (!look || look.display === "none" || look.position === "absolute" || look.position === "fixed") continue;
+
+      if (look.display === "contents") {
+        collect(child);
+        continue;
+      }
+
+      items.push(child);
+    }
+  };
+
+  collect(container);
+  let sum = 0;
+  let count = 0;
+
+  for (const item of items) {
+    const width = item.matches?.(".sf-view-head-search") ? search : item.matches?.(".sf-view-head-start, .sf-view-head-end, .sf-view-head-fields") ? lineWidth(item, search) : item.getBoundingClientRect().width;
+    if (!(width > 0)) continue;
+    sum += width;
+    count += 1;
+  }
+
+  return sum + gap * Math.max(0, count - 1);
+} // Whether the page's sheets hold the Framework's toggle look (see
 // ListHead.toggleAppearance). Found once, it stays found; not found, it is
 // asked again only when the page has more sheets than at the last look.
+
 
 let toggleFound = false;
 let toggleSheets = -1;
@@ -6635,6 +7180,10 @@ class ListHead {
     this.root = null;
 
     this._onResize = () => this._measure();
+
+    this._onPartsResize = () => this._layRow();
+
+    this._onHeadResize = () => this._layStick();
   } // ---------- lifecycle ----------
 
 
@@ -6657,15 +7206,49 @@ class ListHead {
     root.addEventListener("sf-button-press", event => this._onCreatePress(event));
     this._resize = typeof ResizeObserver === "function" ? new ResizeObserver(this._onResize) : null;
     this._resize?.observe(this.view);
+    this._parts = typeof ResizeObserver === "function" ? new ResizeObserver(this._onPartsResize) : null;
+    this._stick = typeof ResizeObserver === "function" ? new ResizeObserver(this._onHeadResize) : null;
+    this._stick?.observe(root);
 
     this._measure();
 
     return this;
+  } // What of the head holds the top while the list scrolls (C328, VHF-15):
+  // all of it but the title row, which leaves. Written on the view's layout
+  // in its shadow (the light DOM keeps its markup): the head part's sticky
+  // offset, minus the title row and the gap under it, and the height that
+  // stays, under which the table's head sticks. Read when the head changes
+  // size, never while the list scrolls.
+
+
+  _layStick() {
+    const root = this.root;
+    const layout = this.view.shadowRoot?.querySelector?.('[part="layout"]');
+    if (!root || !layout) return;
+    const title = root.querySelector(":scope > .sf-view-head-title");
+    const titleHeight = title ? title.getBoundingClientRect().height : 0;
+    const gap = Number.parseFloat(getComputedStyle(root).rowGap) || 0;
+    const away = titleHeight > 0 ? Math.round(titleHeight + gap) : 0;
+    const stays = Math.max(0, Math.round(root.getBoundingClientRect().height) - away);
+
+    const set = (name, value) => {
+      if (layout.style.getPropertyValue(name) !== value) layout.style.setProperty(name, value);
+    };
+
+    set("--sf-view--head-offset", `${-away}px`);
+    set("--sf-view--stuck-head", `${stays}px`);
   }
 
   detach() {
     this._resize?.disconnect();
     this._resize = null;
+    this._parts?.disconnect();
+    this._parts = null;
+    this._stick?.disconnect();
+    this._stick = null;
+    const layout = this.view.shadowRoot?.querySelector?.('[part="layout"]');
+    layout?.style.removeProperty("--sf-view--head-offset");
+    layout?.style.removeProperty("--sf-view--stuck-head");
     this.root?.remove();
     this.root = null;
     this.mode = null;
@@ -6695,10 +7278,16 @@ class ListHead {
       this.description = copy(described);
       this.render();
     }
-  }
+  } // The head answers to the width the list has, not to the view's box: a
+  // record card docked beside the list pads the view by its own width
+  // (data-sf-drawer-dock-host), and the head measured the whole box -- a
+  // desktop head over a list the table had already turned into rows, in
+  // what the card left of it (view round 12, VHF-5). The view's content
+  // box is the list's own width, the one sf-view-table measures too.
+
 
   _measure() {
-    const width = this.view.getBoundingClientRect?.().width || globalThis.innerWidth || 0;
+    const width = contentWidth(this.view) || globalThis.innerWidth || 0;
     const mode = width > 0 && width < PHONE_WIDTH ? "phone" : "desktop";
 
     if (mode !== this.mode) {
@@ -6706,6 +7295,45 @@ class ListHead {
 
       this._build();
     }
+
+    this._layRow();
+  } // The head row has two states only (view round 12, VHF-3 refined, owner
+  // remark via DEV msg-c31ccebd): everything on one row while «Filter», its
+  // fields, the search at 20rem, «Create» and the menu fit; else two rows,
+  // the search across the width on top with «Create» and the menu at its
+  // end, «Filter» and the fields wrapping below. No third state (the search
+  // alone at the end of a second row). The parts are watched, so a field
+  // added or closed decides it again.
+
+
+  _layRow() {
+    const root = this.root;
+    if (!root?.isConnected) return;
+    const row = root.querySelector(":scope > .sf-view-head-row");
+    const start = row?.querySelector(":scope > .sf-view-head-start");
+    const end = row?.querySelector(":scope > .sf-view-head-end");
+
+    if (this.mode !== "desktop" || !row || !start || !end) {
+      root.removeAttribute("data-stacked");
+      return;
+    }
+
+    if (this._parts) {
+      this._parts.disconnect();
+
+      for (const part of row.querySelectorAll(".sf-view-head-join, .sf-view-head-fields > *, .sf-view-head-zone-toggle > *, .sf-view-head-create > *, .sf-view-head-more > *")) this._parts.observe(part);
+    }
+
+    const room = contentWidth(row);
+    if (!(room > 0)) return;
+    const rem = Number.parseFloat(globalThis.getComputedStyle?.(document.documentElement)?.fontSize) || 16;
+    const search = 20 * rem;
+    const gap = Number.parseFloat(globalThis.getComputedStyle?.(row)?.columnGap) || 0;
+    const startWidth = lineWidth(start, search);
+    const need = (startWidth > 0 ? startWidth + gap : 0) + lineWidth(end, search); // Half a pixel of rounding is not a reason to fold the row.
+
+    const stacked = need > room + 0.5;
+    if (stacked !== root.hasAttribute("data-stacked")) root.toggleAttribute("data-stacked", stacked);
   } // ---------- what the head knows ----------
 
 
@@ -7071,9 +7699,31 @@ class ListHead {
       }));
       set(create, "split", menu.length > 1 ? "" : null);
       set(create, "menu", menu.length > 1 ? JSON.stringify(menu.slice(1)) : null);
+    } // The parts a host switched off (VR5): search, «Фильтр» with its
+    // bookmark and fields, «Настроить вид». A row left with nothing in
+    // it goes too, so no empty band stays (no gap).
+
+
+    const filterShown = this.filterShown;
+    set(one(".sf-view-head-search"), "hidden", this.view.renders("search") ? null : "");
+    set(one("[data-filter-group]"), "hidden", filterShown ? null : "");
+    set(one(".sf-view-head-filter-icon"), "hidden", filterShown ? null : "");
+    const lookShown = this.view.renders("look");
+    set(one('sf-popover[data-pop="view"]'), "hidden", lookShown ? null : "");
+    set(one(".sf-view-head-tune"), "hidden", lookShown ? null : "");
+    if (!lookShown && this.open?.kind === "view") this._closeAll();
+
+    this._renderFields();
+
+    const row = one(":scope > .sf-view-head-row");
+
+    if (row) {
+      const parts = [...row.querySelectorAll(".sf-view-head-zone-toggle, [data-filter-group], .sf-view-head-filter-icon, .sf-view-head-fields, .sf-view-head-search, .sf-view-head-create, .sf-view-head-more")];
+      const filled = parts.some(node => !node.hidden && !(node.matches(".sf-view-head-fields") && !node.firstElementChild));
+      set(row, "hidden", filled ? null : "");
     }
 
-    this._renderFields(); // An open window shows the state it was opened over.
+    this._layRow(); // An open window shows the state it was opened over.
 
 
     if (this.open && !this.open.kind.startsWith("value:") && this.open.kind !== "save" && !this.open.kind.startsWith("rename:")) this._renderOpen();
@@ -7154,25 +7804,33 @@ class ListHead {
     const layout = this.viewKind(view);
     return typeof layout === "string" && this.kinds.includes(layout) && layout !== this.kind;
   } // The display kind a view stands for: the one it was saved with, else the
-  // one the list showed when the view was opened (view round 10, V10-3: a
-  // system view that names no layout got «Изменено» after a filter change
-  // and not after a change of the display kind -- the kind was compared
-  // only with a saved one). Remembered per open view.
+  // kind of the list as stored -- the layout the page wrote on the view, else
+  // the first the host names (view round 10, V10-3: a system view that names
+  // no layout got «Изменено» after a filter change and not after a change of
+  // the display kind). View round 11: not the kind the list showed when the
+  // head first looked at it -- a personal state restored before that (the
+  // host's echo of the person's last kind, a kept layer) became the
+  // baseline, and a list the person had turned into a board read as the
+  // stored view.
 
 
   viewKind(view) {
     const own = view?.settings?.layout ?? view?.layout;
     if (typeof own === "string" && own) return own;
-    const key = String(view?.key ?? "");
-    if (this._openedKind?.key !== key) this._openedKind = {
-      key,
-      kind: this.kind
-    };
-    return this._openedKind.kind;
+    return this.storedKind;
+  }
+
+  get storedKind() {
+    const written = this.view.pageLayoutKind ?? this.view.layoutKind;
+    return this.kinds.includes(written) ? written : this.kinds[0];
   }
 
   get zoneUseful() {
-    return this.savedViews.length > 0 || this.view.hostOffers("saved-views") || this.kinds.length > 1 || this.view.hostOffers("personal-column-settings") || Boolean(this.description);
+    // «Настроить вид» (a described list) and the column settings live
+    // in the zone: switched off by chrome (look, VR5-5), they keep no
+    // toggle that would open an empty zone.
+    const look = this.view.renders("look");
+    return this.savedViews.length > 0 || this.view.hostOffers("saved-views") || this.kinds.length > 1 || look && (this.view.hostOffers("personal-column-settings") || Boolean(this.description));
   } // The toggle look of SIMAI Framework (TG-1, C393: the background and a
   // 1 px ring, the icon outline): sf-button-icon appearance="toggle"
   // (sf-button-icon 1.14.0, icon-buttons 1.20.0, class sf-icon-button--toggle).
@@ -7272,11 +7930,26 @@ class ListHead {
   } // The filter fields (C300): a joined sf-button + sf-button-icon per chosen
   // field -- the name, colour when a condition is set, the number of values
   // chosen; the condition in words only in its tooltip and its window.
+  // Whether «Фильтр» is drawn (VR5-2): the host can switch it off (chrome
+  // or head.chrome without filter), and it goes by itself when the host
+  // describes no field to filter by -- the button opened an empty window.
 
+
+  get filterShown() {
+    return this.view.renders("filter") && this.fields.length > 0;
+  }
 
   _renderFields() {
     const box = this.root?.querySelector("[data-fields]");
     if (!box) return;
+
+    if (!this.filterShown) {
+      box.hidden = true;
+      if (box.firstChild) box.replaceChildren();
+      this._fieldsKey = null;
+      return;
+    }
+
     const phone = this.mode === "phone";
     const size = esc(this.size);
     const open = this.openFilter;
@@ -7615,26 +8288,54 @@ class ListHead {
 
     const radios = (key, list, current) => `<div class="sf-view-head-list" role="radiogroup" aria-label="${esc(key)}">${list.map(([value, label]) => `<sf-radio data-setting="${esc(key)}" size="${size}" name="sf-view-head-${esc(key)}" value="${esc(value)}" label="${esc(label)}"${String(value) === String(current) ? " checked" : ""}${lock(key)}></sf-radio>`).join("")}</div>`;
 
-    const checks = (key, list, current) => `<div class="sf-view-head-list">${list.map(([value, label]) => `<sf-checkbox data-setting="${esc(key)}" data-value="${esc(value)}" size="${size}" label="${esc(label)}"${current.includes(String(value)) ? " checked" : ""}${lock(key)}></sf-checkbox>`).join("")}</div>`;
+    const checks = (key, list, current) => `<div class="sf-view-head-list">${list.map(([value, label]) => `<sf-checkbox data-setting="${esc(key)}" data-value="${esc(value)}" size="${size}" label="${esc(label)}"${current.includes(String(value)) ? " checked" : ""}${lock(key)}></sf-checkbox>`).join("")}</div>`; // The view's own fields (VHF-13): the record fields the list draws
+    // (its columns), not the filter's -- «Сумма» on a card is no filter
+    // field and was missing from «Поля на карточке». The title is the
+    // card's own line, never a field of it. A field of a type a row
+    // needs (a lane, a date) the columns do not say is looked up among
+    // the host's described fields.
+
 
     const described = Array.isArray(this.description?.fields) ? this.description.fields : this.fields;
+    const columns = (this.view.columns ?? []).filter(column => column?.key !== undefined && column?.key !== null && !column.system && !["select", "settings"].includes(String(column.key)));
+    const record = columns.length ? columns : described;
 
-    const fieldsOf = test => described.filter(field => test(fieldType(field))).map(field => [field.key, field.label ?? field.key]);
+    const pairs = list => list.map(field => [field.key, field.label ?? field.key]);
 
-    const all = described.map(field => [field.key, field.label ?? field.key]);
+    const fieldsOf = test => {
+      const own = record.filter(field => test(fieldType(field)));
+      const known = new Set(own.map(field => String(field.key)));
+      return pairs([...own, ...described.filter(field => !known.has(String(field.key)) && test(fieldType(field)))]);
+    };
+
+    const all = pairs(record.filter(field => field.role !== "title" && field.title !== true)); // The rows the host shows (VR5-5, head.look or view.look): a row it
+    // leaves out is not drawn; a locked row is drawn, disabled.
+
+    const look = this.view.look;
+
+    const shows = key => !look || look.includes(key);
+
+    const only = (key, html) => shows(key) ? html : "";
+
     let body = "";
 
     if (kind === "table") {
       const columns = (this.view.columns ?? []).map(column => [column.key, column.label ?? column.key]);
-      const actions = (this.view.rowActionCatalog ?? []).map(action => [action.id, action.label ?? action.id]);
-      body = title("columns", this.text("headColumns")) + checks("columns", columns, settings.columns) + (actions.length ? title("row_actions", this.text("headRowActions")) + checks("row_actions", actions, settings.row_actions) : "");
+      const actions = (this.view.rowActionCatalog ?? []).map(action => [action.id, action.label ?? action.id]); // How the list goes on past its first page (owner decision D1):
+      // stored with the view's other settings, «Вместе» by default.
+
+      const paging = [["pages", "headPagingPages"], ["more", "headPagingMore"], ["both", "headPagingBoth"], ["endless", "headPagingEndless"]].map(([value, word]) => [value, this.text(word)]);
+      body = only("columns", title("columns", this.text("headColumns")) + checks("columns", columns, settings.columns)) + (actions.length ? only("row_actions", title("row_actions", this.text("headRowActions")) + checks("row_actions", actions, settings.row_actions)) : "") // The table's own look (VR12A-1): under the list head the
+      // table draws no gear, so its density (D4) and «Текст в одну
+      // строку» (D5) are set here, as the gear's «Вид» set them.
+      + (this.view.table ? only("density", title("density", this.text("headDensity")) + radios("density", [["normal", this.text("headDensityNormal")], ["compact", this.text("headDensityCompact")]], settings.density)) + only("single_line", `<div class="sf-view-head-list"><sf-checkbox data-setting="single_line" size="${size}" label="${esc(this.text("headSingleLine"))}"${settings.single_line ? " checked" : ""}${lock("single_line")}></sf-checkbox></div>`) : "") + (this.view.pagingOffered ? only("paging", title("paging", this.text("headPaging")) + radios("paging", paging, settings.paging)) : "");
     } else if (kind === "board") {
-      body = title("lane_field", this.text("headLaneField")) + radios("lane_field", fieldsOf(type => LIST_TYPES.has(type)), settings.lane_field) + title("card_fields", this.text("headCardFields")) + checks("card_fields", all, settings.card_fields) + `<sf-checkbox data-setting="empty_lanes" size="${size}" label="${esc(this.text("headEmptyLanes"))}"${settings.empty_lanes ? " checked" : ""}${lock("empty_lanes")}></sf-checkbox>`;
+      body = only("lane_field", title("lane_field", this.text("headLaneField")) + radios("lane_field", fieldsOf(type => LIST_TYPES.has(type)), settings.lane_field)) + only("card_fields", title("card_fields", this.text("headCardFields")) + checks("card_fields", all, settings.card_fields)) + only("empty_lanes", `<sf-checkbox data-setting="empty_lanes" size="${size}" label="${esc(this.text("headEmptyLanes"))}"${settings.empty_lanes ? " checked" : ""}${lock("empty_lanes")}></sf-checkbox>`);
     } else if (kind === "cards") {
-      body = title("size", this.text("headCardSize")) + radios("size", [["s", this.text("headSizeS")], ["m", this.text("headSizeM")], ["l", this.text("headSizeL")]], settings.size) + title("card_fields", this.text("headCardFields")) + checks("card_fields", all, settings.card_fields);
+      body = only("size", title("size", this.text("headCardSize")) + radios("size", [["s", this.text("headSizeS")], ["m", this.text("headSizeM")], ["l", this.text("headSizeL")]], settings.size)) + only("card_fields", title("card_fields", this.text("headCardFields")) + checks("card_fields", all, settings.card_fields));
     } else if (kind === "calendar") {
-      body = title("date_field", this.text("headDateField")) + radios("date_field", fieldsOf(type => DATE_TYPES.has(type)), settings.date_field) // The week start and the time zone are the request's (C293), never the view's.
-      + title("color_field", this.text("headColourField")) + radios("color_field", [...fieldsOf(type => LIST_TYPES.has(type)), ["", this.text("headColourNone")]], settings.color_field ?? "");
+      body = only("date_field", title("date_field", this.text("headDateField")) + radios("date_field", fieldsOf(type => DATE_TYPES.has(type)), settings.date_field)) // The week start and the time zone are the request's (C293), never the view's.
+      + only("color_field", title("color_field", this.text("headColourField")) + radios("color_field", [...fieldsOf(type => LIST_TYPES.has(type)), ["", this.text("headColourNone")]], settings.color_field ?? ""));
     }
 
     const viewName = this.currentView?.label ?? this.currentView?.name ?? "";
@@ -7684,10 +8385,19 @@ class ListHead {
       const visible = this.view.viewConfig?.fields?.visible;
       merged.columns ??= (Array.isArray(visible) ? visible : (this.view.columns ?? []).filter(column => column.visible !== false).map(column => column.key)).map(String);
       merged.row_actions ??= (this.view.rowActionCatalog ?? []).map(action => String(action.id));
-    }
+      merged.paging ??= this.view.paging ?? "both"; // The density and one line as the table shows them (VR12A-1).
+
+      const table = this.view.table;
+      merged.density ??= table?.shownViewDensity === "compact" ? "compact" : "normal";
+      merged.single_line ??= table?.tableView?.singleLine === true;
+    } // The card fields a board or the cards draw now (their own defaults
+    // when the view names none), so the window ticks what is on the cards.
+
+
+    const drawn = (kind === "board" ? this.view.board?.boardOptions : kind === "cards" ? this.view.cards?.cardsOptions : null)?.cardFields;
 
     if (kind === "board") {
-      merged.card_fields ??= [];
+      merged.card_fields ??= Array.isArray(drawn) ? [...drawn] : [];
       merged.empty_lanes ??= true;
     } // Cards S, M, L; M by default (C306). The calendar's week start comes
     // from the request context, never from a stored view (CA-2).
@@ -7695,7 +8405,7 @@ class ListHead {
 
     if (kind === "cards") {
       merged.size ??= "m";
-      merged.card_fields ??= [];
+      merged.card_fields ??= Array.isArray(drawn) ? [...drawn] : [];
     }
 
     for (const key of ["columns", "row_actions", "card_fields"]) if (Array.isArray(merged[key])) merged[key] = merged[key].map(String);
@@ -8049,11 +8759,7 @@ class ListHead {
     const type = view?.settings?.layout && this.kinds.includes(view.settings.layout) && this.drawable(view.settings.layout) ? view.settings.layout : this.kind; // Another view starts from what is saved for it: no change of the
     // person's carries over from the view they left.
 
-    this._settings = null;
-    this._openedKind = {
-      key: String(key),
-      kind: type
-    }; // A view saved as a board opens as one (and a table view as a table):
+    this._settings = null; // A view saved as a board opens as one (and a table view as a table):
     // the layout's own query first, then the view.
 
     if (type !== this.view.layoutKind && this.drawable(type)) this.view.switchLayout?.(type); // Its filter fields come with it (VS-8): the ones it keeps, else none
@@ -8109,10 +8815,11 @@ class ListHead {
       view
     }); // The query names the kind, then the view swaps its layout and asks
     // the host once, with the layout's own query (a board's lane window).
+    // The page is the view's to keep (LV2-8): the record first on screen
+    // stays on screen in the new kind.
 
     this.view.query = { ...this.view.query,
-      view,
-      page: 1
+      view
     };
     this.view.switchLayout(kind);
   }
@@ -8229,7 +8936,16 @@ class ListHead {
     this._settings[kind] = { ...(this._settings[kind] ?? {}),
       [key]: value
     };
-    if (kind === "table" && key === "columns") this._showColumns(value);
+    if (kind === "table" && key === "columns") this._showColumns(value);else if (kind === "table" && key === "paging") this.view.applyPaging?.(value); // The table keeps them as the person's view of it, as its gear did.
+    else if (kind === "table" && key === "density") this.view.table?.setTableView?.({
+      density: value
+    });else if (kind === "table" && key === "single_line") this.view.table?.setTableView?.({
+      singleLine: value === true
+    }); // A board's, the cards' and the calendar's settings show at once too
+    // (VHF-13, C298): they only went to the host and showed after a reload.
+    else if (kind !== "table") this.view.applyLayoutSettings?.(kind, {
+      [key]: value
+    });
 
     this._saveSettings("personal", {
       [key]: value
@@ -8821,14 +9537,14 @@ module.exports = /*#__PURE__*/JSON.parse('{"title":"Пагинация","events"
 /***/ "678dc07d76bf"
 (module) {
 
-module.exports = /*#__PURE__*/JSON.parse('{"title":"Table","events":{"column-settings-reset":{"label":"Column settings reset"},"filter-change":{"label":"Filter changed"},"search-change":{"label":"Search changed"},"sort-change":{"label":"Order changed"},"template-delete":{"label":"View deleted"},"template-save":{"label":"View saved"},"template-select":{"label":"View chosen"},"toolbar-action":{"label":"Toolbar action"},"reference-open":{"label":"Open the linked record"},"rows-drag":{"label":"Rows dragged"},"cell-set":{"label":"Cell value changed"},"view-change":{"label":"Table view changed"},"window":{"label":"Rows shown"}},"runtime":{"actions-column-label":"Actions","apply-text":"Apply","cell-edit-apply":"Save","cell-edit-cancel":"Cancel","cell-edit-label":"Change","cell-edit-no":"No","cell-edit-yes":"Yes","clear-text":"Clear","close-text":"Close","column-all":"All columns…","column-hide":"Hide the column","column-menu-label":"Column","column-move-label":"Move the column","column-pin":"Pin","column-resize-label":"Resize the column","column-search-empty-text":"No field matches","column-search-placeholder":"Search the fields","column-sort-asc":"Sort ascending","column-sort-desc":"Sort descending","column-unpin":"Unpin","column-width-change-text":"Change the width","column-width-default-text":"Default width","column-width-fit-text":"Fit to content","column-width-value":"{n}%","context-create-options-label":"Ways to create","context-field-filter-label":"Filtering by","context-filter-settings-label":"Filter settings","context-row-actions-label":"Row actions","context-save-template-label":"Saving the view","context-table-settings-label":"Table settings","context-template-actions-label":"View actions","context-view-actions-label":"View actions","create-more-label":"More ways to create","create-options-label":"Ways to create","create-text":"Create","default-template-text":"Default","delete-action-text":"Delete","edit-action-text":"Edit","empty-text":"No data","error-text":"The data could not be loaded","field-word-text":"field","fields-tab-text":"Fields","filter-apply-text":"Apply","filter-badge-label":"{count} condition|{count} conditions","filter-settings-label":"Filter settings","filter-text":"Filter","layout-list":"List","layout-switch-label":"Layout","layout-table":"Table","list-select-page":"All on the page","loading-text":"Loading","make-default-label":"Make it the default","menu-label":"Menu","more-actions-label":"More actions","operator-after":"After","operator-any":"Any date","operator-before":"Before","operator-between":"Range","operator-contains":"Contains","operator-eq":"Exactly","operator-gt":"Greater than","operator-gte":"Greater or equal","operator-in":"In the list","operator-lt":"Less than","operator-lte":"Less or equal","operator-month":"This month","operator-on-or-after":"On or after","operator-on-or-before":"On or before","operator-starts-with":"Starts with","operator-today":"Today","operator-week":"This week","pin-column-label":"Pin the column","rename-text":"Rename","reset-both-text":"Reset the search and filters","reset-filters-text":"Reset the filters","reset-search-text":"Clear the search","reset-text":"Reset","restore-text":"Restore","retry-text":"Try again","row-actions-label":"Row actions","save-filter-template-label":"Save the view","save-for-everyone-label":"Save for everyone","save-template-label":"Saving the view","save-text":"Save","search-placeholder":"Search","select-all-label":"Select every row","select-row-label":"Select the row","selected-rows-heading":"Selected","settings-column-label":"Settings","settings-fields-tab":"Fields","settings-view-tab":"View","sort-ascending":"ascending","sort-descending":"descending","sort-label":"Sort","sort-none":"As the host orders it","status-error":"Error","status-ok":"Working","status-stopped":"Stopped","status-warning":"Needs attention","template-actions-label":"View actions","template-move-label":"Move the view","template-name-placeholder":"Name","template-pin-label":"Keep the view at the top","templates-tab-text":"Views","totals-all":"Total","totals-page":"On this page","tree-collapse":"Collapse","tree-expand":"Expand","tree-more":"Show more","unpin-column-label":"Unpin the column","untitled-template-text":"All records","view-action-text":"View","view-density":"Rows","view-density-compact":"Compact","view-density-normal":"Normal","view-density-spacious":"Spacious","view-everywhere":"For all my tables","view-lines":"Lines between columns","view-reset":"Reset the view","view-single-line":"Text on one line","view-sticky-head":"Keep the filter and the head in view","view-stripes":"Alternate rows"}}');
+module.exports = /*#__PURE__*/JSON.parse('{"title":"Table","events":{"column-settings-reset":{"label":"Column settings reset"},"filter-change":{"label":"Filter changed"},"search-change":{"label":"Search changed"},"sort-change":{"label":"Order changed"},"template-delete":{"label":"View deleted"},"template-save":{"label":"View saved"},"template-select":{"label":"View chosen"},"toolbar-action":{"label":"Toolbar action"},"reference-open":{"label":"Open the linked record"},"rows-drag":{"label":"Rows dragged"},"cell-set":{"label":"Cell value changed"},"view-change":{"label":"Table view changed"},"window":{"label":"Rows shown"}},"runtime":{"actions-column-label":"Actions","apply-text":"Apply","cell-edit-apply":"Save","cell-edit-cancel":"Cancel","cell-edit-label":"Change","cell-edit-no":"No","cell-edit-yes":"Yes","clear-text":"Clear","close-text":"Close","column-all":"All columns…","column-hide":"Hide the column","column-menu-label":"Column","column-move-label":"Move the column","column-pin":"Pin","column-resize-label":"Resize the column","column-search-empty-text":"No field matches","column-search-placeholder":"Search the fields","column-sort-asc":"Sort ascending","column-sort-desc":"Sort descending","column-unpin":"Unpin","column-width-change-text":"Change the width","column-width-default-text":"Default width","column-width-fit-text":"Fit to content","column-width-value":"{n}%","context-create-options-label":"Ways to create","context-field-filter-label":"Filtering by","context-filter-settings-label":"Filter settings","context-row-actions-label":"Row actions","context-save-template-label":"Saving the view","context-table-settings-label":"Table settings","context-template-actions-label":"View actions","context-view-actions-label":"View actions","create-more-label":"More ways to create","create-options-label":"Ways to create","create-text":"Create","default-template-text":"Default","delete-action-text":"Delete","edit-action-text":"Edit","empty-text":"No data","error-text":"The data could not be loaded","field-word-text":"field","fields-tab-text":"Fields","filter-apply-text":"Apply","filter-badge-label":"{count} condition|{count} conditions","filter-settings-label":"Filter settings","filter-text":"Filter","layout-list":"List","layout-switch-label":"Layout","layout-table":"Table","list-select-page":"All on the page","loading-text":"Loading","make-default-label":"Make it the default","menu-label":"Menu","more-actions-label":"More actions","operator-after":"After","operator-any":"Any date","operator-before":"Before","operator-between":"Range","operator-contains":"Contains","operator-eq":"Exactly","operator-gt":"Greater than","operator-gte":"Greater or equal","operator-in":"In the list","operator-lt":"Less than","operator-lte":"Less or equal","operator-month":"This month","operator-on-or-after":"On or after","operator-on-or-before":"On or before","operator-starts-with":"Starts with","operator-today":"Today","operator-week":"This week","pin-column-label":"Pin the column","rename-text":"Rename","reset-both-text":"Reset the search and filters","reset-filters-text":"Reset the filters","reset-search-text":"Clear the search","reset-text":"Reset","restore-text":"Restore","retry-text":"Try again","row-actions-label":"Row actions","save-filter-template-label":"Save the view","save-for-everyone-label":"Save for everyone","save-template-label":"Saving the view","save-text":"Save","search-placeholder":"Search","select-all-label":"Select every row","select-row-label":"Select the row","selected-rows-heading":"Selected","settings-column-label":"Settings","settings-fields-tab":"Fields","settings-view-tab":"View","sort-ascending":"ascending","sort-descending":"descending","sort-label":"Sort","sort-none":"As the host orders it","status-error":"Error","status-ok":"Working","status-stopped":"Stopped","status-warning":"Needs attention","template-actions-label":"View actions","template-move-label":"Move the view","template-name-placeholder":"Name","template-pin-label":"Keep the view at the top","templates-tab-text":"Views","totals-all":"Total","totals-page":"On this page","tree-collapse":"Collapse","tree-expand":"Expand","tree-more":"Show more","unpin-column-label":"Unpin the column","untitled-template-text":"All records","view-action-text":"View","view-density":"Density","view-density-compact":"Compact","view-density-normal":"Normal","view-everywhere":"For all my tables","view-lines":"Lines between columns","view-reset":"Reset the view","view-single-line":"Text on one line","view-sticky-head":"Keep the filter and the head in view","view-stripes":"Alternate rows"}}');
 
 /***/ },
 
 /***/ "32294b89604f"
 (module) {
 
-module.exports = /*#__PURE__*/JSON.parse('{"title":"Таблица","events":{"column-settings-reset":{"label":"Настройки столбцов сброшены"},"filter-change":{"label":"Фильтр изменён"},"search-change":{"label":"Поиск изменён"},"sort-change":{"label":"Порядок изменён"},"template-delete":{"label":"Представление удалено"},"template-save":{"label":"Представление сохранено"},"template-select":{"label":"Представление выбрано"},"toolbar-action":{"label":"Действие панели"},"reference-open":{"label":"Открыть связанную запись"},"rows-drag":{"label":"Строки перетащены"},"cell-set":{"label":"Значение в ячейке изменено"},"view-change":{"label":"Вид таблицы изменён"},"window":{"label":"Показаны строки"}},"runtime":{"actions-column-label":"Действия","apply-text":"Применить","cell-edit-apply":"Сохранить","cell-edit-cancel":"Отмена","cell-edit-label":"Изменить","cell-edit-no":"Нет","cell-edit-yes":"Да","clear-text":"Очистить","close-text":"Закрыть","column-all":"Все колонки…","column-hide":"Скрыть колонку","column-menu-label":"Колонка","column-move-label":"Переместить столбец","column-pin":"Закрепить","column-resize-label":"Изменить ширину столбца","column-search-empty-text":"Поля не найдены","column-search-placeholder":"Поиск по полям","column-sort-asc":"По возрастанию","column-sort-desc":"По убыванию","column-unpin":"Открепить","column-width-change-text":"Изменить ширину","column-width-default-text":"По умолчанию","column-width-fit-text":"По содержимому","column-width-value":"{n} %","context-create-options-label":"Варианты создания","context-field-filter-label":"Настройка фильтра","context-filter-settings-label":"Настройки фильтра","context-row-actions-label":"Действия со строкой","context-save-template-label":"Сохранение представления","context-table-settings-label":"Настройки таблицы","context-template-actions-label":"Действия с представлением","context-view-actions-label":"Действия с представлением","create-more-label":"Дополнительные действия создания","create-options-label":"Варианты создания","create-text":"Создать","default-template-text":"По умолчанию","delete-action-text":"Удалить","edit-action-text":"Редактировать","empty-text":"Нет данных","error-text":"Не удалось загрузить данные","field-word-text":"поле","fields-tab-text":"Поля","filter-apply-text":"Применить","filter-badge-label":"{count} условие|{count} условия|{count} условий","filter-settings-label":"Настройки фильтра","filter-text":"Фильтр","layout-list":"Список","layout-switch-label":"Вид","layout-table":"Таблица","list-select-page":"Все на странице","loading-text":"Загрузка данных","make-default-label":"Сделать по умолчанию","menu-label":"Меню","more-actions-label":"Ещё действия","operator-after":"Позже","operator-any":"Любая дата","operator-before":"Раньше","operator-between":"Диапазон","operator-contains":"Содержит","operator-eq":"Точно","operator-gt":"Больше чем","operator-gte":"Больше или равно","operator-in":"В списке","operator-lt":"Меньше чем","operator-lte":"Меньше или равно","operator-month":"Месяц","operator-on-or-after":"Не раньше","operator-on-or-before":"Не позже","operator-starts-with":"Начинается с","operator-today":"Сегодня","operator-week":"Неделя","pin-column-label":"Закрепить столбец","rename-text":"Переименовать","reset-both-text":"Сбросить поиск и фильтры","reset-filters-text":"Сбросить фильтры","reset-search-text":"Очистить поиск","reset-text":"Сбросить","restore-text":"Восстановить","retry-text":"Повторить","row-actions-label":"Действия со строкой","save-filter-template-label":"Сохранить представление","save-for-everyone-label":"Сохранить для всех","save-template-label":"Сохранение представления","save-text":"Сохранить","search-placeholder":"Поиск","select-all-label":"Выбрать все строки","select-row-label":"Выбрать строку","selected-rows-heading":"Выбрано","settings-column-label":"Настройки","settings-fields-tab":"Поля","settings-view-tab":"Вид","sort-ascending":"по возрастанию","sort-descending":"по убыванию","sort-label":"Сортировка","sort-none":"Как задано источником","status-error":"Ошибка","status-ok":"Работает","status-stopped":"Остановлен","status-warning":"Есть замечания","template-actions-label":"Действия с представлением","template-move-label":"Переместить представление","template-name-placeholder":"Название","template-pin-label":"Закрепить представление сверху","templates-tab-text":"Представления","totals-all":"Всего по фильтру","totals-page":"На странице","tree-collapse":"Свернуть","tree-expand":"Развернуть","tree-more":"Показать ещё","unpin-column-label":"Открепить столбец","untitled-template-text":"Все записи","view-action-text":"Посмотреть","view-density":"Строки","view-density-compact":"Компактно","view-density-normal":"Обычно","view-density-spacious":"Просторно","view-everywhere":"Для всех моих таблиц","view-lines":"Линии между столбцами","view-reset":"Сбросить вид","view-single-line":"Текст в одну строку","view-sticky-head":"Закреплять фильтр и шапку","view-stripes":"Чередовать строки"}}');
+module.exports = /*#__PURE__*/JSON.parse('{"title":"Таблица","events":{"column-settings-reset":{"label":"Настройки столбцов сброшены"},"filter-change":{"label":"Фильтр изменён"},"search-change":{"label":"Поиск изменён"},"sort-change":{"label":"Порядок изменён"},"template-delete":{"label":"Представление удалено"},"template-save":{"label":"Представление сохранено"},"template-select":{"label":"Представление выбрано"},"toolbar-action":{"label":"Действие панели"},"reference-open":{"label":"Открыть связанную запись"},"rows-drag":{"label":"Строки перетащены"},"cell-set":{"label":"Значение в ячейке изменено"},"view-change":{"label":"Вид таблицы изменён"},"window":{"label":"Показаны строки"}},"runtime":{"actions-column-label":"Действия","apply-text":"Применить","cell-edit-apply":"Сохранить","cell-edit-cancel":"Отмена","cell-edit-label":"Изменить","cell-edit-no":"Нет","cell-edit-yes":"Да","clear-text":"Очистить","close-text":"Закрыть","column-all":"Все колонки…","column-hide":"Скрыть колонку","column-menu-label":"Колонка","column-move-label":"Переместить столбец","column-pin":"Закрепить","column-resize-label":"Изменить ширину столбца","column-search-empty-text":"Поля не найдены","column-search-placeholder":"Поиск по полям","column-sort-asc":"По возрастанию","column-sort-desc":"По убыванию","column-unpin":"Открепить","column-width-change-text":"Изменить ширину","column-width-default-text":"По умолчанию","column-width-fit-text":"По содержимому","column-width-value":"{n} %","context-create-options-label":"Варианты создания","context-field-filter-label":"Настройка фильтра","context-filter-settings-label":"Настройки фильтра","context-row-actions-label":"Действия со строкой","context-save-template-label":"Сохранение представления","context-table-settings-label":"Настройки таблицы","context-template-actions-label":"Действия с представлением","context-view-actions-label":"Действия с представлением","create-more-label":"Дополнительные действия создания","create-options-label":"Варианты создания","create-text":"Создать","default-template-text":"По умолчанию","delete-action-text":"Удалить","edit-action-text":"Редактировать","empty-text":"Нет данных","error-text":"Не удалось загрузить данные","field-word-text":"поле","fields-tab-text":"Поля","filter-apply-text":"Применить","filter-badge-label":"{count} условие|{count} условия|{count} условий","filter-settings-label":"Настройки фильтра","filter-text":"Фильтр","layout-list":"Список","layout-switch-label":"Вид","layout-table":"Таблица","list-select-page":"Все на странице","loading-text":"Загрузка данных","make-default-label":"Сделать по умолчанию","menu-label":"Меню","more-actions-label":"Ещё действия","operator-after":"Позже","operator-any":"Любая дата","operator-before":"Раньше","operator-between":"Диапазон","operator-contains":"Содержит","operator-eq":"Точно","operator-gt":"Больше чем","operator-gte":"Больше или равно","operator-in":"В списке","operator-lt":"Меньше чем","operator-lte":"Меньше или равно","operator-month":"Месяц","operator-on-or-after":"Не раньше","operator-on-or-before":"Не позже","operator-starts-with":"Начинается с","operator-today":"Сегодня","operator-week":"Неделя","pin-column-label":"Закрепить столбец","rename-text":"Переименовать","reset-both-text":"Сбросить поиск и фильтры","reset-filters-text":"Сбросить фильтры","reset-search-text":"Очистить поиск","reset-text":"Сбросить","restore-text":"Восстановить","retry-text":"Повторить","row-actions-label":"Действия со строкой","save-filter-template-label":"Сохранить представление","save-for-everyone-label":"Сохранить для всех","save-template-label":"Сохранение представления","save-text":"Сохранить","search-placeholder":"Поиск","select-all-label":"Выбрать все строки","select-row-label":"Выбрать строку","selected-rows-heading":"Выбрано","settings-column-label":"Настройки","settings-fields-tab":"Поля","settings-view-tab":"Вид","sort-ascending":"по возрастанию","sort-descending":"по убыванию","sort-label":"Сортировка","sort-none":"Как задано источником","status-error":"Ошибка","status-ok":"Работает","status-stopped":"Остановлен","status-warning":"Есть замечания","template-actions-label":"Действия с представлением","template-move-label":"Переместить представление","template-name-placeholder":"Название","template-pin-label":"Закрепить представление сверху","templates-tab-text":"Представления","totals-all":"Всего по фильтру","totals-page":"На странице","tree-collapse":"Свернуть","tree-expand":"Развернуть","tree-more":"Показать ещё","unpin-column-label":"Открепить столбец","untitled-template-text":"Все записи","view-action-text":"Посмотреть","view-density":"Плотность","view-density-compact":"Компактная","view-density-normal":"Обычная","view-everywhere":"Для всех моих таблиц","view-lines":"Линии между столбцами","view-reset":"Сбросить вид","view-single-line":"Текст в одну строку","view-sticky-head":"Закреплять фильтр и шапку","view-stripes":"Чередовать строки"}}');
 
 /***/ },
 
@@ -8842,21 +9558,21 @@ module.exports = /*#__PURE__*/JSON.parse('{"$comment":"Dated aliases of sf-view 
 /***/ "7086146c00cc"
 (module) {
 
-module.exports = /*#__PURE__*/JSON.parse('{"id":"smart.view","tag":"sf-view","version":"1.29.1","kind":"leaf","settings":{"chrome":{"type":"string","default":"toolbar pagination select settings"},"head":{"type":"enum","values":["","list"],"default":""},"heading":{"type":"string","default":""},"row-cap":{"type":"number","default":0,"integer":true,"min":0},"expected-columns":{"type":"number","default":4,"integer":true,"min":1},"port-owner":{"type":"string","default":""},"port-record":{"type":"string","default":""},"port-group":{"type":"string","default":""},"size":{"type":"enum","values":["1/2","1"],"default":"1"},"layout":{"type":"enum","values":["auto","table","list","board","cards","calendar"],"default":"auto"},"layout-switch":{"type":"boolean","default":false},"list-below":{"type":"number","default":600},"quick-actions":{"type":"string","default":""},"row-open":{"type":"enum","values":["title","row"],"default":"title"},"list-roles":{"type":"string","default":""},"column-search-placeholder":{"type":"string"},"column-search-empty-text":{"type":"string"},"column-move-label":{"type":"string"},"filter-apply-text":{"type":"string"},"show-more-text":{"type":"string"},"selected-label":{"type":"string"},"total-label":{"type":"string"},"pages-label":{"type":"string"},"first-label":{"type":"string"},"previous-label":{"type":"string"},"page-label":{"type":"string"},"next-label":{"type":"string"},"last-label":{"type":"string"},"page-field-label":{"type":"string"},"action-choose-label":{"type":"string"},"actions-label":{"type":"string"},"actions-region-label":{"type":"string"},"clear-selection-label":{"type":"string"},"page-size-label":{"type":"string"},"pagination-aria-label":{"type":"string"},"preferences-key":{"type":"string","default":""},"accept-files":{"type":"boolean","default":false},"collection":{"type":"string","default":""},"current":{"type":"string","default":""},"record-card":{"type":"string","default":""},"bulk-actions":{"type":"list","of":{"id":"string","label":"string","icon":{"type":"icon","optional":true}}},"first-answer":{"type":"object","optional":true}},"values":{"state":{"type":"state"},"total":{"type":"number","nullable":true},"selected":{"type":"id","optional":true},"selection":{"type":"list"}},"events":{"open":{"carries":{"id":"id"},"cancelable":true},"deleted":{"carries":{"ids":"list"}},"answer":{"carries":{"intent":{"type":"string"},"answer":{"type":"enum","values":["applied","conflict","refused","unavailable"],"schema":{"type":"string"}},"reason":{"type":"string","optional":true},"message":{"type":"string","optional":true},"data":{"type":"object","optional":true},"sequence":{"type":"number","integer":true,"optional":true},"effects":{"type":"list","optional":true},"instance_id":{"type":"string"}},"own-verb":true},"state":{"carries":{"state":{"type":"enum","values":["loading","populated","empty","error","no-access"],"schema":{"type":"string"}},"message":{"type":"string"},"instance_id":{"type":"string"}},"own-verb":true},"tree":{"carries":{"intent":"string","payload":{"type":"object","optional":true}},"own-verb":true},"files-drop":{"carries":{"files":{"type":"list","schema":{"items":{"type":"object"},"minItems":1}}},"own-verb":true},"pagination-count":{"shared":"count-on-request@1","carries":{"component":{"type":"object"},"tagName":{"type":"string"},"template":{"type":"string"},"reason":{"type":"enum","values":["total","last-page","action-for-all"],"schema":{"type":"string"}},"current":{"type":"number","integer":true},"pageSize":{"type":"number","integer":true}}},"save":{"carries":{"kind":{"type":"enum","values":["view"],"optional":true},"key":{"type":"string"},"label":{"type":"string"},"revision":{"type":"string","schema":{"type":["string","integer"]},"optional":true},"roles":{"type":"object","optional":true}}},"table-action-intent":{"shared":"table-intents@1","carries":{"action_id":{"type":"string","schema":{"minLength":1}},"record_ids":{"type":"list","schema":{"items":{"type":["string","integer"]},"minItems":1}}}},"table-column-settings-change":{"shared":"table-intents@1","carries":{"reason":{"type":"string"},"columnSettings":{"type":"object"},"tableSettingsKey":{"type":"string"},"target":{"type":"enum","values":["personal","shared"],"schema":{"type":"string"},"optional":true},"base_revision":{"type":"string","schema":{"type":["string","number"]},"optional":true}}},"table-column-settings-reset":{"shared":"table-intents@1","carries":{"target":{"type":"enum","values":["personal"],"schema":{"type":"string"}},"tableSettingsKey":{"type":"string","schema":{"type":["string","null"]}}}},"table-create-intent":{"shared":"table-intents@1","carries":{"item":{"type":"string","schema":{"type":["string","null"]}}}},"table-query-intent":{"shared":"table-intents@1","carries":{"reason":{"type":"enum","values":["context"]},"context":{"type":"object"},"sequence":{"type":"number","integer":true,"schema":{"minimum":1}}}},"table-template-delete":{"shared":"table-intents@1","carries":{"key":{"type":"string","schema":{"minLength":1}}}},"table-template-save":{"shared":"table-intents@1","carries":{"templates":{"type":"list","of":{"key":"string","label":"string","selected":"boolean","data":"object","settings":"object"},"schema":{"items":{"type":"object","required":["key","label","settings"],"properties":{"key":{"type":"string"},"label":{"type":"string"},"selected":{"type":"boolean"},"data":{"type":"object"},"settings":{"type":"object","properties":{"filter_fields":{"type":"array","items":{"type":"string"}}}}}},"minItems":1}}},"x-decision":"Event detail that is not a flat object (decision 2026-11-09, control/evidence/2026-11-09-pro-queue): a non-flat detail is a flat carries map whose fields carry the nesting -- §4.2 types, `of` for a list\'s entries and `schema` for what the manifest checks; a detail that is not an object (§8) is carried in a named field, and its old shape stays on the dated alias names with mode split and the element\'s adapter. template-save carries templates, a list of one or more templates; sf-table-template-save and onTemplateSave keep the 1.3 detail (the template object, or the array of them) through sfAliasAdapters. sf-view reads detail.templates and, until 2027-01-01, a bare template or array from a table before sf-view-table 1.16.0."},"table-template-select":{"shared":"table-intents@1","carries":{"key":{"type":"string","schema":{"minLength":1}}}},"host-port-request":{"shared":"host-port@1","carries":{"component":{"type":"object","optional":true},"context":{"type":"object","optional":true}}},"list-open":{"carries":{"reason":{"type":"id","schema":{"enum":["row-cap"]}},"query":{"type":"object"}}},"table-cell-set":{"shared":"table-intents@1","carries":{"id":{"type":"string","schema":{"type":["string","integer"]}},"key":{"type":"string"},"value":{"type":"id"},"revision":{"type":"string","schema":{"type":["string","integer","null"]}}}},"table-rows-reorder":{"shared":"table-intents@1","carries":{"ids":{"type":"list","schema":{"items":{"type":"string"},"minItems":1}},"before":{"type":"string","schema":{"type":["string","null"]}},"order":{"type":"list","schema":{"items":{"type":"string"}}}}},"display-change":{"carries":{"kind":{"type":"enum","values":["table","board","cards","calendar","list","tree"]},"previous":{"type":"string"}},"cancelable":true},"settings-open":{"carries":{"id":{"type":"enum","values":["rights","export","record-field-add"]}}}},"actions":{"refresh":{"with":{"reason":{"type":"string","optional":true}}},"change-query":{"with":{"patch":"object","reason":{"type":"string","optional":true}},"concurrency":"latest"},"open-view":{"with":{"key":"string"}},"save-view":{"with":{"view":{"type":"object"}},"concurrency":"drop"},"delete-view":{"with":{"key":"string"},"concurrency":"drop"},"apply-under-filter":{"with":{"action-id":"string","confirmed-total":"number"},"concurrency":"drop"},"reset-column-settings":{},"clear-selection":{},"notify":{"with":{"text":"string","options":{"type":"object","optional":true}}}},"port":{"id":"simai.dataview-port","version":"1.15.0","contract":"src/core/contracts/ports/simai.dataview-port/1.15.0/port.json"},"presentation":{"skeleton":{"late":[]}},"css-variables":{"--sf-data-view-gap":{"type":"length","state":"default"},"--sf-data-view-drop-border-color":{"type":"color","state":"dragged-over"},"--sf-data-view-drop-background-color":{"type":"color","state":"dragged-over"},"--sf-data-view-drop-color":{"type":"color","state":"dragged-over"},"--sf-data-view-toolbar-gap":{"type":"length","state":"default"}},"host-states":{"data-state":"string","aria-busy":"string"}}');
+module.exports = /*#__PURE__*/JSON.parse('{"id":"smart.view","tag":"sf-view","version":"1.32.0","kind":"leaf","settings":{"chrome":{"type":"string","default":"toolbar pagination select settings"},"head":{"type":"enum","values":["","list"],"default":""},"heading":{"type":"string","default":""},"row-cap":{"type":"number","default":0,"integer":true,"min":0},"expected-columns":{"type":"number","default":4,"integer":true,"min":1},"list-shape":{"type":"string","default":""},"port-owner":{"type":"string","default":""},"port-record":{"type":"string","default":""},"port-group":{"type":"string","default":""},"size":{"type":"enum","values":["1/2","1"],"default":"1"},"layout":{"type":"enum","values":["auto","table","list","board","cards","calendar"],"default":"auto"},"layout-switch":{"type":"boolean","default":false},"list-below":{"type":"number","default":600},"quick-actions":{"type":"string","default":""},"row-open":{"type":"enum","values":["title","row"],"default":"title"},"list-roles":{"type":"string","default":""},"column-search-placeholder":{"type":"string"},"column-search-empty-text":{"type":"string"},"column-move-label":{"type":"string"},"filter-apply-text":{"type":"string"},"show-more-text":{"type":"string"},"selected-label":{"type":"string"},"total-label":{"type":"string"},"pages-label":{"type":"string"},"first-label":{"type":"string"},"previous-label":{"type":"string"},"page-label":{"type":"string"},"next-label":{"type":"string"},"last-label":{"type":"string"},"page-field-label":{"type":"string"},"action-choose-label":{"type":"string"},"actions-label":{"type":"string"},"actions-region-label":{"type":"string"},"clear-selection-label":{"type":"string"},"page-size-label":{"type":"string"},"pagination-aria-label":{"type":"string"},"paging":{"type":"enum","values":["pages","more","both","endless"],"default":"both"},"preferences-key":{"type":"string","default":""},"accept-files":{"type":"boolean","default":false},"collection":{"type":"string","default":""},"current":{"type":"string","default":""},"record-card":{"type":"string","default":""},"bulk-actions":{"type":"list","of":{"id":"string","label":"string","icon":{"type":"icon","optional":true}}},"first-answer":{"type":"object","optional":true}},"values":{"state":{"type":"state"},"total":{"type":"number","nullable":true},"selected":{"type":"id","optional":true},"selection":{"type":"list"}},"events":{"open":{"carries":{"id":"id"},"cancelable":true},"deleted":{"carries":{"ids":"list"}},"answer":{"carries":{"intent":{"type":"string"},"answer":{"type":"enum","values":["applied","conflict","refused","unavailable"],"schema":{"type":"string"}},"reason":{"type":"string","optional":true},"message":{"type":"string","optional":true},"data":{"type":"object","optional":true},"sequence":{"type":"number","integer":true,"optional":true},"effects":{"type":"list","optional":true},"instance_id":{"type":"string"}},"own-verb":true},"state":{"carries":{"state":{"type":"enum","values":["loading","populated","empty","error","no-access"],"schema":{"type":"string"}},"message":{"type":"string"},"instance_id":{"type":"string"}},"own-verb":true},"tree":{"carries":{"intent":"string","payload":{"type":"object","optional":true}},"own-verb":true},"files-drop":{"carries":{"files":{"type":"list","schema":{"items":{"type":"object"},"minItems":1}}},"own-verb":true},"pagination-count":{"shared":"count-on-request@1","carries":{"component":{"type":"object"},"tagName":{"type":"string"},"template":{"type":"string"},"reason":{"type":"enum","values":["total","last-page","action-for-all"],"schema":{"type":"string"}},"current":{"type":"number","integer":true},"pageSize":{"type":"number","integer":true}}},"save":{"carries":{"kind":{"type":"enum","values":["view"],"optional":true},"key":{"type":"string"},"label":{"type":"string"},"revision":{"type":"string","schema":{"type":["string","integer"]},"optional":true},"roles":{"type":"object","optional":true}}},"table-action-intent":{"shared":"table-intents@1","carries":{"action_id":{"type":"string","schema":{"minLength":1}},"record_ids":{"type":"list","schema":{"items":{"type":["string","integer"]},"minItems":1}}}},"table-column-settings-change":{"shared":"table-intents@1","carries":{"reason":{"type":"string"},"columnSettings":{"type":"object"},"tableSettingsKey":{"type":"string"},"target":{"type":"enum","values":["personal","shared"],"schema":{"type":"string"},"optional":true},"base_revision":{"type":"string","schema":{"type":["string","number"]},"optional":true}}},"table-column-settings-reset":{"shared":"table-intents@1","carries":{"target":{"type":"enum","values":["personal"],"schema":{"type":"string"}},"tableSettingsKey":{"type":"string","schema":{"type":["string","null"]}}}},"table-create-intent":{"shared":"table-intents@1","carries":{"item":{"type":"string","schema":{"type":["string","null"]}}}},"table-query-intent":{"shared":"table-intents@1","carries":{"reason":{"type":"enum","values":["context"]},"context":{"type":"object"},"sequence":{"type":"number","integer":true,"schema":{"minimum":1}}}},"table-template-delete":{"shared":"table-intents@1","carries":{"key":{"type":"string","schema":{"minLength":1}}}},"table-template-save":{"shared":"table-intents@1","carries":{"templates":{"type":"list","of":{"key":"string","label":"string","selected":"boolean","data":"object","settings":"object"},"schema":{"items":{"type":"object","required":["key","label","settings"],"properties":{"key":{"type":"string"},"label":{"type":"string"},"selected":{"type":"boolean"},"data":{"type":"object"},"settings":{"type":"object","properties":{"filter_fields":{"type":"array","items":{"type":"string"}}}}}},"minItems":1}}},"x-decision":"Event detail that is not a flat object (decision 2026-11-09, control/evidence/2026-11-09-pro-queue): a non-flat detail is a flat carries map whose fields carry the nesting -- §4.2 types, `of` for a list\'s entries and `schema` for what the manifest checks; a detail that is not an object (§8) is carried in a named field, and its old shape stays on the dated alias names with mode split and the element\'s adapter. template-save carries templates, a list of one or more templates; sf-table-template-save and onTemplateSave keep the 1.3 detail (the template object, or the array of them) through sfAliasAdapters. sf-view reads detail.templates and, until 2027-01-01, a bare template or array from a table before sf-view-table 1.16.0."},"table-template-select":{"shared":"table-intents@1","carries":{"key":{"type":"string","schema":{"minLength":1}}}},"host-port-request":{"shared":"host-port@1","carries":{"component":{"type":"object","optional":true},"context":{"type":"object","optional":true}}},"list-open":{"carries":{"reason":{"type":"id","schema":{"enum":["row-cap"]}},"query":{"type":"object"}}},"table-cell-set":{"shared":"table-intents@1","carries":{"id":{"type":"string","schema":{"type":["string","integer"]}},"key":{"type":"string"},"value":{"type":"id"},"revision":{"type":"string","schema":{"type":["string","integer","null"]}}}},"table-rows-reorder":{"shared":"table-intents@1","carries":{"ids":{"type":"list","schema":{"items":{"type":"string"},"minItems":1}},"before":{"type":"string","schema":{"type":["string","null"]}},"order":{"type":"list","schema":{"items":{"type":"string"}}}}},"display-change":{"carries":{"kind":{"type":"enum","values":["table","board","cards","calendar","list","tree"]},"previous":{"type":"string"}},"cancelable":true},"settings-open":{"carries":{"id":{"type":"enum","values":["rights","export","record-field-add"]}}}},"actions":{"refresh":{"with":{"reason":{"type":"string","optional":true}}},"change-query":{"with":{"patch":"object","reason":{"type":"string","optional":true}},"concurrency":"latest"},"open-view":{"with":{"key":"string"}},"save-view":{"with":{"view":{"type":"object"}},"concurrency":"drop"},"delete-view":{"with":{"key":"string"},"concurrency":"drop"},"apply-under-filter":{"with":{"action-id":"string","confirmed-total":"number"},"concurrency":"drop"},"reset-column-settings":{},"clear-selection":{},"notify":{"with":{"text":"string","options":{"type":"object","optional":true}}}},"port":{"id":"simai.dataview-port","version":"1.15.0","contract":"src/core/contracts/ports/simai.dataview-port/1.15.0/port.json"},"presentation":{"skeleton":{"late":[]}},"css-variables":{"--sf-data-view-gap":{"type":"length","state":"default"},"--sf-data-view-drop-border-color":{"type":"color","state":"dragged-over"},"--sf-data-view-drop-background-color":{"type":"color","state":"dragged-over"},"--sf-data-view-drop-color":{"type":"color","state":"dragged-over"},"--sf-data-view-toolbar-gap":{"type":"length","state":"default"}},"host-states":{"data-state":"string","aria-busy":"string"}}');
 
 /***/ },
 
 /***/ "ce0305e57fa5"
 (module) {
 
-module.exports = /*#__PURE__*/JSON.parse('{"title":"Data view","events":{"answer":{"label":"The host answered"},"state":{"label":"List state"},"tree":{"label":"Tree request"},"files-drop":{"label":"Files dropped on the list"},"display-change":{"label":"Display kind changed"},"settings-open":{"label":"List setting asked"}},"runtime":{"cancel":"Cancel","close-notice-label":"Close the message","confirm-apply":"Confirm","confirm-title":"Confirm the change","create-child-action":"Add a nested one","drop-files":"Drop the files here to upload them","empty-text":"No data","head-apply":"Apply","head-cancel":"Cancel","head-card-fields":"Card fields","head-card-size":"Card size","head-clear":"Clear","head-colour-field":"Record colour by field","head-colour-none":"No colour","head-columns":"Columns","head-copy":"Save a copy","head-copy-suffix":"(copy)","head-count":"Records: {count}","head-create":"Create","head-customize":"Customize view","head-customize-note":"Your changes apply at once and only for you.","head-date-field":"Date that places a record","head-default-mark":"Default","head-delete":"Delete","head-display":"Display","head-display-menu":"Display and views","head-empty-lanes":"Show empty lanes","head-export":"Export","head-favorite-add":"Add to favourites","head-favorite-remove":"Remove from favourites","head-fields-tab":"Fields","head-filter":"Filter","head-filter-actions":"Actions on the filter «{name}»","head-filter-changed":"(changed, not saved)","head-filter-named":"Filter: {name}","head-kind-board":"Board","head-kind-calendar":"Calendar","head-kind-cards":"Cards","head-kind-list":"List","head-kind-table":"Table","head-kind-tree":"Tree","head-lane-field":"Board lanes by field","head-level-personal":"Mine","head-level-shared":"For everyone","head-level-system":"System","head-list-menu":"More: list settings","head-locked":"Locked by the administrator","head-make-default":"Make default","head-no-saved":"No saved filters yet.","head-record-fields":"Record field settings","head-remove-field":"Remove the field «{name}»","head-rename":"Rename","head-reset":"Reset","head-reset-to-shared":"Reset to everyone\'s","head-rights":"Access rights","head-row-actions":"Row actions","head-save":"Save","head-save-default":"Make default","head-save-filter":"Save filter","head-save-for-all":"Save for everyone","head-save-name":"Name","head-save-note":"The fields and their values are saved, without the search text.","head-save-shared":"Save for everyone","head-save-shared-hint":"Everyone with access to the list will see it","head-saved-tab":"Saved","head-search":"Search","head-share":"Share with everyone","head-shared-mark":"Shared","head-size-l":"Large","head-size-m":"Medium","head-size-s":"Small","head-unshare":"Only for me","head-update":"Update","head-update-filter":"Update «{name}»","head-view-changed":"Changed","head-view-new":"Save the view","head-view-new-name":"New view","head-view-reset":"Reset","head-view-save-all":"Save for everyone","head-view-save-mine":"Save as mine","head-view-save-new":"Save the view","head-view-state":"View state","head-view-state-mine":"Changed. Saved only for you; everyone else sees «{name}» as it was.","head-view-state-none":"«{name}»: no changes.","head-view-state-unsaved":"Changed, not saved: everyone still sees «{name}» as it was.","head-view-unsaved":"changed, not saved","head-view-zone":"View: {name}","head-view-zone-none":"View","head-views":"Views","layout-label":"Data view","move-action":"Move…","move-apply":"Move","move-first":"First","move-last":"Last","move-no-targets":"There is nowhere this record can be moved.","move-place":"Place","move-root":"To the top level","move-title":"Move «{label}»","notice-action-not-allowed":"That action is not available for the chosen record.","notice-capability-not-provided":"The host does not support that action.","notice-confirm-required":"The action has to be confirmed first.","notice-conflict":"The data changed. Read the view again and repeat the action.","notice-failed":"The action was not carried out.","notice-fetch-failed":"The data could not be fetched. Try again.","notice-forbidden":"You may not do this.","notice-load-failed":"The data could not be loaded.","notice-no-base-revision":"The settings cannot be saved yet: the view has no current version of them. Read the view again.","notice-not-confirmed":"The action was cancelled.","notice-port-not-connected":"The data source is not connected.","notice-record-invalid":"The record was not found.","notice-refused":"The action was refused.","notice-saved-view-levels":"Shared views need a newer port.","notice-stale-revision":"Someone changed this in the meantime. Read the view again and repeat the action.","notice-unavailable":"The action is unavailable.","of-total":"{shown} of {total}","records-label":"Records","show-all":"Show all","state-load-failed":"The data could not be loaded","state-loading":"Loading","state-port-not-connected":"The data port is not connected","state-query-failed":"The request could not be completed","state-unavailable":"The data is temporarily unavailable","unnamed-action":"Action"}}');
+module.exports = /*#__PURE__*/JSON.parse('{"title":"Data view","events":{"answer":{"label":"The host answered"},"state":{"label":"List state"},"tree":{"label":"Tree request"},"files-drop":{"label":"Files dropped on the list"},"display-change":{"label":"Display kind changed"},"settings-open":{"label":"List setting asked"}},"runtime":{"cancel":"Cancel","close-notice-label":"Close the message","confirm-apply":"Confirm","confirm-title":"Confirm the change","create-child-action":"Add a nested one","drop-files":"Drop the files here to upload them","empty-text":"No data","head-apply":"Apply","head-cancel":"Cancel","head-card-fields":"Card fields","head-card-size":"Card size","head-clear":"Clear","head-colour-field":"Record colour by field","head-colour-none":"No colour","head-columns":"Columns","head-copy":"Save a copy","head-copy-suffix":"(copy)","head-count":"Records: {count}","head-create":"Create","head-customize":"Customize view","head-customize-note":"Your changes apply at once and only for you.","head-date-field":"Date that places a record","head-default-mark":"Default","head-delete":"Delete","head-density":"Density","head-density-compact":"Compact","head-density-normal":"Normal","head-display":"Display","head-display-menu":"Display and views","head-empty-lanes":"Show empty lanes","head-export":"Export","head-favorite-add":"Add to favourites","head-favorite-remove":"Remove from favourites","head-fields-tab":"Fields","head-filter":"Filter","head-filter-actions":"Actions on the filter «{name}»","head-filter-changed":"(changed, not saved)","head-filter-named":"Filter: {name}","head-kind-board":"Kanban","head-kind-calendar":"Calendar","head-kind-cards":"Cards","head-kind-list":"List","head-kind-table":"Table","head-kind-tree":"Tree","head-lane-field":"Board lanes by field","head-level-personal":"Mine","head-level-shared":"For everyone","head-level-system":"System","head-list-menu":"More: list settings","head-locked":"Locked by the administrator","head-make-default":"Make default","head-no-saved":"No saved filters yet.","head-paging":"Loading","head-paging-both":"Both","head-paging-endless":"Endless","head-paging-more":"«Show more»","head-paging-pages":"By pages","head-record-fields":"Record field settings","head-remove-field":"Remove the field «{name}»","head-rename":"Rename","head-reset":"Reset","head-reset-to-shared":"Reset to everyone\'s","head-rights":"Access rights","head-row-actions":"Row actions","head-save":"Save","head-save-default":"Make default","head-save-filter":"Save filter","head-save-for-all":"Save for everyone","head-save-name":"Name","head-save-note":"The fields and their values are saved, without the search text.","head-save-shared":"Save for everyone","head-save-shared-hint":"Everyone with access to the list will see it","head-saved-tab":"Saved","head-search":"Search","head-share":"Share with everyone","head-shared-mark":"Shared","head-single-line":"Text on one line","head-size-l":"Large","head-size-m":"Medium","head-size-s":"Small","head-unshare":"Only for me","head-update":"Update","head-update-filter":"Update «{name}»","head-view-changed":"Changed","head-view-new":"Save the view","head-view-new-name":"New view","head-view-reset":"Reset","head-view-save-all":"Save for everyone","head-view-save-mine":"Save as mine","head-view-save-new":"Save the view","head-view-state":"View state","head-view-state-mine":"Changed. Saved only for you; everyone else sees «{name}» as it was.","head-view-state-none":"«{name}»: no changes.","head-view-state-unsaved":"Changed, not saved: everyone still sees «{name}» as it was.","head-view-unsaved":"changed, not saved","head-view-zone":"View: {name}","head-view-zone-none":"View","head-views":"Views","layout-label":"Data view","move-action":"Move…","move-apply":"Move","move-first":"First","move-last":"Last","move-no-targets":"There is nowhere this record can be moved.","move-place":"Place","move-root":"To the top level","move-title":"Move «{label}»","notice-action-not-allowed":"That action is not available for the chosen record.","notice-capability-not-provided":"The host does not support that action.","notice-confirm-required":"The action has to be confirmed first.","notice-conflict":"The data changed. Read the view again and repeat the action.","notice-failed":"The action was not carried out.","notice-fetch-failed":"The data could not be fetched. Try again.","notice-forbidden":"You may not do this.","notice-load-failed":"The data could not be loaded.","notice-no-base-revision":"The settings cannot be saved yet: the view has no current version of them. Read the view again.","notice-not-confirmed":"The action was cancelled.","notice-port-not-connected":"The data source is not connected.","notice-record-invalid":"The record was not found.","notice-refused":"The action was refused.","notice-saved-view-levels":"Shared views need a newer port.","notice-stale-revision":"Someone changed this in the meantime. Read the view again and repeat the action.","notice-unavailable":"The action is unavailable.","of-total":"{shown} of {total}","records-label":"Records","show-all":"Show all","state-load-failed":"The data could not be loaded","state-loading":"Loading","state-port-not-connected":"The data port is not connected","state-query-failed":"The request could not be completed","state-unavailable":"The data is temporarily unavailable","unnamed-action":"Action"}}');
 
 /***/ },
 
 /***/ "3e9dffe84919"
 (module) {
 
-module.exports = /*#__PURE__*/JSON.parse('{"title":"Представление данных","events":{"answer":{"label":"Ответ хоста"},"state":{"label":"Состояние списка"},"tree":{"label":"Запрос ветви дерева"},"files-drop":{"label":"Файлы брошены на список"},"display-change":{"label":"Сменён вид показа"},"settings-open":{"label":"Запрошена настройка списка"}},"runtime":{"cancel":"Отмена","close-notice-label":"Закрыть сообщение","confirm-apply":"Подтвердить","confirm-title":"Подтвердите изменение","create-child-action":"Добавить вложенную","drop-files":"Отпустите, чтобы загрузить файлы сюда","empty-text":"Нет данных","head-apply":"Применить","head-cancel":"Отменить","head-card-fields":"Поля на карточке","head-card-size":"Размер карточек","head-clear":"Очистить","head-colour-field":"Цвет записи — по полю","head-colour-none":"Без цвета","head-columns":"Колонки","head-copy":"Сохранить копию","head-copy-suffix":"(копия)","head-count":"Записей: {count}","head-create":"Создать","head-customize":"Настроить вид","head-customize-note":"Ваши изменения сохраняются сразу и только для вас.","head-date-field":"Дата, по которой стоит запись","head-default-mark":"По умолчанию","head-delete":"Удалить","head-display":"Вид показа","head-display-menu":"Вид показа и представления","head-empty-lanes":"Показывать пустые колонки","head-export":"Экспорт","head-favorite-add":"Добавить в избранное","head-favorite-remove":"Убрать из избранного","head-fields-tab":"Поля","head-filter":"Фильтр","head-filter-actions":"Действия с фильтром «{name}»","head-filter-changed":"(изменён, не сохранён)","head-filter-named":"Фильтр: {name}","head-kind-board":"Доска","head-kind-calendar":"Календарь","head-kind-cards":"Карточки","head-kind-list":"Список","head-kind-table":"Таблица","head-kind-tree":"Дерево","head-lane-field":"Колонки доски — по полю","head-level-personal":"Мои","head-level-shared":"Для всех","head-level-system":"Системные","head-list-menu":"Ещё: настройки списка","head-locked":"Закрыл администратор","head-make-default":"Сделать по умолчанию","head-no-saved":"Сохранённых фильтров пока нет.","head-record-fields":"Настройки полей записи","head-remove-field":"Убрать поле «{name}»","head-rename":"Переименовать","head-reset":"Сбросить","head-reset-to-shared":"Вернуть как у всех","head-rights":"Права доступа","head-row-actions":"Действия в строке","head-save":"Сохранить","head-save-default":"Сделать по умолчанию","head-save-filter":"Сохранить фильтр","head-save-for-all":"Сохранить для всех","head-save-name":"Название","head-save-note":"Сохранятся поля и их значения, без текста поиска.","head-save-shared":"Сохранить для всех","head-save-shared-hint":"Увидят все, у кого есть доступ к списку","head-saved-tab":"Сохранённые","head-search":"Поиск","head-share":"Поделиться со всеми","head-shared-mark":"Общий","head-size-l":"Крупные","head-size-m":"Средние","head-size-s":"Малые","head-unshare":"Только для меня","head-update":"Обновить","head-update-filter":"Обновить «{name}»","head-view-changed":"Изменено","head-view-new":"Сохранить представление","head-view-new-name":"Новое представление","head-view-reset":"Сбросить","head-view-save-all":"Сохранить для всех","head-view-save-mine":"Сохранить как моё","head-view-save-new":"Сохранить представление","head-view-state":"Состояние представления","head-view-state-mine":"Изменено. Сохранено только для вас; остальные видят «{name}» как было.","head-view-state-none":"«{name}»: изменений нет.","head-view-state-unsaved":"Изменено и не сохранено: у всех «{name}» остаётся как было.","head-view-unsaved":"изменено, не сохранено","head-view-zone":"Представление: {name}","head-view-zone-none":"Представление","head-views":"Представления","layout-label":"Представление данных","move-action":"Переместить…","move-apply":"Переместить","move-first":"Первым","move-last":"Последним","move-no-targets":"Эту запись некуда переместить.","move-place":"Место","move-root":"На верхний уровень","move-title":"Переместить «{label}»","notice-action-not-allowed":"Это действие недоступно для выбранной записи.","notice-capability-not-provided":"Хост не поддерживает это действие.","notice-confirm-required":"Действие нужно сначала подтвердить.","notice-conflict":"Данные изменились. Обновите представление и повторите действие.","notice-failed":"Действие не выполнено.","notice-fetch-failed":"Не удалось получить данные. Повторите попытку.","notice-forbidden":"Недостаточно прав для этого действия.","notice-load-failed":"Не удалось загрузить данные.","notice-no-base-revision":"Настройки пока нельзя сохранить: у представления нет их текущей версии. Обновите представление.","notice-not-confirmed":"Действие отменено.","notice-port-not-connected":"Источник данных не подключён.","notice-record-invalid":"Запись не найдена.","notice-refused":"Действие отклонено.","notice-saved-view-levels":"Общие виды требуют более новой версии порта.","notice-stale-revision":"Данные успели изменить. Обновите представление и повторите действие.","notice-unavailable":"Действие недоступно.","of-total":"{shown} из {total}","records-label":"Записи","show-all":"Показать все","state-load-failed":"Не удалось загрузить данные","state-loading":"Загрузка данных","state-port-not-connected":"Порт данных не подключён","state-query-failed":"Запрос не выполнен","state-unavailable":"Данные временно недоступны","unnamed-action":"Действие"}}');
+module.exports = /*#__PURE__*/JSON.parse('{"title":"Представление данных","events":{"answer":{"label":"Ответ хоста"},"state":{"label":"Состояние списка"},"tree":{"label":"Запрос ветви дерева"},"files-drop":{"label":"Файлы брошены на список"},"display-change":{"label":"Сменён вид показа"},"settings-open":{"label":"Запрошена настройка списка"}},"runtime":{"cancel":"Отмена","close-notice-label":"Закрыть сообщение","confirm-apply":"Подтвердить","confirm-title":"Подтвердите изменение","create-child-action":"Добавить вложенную","drop-files":"Отпустите, чтобы загрузить файлы сюда","empty-text":"Нет данных","head-apply":"Применить","head-cancel":"Отменить","head-card-fields":"Поля на карточке","head-card-size":"Размер карточек","head-clear":"Очистить","head-colour-field":"Цвет записи — по полю","head-colour-none":"Без цвета","head-columns":"Колонки","head-copy":"Сохранить копию","head-copy-suffix":"(копия)","head-count":"Записей: {count}","head-create":"Создать","head-customize":"Настроить вид","head-customize-note":"Ваши изменения сохраняются сразу и только для вас.","head-date-field":"Дата, по которой стоит запись","head-default-mark":"По умолчанию","head-delete":"Удалить","head-density":"Плотность","head-density-compact":"Компактная","head-density-normal":"Обычная","head-display":"Вид показа","head-display-menu":"Вид показа и представления","head-empty-lanes":"Показывать пустые колонки","head-export":"Экспорт","head-favorite-add":"Добавить в избранное","head-favorite-remove":"Убрать из избранного","head-fields-tab":"Поля","head-filter":"Фильтр","head-filter-actions":"Действия с фильтром «{name}»","head-filter-changed":"(изменён, не сохранён)","head-filter-named":"Фильтр: {name}","head-kind-board":"Канбан","head-kind-calendar":"Календарь","head-kind-cards":"Карточки","head-kind-list":"Список","head-kind-table":"Таблица","head-kind-tree":"Дерево","head-lane-field":"Колонки доски — по полю","head-level-personal":"Мои","head-level-shared":"Для всех","head-level-system":"Системные","head-list-menu":"Ещё: настройки списка","head-locked":"Закрыл администратор","head-make-default":"Сделать по умолчанию","head-no-saved":"Сохранённых фильтров пока нет.","head-paging":"Подгрузка","head-paging-both":"Вместе","head-paging-endless":"Бесконечно","head-paging-more":"«Показать ещё»","head-paging-pages":"Страницами","head-record-fields":"Настройки полей записи","head-remove-field":"Убрать поле «{name}»","head-rename":"Переименовать","head-reset":"Сбросить","head-reset-to-shared":"Вернуть как у всех","head-rights":"Права доступа","head-row-actions":"Действия в строке","head-save":"Сохранить","head-save-default":"Сделать по умолчанию","head-save-filter":"Сохранить фильтр","head-save-for-all":"Сохранить для всех","head-save-name":"Название","head-save-note":"Сохранятся поля и их значения, без текста поиска.","head-save-shared":"Сохранить для всех","head-save-shared-hint":"Увидят все, у кого есть доступ к списку","head-saved-tab":"Сохранённые","head-search":"Поиск","head-share":"Поделиться со всеми","head-shared-mark":"Общий","head-single-line":"Текст в одну строку","head-size-l":"Крупные","head-size-m":"Средние","head-size-s":"Малые","head-unshare":"Только для меня","head-update":"Обновить","head-update-filter":"Обновить «{name}»","head-view-changed":"Изменено","head-view-new":"Сохранить представление","head-view-new-name":"Новое представление","head-view-reset":"Сбросить","head-view-save-all":"Сохранить для всех","head-view-save-mine":"Сохранить как моё","head-view-save-new":"Сохранить представление","head-view-state":"Состояние представления","head-view-state-mine":"Изменено. Сохранено только для вас; остальные видят «{name}» как было.","head-view-state-none":"«{name}»: изменений нет.","head-view-state-unsaved":"Изменено и не сохранено: у всех «{name}» остаётся как было.","head-view-unsaved":"изменено, не сохранено","head-view-zone":"Представление: {name}","head-view-zone-none":"Представление","head-views":"Представления","layout-label":"Представление данных","move-action":"Переместить…","move-apply":"Переместить","move-first":"Первым","move-last":"Последним","move-no-targets":"Эту запись некуда переместить.","move-place":"Место","move-root":"На верхний уровень","move-title":"Переместить «{label}»","notice-action-not-allowed":"Это действие недоступно для выбранной записи.","notice-capability-not-provided":"Хост не поддерживает это действие.","notice-confirm-required":"Действие нужно сначала подтвердить.","notice-conflict":"Данные изменились. Обновите представление и повторите действие.","notice-failed":"Действие не выполнено.","notice-fetch-failed":"Не удалось получить данные. Повторите попытку.","notice-forbidden":"Недостаточно прав для этого действия.","notice-load-failed":"Не удалось загрузить данные.","notice-no-base-revision":"Настройки пока нельзя сохранить: у представления нет их текущей версии. Обновите представление.","notice-not-confirmed":"Действие отменено.","notice-port-not-connected":"Источник данных не подключён.","notice-record-invalid":"Запись не найдена.","notice-refused":"Действие отклонено.","notice-saved-view-levels":"Общие виды требуют более новой версии порта.","notice-stale-revision":"Данные успели изменить. Обновите представление и повторите действие.","notice-unavailable":"Действие недоступно.","of-total":"{shown} из {total}","records-label":"Записи","show-all":"Показать все","state-load-failed":"Не удалось загрузить данные","state-loading":"Загрузка данных","state-port-not-connected":"Порт данных не подключён","state-query-failed":"Запрос не выполнен","state-unavailable":"Данные временно недоступны","unnamed-action":"Действие"}}');
 
 /***/ }
 

@@ -2,8 +2,15 @@
   "$comment": "sf-view-flow, standard simai.smart-component 1.4 (vocabulary 1.1.5): properties as a block in a flow. Design: ui-view docs/design/sf-view-flow.md. The confirm surface (SIMAI Framework helpers/confirm-surface.js) gives the states, the expiry, the answer and expired events and the actions open, answer, confirm and cancel; the field values are sf-view-properties' js/field-value.js over the Framework field renderers.",
   "id": "smart.view-flow",
   "tag": "sf-view-flow",
-  "version": "1.1.6",
+  "version": "1.1.7",
   "x-history": [
+    {
+      "version": "1.1.7",
+      "kind": "patch",
+      "recorded_on": "2026-11-21",
+      "consumer": "Nothing to change for a host and nothing changes on screen: the shared field renderer js/field-value.js of sf-view-properties (view round 13, C402) writes an empty value's ink in its sheet instead of a utility class; the ink is the same.",
+      "evidence": "control/evidence/2026-11-21-view-r13/README.md"
+    },
     {
       "version": "1.1.6",
       "kind": "patch",
@@ -712,6 +719,13 @@
           "to": "1.1.6",
           "changes": [
             "Over the SIMAI Framework pair ui-1ed6b6c9a040: src/smart/helpers/confirm-surface.js, which the flow builds in, draws the status sign at the ladder's 1/3 (C151 (1)); provenance only, nothing of the flow's own."
+          ]
+        },
+        {
+          "from": "1.1.6",
+          "to": "1.1.7",
+          "changes": [
+            "View round 13 (round/view-r13): the bundled view-properties js/field-value.js draws the empty value as <span class=\"sf-property-view-empty\"> without color-on-surface-variant (the sheet gives the same ink)."
           ]
         }
       ]

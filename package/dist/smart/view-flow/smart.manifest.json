@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-flow",
-  "version": "1.1.6",
+  "version": "1.1.7",
   "title": "Flow block",
   "summary": "A few properties as a block in a flow (a chat message, a feed, any stream): shows a record's fields, or asks for a few and sends them, then keeps the answer read-only. Fields are sf-view-properties' descriptors drawn by the Framework field renderers; a press is an event, the host answers with settle.",
   "kind": "smart",
@@ -480,6 +480,13 @@
         "changes": [
           "Over the SIMAI Framework pair ui-1ed6b6c9a040: src/smart/helpers/confirm-surface.js, which the flow builds in, draws the status sign at the ladder's 1/3 (C151 (1)); provenance only, nothing of the flow's own."
         ]
+      },
+      {
+        "from": "1.1.6",
+        "to": "1.1.7",
+        "changes": [
+          "View round 13 (round/view-r13): the bundled view-properties js/field-value.js draws the empty value as <span class=\"sf-property-view-empty\"> without color-on-surface-variant (the sheet gives the same ink)."
+        ]
       }
     ]
   },
@@ -505,7 +512,7 @@
       },
       {
         "path": "src/smart/view-properties/js/field-value.js",
-        "sha256": "aa04dbf2f3f8a979966af613c82e2bcffa13020371a5884f88728f50c1145b8e"
+        "sha256": "8773043c226a0aba2b261086d53522be5d40444f15559447d0937cbcc1afc8df"
       },
       {
         "path": "src/smart/view-properties/js/conditions.js",

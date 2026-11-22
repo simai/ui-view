@@ -9413,7 +9413,32 @@ const panelMeasure = step => {
   return `var(--sf-measure-${n}, calc(${n} * var(--sf-text--size-1) / 2))`;
 };
 
-const PANEL_WIDTH_UNTIL = "2027-01-01";
+const PANEL_WIDTH_UNTIL = "2027-01-01"; // One owner of the sections' column (VR11-1, owner remark via DEV msg-0ded9f0c):
+// where the card lays its sections as a column it reserves 12rem for them, and
+// the vertical sf-tabs in that column must draw the vertical list. sf-tabs
+// folds a vertical list into its underline row below the h1 step (44rem) of
+// the first box around the column wider than it (VP-26, C181 (2)); in a panel
+// below the whole screen that box is the panel's scroller, at most 43rem (step
+// 2: 32rem + 12rem + a gutter, less the panel's gutters), so the column was
+// reserved and the tabs drew the row inside it (688 px scroller, 192 px
+// column, aria-orientation horizontal). The pair's sf-tabs has no way to be
+// told not to fold; the set asks the SIMAI Framework for one (proposed:
+// fold="auto|never" on sf-tabs, never = type="vertical" always draws the
+// vertical list, its place no longer read). Until a pair carries it, a panel
+// below the whole screen lays its sections as tabs on top and is not widened
+// for a column; once sf-tabs declares the property the slider keeps the
+// vertical list (the owner's default): over the list always, docked beside
+// it while the list keeps 48rem (C399, sectionColumnFits); else tabs on top.
+
+const tabsHoldColumn = () => {
+  const tabs = globalThis.customElements?.get?.("sf-tabs");
+
+  try {
+    return Boolean(tabs?.props && Object.prototype.hasOwnProperty.call(tabs.props, "fold"));
+  } catch {
+    return false;
+  }
+};
 
 const nearestPanelStep = width => {
   const found = /^\s*(\d+(?:\.\d+)?)\s*(rem|em|px)\s*$/u.exec(String(width ?? ""));
@@ -10143,8 +10168,106 @@ class SfPropertyView extends PropertyViewElement {
     // widen it under the person (first paint gate); a record of one
     // section takes the step's width when it comes.
 
+    if (!this.sectionColumnFits) return false;
     if (!this.record) return true;
     return (this.sections?.length ?? 0) > 1 || this.configuring;
+  } // Whether a column of sections is drawn as the vertical list (VR11-1): the
+  // one place that decides it, read by panelWidened and sectionsLayout, so
+  // the card never reserves a column the tabs fold out of. A panel below the
+  // whole screen: only with an sf-tabs that can be told not to fold, and
+  // only while the widened panel stays within 60 percent of the window. The
+  // whole screen and a card in place: unless the drawn tabs folded there
+  // (_columnFolded, the window width they folded at; read after each render).
+  // Owner decision C399 (view round 13): a card docked beside the list
+  // keeps the column only while the list itself keeps 48rem beside the
+  // widened card; else its sections are tabs on top and the list keeps its
+  // width. A card over the list (an overlay) and the whole screen always
+  // keep the column. It replaces the share of the window (60 percent) of
+  // VR11-1. The vertical list in a panel still waits for sf-tabs that can
+  // be told not to fold (GB16): until then a panel draws tabs.
+
+
+  get sectionColumnFits() {
+    if (this.panel && this.drawerStep !== "full") {
+      if (!tabsHoldColumn()) return false;
+      if (!this._docksBesideList()) return true;
+
+      const width = this._widenedPanelWidth();
+
+      const host = globalThis.document?.querySelector?.("[data-sf-drawer-dock-host]");
+      const room = host?.getBoundingClientRect?.().width || globalThis.innerWidth || 0;
+      return !(width > 0 && room > 0 && room - width < this._listLeast());
+    }
+
+    return !(this._columnFolded && (globalThis.innerWidth || 0) <= this._columnFolded);
+  } // Whether the panel stands as a column beside the list (C305 (4)): docked,
+  // and the window as wide as the drawer docks at.
+
+
+  _docksBesideList() {
+    if (!this.docked) return false;
+    return globalThis.matchMedia?.(`(min-width: ${DOCK_BREAKPOINT})`)?.matches ?? false;
+  } // The least width the list keeps beside a docked card (C399): 48rem.
+
+
+  _listLeast() {
+    const size = Number.parseFloat(globalThis.getComputedStyle?.(globalThis.document?.documentElement ?? {})?.fontSize ?? "") || 16;
+    return 48 * size;
+  } // The widened panel's width in px (step + the column + a gutter), measured
+  // once per window width and density: the step is a text measure, so it
+  // moves with the body text size.
+
+
+  _widenedPanelWidth() {
+    const doc = globalThis.document;
+    if (!doc?.body) return 0;
+    const key = `${globalThis.innerWidth}|${this.drawerStep}|${doc.documentElement.getAttribute("data-sf-density") ?? ""}`;
+    if (this._widenedWidth?.key === key) return this._widenedWidth.value;
+    const probe = doc.createElement("div");
+    probe.setAttribute("aria-hidden", "true");
+    probe.style.cssText = `position: absolute; visibility: hidden; pointer-events: none; inset-block-start: 0; inset-inline-start: 0; inline-size: calc(${panelMeasure(this.drawerStep)} + ${SECTIONS_WIDTH} + var(--sf-drawer-gutter, var(--sf-space-1)));`;
+    doc.body.append(probe);
+    const value = probe.getBoundingClientRect().width;
+    probe.remove();
+    this._widenedWidth = {
+      key,
+      value
+    };
+    return value;
+  } // After a render (VR11-1): a column whose vertical tabs drew the folded
+  // row is laid as tabs on top instead, until the window is wider than where
+  // they folded. Only where the column is not decided before drawing (the
+  // whole screen, a card in place).
+
+
+  _checkSectionColumn() {
+    if (this.sectionsLayout !== "column" || this.configuring) return;
+    const root = this.panel ? this.panelContent?.() : this;
+    const tabs = root?.querySelector?.(".sf-property-view-sections sf-tabs");
+    if (!tabs) return; // The tabs fold later too (their place narrows): every render of theirs is read.
+
+    this._watchedColumnTabs ??= new WeakSet();
+
+    if (!this._watchedColumnTabs.has(tabs)) {
+      this._watchedColumnTabs.add(tabs);
+
+      tabs.onAfterRender?.(() => requestAnimationFrame(() => this._checkSectionColumn()), {
+        once: false,
+        immediate: false
+      });
+    }
+
+    const list = tabs.querySelector("[role=tablist]");
+    if (!list || list.getAttribute("aria-orientation") === "vertical") return;
+    this._columnFolded = globalThis.innerWidth || 1;
+    this.requestComponentUpdate("section-column");
+  } // The window grew past where the column's tabs folded: the column is tried again.
+
+
+  _onColumnResize() {
+    if (!this._columnFolded || (globalThis.innerWidth || 0) <= this._columnFolded) return;
+    this._columnFolded = 0;
+    this.requestComponentUpdate("section-column");
   } // The drawer's width: the step's text measure (C396), and with the
   // section list beside the groups that list's column and the rail's gap.
   // A whole-screen step keeps the drawer's own 100vi.
@@ -10224,12 +10347,13 @@ class SfPropertyView extends PropertyViewElement {
     // the picker, «Вкладки» (dragged as before), then the fields.
 
     if (this.panel) {
-      if (this.drawerStep === "full") return "column";
+      if (this.drawerStep === "full") return this.configuring || this.sectionColumnFits ? "column" : "tabs";
       if (this.configuring) return "tabs";
       return this.sectionsAs === "list" && this.panelWidened ? "column" : "tabs";
     }
 
-    return this.sectionsAs === "tabs" ? "tabs" : "column";
+    if (this.sectionsAs === "tabs" || !this.sectionColumnFits) return "tabs";
+    return "column";
   } // Once per element: a former `panel-width` is said in the console with
   // the step it lands on, and noted in SF.deprecations.
 
@@ -10731,6 +10855,34 @@ class SfPropertyView extends PropertyViewElement {
 
   get favourite() {
     return this.hasAttribute("favourite");
+  } // The favourite star's look (C393, DEV msg-975e95fe; the twin of
+  // ui-pro's sf-view-properties 1.24.0): the Framework's toggle where
+  // sf-button-icon declares it (1.14.0), read from its own interface; with
+  // an sf-button-icon without it (pair ui-b654460cad2a carries 1.13.11) the
+  // star stays the neutral ghost toggle of C211 (1). Until the tag is
+  // defined the star is drawn as before and drawn again once it is.
+
+
+  starLook() {
+    const Button = globalThis.customElements?.get?.("sf-button-icon");
+
+    if (!Button) {
+      if (!this._starLookWait && globalThis.customElements?.whenDefined) {
+        this._starLookWait = globalThis.customElements.whenDefined("sf-button-icon").then(() => this.requestComponentUpdate("star-look"));
+      }
+
+      return null;
+    }
+
+    let values = null;
+
+    try {
+      values = Button.sfInterface?.settings?.appearance?.values;
+    } catch {
+      values = null;
+    }
+
+    return Array.isArray(values) && values.includes("toggle") ? "toggle" : null;
   }
 
   get favouriteLabel() {
@@ -11264,9 +11416,10 @@ class SfPropertyView extends PropertyViewElement {
 
       this._askForUndefinedTags();
 
-      this._askForArrangingTags(); // The panel's level for a related record (C289 (6)): whether this
-      // panel's drawer is drawn inside another one is known once it is open.
+      this._askForArrangingTags();
 
+      if (this.sectionsLayout === "column") requestAnimationFrame(() => this._checkSectionColumn()); // The panel's level for a related record (C289 (6)): whether this
+      // panel's drawer is drawn inside another one is known once it is open.
 
       const nested = this._nestedLabel();
 
@@ -11356,7 +11509,13 @@ class SfPropertyView extends PropertyViewElement {
       this.requestComponentUpdate("viewport");
     };
 
-    this.sideMedia?.addEventListener?.("change", this._onSideChange); // Alt+↓ / Alt+↑: the next or the previous record of the view (C305 (4)).
+    this.sideMedia?.addEventListener?.("change", this._onSideChange);
+
+    this._onColumnResizeEvent = () => this._onColumnResize();
+
+    globalThis.addEventListener?.("resize", this._onColumnResizeEvent, {
+      passive: true
+    }); // Alt+↓ / Alt+↑: the next or the previous record of the view (C305 (4)).
     // The panel is portalled out of the element, so the keys are read on
     // the document for a press inside this card's panel.
 
@@ -11447,6 +11606,7 @@ class SfPropertyView extends PropertyViewElement {
     this._onDocumentSortableIntent = null;
     if (this._onWideChange) this.wideMedia?.removeEventListener?.("change", this._onWideChange);
     if (this._onSideChange) this.sideMedia?.removeEventListener?.("change", this._onSideChange);
+    if (this._onColumnResizeEvent) globalThis.removeEventListener?.("resize", this._onColumnResizeEvent);
     this._onSideChange = null;
     this.sideMedia = null;
     if (this._onStepKey) document.removeEventListener("keydown", this._onStepKey);
@@ -12039,6 +12199,8 @@ class SfPropertyView extends PropertyViewElement {
       hasHostSlot: name => this.hasSlotContent(name),
       address: this.address,
       drawerWidth: this.drawerWidth,
+      // C393: the star is the Framework's toggle where sf-button-icon has the look.
+      starLook: this.starLook(),
       sectionsWidth: SECTIONS_WIDTH,
       panelWidthStyle: this.panelWidthStyle,
       conflict: this.conflict,
@@ -12160,6 +12322,8 @@ class SfPropertyView extends PropertyViewElement {
       // VP-26: sf-tabs vertical once it places its box by its own column;
       // until then sf-menu, and sf-tabs where sf-menu is not defined.
       sectionColumnTabs: typeof globalThis.customElements?.get?.("sf-tabs")?.prototype?.placeBox === "function" || !globalThis.customElements?.get?.("sf-menu"),
+      // VR11-1: the column's tabs told not to fold, where sf-tabs can be.
+      tabsHoldColumn: tabsHoldColumn(),
       word: key => (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_8__.pageText)(PROPERTY_VIEW_TEXT, key, this),
       // C311: levels, locks, the head, the tabs' and fields' menus.
       canWriteShared: this.canWriteShared,
@@ -13538,8 +13702,12 @@ class SfPropertyView extends PropertyViewElement {
     }
 
     if (answer.answer === "conflict") {
+      // As a group save: what was typed is kept, the record is read again
+      // at its current revision (port 1.21.0, 1.22.1 revision_moved; the
+      // fix of simai/ui-pro sf-view-properties 1.23.8, 316ee37).
       this.conflict = answer.message || this.conflictText;
       this.requestComponentUpdate("conflict");
+      if (!creating) await this._rereadAfterConflict(answer);
       return answer;
     }
 
@@ -15562,7 +15730,7 @@ function renderFieldValue(context, field, editing, {
   });
 
   if (own !== null) {
-    return own === lit__WEBPACK_IMPORTED_MODULE_0__.nothing ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-property-view-empty color-on-surface-variant">${context.emptyText}</span>` : own;
+    return own === lit__WEBPACK_IMPORTED_MODULE_0__.nothing ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-property-view-empty">${context.emptyText}</span>` : own;
   } // A datetime and a time of day are the renderer set's: sf-input-date in
   // mode datetime and time, one control each (SIMAI Framework duplication
   // audit A-14). This view drew its own pair -- the day in a datepicker and
@@ -15614,7 +15782,7 @@ function renderFieldValue(context, field, editing, {
   }
 
   if (content === null || typeof content === 'undefined' || content === lit__WEBPACK_IMPORTED_MODULE_0__.nothing) {
-    return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-property-view-empty color-on-surface-variant">${context.emptyText}</span>`;
+    return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-property-view-empty">${context.emptyText}</span>`;
   }
 
   return content;
@@ -17844,8 +18012,14 @@ function renderGroup(context, section, group) {
   // a property shown alone): an empty heading took a row (36 px read, 29 px
   // edited) and named nothing to a screen reader. Its «Изменить», the rare
   // mark and the arranging tools still bring the head back.
+  // A section of one group whose name is the section's (VRS-9, view round
+  // 12): the section's tab, column row or phone screen already names it, and
+  // the group's head said «Заказ» again under «Заказ». Its «Изменить» stays;
+  // arranging the card still shows every head. One section alone is drawn
+  // without its name, so its group keeps the title.
 
-  const titled = String(group.label ?? groupKey) !== '' || Boolean(group.rare);
+  const repeats = !configuring && !group.rare && (context.visible(context.sections ?? []) ?? []).length > 1 && (context.visible(section.groups ?? []) ?? []).length === 1 && String(group.label ?? groupKey).trim() === String(section.label ?? section.key ?? '').trim();
+  const titled = (String(group.label ?? groupKey) !== '' || Boolean(group.rare)) && !repeats;
   const readEdit = context.mayEdit && !context.openAll && group.editable !== false;
   const cardEdit = !configuring && !editing && context.mayEdit && !context.openAll && group.kind !== 'related' && group.editable !== false; // Read, the group is a section of the record's description list: its name
   // a list section heading with «Изменить» as its action, its fields rows of
@@ -17859,7 +18033,7 @@ function renderGroup(context, section, group) {
     return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
             <section class="sf-property-view-group sf-property-view-group--list" data-group=${groupKey} aria-busy=${reading ? 'true' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}>
                 ${titled || readEdit ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<div class="sf-list-description-head sf-property-view-group-header">
-                    <div class="sf-list-description-title sf-property-view-group-title" role="heading" aria-level="3">${String(group.label ?? groupKey)}${group.rare ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)` <span class="sf-property-view-rare color-on-surface-variant">${context.rareText}</span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}</div>
+                    ${titled ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<div class="sf-list-description-title sf-property-view-group-title" role="heading" aria-level="3">${String(group.label ?? groupKey)}${group.rare ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)` <span class="sf-property-view-rare color-on-surface-variant">${context.rareText}</span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}</div>` : (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-property-view-group-title-gap" aria-hidden="true"></span>`}
                     ${readEdit ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-list-description-action"><sf-button
                                     appearance="ghost"
                                     size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
@@ -17871,8 +18045,10 @@ function renderGroup(context, section, group) {
                 ${fields.length || waiting ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<dl class="sf-list-description-part sf-property-view-group-fields" aria-label=${String(group.label ?? groupKey)}>${readRows}</dl>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
             </section>
         `;
-  } // Edited by sf-form (C182, C305 (1); VP-19, VP-27): the label above in a
-  // panel, beside on the full screen; «Сохранить» first, a quiet «Отмена»;
+  } // Edited by sf-form (C182, C305 (1); VP-19, VP-27): the label beside its
+  // field wherever the record is wide, over it on a phone (owner decision
+  // C401: the value turns into its field in place, the label stays at the
+  // start; sf-form lays labels="start" from 40rem of its own width); «Сохранить» first, a quiet «Отмена»;
   // every field the group's whole width. The form's value and fields are
   // the edit's own (formEdit), so a render of the card never resets it.
 
@@ -17887,7 +18063,7 @@ function renderGroup(context, section, group) {
                 </header>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                 <sf-form class="sf-property-view-form"
                          label=${String(group.label ?? groupKey)}
-                         labels=${context.sectionsLayout === 'column' ? 'start' : 'top'}
+                         labels=${context.sectionsLayout === 'phone' ? 'top' : 'start'}
                          footer=${context.panel || context.sectionsLayout === 'phone' ? 'sticky' : 'static'}
                          .fields=${(0,lit_directives_guard_js__WEBPACK_IMPORTED_MODULE_1__.guard)([form], () => form.fields)}
                          .value=${(0,lit_directives_guard_js__WEBPACK_IMPORTED_MODULE_1__.guard)([form], () => form.value)}
@@ -17982,7 +18158,10 @@ function renderGroup(context, section, group) {
 
 function renderPhoneSectionList(context, sections) {
   // The rows are sf-list's (C289 (5), C148 (4)): a section opens as a level
-  // of the panel, «←» in its head (C157 (6)).
+  // of the panel, «←» in its head (C157 (6)). They are the phone list's rows
+  // of the size ladder whatever the card's control size, and each ends in
+  // «›», the mark of a row that opens (VRS-8, view round 12): on the card's
+  // size 1/2 they were 28 px control rows with nothing saying they open.
   const items = sections.map(section => ({
     id: String(section.key),
     text: String(section.label ?? section.key),
@@ -17994,7 +18173,7 @@ function renderPhoneSectionList(context, sections) {
         <sf-list
                 class="sf-property-view-phone-sections"
                 label=${context.sectionsLabel}
-                size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                size="1"
                 divided
                 .items=${items}
                 @sf-list-open=${event => {
@@ -18075,6 +18254,7 @@ function renderSectionVerticalTabs(context, sections) {
         <sf-tabs
                 class="sf-property-view-section-list"
                 type="vertical"
+                fold=${context.tabsHoldColumn ? 'never' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                 size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                 selected=${selected}
                 aria-label=${context.sectionsLabel}
@@ -18567,7 +18747,20 @@ function renderPanelHead(context) {
                         @click=${() => context.component.closePhoneSection()}
                 ></sf-button-icon>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                 <h2 class="sf-property-view-title min-w-0 overflow-hidden" style=${TITLE_STYLE} tabindex="-1">${history ? context.word('historyText') : level ? context.phoneSectionLabel : record}</h2>
-                ${context.recordId && context.mode !== 'create' && !history ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<sf-button-icon
+                ${context.recordId && context.mode !== 'create' && !history ? context.starLook // The toggle look (C393): off a quiet ghost, on the soft
+  // primary plate with a 1 px primary ring inside, the glyph
+  // kept outline; pressed writes aria-pressed on the native
+  // button, one name says the action.
+  ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<sf-button-icon
+                        appearance=${context.starLook}
+                        size="1/3"
+                        icon="star"
+                        pressed=${context.favourite ? 'true' : 'false'}
+                        data-action="favourite"
+                        aria-label=${context.favouriteLabel}
+                        title=${context.favouriteLabel}
+                        @click=${() => context.component.toggleFavourite()}
+                ></sf-button-icon>` : (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<sf-button-icon
                         appearance="ghost"
                         scheme="on-surface"
                         size="1/3"
@@ -18594,19 +18787,33 @@ function renderPanelHead(context) {
 } // The line under the title (C289 (6), C311 (2)): the stage as a tonal badge,
 // then up to two fields' values joined by « · ». Nothing when the head names
 // none: the title alone, as before.
+// A card in place (no panel) has no title row of its own -- the page owns the
+// title -- so its actions («⋯», the host's) end this line rather than stand
+// alone on an empty row above it (view round 12, VHF-6).
 
 
-function renderHeadLine(context) {
+function renderHeadLine(context, end = lit__WEBPACK_IMPORTED_MODULE_0__.nothing) {
   const line = context.headLine;
-  if (!line || !line.status && !line.subtitle.length) return lit__WEBPACK_IMPORTED_MODULE_0__.nothing;
+  if (!headLineDrawn(context)) return lit__WEBPACK_IMPORTED_MODULE_0__.nothing;
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
         <div class="sf-property-view-head-line flex items-cross-center gap-1/3 min-w-0" data-head-line>
             ${line.status ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<sf-badge size="1/2" appearance="tonal" scheme=${line.status.scheme}
                     text=${line.status.text} data-head-status=${line.status.key}></sf-badge>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
             ${line.subtitle.length ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-property-view-head-subtitle color-on-surface-variant min-w-0 overflow-hidden"
                     data-head-subtitle>${line.subtitle.map(item => item.text).join(' · ')}</span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+            ${end === lit__WEBPACK_IMPORTED_MODULE_0__.nothing ? lit__WEBPACK_IMPORTED_MODULE_0__.nothing : (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<div class="sf-property-view-head-line-end flex items-cross-center gap-1">${end}</div>`}
         </div>
     `;
+}
+
+function headLineDrawn(context) {
+  const line = context.headLine;
+  return Boolean(line && (line.status || line.subtitle.length));
+} // The actions of a card in place: the host's and the card's menu («⋯»).
+
+
+function inPlaceActions(context) {
+  return Boolean(context.hasHostSlot('actions') || context.hasHostSlot('menu') || context.panelMenuItems.length || context.canDeleteRecord || (context.recordMenuItems?.length ?? 0) > 0);
 } // A section opened on a phone, inside a panel: a level of the panel (C157 (6)).
 
 
@@ -18804,6 +19011,7 @@ function renderHistoryFeed(context) {
   const loading = !feed || feed.loading;
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
         <sf-list-timeline class="sf-property-view-history"
+                size=${context.size === '1/2' ? '1/2' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                 group="day"
                 label=${context.word('historyText')}
                 .items=${items}
@@ -18911,12 +19119,14 @@ function renderBody(context, railOutside = false, withActions = true) {
         <div class="sf-property-view-status" role="status" aria-live="polite" ?hidden=${!context.message}>
             ${context.message}
         </div>
-        ${!context.panel && (context.hasHostSlot('actions') || context.hasHostSlot('menu') || context.panelMenuItems.length || context.canDeleteRecord || (context.recordMenuItems?.length ?? 0) > 0) ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+        ${!context.panel && inPlaceActions(context) && !headLineDrawn(context) ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
                     <div class="sf-property-view-host-actions flex flex-wrap items-cross-center justify-end gap-1">
                         ${context.hasHostSlot('actions') ? context.hostSlot('actions') : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                         ${renderMenuControl(context)}
                     </div>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
-        ${context.panel ? lit__WEBPACK_IMPORTED_MODULE_0__.nothing : renderHeadLine(context)}
+        ${context.panel ? lit__WEBPACK_IMPORTED_MODULE_0__.nothing : renderHeadLine(context, inPlaceActions(context) ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+                ${context.hasHostSlot('actions') ? context.hostSlot('actions') : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                ${renderMenuControl(context)}` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing)}
         ${onPhoneSectionList(context, sections) ? renderPhoneSectionList(context, sections) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
         ${lineTabsDrawn(context, sections) ? renderSectionTabs(context, sections) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
         <div class="sf-property-view-layout"
@@ -20337,7 +20547,7 @@ module.exports = /*#__PURE__*/JSON.parse('{"$comment":"Dated aliases of sf-view-
 /***/ "3ea81f4c3c20"
 (module) {
 
-module.exports = /*#__PURE__*/JSON.parse('{"id":"smart.view-properties","tag":"sf-view-properties","version":"1.23.7","kind":"leaf","implements":["record-view@1"],"settings":{"add-field-text":{"type":"string","default-from":"runtime.add-field-text"},"add-group-text":{"type":"string","default-from":"runtime.add-group-text"},"add-section-text":{"type":"string","default-from":"runtime.add-section-text"},"back-label":{"type":"string","default-from":"runtime.back-label"},"cancel-configuring-text":{"type":"string","default-from":"runtime.cancel-configuring-text"},"cancel-name-text":{"type":"string","default-from":"runtime.cancel-name-text"},"cancel-text":{"type":"string","default-from":"runtime.cancel-text"},"changed-text":{"type":"string","default-from":"runtime.changed-text"},"close-label":{"type":"string","default-from":"runtime.close-label"},"collection":{"type":"string","default":""},"collection-icon":{"type":"icon","default":""},"collection-label":{"type":"string","default":""},"configure-hint-narrow-text":{"type":"string","default-from":"runtime.configure-hint-narrow-text"},"configure-hint-text":{"type":"string","default-from":"runtime.configure-hint-text"},"configure-text":{"type":"string","default-from":"runtime.configure-text"},"conflict-text":{"type":"string","default-from":"runtime.conflict-text"},"copy-link-label":{"type":"string","default-from":"runtime.copy-link-label"},"delete-text":{"type":"string","default-from":"runtime.delete-text"},"done-configuring-text":{"type":"string","default-from":"runtime.done-configuring-text"},"edit-text":{"type":"string","default-from":"runtime.edit-text"},"empty-record-text":{"type":"string","default-from":"runtime.empty-record-text"},"empty-text":{"type":"string","default-from":"runtime.empty-text"},"errors-text":{"type":"string","default-from":"runtime.errors-text"},"favourite":{"type":"boolean","default":false},"favourite-label":{"type":"string","default-from":"runtime.favourite-label"},"field-label-text":{"type":"string","default-from":"runtime.field-label-text"},"field-settings-text":{"type":"string","default-from":"runtime.field-settings-text"},"hidden-text":{"type":"string","default-from":"runtime.hidden-text"},"hide-rare-text":{"type":"string","default-from":"runtime.hide-rare-text"},"hint-text":{"type":"string","default-from":"runtime.hint-text"},"in-this-group-text":{"type":"string","default-from":"runtime.in-this-group-text"},"inherited-text":{"type":"string","default-from":"runtime.inherited-text"},"link-copied-label":{"type":"string","default-from":"runtime.link-copied-label"},"menu-label":{"type":"string","default-from":"runtime.menu-label"},"move-down-text":{"type":"string","default-from":"runtime.move-down-text"},"move-up-text":{"type":"string","default-from":"runtime.move-up-text"},"new-group-title":{"type":"string","default-from":"runtime.new-group-title"},"new-section-title":{"type":"string","default-from":"runtime.new-section-title"},"no-match-text":{"type":"string","default-from":"runtime.no-match-text"},"open-full-label":{"type":"string","default-from":"runtime.open-full-label"},"panel":{"type":"boolean","default":false},"panel-label":{"type":"string","default":""},"panel-size":{"type":"enum","values":["1/2","1","2","full"],"default":"2"},"size":{"type":"enum","values":["1","1/2"],"default":"1"},"mode":{"type":"enum","values":["view","auto","edit","create"],"default":"auto"},"panel-width":{"type":"string","default":""},"personal-layer-text":{"type":"string","default-from":"runtime.personal-layer-text"},"rare-text":{"type":"string","default-from":"runtime.rare-text"},"record-id":{"type":"id","default":""},"remove-field-text":{"type":"string","default-from":"runtime.remove-field-text"},"remove-group-text":{"type":"string","default-from":"runtime.remove-group-text"},"remove-section-text":{"type":"string","default-from":"runtime.remove-section-text"},"rename-text":{"type":"string","default-from":"runtime.rename-text"},"reset-view-ask-text":{"type":"string","default-from":"runtime.reset-view-ask-text"},"reset-view-text":{"type":"string","default-from":"runtime.reset-view-text"},"save-name-text":{"type":"string","default-from":"runtime.save-name-text"},"save-text":{"type":"string","default-from":"runtime.save-text"},"section-icon-text":{"type":"string","default-from":"runtime.section-icon-text"},"section-icons":{"type":"string","default":""},"sections-as":{"type":"enum","values":["list","tabs"],"default":"list"},"sections-label":{"type":"string","default-from":"runtime.sections-label"},"shared-layer-text":{"type":"string","default-from":"runtime.shared-layer-text"},"show-rare":{"type":"boolean","default":false},"show-rare-text":{"type":"string","default-from":"runtime.show-rare-text"},"shown-text":{"type":"string","default-from":"runtime.shown-text"},"unplaced-hint-text":{"type":"string","default-from":"runtime.unplaced-hint-text"},"unplaced-title":{"type":"string","default-from":"runtime.unplaced-title"},"variant-text":{"type":"string","default-from":"runtime.variant-text"},"view-conflict-text":{"type":"string","default-from":"runtime.view-conflict-text"},"view-denied-text":{"type":"string","default-from":"runtime.view-denied-text"},"width-text":{"type":"string","default-from":"runtime.width-text"},"view-profile-label":{"type":"string","default-from":"runtime.view-profile-label"},"add-view-text":{"type":"string","default-from":"runtime.add-view-text"},"new-view-text":{"type":"string","default-from":"runtime.new-view-text"},"delete-view-text":{"type":"string","default-from":"runtime.delete-view-text"},"last-shared-view-text":{"type":"string","default-from":"runtime.last-shared-view-text"},"full":{"type":"boolean","default":false},"open":{"type":"boolean","default":true},"edit":{"type":"enum","values":["group","group+quick","none"],"default":"group+quick"},"history":{"type":"enum","values":["auto","off"],"default":"auto"},"modal":{"type":"enum","values":["auto","true"],"default":"auto"}},"values":{"revision":{"type":"string"},"section":{"type":"string"}},"events":{"close":{"carries":{"reason":{"type":"enum","values":["close","escape","outside","cancelled","deleted","api"]},"record_id":{"type":"id","nullable":true},"unsaved_fields":{"type":"list"},"asked":{"type":"boolean"}},"cancelable":true},"open-full":{"carries":{"id":"id","address":"string","record_id":{"type":"id","nullable":true}}},"saved":{"carries":{"id":"id","revision":{"type":"string","optional":true}}},"failed":{"carries":{"reason":"string","message":{"type":"string","optional":true}}},"open":{"carries":{"field":"string","value":"object","answer":"string"}},"delete":{"carries":{"collection":"string","revision":"string","answer":"string","record_id":{"type":"id","nullable":true}}},"created":{"carries":{"collection":{"type":"string","nullable":true},"record_id":{"type":"id","nullable":true}}},"cancel":{"carries":{"mode":{"type":"enum","values":["auto","edit","create"]},"scope":{"type":"enum","values":["group"],"optional":true},"section":{"type":"string","optional":true},"group":{"type":"string","optional":true}}},"state":{"carries":{"state":"string","message":"string"},"own-verb":true},"address-copy":{"carries":{},"own-verb":true},"favourite":{"carries":{"collection":{"type":"string","nullable":true},"favourite":"boolean","record_id":{"type":"id","nullable":true}},"own-verb":true},"step":{"carries":{"direction":{"type":"enum","values":["next","previous"]},"record_id":{"type":"id","nullable":true},"next_record_id":{"type":"id","nullable":true}},"cancelable":true,"own-verb":true},"history":{"carries":{"record_id":{"type":"id","nullable":true}},"own-verb":true},"structure":{"carries":{"collection":{"type":"string","nullable":true},"section":{"type":"string","nullable":true},"group":{"type":"string","nullable":true}},"own-verb":true,"cancelable":true}},"actions":{"refresh":{},"load":{"with":{"reason":{"type":"string","optional":true}}},"edit-group":{"with":{"section":"string","group":"string","options":{"type":"object","optional":true}}},"cancel-edit":{},"save-group":{"with":{"options":{"type":"object","optional":true}},"concurrency":"drop"},"select-section":{"with":{"key":"string"}},"close-panel":{"with":{"reason":{"type":"string","optional":true}}},"copy-address":{},"open-full-page":{},"confirm-save":{},"cancel-confirmation":{},"open-history":{},"edit-field":{"with":{"key":"string"}},"step":{"with":{"direction":{"type":"enum","values":["next","previous"]}}}},"port":{"id":"simai.property-view-port","version":"1.18.0","contract":"src/core/contracts/ports/simai.property-view-port/1.18.0/port.json"},"presentation":{"skeleton":{"file":"skeleton.html","late":[]}},"css-variables":{"--sf-view-properties-label-width":{"type":"length","state":"default","x-default":"10rem"},"--sf-view-properties-row-gap":{"type":"length","state":"default","x-default":"8px (--sf-space-1/3)"},"--sf-view-properties-group-gap":{"type":"length","state":"default","x-default":"24px (--sf-space-1)"},"--sf-view-properties-sections-width":{"type":"length","state":"default","x-default":"12rem"},"--sf-view-properties-side-width":{"type":"length","state":"default","x-default":"24rem"},"--sf-view-properties-current-background-color":{"type":"color","state":"default","x-default":"--sf-surface-container"},"--sf-view-properties-saved-background-color":{"type":"color","state":"default","x-default":"--sf-success-container"},"--sf-property-view--sections-width":{"type":"length","state":"default"},"--sf-property-view--title-size":{"type":"length","state":"default"},"--sf-property-view--label-size":{"type":"length","state":"default"},"--sf-property-view--value-size":{"type":"length","state":"default"},"--sf-property-view--group-size":{"type":"length","state":"default"},"--sf-property-view--edge-room":{"type":"length","state":"open"}},"host-states":{"data-state":"string","aria-busy":"string"}}');
+module.exports = /*#__PURE__*/JSON.parse('{"id":"smart.view-properties","tag":"sf-view-properties","version":"1.26.0","kind":"leaf","implements":["record-view@1"],"settings":{"add-field-text":{"type":"string","default-from":"runtime.add-field-text"},"add-group-text":{"type":"string","default-from":"runtime.add-group-text"},"add-section-text":{"type":"string","default-from":"runtime.add-section-text"},"back-label":{"type":"string","default-from":"runtime.back-label"},"cancel-configuring-text":{"type":"string","default-from":"runtime.cancel-configuring-text"},"cancel-name-text":{"type":"string","default-from":"runtime.cancel-name-text"},"cancel-text":{"type":"string","default-from":"runtime.cancel-text"},"changed-text":{"type":"string","default-from":"runtime.changed-text"},"close-label":{"type":"string","default-from":"runtime.close-label"},"collection":{"type":"string","default":""},"collection-icon":{"type":"icon","default":""},"collection-label":{"type":"string","default":""},"configure-hint-narrow-text":{"type":"string","default-from":"runtime.configure-hint-narrow-text"},"configure-hint-text":{"type":"string","default-from":"runtime.configure-hint-text"},"configure-text":{"type":"string","default-from":"runtime.configure-text"},"conflict-text":{"type":"string","default-from":"runtime.conflict-text"},"copy-link-label":{"type":"string","default-from":"runtime.copy-link-label"},"delete-text":{"type":"string","default-from":"runtime.delete-text"},"done-configuring-text":{"type":"string","default-from":"runtime.done-configuring-text"},"edit-text":{"type":"string","default-from":"runtime.edit-text"},"empty-record-text":{"type":"string","default-from":"runtime.empty-record-text"},"empty-text":{"type":"string","default-from":"runtime.empty-text"},"errors-text":{"type":"string","default-from":"runtime.errors-text"},"favourite":{"type":"boolean","default":false},"favourite-label":{"type":"string","default-from":"runtime.favourite-label"},"field-label-text":{"type":"string","default-from":"runtime.field-label-text"},"field-settings-text":{"type":"string","default-from":"runtime.field-settings-text"},"hidden-text":{"type":"string","default-from":"runtime.hidden-text"},"hide-rare-text":{"type":"string","default-from":"runtime.hide-rare-text"},"hint-text":{"type":"string","default-from":"runtime.hint-text"},"in-this-group-text":{"type":"string","default-from":"runtime.in-this-group-text"},"inherited-text":{"type":"string","default-from":"runtime.inherited-text"},"link-copied-label":{"type":"string","default-from":"runtime.link-copied-label"},"menu-label":{"type":"string","default-from":"runtime.menu-label"},"move-down-text":{"type":"string","default-from":"runtime.move-down-text"},"move-up-text":{"type":"string","default-from":"runtime.move-up-text"},"new-group-title":{"type":"string","default-from":"runtime.new-group-title"},"new-section-title":{"type":"string","default-from":"runtime.new-section-title"},"no-match-text":{"type":"string","default-from":"runtime.no-match-text"},"open-full-label":{"type":"string","default-from":"runtime.open-full-label"},"panel":{"type":"boolean","default":false},"panel-label":{"type":"string","default":""},"panel-size":{"type":"enum","values":["1/2","1","2","full"],"default":"2"},"size":{"type":"enum","values":["1","1/2"],"default":"1"},"mode":{"type":"enum","values":["view","auto","edit","create"],"default":"auto"},"panel-width":{"type":"string","default":""},"personal-layer-text":{"type":"string","default-from":"runtime.personal-layer-text"},"rare-text":{"type":"string","default-from":"runtime.rare-text"},"record-id":{"type":"id","default":""},"remove-field-text":{"type":"string","default-from":"runtime.remove-field-text"},"remove-group-text":{"type":"string","default-from":"runtime.remove-group-text"},"remove-section-text":{"type":"string","default-from":"runtime.remove-section-text"},"rename-text":{"type":"string","default-from":"runtime.rename-text"},"reset-view-ask-text":{"type":"string","default-from":"runtime.reset-view-ask-text"},"reset-view-text":{"type":"string","default-from":"runtime.reset-view-text"},"save-name-text":{"type":"string","default-from":"runtime.save-name-text"},"save-text":{"type":"string","default-from":"runtime.save-text"},"section-icon-text":{"type":"string","default-from":"runtime.section-icon-text"},"section-icons":{"type":"string","default":""},"sections-as":{"type":"enum","values":["list","tabs"],"default":"list"},"sections-label":{"type":"string","default-from":"runtime.sections-label"},"shared-layer-text":{"type":"string","default-from":"runtime.shared-layer-text"},"show-rare":{"type":"boolean","default":false},"show-rare-text":{"type":"string","default-from":"runtime.show-rare-text"},"shown-text":{"type":"string","default-from":"runtime.shown-text"},"unplaced-hint-text":{"type":"string","default-from":"runtime.unplaced-hint-text"},"unplaced-title":{"type":"string","default-from":"runtime.unplaced-title"},"variant-text":{"type":"string","default-from":"runtime.variant-text"},"view-conflict-text":{"type":"string","default-from":"runtime.view-conflict-text"},"view-denied-text":{"type":"string","default-from":"runtime.view-denied-text"},"width-text":{"type":"string","default-from":"runtime.width-text"},"view-profile-label":{"type":"string","default-from":"runtime.view-profile-label"},"add-view-text":{"type":"string","default-from":"runtime.add-view-text"},"new-view-text":{"type":"string","default-from":"runtime.new-view-text"},"delete-view-text":{"type":"string","default-from":"runtime.delete-view-text"},"last-shared-view-text":{"type":"string","default-from":"runtime.last-shared-view-text"},"full":{"type":"boolean","default":false},"open":{"type":"boolean","default":true},"edit":{"type":"enum","values":["group","group+quick","none"],"default":"group+quick"},"history":{"type":"enum","values":["auto","off"],"default":"auto"},"modal":{"type":"enum","values":["auto","true"],"default":"auto"}},"values":{"revision":{"type":"string"},"section":{"type":"string"}},"events":{"close":{"carries":{"reason":{"type":"enum","values":["close","escape","outside","cancelled","deleted","api"]},"record_id":{"type":"id","nullable":true},"unsaved_fields":{"type":"list"},"asked":{"type":"boolean"}},"cancelable":true},"open-full":{"carries":{"id":"id","address":"string","record_id":{"type":"id","nullable":true}}},"saved":{"carries":{"id":"id","revision":{"type":"string","optional":true}}},"failed":{"carries":{"reason":"string","message":{"type":"string","optional":true}}},"open":{"carries":{"field":"string","value":"object","answer":"string"}},"delete":{"carries":{"collection":"string","revision":"string","answer":"string","record_id":{"type":"id","nullable":true}}},"created":{"carries":{"collection":{"type":"string","nullable":true},"record_id":{"type":"id","nullable":true}}},"cancel":{"carries":{"mode":{"type":"enum","values":["auto","edit","create"]},"scope":{"type":"enum","values":["group"],"optional":true},"section":{"type":"string","optional":true},"group":{"type":"string","optional":true}}},"state":{"carries":{"state":"string","message":"string"},"own-verb":true},"address-copy":{"carries":{},"own-verb":true},"favourite":{"carries":{"collection":{"type":"string","nullable":true},"favourite":"boolean","record_id":{"type":"id","nullable":true}},"own-verb":true},"step":{"carries":{"direction":{"type":"enum","values":["next","previous"]},"record_id":{"type":"id","nullable":true},"next_record_id":{"type":"id","nullable":true}},"cancelable":true,"own-verb":true},"history":{"carries":{"record_id":{"type":"id","nullable":true}},"own-verb":true},"structure":{"carries":{"collection":{"type":"string","nullable":true},"section":{"type":"string","nullable":true},"group":{"type":"string","nullable":true}},"own-verb":true,"cancelable":true}},"actions":{"refresh":{},"load":{"with":{"reason":{"type":"string","optional":true}}},"edit-group":{"with":{"section":"string","group":"string","options":{"type":"object","optional":true}}},"cancel-edit":{},"save-group":{"with":{"options":{"type":"object","optional":true}},"concurrency":"drop"},"select-section":{"with":{"key":"string"}},"close-panel":{"with":{"reason":{"type":"string","optional":true}}},"copy-address":{},"open-full-page":{},"confirm-save":{},"cancel-confirmation":{},"open-history":{},"edit-field":{"with":{"key":"string"}},"step":{"with":{"direction":{"type":"enum","values":["next","previous"]}}}},"port":{"id":"simai.property-view-port","version":"1.18.0","contract":"src/core/contracts/ports/simai.property-view-port/1.18.0/port.json"},"presentation":{"skeleton":{"file":"skeleton.html","late":[]}},"css-variables":{"--sf-view-properties-label-width":{"type":"length","state":"default","x-default":"10rem"},"--sf-view-properties-row-gap":{"type":"length","state":"default","x-default":"8px (--sf-space-1/3)"},"--sf-view-properties-group-gap":{"type":"length","state":"default","x-default":"24px (--sf-space-1)"},"--sf-view-properties-sections-width":{"type":"length","state":"default","x-default":"12rem"},"--sf-view-properties-side-width":{"type":"length","state":"default","x-default":"24rem"},"--sf-view-properties-current-background-color":{"type":"color","state":"default","x-default":"--sf-surface-container"},"--sf-view-properties-saved-background-color":{"type":"color","state":"default","x-default":"--sf-success-container"},"--sf-property-view--sections-width":{"type":"length","state":"default"},"--sf-property-view--title-size":{"type":"length","state":"default"},"--sf-property-view--label-size":{"type":"length","state":"default"},"--sf-property-view--value-size":{"type":"length","state":"default"},"--sf-property-view--group-size":{"type":"length","state":"default"},"--sf-property-view--edge-room":{"type":"length","state":"open"}},"host-states":{"data-state":"string","aria-busy":"string"}}');
 
 /***/ },
 
