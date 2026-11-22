@@ -50,7 +50,10 @@ ui-pro.
   is still fetched at once: the Loader does not read the parts inside an
   element that is not defined yet, so the package core asks for it
   (`view-common/markup-table.js`), and a view whose script fails or comes late
-  leaves the table drawing on its own as before (D2).
+  leaves the table drawing on its own as before (D2). Where a list that draws
+  the table is on the page, `sf-view` is defined once `sf-view-table` is (or
+  after 3 s), so the first paint is in the same order as with the eager
+  relation (gate 24: 149 of 149, shift 0; the printed snapshots unchanged).
 - `sf-view-table` 1.33.0, `sf-view-board` 1.2.0, `sf-view-cards` 1.3.0,
   `sf-view-calendar` 1.2.0, `sf-view-properties` 1.28.0, `sf-view-flow` 1.2.0:
   their imports of the shared code go through the core. `sf-view-table` also
