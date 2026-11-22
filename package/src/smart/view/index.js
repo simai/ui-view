@@ -3413,7 +3413,10 @@ class SfDataView extends DataViewElement {
         }
         this._bulkBar = bar;
         const forAll = Boolean(pagination?.showActionForAll) && pagination?.countKnown !== false && Number(pagination?.total) > 0;
-        chosen("size", this.controlSize);
+        // The bar at the list head controls' size, 1, whatever the list's own
+        // size (DEV decision msg-1fd8b681; it took the list's size, 1/2 on
+        // the docs' lists). The bar's own layout is SIMAI Framework's.
+        chosen("size", "1");
         chosen("label", pagination?.actionsRegionLabel);
         chosen("count-text", selected.length ? pagination?.bulkCountText : "");
         chosen("page-count", pagination?.bulkPageCount ?? this.records.length);

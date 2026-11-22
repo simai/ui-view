@@ -38,6 +38,8 @@ Every component either branch touched takes the next minor above both.
   wrap the list head or turn the table into phone rows, and docks where the
   head stays on one row; opening and closing a record no longer moves the
   list (+44 px at 1440, +88 at 1280, phone rows at 1100 before).
+  The list's bulk bar is drawn at size 1, the list head controls' size
+  (DEV msg-1fd8b681; it took the list's size, 1/2 on the docs' lists).
 - `sf-view-properties` 1.30.0: `docksBesideList()` and `dockWidth()` for
   sf-view's choice; a card sf-view opens over the list is not docked.
 - `sf-view-table` 1.35.0, `sf-view-cards` 1.5.0, `sf-view-board` 1.3.0,
