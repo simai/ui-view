@@ -382,11 +382,15 @@ class SfDataView extends DataViewElement {
                the part of the head that stays). In the page or in a scrolling
                box around the view alike: a sticky part binds to the nearest
                scroll container. A view without the list head says 0, so a
-               list inside another view's record card is not pushed down. */
+               list inside another view's record card is not pushed down.
+               Under a fixed bar of the page (AN-3, view round 15) both go
+               down by --sf-admin-shell-stick, which the Admin set's
+               sf-admin-shell writes (its bar and the phone top line); absent,
+               it is 0 and nothing moves. */
             :host { --sf-view--stuck-head: 0px; }
             :host([head="list"]) [part="head"] {
               position: sticky;
-              inset-block-start: var(--sf-view--head-offset, 0px);
+              inset-block-start: calc(var(--sf-admin-shell-stick, 0px) + var(--sf-view--head-offset, 0px));
               z-index: var(--sf-z-index-2, 20);
               background-color: var(--sf-view-head--background-color, var(--sf-surface-page));
             }

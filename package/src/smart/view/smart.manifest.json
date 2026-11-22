@@ -2021,7 +2021,7 @@
         "from": "1.36.0",
         "to": "1.37.0",
         "changes": [
-          "View round 15: VM-1 view strip one line, kinds fold into the strip's kind menu (_layZone, head.css nowrap, the zone contain: inline-size so its line does not widen the head); VL-48 a borrowed window keeps its kind on the popover's open, the name field takes the focus, Enter is the first action; C414 view.save without conditions (view-config 1.1.0); bulk bar at the head controls' size."
+          "View round 15: VM-1 view strip one line, kinds fold into the strip's kind menu (_layZone, head.css nowrap, the zone contain: inline-size so its line does not widen the head); AN-3 the list head (index.js) and --sf-view--stuck-head (js/head.js _layStick) add --sf-admin-shell-stick (0 when absent); VL-48 a borrowed window keeps its kind on the popover's open, the name field takes the focus, Enter is the first action; C414 view.save without conditions (view-config 1.1.0); bulk bar at the head controls' size."
         ]
       }
     ]
@@ -2032,7 +2032,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view/index.js",
-        "sha256": "71011beaaa67fd59de229d64c21a5db5651c2e0b40f208c8e26d4be65a8947c6"
+        "sha256": "e68c2ffe7c8749638fe62ae5f2f94303165af0764e6e31a029d9e1ab2258ad0e"
       },
       {
         "path": "src/core/contracts/ports/simai.dataview-port/1.5.0/port.json",

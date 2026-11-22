@@ -253,7 +253,9 @@ export class ListHead {
             if (layout.style.getPropertyValue(name) !== value) layout.style.setProperty(name, value);
         };
         set("--sf-view--head-offset", `${-away}px`);
-        set("--sf-view--stuck-head", `${stays}px`);
+        // Under the page's fixed bar, where the Admin set's shell has one
+        // (AN-3): the table's head sticks below it as the list head does.
+        set("--sf-view--stuck-head", `calc(var(--sf-admin-shell-stick, 0px) + ${stays}px)`);
     }
 
     detach() {

@@ -36,6 +36,9 @@ ui-control `control/evidence/2026-11-22-view-r15/README.md`.
   controls' size (the list's size, else 1/2), not a fixed 1. The view
   strip's line does not widen the head (`contain: inline-size`): at 768 px
   it pushed the page sideways and the list's observers looped (VM-2).
+  Under a fixed page bar the list head and the table's head stick below
+  `--sf-admin-shell-stick`, written by the Admin set's `sf-admin-shell`
+  (its bar and the phone top line); without it nothing moves (AN-3).
 - `sf-view-table` 1.36.0: the columns that fit and the pinned offsets
   follow a width change in the next frame, so a record docked beside the
   list raises no «ResizeObserver loop» error (VM-2); the sideways rail stays

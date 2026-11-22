@@ -71,3 +71,15 @@ test('VL-64: read values reserve the field; groups the card form edits are edite
 test('VL-65: «не заполнено» in the not-set ink, the label\'s ink as fallback', () => {
   assert.match(cardCss, /\.sf-property-view-empty \{\n {4}color: var\(--sf-on-surface-not-set, var\(--sf-on-surface-variant\)\);/u);
 });
+
+test('AN-3: the list head and the table head stick under --sf-admin-shell-stick, 0 when absent', () => {
+  assert.match(view, /inset-block-start: calc\(var\(--sf-admin-shell-stick, 0px\) \+ var\(--sf-view--head-offset, 0px\)\);/u);
+  assert.match(head, /set\("--sf-view--stuck-head", `calc\(var\(--sf-admin-shell-stick, 0px\) \+ \$\{stays\}px\)`\);/u);
+  // a view without the list head keeps 0 (a list in a record card is not pushed down)
+  assert.match(view, /:host \{ --sf-view--stuck-head: 0px; \}/u);
+});
+
+test('VM-1: a segmented that folds itself is read by its buttons\' line', () => {
+  assert.match(head, /\nfunction kindsLineWidth\(kinds\) \{/u);
+  assert.match(head, /const open = folded \? line - menuWidth \+ kindsWidth : line - drawn \+ kindsWidth;/u);
+});
