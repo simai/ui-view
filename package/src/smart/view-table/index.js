@@ -5603,6 +5603,15 @@ class SfTable extends TableElement {
         }
         if (open) return;
         this._settingsOpenedAt = e.timeStamp;
+        // VR14-5: under the list head the gear opens the window against the
+        // head's «Колонки» (the same window, C406), below the head and at
+        // the list's end, so it no longer covers the rows' «≡» at their start.
+        const columns = this.hasAttribute("data-sf-columns-only")
+            ? this.closest?.("sf-view, sf-data-view")?.querySelector?.(':scope > [slot="head"] .sf-view-head-columns') : null;
+        if (columns?.getClientRects?.().length && !columns.contains(e.target)) {
+            this.openColumnSettings(columns);
+            return;
+        }
         this.openContextMenu(e, {menu: 'table-settings'});
     }
 
@@ -5686,7 +5695,9 @@ class SfTable extends TableElement {
         // Under the list head (sf-view head="list", C406) the gear holds the
         // columns only: the view's look is «Вид» in the list head, and the
         // gear duplicates «Колонки» there.
-        if (this.hasAttribute("data-sf-columns-only")) items.length = 1;
+        // VR14-5: its one group's rows stand alone, so «Поля» is not said
+        // twice (the group's heading over the fields list's own).
+        if (this.hasAttribute("data-sf-columns-only")) items.splice(0, items.length, ...items[0].items);
         const key = JSON.stringify(items);
         if (this._settingsItems?.key !== key) this._settingsItems = {key, items};
         return this._settingsItems.items;
@@ -5695,7 +5706,8 @@ class SfTable extends TableElement {
     // The fields list's value as the table holds it: what the panel shows
     // after a change the table took otherwise or not at all.
     tableSettingsColumns() {
-        const columns = this.tableSettingsItems()[0].items[0].options;
+        const items = this.tableSettingsItems();
+        const columns = (items.find((item) => item.id === "columns") ?? items[0].items[0]).options;
         return columns.map(({id, checked, pinned}) => ({id, checked, pinned}));
     }
 
@@ -9451,13 +9463,13 @@ class SfTable extends TableElement {
         if (!this.getPropsContext().selectable) return {ids: null, reselected: false};
         const selected = this.getSelectedRecordIds().map(String);
         if (selected.includes(String(row.id))) return {ids: selected, reselected: false};
-        // Nothing marked (RV4-2): the menu acts on its row alone and marks
-        // nothing; marking it put up «Выбрано 1» for a menu of one row. With
-        // other rows marked, C164 (3) holds: the row becomes the selection.
+        // The row menu never changes the marks (VR14-2, DEV msg-afb6bff8;
+        // RV4-2): nothing marked, it acts on its row alone; other rows
+        // marked, it acts on the marked rows (C164 (3) as the dispatcher
+        // relayed it). It used to make the row the selection, which left it
+        // selected unseen after the menu and dropped the person's marks.
         if (!selected.length) return {ids: null, reselected: false};
-        this.clearSelection();
-        this.applyRowSelection(row.id, true);
-        return {ids: null, reselected: true};
+        return {ids: selected, reselected: false};
     }
 
     handleGridKeydown(event, table) {

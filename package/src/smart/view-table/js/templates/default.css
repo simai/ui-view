@@ -934,20 +934,20 @@
     font-weight: 500;
   }
 
+  /* One fixed grid (VR14-8): a field a line, the labels in one column and
+     the values in the next, the same in every row; the pairs flowed one
+     after another and broke unevenly, two on a line in one row and one in
+     the next. */
   :is(sf-view-table, sf-table) .sf-table-list-fields {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+    align-items: center;
     gap: var(--sf-a4) var(--sf-space-1\/2);
     min-inline-size: 0;
   }
 
   :is(sf-view-table, sf-table) .sf-table-list-field {
-    display: inline-flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--sf-a4);
-    min-inline-size: 0;
-    max-inline-size: 100%;
+    display: contents;
   }
 
   :is(sf-view-table, sf-table) .sf-table-list-label {

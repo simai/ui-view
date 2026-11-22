@@ -920,7 +920,12 @@ class SfDataView extends DataViewElement {
             const perBefore = Number(this.query?.per_page) || VIEW_DEFAULT_PAGE_SIZE;
             this._anchorFirst ??= ((Number(this._runStart ?? this.query?.page) || 1) - 1) * perBefore + 1;
             this._keepFirst = this._anchorFirst;
-            this._carrySelection = marked.map(String);
+            // VR14-1: the marks of records the kind on screen did not draw
+            // (a board loads a few cards a lane) ride along; only the drawn
+            // ones answer for themselves (unmarked on the board: gone).
+            const drawn = this._drawnIds(fromTag);
+            const unseen = this.markedIds.map(String).filter((id) => !drawn.has(id));
+            this._carrySelection = [...new Set([...marked.map(String), ...unseen])];
             this._carrySequence = this.sequence;
             // The cards ask their own page size (24, C306) and the calendar
             // asks days, not pages: the list's page size is kept while either
@@ -952,6 +957,15 @@ class SfDataView extends DataViewElement {
     // table and list, else the registry's element.
     _layoutTag() {
         return LAYOUTS.get(this.layoutKind) ?? "sf-view-table";
+    }
+
+    // The ids of the records a kind draws now (VR14-1).
+    _drawnIds(tag) {
+        const records = tag === "sf-view-board" ? (this.boardLanes ?? []).flatMap((lane) => lane.records ?? [])
+            : tag === "sf-view-calendar" ? (this._calendarRecords ?? [])
+            : tag === "sf-view-cards" ? (this.records ?? [])
+            : (this.cappedRecords ?? []);
+        return new Set(records.map((record) => String(record?.id)));
     }
 
     // The marked records of the layout on screen (table, board, cards or

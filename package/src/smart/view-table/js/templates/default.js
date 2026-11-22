@@ -888,7 +888,9 @@ export function renderTableTemplate(context) {
             return html`<div class="sf-table-state" data-state=${dataState}>${renderEmptyState(context, dataState)}</div>`;
         }
         const select = columns.find((column) => column.key === 'select');
-        const menu = columns.find((column) => column.key === 'settings');
+        // A list whose host offers no row actions draws no «≡» on a phone
+        // either, as the desktop table (VR14-4; rowMenuHasUse).
+        const menu = context.component.rowMenuHasUse?.() === false ? null : columns.find((column) => column.key === 'settings');
         const roles = context.component.listRoles?.(columns);
         if (roles?.any) return renderResourceList(columns, rows, dataState, roles, select, menu);
         const data = columns.filter((column) => column?.key && !['select', 'settings', 'actions'].includes(column.key)
