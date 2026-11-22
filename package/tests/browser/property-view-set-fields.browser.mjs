@@ -42,7 +42,7 @@ const modules = [
   'smart/smart/spinner/js/spinner.js', 'smart/smart/drawer/js/drawer.js', 'smart/smart/tag/js/tag.js',
   'smart/smart/segmented/js/segmented.js', 'smart/smart/switch/js/switch.js',
   'smart/smart/field-renderers/js/field-renderers.js',
-  'smart/smart/popover/js/popover.js', 'smart/smart/view-properties/js/view-properties.js',
+  'smart/smart/popover/js/popover.js', 'smart/smart/view-common/js/view-common.js', 'smart/smart/view-properties/js/view-properties.js',
 ];
 const absent = [...styles, ...modules].map((path) => join(out, path)).filter((path) => !existsSync(path));
 if (absent.length) throw new Error(`${absent.length} build asset(s) not found under ${out}: ${absent.join(', ')}`);

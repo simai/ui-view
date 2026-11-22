@@ -33,7 +33,7 @@ const modules = [
   'smart/smart/input/js/input.js', 'smart/smart/input-date/js/input-date.js',
   'smart/smart/input-textarea/js/input-textarea.js', 'smart/smart/dropdown/js/dropdown.js',
   'smart/smart/list-item/js/list-item.js', 'smart/smart/field-renderers/js/field-renderers.js',
-  'smart/smart/view-flow/js/view-flow.js',
+  'smart/smart/view-common/js/view-common.js', 'smart/smart/view-flow/js/view-flow.js',
 ].map((p) => join(out, p));
 const absent = [...styles, ...modules].filter((path) => !existsSync(path));
 if (absent.length) throw new Error(`${absent.length} build asset(s) not found under ${out}: ${absent.join(', ')}`);

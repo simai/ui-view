@@ -24,7 +24,7 @@ const modules = ['core/core/js/core.js', 'core/core/js/smart-base.js', 'smart/sm
   'smart/smart/button/js/button.js', 'smart/smart/button-icon/js/button-icon.js', 'smart/smart/checkbox/js/checkbox.js',
   'smart/smart/list-item/js/list-item.js', 'smart/smart/dropdown/js/dropdown.js', 'smart/smart/input/js/input.js',
   'smart/smart/spinner/js/spinner.js', 'smart/smart/pagination/js/pagination.js', 'smart/smart/menu-context/js/menu-context.js',
-  'smart/smart/resizer/js/resizer.js', 'smart/smart/view-table/js/view-table.js'].map((p) => join(out, p));
+  'smart/smart/resizer/js/resizer.js', 'smart/smart/view-common/js/view-common.js', 'smart/smart/view-table/js/view-table.js'].map((p) => join(out, p));
 
 const ROW_NODES = Number(process.env.ROW_NODES ?? 29);
 const COLUMNS = [{key: 'title', label: 'Название', sortable: true, role: 'title'}, {key: 'status', label: 'Статус'}, {key: 'owner', label: 'Владелец'}, {key: 'amount', label: 'Сумма', type: 'number'}, {key: 'published', label: 'Опубликовано', type: 'boolean'}];

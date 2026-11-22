@@ -31,7 +31,7 @@ const modules = [
   'smart/smart/tree/js/tree.js', 'smart/smart/tree-item/js/tree-item.js',
   'smart/smart/avatar/js/avatar.js', 'smart/smart/badge/js/badge.js',
   'smart/smart/button-copy/js/button-copy.js',
-  'smart/smart/view-properties/js/view-properties.js',
+  'smart/smart/view-common/js/view-common.js', 'smart/smart/view-properties/js/view-properties.js',
 ].map((p) => join(out, p));
 
 const absent = [...styles, ...modules].filter((path) => !existsSync(path));

@@ -28,7 +28,7 @@ const modules = [
   'smart/smart/badge/js/badge.js', 'smart/smart/progress-scale/js/progress-scale.js',
   'smart/smart/avatar/js/avatar.js', 'smart/smart/reference-link/js/reference-link.js',
   'smart/smart/tag/js/tag.js',
-  'smart/smart/pagination/js/pagination.js', 'smart/smart/resizer/js/resizer.js', 'smart/smart/view-table/js/view-table.js',
+  'smart/smart/pagination/js/pagination.js', 'smart/smart/resizer/js/resizer.js', 'smart/smart/view-common/js/view-common.js', 'smart/smart/view-table/js/view-table.js',
 ].map((p) => join(out, p));
 
 const failures = [];

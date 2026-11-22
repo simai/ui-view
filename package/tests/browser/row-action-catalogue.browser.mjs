@@ -31,7 +31,7 @@ const modules = [
   'smart/smart/checkbox/js/checkbox.js', 'smart/smart/spinner/js/spinner.js',
   'smart/smart/menu-context/js/menu-context.js', 'smart/smart/list-item/js/list-item.js',
   'smart/smart/pagination/js/pagination.js',
-  'smart/smart/resizer/js/resizer.js', 'smart/smart/view-table/js/view-table.js', 'smart/smart/view/js/view.js',
+  'smart/smart/resizer/js/resizer.js', 'smart/smart/view-common/js/view-common.js', 'smart/smart/view-table/js/view-table.js', 'smart/smart/view/js/view.js',
 ].map((p) => join(out, p));
 
 const absent = [...styles, ...modules].filter((path) => !existsSync(path));

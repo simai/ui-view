@@ -10,9 +10,11 @@ const root = resolve(process.argv[2]);
 const runtime = join(resolve(process.argv[3]), 'core', 'js', 'smart-base.js');
 const browser = await chromium.launch();
 try {
+  // view-common is the set's package core (package.json simai.core): first, or
+  // last after the bundles that take from it.
   for (const order of [
-    ['view', 'view-table', 'pagination'],
-    ['view-table', 'pagination', 'view'],
+    ['view-common', 'view', 'view-table', 'pagination'],
+    ['view-table', 'pagination', 'view', 'view-common'],
   ]) {
     const page = await browser.newPage();
     const warnings = [];
