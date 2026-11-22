@@ -32,7 +32,7 @@
 //   cut: the name and the INN whole), the table goes sideways under the rail
 //   by a real sideways wheel, the box, the row menu and the name stay put.
 // - VR12A-1 (round 12 acceptance, DEV msg-7e2d384f): under the list head
-//   «Настроить вид» offers «Плотность» and «Текст в одну строку», set there
+//   «Вид» (view round 14: the head's drill menu) offers «Плотность» and «Текст в одну строку», set there
 //   by real clicks: the rows go compact and one line.
 // - VR12A-2: a fitted table in a 650 px column at 1440 keeps the comment at
 //   least --sf-measure-20 wide and the sum (sent without a type) whole.
@@ -169,16 +169,28 @@ const openCustomize = async (page) => {
     return Boolean(node && !node.hidden && node.getClientRects().length);
   });
   if (!zone) await page.locator('#v .sf-view-head-zone-toggle button').click({timeout: 5000});
-  await page.locator('#v :is(.sf-view-head-customize, .sf-view-head-tune) button').first().click({timeout: 5000});
-  await page.waitForFunction(() => [...document.querySelectorAll('[data-kind="view"], .sf-view-head-panel')].some((node) => node.querySelector('[data-setting]') && node.getClientRects().length), null, {timeout: 5000});
+  // View round 14 (C406/C407): the look is the head's «Вид», a drill menu.
+  await page.locator('#v .sf-view-head-look button:visible').first().click({timeout: 5000});
+  await page.waitForSelector('sf-settings[data-look-menu] [role="menu"]', {state: 'visible', timeout: 5000});
 };
-const pick = async (page, key, value) => {
-  // The sf-radio host draws no box (display: contents): its input is brought
-  // into view (the phone's sheet scrolls) and clicked.
-  const input = page.locator(`sf-radio[data-setting="${key}"][value="${value}"] input`).first();
-  await input.scrollIntoViewIfNeeded({timeout: 5000});
-  await input.click({timeout: 5000, force: true});
+// The words of «Вид»'s rows and of their choices.
+const WORDS = {density: 'Плотность', single_line: 'Текст в одну строку', paging: 'Подгрузка', size: 'Размер карточек', card_fields: 'Поля на карточке',
+  compact: 'Компактная', normal: 'Обычная', pages: 'Страницами', more: '«Показать ещё»', endless: 'Бесконечно', both: 'Вместе', s: 'Малые', m: 'Средние', l: 'Крупные', amount: 'Сумма'};
+const menuOpen = (page) => page.evaluate(() => [...document.querySelectorAll('sf-settings[data-look-menu] [role="menu"]')].some((node) => node.getClientRects().length));
+// A path of «Вид»'s rows by real clicks, the menu opened when it is closed.
+const choose = async (page, ...path) => {
+  if (!(await menuOpen(page))) await openCustomize(page);
+  for (const name of path) {
+    const item = page.locator('sf-settings[data-look-menu] [role="menu"]:visible').last().locator('[role^="menuitem"]', {hasText: WORDS[name] ?? name}).first();
+    await item.click({timeout: 5000});
+    await page.waitForTimeout(250);
+  }
 };
+const pick = (page, key, value) => choose(page, key, value);
+const menuWords = (page) => page.evaluate(() => {
+  const menu = [...document.querySelectorAll('sf-settings[data-look-menu] [role="menu"]')].filter((node) => node.getClientRects().length).at(-1);
+  return menu ? [...menu.querySelectorAll('.sf-context-menu-item-label')].map((node) => node.textContent.trim()) : [];
+});
 
 try {
   const widths = QUICK ? [QUICK_WIDTH] : [1440, 1280, 1024, 390];
@@ -356,13 +368,16 @@ try {
       });
       const before = await look();
       await openCustomize(page).catch((error) => errors.push(`«Настроить вид» did not open: ${error.message.slice(0, 80)}`));
-      const offered = await page.evaluate(() => ({density: [...document.querySelectorAll('sf-radio[data-setting="density"]')].map((node) => node.getAttribute('label')),
-        singleLine: [...document.querySelectorAll('sf-checkbox[data-setting="single_line"]')].map((node) => node.getAttribute('label'))}));
-      await pick(page, 'density', 'compact').catch((error) => errors.push(`«Компактная» could not be picked: ${error.message.slice(0, 80)}`));
+      const top = await menuWords(page);
+      await choose(page, 'density').catch(() => {});
+      const offered = {density: (await menuWords(page)).filter((word) => ['Обычная', 'Компактная'].includes(word)),
+        singleLine: top.filter((word) => word === 'Текст в одну строку')};
+      await choose(page, 'compact').catch((error) => errors.push(`«Компактная» could not be picked: ${error.message.slice(0, 80)}`));
       await page.waitForTimeout(300);
-      const box = page.locator('sf-checkbox[data-setting="single_line"]').first();
-      await box.locator('input').scrollIntoViewIfNeeded({timeout: 5000}).catch(() => {});
-      await box.locator('input').click({timeout: 5000, force: true}).catch(() => errors.push('«Текст в одну строку» could not be ticked'));
+      await page.keyboard.press('Escape');
+      await page.waitForTimeout(200);
+      if (await menuOpen(page)) { await page.keyboard.press('Escape'); await page.waitForTimeout(200); }
+      await choose(page, 'single_line').catch(() => errors.push('«Текст в одну строку» could not be ticked'));
       await page.keyboard.press('Escape');
       await page.waitForTimeout(500);
       const after = await look();
@@ -441,9 +456,9 @@ try {
       const cardText = () => page.evaluate(() => document.querySelector('#v sf-view-board [data-id], #v sf-view-board .sf-view-board__card')?.textContent ?? '');
       const before = await cardText();
       await openCustomize(page).catch((error) => errors.push(`«Настроить вид» did not open: ${error.message.slice(0, 80)}`));
-      const listed = await page.evaluate(() => [...document.querySelectorAll('sf-checkbox[data-setting="card_fields"]')].map((box) => box.getAttribute('label')));
-      await page.locator('sf-checkbox[data-setting="card_fields"][data-value="amount"] input').first().scrollIntoViewIfNeeded({timeout: 5000}).catch(() => {});
-      await page.locator('sf-checkbox[data-setting="card_fields"][data-value="amount"] input').first().click({timeout: 5000, force: true}).catch(() => errors.push('«Сумма» could not be ticked'));
+      await choose(page, 'card_fields').catch(() => {});
+      const listed = await menuWords(page);
+      await choose(page, 'amount').catch(() => errors.push('«Сумма» could not be ticked'));
       await page.waitForTimeout(500);
       const after = await cardText();
       if (!listed.includes('Сумма')) failures.push({...label, got: `listed ${listed.join(', ')}`});

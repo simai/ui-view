@@ -289,7 +289,10 @@ try {
     field.dispatchEvent(new Event('input', {bubbles: true}));
     await new Promise((done) => setTimeout(done, 300));
     const shown = [...panel.querySelectorAll('.sf-settings-row')].filter((row) => !row.hidden && row.getClientRects().length)
-      .map((row) => row.querySelector('[data-sf-option]')?.dataset.sfOption);
+      .filter((row) => !row.closest('[data-sf-list^="switches:phone"]'))
+      .map((row) => row.querySelector('[data-sf-option]')?.dataset.sfOption)
+      // The «На телефоне» switches (LV3-11, view round 14) are not columns.
+      .filter(Boolean);
     return {shown, density: panel.getAttribute('data-sf-density'),
       size: document.querySelector('sf-settings[data-table-settings]').getAttribute('size')};
   });

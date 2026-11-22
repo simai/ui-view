@@ -3080,7 +3080,13 @@ class SfTable extends TableElement {
     // value of a fact column draws as its type does.
     factMarked(column, row) {
         const fact = this.listFact(column, row);
-        return Boolean(fact && (fact.level > 0 || fact.scheme));
+        if (!fact) return false;
+        if (fact.level > 0 || fact.scheme) return true;
+        // A worded fact («SSL», «Копия · 2 ч») stays its badge in the table,
+        // as C31 draws it; a typed value (money, a number, a date) is written
+        // as its type there (LV3-12: they showed raw, in pills).
+        const type = String(column?.propertyType ?? column?.property_type ?? column?.type ?? "");
+        return !(NUMBER_TYPES.has(type) || ["date", "datetime", "time", "decimal"].includes(type));
     }
 
     // The ids of the quick actions, in the order written, at most three.
@@ -6487,7 +6493,9 @@ class SfTable extends TableElement {
                 const own = {...(preferences()?.read(key)?.view ?? {})};
                 for (const field of Object.keys(patch)) delete own[field];
                 this.writeTablePreference(key, {view: own});
-            } else if (!everywhere) {
+            } else {
+                // A table with no key keeps the change for this session too,
+                // so it holds where no preferences store is reachable.
                 this._sessionView = {...(this._sessionView ?? {}), ...patch};
             }
         } else {

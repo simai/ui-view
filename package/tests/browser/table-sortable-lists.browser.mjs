@@ -92,7 +92,9 @@ try {
   await page.waitForTimeout(300);
   const PANEL = 'sf-settings[data-table-settings] .sf-settings-panel';
   const row = (key) => `${PANEL} .sf-settings-row:has(> [data-sf-option="${key}"])`;
-  const lists = await page.evaluate((panel) => [...document.querySelectorAll(`${panel} .sf-settings-list`)]
+  // The «На телефоне» switches (LV3-11, view round 14) are their own list,
+  // not the columns' order.
+  const lists = await page.evaluate((panel) => [...document.querySelectorAll(`${panel} .sf-settings-list`)].filter((list) => !String(list.dataset.sfList ?? '').startsWith('switches:phone'))
     .map((list) => ({list: list.dataset.sfList, rows: list.querySelectorAll('.sf-settings-row').length,
       handles: list.querySelectorAll('.sf-settings-row-handle').length})), PANEL);
   const handle = page.locator(`${row('f2')} .sf-settings-row-handle`).first();

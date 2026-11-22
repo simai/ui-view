@@ -103,7 +103,10 @@ const read = () => {
         dotSize: dot ? Math.round(dot.querySelector('.sf-dot-item').getBoundingClientRect().width) : null,
         title: item.querySelector('.sf-table-resource-title')?.textContent.trim() ?? null,
         titleLink: Boolean(item.querySelector('.sf-table-resource-title .sf-table-title-link')),
-        supporting: item.querySelector('.sf-table-resource-supporting')?.textContent.replace(/\s+/gu, ' ').trim() ?? null,
+        // As drawn: a coloured state's word is hidden in a wide list (LV3-24).
+        supporting: (() => { const line = item.querySelector('.sf-table-resource-supporting'); if (!line) return null;
+          const copy = line.cloneNode(true); [...line.querySelectorAll('*')].forEach((node, at) => { if (getComputedStyle(node).display === 'none') copy.querySelectorAll('*')[at]?.setAttribute('data-gone', ''); });
+          copy.querySelectorAll('[data-gone]').forEach((node) => node.remove()); return copy.textContent.replace(/\s+/gu, ' ').trim(); })(),
         facts: facts.map((fact) => {
           const badge = fact.querySelector('sf-badge');
           return {

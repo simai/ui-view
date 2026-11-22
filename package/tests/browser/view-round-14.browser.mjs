@@ -489,8 +489,12 @@ try {
         const lineCentre = first.top + (first.height - lineHeight) / 2 + lineHeight / 2;
         const centre = (node) => { const rect = node?.getBoundingClientRect(); return rect && rect.height ? rect.top + rect.height / 2 : null; };
         const boxNode = card.querySelector('.sf-view-board__box sf-checkbox :is(.sf-checkbox, label, span)') ?? card.querySelector('.sf-view-board__box');
-        return {title: Math.round(lineCentre * 10) / 10, box: Math.round(centre(boxNode) * 10) / 10, menu: Math.round(centre(card.querySelector('.sf-view-board__menu button')) * 10) / 10};
+        const field = card.querySelector('.sf-view-board__field');
+        return {title: Math.round(lineCentre * 10) / 10, box: Math.round(centre(boxNode) * 10) / 10, menu: Math.round(centre(card.querySelector('.sf-view-board__menu button')) * 10) / 10,
+          // RV4-11: the title and the fields share one start.
+          titleToFields: field ? Math.round(title.getBoundingClientRect().left - field.getBoundingClientRect().left) : null};
       });
+      if (line && line.titleToFields !== null && Math.abs(line.titleToFields) > 1) failures.push({...base, item: 'RV4-11', got: line, want: 'the title and the fields at one start'});
       if (!line || Math.abs(line.menu - line.title) > 1 || Math.abs(line.box - line.title) > 1) failures.push({...label, got: line, want: 'the box, the title line and «⋯» on one centre'});
       if (run === 1) await shot(page, `board-${width}-${theme}`);
       if (errors.length) failures.push({...label, errors});
