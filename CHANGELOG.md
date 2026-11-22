@@ -39,10 +39,9 @@ ui-control `control/evidence/2026-11-22-view-r15/README.md`.
   Under a fixed page bar the list head and the table's head stick below
   `--sf-admin-shell-stick`, written by the Admin set's `sf-admin-shell`
   (its bar and the phone top line); without it nothing moves (AN-3).
-- `sf-view-table` 1.36.0: the columns that fit and the pinned offsets
-  follow a width change in the next frame, so a record docked beside the
-  list raises no «ResizeObserver loop» error (VM-2); the sideways rail stays
-  in its observer. The phone
+- `sf-view-table` 1.36.0: the columns that fit, the pinned offsets and the
+  sideways rail follow a width change in the next frame, so a record docked
+  beside the list raises no «ResizeObserver loop» error (VM-2). The phone
   rows' list has no bottom inset: «Показать ещё» 8 px under the last row on a
   phone (VL-12).
 - `sf-view-properties` 1.31.0: a value read in the record's list takes the

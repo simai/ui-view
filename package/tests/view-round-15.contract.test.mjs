@@ -34,9 +34,7 @@ test('VM-1: the view strip keeps one line and folds the kinds into its menu', ()
 test('VM-2: the table follows a width change in the next frame', () => {
   assert.match(table, /\n {4}_inNextFrame\(name, work\) \{/u);
   assert.match(table, /if \(!\(this\._responsiveWidth > 0\)\) follow\(\);\n {16}else this\._inNextFrame\("responsive", follow\);/u);
-  // The rail stays in the observer: deferred, it looped at 768 px (rail and
-  // scroll box resized over frames against the bulk bar's row observer).
-  assert.match(table, /new ResizeObserver\(\(\) => this\.syncRail\(\)\)/u);
+  assert.match(table, /new ResizeObserver\(\(\) => this\._inNextFrame\("rail", \(\) => this\.syncRail\(\)\)\)/u);
   assert.match(headCss, /\n {2}contain: inline-size;\n/u);
 });
 

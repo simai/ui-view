@@ -305,8 +305,8 @@
       "version": "1.36.0",
       "recorded_on": "2026-11-22",
       "change": "minor",
-      "consumer": "Nothing to change for a host. The table follows a change of its width in the next frame (the columns that fit, the pinned offsets; the sideways rail stays in its observer), so a record docked beside the list raises no «ResizeObserver loop completed» error (VM-2); the first width is still taken at once. The phone rows' list has no bottom inset of its own: «Показать ещё» stands 8 px under the last row on a phone (VL-12).",
-      "summary": "View round 15: VM-2 responsive columns and pinned offsets synced in the next frame (_inNextFrame), the rail kept in its observer (deferred, it looped at 768 px); VL-12 the resource list's bottom inset 0.",
+      "consumer": "Nothing to change for a host. The table follows a change of its width in the next frame (the columns that fit, the pinned offsets, the sideways rail), so a record docked beside the list raises no «ResizeObserver loop completed» error (VM-2); the first width is still taken at once. The phone rows' list has no bottom inset of its own: «Показать ещё» stands 8 px under the last row on a phone (VL-12).",
+      "summary": "View round 15: VM-2 responsive columns, pinned offsets and rail synced in the next frame (_inNextFrame); VL-12 the resource list's bottom inset 0.",
       "evidence": "control/evidence/2026-11-22-view-r15/README.md"
     },
     {
