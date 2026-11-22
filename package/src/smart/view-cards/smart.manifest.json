@@ -516,7 +516,7 @@
       },
       {
         "path": "src/smart/view-cards/js/templates/default.css",
-        "sha256": "45bc3ab09d093ae2b5e12dcf605be306f4a8aafaf33cf6dd0a4dd3352ba5ac86"
+        "sha256": "40b4b940fe34c2e007ea8efc9c5d5698850284af497ce3c2589644c7a6402975"
       },
       {
         "path": "src/smart/field-renderers/index.js",
@@ -528,7 +528,7 @@
       },
       {
         "path": "src/smart/view-cards/docs.md",
-        "sha256": "7154684681d2a7b563e45d99f4fa9a564d3c6750c220c009280e919e04c01962"
+        "sha256": "931c62ede15dc86648ee025415bcccffd7fa62359ee35dc00f37a4d4bccf7642"
       }
     ],
     "generated_runtime": []

@@ -1995,7 +1995,8 @@
         "changes": [
           "C404 fixed list look and footer grid, C405 «Вид» as the sf-settings drill menu with per-kind rows, C406 the gear always, C407 more_horiz data menu, C408 the look for every list of the kind, LV2-2 marks across pages and kinds, LV2-7 «Выбраны все N» to the cards, D1 paging for the cards",
           "LV3-9 head.menu, LV3-23 saved sets «⋯»",
-          "one bulk bar: the list's bar stands for the cards (cards bulk-bar false), the cards keep the page row after a click switch (VR13-1)"
+          "one bulk bar: the list's bar stands for the cards (cards bulk-bar false), the cards keep the page row after a click switch (VR13-1)",
+          "LV4-2 head observer once, LV4-3 bulkActions [] clears, LV4-7 saved-set row end and window kept, LV4-14 one chip gap"
         ]
       }
     ]
@@ -2006,7 +2007,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view/index.js",
-        "sha256": "b42f1bb4fa8c2d6ad6f943904fce9b1e293d67e69df6de755e530c656b6a1097"
+        "sha256": "835f54eab07476024a1eb430bc082b5da489ae7b3b587018129fc0fa2132445a"
       },
       {
         "path": "src/core/contracts/ports/simai.dataview-port/1.5.0/port.json",
@@ -2014,7 +2015,7 @@
       },
       {
         "path": "src/smart/view/docs.md",
-        "sha256": "00f76e0b4fc7c8f135eb3f55c92a61597be87238896e5c75fa7e288f800914d2"
+        "sha256": "ef962095be1ff7e72d7ab4b7430d673c6ed4eb4469c7d4f8ca12cb9cddb45d5d"
       },
       {
         "path": "tests/fixtures/data-view-composite-lab.html",

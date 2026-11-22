@@ -8,7 +8,7 @@
       "version": "1.2.0",
       "kind": "minor",
       "recorded_on": "2026-11-22",
-      "consumer": "Nothing to change for a host. New settings keep-selection (marks of records not on screen stay; sf-view sets it, LV2-2) and all-selected (every record under the filter is marked: the cards draw marked, the bar says the total, an action asks scope all; LV2-7). The select event carries all while «Выбраны все N» holds. New setting bulk-bar (default true): false draws no bar of the cards; sf-view sets it and its own bar stands for the cards, so a switch from the table shows one bar (owner, 2026-11-22). New method selectAll(on).",
+      "consumer": "Nothing to change for a host. New settings keep-selection (marks of records not on screen stay; sf-view sets it, LV2-2) and all-selected (every record under the filter is marked: the cards draw marked, the bar says the total, an action asks scope all; LV2-7). The select event carries all while «Выбраны все N» holds. New setting bulk-bar (default true): false draws no bar of the cards; sf-view sets it and its own bar stands for the cards, so a switch from the table shows one bar (owner, 2026-11-22). New method selectAll(on). LV4-16: a field's label is its value's size (16 at size 1, 14 at 1/2).",
       "evidence": "control/evidence/2026-11-22-view-r14/README.md"
     },
     {
@@ -624,7 +624,8 @@
           "from": "1.1.0",
           "to": "1.2.0",
           "changes": [
-            "keep-selection and all-selected (LV2-2, LV2-7), select carries all, apply scope all; bulk-bar and selectAll(on): one bar under sf-view"
+            "keep-selection and all-selected (LV2-2, LV2-7), select carries all, apply scope all; bulk-bar and selectAll(on): one bar under sf-view",
+            "LV4-16 label at the value's size"
           ]
         }
       ]

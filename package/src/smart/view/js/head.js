@@ -195,6 +195,7 @@ export class ListHead {
         this._resize = typeof ResizeObserver === "function" ? new ResizeObserver(this._onResize) : null;
         this._resize?.observe(this.view);
         this._parts = typeof ResizeObserver === "function" ? new ResizeObserver(this._onPartsResize) : null;
+        this._partsSeen = null;
         this._stick = typeof ResizeObserver === "function" ? new ResizeObserver(this._onHeadResize) : null;
         this._stick?.observe(root);
         this._measure();
@@ -228,6 +229,7 @@ export class ListHead {
         this._resize = null;
         this._parts?.disconnect();
         this._parts = null;
+        this._partsSeen = null;
         this._stick?.disconnect();
         this._stick = null;
         const layout = this.view.shadowRoot?.querySelector?.('[part="layout"]');
@@ -295,9 +297,14 @@ export class ListHead {
             root.removeAttribute("data-stacked");
             return;
         }
+        // Each part is observed once (LV4-2): observing it again in the
+        // observer's own callback fired the callback again at once, and the
+        // head ran this ~57 times a second with "ResizeObserver loop" errors.
         if (this._parts) {
-            this._parts.disconnect();
-            for (const part of row.querySelectorAll(".sf-view-head-join, .sf-view-head-fields > *, .sf-view-head-zone-toggle > *, .sf-view-head-create > *, .sf-view-head-more > *")) this._parts.observe(part);
+            const now = new Set(row.querySelectorAll(".sf-view-head-join, .sf-view-head-fields > *, .sf-view-head-zone-toggle > *, .sf-view-head-create > *, .sf-view-head-more > *"));
+            const seen = this._partsSeen ??= new Set();
+            for (const part of seen) if (!now.has(part)) { this._parts.unobserve(part); seen.delete(part); }
+            for (const part of now) if (!seen.has(part)) { this._parts.observe(part); seen.add(part); }
         }
         const room = contentWidth(row);
         if (!(room > 0)) return;
@@ -1088,11 +1095,11 @@ export class ListHead {
                 const id = String(item.id);
                 const label = `${item.name ?? id}${id === open && this.changed ? " •" : ""}`;
                 const marks = [
-                    id === this.defaultFilterId ? `<sf-icon icon="push_pin" size="1/2" aria-label="${esc(this.text("headDefaultMark"))}" title="${esc(this.text("headDefaultMark"))}"></sf-icon>` : "",
-                    item.shared || item.kind === "shared" ? `<sf-icon icon="group" size="1/2" aria-label="${esc(this.text("headSharedMark"))}" title="${esc(item.owner_name ? `${this.text("headSharedMark")}: ${item.owner_name}` : this.text("headSharedMark"))}"></sf-icon>` : "",
+                    id === this.defaultFilterId ? `<sf-icon icon="push_pin" size="${size}" aria-label="${esc(this.text("headDefaultMark"))}" title="${esc(this.text("headDefaultMark"))}"></sf-icon>` : "",
+                    item.shared || item.kind === "shared" ? `<sf-icon icon="group" size="${size}" aria-label="${esc(this.text("headSharedMark"))}" title="${esc(item.owner_name ? `${this.text("headSharedMark")}: ${item.owner_name}` : this.text("headSharedMark"))}"></sf-icon>` : "",
                 ].join("");
-                return `<div class="sf-view-head-saved"><sf-radio data-saved="${esc(id)}" size="${size}" name="sf-view-head-saved" value="${esc(id)}" label="${esc(label)}"${id === open ? " checked" : ""}></sf-radio>${marks}`
-                    + `<sf-button-icon data-saved-menu="${esc(id)}" size="${size}" icon="more_horiz" appearance="ghost" scheme="on-surface" aria-haspopup="menu" aria-label="${esc(this.text("headFilterActions").replace("{name}", item.name ?? id))}"></sf-button-icon></div>`;
+                return `<div class="sf-view-head-saved"><sf-radio data-saved="${esc(id)}" size="${size}" name="sf-view-head-saved" value="${esc(id)}" label="${esc(label)}"${id === open ? " checked" : ""}></sf-radio><span class="sf-view-head-saved-end">${marks}`
+                    + `<sf-button-icon data-saved-menu="${esc(id)}" size="${size}" icon="more_horiz" appearance="ghost" scheme="on-surface" aria-haspopup="menu" aria-label="${esc(this.text("headFilterActions").replace("{name}", item.name ?? id))}"></sf-button-icon></span></div>`;
             }).join("")}</div>`;
         }
         if (kind === "filter:fields") {
@@ -1731,8 +1738,18 @@ export class ListHead {
             const item = this.savedFilter(menu.getAttribute("data-saved-menu"));
             if (!item) return;
             if (this.mode === "phone") return this._openKind(`saved:${item.id}`);
+            // The shared menu is not a layer of the filter window, so a press
+            // on its item closed the window (LV4-7): the window opens again on
+            // its saved sets, and shows the answer there (the pin after «по
+            // умолчанию»). A rename opens its own window.
             this._menu(menu, this.text("headFilterActions").replace("{name}", item.name ?? item.id), this._savedMenu(item))
-                .then((id) => { if (id) this._savedAction(id, item); });
+                .then((id) => {
+                    if (id) this._savedAction(id, item);
+                    if (id && id !== "rename" && !this.open) {
+                        this.tab.filter = "saved";
+                        this._openKind("filter");
+                    }
+                });
             return;
         }
         const savedAct = target.closest("[data-saved-act]");

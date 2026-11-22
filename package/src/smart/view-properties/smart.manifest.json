@@ -2045,7 +2045,8 @@
         "from": "1.26.0",
         "to": "1.27.0",
         "changes": [
-          "C403 section rail and level fallback under 20rem, the interim tabs of C399 gone, the badge row on the label's baseline"
+          "C403 section rail and level fallback under 20rem, the interim tabs of C399 gone, the badge row on the label's baseline",
+          "LV4-12 block title a rung up"
         ]
       }
     ]
@@ -2064,7 +2065,7 @@
       },
       {
         "path": "src/smart/view-properties/js/templates/default.css",
-        "sha256": "6227c37d50adef5f2f8ca368a1916f7017a4754e48627d93308f49d0be3b4330"
+        "sha256": "b67d19614f9c985c7ab8d4104c357601e9cff5827b8ae1ca24f564cd8641fc28"
       },
       {
         "path": "src/smart/view-properties/js/conditions.js",

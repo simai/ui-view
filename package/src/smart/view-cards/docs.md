@@ -102,6 +102,9 @@ marked, the bar says the total, an action asks `scope: "all"`, and unmarking
 one card ends it. `select` carries `all` while it holds. Under sf-view the
 cards' «Подгрузка» is `layouts.cards.paging` (pages, more, both, endless).
 
+A field's label is its value's size in the variant ink (since 1.2.0, LV4-16,
+as the kanban card): at size 1 both 16, at 1/2 both 14.
+
 `bulk-bar="false"` draws no bar of the cards: sf-view sets it, and the list's
 own bar counts the cards' marks and offers «Выбрать все N» (which calls
 `selectAll(true)` on the cards), so a switch from the table shows one bar, not

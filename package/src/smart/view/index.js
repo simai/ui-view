@@ -727,6 +727,12 @@ class SfDataView extends DataViewElement {
         this._bulkActions = Array.isArray(list) ? list.filter((item) => item && (item.id ?? item.value)) : [];
         this._applyBulkActions();
         this._syncSelects();
+        // None left (LV4-3): no boxes, no bar, and the marks go with them;
+        // the marks would otherwise keep «Выбрано N» with nothing to do.
+        if (!this.hasBulkActions) {
+            if (this.markedIds?.length || this.table?.getSelectedRecordIds?.()?.length) this.clearSelection?.();
+            this._renderBulkBand?.();
+        }
     }
 
     // Actions given or taken away bring or take the boxes (VHF-11), whether
@@ -750,10 +756,18 @@ class SfDataView extends DataViewElement {
 
     _applyBulkActions() {
         const pagination = this.pagination;
-        if (!pagination || !this._bulkActions?.length) return;
+        if (!pagination) return;
+        // Taken away (LV4-3): the actions the view wrote on its page row go
+        // too; the page's own markup stays the page's.
+        if (!this._bulkActions?.length) {
+            if (this._mirroredActions != null && pagination.getAttribute("actions") === this._mirroredActions) pagination.removeAttribute("actions");
+            this._mirroredActions = null;
+            return;
+        }
         const clean = (text) => String(text ?? "").replace(/[|:]/gu, " ").trim();
         const markup = this._bulkActions.map((item) => `${clean(item.id ?? item.value)}:${clean(item.label ?? item.text ?? item.id ?? item.value)}`).join("|");
         if (pagination.getAttribute("actions") !== markup) pagination.setAttribute("actions", markup);
+        this._mirroredActions = markup;
     }
 
     get selection() { return this._layoutTag() === "sf-view-table" ? (this.table?.selection ?? []) : this._layoutSelection(); }
