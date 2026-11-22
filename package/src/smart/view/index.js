@@ -4518,13 +4518,36 @@ class SfDataView extends DataViewElement {
 SfDataView.sfElementBrand = "simai.smart-base.v1";
 answerActions(SfDataView, manifest);
 settingSetters(SfDataView, manifest);
-const definedDataView = customElements.get("sf-view");
-if (!definedDataView) {
-    customElements.define("sf-view", SfDataView);
-    // sf-data-view, the former tag, is a subclass defined beside it until
-    // 2027-01-01 (aliases.json, ui-source change journal tag-sf-data-view-to-sf-view).
-    defineTagAliases(SfDataView, "sf-view");
-} else if (definedDataView.sfElementBrand !== SfDataView.sfElementBrand) {
-    console.warn("SfDataView.define(): sf-view is already defined", definedDataView);
+function defineDataView() {
+    const definedDataView = customElements.get("sf-view");
+    if (!definedDataView) {
+        customElements.define("sf-view", SfDataView);
+        // sf-data-view, the former tag, is a subclass defined beside it until
+        // 2027-01-01 (aliases.json, ui-source change journal tag-sf-data-view-to-sf-view).
+        defineTagAliases(SfDataView, "sf-view");
+    } else if (definedDataView.sfElementBrand !== SfDataView.sfElementBrand) {
+        console.warn("SfDataView.define(): sf-view is already defined", definedDataView);
+    }
 }
+
+// View modular step 1: sf-view relates to the table lazily, so the Loader no
+// longer runs the table's script before this one. A list on the page that
+// draws the table (no layout, or auto, table, list) would then draw first
+// with an undefined table and move when the table came (first paint of the
+// view examples, gate 24). Where such a list is on the page and the Loader
+// is there, the view is defined once sf-view-table is (asked for now, as the
+// eager relation asked for it), or after 3 s, the table's own bound for the
+// view (D2). A page of boards, cards or calendars defines it at once and
+// never fetches the table; so does a page without the Loader.
+function waitsForTable() {
+    if (typeof globalThis.SF?.Loader?.ensure !== "function" || customElements.get("sf-view-table")) return false;
+    const lists = globalThis.document?.querySelectorAll?.("sf-view, sf-data-view") ?? [];
+    return [...lists].some((node) => {
+        const written = node.getAttribute("layout");
+        return !written || tableLayout(written);
+    });
+}
+
+if (waitsForTable()) globalThis.SF.Loader.ensure(["sf-view-table"], {timeout: 3000}).then(defineDataView, defineDataView);
+else defineDataView();
 export default SfDataView;
