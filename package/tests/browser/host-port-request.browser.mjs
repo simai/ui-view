@@ -21,6 +21,8 @@ try {
     const page = await browser.newPage();
     await page.goto('about:blank');
     await page.addScriptTag({path: join(out, 'core', 'core', 'js', 'smart-base.js')});
+    // The set's package core (package.json simai.core) before the bundle that takes from it.
+    await page.addScriptTag({path: join(out, 'smart', 'smart', 'view-common', 'js', 'view-common.js')});
     await page.addScriptTag({path: join(out, 'smart', 'smart', bundle, 'js', `${bundle}.js`)});
     const steps = await page.evaluate(async ({tag, version}) => {
       let asked = 0;

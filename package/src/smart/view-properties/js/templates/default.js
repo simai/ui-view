@@ -1,7 +1,7 @@
 import {html, nothing} from 'lit';
 import {guard} from 'lit/directives/guard.js';
 import "./default.css";
-import {renderViewField, renderEditField} from '../../../field-renderers/index.js';
+import {renderViewField, renderEditField} from '../../../view-common/field-renderers.js';
 import {renderFieldValue} from '../field-value.js';
 
 // The arrangement, drawn in the component's own light DOM. Not in a shadow root:

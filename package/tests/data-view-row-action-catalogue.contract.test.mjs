@@ -98,7 +98,10 @@ test('an id the host never named is still reported and still gets a word', () =>
   // fallback -- it is not silently drawn as something it is not.
   assert.match(
     source,
-    /const found = known\.find\(\(action\) => action\.id === id\);\s*if \(found\) return found;\s*console\.warn\(/u,
+    // Once sf-view-table is defined (view modular step 1: it is a lazy
+    // relation, often defined after the first answer, and the projection is
+    // drawn again then).
+    /const found = known\.find\(\(action\) => action\.id === id\);\s*if \(found\) return found;[\s\S]{0,500}?if \(globalThis\.customElements\?\.get\?\.\("sf-view-table"\)\) \{\s*console\.warn\(/u,
     'the table catalogue is consulted first, and an unknown id is still reported',
   );
   assert.match(source, /row action «\$\{id\}» has no row_actions entry/u);

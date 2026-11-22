@@ -1,6 +1,6 @@
 import {html, nothing} from 'lit';
 import "./set-fields.css";
-import {renderViewField, renderEditField} from '../../field-renderers/index.js';
+import {renderViewField, renderEditField} from '../../view-common/field-renderers.js';
 import {pageLocale, pageText} from '../../../core/js/page-language';
 import {compare, decimalString, editableDecimal, formatDecimal, fractionDigits, readDecimal, toDecimal} from './decimal.js';
 import {currencyOf, formatMoney, moneyParts, percentText} from './money.js';

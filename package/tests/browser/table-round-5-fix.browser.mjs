@@ -30,7 +30,7 @@ const base = [
   'smart/smart/input/js/input.js', 'smart/smart/spinner/js/spinner.js',
   'smart/smart/button-close/js/button-close.js', 'smart/smart/menu-context/js/menu-context.js',
   'smart/smart/tag/js/tag.js', 'smart/smart/pagination/js/pagination.js',
-  'smart/smart/resizer/js/resizer.js', 'smart/smart/view-table/js/view-table.js',
+  'smart/smart/resizer/js/resizer.js', 'smart/smart/view-common/js/view-common.js', 'smart/smart/view-table/js/view-table.js',
 ].map((p) => join(out, p));
 // The two the consumer's page had not loaded when the window opened.
 const late = ['smart/smart/radio/js/radio.js', 'smart/smart/tabs/js/tabs.js'].map((p) => join(out, p));

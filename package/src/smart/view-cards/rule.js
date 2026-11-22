@@ -8,6 +8,8 @@ SF.RuleLoader['cl-view-cards'] = {
   js: true,
   css: true,
   relation: [
+    // The View package core (view-common): the shared code every View bundle takes once (field renderers, formats, conditions, the filter window, and what two View components share), fetched before the component runs.
+    { name: 'cl-view-common' },
     { name: 'icons' },
     // A card is the Framework .sf-card.
     { name: 'card' },

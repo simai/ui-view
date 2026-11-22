@@ -41,7 +41,8 @@
       "smart.sortable",
       "smart.tabs",
       "smart.tag",
-      "smart.toast"
+      "smart.toast",
+      "smart.view-common"
     ],
     "public_parts": []
   },
@@ -560,6 +561,13 @@
       },
       {
         "from": "1.1.5",
+        "to": "1.2.0",
+        "changes": [
+          "View modular step 1 (round/view-modular-1): takes its shared code (the Framework field renderers, formats, conditions and filter window, and what two View components share) from the package core smart/view-common once per page, instead of a copy in its own bundle; relation cl-view-common."
+        ]
+      },
+      {
+        "from": "1.2.0",
         "to": "1.2.1",
         "changes": [
           "LV3-16 box and «⋯» on the title's first line",
@@ -574,7 +582,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-board/index.js",
-        "sha256": "c435d8d663f22b6ec149179882b5a8d1db740c70b096c0ba2c73884f91fa1f27"
+        "sha256": "5c6a1be4304468fd1f1b4370927f8acc1bb921fe4edc20a33bd55e57896bcc01"
       },
       {
         "path": "src/smart/view-board/js/board.js",
@@ -594,7 +602,7 @@
       },
       {
         "path": "src/smart/view-board/rule.js",
-        "sha256": "a7399b0df3f2ea2c18fe8f93439bb889edc91c62a5f230d887218d8f506b2d33"
+        "sha256": "450a1da6d5e7bd052cf24bed4597de453017a0207cd895329949a82278261d13"
       },
       {
         "path": "src/smart/view-board/docs.md",

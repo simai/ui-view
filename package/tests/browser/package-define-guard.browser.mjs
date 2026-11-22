@@ -11,7 +11,8 @@ import {chromium} from 'playwright';
 if (!process.argv[3]) throw new Error('Smart output root and distr root are required');
 const smartRoot = resolve(process.argv[2]);
 const distrRoot = resolve(process.argv[3]);
-const bundles = ['icon', 'button-icon', 'view-table', 'pagination', 'view', 'button', 'modal', 'menu-context'];
+// view-common is the View package core (no tag of its own); reversed, it comes last.
+const bundles = ['icon', 'button-icon', 'view-common', 'view-table', 'pagination', 'view', 'button', 'modal', 'menu-context'];
 const tags = ['sf-icon', 'sf-button-icon', 'sf-view-table', 'sf-pagination', 'sf-view', 'sf-button', 'sf-modal', 'sf-menu-context'];
 const browser = await chromium.launch();
 const failures = [];

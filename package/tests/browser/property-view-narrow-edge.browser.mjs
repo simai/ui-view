@@ -43,7 +43,7 @@ const modules = [
   'smart/smart/field-renderers/js/field-renderers.js',
   'smart/smart/sortable/js/sortable.js',
   'smart/smart/popover/js/popover.js',
-  'smart/smart/view-properties/js/view-properties.js',
+  'smart/smart/view-common/js/view-common.js', 'smart/smart/view-properties/js/view-properties.js',
 ].map((p) => join(out, p));
 
 const absent = [...styles, ...modules].filter((path) => !existsSync(path));

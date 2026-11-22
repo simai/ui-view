@@ -60,7 +60,8 @@
       "smart.sortable",
       "smart.spinner",
       "smart.tabs",
-      "smart.tag"
+      "smart.tag",
+      "smart.view-common"
     ],
     "public_parts": [],
     "declarative": {
@@ -3055,6 +3056,13 @@
       },
       {
         "from": "1.31.0",
+        "to": "1.33.0",
+        "changes": [
+          "View modular step 1 (round/view-modular-1): takes its shared code (the Framework field renderers, formats, conditions and filter window, and what two View components share) from the package core smart/view-common once per page, instead of a copy in its own bundle, its dictionaries and manifest actions included (sf-view reads them too); relation cl-view-common."
+        ]
+      },
+      {
+        "from": "1.33.0",
         "to": "1.34.0",
         "changes": [
           "C406 column window from the gear and openColumnSettings, C408 the look kept for every table by default",
@@ -3071,7 +3079,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-table/index.js",
-        "sha256": "c6f417ef3d9c37042d65d571d905144ac35346414d82437cff7f07d97378bbca"
+        "sha256": "9000d2af90a7d33d32d6bf2b8d3077b69ed94dca6b106627325320585e9d0282"
       },
       {
         "path": "src/smart/view-table/js/templates/default.js",
@@ -3087,7 +3095,7 @@
       },
       {
         "path": "src/smart/view-table/rule.js",
-        "sha256": "4b63aae2d02533f4ff00c26be9843b39c6a5804a40745997dbf4f04dc2cb6b7c"
+        "sha256": "5a2542d11e049b606820a67eb7aeb15d4f421536bd2c633f0d66cd03a7a44747"
       },
       {
         "path": "src/smart/view-table/docs/smart-table-guide.md",

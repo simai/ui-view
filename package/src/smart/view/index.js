@@ -18,16 +18,15 @@ import {defineTagAliases, isTag, tagSelector} from "../../core/js/smart-base";
 import {installAliases} from "../../core/js/aliases.js";
 import {isDestructiveAction, orderActions} from "../pagination/js/actions.js";
 import {noteDeprecated} from "../../core/js/deprecations.js";
-import {answerActions, settingSetters} from "../view-table/js/manifest-actions.js";
+import {answerActions, settingSetters} from "../view-common/manifest-actions.js";
 import manifest from "./component.json";
 import aliases from "./aliases.json";
 import en from "./lang/en.json";
 import ru from "./lang/ru.json";
-import tableEn from "../view-table/lang/en.json";
-import tableRu from "../view-table/lang/ru.json";
+import {en as tableEn, ru as tableRu} from "../view-common/table-words.js";
 import paginationEn from "../pagination/lang/en.json";
 import paginationRu from "../pagination/lang/ru.json";
-import BundledPreferences from "../../core/js/preferences.js";
+import BundledPreferences from "../view-common/preferences.js";
 import {acceptLevel, collapse, createTree, expandKnown, hasLevel, knownRecords, markLoading, visibleRows} from "./js/tree.js";
 import {ListHead} from "./js/head.js";
 import {CARDS_EVENTS, acceptCards, cardsDrawn, cardsOf, cardsQuery, cardsSkeleton, onCardsEvent, syncCards, syncCardsState} from "./js/cards.js";
@@ -1763,7 +1762,11 @@ class SfDataView extends DataViewElement {
         }
         if (this.getAttribute("data-sf-instance")) this._ownParts();
         this._watchFooterWidth();
-        this._askForParts(["sf-view-table", "sf-pagination"]);
+        // The current layout's element only: the table is a lazy relation now
+        // (view modular step 1), so a list that shows only the board, the cards
+        // or the calendar never fetches it; a switch to the table asks for it
+        // then (_swapContent's _askForParts).
+        this._askForParts([this._layoutTag(), "sf-pagination"]);
         // Dated aliases (§16.20), installed once per element as the Smart base does.
         if (!this.__sfAliases) {
             this.__sfAliases = installAliases(this, aliases, {tag: this.localName, adapters: {}});
@@ -3987,7 +3990,14 @@ class SfDataView extends DataViewElement {
                 // raw id clipped in the column, and the host is told (docs trial 4).
                 const found = known.find((action) => action.id === id);
                 if (found) return found;
-                console.warn(`[sf-view] row action «${id}» has no row_actions entry; name it in the host's catalogue.`);
+                // Before sf-view-table is defined its catalogue cannot be read
+                // (_captureRowActions): the projection is drawn again once it
+                // is, and only then is an id it does not name the host's to fix.
+                // The table is a lazy relation since view modular step 1, so it
+                // is often defined after the first answer.
+                if (globalThis.customElements?.get?.("sf-view-table")) {
+                    console.warn(`[sf-view] row action «${id}» has no row_actions entry; name it in the host's catalogue.`);
+                }
                 const label = pageText(DATA_VIEW_TEXT, "unnamedAction", this);
                 return {id, name: label, inline: false, component: {type: "button", props: {text: label, appearance: "ghost", title: id}}};
             };
@@ -4699,13 +4709,36 @@ class SfDataView extends DataViewElement {
 SfDataView.sfElementBrand = "simai.smart-base.v1";
 answerActions(SfDataView, manifest);
 settingSetters(SfDataView, manifest);
-const definedDataView = customElements.get("sf-view");
-if (!definedDataView) {
-    customElements.define("sf-view", SfDataView);
-    // sf-data-view, the former tag, is a subclass defined beside it until
-    // 2027-01-01 (aliases.json, ui-source change journal tag-sf-data-view-to-sf-view).
-    defineTagAliases(SfDataView, "sf-view");
-} else if (definedDataView.sfElementBrand !== SfDataView.sfElementBrand) {
-    console.warn("SfDataView.define(): sf-view is already defined", definedDataView);
+function defineDataView() {
+    const definedDataView = customElements.get("sf-view");
+    if (!definedDataView) {
+        customElements.define("sf-view", SfDataView);
+        // sf-data-view, the former tag, is a subclass defined beside it until
+        // 2027-01-01 (aliases.json, ui-source change journal tag-sf-data-view-to-sf-view).
+        defineTagAliases(SfDataView, "sf-view");
+    } else if (definedDataView.sfElementBrand !== SfDataView.sfElementBrand) {
+        console.warn("SfDataView.define(): sf-view is already defined", definedDataView);
+    }
 }
+
+// View modular step 1: sf-view relates to the table lazily, so the Loader no
+// longer runs the table's script before this one. A list on the page that
+// draws the table (no layout, or auto, table, list) would then draw first
+// with an undefined table and move when the table came (first paint of the
+// view examples, gate 24). Where such a list is on the page and the Loader
+// is there, the view is defined once sf-view-table is (asked for now, as the
+// eager relation asked for it), or after 3 s, the table's own bound for the
+// view (D2). A page of boards, cards or calendars defines it at once and
+// never fetches the table; so does a page without the Loader.
+function waitsForTable() {
+    if (typeof globalThis.SF?.Loader?.ensure !== "function" || customElements.get("sf-view-table")) return false;
+    const lists = globalThis.document?.querySelectorAll?.("sf-view, sf-data-view") ?? [];
+    return [...lists].some((node) => {
+        const written = node.getAttribute("layout");
+        return !written || tableLayout(written);
+    });
+}
+
+if (waitsForTable()) globalThis.SF.Loader.ensure(["sf-view-table"], {timeout: 3000}).then(defineDataView, defineDataView);
+else defineDataView();
 export default SfDataView;

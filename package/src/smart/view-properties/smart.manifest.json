@@ -75,6 +75,7 @@
       "smart.tabs",
       "smart.tag",
       "smart.view",
+      "smart.view-common",
       "smart.view-table"
     ],
     "public_parts": [],
@@ -2043,6 +2044,13 @@
       },
       {
         "from": "1.26.0",
+        "to": "1.28.0",
+        "changes": [
+          "View modular step 1 (round/view-modular-1): takes its shared code (the Framework field renderers, formats, conditions and filter window, density, the manifest actions) from the package core smart/view-common once per page, instead of a copy in its own bundle; its field value, set fields and money import the field renderers and decimal through the core; relation cl-view-common."
+        ]
+      },
+      {
+        "from": "1.28.0",
         "to": "1.29.0",
         "changes": [
           "C403 section rail and level fallback under 20rem, the interim tabs of C399 gone, the badge row on the label's baseline",
@@ -2057,11 +2065,11 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-properties/index.js",
-        "sha256": "7272dd15f8ef3ed396f5235d83aaaa0bfa0f17159cbd1641c05982e9f3699830"
+        "sha256": "a9b54b07a3c97e2019b0d340e885b4a97451cc6793f9bfde51aab8ccea045b2d"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.js",
-        "sha256": "285781cbb1e48f0922fccbab38a6219b83f65646a5c56feaaa2bda5c6df14535"
+        "sha256": "8e047612a94938b032fcc4fe127fb7b92c77a8a52784b9810173d6e035c7f811"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.css",
@@ -2073,11 +2081,11 @@
       },
       {
         "path": "src/smart/view-properties/js/field-value.js",
-        "sha256": "8773043c226a0aba2b261086d53522be5d40444f15559447d0937cbcc1afc8df"
+        "sha256": "5a74dd04d9e634b60d0048300dbc501609b6128def2e8aa08905d2835010a6d3"
       },
       {
         "path": "src/smart/view-properties/js/history.js",
-        "sha256": "7b6fe4d1c1bd88686edb70e31a2b13e508f6f075d7116d5e7da36af2489a359b"
+        "sha256": "a1650f3276eae38bf6370a0d71c04be0a8191cbe3a0b8621c65d3b07d9149d54"
       },
       {
         "path": "src/smart/view-properties/js/history-port.js",
@@ -2097,7 +2105,7 @@
       },
       {
         "path": "src/smart/view-properties/js/money.js",
-        "sha256": "ca936af5b59ee2f0fe8788df3f69cccdc1cb6fd3045213bbd1a14d4f5963f537"
+        "sha256": "c7dac1ae136edb7d9120416f39a253e362104288565fcd054d3f8419e40d92ae"
       },
       {
         "path": "src/smart/view-properties/js/set-fields.css",
@@ -2105,11 +2113,11 @@
       },
       {
         "path": "src/smart/view-properties/js/set-fields.js",
-        "sha256": "8b5c3d72c4359bdbee46e6d1cc3f58abdf84c6a57bffa829e1695d84356622bc"
+        "sha256": "74b3b9c0f49dd86770b53c420088cf76987f9c91c8eee26bf58f2f9479bcf0f2"
       },
       {
         "path": "src/smart/view-properties/rule.js",
-        "sha256": "7ee0d5f20ac88d2d56663eba2fd9a0a3db183273009d54a494a9461f899eae1e"
+        "sha256": "7fab6edf91100e63b5ef6309c9623901d5dd178f36d9e58668342537e62049d1"
       },
       {
         "path": "src/core/contracts/ports/simai.property-view-port/1.4.0/port.json",

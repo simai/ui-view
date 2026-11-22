@@ -1,5 +1,5 @@
 import {formatDecimal} from './decimal.js';
-import {formatPercent} from '../../field-renderers/decimal.js';
+import {formatPercent} from '../../view-common/field-decimal.js';
 
 // Money and percent as a person reads them, from decimal strings, never a
 // float: the currency's sign and minor units come from Intl, the digits from

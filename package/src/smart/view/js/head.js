@@ -41,7 +41,7 @@
 // settings.save -- a draft until the joint view-config/1
 // contract settles the wire format (ui-control research
 // 2026-11-17-views-architecture/view-config-1-draft.md).
-import {menuOpen} from "../../../core/js/menu-open.js";
+import {menuOpen} from "../../view-common/menu-open.js";
 
 const PHONE_WIDTH = 600;
 

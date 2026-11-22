@@ -34,7 +34,7 @@ const modules = [
   'smart/smart/spinner/js/spinner.js', 'smart/smart/menu-context/js/menu-context.js',
   'smart/smart/tabs/js/tabs.js', 'smart/smart/tag/js/tag.js',
   'smart/smart/pagination/js/pagination.js', 'smart/smart/empty-state/js/empty-state.js',
-  'smart/smart/resizer/js/resizer.js', 'smart/smart/view-table/js/view-table.js',
+  'smart/smart/resizer/js/resizer.js', 'smart/smart/view-common/js/view-common.js', 'smart/smart/view-table/js/view-table.js',
   'smart/smart/view/js/view.js',
 ].map((p) => join(out, p));
 

@@ -11,7 +11,8 @@ const read = (path) => readFile(new URL(path, root), 'utf8');
 
 test('sf-view-table: the row menu takes the resolved size and the density on every opening', async () => {
   const source = await read('src/smart/view-table/index.js');
-  assert.match(source, /import \{followDensity\} from "\.\.\/\.\.\/core\/js\/density\.js";/);
+  // The Framework's density, through the package core (view modular step 1).
+  assert.match(source, /import \{followDensity\} from "\.\.\/view-common\/density\.js";/);
   assert.match(source, /get menuSize\(\) \{\n\s*return this\.size === "1\/2" \? "1\/2" : "1";\n\s*\}/);
   // Every opening asks `open`, and fillRowMenu answers it (C164, #168).
   const fill = source.slice(source.indexOf('    fillRowMenu(menu, row, ids, anchor) {'), source.indexOf('    rowMenu() {'));
@@ -35,7 +36,7 @@ test('sf-view-table: the row menu takes the resolved size and the density on eve
 
 test('sf-view-properties: its standard menu takes the panel size and density on every opening', async () => {
   const source = await read('src/smart/view-properties/index.js');
-  assert.match(source, /import \{followDensity\} from "\.\.\/\.\.\/core\/js\/density\.js";/);
+  assert.match(source, /import \{followDensity\} from "\.\.\/view-common\/density\.js";/);
   const open = source.slice(source.indexOf('    async openStandardMenu('), source.indexOf('    openPanelMenu(anchor) {'));
   assert.match(open, /menu\.setAttribute\("size", this\.size\);\n\s*followDensity\(menu, this\);[\s\S]*return menu\.openFor\(anchor, \{align\}\);/);
 });

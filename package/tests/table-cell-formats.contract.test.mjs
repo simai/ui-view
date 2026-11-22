@@ -34,7 +34,7 @@ test('the table asks the field renderers, with the host, and adds nothing after 
 });
 
 test('a date cell is a time element with its machine value (PD-9)', () => {
-  assert.match(table, /import \{[^}]*dateTimeAttribute[^}]*\} from "\.\.\/field-renderers[^"]*";/u);
+  assert.match(table, /import \{[^}]*dateTimeAttribute[^}]*\} from "\.\.\/view-common\/field-renderers\.js";/u);
   assert.match(table, /return dateTimeAttribute\(\{\.\.\.column, propertyType: type\}, value\) \|\| "";/u);
   assert.match(table, /kind: "time", className: "sf-table-cell-bare", text: String\(typed\), datetime/u);
   assert.match(template, /<time class=/u);
@@ -50,7 +50,7 @@ test('the card reads a field shown through its host first, and the renderers oth
 });
 
 test('formatted text in a row is its text, on both of the table\'s paths', () => {
-  assert.match(table, /import \{htmlText\} from "\.\.\/field-renderers\/html\.js";/u);
+  assert.match(table, /import \{htmlText\} from "\.\.\/view-common\/field-html\.js";/u);
   assert.match(table, /return type === "html" \? htmlText\(value\) : String\(value\);/u);
   // The markup path (rowMarkupCell) and the full renderer both ask cellText.
   assert.match(table, /LONG_TEXT_CELL_TYPES\.has\([^\n]+\n\s+const text = this\.cellText\(column, value\);/u);

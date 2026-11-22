@@ -12,6 +12,13 @@
       "evidence": "control/evidence/2026-11-22-view-r14/README.md"
     },
     {
+      "version": "1.34.0",
+      "kind": "minor",
+      "recorded_on": "2026-11-22",
+      "consumer": "Nothing to change for a page that loads the set through the SIMAI Framework Loader (the documented way): the rule relates to cl-view-common, which the Loader fetches first. A page that includes View bundles by hand adds smart/view-common/js/view-common.min.js before them. A list that shows only the board, the cards or the calendar no longer fetches sf-view-table; it comes when the list switches to the table.",
+      "evidence": "control/evidence/2026-11-22-view-modular-1/README.md"
+    },
+    {
       "version": "1.32.0",
       "kind": "minor",
       "recorded_on": "2026-11-21",
@@ -1163,10 +1170,20 @@
   },
   "relations": [
     {
+      "name": "cl-view-common",
+      "$comment": [
+        "The View package core (view-common): the shared code every View bundle takes once (field renderers, formats, conditions, the filter window, and what two View components share), fetched before the component runs."
+      ]
+    },
+    {
       "name": "icons"
     },
     {
-      "name": "cl-view-table"
+      "name": "cl-view-table",
+      "lazy": true,
+      "$comment": [
+        "The table is a presentation like the board, the cards and the calendar: fetched when the list draws it (a table in the page's markup, or the list's own when it shows the table), not with a list that shows only another kind."
+      ]
     },
     {
       "name": "cl-pagination"
@@ -2138,6 +2155,13 @@
         },
         {
           "from": "1.32.0",
+          "to": "1.34.0",
+          "changes": [
+            "View modular step 1 (round/view-modular-1): takes its shared code (the Framework field renderers, formats, conditions and filter window, and what two View components share) from the package core smart/view-common once per page, instead of a copy in its own bundle; relation cl-view-common; cl-view-table is a lazy relation and connectedCallback asks for the current layout's element only (the table on a switch, _swapContent); the row-action catalogue warning waits until sf-view-table is defined."
+          ]
+        },
+        {
+          "from": "1.34.0",
           "to": "1.35.0",
           "changes": [
             "C404 fixed list look and footer grid, C405 «Вид» as the sf-settings drill menu with per-kind rows, C406 the gear always, C407 more_horiz data menu, C408 the look for every list of the kind, LV2-2 marks across pages and kinds, LV2-7 «Выбраны все N» to the cards, D1 paging for the cards",

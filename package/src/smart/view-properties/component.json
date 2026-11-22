@@ -12,6 +12,13 @@
       "evidence": "control/evidence/2026-11-22-view-r14/README.md"
     },
     {
+      "version": "1.28.0",
+      "kind": "minor",
+      "recorded_on": "2026-11-22",
+      "consumer": "Nothing to change for a page that loads the set through the SIMAI Framework Loader (the documented way): the rule relates to cl-view-common, which the Loader fetches first. A page that includes View bundles by hand adds smart/view-common/js/view-common.min.js before them.",
+      "evidence": "control/evidence/2026-11-22-view-modular-1/README.md"
+    },
+    {
       "version": "1.26.0",
       "kind": "minor",
       "recorded_on": "2026-11-21",
@@ -1014,6 +1021,12 @@
     "contract": "src/core/contracts/ports/simai.property-view-port/1.18.0/port.json"
   },
   "relations": [
+    {
+      "name": "cl-view-common",
+      "$comment": [
+        "The View package core (view-common): the shared code every View bundle takes once (field renderers, formats, conditions, the filter window, and what two View components share), fetched before the component runs."
+      ]
+    },
     {
       "name": "icons"
     },
@@ -2504,6 +2517,13 @@
         },
         {
           "from": "1.26.0",
+          "to": "1.28.0",
+          "changes": [
+            "View modular step 1 (round/view-modular-1): takes its shared code (the Framework field renderers, formats, conditions and filter window, density, the manifest actions) from the package core smart/view-common once per page, instead of a copy in its own bundle; its field value, set fields and money import the field renderers and decimal through the core; relation cl-view-common."
+          ]
+        },
+        {
+          "from": "1.28.0",
           "to": "1.29.0",
           "changes": [
             "C403 section rail and level fallback under 20rem, the interim tabs of C399 gone, the badge row on the label's baseline",

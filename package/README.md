@@ -61,6 +61,22 @@ the ui-source revision and the free release it was built over. The release
 route (ui-builder `publish-package-release.sh`) lays it into `package/dist/`
 and tags `view-<12>`.
 
+The package core `smart/view-common` (package.json `simai.core`) is the code
+two or more View bundles share: the SIMAI Framework field renderers, formats,
+conditions and filter window, and what two View components share. It is built
+once, registers its modules with the page's runtime, and every other bundle
+takes them as `SF.runtimeModule("view/<module>", 1)`. Each component's rule
+relates to `cl-view-common`, so the Loader fetches it first; a page that
+includes View bundles by hand puts `smart/view-common/js/view-common.min.js`
+before them. `sf-view` relates to the table lazily: a list that shows the
+board, the cards or the calendar does not fetch it, and a table written in
+the list's markup is asked for by the core (`view-common/markup-table.js`),
+since the Loader does not read inside an element not yet defined; with a
+table list on the page `sf-view` is defined after the table, as before. The gate step «bundles»
+(`scripts/check-bundles.mjs`) fails a module found in two bundles and a bundle
+over its gzip budget in `bundle-budgets.json`, which also names the one
+allowed duplicate (sf-view-flow's copy of the record's field value).
+
 ## Connecting it
 
 ```html

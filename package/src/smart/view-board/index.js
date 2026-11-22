@@ -20,7 +20,7 @@
 // is used where the pair has it; before it the board keeps the same keys itself.
 import SfBaseElement from "../../core/js/smart-base";
 import {applied, elementFromManifest, refused} from "../../core/js/element-manifest";
-import {renderCellField} from "../field-renderers/index.js";
+import {renderCellField} from "../view-common/field-renderers.js";
 import {renderViewBoardTemplate} from "./js/templates/default.js";
 import {boardOptions, format, laneCount, laneSums, manualOrder, moveCheck, orderLanes} from "./js/board.js";
 import manifest from "./component.json";

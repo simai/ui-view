@@ -12,6 +12,13 @@
       "evidence": "control/evidence/2026-11-22-view-r14/README.md"
     },
     {
+      "version": "1.33.0",
+      "kind": "minor",
+      "recorded_on": "2026-11-22",
+      "consumer": "Nothing to change for a page that loads the set through the SIMAI Framework Loader (the documented way): the rule relates to cl-view-common, which the Loader fetches first. A page that includes View bundles by hand adds smart/view-common/js/view-common.min.js before them.",
+      "evidence": "control/evidence/2026-11-22-view-modular-1/README.md"
+    },
+    {
       "version": "1.31.0",
       "kind": "minor",
       "recorded_on": "2026-11-21",
@@ -1093,6 +1100,12 @@
     "contract": "src/core/contracts/ports/simai.dataview-port/1.0.0/port.json"
   },
   "relations": [
+    {
+      "name": "cl-view-common",
+      "$comment": [
+        "The View package core (view-common): the shared code every View bundle takes once (field renderers, formats, conditions, the filter window, and what two View components share), fetched before the component runs."
+      ]
+    },
     {
       "name": "cl-checkbox"
     },
@@ -3169,6 +3182,13 @@
         },
         {
           "from": "1.31.0",
+          "to": "1.33.0",
+          "changes": [
+            "View modular step 1 (round/view-modular-1): takes its shared code (the Framework field renderers, formats, conditions and filter window, and what two View components share) from the package core smart/view-common once per page, instead of a copy in its own bundle, its dictionaries and manifest actions included (sf-view reads them too); relation cl-view-common."
+          ]
+        },
+        {
+          "from": "1.33.0",
           "to": "1.34.0",
           "changes": [
             "C406 column window from the gear and openColumnSettings, C408 the look kept for every table by default",

@@ -22,7 +22,7 @@
 // the calendar's own.
 import SfBaseElement from "../../core/js/smart-base";
 import {applied, elementFromManifest, refused} from "../../core/js/element-manifest";
-import {renderCellField} from "../field-renderers/index.js";
+import {renderCellField} from "../view-common/field-renderers.js";
 import {renderViewCalendarTemplate} from "./js/templates/default.js";
 import {
     MODES, RECORDS_MAX, addDays, addMonths, calendarOptions, clockOf, eventsOf, moveCheck, movePatch, refusalWord,

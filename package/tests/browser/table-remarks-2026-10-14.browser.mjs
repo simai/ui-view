@@ -34,7 +34,7 @@ const modules = [
   'smart/smart/tabs/js/tabs.js', 'smart/smart/switch/js/switch.js', 'smart/smart/settings/js/settings.js',
   // A link cell is SIMAI Framework sf-reference-link since view round 1 (D8).
   'smart/smart/reference-link/js/reference-link.js',
-  'smart/smart/view-table/js/view-table.js',
+  'smart/smart/view-common/js/view-common.js', 'smart/smart/view-table/js/view-table.js',
 ].map((p) => join(out, p));
 
 const failures = [];

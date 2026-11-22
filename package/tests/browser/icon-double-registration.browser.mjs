@@ -16,9 +16,10 @@ const tags = ['sf-icon', 'sf-button-icon', 'sf-view-table', 'sf-pagination', 'sf
 const browser = await chromium.launch();
 try {
   for (const order of [
-    ['icon', 'button-icon', 'view-table', 'pagination', 'view'],
-    ['view', 'view-table', 'pagination', 'icon', 'button-icon'],
-    ['view', 'icon', 'view-table', 'button-icon', 'pagination'],
+    // view-common: the View package core, before, after and between the bundles that take from it.
+    ['icon', 'button-icon', 'view-common', 'view-table', 'pagination', 'view'],
+    ['view', 'view-table', 'pagination', 'icon', 'button-icon', 'view-common'],
+    ['view', 'icon', 'view-common', 'view-table', 'button-icon', 'pagination'],
   ]) {
     const page = await browser.newPage();
     const warnings = [];

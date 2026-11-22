@@ -44,7 +44,7 @@ const modules = [
   'smart/smart/drawer/js/drawer.js', 'smart/smart/tag/js/tag.js', 'smart/smart/tabs/js/tabs.js',
   'smart/smart/field-renderers/js/field-renderers.js', 'smart/smart/menu-context/js/menu-context.js',
   'smart/smart/popover/js/popover.js', 'smart/smart/empty-state/js/empty-state.js',
-  'smart/smart/view-properties/js/view-properties.js',
+  'smart/smart/view-common/js/view-common.js', 'smart/smart/view-properties/js/view-properties.js',
 ].map((p) => join(out, p));
 
 const failures = [];

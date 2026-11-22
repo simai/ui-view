@@ -1,14 +1,15 @@
 import SfBaseElement, {canonicalTag, isTag} from "../../core/js/smart-base";
 import {elementFromManifest} from "../../core/js/element-manifest";
-import {settingSetters} from "./js/manifest-actions.js";
+import {settingSetters} from "../view-common/manifest-actions.js";
 import manifest from "./component.json";
 import aliases from "./aliases.json";
-import en from "./lang/en.json";
-import ru from "./lang/ru.json";
+// Its dictionaries come through the package core: sf-view reads two of their
+// words too (view modular step 1).
+import {en, ru} from "../view-common/table-words.js";
 import {renderTableTemplate, columnStyle} from "./js/templates/default";
-import {optionBadgeProps} from "../helpers/option-badge.js";
-import {dateTimeAttribute, renderCellField, renderEditField, renderFilterField} from "../field-renderers/index.js";
-import {htmlText} from "../field-renderers/html.js";
+import {optionBadgeProps} from "../view-common/option-badge.js";
+import {dateTimeAttribute, renderCellField, renderEditField, renderFilterField} from "../view-common/field-renderers.js";
+import {htmlText} from "../view-common/field-html.js";
 import {html, nothing, render} from "lit";
 import {ref} from "lit/directives/ref.js";
 import {pageText} from "../../core/js/page-language";
@@ -17,7 +18,7 @@ import {setLoaderDragState} from "../helpers/loaderDragState";
 import BundledPosition from "../../core/js/position.js";
 import {holdOpenSurfaceMark} from "../../core/js/open-surface-mark.js";
 import {closeLayer, layerZIndex, openLayer} from "../../core/js/layer-stack.js";
-import {followDensity} from "../../core/js/density.js";
+import {followDensity} from "../view-common/density.js";
 
 // The local day of a date ("2026-11-19") or a date and time (ISO 8601) for
 // the relative date template: a date alone is that day where the page is, a
@@ -31,10 +32,10 @@ function relativeDay(value) {
     if (Number.isNaN(moment.getTime())) return null;
     return new Date(moment.getFullYear(), moment.getMonth(), moment.getDate());
 }
-import {menuOpen} from "../../core/js/menu-open.js";
+import {menuOpen} from "../view-common/menu-open.js";
 import {noteDeprecated} from "../../core/js/deprecations.js";
 import {roving} from "../../core/js/roving.js";
-import BundledPreferences from "../../core/js/preferences.js";
+import BundledPreferences from "../view-common/preferences.js";
 
 // Sized for what they hold rather than for reading, so they take no floor.
 // Every word this table says, in the two languages the Framework speaks. The
@@ -1950,6 +1951,14 @@ class SfTable extends TableElement {
                 clearTimeout(this._viewWaitTimer);
                 this._viewWaitTimer = setTimeout(() => done("failed"), VIEW_SCRIPT_RETRY_MS);
             }, {capture: true, signal: this._viewWaitAbort.signal});
+            // The view's module may have failed before this table was defined
+            // (view modular step 1: sf-view relates to the table lazily, so a
+            // table in the markup is asked for by the package core, and the
+            // view's script can err first): the Loader marks the view's tag
+            // failed for whoever waits (core pending-tags settled()), and the
+            // table draws on its own at once instead of at VIEW_WAIT_MS.
+            globalThis.SF?.__internal?.pendingTags?.settled?.(host.localName)
+                ?.then?.((how) => { if (how === "failed") done("failed"); });
         }
         return true;
     }
