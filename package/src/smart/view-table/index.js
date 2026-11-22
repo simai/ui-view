@@ -1670,6 +1670,9 @@ class SfTable extends TableElement {
                 label: cell.props.ariaLabel ?? "", change: cell.props["@change"]};
         }
         if (key === "settings") {
+            // A row menu with nothing to open is not drawn (rows taken before
+            // the host said it has no row actions keep their default cell).
+            if (!column.rowComponent && !this.rowMenuHasUse()) return {kind: "empty"};
             const cell = row.settings?.component;
             if (canonicalTag(`sf-${String(cell?.type ?? "").replace(/^sf-/u, "")}`) !== "sf-button-icon" || cell.props?.icon !== "menu" || typeof cell.props?.["@click"] !== "function") return null;
             return {kind: "menu", size, label: cell.props.ariaLabel ?? this.text("menuLabel"), click: cell.props["@click"]};
