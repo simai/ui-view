@@ -10051,6 +10051,24 @@ function cellValueBox(item) {
 
 function contentStep(width) {
   return Math.ceil(width * 64) / 64;
+} // The common width the widest columns come down to so that together they give
+// `need` pixels (readFittedWidths): the highest whole width at which the
+// columns over it, each held at its least, give at least that much. Each entry
+// is [key, width, spare], spare being what the column holds over its least.
+
+
+function fittingLevel(columns, need) {
+  const gives = level => columns.reduce((sum, [, width, spare]) => sum + width - Math.max(Math.ceil(width - spare), Math.min(Math.floor(width), level)), 0);
+
+  let low = 0;
+  let high = Math.ceil(Math.max(0, ...columns.map(([, width]) => width)));
+
+  while (low < high) {
+    const middle = Math.ceil((low + high) / 2);
+    if (gives(middle) >= need) low = middle;else high = middle - 1;
+  }
+
+  return low;
 }
 
 const TableElement = (0,_core_js_element_manifest__WEBPACK_IMPORTED_MODULE_1__.elementFromManifest)(_component_json__WEBPACK_IMPORTED_MODULE_3__, {
@@ -13720,7 +13738,30 @@ class SfTable extends TableElement {
   // line): a value wider than its column ends in an ellipsis
   // (data-sf-columns-fitted). The box scrolls only when the least widths
   // themselves do not fit.
+  // Whether a column without a type shows numbers or money on every row
+  // drawn («10000,00 ₽» from a host that names no type): such a column is
+  // never cut either (VR12A-2).
 
+
+  showsNumbers(key) {
+    const values = [...this.querySelectorAll(`tbody td[data-key="${CSS.escape(String(key))}"]`)].slice(0, 12).map(cell => cell.textContent.trim()).filter(Boolean);
+    return values.length > 0 && values.every(value => /^[-+\u2212]?[\d\s\u00a0\u202f.,]+\s?[%\u20bd$\u20ac\u00a3\u00a5]?$/u.test(value) && /\d/u.test(value));
+  } // A long text's least width in pixels: --sf-measure-20 (C396, 20
+  // characters of the text size; the pair's --sf-f0 where the ladder step
+  // is not there yet), read once per layout pass.
+
+
+  longTextFloor() {
+    const cached = this._layoutReads?.get('textFloor');
+    if (cached !== undefined && cached !== null) return cached;
+    const probe = document.createElement('div');
+    probe.style.cssText = 'position:absolute;visibility:hidden;inline-size:var(--sf-measure-20, var(--sf-f0, 10rem));block-size:0;';
+    this.append(probe);
+    const width = Math.ceil(probe.getBoundingClientRect().width) || 160;
+    probe.remove();
+    this._layoutReads?.set('textFloor', width);
+    return width;
+  }
 
   readFittedWidths() {
     const fitted = new Map();
@@ -13778,18 +13819,43 @@ class SfTable extends TableElement {
       fitted.set(key, next);
     }
 
-    const left = excess - gave;
-    if (left <= 0 || !flexible.length) return fitted; // The least widths are read only now, when they are needed: one more
+    const left = excess - gave; // Below list-below a table scrolls in its frame with its first column
+    // held (the narrow-screen rule of the docs): the flexible columns keep
+    // their content widths. Squeezed there, the name went to two lines
+    // once the code fitted the columns, after the first paint had drawn
+    // it on one (view round 12, D5: typed-cells at 390, 196 -> 204).
+
+    if (left <= 0 || !flexible.length || this.isNarrow) return fitted; // The least widths are read only now, when they are needed: one more
     // layout of the table, the content widths' measuring at min-content.
 
     const leastWidths = this.leastContentWidths();
     if (!leastWidths) return fitted;
     let room = 0;
-    const shrinking = [];
+    const shrinking = []; // Floors by what a column holds (view round 13, VR12A-2): a number
+    // or money is never cut, so it keeps its content width; a long text
+    // keeps about 20 characters (--sf-measure-20, C396), not its
+    // heading's width -- at 124 px a comment was a column of single words
+    // 13 lines tall and still cut the sum beside it. Where the floors do
+    // not fit, the table scrolls sideways (below).
+
+    const byKey = new Map(columns.map(column => [column.key, column]));
+
+    const typeOf = key => {
+      const column = byKey.get(key);
+      return column?.propertyType ?? column?.property_type ?? column?.type;
+    };
+
+    const textFloor = this.longTextFloor();
 
     for (const [key, own, declaredLeast] of flexible) {
       const width = fitted.get(key) ?? own;
-      const least = Math.min(width, Math.max(leastWidths.get(key) ?? width, declaredLeast));
+      const type = typeOf(key); // A short value (an id, a date, a status, the name of a record)
+      // keeps its whole width (list study v2, LV2-1: «Заказ №20…»,
+      // «20 нояб. 202…» at 106 and 124 px); only a value longer than
+      // about 20 characters gives way, down to them.
+
+      const kept = this.isNumberColumn(byKey.get(key)) || this.showsNumbers(key) ? width : LONG_TEXT_CELL_TYPES.has(type) ? textFloor : Math.min(width, textFloor);
+      const least = Math.min(width, Math.max(leastWidths.get(key) ?? width, declaredLeast, kept));
 
       if (width > least) {
         shrinking.push([key, width, width - least]);
@@ -13797,13 +13863,42 @@ class SfTable extends TableElement {
       }
     }
 
-    if (!room) return fitted; // A pixel more per column, so the rounding up leaves no sliver to scroll.
+    if (!room) return fitted; // Columns that cannot fit even at their least widths keep their
+    // natural widths and the table scrolls sideways (view round 13,
+    // VHF-16): shrunk to their headings they were cut anyway and the
+    // table scrolled all the same (the name 86 px, «ИНН» two digits).
+    // They shrink only when that makes them fit.
 
-    const give = Math.min(1, (left + shrinking.length) / room);
+    if (left > room) return fitted; // The widest give first, down to one common width (view round 12,
+    // VHF-4): in proportion, every column gave a share of what it held
+    // over its heading, so a short value lost its last letters («Заказ
+    // №20…») while a long comment beside it kept hundreds of pixels it
+    // cut anyway. Now the columns over a level come down to it, never
+    // below their least width; the short ones keep their whole value.
+    // A pixel more per column, so the rounding up leaves no sliver to scroll.
+    // The record's name gives last (VHF-4, «the title column takes its
+    // room»): the other columns come down first, to their least widths;
+    // only what they cannot give is taken from the name, which then wraps
+    // onto its two lines. The name shrinking first wrapped it at once and
+    // grew the row under the reader (typed-cells at 390: 196 -> 204).
+
+    const need = Math.min(room, left + shrinking.length);
+    const titleKey = (columns.find(column => column.role === "title" && !column.system) ?? columns.find(column => !column.system && !SYSTEM_COLUMN_KEYS.has(column.key)))?.key;
+    const others = shrinking.filter(([key]) => key !== titleKey);
+    const title = shrinking.find(([key]) => key === titleKey);
+    const othersRoom = others.reduce((sum, [,, spare]) => sum + spare, 0);
+    const level = fittingLevel(others, Math.min(need, othersRoom));
     let given = 0;
 
-    for (const [key, width, spare] of shrinking) {
-      const next = Math.max(Math.ceil(width - spare), Math.floor(width - spare * give));
+    for (const [key, width, spare] of others) {
+      const next = Math.max(Math.ceil(width - spare), Math.min(Math.floor(width), level));
+      given += width - next;
+      fitted.set(key, next);
+    }
+
+    if (title && given < need) {
+      const [key, width, spare] = title;
+      const next = Math.max(Math.ceil(width - spare), Math.floor(width - (need - given)));
       given += width - next;
       fitted.set(key, next);
     }
@@ -13918,7 +14013,14 @@ class SfTable extends TableElement {
 
   settingsColumnHasUse(props = this.getPropsContext()) {
     if (props.settingsMenu !== false) return true;
-    if (props.rowReorder === true) return true;
+    if (props.rowReorder === true) return true; // The row menu uses it only while there is one (view round 13,
+    // VR5-10): actions off, or a view whose host offers no row actions
+    // (data-sf-row-menu-off) -- the default list of row actions was still
+    // there, and the column stayed 57 px wide and empty at the start of
+    // every row. row-actions="false" alone keeps it: it also means every
+    // action lives in the row menu.
+
+    if (!props.actions || !props.rowActions && this.hasAttribute?.("data-sf-row-menu-off")) return false;
     return (this.ACTIONS_SETTINGS_ROW ?? []).length > 0;
   }
 
@@ -15763,11 +15865,13 @@ class SfTable extends TableElement {
       checked: this.isColumnVisible(column),
       // The box and the row menu are always pinned (offered nothing).
       pinned: Boolean(column.system) || this.isColumnPinned(column)
-    }));
+    })); // One density for the whole list (owner decision D4, 2026-11-21):
+    // «Обычная» and «Компактная», no «Просторно»; the rows' own height
+    // setting is gone, and every part of the list follows the one choice.
+
     const density = {
-      compact: "viewDensityCompact",
       normal: "viewDensityNormal",
-      spacious: "viewDensitySpacious"
+      compact: "viewDensityCompact"
     };
 
     const toggle = (id, word) => ({
@@ -16480,8 +16584,10 @@ class SfTable extends TableElement {
     const key = this.viewPreferenceKey;
     const general = preferences()?.read(GENERAL_TABLE_PREFERENCE)?.view ?? {};
     const own = key ? preferences()?.read(key)?.view ?? {} : this._sessionView ?? {};
-    const density = own.density ?? general.density;
-    return ["compact", "normal", "spacious"].includes(density) ? density : null;
+    const density = own.density ?? general.density; // A stored «Просторно» (before D4) reads as the nearest, «Обычная».
+
+    if (density === "spacious") return "normal";
+    return ["compact", "normal"].includes(density) ? density : null;
   } // The density of the area the table stands in (C22): the nearest
   // data-sf-density above it, across shadow roots; the table's own island
   // (below) is not read.
@@ -16491,7 +16597,8 @@ class SfTable extends TableElement {
     let node = this.parentElement ?? this.getRootNode?.()?.host ?? null;
 
     while (node) {
-      const area = node.closest?.("[data-sf-density]");
+      // The list's own island (D4: written on its sf-view) is not the area.
+      const area = node.closest?.("[data-sf-density]:not([data-sf-view-density-island])");
       if (area) return area.getAttribute("data-sf-density") === "compact" ? "compact" : "normal";
       node = node.getRootNode?.()?.host ?? null;
     }
@@ -16513,69 +16620,131 @@ class SfTable extends TableElement {
     // area's own; «Обычно» returns the table to the normal step, the C79
     // island (data-sf-density="normal" on the table, written and removed
     // by the table only); «Просторно» adds the rows' spacious step to it.
+    // «Компактно» in a normal area is the island the other way round
+    // (view round 12, VHF-8, owner remark via DEV msg-c31ccebd): the
+    // Framework's compact density on the table, so the row's controls --
+    // the box, the row menu «≡», the badges -- step down with the row. The
+    // rows alone moved one rung while the «≡» (32 at size 1/2, 40 at 1)
+    // held a body row at the normal height.
+    // The density is the whole list's (owner decision D4, 2026-11-21): the
+    // island stands on the sf-view the table is in -- its head, rows, cards
+    // and page row -- and on the table, or on the table alone outside a
+    // view. A host's own data-sf-density on either is left alone.
 
 
     const density = this.shownViewDensity;
     const compactArea = this.areaDensity === "compact";
-    const island = compactArea && density !== "compact";
+    const island = compactArea ? density !== "compact" ? "normal" : null : density === "compact" ? "compact" : null;
+    const list = this.closest?.("sf-view") ?? null;
 
-    if (island && !this.hasAttribute("data-sf-density")) {
-      this.setAttribute("data-sf-density", "normal");
-      this.setAttribute("data-sf-view-density-island", "");
-    } else if (!island && this.hasAttribute("data-sf-view-density-island")) {
-      this.removeAttribute("data-sf-density");
-      this.removeAttribute("data-sf-view-density-island");
-    }
+    for (const holder of list ? [list, this] : [this]) {
+      const ownIsland = holder.hasAttribute("data-sf-view-density-island");
 
-    const rows = compactArea ? density === "spacious" ? "spacious" : "normal" : density;
+      if (island && (ownIsland || !holder.hasAttribute("data-sf-density"))) {
+        if (holder.getAttribute("data-sf-density") !== island) holder.setAttribute("data-sf-density", island);
+        holder.setAttribute("data-sf-view-density-island", "");
+      } else if (!island && ownIsland) {
+        holder.removeAttribute("data-sf-density");
+        holder.removeAttribute("data-sf-view-density-island");
+      }
+    } // A compact island still says compact rows: the Framework's density is
+    // a desktop one (60rem), and below it the rows' own rung steps down.
+
+
+    const rows = compactArea ? "normal" : density;
     if (rows === "normal") this.removeAttribute("data-sf-view-density");else this.setAttribute("data-sf-view-density", rows); // Zebra is the author's (C146 (4)): a person's stored choice is no
     // longer read.
 
     flag("data-sf-view-stripes", this.hasAttribute("stripes") && this.getAttribute("stripes") !== "false");
     flag("data-sf-view-lines", view.lines === true);
-    flag("data-sf-view-single-line", view.singleLine === true);
+    flag("data-sf-view-single-line", view.singleLine === true); // «Текст в одну строку» is off unless the person turned it on (owner
+    // decision D5, 2026-11-21): the name takes two lines, a long text
+    // (a comment) its whole length; on, every cell is one line with «…».
+
+    flag("data-sf-view-wrap", view.singleLine !== true);
     const page = this.getAttribute("vertical-scroll") === "page" && !this.isList;
     flag("data-sf-page-scroll", page);
     flag("data-sf-sticky-head", page && view.stickyHead !== false);
   } // The head held under the toolbar while what scrolls -- the page, or a
-  // box around the table -- scrolls past it (page mode): moved down by as
-  // much as the table's top has gone above the line, never past its last
-  // row. A sticky head cannot do it, because the area it sits in scrolls
-  // sideways and so is a scroll container of its own.
+  // box around the table -- scrolls past it (page mode). Since view round
+  // 13 (VHF-14) it is CSS: the head is sticky and the area clips sideways
+  // instead of scrolling (so it is no scroll container the head would bind
+  // to); the rail moves the table sideways (syncSideways). The head used to
+  // be moved by a transform written in the frame after the scroll, so every
+  // frame painted it one wheel step behind. Here only what the head sticks
+  // under is read -- the table's own toolbar, under the list head of the
+  // view around it (--sf-view--stuck-head) -- and whether it is stuck (the
+  // line under it).
 
 
   syncStickyHead() {
     const table = this.refs.table?.value;
     const head = table?.tHead;
     if (!head) return;
+    if (head.style.transform) head.style.transform = "";
     const held = this.hasAttribute("data-sf-sticky-head");
-    let delta = 0;
+    const toolbar = held ? this.querySelector(":scope > .sf-table > .sf-table-toolbar") : null;
+    const height = toolbar ? `${Math.round(toolbar.getBoundingClientRect().height)}px` : "";
 
-    if (held && table.isConnected) {
-      const scroller = verticalScroller(this.refs.scroll?.value?.parentElement ?? this);
-      const top = scroller ? scroller.getBoundingClientRect().top : 0;
-      const toolbar = this.querySelector(":scope > .sf-table > .sf-table-toolbar");
-      const line = Math.max(top, toolbar ? toolbar.getBoundingClientRect().bottom : top);
-      const box = table.getBoundingClientRect();
-      const room = box.height - head.offsetHeight;
-      delta = Math.round(Math.min(Math.max(line - box.top, 0), Math.max(room, 0)));
+    if (this.style.getPropertyValue("--sf-view-table--toolbar") !== height) {
+      if (height) this.style.setProperty("--sf-view-table--toolbar", height);else this.style.removeProperty("--sf-view-table--toolbar");
     }
 
-    head.style.transform = delta ? `translateY(${delta}px)` : "";
-    this.toggleAttribute("data-sf-head-stuck", delta > 0);
+    const stuck = held && table.isConnected && head.getBoundingClientRect().top > table.getBoundingClientRect().top + 0.5;
+    if (this.hasAttribute("data-sf-head-stuck") !== stuck) this.toggleAttribute("data-sf-head-stuck", stuck);
+  } // Whether the area clips sideways and the rail moves the table (page mode
+  // with the head held, VHF-14), rather than scrolling sideways itself.
+
+
+  get clipsSideways() {
+    return this.hasAttribute("data-sf-page-scroll") && this.hasAttribute("data-sf-sticky-head");
+  } // How far the table is moved sideways: the area's own scroll, or in the
+  // clipping area the rail's (negative in a right-to-left table, as the
+  // browser reports a scroll there).
+
+
+  get sidewaysOffset() {
+    if (this.clipsSideways) return this._sideways ?? 0;
+    return this.refs.scroll?.value?.scrollLeft ?? 0;
+  } // The clipping area's sideways place, written as two lengths the table and
+  // its pinned cells read (default.css): how far the table is moved, and how
+  // far a cell pinned at the end has to come back from the table's end.
+
+
+  syncSideways(left = this.refs.rail?.value?.scrollLeft ?? 0) {
+    const scroll = this.refs.scroll?.value;
+    const table = this.refs.table?.value;
+    if (!scroll || !table) return;
+    const rtl = getComputedStyle(this).direction === "rtl";
+    const over = Math.max(0, Math.round(table.offsetWidth - scroll.clientWidth));
+    const x = Math.round(Math.max(-over, Math.min(over, left)));
+    this._sideways = x;
+
+    const set = (name, value) => {
+      if (scroll.style.getPropertyValue(name) !== value) scroll.style.setProperty(name, value);
+    };
+
+    set("--sf-view-table--x", `${x}px`);
+    set("--sf-view-table--end", `${rtl ? -over : over}px`);
+    if (Math.abs(x) > 0) scroll.setAttribute("data-sf-pin-scrolled", "");else scroll.removeAttribute("data-sf-pin-scrolled");
   } // The rail under the area is its sideways bar: as wide as what the area
   // scrolls, shown only when there is something to scroll, and each follows
-  // the other.
+  // the other. In the clipping area (VHF-14) the rail alone scrolls: it
+  // moves the table, a sideways wheel or swipe over the rows moves the rail,
+  // and a cell that takes the focus out of sight brings the rail to it.
 
 
   syncRail() {
     const rail = this.refs.rail?.value;
     const scroll = this.refs.scroll?.value;
     if (!rail || !scroll) return;
-    const wide = scroll.scrollWidth > scroll.clientWidth + 1;
+    const clip = this.clipsSideways;
+    const table = this.refs.table?.value;
+    const width = clip && table ? table.offsetWidth : scroll.scrollWidth;
+    const wide = width > scroll.clientWidth + 1;
     rail.hidden = !wide;
     const track = rail.firstElementChild;
-    if (track) track.style.inlineSize = `${scroll.scrollWidth}px`;
+    if (track) track.style.inlineSize = `${width}px`;
 
     if (rail._sfBound !== scroll) {
       rail._sfBound = scroll;
@@ -16591,8 +16760,30 @@ class SfTable extends TableElement {
       scroll.addEventListener("scroll", follow(scroll, rail), {
         passive: true
       });
-      rail.addEventListener("scroll", follow(rail, scroll), {
+      rail.addEventListener("scroll", () => {
+        if (this.clipsSideways) this.syncSideways(rail.scrollLeft);else follow(rail, scroll)();
+      }, {
         passive: true
+      });
+      scroll.addEventListener("wheel", event => {
+        if (!this.clipsSideways || rail.hidden) return; // Sideways only: a mostly vertical move is the page's.
+
+        const dx = event.shiftKey && !event.deltaX ? event.deltaY : event.deltaX;
+        if (!dx || !event.shiftKey && Math.abs(event.deltaX) < Math.abs(event.deltaY)) return;
+        const before = rail.scrollLeft;
+        rail.scrollLeft += dx * (event.deltaMode === 1 ? 16 : 1);
+        if (rail.scrollLeft !== before) event.preventDefault();
+      }, {
+        passive: false
+      });
+      scroll.addEventListener("focusin", event => {
+        if (!this.clipsSideways || rail.hidden) return;
+        const cell = event.target?.closest?.("td, th");
+        if (!cell || cell.hasAttribute("data-sf-pinned")) return;
+        const area = scroll.getBoundingClientRect();
+        const box = cell.getBoundingClientRect();
+        const pinned = [...(cell.parentElement?.children ?? [])].filter(one => one.hasAttribute("data-sf-pinned")).reduce((sum, one) => sum + one.getBoundingClientRect().width, 0);
+        if (box.left < area.left + pinned) rail.scrollLeft -= area.left + pinned - box.left;else if (box.right > area.right) rail.scrollLeft += box.right - area.right;
       }); // The columns take their widths after a render (content widths,
       // late fonts): the rail follows the table's size, not the render.
 
@@ -16607,7 +16798,18 @@ class SfTable extends TableElement {
       }
     }
 
-    if (wide) rail.scrollLeft = scroll.scrollLeft;
+    if (clip) {
+      if (!wide && rail.scrollLeft) rail.scrollLeft = 0;
+      this.syncSideways(wide ? rail.scrollLeft : 0);
+    } else {
+      if (this._sideways) {
+        this._sideways = 0;
+        scroll.style.removeProperty("--sf-view-table--x");
+        scroll.style.removeProperty("--sf-view-table--end");
+      }
+
+      if (wide) rail.scrollLeft = scroll.scrollLeft;
+    }
   }
 
   bindPageScroll() {
@@ -17871,7 +18073,7 @@ class SfTable extends TableElement {
 
 
     if (scroll) {
-      const scrolled = Math.abs(scroll.scrollLeft) > 0;
+      const scrolled = Math.abs(this.sidewaysOffset) > 0;
       if (scrolled) scroll.setAttribute("data-sf-pin-scrolled", "");else scroll.removeAttribute("data-sf-pin-scrolled");
     }
 
@@ -22903,21 +23105,21 @@ module.exports = /*#__PURE__*/JSON.parse('{"$comment":"Dated aliases of sf-view-
 /***/ "c1f17ed5a348"
 (module) {
 
-module.exports = /*#__PURE__*/JSON.parse('{"id":"smart.view-table","tag":"sf-view-table","version":"1.29.2","kind":"leaf","settings":{"selectable":{"type":"boolean","default":true},"settings":{"type":"boolean","default":true},"actions":{"type":"boolean","default":true},"row-actions":{"type":"boolean","default":true},"creatable":{"type":"boolean","default":true},"filter-templates":{"type":"boolean","default":true},"settings-menu":{"type":"boolean","default":true},"pagin":{"type":"boolean","default":false},"filter-text":{"type":"string","default-from":"runtime.filter-text"},"clear-text":{"type":"string","default-from":"runtime.clear-text"},"search-placeholder":{"type":"string","default-from":"runtime.search-placeholder"},"create-text":{"type":"string","default-from":"runtime.create-text"},"pagination-total":{"type":"number","default":10,"integer":true,"min":0},"pagination-page-size":{"type":"number","default":10,"integer":true,"min":1,"max":100},"page-sizes":{"type":"string","default":"10,20,30,40"},"context-menu-columns":{"type":"number","default":1,"integer":true,"min":1,"max":4},"remember-widths":{"type":"boolean","default":false},"table-settings-key":{"type":"string","default":""},"data-state":{"type":"enum","values":["auto","loading","ready","populated","empty","error"],"default":"auto","x-alias":{"populated":"ready"}},"loading-text":{"type":"string","default-from":"runtime.loading-text"},"empty-text":{"type":"string","default-from":"runtime.empty-text"},"empty-description":{"type":"string"},"error-text":{"type":"string","default-from":"runtime.error-text"},"retry-text":{"type":"string","default-from":"runtime.retry-text"},"toolbar":{"type":"boolean","default":true},"stripes":{"type":"boolean","default":false},"pin-column-label":{"type":"string","default-from":"runtime.pin-column-label"},"unpin-column-label":{"type":"string","default-from":"runtime.unpin-column-label"},"column-move-label":{"type":"string","default-from":"runtime.column-move-label"},"column-search-placeholder":{"type":"string","default-from":"runtime.column-search-placeholder"},"column-search-empty-text":{"type":"string","default-from":"runtime.column-search-empty-text"},"vertical-scroll":{"type":"enum","values":["self","page"],"default":"self"},"filter-apply-text":{"type":"string","default-from":"runtime.filter-apply-text"},"layout":{"type":"enum","values":["auto","table","list"],"default":"auto"},"layout-switch":{"type":"boolean","default":false},"list-below":{"type":"number","default":600},"list-fields":{"type":"number","default":3},"quick-actions":{"type":"string","default":""},"row-open":{"type":"enum","values":["title","row"],"default":"title"},"size":{"type":"enum","values":["1/2","1"],"default":"1"},"preferences-key":{"type":"string","default":""},"row-actions-visible":{"type":"enum","values":["hover","always"],"default":"hover"},"drag-rows":{"type":"boolean","default":false},"row-reorder":{"type":"boolean","default":false},"inline-edit":{"type":"boolean","default":false},"total":{"type":"number","default":0},"row-offset":{"type":"number","default":0},"active-filter-fields":{"type":"list","entries":{"key":"id"}},"bulk-actions":{"type":"list"},"columns":{"type":"list","of":{"key":"string","label":"string"}},"create-items":{"type":"list"},"filter-fields":{"type":"list"},"rows":{"type":"list","entries":{"key":"id","changes":"revision"},"of":{"id":"id","revision":{"type":"string","optional":true}}},"table-data":{"type":"object"},"table-settings":{"type":"object"},"templates":{"type":"list"},"toolbar-actions":{"type":"list"},"sort":{"type":"list","of":{"key":"string","direction":{"type":"enum","values":["asc","desc"]}},"controlled":true},"totals":{"type":"object"},"current":{"type":"string","default":""}},"values":{"selected":{"type":"id","optional":true},"selection":{"type":"list","default":[]}},"events":{"select":{"carries":{"ids":"list"}},"apply":{"carries":{"action":"string","scope":{"type":"enum","values":["entry","selection","filter"]},"ids":"list","revisions":{"type":"object","optional":true}}},"save":{"carries":{"kind":{"type":"enum","values":["columns"]},"reason":"string","column-settings":{"type":"object"},"table-settings-key":{"type":"string"}}},"column-settings-reset":{"carries":{"target":{"type":"enum","values":["personal"]},"table-settings-key":{"type":"string","nullable":true}},"own-verb":true},"create":{"carries":{"item":{"type":"string","nullable":true,"optional":true}}},"filter-change":{"carries":{"template-key":{"type":"string"},"template-label":{"type":"string"},"values":{"type":"object"},"tags":{"type":"object"}},"own-verb":true},"query":{"carries":{"reason":"string","context":"object","sequence":{"type":"number","integer":true}}},"refresh":{"carries":{}},"search-change":{"carries":{"search":"string"},"own-verb":true},"sort-change":{"carries":{"key":{"type":"string","schema":{"minLength":1}},"direction":{"type":"enum","values":["asc","desc",null],"nullable":true}},"own-verb":true},"template-delete":{"carries":{"key":{"type":"string","schema":{"minLength":1}}},"own-verb":true},"template-save":{"carries":{"templates":{"type":"list","of":{"key":"string","label":"string","selected":"boolean","data":"object","settings":"object"},"schema":{"items":{"type":"object","required":["key","label","settings"],"properties":{"key":{"type":"string"},"label":{"type":"string"},"selected":{"type":"boolean"},"data":{"type":"object"},"settings":{"type":"object","properties":{"filter_fields":{"type":"array","items":{"type":"string"}}}}}},"minItems":1}}},"own-verb":true},"template-select":{"carries":{"key":{"type":"string","schema":{"minLength":1}}},"own-verb":true},"toolbar-action":{"carries":{"action":"string","href":{"type":"string","nullable":true,"optional":true}},"cancelable":true,"own-verb":true},"reference-open":{"carries":{"field":"string","value":"object","href":"string"},"cancelable":true,"own-verb":true},"expand":{"carries":{"id":"id","expanded":{"type":"boolean","optional":true}}},"load-more":{"carries":{"direction":{"type":"enum","values":["after"]},"parent":{"type":"id","nullable":true},"cursor":{"type":"string","nullable":true}}},"rows-drag":{"carries":{"ids":{"type":"list","schema":{"items":{"type":"string"},"minItems":1}},"source":{"type":"string","nullable":true}},"own-verb":true},"move":{"carries":{"ids":"list","before":{"type":"id","nullable":true},"order":"list"}},"cell-set":{"carries":{"id":"object","key":"string","value":"object","revision":"object"},"own-verb":true},"view-change":{"carries":{"view":"object","everywhere":"boolean"},"own-verb":true},"window":{"carries":{"first":{"type":"number","integer":true},"last":{"type":"number","integer":true}},"own-verb":true},"layout-change":{"carries":{"layout":{"type":"enum","values":["list","table"]}},"own-verb":true},"open":{"carries":{"id":"id","newTab":"boolean"},"own-verb":true}},"actions":{"add-rows":{"with":{"rows":"list"}},"apply-query-result":{"with":{"sequence":{"type":"number","integer":true,"schema":{"minimum":1}},"rows":"list"}},"clear-selection":{},"request-action-intent":{"with":{"action-id":{"type":"string","schema":{"minLength":1}},"record-ids":{"type":"list","schema":{"items":{"type":["string","integer"],"minLength":1},"minItems":1}}},"emits":"apply"},"request-create-intent":{"with":{"item-id":{"type":"string","optional":true,"nullable":true}},"emits":"create"},"request-retry":{"emits":"refresh"},"set-sort":{"with":{"key":{"type":"string","nullable":true},"direction":{"type":"enum","values":["asc","desc"],"nullable":true}}},"toggle-tree-row":{"with":{"row":"object"},"emits":"expand"},"request-tree-more":{"with":{"row":"object"},"emits":"load-more"},"focus-row":{"with":{"id":"id"}},"set-layout":{"with":{"layout":{"type":"enum","values":["list","table"]}},"emits":"layout-change"},"scroll-to-row":{"with":{"id":"id"}}},"port":{"id":"simai.dataview-port","version":"1.0.0","contract":"src/core/contracts/ports/simai.dataview-port/1.0.0/port.json"},"presentation":{"skeleton":{"late":["rows"]}},"host-states":{"data-sf-view-stripes":"boolean","data-sf-page-scroll":"boolean"},"css-variables":{"--sf-view-table-row-block-size":{"type":"length","state":"default"},"--sf-view-table-head-block-size":{"type":"length","state":"default"},"--sf-view-table-edge":{"type":"length","state":"default"},"--sf-view-table-line-color":{"type":"color","state":"default"},"--sf-view-table-head-color":{"type":"color","state":"default"},"--sf-view-table-row-background-color":{"type":"color","state":"default"},"--sf-view-table-selected-background-color":{"type":"color","state":"default"},"--sf-view-table-title-lines":{"type":"integer","state":"default"},"--sf-table-row-block-size-1/2":{"type":"length","state":"default"},"--sf-table-row-block-size-1":{"type":"length","state":"default"},"--sf-table-row-2-lines-block-size-1/2":{"type":"length","state":"default"},"--sf-table-row-2-lines-block-size-1":{"type":"length","state":"default"},"--sf-table-head-block-size-1/2":{"type":"length","state":"default"},"--sf-table-head-block-size-1":{"type":"length","state":"default"},"--sf-table-toolbar-block-size-1/2":{"type":"length","state":"default"},"--sf-table-toolbar-block-size-1":{"type":"length","state":"default"},"--sf-table-toolbar-gap":{"type":"length","state":"default"},"--sf-table-head--background-color":{"type":"color","state":"default"},"--sf-table-row--background-color":{"type":"color","state":"default"},"--sf-table--cell-spacing":{"type":"length","state":"default"},"--sf-table-cell--line-clamp":{"type":"number","state":"default"},"--sf-table-context-menu--z-index":{"type":"number","state":"open"},"--sf-table-context-menu--max-width":{"type":"length","state":"open"}}}');
+module.exports = /*#__PURE__*/JSON.parse('{"id":"smart.view-table","tag":"sf-view-table","version":"1.31.0","kind":"leaf","settings":{"selectable":{"type":"boolean","default":true},"settings":{"type":"boolean","default":true},"actions":{"type":"boolean","default":true},"row-actions":{"type":"boolean","default":true},"creatable":{"type":"boolean","default":true},"filter-templates":{"type":"boolean","default":true},"settings-menu":{"type":"boolean","default":true},"pagin":{"type":"boolean","default":false},"filter-text":{"type":"string","default-from":"runtime.filter-text"},"clear-text":{"type":"string","default-from":"runtime.clear-text"},"search-placeholder":{"type":"string","default-from":"runtime.search-placeholder"},"create-text":{"type":"string","default-from":"runtime.create-text"},"pagination-total":{"type":"number","default":10,"integer":true,"min":0},"pagination-page-size":{"type":"number","default":10,"integer":true,"min":1,"max":100},"page-sizes":{"type":"string","default":"10,20,30,40"},"context-menu-columns":{"type":"number","default":1,"integer":true,"min":1,"max":4},"remember-widths":{"type":"boolean","default":false},"table-settings-key":{"type":"string","default":""},"data-state":{"type":"enum","values":["auto","loading","ready","populated","empty","error"],"default":"auto","x-alias":{"populated":"ready"}},"loading-text":{"type":"string","default-from":"runtime.loading-text"},"empty-text":{"type":"string","default-from":"runtime.empty-text"},"empty-description":{"type":"string"},"error-text":{"type":"string","default-from":"runtime.error-text"},"retry-text":{"type":"string","default-from":"runtime.retry-text"},"toolbar":{"type":"boolean","default":true},"stripes":{"type":"boolean","default":false},"pin-column-label":{"type":"string","default-from":"runtime.pin-column-label"},"unpin-column-label":{"type":"string","default-from":"runtime.unpin-column-label"},"column-move-label":{"type":"string","default-from":"runtime.column-move-label"},"column-search-placeholder":{"type":"string","default-from":"runtime.column-search-placeholder"},"column-search-empty-text":{"type":"string","default-from":"runtime.column-search-empty-text"},"vertical-scroll":{"type":"enum","values":["self","page"],"default":"self"},"filter-apply-text":{"type":"string","default-from":"runtime.filter-apply-text"},"layout":{"type":"enum","values":["auto","table","list"],"default":"auto"},"layout-switch":{"type":"boolean","default":false},"list-below":{"type":"number","default":600},"list-fields":{"type":"number","default":3},"quick-actions":{"type":"string","default":""},"row-open":{"type":"enum","values":["title","row"],"default":"title"},"size":{"type":"enum","values":["1/2","1"],"default":"1"},"preferences-key":{"type":"string","default":""},"row-actions-visible":{"type":"enum","values":["hover","always"],"default":"hover"},"drag-rows":{"type":"boolean","default":false},"row-reorder":{"type":"boolean","default":false},"inline-edit":{"type":"boolean","default":false},"total":{"type":"number","default":0},"row-offset":{"type":"number","default":0},"active-filter-fields":{"type":"list","entries":{"key":"id"}},"bulk-actions":{"type":"list"},"columns":{"type":"list","of":{"key":"string","label":"string"}},"create-items":{"type":"list"},"filter-fields":{"type":"list"},"rows":{"type":"list","entries":{"key":"id","changes":"revision"},"of":{"id":"id","revision":{"type":"string","optional":true}}},"table-data":{"type":"object"},"table-settings":{"type":"object"},"templates":{"type":"list"},"toolbar-actions":{"type":"list"},"sort":{"type":"list","of":{"key":"string","direction":{"type":"enum","values":["asc","desc"]}},"controlled":true},"totals":{"type":"object"},"current":{"type":"string","default":""}},"values":{"selected":{"type":"id","optional":true},"selection":{"type":"list","default":[]}},"events":{"select":{"carries":{"ids":"list"}},"apply":{"carries":{"action":"string","scope":{"type":"enum","values":["entry","selection","filter"]},"ids":"list","revisions":{"type":"object","optional":true}}},"save":{"carries":{"kind":{"type":"enum","values":["columns"]},"reason":"string","column-settings":{"type":"object"},"table-settings-key":{"type":"string"}}},"column-settings-reset":{"carries":{"target":{"type":"enum","values":["personal"]},"table-settings-key":{"type":"string","nullable":true}},"own-verb":true},"create":{"carries":{"item":{"type":"string","nullable":true,"optional":true}}},"filter-change":{"carries":{"template-key":{"type":"string"},"template-label":{"type":"string"},"values":{"type":"object"},"tags":{"type":"object"}},"own-verb":true},"query":{"carries":{"reason":"string","context":"object","sequence":{"type":"number","integer":true}}},"refresh":{"carries":{}},"search-change":{"carries":{"search":"string"},"own-verb":true},"sort-change":{"carries":{"key":{"type":"string","schema":{"minLength":1}},"direction":{"type":"enum","values":["asc","desc",null],"nullable":true}},"own-verb":true},"template-delete":{"carries":{"key":{"type":"string","schema":{"minLength":1}}},"own-verb":true},"template-save":{"carries":{"templates":{"type":"list","of":{"key":"string","label":"string","selected":"boolean","data":"object","settings":"object"},"schema":{"items":{"type":"object","required":["key","label","settings"],"properties":{"key":{"type":"string"},"label":{"type":"string"},"selected":{"type":"boolean"},"data":{"type":"object"},"settings":{"type":"object","properties":{"filter_fields":{"type":"array","items":{"type":"string"}}}}}},"minItems":1}}},"own-verb":true},"template-select":{"carries":{"key":{"type":"string","schema":{"minLength":1}}},"own-verb":true},"toolbar-action":{"carries":{"action":"string","href":{"type":"string","nullable":true,"optional":true}},"cancelable":true,"own-verb":true},"reference-open":{"carries":{"field":"string","value":"object","href":"string"},"cancelable":true,"own-verb":true},"expand":{"carries":{"id":"id","expanded":{"type":"boolean","optional":true}}},"load-more":{"carries":{"direction":{"type":"enum","values":["after"]},"parent":{"type":"id","nullable":true},"cursor":{"type":"string","nullable":true}}},"rows-drag":{"carries":{"ids":{"type":"list","schema":{"items":{"type":"string"},"minItems":1}},"source":{"type":"string","nullable":true}},"own-verb":true},"move":{"carries":{"ids":"list","before":{"type":"id","nullable":true},"order":"list"}},"cell-set":{"carries":{"id":"object","key":"string","value":"object","revision":"object"},"own-verb":true},"view-change":{"carries":{"view":"object","everywhere":"boolean"},"own-verb":true},"window":{"carries":{"first":{"type":"number","integer":true},"last":{"type":"number","integer":true}},"own-verb":true},"layout-change":{"carries":{"layout":{"type":"enum","values":["list","table"]}},"own-verb":true},"open":{"carries":{"id":"id","newTab":"boolean"},"own-verb":true}},"actions":{"add-rows":{"with":{"rows":"list"}},"apply-query-result":{"with":{"sequence":{"type":"number","integer":true,"schema":{"minimum":1}},"rows":"list"}},"clear-selection":{},"request-action-intent":{"with":{"action-id":{"type":"string","schema":{"minLength":1}},"record-ids":{"type":"list","schema":{"items":{"type":["string","integer"],"minLength":1},"minItems":1}}},"emits":"apply"},"request-create-intent":{"with":{"item-id":{"type":"string","optional":true,"nullable":true}},"emits":"create"},"request-retry":{"emits":"refresh"},"set-sort":{"with":{"key":{"type":"string","nullable":true},"direction":{"type":"enum","values":["asc","desc"],"nullable":true}}},"toggle-tree-row":{"with":{"row":"object"},"emits":"expand"},"request-tree-more":{"with":{"row":"object"},"emits":"load-more"},"focus-row":{"with":{"id":"id"}},"set-layout":{"with":{"layout":{"type":"enum","values":["list","table"]}},"emits":"layout-change"},"scroll-to-row":{"with":{"id":"id"}}},"port":{"id":"simai.dataview-port","version":"1.0.0","contract":"src/core/contracts/ports/simai.dataview-port/1.0.0/port.json"},"presentation":{"skeleton":{"late":["rows"]}},"host-states":{"data-sf-view-stripes":"boolean","data-sf-page-scroll":"boolean"},"css-variables":{"--sf-view-table-row-block-size":{"type":"length","state":"default"},"--sf-view-table-head-block-size":{"type":"length","state":"default"},"--sf-view-table-edge":{"type":"length","state":"default"},"--sf-view-table-line-color":{"type":"color","state":"default"},"--sf-view-table-head-color":{"type":"color","state":"default"},"--sf-view-table-row-background-color":{"type":"color","state":"default"},"--sf-view-table-selected-background-color":{"type":"color","state":"default"},"--sf-view-table-title-lines":{"type":"integer","state":"default"},"--sf-table-row-block-size-1/2":{"type":"length","state":"default"},"--sf-table-row-block-size-1":{"type":"length","state":"default"},"--sf-table-row-2-lines-block-size-1/2":{"type":"length","state":"default"},"--sf-table-row-2-lines-block-size-1":{"type":"length","state":"default"},"--sf-table-head-block-size-1/2":{"type":"length","state":"default"},"--sf-table-head-block-size-1":{"type":"length","state":"default"},"--sf-table-toolbar-block-size-1/2":{"type":"length","state":"default"},"--sf-table-toolbar-block-size-1":{"type":"length","state":"default"},"--sf-table-toolbar-gap":{"type":"length","state":"default"},"--sf-table-head--background-color":{"type":"color","state":"default"},"--sf-table-row--background-color":{"type":"color","state":"default"},"--sf-table--cell-spacing":{"type":"length","state":"default"},"--sf-table-cell--line-clamp":{"type":"number","state":"default"},"--sf-table-context-menu--z-index":{"type":"number","state":"open"},"--sf-table-context-menu--max-width":{"type":"length","state":"open"}}}');
 
 /***/ },
 
 /***/ "678dc07d76bf"
 (module) {
 
-module.exports = /*#__PURE__*/JSON.parse('{"title":"Table","events":{"column-settings-reset":{"label":"Column settings reset"},"filter-change":{"label":"Filter changed"},"search-change":{"label":"Search changed"},"sort-change":{"label":"Order changed"},"template-delete":{"label":"View deleted"},"template-save":{"label":"View saved"},"template-select":{"label":"View chosen"},"toolbar-action":{"label":"Toolbar action"},"reference-open":{"label":"Open the linked record"},"rows-drag":{"label":"Rows dragged"},"cell-set":{"label":"Cell value changed"},"view-change":{"label":"Table view changed"},"window":{"label":"Rows shown"}},"runtime":{"actions-column-label":"Actions","apply-text":"Apply","cell-edit-apply":"Save","cell-edit-cancel":"Cancel","cell-edit-label":"Change","cell-edit-no":"No","cell-edit-yes":"Yes","clear-text":"Clear","close-text":"Close","column-all":"All columns…","column-hide":"Hide the column","column-menu-label":"Column","column-move-label":"Move the column","column-pin":"Pin","column-resize-label":"Resize the column","column-search-empty-text":"No field matches","column-search-placeholder":"Search the fields","column-sort-asc":"Sort ascending","column-sort-desc":"Sort descending","column-unpin":"Unpin","column-width-change-text":"Change the width","column-width-default-text":"Default width","column-width-fit-text":"Fit to content","column-width-value":"{n}%","context-create-options-label":"Ways to create","context-field-filter-label":"Filtering by","context-filter-settings-label":"Filter settings","context-row-actions-label":"Row actions","context-save-template-label":"Saving the view","context-table-settings-label":"Table settings","context-template-actions-label":"View actions","context-view-actions-label":"View actions","create-more-label":"More ways to create","create-options-label":"Ways to create","create-text":"Create","default-template-text":"Default","delete-action-text":"Delete","edit-action-text":"Edit","empty-text":"No data","error-text":"The data could not be loaded","field-word-text":"field","fields-tab-text":"Fields","filter-apply-text":"Apply","filter-badge-label":"{count} condition|{count} conditions","filter-settings-label":"Filter settings","filter-text":"Filter","layout-list":"List","layout-switch-label":"Layout","layout-table":"Table","list-select-page":"All on the page","loading-text":"Loading","make-default-label":"Make it the default","menu-label":"Menu","more-actions-label":"More actions","operator-after":"After","operator-any":"Any date","operator-before":"Before","operator-between":"Range","operator-contains":"Contains","operator-eq":"Exactly","operator-gt":"Greater than","operator-gte":"Greater or equal","operator-in":"In the list","operator-lt":"Less than","operator-lte":"Less or equal","operator-month":"This month","operator-on-or-after":"On or after","operator-on-or-before":"On or before","operator-starts-with":"Starts with","operator-today":"Today","operator-week":"This week","pin-column-label":"Pin the column","rename-text":"Rename","reset-both-text":"Reset the search and filters","reset-filters-text":"Reset the filters","reset-search-text":"Clear the search","reset-text":"Reset","restore-text":"Restore","retry-text":"Try again","row-actions-label":"Row actions","save-filter-template-label":"Save the view","save-for-everyone-label":"Save for everyone","save-template-label":"Saving the view","save-text":"Save","search-placeholder":"Search","select-all-label":"Select every row","select-row-label":"Select the row","selected-rows-heading":"Selected","settings-column-label":"Settings","settings-fields-tab":"Fields","settings-view-tab":"View","sort-ascending":"ascending","sort-descending":"descending","sort-label":"Sort","sort-none":"As the host orders it","status-error":"Error","status-ok":"Working","status-stopped":"Stopped","status-warning":"Needs attention","template-actions-label":"View actions","template-move-label":"Move the view","template-name-placeholder":"Name","template-pin-label":"Keep the view at the top","templates-tab-text":"Views","totals-all":"Total","totals-page":"On this page","tree-collapse":"Collapse","tree-expand":"Expand","tree-more":"Show more","unpin-column-label":"Unpin the column","untitled-template-text":"All records","view-action-text":"View","view-density":"Rows","view-density-compact":"Compact","view-density-normal":"Normal","view-density-spacious":"Spacious","view-everywhere":"For all my tables","view-lines":"Lines between columns","view-reset":"Reset the view","view-single-line":"Text on one line","view-sticky-head":"Keep the filter and the head in view","view-stripes":"Alternate rows"}}');
+module.exports = /*#__PURE__*/JSON.parse('{"title":"Table","events":{"column-settings-reset":{"label":"Column settings reset"},"filter-change":{"label":"Filter changed"},"search-change":{"label":"Search changed"},"sort-change":{"label":"Order changed"},"template-delete":{"label":"View deleted"},"template-save":{"label":"View saved"},"template-select":{"label":"View chosen"},"toolbar-action":{"label":"Toolbar action"},"reference-open":{"label":"Open the linked record"},"rows-drag":{"label":"Rows dragged"},"cell-set":{"label":"Cell value changed"},"view-change":{"label":"Table view changed"},"window":{"label":"Rows shown"}},"runtime":{"actions-column-label":"Actions","apply-text":"Apply","cell-edit-apply":"Save","cell-edit-cancel":"Cancel","cell-edit-label":"Change","cell-edit-no":"No","cell-edit-yes":"Yes","clear-text":"Clear","close-text":"Close","column-all":"All columns…","column-hide":"Hide the column","column-menu-label":"Column","column-move-label":"Move the column","column-pin":"Pin","column-resize-label":"Resize the column","column-search-empty-text":"No field matches","column-search-placeholder":"Search the fields","column-sort-asc":"Sort ascending","column-sort-desc":"Sort descending","column-unpin":"Unpin","column-width-change-text":"Change the width","column-width-default-text":"Default width","column-width-fit-text":"Fit to content","column-width-value":"{n}%","context-create-options-label":"Ways to create","context-field-filter-label":"Filtering by","context-filter-settings-label":"Filter settings","context-row-actions-label":"Row actions","context-save-template-label":"Saving the view","context-table-settings-label":"Table settings","context-template-actions-label":"View actions","context-view-actions-label":"View actions","create-more-label":"More ways to create","create-options-label":"Ways to create","create-text":"Create","default-template-text":"Default","delete-action-text":"Delete","edit-action-text":"Edit","empty-text":"No data","error-text":"The data could not be loaded","field-word-text":"field","fields-tab-text":"Fields","filter-apply-text":"Apply","filter-badge-label":"{count} condition|{count} conditions","filter-settings-label":"Filter settings","filter-text":"Filter","layout-list":"List","layout-switch-label":"Layout","layout-table":"Table","list-select-page":"All on the page","loading-text":"Loading","make-default-label":"Make it the default","menu-label":"Menu","more-actions-label":"More actions","operator-after":"After","operator-any":"Any date","operator-before":"Before","operator-between":"Range","operator-contains":"Contains","operator-eq":"Exactly","operator-gt":"Greater than","operator-gte":"Greater or equal","operator-in":"In the list","operator-lt":"Less than","operator-lte":"Less or equal","operator-month":"This month","operator-on-or-after":"On or after","operator-on-or-before":"On or before","operator-starts-with":"Starts with","operator-today":"Today","operator-week":"This week","pin-column-label":"Pin the column","rename-text":"Rename","reset-both-text":"Reset the search and filters","reset-filters-text":"Reset the filters","reset-search-text":"Clear the search","reset-text":"Reset","restore-text":"Restore","retry-text":"Try again","row-actions-label":"Row actions","save-filter-template-label":"Save the view","save-for-everyone-label":"Save for everyone","save-template-label":"Saving the view","save-text":"Save","search-placeholder":"Search","select-all-label":"Select every row","select-row-label":"Select the row","selected-rows-heading":"Selected","settings-column-label":"Settings","settings-fields-tab":"Fields","settings-view-tab":"View","sort-ascending":"ascending","sort-descending":"descending","sort-label":"Sort","sort-none":"As the host orders it","status-error":"Error","status-ok":"Working","status-stopped":"Stopped","status-warning":"Needs attention","template-actions-label":"View actions","template-move-label":"Move the view","template-name-placeholder":"Name","template-pin-label":"Keep the view at the top","templates-tab-text":"Views","totals-all":"Total","totals-page":"On this page","tree-collapse":"Collapse","tree-expand":"Expand","tree-more":"Show more","unpin-column-label":"Unpin the column","untitled-template-text":"All records","view-action-text":"View","view-density":"Density","view-density-compact":"Compact","view-density-normal":"Normal","view-everywhere":"For all my tables","view-lines":"Lines between columns","view-reset":"Reset the view","view-single-line":"Text on one line","view-sticky-head":"Keep the filter and the head in view","view-stripes":"Alternate rows"}}');
 
 /***/ },
 
 /***/ "32294b89604f"
 (module) {
 
-module.exports = /*#__PURE__*/JSON.parse('{"title":"Таблица","events":{"column-settings-reset":{"label":"Настройки столбцов сброшены"},"filter-change":{"label":"Фильтр изменён"},"search-change":{"label":"Поиск изменён"},"sort-change":{"label":"Порядок изменён"},"template-delete":{"label":"Представление удалено"},"template-save":{"label":"Представление сохранено"},"template-select":{"label":"Представление выбрано"},"toolbar-action":{"label":"Действие панели"},"reference-open":{"label":"Открыть связанную запись"},"rows-drag":{"label":"Строки перетащены"},"cell-set":{"label":"Значение в ячейке изменено"},"view-change":{"label":"Вид таблицы изменён"},"window":{"label":"Показаны строки"}},"runtime":{"actions-column-label":"Действия","apply-text":"Применить","cell-edit-apply":"Сохранить","cell-edit-cancel":"Отмена","cell-edit-label":"Изменить","cell-edit-no":"Нет","cell-edit-yes":"Да","clear-text":"Очистить","close-text":"Закрыть","column-all":"Все колонки…","column-hide":"Скрыть колонку","column-menu-label":"Колонка","column-move-label":"Переместить столбец","column-pin":"Закрепить","column-resize-label":"Изменить ширину столбца","column-search-empty-text":"Поля не найдены","column-search-placeholder":"Поиск по полям","column-sort-asc":"По возрастанию","column-sort-desc":"По убыванию","column-unpin":"Открепить","column-width-change-text":"Изменить ширину","column-width-default-text":"По умолчанию","column-width-fit-text":"По содержимому","column-width-value":"{n} %","context-create-options-label":"Варианты создания","context-field-filter-label":"Настройка фильтра","context-filter-settings-label":"Настройки фильтра","context-row-actions-label":"Действия со строкой","context-save-template-label":"Сохранение представления","context-table-settings-label":"Настройки таблицы","context-template-actions-label":"Действия с представлением","context-view-actions-label":"Действия с представлением","create-more-label":"Дополнительные действия создания","create-options-label":"Варианты создания","create-text":"Создать","default-template-text":"По умолчанию","delete-action-text":"Удалить","edit-action-text":"Редактировать","empty-text":"Нет данных","error-text":"Не удалось загрузить данные","field-word-text":"поле","fields-tab-text":"Поля","filter-apply-text":"Применить","filter-badge-label":"{count} условие|{count} условия|{count} условий","filter-settings-label":"Настройки фильтра","filter-text":"Фильтр","layout-list":"Список","layout-switch-label":"Вид","layout-table":"Таблица","list-select-page":"Все на странице","loading-text":"Загрузка данных","make-default-label":"Сделать по умолчанию","menu-label":"Меню","more-actions-label":"Ещё действия","operator-after":"Позже","operator-any":"Любая дата","operator-before":"Раньше","operator-between":"Диапазон","operator-contains":"Содержит","operator-eq":"Точно","operator-gt":"Больше чем","operator-gte":"Больше или равно","operator-in":"В списке","operator-lt":"Меньше чем","operator-lte":"Меньше или равно","operator-month":"Месяц","operator-on-or-after":"Не раньше","operator-on-or-before":"Не позже","operator-starts-with":"Начинается с","operator-today":"Сегодня","operator-week":"Неделя","pin-column-label":"Закрепить столбец","rename-text":"Переименовать","reset-both-text":"Сбросить поиск и фильтры","reset-filters-text":"Сбросить фильтры","reset-search-text":"Очистить поиск","reset-text":"Сбросить","restore-text":"Восстановить","retry-text":"Повторить","row-actions-label":"Действия со строкой","save-filter-template-label":"Сохранить представление","save-for-everyone-label":"Сохранить для всех","save-template-label":"Сохранение представления","save-text":"Сохранить","search-placeholder":"Поиск","select-all-label":"Выбрать все строки","select-row-label":"Выбрать строку","selected-rows-heading":"Выбрано","settings-column-label":"Настройки","settings-fields-tab":"Поля","settings-view-tab":"Вид","sort-ascending":"по возрастанию","sort-descending":"по убыванию","sort-label":"Сортировка","sort-none":"Как задано источником","status-error":"Ошибка","status-ok":"Работает","status-stopped":"Остановлен","status-warning":"Есть замечания","template-actions-label":"Действия с представлением","template-move-label":"Переместить представление","template-name-placeholder":"Название","template-pin-label":"Закрепить представление сверху","templates-tab-text":"Представления","totals-all":"Всего по фильтру","totals-page":"На странице","tree-collapse":"Свернуть","tree-expand":"Развернуть","tree-more":"Показать ещё","unpin-column-label":"Открепить столбец","untitled-template-text":"Все записи","view-action-text":"Посмотреть","view-density":"Строки","view-density-compact":"Компактно","view-density-normal":"Обычно","view-density-spacious":"Просторно","view-everywhere":"Для всех моих таблиц","view-lines":"Линии между столбцами","view-reset":"Сбросить вид","view-single-line":"Текст в одну строку","view-sticky-head":"Закреплять фильтр и шапку","view-stripes":"Чередовать строки"}}');
+module.exports = /*#__PURE__*/JSON.parse('{"title":"Таблица","events":{"column-settings-reset":{"label":"Настройки столбцов сброшены"},"filter-change":{"label":"Фильтр изменён"},"search-change":{"label":"Поиск изменён"},"sort-change":{"label":"Порядок изменён"},"template-delete":{"label":"Представление удалено"},"template-save":{"label":"Представление сохранено"},"template-select":{"label":"Представление выбрано"},"toolbar-action":{"label":"Действие панели"},"reference-open":{"label":"Открыть связанную запись"},"rows-drag":{"label":"Строки перетащены"},"cell-set":{"label":"Значение в ячейке изменено"},"view-change":{"label":"Вид таблицы изменён"},"window":{"label":"Показаны строки"}},"runtime":{"actions-column-label":"Действия","apply-text":"Применить","cell-edit-apply":"Сохранить","cell-edit-cancel":"Отмена","cell-edit-label":"Изменить","cell-edit-no":"Нет","cell-edit-yes":"Да","clear-text":"Очистить","close-text":"Закрыть","column-all":"Все колонки…","column-hide":"Скрыть колонку","column-menu-label":"Колонка","column-move-label":"Переместить столбец","column-pin":"Закрепить","column-resize-label":"Изменить ширину столбца","column-search-empty-text":"Поля не найдены","column-search-placeholder":"Поиск по полям","column-sort-asc":"По возрастанию","column-sort-desc":"По убыванию","column-unpin":"Открепить","column-width-change-text":"Изменить ширину","column-width-default-text":"По умолчанию","column-width-fit-text":"По содержимому","column-width-value":"{n} %","context-create-options-label":"Варианты создания","context-field-filter-label":"Настройка фильтра","context-filter-settings-label":"Настройки фильтра","context-row-actions-label":"Действия со строкой","context-save-template-label":"Сохранение представления","context-table-settings-label":"Настройки таблицы","context-template-actions-label":"Действия с представлением","context-view-actions-label":"Действия с представлением","create-more-label":"Дополнительные действия создания","create-options-label":"Варианты создания","create-text":"Создать","default-template-text":"По умолчанию","delete-action-text":"Удалить","edit-action-text":"Редактировать","empty-text":"Нет данных","error-text":"Не удалось загрузить данные","field-word-text":"поле","fields-tab-text":"Поля","filter-apply-text":"Применить","filter-badge-label":"{count} условие|{count} условия|{count} условий","filter-settings-label":"Настройки фильтра","filter-text":"Фильтр","layout-list":"Список","layout-switch-label":"Вид","layout-table":"Таблица","list-select-page":"Все на странице","loading-text":"Загрузка данных","make-default-label":"Сделать по умолчанию","menu-label":"Меню","more-actions-label":"Ещё действия","operator-after":"Позже","operator-any":"Любая дата","operator-before":"Раньше","operator-between":"Диапазон","operator-contains":"Содержит","operator-eq":"Точно","operator-gt":"Больше чем","operator-gte":"Больше или равно","operator-in":"В списке","operator-lt":"Меньше чем","operator-lte":"Меньше или равно","operator-month":"Месяц","operator-on-or-after":"Не раньше","operator-on-or-before":"Не позже","operator-starts-with":"Начинается с","operator-today":"Сегодня","operator-week":"Неделя","pin-column-label":"Закрепить столбец","rename-text":"Переименовать","reset-both-text":"Сбросить поиск и фильтры","reset-filters-text":"Сбросить фильтры","reset-search-text":"Очистить поиск","reset-text":"Сбросить","restore-text":"Восстановить","retry-text":"Повторить","row-actions-label":"Действия со строкой","save-filter-template-label":"Сохранить представление","save-for-everyone-label":"Сохранить для всех","save-template-label":"Сохранение представления","save-text":"Сохранить","search-placeholder":"Поиск","select-all-label":"Выбрать все строки","select-row-label":"Выбрать строку","selected-rows-heading":"Выбрано","settings-column-label":"Настройки","settings-fields-tab":"Поля","settings-view-tab":"Вид","sort-ascending":"по возрастанию","sort-descending":"по убыванию","sort-label":"Сортировка","sort-none":"Как задано источником","status-error":"Ошибка","status-ok":"Работает","status-stopped":"Остановлен","status-warning":"Есть замечания","template-actions-label":"Действия с представлением","template-move-label":"Переместить представление","template-name-placeholder":"Название","template-pin-label":"Закрепить представление сверху","templates-tab-text":"Представления","totals-all":"Всего по фильтру","totals-page":"На странице","tree-collapse":"Свернуть","tree-expand":"Развернуть","tree-more":"Показать ещё","unpin-column-label":"Открепить столбец","untitled-template-text":"Все записи","view-action-text":"Посмотреть","view-density":"Плотность","view-density-compact":"Компактная","view-density-normal":"Обычная","view-everywhere":"Для всех моих таблиц","view-lines":"Линии между столбцами","view-reset":"Сбросить вид","view-single-line":"Текст в одну строку","view-sticky-head":"Закреплять фильтр и шапку","view-stripes":"Чередовать строки"}}');
 
 /***/ }
 

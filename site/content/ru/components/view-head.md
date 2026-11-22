@@ -5,7 +5,7 @@ profile: reference
 
 # Шапка списка
 
-:badge[sf-view]{variant=main scheme=on-surface size=1} :badge[head="list"]{variant=tonal scheme=on-surface size=1} :badge[Версия 1.29.1]{variant=tonal scheme=neutral size=1}
+:badge[sf-view]{variant=main scheme=on-surface size=1} :badge[head="list"]{variant=tonal scheme=on-surface size=1} :badge[Версия 1.30.0]{variant=tonal scheme=neutral size=1}
 
 Шапка списка стоит над записями. В строке заголовка — название списка. Строка действий отвечает, **что делать**: значок представления, «Фильтр» с закладкой, поля фильтра, «Очистить», поиск, «Создать» и меню «⋯». Значок представления открывает зону под ней — **как смотреть**: открытое представление и его меню по уровням, способ показа («Таблица», «Доска», «Карточки», «Календарь») и «Настроить вид». Число записей — внизу, в подвале списка.
 

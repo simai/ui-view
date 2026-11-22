@@ -2,8 +2,36 @@
   "$comment": "sf-data-view from its component.json (standard simai.smart-component 1.3.8, vocabulary 1.1.5), migrated from ui-control control/smart-architecture/migration/out/data-view; every x-todo decided in x-decisions.",
   "id": "smart.view",
   "tag": "sf-view",
-  "version": "1.29.1",
+  "version": "1.32.0",
   "x-history": [
+    {
+      "version": "1.32.0",
+      "kind": "minor",
+      "recorded_on": "2026-11-21",
+      "consumer": "Nothing to change for a host; a host may set paging. The table's rows come by «Подгрузка» (owner decision D1, 2026-11-21): new setting paging = pages | more | both | endless, default both, kept per view (layouts.table.paging, the person's choice in «Настроить вид»). both: a full-width «Показать ещё» right under the last row, the page numbers under it and «1–20 из 48» beside them; the button appends the next page and the range grows. more hides the page numbers; endless loads the next page when the end of the list comes into view (not recommended for tables). The whole list head (title row, search, filters, view switch) sticks at the top of the page or of the scrolling container the list stands in, and the table head sticks under it (VHF-15). Kanban, cards and calendar settings in «Настроить вид» apply at once, and their field list holds the view's own fields (VHF-13). Under the list head «Настроить вид» also sets the table's «Плотность» (Обычная / Компактная) and «Текст в одну строку» (VR12A-1); a setting saved there no longer re-reads the list, so the rows «Показать ещё» added stay. Every part of the list head and footer can be switched off by the host (DEV round 5 returns, VR5): chrome takes search, filter, look and page-size beside toolbar, pagination, select and settings (a chrome that names none of them keeps them all, as before; one that names any is the whole list); the view document's head.chrome lists the parts shown and head.look the rows of «Настроить вид»; view.chrome / view.setChrome() and view.look do the same by a call. «Фильтр» goes by itself when the host describes no field to filter by. A head row left empty is not drawn. Without «Настроить вид» (look off) the zone toggle goes when nothing else is in the zone. A host without the row-actions capability gets no «≡» column (VR5-10). The cards have the list's page row (LV2-6): page numbers, «Показать ещё» and the page size under the grid, with «1–24 из 48» in the footer; the grid's own more button is gone while the row is on. A display kind switch keeps the record first on screen on screen (LV2-8): the new kind opens on the page that holds it, in its own page size, so the page row and the records agree; that record is held over switches back and forth until the person turns a page or asks anything else.",
+      "evidence": "control/evidence/2026-11-21-view-r13/README.md"
+    },
+    {
+      "version": "1.31.1",
+      "kind": "patch",
+      "recorded_on": "2026-11-21",
+      "consumer": "Nothing to change for a host. The list head's display kind for the board reads «Канбан» (owner decision D2, 2026-11-21; it was «Доска»); layout=\"board\" and every name in code stay.",
+      "evidence": "control/evidence/2026-11-21-view-r12/README.md"
+    },
+    {
+      "version": "1.31.0",
+      "kind": "minor",
+      "recorded_on": "2026-11-21",
+      "consumer": "Nothing to change for a host. The list head answers to the width the list has: a record card docked beside the list (data-sf-drawer-dock-host pads the view) leaves less, and below 600 px of it the head is the phone head, as the table already turns into list rows there (it stayed the desktop head over list rows). When the search, «Создать» and «⋯» wrap onto a line of their own under the filter fields, that line starts at the row's start (it stood at the row's end with the start of the line empty). The head row has two states only (round 3, VHF-3 refined): everything on one row while «Фильтр», its fields, the search at 20rem, «Создать» and «⋯» fit; else two rows, the search across the width on top with «Создать» and «⋯» at its end, «Фильтр» and the fields below (the search stood alone at the end of a second row). The list title keeps its heading size in a compact area (VHF-9, C44: it went 20 -> 16). Without bulk actions the rows, cards and calendar events draw no boxes (VHF-11): a box is there to mark records for an action; a host that names select in its own chrome keeps them. The phone skeleton without list-shape is said as it is drawn (VR11A-2): a title and each field on a line of its own (values of a phrase's length); a list of short values that share a line should give list-shape (\"1 1 1\" for a title and three short fields on two lines, 85 px at 390, where the hint-less skeleton holds 109). Bulk actions given after the first draw (bulkActions, or actions written on the page row later) bring the boxes to the rows already drawn.",
+      "evidence": "control/evidence/2026-11-21-view-r12/README.md"
+    },
+    {
+      "version": "1.30.0",
+      "kind": "minor",
+      "recorded_on": "2026-11-21",
+      "consumer": "Optional for a host: list-shape on the view (or its sf-view-table) says how a record of the phone's compact list looks -- the lines of each part, the title first (\"1 1 2 1\"), or \"resource\" for a list of resources -- and the skeleton draws that shape, so the list does not move when the records come; without it the skeleton is as before. A page row that says its total (total on sf-pagination) sizes the skeleton to the records left. «Изменено» compares a system view that names no layout with the layout the page wrote (else the host's first), not with the kind the list showed when the head first looked. 1.29.2 is simai/ui-pro's number (sf-view accepting dataview-port 1.16.0, already in this set's 1.29.1).",
+      "evidence": "control/evidence/2026-11-21-view-r11/README.md"
+    },
     {
       "version": "1.29.1",
       "kind": "patch",
@@ -193,7 +221,7 @@
     "chrome": {
       "type": "string",
       "default": "toolbar pagination select settings",
-      "summary": "Which chrome this list renders, as a space-separated list. `toolbar` and `pagination` are this element own parts; `select` and `settings` are the table two chrome columns, named here because they are furniture of the same kind -- a checkbox column exists to feed a bulk band and a gear column exists to reach column settings, and an embedded list has neither. Empty renders none of them, for a list inside something that already carries a heading. Named explicitly rather than inferred from the toolbar, so a consumer who wants a selection in an embedded list can ask for it alone. `status` is not in the list and cannot be switched off: a list that could not say a load failed would look empty when it is broken."
+      "summary": "Which chrome this list renders, as a space-separated list. `toolbar` and `pagination` are this element own parts; `select` and `settings` are the table two chrome columns, named here because they are furniture of the same kind -- a checkbox column exists to feed a bulk band and a gear column exists to reach column settings, and an embedded list has neither. Empty renders none of them, for a list inside something that already carries a heading. Named explicitly rather than inferred from the toolbar, so a consumer who wants a selection in an embedded list can ask for it alone. `status` is not in the list and cannot be switched off: a list that could not say a load failed would look empty when it is broken. Parts inside the rows (sf-view 1.32.0, VR5): `search`, `filter` (with its bookmark and fields) and `look` («Настроить вид») inside `toolbar`, `page-size` («По 10 ▾») inside `pagination`. A chrome that names none of these parts keeps them all, so a chrome written before keeps what it drew; one that names any is the whole list, and a part it does not name is not drawn: chrome=\"toolbar search pagination\" draws the search alone in the head row and the footer without its size choice. The same list goes in the view document as head.chrome (only the parts) and by a call as view.chrome = [...] or view.setChrome([...]). «Фильтр» also goes by itself when the host describes no field to filter by."
     },
     "head": {
       "type": "enum",
@@ -222,6 +250,11 @@
       "summary": "How many columns the skeleton draws before the host first answers: the skeleton's shape, never a limit -- the answer brings its own columns. The page or server that renders a collection knows them; with the right number the list does not move when the data arrives.",
       "integer": true,
       "min": 1
+    },
+    "list-shape": {
+      "type": "string",
+      "default": "",
+      "summary": "The host's hint of a record's shape in the compact list a phone gets: the lines of each part of a record, the title first, space- or comma-separated -- \"1 1 2 1\" is a title of one line and three fields, the third taking two lines. The skeleton draws that shape, so the list does not move when the records come. Empty: a title and list-fields fields of one line each, each field on a line of its own (values of a phrase's length, as the phone-list example's; view round 12, VR11A-2): the list lays short values side by side, two or three to a line, so a list of short values -- a status, a sum, a city -- draws shorter records than that and should say so (a title and three short fields on two lines: \"1 1 1\", 85 px at 390, where the hint-less skeleton holds 109). Up to 12 parts of 1 to 8 lines; \"resource\" is the row of a list of resources (the title line and the supporting line under it). Anything else is read as no hint. Read on the view, else on its sf-view-table."
     },
     "port-owner": {
       "type": "string",
@@ -368,6 +401,17 @@
     "pagination-aria-label": {
       "type": "string",
       "summary": "Passed on as aria-label to the pagination the view draws (the view's own aria-label names the view)."
+    },
+    "paging": {
+      "type": "enum",
+      "values": [
+        "pages",
+        "more",
+        "both",
+        "endless"
+      ],
+      "default": "both",
+      "summary": "How the table's rows come page after page (owner decision D1): pages (page numbers only), more (a full-width «Показать ещё» under the last row), both (the button with the page numbers under it and «1–20 из 48» beside them; the default), endless (the next page loads when the end of the list comes into view; offered, not recommended for tables). The person's choice in «Настроить вид» is kept per view; a view's layouts.table.paging comes before this attribute."
     },
     "preferences-key": {
       "type": "string",
@@ -2044,6 +2088,38 @@
           "to": "1.29.1",
           "changes": [
             "View round 10 (round/view-r10): first-paint.css sizes the phone list skeleton line at text step 1 (R9-1); index.js draws the bulk bar together with the list and clears the selection before the bar's result (V10-1); head.js viewKind() keeps the kind the view opened with for the «Изменено» mark (V10-3) and _showColumns() applies «Настроить вид» columns to the table (V10-2); examples.json phone-list example in the first-paint gate."
+          ]
+        },
+        {
+          "from": "1.29.1",
+          "to": "1.30.0",
+          "changes": [
+            "View round 11 (round/view-r11): index.js firstPaintRows caps the skeleton's rows by the printed page row's total from its current page (_printedRecordsLeft); listShape reads list-shape (the view, else its table) and _firstPaintMarkup draws each part as its lines ([data-lines]) or the resource row ([data-resource], the title and supporting lines on --sf-ui-2/3--control-height, the list's quarter-step padding and hairline gap); first-paint.css carries those rules; pageLayoutKind keeps the layout the page wrote at connect; head.js storedKind is the kind a system view naming no layout stands for (viewKind), and _openSavedView no longer remembers the shown kind as that view's. component.json, smart.manifest.json and docs.md declare list-shape."
+          ]
+        },
+        {
+          "from": "1.30.0",
+          "to": "1.31.0",
+          "changes": [
+            "View round 12 (round/view-r12): VHF-3 js/head.css: .sf-view-head-end has no auto start margin (the growing start holds it at the row's end on one line; wrapped, it starts its line); .sf-view-head-title-end keeps its own. VHF-5 js/head.js: _measure reads the view's content box (contentWidth: the border box less the inline padding and borders) instead of its border box. docs.md says both. View round 12, sets 2-3 (DEV msg-c31ccebd): VHF-3 js/head.js _layRow measures the laid parts (a display: contents host by its children; the search at 20rem) and writes data-stacked; js/head.css lays the stacked row as a column, the end first across the width. VHF-9 js/head.css .sf-view-head-name reads --sf-heading-4--size/height. VHF-11 index.js hasBulkActions and selects() (bulkActions, or actions on the page row; chrome written keeps select), read where the table, board, cards (js/cards.js) and calendar (js/calendar.js) are told selectable and by the first paint; the bulkActions setter tells them again. Numbered above ui-pro's copies in pro-f6c43828e5f2 (sf-view 1.30.1, sf-view-table 1.29.4, sf-view-properties 1.24.0, group build 15), the highest on any origin branch of simai/ui-view and simai/ui-pro; this round's own step was 1.30.1, 1.29.4 and 1.23.10 on round/view-r12 a26f636 before Pro took those numbers. VR11A-2 (round 11 acceptance, DEV msg-265727a8): settings.list-shape's summary and docs.md say what the hint-less skeleton draws and when a hint is needed; the skeleton is unchanged (the phone-list example's records are one field to a line, and its first paint holds)."
+          ]
+        },
+        {
+          "from": "1.31.0",
+          "to": "1.31.1",
+          "changes": [
+            "View round 12, owner decision D2 (DEV msg-4de06ae6): lang head-kind-board «Канбан» / «Kanban»."
+          ]
+        },
+        {
+          "from": "1.31.1",
+          "to": "1.32.0",
+          "changes": [
+            "View round 13 (round/view-r13): D1 index.js paging (VIEW_PAGING, get paging, applyPaging, _drawMore into slot more, _showMore, _watchEndless; the range grows from the run's first page; data-sf-view-paging-off hides the pagination for more and endless; first paint draws the button skeleton); component.json settings.paging and the manifest input; lang head-paging*. VHF-15 head.js lays --sf-view--head-offset and --sf-view--stuck-head on [part=layout]; [part=head] sticks for head=list. VHF-13 ownLayoutSettings / applyLayoutSettings; board, cards and calendar options merge the person's settings; the view panel lists the view's own fields. D3 cards skeleton draws stacked fields. VR12A-1 js/head.js: the table kind's panel adds density radios and a single_line checkbox (set through sf-view-table setTableView); lang head-density*, head-single-line. NO_REFRESH_AFTER takes settings.save.",
+            "VR5 (DEV msg-b581533a): index.js CHROME_PARTS + search, filter, look, page-size; CHROME_WITHIN maps them to toolbar and pagination; renders(part) hides a part the chrome attribute does not name once it names any part, and a part head.chrome does not name; chrome setter and setChrome(); look getter/setter (head.look or view.look); the first-paint head row holds only the filter and search the chrome keeps; _drawFooter hides .sf-view-footer-size without page-size. js/head.js filterShown (renders filter and describe() fields), render hides .sf-view-head-search, [data-filter-group], .sf-view-head-filter-icon, sf-popover[data-pop=view], .sf-view-head-tune and an empty .sf-view-head-row; _renderFields empties the fields box when the filter is off; _viewPanel draws only the rows head.look names. js/head.css display: none for those parts when hidden.",
+            "VR5-5 js/head.js zoneUseful: a described list and personal-column-settings count only while look is drawn.",
+            "VR5-10 index.js: the projection writes data-sf-row-menu-off on the table when a known host offers no row-actions (_rowMenuOff); the first paint leaves the «≡» column out where the known host gives it nothing to open (_settingsColumnUnused: no row-actions, no personal-column-settings outside the list head, no row-reorder).",
+            "LV2-6: layout cards get the list's page row (pagination by default, the footer range, a page size chosen there kept for the cards); the cards' grid no longer offers its own more button while the row is drawn. LV2-8: switchLayout opens the new kind on the page holding the record first on screen, held over switches back and forth until the next query change; the head's kind switch no longer resets the page to 1."
           ]
         }
       ]

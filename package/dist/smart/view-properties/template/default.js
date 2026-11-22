@@ -667,7 +667,16 @@ function renderGroup(context, section, group) {
     // a property shown alone): an empty heading took a row (36 px read, 29 px
     // edited) and named nothing to a screen reader. Its «Изменить», the rare
     // mark and the arranging tools still bring the head back.
-    const titled = String(group.label ?? groupKey) !== '' || Boolean(group.rare);
+    // A section of one group whose name is the section's (VRS-9, view round
+    // 12): the section's tab, column row or phone screen already names it, and
+    // the group's head said «Заказ» again under «Заказ». Its «Изменить» stays;
+    // arranging the card still shows every head. One section alone is drawn
+    // without its name, so its group keeps the title.
+    const repeats = !configuring && !group.rare
+        && (context.visible(context.sections ?? []) ?? []).length > 1
+        && (context.visible(section.groups ?? []) ?? []).length === 1
+        && String(group.label ?? groupKey).trim() === String(section.label ?? section.key ?? '').trim();
+    const titled = (String(group.label ?? groupKey) !== '' || Boolean(group.rare)) && !repeats;
     const readEdit = context.mayEdit && !context.openAll && group.editable !== false;
     const cardEdit = !configuring && !editing && context.mayEdit && !context.openAll && group.kind !== 'related' && group.editable !== false;
     // Read, the group is a section of the record's description list: its name
@@ -681,8 +690,8 @@ function renderGroup(context, section, group) {
         return html`
             <section class="sf-property-view-group sf-property-view-group--list" data-group=${groupKey} aria-busy=${reading ? 'true' : nothing}>
                 ${titled || readEdit ? html`<div class="sf-list-description-head sf-property-view-group-header">
-                    <div class="sf-list-description-title sf-property-view-group-title" role="heading" aria-level="3">${String(group.label ?? groupKey)}${group.rare
-                            ? html` <span class="sf-property-view-rare color-on-surface-variant">${context.rareText}</span>` : nothing}</div>
+                    ${titled ? html`<div class="sf-list-description-title sf-property-view-group-title" role="heading" aria-level="3">${String(group.label ?? groupKey)}${group.rare
+                            ? html` <span class="sf-property-view-rare color-on-surface-variant">${context.rareText}</span>` : nothing}</div>` : html`<span class="sf-property-view-group-title-gap" aria-hidden="true"></span>`}
                     ${readEdit
                             ? html`<span class="sf-list-description-action"><sf-button
                                     appearance="ghost"
@@ -697,8 +706,10 @@ function renderGroup(context, section, group) {
             </section>
         `;
     }
-    // Edited by sf-form (C182, C305 (1); VP-19, VP-27): the label above in a
-    // panel, beside on the full screen; «Сохранить» first, a quiet «Отмена»;
+    // Edited by sf-form (C182, C305 (1); VP-19, VP-27): the label beside its
+    // field wherever the record is wide, over it on a phone (owner decision
+    // C401: the value turns into its field in place, the label stays at the
+    // start; sf-form lays labels="start" from 40rem of its own width); «Сохранить» first, a quiet «Отмена»;
     // every field the group's whole width. The form's value and fields are
     // the edit's own (formEdit), so a render of the card never resets it.
     const form = context.formEdit;
@@ -710,7 +721,7 @@ function renderGroup(context, section, group) {
                 </header>` : nothing}
                 <sf-form class="sf-property-view-form"
                          label=${String(group.label ?? groupKey)}
-                         labels=${context.sectionsLayout === 'column' ? 'start' : 'top'}
+                         labels=${context.sectionsLayout === 'phone' ? 'top' : 'start'}
                          footer=${context.panel || context.sectionsLayout === 'phone' ? 'sticky' : 'static'}
                          .fields=${guard([form], () => form.fields)}
                          .value=${guard([form], () => form.value)}
@@ -818,7 +829,10 @@ function renderGroup(context, section, group) {
 // between a person and the only groups there are.
 function renderPhoneSectionList(context, sections) {
     // The rows are sf-list's (C289 (5), C148 (4)): a section opens as a level
-    // of the panel, «←» in its head (C157 (6)).
+    // of the panel, «←» in its head (C157 (6)). They are the phone list's rows
+    // of the size ladder whatever the card's control size, and each ends in
+    // «›», the mark of a row that opens (VRS-8, view round 12): on the card's
+    // size 1/2 they were 28 px control rows with nothing saying they open.
     const items = sections.map((section) => ({
         id: String(section.key),
         text: String(section.label ?? section.key),
@@ -828,7 +842,7 @@ function renderPhoneSectionList(context, sections) {
         <sf-list
                 class="sf-property-view-phone-sections"
                 label=${context.sectionsLabel}
-                size=${context.controlSize ?? nothing}
+                size="1"
                 divided
                 .items=${items}
                 @sf-list-open=${(event) => {
@@ -911,6 +925,7 @@ function renderSectionVerticalTabs(context, sections) {
         <sf-tabs
                 class="sf-property-view-section-list"
                 type="vertical"
+                fold=${context.tabsHoldColumn ? 'never' : nothing}
                 size=${context.controlSize ?? nothing}
                 selected=${selected}
                 aria-label=${context.sectionsLabel}
@@ -1423,7 +1438,22 @@ function renderPanelHead(context) {
                         @click=${() => context.component.closePhoneSection()}
                 ></sf-button-icon>` : nothing}
                 <h2 class="sf-property-view-title min-w-0 overflow-hidden" style=${TITLE_STYLE} tabindex="-1">${history ? context.word('historyText') : level ? context.phoneSectionLabel : record}</h2>
-                ${context.recordId && context.mode !== 'create' && !history ? html`<sf-button-icon
+                ${context.recordId && context.mode !== 'create' && !history ? (context.starLook
+                    // The toggle look (C393): off a quiet ghost, on the soft
+                    // primary plate with a 1 px primary ring inside, the glyph
+                    // kept outline; pressed writes aria-pressed on the native
+                    // button, one name says the action.
+                    ? html`<sf-button-icon
+                        appearance=${context.starLook}
+                        size="1/3"
+                        icon="star"
+                        pressed=${context.favourite ? 'true' : 'false'}
+                        data-action="favourite"
+                        aria-label=${context.favouriteLabel}
+                        title=${context.favouriteLabel}
+                        @click=${() => context.component.toggleFavourite()}
+                ></sf-button-icon>`
+                    : html`<sf-button-icon
                         appearance="ghost"
                         scheme="on-surface"
                         size="1/3"
@@ -1433,7 +1463,7 @@ function renderPanelHead(context) {
                         aria-pressed=${context.favourite ? 'true' : 'false'}
                         aria-label=${context.favouriteLabel}
                         @click=${() => context.component.toggleFavourite()}
-                ></sf-button-icon>` : nothing}
+                ></sf-button-icon>`) : nothing}
                 <span class="sf-property-view-head-spacer" style="flex: 1 1 auto"></span>
                 ${context.hasHostSlot('actions') ? context.hostSlot('actions') : nothing}
                 ${renderMenuControl(context)}
@@ -1452,17 +1482,32 @@ function renderPanelHead(context) {
 // The line under the title (C289 (6), C311 (2)): the stage as a tonal badge,
 // then up to two fields' values joined by « · ». Nothing when the head names
 // none: the title alone, as before.
-function renderHeadLine(context) {
+// A card in place (no panel) has no title row of its own -- the page owns the
+// title -- so its actions («⋯», the host's) end this line rather than stand
+// alone on an empty row above it (view round 12, VHF-6).
+function renderHeadLine(context, end = nothing) {
     const line = context.headLine;
-    if (!line || (!line.status && !line.subtitle.length)) return nothing;
+    if (!headLineDrawn(context)) return nothing;
     return html`
         <div class="sf-property-view-head-line flex items-cross-center gap-1/3 min-w-0" data-head-line>
             ${line.status ? html`<sf-badge size="1/2" appearance="tonal" scheme=${line.status.scheme}
                     text=${line.status.text} data-head-status=${line.status.key}></sf-badge>` : nothing}
             ${line.subtitle.length ? html`<span class="sf-property-view-head-subtitle color-on-surface-variant min-w-0 overflow-hidden"
                     data-head-subtitle>${line.subtitle.map((item) => item.text).join(' · ')}</span>` : nothing}
+            ${end === nothing ? nothing : html`<div class="sf-property-view-head-line-end flex items-cross-center gap-1">${end}</div>`}
         </div>
     `;
+}
+
+function headLineDrawn(context) {
+    const line = context.headLine;
+    return Boolean(line && (line.status || line.subtitle.length));
+}
+
+// The actions of a card in place: the host's and the card's menu («⋯»).
+function inPlaceActions(context) {
+    return Boolean(context.hasHostSlot('actions') || context.hasHostSlot('menu') || context.panelMenuItems.length
+        || context.canDeleteRecord || (context.recordMenuItems?.length ?? 0) > 0);
 }
 
 // A section opened on a phone, inside a panel: a level of the panel (C157 (6)).
@@ -1664,6 +1709,7 @@ function renderHistoryFeed(context) {
     const loading = !feed || feed.loading;
     return html`
         <sf-list-timeline class="sf-property-view-history"
+                size=${context.size === '1/2' ? '1/2' : nothing}
                 group="day"
                 label=${context.word('historyText')}
                 .items=${items}
@@ -1762,15 +1808,16 @@ function renderBody(context, railOutside = false, withActions = true) {
         <div class="sf-property-view-status" role="status" aria-live="polite" ?hidden=${!context.message}>
             ${context.message}
         </div>
-        ${!context.panel && (context.hasHostSlot('actions') || context.hasHostSlot('menu') || context.panelMenuItems.length
-                || context.canDeleteRecord || (context.recordMenuItems?.length ?? 0) > 0)
+        ${!context.panel && inPlaceActions(context) && !headLineDrawn(context)
                 ? html`
                     <div class="sf-property-view-host-actions flex flex-wrap items-cross-center justify-end gap-1">
                         ${context.hasHostSlot('actions') ? context.hostSlot('actions') : nothing}
                         ${renderMenuControl(context)}
                     </div>`
                 : nothing}
-        ${context.panel ? nothing : renderHeadLine(context)}
+        ${context.panel ? nothing : renderHeadLine(context, inPlaceActions(context) ? html`
+                ${context.hasHostSlot('actions') ? context.hostSlot('actions') : nothing}
+                ${renderMenuControl(context)}` : nothing)}
         ${onPhoneSectionList(context, sections) ? renderPhoneSectionList(context, sections) : nothing}
         ${lineTabsDrawn(context, sections) ? renderSectionTabs(context, sections) : nothing}
         <div class="sf-property-view-layout"

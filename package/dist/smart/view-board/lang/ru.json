@@ -1,10 +1,10 @@
 {
-  "title": "Доска",
+  "title": "Канбан",
   "runtime": {
     "actions-text": "Действия",
     "add-short-text": "Добавить",
     "add-text": "Новая запись в «{lane}»",
-    "board-label": "Доска",
+    "board-label": "Канбан",
     "bulk-label": "Действия с выбранными",
     "card-menu-text": "Действия: {title}",
     "clear-text": "Снять выбор",
