@@ -3082,7 +3082,7 @@
         "from": "1.35.0",
         "to": "1.36.0",
         "changes": [
-          "View round 15: VM-2 responsive columns, pinned offsets and rail synced in the next frame (_inNextFrame); VL-12 the resource list's bottom inset 0."
+          "View round 15: VM-2 responsive columns and pinned offsets synced in the next frame (_inNextFrame), the rail kept in its observer (deferred, it looped at 768 px); VL-12 the resource list's bottom inset 0."
         ]
       }
     ]
@@ -3093,7 +3093,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-table/index.js",
-        "sha256": "6046b386930dfef84ff6d0eab949469b6550ea6bdf3abef87b88b2af436eac23"
+        "sha256": "45946ce05588d6b54523b084bd3ec950e8bbf3aa0bdd1eb274b1e05469fc385b"
       },
       {
         "path": "src/smart/view-table/js/templates/default.js",

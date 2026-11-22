@@ -2198,7 +2198,7 @@
           "from": "1.36.0",
           "to": "1.37.0",
           "changes": [
-            "View round 15: VM-1 view strip one line, kinds fold into the strip's kind menu (_layZone, head.css nowrap); VL-48 a borrowed window keeps its kind on the popover's open, the name field takes the focus, Enter is the first action; C414 view.save without conditions (view-config 1.1.0); bulk bar at the head controls' size."
+            "View round 15: VM-1 view strip one line, kinds fold into the strip's kind menu (_layZone, head.css nowrap, the zone contain: inline-size so its line does not widen the head); VL-48 a borrowed window keeps its kind on the popover's open, the name field takes the focus, Enter is the first action; C414 view.save without conditions (view-config 1.1.0); bulk bar at the head controls' size."
           ]
         }
       ]

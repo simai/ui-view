@@ -6492,7 +6492,7 @@ class SfTable extends TableElement {
             // late fonts): the rail follows the table's size, not the render.
             this._railObserver?.disconnect();
             if (typeof ResizeObserver !== "undefined") {
-                this._railObserver = new ResizeObserver(() => this._inNextFrame("rail", () => this.syncRail()));
+                this._railObserver = new ResizeObserver(() => this.syncRail());
                 this._railObserver.observe(scroll);
                 if (this.refs.table?.value) this._railObserver.observe(this.refs.table.value);
             }

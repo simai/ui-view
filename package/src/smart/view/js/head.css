@@ -104,6 +104,11 @@
   inline-size: 100%;
   max-inline-size: 100%;
   min-inline-size: 0;
+  /* Its line does not widen the head (VM-2, view round 15): kept on one line,
+     the strip's own width pushed the head past the list at 768 px, the page
+     scrolled sideways and the observers of the list ran in a loop. The room
+     is the head's; what does not fit folds (js/head.js _layZone). */
+  contain: inline-size;
   box-sizing: border-box;
   padding: var(--sf-space-1\/3) var(--sf-space-1\/2);
   border: var(--sf-px) solid var(--sf-outline-variant);
