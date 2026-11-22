@@ -1989,17 +1989,24 @@ class SfTable extends TableElement {
             }, {capture: true, signal});
         }
         if (typeof ResizeObserver !== "undefined" && !this._responsiveObserver) {
-            // The pinned offsets are written in the next frame (VM-2, view
-            // round 15): written in the observer's own callback they resized
-            // the table in the frame that was being observed, and a record
-            // docked beside the list drew «ResizeObserver loop completed».
+            // The columns that fit and the pinned offsets follow in the next
+            // frame (VM-2, view round 15): drawn in the observer's own
+            // callback, the new columns resized the list in the frame that was
+            // being observed, and a record docked beside the list drew
+            // «ResizeObserver loop completed» twice.
+            // The first width is taken at once: the first paint depends on it.
             this._responsiveObserver = new ResizeObserver(([entry]) => {
-                const width = Math.floor(entry.contentRect.width);
-                if (width > 0 && width !== this._responsiveWidth) {
-                    this._responsiveWidth = width;
-                    this.requestComponentUpdate("responsive-columns");
-                }
-                this._inNextFrame("pinned", () => this.measurePinnedColumns());
+                this._observedWidth = Math.floor(entry.contentRect.width);
+                const follow = () => {
+                    const width = this._observedWidth;
+                    if (width > 0 && width !== this._responsiveWidth) {
+                        this._responsiveWidth = width;
+                        this.requestComponentUpdate("responsive-columns");
+                    }
+                    this.measurePinnedColumns();
+                };
+                if (!(this._responsiveWidth > 0)) follow();
+                else this._inNextFrame("responsive", follow);
             });
             this._observeResponsiveBox();
         }

@@ -1076,8 +1076,13 @@ export class ListHead {
     _onPopoverOpen(event) {
         const popover = event.target?.closest?.("sf-popover[data-pop]");
         if (!popover || !this.root?.contains(popover)) return;
-        const kind = popover.getAttribute("data-pop");
-        if (["filter", "save", "state"].includes(kind)) popover.setAttribute("label", this._title(kind));
+        // A window opened in another's popover (a new view, a rename) keeps
+        // its own kind: the popover's open event named the popover's, so
+        // «Сохранить представление» opened the filter window (VL-48).
+        const borrowed = popover.__sfViewHeadKind;
+        popover.__sfViewHeadKind = null;
+        const kind = borrowed ?? popover.getAttribute("data-pop");
+        if (["filter", "save", "state", "view-new"].includes(kind) || kind.startsWith("rename:")) popover.setAttribute("label", this._title(kind));
         this._show(kind, popover, popover.querySelector("[data-body]"));
     }
 
@@ -1119,9 +1124,14 @@ export class ListHead {
         if (popover.getAttribute("data-pop") !== kind) {
             // a window without its own button (rename) opens in the filter's
             this._show(kind, popover, popover.querySelector("[data-body]"));
+            popover.setAttribute("label", this._title(kind));
+            popover.__sfViewHeadKind = kind;
         }
         if (!(popover.open || popover.hasAttribute("open"))) popover.show?.();
-        else if (popover.getAttribute("data-pop") === kind) this._renderOpen();
+        else {
+            popover.__sfViewHeadKind = null;
+            if (popover.getAttribute("data-pop") === kind) this._renderOpen();
+        }
     }
 
     _show(kind, host, body) {

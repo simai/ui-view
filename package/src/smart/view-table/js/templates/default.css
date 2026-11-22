@@ -991,8 +991,10 @@
     container-type: inline-size;
     gap: var(--sf-px);
     /* No inline padding: the rows' fill runs from edge to edge, in line with
-       the field and the last button of the toolbar above (R077). */
-    padding-block: var(--sf-space-1\/4);
+       the field and the last button of the toolbar above (R077). Nothing
+       under the last row either (VL-12, view round 15): «Показать ещё»
+       stands its own 8 under the list, and the list's 4 made it 12. */
+    padding-block: var(--sf-space-1\/4) 0;
     padding-inline: 0;
     font-size: var(--sf-text-size-1\/2);
     line-height: var(--sf-text-height-1\/2);

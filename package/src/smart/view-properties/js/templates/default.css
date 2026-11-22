@@ -1645,4 +1645,35 @@
   .sf-property-view-group-action-kept {
     visibility: hidden;
   }
+
+  /* VL-64 / VR14-3 (view round 15, C401): a value read in the record's list
+     takes the room of the field it turns into -- the list's control height,
+     40 at the normal density and 32 at the compact one -- so «Изменить»
+     moves no row. The value's text stands in the middle of that room, as
+     the field's text does. Beside its value (a wide list) the label stands
+     on the same line: it keeps the room above it the value has. */
+  .sf-property-view-list .sf-property-view-row > .sf-list-description-value {
+    min-block-size: var(--sf-list-description--control);
+    justify-content: center;
+  }
+
+  @media (min-width: 44rem) {
+    @container not (max-width: 20rem) {
+      .sf-property-view-list.sf-list-description--layout-auto .sf-property-view-row > .sf-list-description-label {
+        padding-block: calc((var(--sf-list-description--control) - var(--sf-list-description--line)) / 2);
+      }
+    }
+  }
+
+  /* A group edited in place (the card's own form, a group sf-form does not
+     draw) is the read group's list: its rows are the read rows (the same
+     label column, no 21 px card inset), the label in the text ink of a form
+     field (C153 (1)). */
+  .sf-property-view-row--edit > .sf-list-description-label {
+    color: var(--sf-on-surface);
+  }
+
+  .sf-property-view-row--edit > .sf-list-description-value > .sf-property-view-field-value {
+    min-block-size: var(--sf-list-description--control);
+  }
 }
