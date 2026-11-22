@@ -5,7 +5,7 @@ profile: reference
 
 # Блок в потоке
 
-:badge[sf-view-flow]{variant=main scheme=on-surface size=1} :badge[Версия 1.1.6]{variant=tonal scheme=neutral size=1} :badge[Предварительная версия]{variant=tonal scheme=warning size=1}
+:badge[sf-view-flow]{variant=main scheme=on-surface size=1} :badge[Версия 1.1.7]{variant=tonal scheme=neutral size=1} :badge[Предварительная версия]{variant=tonal scheme=warning size=1}
 
 Блок в потоке — несколько свойств записи **внутри потока**: сообщения чата, ленты, комментариев — везде, где содержимое идёт одно за другим. Блок делает одно из двух:
 
@@ -64,13 +64,13 @@ block.addEventListener('sf-view-flow-answer', async (event) => {
 
 ## Параметры
 
-Справочник собран из манифеста компонента в сборке-кандидате набора (`simai/ui-view@9609c88a4e14`) и обновляется вместе с выпуском. Каждому атрибуту соответствует свойство элемента с тем же именем в camelCase: `search-placeholder` — `searchPlaceholder`.
+Справочник собран из манифеста компонента в выпуске набора `view-2cc3a6afbc95` (версия 1.11.0) и обновляется вместе с выпуском. Каждому атрибуту соответствует свойство элемента с тем же именем в camelCase: `search-placeholder` — `searchPlaceholder`.
 
 | | |
 |:---|:---|
 | Тег | `<sf-view-flow>` |
 | Назначение | Несколько свойств блоком в потоке (сообщение чата, лента, любой поток): показывает поля записи или просит заполнить несколько и отправить их, а затем хранит ответ только для чтения. Поля — описания в форме `sf-view-properties`, рисуют их отрисовщики полей SIMAI Framework; нажатие — событие, хост отвечает через `settle`. |
-| Контракт | `smart.view-flow`, версия `1.1.6` |
+| Контракт | `smart.view-flow`, версия `1.1.7` |
 | Жизненный цикл | экспериментальный: API может меняться между выпусками |
 
 ### Атрибуты
@@ -132,7 +132,7 @@ block.addEventListener('sf-view-flow-answer', async (event) => {
 
 ## Источник
 
-- `simai/ui-view@9609c88a4e14:package/src/smart/view-flow`
+- `simai/ui-view@2cc3a6afbc95:package/src/smart/view-flow`
 
 ## См. также
 
