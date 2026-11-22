@@ -936,7 +936,7 @@ class SfDataView extends DataViewElement {
             // showed, then cleared by its new result, says «none marked» for
             // rows that are its marks.
             const coming = this._marksOf?.[marksKind(toTag)];
-            this._ownHeld = coming && coming.key === this._markKey() ? [...coming.ids.values()] : null;
+            this._ownHeld = coming && coming.key === this._markKey() && coming.ids.size ? [...coming.ids.values()] : null;
             this._ownHeldSequence = this.sequence;
             const all = Boolean(this._allMarkedOf?.[marksKind(toTag)]);
             if (Boolean(this.pagination?.actionForAll) !== all) this.pagination?.setState?.({actionForAll: all});
@@ -1069,13 +1069,23 @@ class SfDataView extends DataViewElement {
         if (this._bulkBar || this._bulkBand) this._renderBulkBand();
         // What the person marked in this kind, on this page and others.
         const ids = [...new Set([...(this._ownHeld ?? []), ...this.markedIds].map(String))];
-        const allMarked = Boolean(this.pagination?.actionForAll);
         const tag = this._layoutTag();
+        // Once the switch's query answered, what was held is the kind's marks
+        // again (a table drawn with the other kind's records, then cleared by
+        // its new result, took them for unmarked), and its «Выбраны все N».
+        if (this._ownHeld && this.pending === null && this.sequence > (this._ownHeldSequence ?? 0)) {
+            const held = this._ownHeld;
+            this._ownHeld = null;
+            if (held.length) this._noteMarks([], held);
+            const all = Boolean(this._allMarkedOf?.[marksKind(tag)]);
+            if (Boolean(this.pagination?.actionForAll) !== all) this.pagination?.setState?.({actionForAll: all});
+            this.pagination?.setState?.({selectedCount: this.markedIds.length});
+        }
+        const allMarked = Boolean(this.pagination?.actionForAll);
         // One bar: the list's stands for the cards (owner, 2026-11-22), with
         // marks or without.
         if (tag === "sf-view-cards") this.cards?.setAttribute?.("bulk-bar", "false");
         if (!ids.length && !(allMarked && tag === "sf-view-cards")) return;
-        const answered = this.pending === null && this.sequence > (this._ownHeldSequence ?? 0);
         if (tag === "sf-view-board") {
             const board = this.board;
             if (!board || !this.boardLanes?.length) return;
@@ -1103,10 +1113,6 @@ class SfDataView extends DataViewElement {
             const marked = new Set((table.getSelectedRecordIds?.() ?? []).map(String));
             for (const id of ids) if (shown.has(id) && !marked.has(id)) table.applyRowSelection(id, true);
         }
-        // Once the switch's query answered, what was held is the kind's
-        // marks again (a clear on the way took them for unmarked).
-        if (answered && this._ownHeld?.length) this._noteMarks([], this._ownHeld);
-        if (answered) this._ownHeld = null;
     }
 
     // What the person changed in «Настроить вид» for a board, the cards or
@@ -4785,7 +4791,10 @@ class SfDataView extends DataViewElement {
         if (event.type === "sf-view-table-select") {
             // Rows set again with their marks held (LV4-21): the table's own
             // clear is not the person's.
-            if (this._holdMarks) return;
+            // While a switch back to the table waits for its own answer, the
+            // table's marks are the ones held for it (C413), not what a table
+            // drawn with the other kind's records says.
+            if (this._holdMarks || this._ownHeld) return;
             // The rows the table holds now: their marks are what it says,
             // the marks of other pages stay (LV2-2).
             // The records the view gave it, not its own rows: a table answering a

@@ -496,14 +496,12 @@ try {
       // «⋯» on a phone: it is chosen there, by real clicks too.
       if (await pick.count()) await pick.click({timeout: 5000}).catch((error) => second.errors.push(`all: ${error.message.slice(0, 80)}`));
       else {
-        const folds = second.page.locator('#v sf-bulk-actions button').filter({hasText: /more_horiz/u}).filter({visible: true});
-        let chosen = false;
-        for (let at = 0; at < await folds.count() && !chosen; at += 1) {
-          await folds.nth(at).click({timeout: 5000}).catch(() => {});
-          await second.page.waitForTimeout(300);
-          const item = second.page.getByRole('menuitem', {name: /Выбрать все/u}).filter({visible: true}).first();
-          if (await item.count()) { await item.click({timeout: 5000}).catch(() => {}); chosen = true; } else await second.page.keyboard.press('Escape');
-        }
+        // C309 (1): the folded offer is the first row of the bar's own «⋯».
+        await second.page.locator('#v sf-bulk-actions .sf-bulk-actions__more > button').first().click({timeout: 5000}).catch(() => {});
+        await second.page.waitForTimeout(400);
+        const item = second.page.getByText(/Выбрать все/u).filter({visible: true}).first();
+        const chosen = Boolean(await item.count());
+        if (chosen) await item.click({timeout: 5000}).catch((error) => second.errors.push(`all: ${error.message.slice(0, 80)}`));
         if (!chosen) second.errors.push('all: «Выбрать все» neither on the bar nor in its «⋯»');
       }
       await second.page.waitForTimeout(400);
