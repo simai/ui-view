@@ -33,7 +33,10 @@ test('each presentation keeps its own marks over a switch (C413, view round 15m)
   assert.match(view, /const marksKind = \(tag\) => /u);
   assert.match(view, /get _marks\(\) \{\n {8}return this\._marksOf\?\.\[marksKind\(this\._layoutTag\(\)\)\] \?\? null;/u);
   assert.match(view, /this\._noteMarks\(\[\.\.\.this\._drawnIds\(fromTag\)\], marked\);/u);
-  assert.match(view, /const ids = \[\.\.\.new Set\(this\.markedIds\.map\(String\)\)\];/u);
+  assert.match(view, /const ids = \[\.\.\.new Set\(\[\.\.\.\(this\._ownHeld \?\? \[\]\), \.\.\.this\.markedIds\]\.map\(String\)\)\];/u);
+  // The incoming kind's marks are held over the switch's own answer; the
+  // table's select events wait for them.
+  assert.match(view, /if \(this\._holdMarks \|\| this\._ownHeld\) return;/u);
   assert.match(view, /board\.lanes = this\.boardLanes \?\? \[\];\n {12}this\._applyOwnMarks\(\);/u);
 });
 
