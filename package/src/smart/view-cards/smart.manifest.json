@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-cards",
-  "version": "1.2.0",
+  "version": "1.4.0",
   "title": "Cards",
   "summary": "The cards layout of the view set: records as cards in a grid whose columns follow its width, a cover the layout draws, a title and up to four fields in the «Кратко» place; «Показать ещё» appends the next page. sf-view layout=\"cards\" draws it where the author turned it on.",
   "kind": "smart",
@@ -108,6 +108,21 @@
         "default": true,
         "description": "false when the host does not count: «Показано N» without «из M»."
       },
+      "keep-selection": {
+        "type": "boolean",
+        "default": false,
+        "description": "The marks of records not on screen stay (sf-view sets it: the marks hold across pages and display kinds, C295, C298; view round 14 LV2-2): selected may name records of other pages, and the bar counts every mark."
+      },
+      "all-selected": {
+        "type": "boolean",
+        "default": false,
+        "description": "Every record under the filter is marked (the bar's «Выбрать все N», or «Выбраны все N» carried from the table, LV2-7): every card is drawn marked, the bar says the total, an action asks scope all; unmarking one card ends it."
+      },
+      "bulk-bar": {
+        "type": "boolean",
+        "default": true,
+        "description": "Whether the cards draw their own selection bar. sf-view sets it false: the list's bar stands for the cards, so a switch from the table shows one bar, not two (owner, 2026-11-22; view round 14)."
+      },
       "current": {
         "type": "string",
         "default": "",
@@ -141,21 +156,6 @@
         "type": "array",
         "default": [],
         "description": "The ids marked."
-      },
-      "keep-selection": {
-        "type": "boolean",
-        "default": false,
-        "description": "The marks of records not on screen stay (sf-view sets it: the marks hold across pages and display kinds, C295, C298; view round 14 LV2-2): selected may name records of other pages, and the bar counts every mark."
-      },
-      "all-selected": {
-        "type": "boolean",
-        "default": false,
-        "description": "Every record under the filter is marked (the bar's «Выбрать все N», or «Выбраны все N» carried from the table, LV2-7): every card is drawn marked, the bar says the total, an action asks scope all; unmarking one card ends it."
-      },
-      "bulk-bar": {
-        "type": "boolean",
-        "default": true,
-        "description": "Whether the cards draw their own selection bar; sf-view sets it false, its own bar stands for the cards (one bar, owner 2026-11-22)."
       },
       "empty-context": {
         "type": "object",
@@ -230,7 +230,8 @@
       "payload": {
         "type": "object",
         "required": [
-          "ids"
+          "ids",
+          "all"
         ],
         "properties": {
           "ids": {
@@ -491,9 +492,10 @@
       },
       {
         "from": "1.1.0",
-        "to": "1.2.0",
+        "to": "1.4.0",
         "changes": [
-          "keep-selection and all-selected (LV2-2, LV2-7), select carries all, apply scope all"
+          "keep-selection and all-selected (LV2-2, LV2-7), select carries all, apply scope all; bulk-bar and selectAll(on): one bar under sf-view",
+          "LV4-16 label at the value's size"
         ]
       }
     ]
@@ -528,7 +530,7 @@
       },
       {
         "path": "src/smart/view-cards/docs.md",
-        "sha256": "931c62ede15dc86648ee025415bcccffd7fa62359ee35dc00f37a4d4bccf7642"
+        "sha256": "553ca9cbaa931a87e2100c70ea5031911586e5f55bfa00c9d88047ac3d69a39e"
       }
     ],
     "generated_runtime": []

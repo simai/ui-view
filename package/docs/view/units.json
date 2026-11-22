@@ -5,7 +5,7 @@
   "entries": [
     {
       "unit": "smart.view",
-      "version": "1.33.0",
+      "version": "1.35.0",
       "recorded_on": "2026-11-22",
       "change": "minor",
       "consumer": "Nothing to change for a host; openCustomize() now opens «Вид». The list look is fixed (owner decision C404, 2026-11-21): the search framed, «Создать» and the data menu «⋯» (more_horiz, C407) on, the presentation strip framed with «Колонки» (a table) and «Вид» at its end; a search that does not fit takes its own full-width row. The footer is the table's last band: the range at the start, the page numbers centred, «По N» at the end, «Показать ещё» under the last row. «Вид» is SIMAI Framework sf-settings in its drill look, each row applied at once, with each display kind's own rows (C405): the table density, one line, lines between columns, «Подгрузка» and row actions; the board's lane field, empty lanes and card fields; the cards' size, field labels, «Подгрузка» (new, DEV on round 13: D1 for the cards, layouts.cards.paging) and card fields; the calendar's date and colour fields. «Настроить вид» and its «Для всех моих списков» row are gone: the person's look holds for every list of the same kind (C408; the general preference sf-view/* for the cards' and the board's own rows, sf-table/* for the table's). The table's gear above «≡» is always drawn and opens the column window, under the list head too (C406). The marks stay across pages and display kinds (LV2-2, C295, C298): a bulk action takes every mark; «Выбраны все N» carried from the table marks every card (LV2-7).  The data menu «⋯» has a look of its own, the view's head.menu outline (the default, the height and frame of the search and «Создать»), tonal or ghost (LV3-9). Saved filter-set rows have «⋯» (LV3-23). One bulk bar: under sf-view the cards draw none (bulk-bar false) and the list's bar counts their marks; after a switch to the cards their page row stays (VR13-1). LV4-2: the head observes each of its parts once (a ResizeObserver loop ran ~57 times a second). LV4-3: bulkActions = [] takes the boxes, the bar and the marks away, and the actions the view wrote on its page row. LV4-7: a saved filter set's marks and «⋯» stand at the row's end, icons of the row's size, and the filter window stays open after an action from «⋯». LV4-14: «Фильтр», the chips and «Очистить» one gap apart (C105). RV4-12: a list without its head is auto too (a table where there is room, rows on a phone); it was a table, squeezed into a phone. LV4-21: the marks stay when the same rows are set again (a part switched, the host port or a setting changed); the table's own clear as it takes rows is not heard as the person's. LV4-24: the search is outlined (bordered, as 1.10.1 drew it; 1.11.0 filled it), the same frame as «⋯» and «Создать». LV4-25: on a phone the chip row scrolls with no scrollbar drawn under it.",
@@ -275,10 +275,10 @@
     },
     {
       "unit": "smart.view-table",
-      "version": "1.32.0",
+      "version": "1.34.0",
       "recorded_on": "2026-11-22",
       "change": "minor",
-      "consumer": "Nothing to change for a host. The gear above «≡» opens the column window; under sf-view's list head it holds the columns only (data-sf-columns-only, C406). openColumnSettings(anchor) opens the same window from elsewhere («Колонки» of the list head). The look the person sets (density, one line, lines) holds for every table (C408): setTableView keeps it in the general preference by default, the «Для всех моих списков» row is gone; view-change says everywhere.  «На телефоне» in the column window: the person chooses the fields a record shows as a phone row (kept for this table; columns[].list and list-fields stay the host's defaults, LV3-11). A fact column draws its plain values as its type in a table cell; only a fact with a status or a colour is a badge (LV3-12). A phone row formats its values by the column's type, shows every figure one under another and the due date whole (LV3-13), and the state's word for every state (LV3-24). RV4-2: with nothing marked, the row menu «≡» acts on its row and marks nothing (it marked the row and put up «Выбрано 1»); with other rows marked C164 (3) holds. LV4-22: the head's label stands on its column's text line (it stood 1 px inside, by the head's transparent borders). A fact column's worded values (a choice, a status word) stay badges; numbers and dates draw as their type. A table with no preference key keeps its look for the session too, so «Текст в одну строку» holds where the page has no storage. A resource list with quick actions keeps C31 on a narrow width: of its facts only the most worrying stays (data-sf-quick-list); a record list shows every figure (LV3-13).",
+      "consumer": "Nothing to change for a host. The gear above «≡» opens the column window; under sf-view's list head it holds the columns only (data-sf-columns-only, C406). openColumnSettings(anchor) opens the same window from elsewhere («Колонки» of the list head). The look the person sets (density, one line, lines) holds for every table (C408): setTableView keeps it in the general preference by default, the «Для всех моих списков» row is gone; view-change says everywhere.  «На телефоне» in the column window: the person chooses the fields a record shows as a phone row (kept for this table; columns[].list and list-fields stay the host's defaults, LV3-11). A fact column draws its plain values as its type in a table cell; only a fact with a status or a colour is a badge (LV3-12). A phone row formats its values by the column's type, shows every figure one under another and the due date whole (LV3-13), and the state's word for every state (LV3-24). RV4-2: with nothing marked, the row menu «≡» acts on its row and marks nothing (it marked the row and put up «Выбрано 1»); with other rows marked C164 (3) holds. LV4-22: the head's label stands on its column's text line (it stood 1 px inside, by the head's transparent borders). A fact column's worded values (a choice, a status word) stay badges; numbers and dates draw as their type. A table with no preference key keeps its look for the session too, so «Текст в одну строку» holds where the page has no storage. A resource list with quick actions keeps C31 on a narrow width: of its facts only the most worrying stays (data-sf-quick-list); a record list shows every figure (LV3-13). A list without row actions draws no «≡» in the gear column (rowMenuHasUse); the gear stays in its head (C406).",
       "summary": "C406 column window from the gear and openColumnSettings, C408 the look kept for every table by default LV3-11 phone fields, LV3-12 plain facts in cells, LV3-13 typed phone row figures, LV3-24 state word RV4-2 the row menu marks nothing when nothing is marked LV4-22 head label on the text line",
       "evidence": "control/evidence/2026-11-22-view-r14/README.md"
     },
@@ -527,7 +527,7 @@
     },
     {
       "unit": "smart.view-properties",
-      "version": "1.27.0",
+      "version": "1.29.0",
       "recorded_on": "2026-11-22",
       "change": "minor",
       "consumer": "Nothing to change for a host. Sections when the column does not fit (owner decision C403, 2026-11-21): a side panel draws a narrow rail of the section icons and names at the start; when the fields beside it would drop below 20rem, the panel turns into the section list, each section opening as a level with «←», as on a phone (C386). The interim tabs of C399 are gone from every side panel (sections-as tabs still draws tabs). A choice drawn as its badge sits on the label's baseline (DEV on round 13: it was 1 px above). LV4-12: a block's title stands a rung above its fields (16 over 14, 20 over 16).",
@@ -815,7 +815,7 @@
     },
     {
       "unit": "smart.view-board",
-      "version": "1.1.6",
+      "version": "1.2.1",
       "recorded_on": "2026-11-22",
       "change": "patch",
       "consumer": "Nothing to change for a host. The card's box and «⋯» stand on the title's first line (LV3-16: «⋯» was 6 px below it). RV4-11: the card is a grid of the box, the title and «⋯»; the fields stand under the title (the hidden box pushed the title 32 px right of the fields).",
@@ -887,7 +887,7 @@
     },
     {
       "unit": "smart.view-cards",
-      "version": "1.2.0",
+      "version": "1.4.0",
       "recorded_on": "2026-11-22",
       "change": "minor",
       "consumer": "Nothing to change for a host. New settings keep-selection (marks of records not on screen stay; sf-view sets it, LV2-2) and all-selected (every record under the filter is marked: the cards draw marked, the bar says the total, an action asks scope all; LV2-7). The select event carries all while «Выбраны все N» holds. New setting bulk-bar (default true): false draws no bar of the cards; sf-view sets it and its own bar stands for the cards, so a switch from the table shows one bar (owner, 2026-11-22). New method selectAll(on). LV4-16: a field's label is its value's size (16 at size 1, 14 at 1/2).",

@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view",
-  "version": "1.33.0",
+  "version": "1.35.0",
   "title": "Data view",
   "summary": "Host-driven data view that composes toolbar, content and pagination around a separate data port.",
   "kind": "composite",
@@ -1991,7 +1991,7 @@
       },
       {
         "from": "1.32.0",
-        "to": "1.33.0",
+        "to": "1.35.0",
         "changes": [
           "C404 fixed list look and footer grid, C405 «Вид» as the sf-settings drill menu with per-kind rows, C406 the gear always, C407 more_horiz data menu, C408 the look for every list of the kind, LV2-2 marks across pages and kinds, LV2-7 «Выбраны все N» to the cards, D1 paging for the cards",
           "LV3-9 head.menu, LV3-23 saved sets «⋯»",
@@ -2017,7 +2017,7 @@
       },
       {
         "path": "src/smart/view/docs.md",
-        "sha256": "fd45ce1d335c093c60e09426a227e1b9182dbcf8c2c3ee05724da4bde7047254"
+        "sha256": "3bf5ab13b0db947c9067909446ba29fb1b2d1cef9e4e4783cc18863b555efb7f"
       },
       {
         "path": "tests/fixtures/data-view-composite-lab.html",

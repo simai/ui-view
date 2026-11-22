@@ -3720,6 +3720,15 @@ class SfTable extends TableElement {
         return !(column.colWidth ?? column.width ?? column.size ?? column.min_width ?? column.minWidth);
     }
 
+    // Whether a row's «≡» opens anything: the row actions there are (the
+    // gear column stays for the gear under C406; a row of a list without
+    // actions draws no «≡» in it, view round 14).
+    rowMenuHasUse(props = this.getPropsContext()) {
+        if (props.rowReorder === true) return true;
+        if (!props.actions || (!props.rowActions && this.hasAttribute?.("data-sf-row-menu-off"))) return false;
+        return (this.ACTIONS_SETTINGS_ROW ?? []).length > 0;
+    }
+
     // The settings column carries two things: the gear in its head, which
     // opens the column settings (settings-menu), and the ≡ in each row, which
     // opens the row's menu of actions. With neither -- no column settings, no
@@ -8125,6 +8134,7 @@ class SfTable extends TableElement {
         }
 
         if (column.key === "settings") {
+            if (!column.rowComponent && !this.rowMenuHasUse()) return null;
             return this.createRowComponentCell(column.rowComponent || {
                 type: "button-icon",
                 props: {

@@ -301,14 +301,14 @@ receives.
   the window). The whole screen and a card
   in place keep the column wherever its tabs stay vertical; where they fold
   (a narrow box), the card lays tabs on top.
-- Sections when the column does not fit (owner decision C403, since 1.27.0):
+- Sections when the column does not fit (owner decision C403, since 1.29.0):
   a side panel with its sections on the left draws them as a narrow rail of
   the section icons and names (sf-menu, at most 10rem) where the column
   would not fit; when the fields beside the rail would drop below 20rem, the
   panel becomes the section list, each section opening as a level with «←»,
   as on a phone (C386). The interim tabs of C399 are gone from every side
   panel; `sections-as="tabs"` still draws tabs.
-- A choice drawn as its badge sits on its label's baseline (since 1.27.0; it
+- A choice drawn as its badge sits on its label's baseline (since 1.29.0; it
   was 1 px above it).
 - The panel is drawn at a step of its own width ladder (C396): `panel-size`
   1/2, 1 and 2 are the text-measure steps 44, 52 and 64 (N times half the

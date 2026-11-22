@@ -1,8 +1,8 @@
 {
   "schema_version": 2,
   "id": "smart.view-board",
-  "version": "1.1.6",
-  "title": "Board",
+  "version": "1.2.1",
+  "title": "Kanban",
   "summary": "The board layout of the view set: lanes by one field, cards with up to four fields in the «Кратко» place, a move is a change of that field the host settles. sf-view layout=\"board\" draws it over the lane window.",
   "kind": "smart",
   "reuse_mode": "whole",
@@ -88,11 +88,6 @@
         "default": false,
         "description": "A sort is on in the view: manual reorder inside a lane is off (C304 (2))."
       },
-      "sums-pending": {
-        "type": "boolean",
-        "default": false,
-        "description": "The sum line of each lane head is held empty until setLaneTotals brings the sums: for a page that computes them after the cards. sf-view does not set it: the sums come with the cards (C304)."
-      },
       "selectable": {
         "type": "boolean",
         "default": true,
@@ -107,6 +102,11 @@
         "type": "boolean",
         "default": true,
         "description": "Moves are offered; false refuses each with «Нет права менять»."
+      },
+      "sums-pending": {
+        "type": "boolean",
+        "default": false,
+        "description": "The sum line of each lane head is held empty until setLaneTotals brings the sums: for a page that computes them after the cards. sf-view does not set it: the sums come with the cards (C304)."
       },
       "aria-label": {
         "type": "string",
@@ -226,11 +226,19 @@
       "summary": "The lanes' totals the host answered after the cards ([{value, totals}], sums per currency); cards and cursors stay.",
       "arguments": [
         {
-          "name": "lanes",
-          "type": "array",
+          "name": "args",
+          "type": "object",
           "required": true,
           "schema": {
-            "type": "array"
+            "type": "object",
+            "properties": {
+              "lanes": {
+                "type": "array"
+              }
+            },
+            "required": [
+              "lanes"
+            ]
           }
         }
       ],
@@ -552,9 +560,10 @@
       },
       {
         "from": "1.1.5",
-        "to": "1.1.6",
+        "to": "1.2.1",
         "changes": [
-          "LV3-16 box and «⋯» on the title's first line"
+          "LV3-16 box and «⋯» on the title's first line",
+          "RV4-11 title and fields share one start"
         ]
       }
     ]

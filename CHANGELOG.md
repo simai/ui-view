@@ -19,15 +19,16 @@ up). Each component.json says the same under `x-decisions`
 ## Unreleased — view round 14
 
 View round 14 (round/view-r14, from `round/view-r13` ccea5c6, with `main` 308b3be (the view 1.11.0 release) merged), candidate
-1.12.0 over the same pair `ui-b654460cad2a`: the owner decisions C403-C408
+1.14.0 over the same pair `ui-b654460cad2a`: the owner decisions C403-C408
 (DEV msg-3ed3de7b), the list study v2 returns LV2-2 and LV2-7
 (msg-04ef4018), DEV's answers on round 13 (the cards' «Подгрузка», the
 record's badge row), the owner's list review v3 (msg-2733819c: LV3-9, 11, 12,
 13, 16, 20, 21, 23, 24) and the round 13 acceptance returns VR13-1 and VR13-2
-with the owner's complaints of 2026-11-22. Numbers are above every branch of
-this set and of ui-pro.
+with the owner's complaints of 2026-11-22, the list study v4 returns (LV4,
+RV4). Numbers are above every branch of this set and of ui-pro, round/view-modular-1
+(a9f1bef) included.
 
-- `sf-view` 1.33.0. C404 the fixed list look (search framed, «Создать» and
+- `sf-view` 1.35.0. C404 the fixed list look (search framed, «Создать» and
   the data menu on, the presentation strip framed with «Колонки» and «Вид»,
   the footer the table's last band: range, pages centred, «По N» at the end,
   «Показать ещё» under the last row; a search that does not fit takes its own
@@ -39,25 +40,37 @@ this set and of ui-pro.
   marks hold across pages and kinds; LV2-7 «Выбраны все N» reaches the cards.
   One bulk bar: under sf-view the list's bar stands for the table and the
   cards, the board keeps its own (it moves records) and the list's hides
-  there. VR13-1: the cards keep the page row after a click switch.
-- `sf-view-table` 1.32.0. C406, LV3-21 the gear above «≡» is always there and
+  there. VR13-1: the cards keep the page row after a click switch. LV4-2 the
+  head observes its parts once (no ResizeObserver loop); LV4-3 an emptied
+  `bulkActions` clears the marks and the bar; LV4-7 a saved set's marks and
+  «⋯» at the row end, the window kept open; LV4-14 one gap between the chips;
+  LV4-21 marks kept across part switches; LV4-24 the search outlined again
+  (1.11.0 filled it); LV4-25 the phone chip row scrolls with no track drawn;
+  RV4-12 at 390 with the head off the rows are phone rows, not a squeezed table.
+- `sf-view-table` 1.34.0. C406, LV3-21 the gear above «≡» is always there and
   opens the same window as «Колонки». LV3-20 no «Просторно», no «Для всех моих
   таблиц». LV3-11 «На телефоне» switches in the columns window
   (`phoneFields`); LV3-12 the phone row's roles no longer change the desktop
   table; LV3-13 the phone row formats its values by type and shows every fact
   (the due date fits); LV3-24 the phone status label for every status.
-- `sf-view-cards` 1.2.0. `keep-selection`, `all-selected`, `bulk-bar` and
+  RV4-2 the row menu marks nothing when nothing is marked; LV4-22 the head
+  labels on their column's text line. A list without row actions draws no
+  «≡» in the gear column; a resource list with quick actions keeps only its
+  most worrying fact on a narrow width (C31); a keyless table keeps its look
+  for the session.
+- `sf-view-cards` 1.4.0. `keep-selection`, `all-selected`, `bulk-bar` and
   `selectAll(on)`: the marks of other pages, every record under the filter,
-  and no bar of their own under sf-view.
-- `sf-view-properties` 1.27.0. C403 a side panel whose fields would keep less
+  and no bar of their own under sf-view. LV4-16 a field's label is 16 at size 1.
+- `sf-view-properties` 1.29.0. C403 a side panel whose fields would keep less
   than 20rem beside the sections shows a rail of icons and names, below that
   the section list opening as a level with «←»; the interim tabs of C399 are
   gone. The full screen's section column fills its 12rem (was 99 px).
   VR13-2: «Изменить» on the full screen keeps the two columns of reading, each
   label on its axis (label x 0, was −403). The badge row of the record head
-  sits on the line (1 px).
-- `sf-view-board` 1.1.6. LV3-16 the card's box, title line and «⋯» on one
-  line.
+  sits on the line (1 px). LV4-12 the record drawer keeps the rail on the
+  left; a block title is 16 at size 1/2 and 20 at size 1.
+- `sf-view-board` 1.2.1. LV3-16 the card's box, title line and «⋯» on one
+  line; RV4-11 the title on the fields' line, «⋯» on it.
 - C402: the ink of «не заполнено» is unchanged (a SIMAI Framework token
   later); measured contrasts are in the evidence.
 

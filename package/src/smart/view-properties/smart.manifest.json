@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-properties",
-  "version": "1.27.0",
+  "version": "1.29.0",
   "title": "Property view",
   "summary": "One object's fields shown as sections, groups and fields, each drawn by the per-type field renderer set, behind a separate host port. A group is edited and saved as one revision by the button, and a reference field is picked from the host's own candidates a page at a time. The pair to the data view: that one is a set of records, this one is a single object.",
   "kind": "composite",
@@ -2043,7 +2043,7 @@
       },
       {
         "from": "1.26.0",
-        "to": "1.27.0",
+        "to": "1.29.0",
         "changes": [
           "C403 section rail and level fallback under 20rem, the interim tabs of C399 gone, the badge row on the label's baseline",
           "LV4-12 block title a rung up"
@@ -2117,7 +2117,7 @@
       },
       {
         "path": "src/smart/view-properties/docs.md",
-        "sha256": "d3ca448a2999c96c6e4a2ce4399d5c592b22f2164a41c41cb5467058f35188ca"
+        "sha256": "c3e05dbbb66e57d1e1506145588db0ad28136a250a9ce6b5feefe7047eb9661d"
       }
     ],
     "generated_runtime": []
