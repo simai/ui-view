@@ -14,7 +14,10 @@
 #   4. registry scripts/check-registry.mjs: the passport against the registry at main
 #   5. manifest scripts/run-manifest-probes.mjs: every probe.json, real Loader
 #   6. browser scripts/run-browser-probes.mjs: tests/browser/*.browser.mjs
-#   7. paint   scripts/run-first-paint.mjs check and gate (1280 and 390 px)
+#   7. paint   scripts/run-first-paint.mjs check and gate (1280 and 390 px), and
+#              scripts/run-first-paint-slow.mjs: the same still first paint on a
+#              slow line (300 ms, 750 kbit/s; table, kanban, cards, calendar,
+#              1440 and 390, 3 runs; MOD1-1)
 #
 # The free side is the distr of the released pair whose source the lock pins,
 # taken from the ui checkout's git objects (never its working tree). Sibling
@@ -109,6 +112,7 @@ node "$here/scripts/run-browser-probes.mjs" "$free" "$output" $sets > "$logs/bro
 step "first paint"
 node "$here/scripts/run-first-paint.mjs" check "$free" "$output" > "$logs/first-paint-check.log" 2>&1
 node "$here/scripts/run-first-paint.mjs" gate "$free" "$output" > "$logs/first-paint-gate.log" 2>&1
+node "$here/scripts/run-first-paint-slow.mjs" "$free" "$output" --json "$logs/first-paint-slow.json" > "$logs/first-paint-slow.log" 2>&1
 
 node - "$workspace" "$revision" "$lock" <<'NODE'
 const [workspace, revision, lock] = process.argv.slice(2);
@@ -121,16 +125,18 @@ const browser = JSON.parse(read('browser.json'));
 const manifest = lastJson(read('manifest.log'));
 const paint = lastJson(read('first-paint-gate.log'));
 const bundles = JSON.parse(read('bundles.json'));
+const slow = JSON.parse(read('first-paint-slow.json'));
 const summary = {
   set: 'view', revision, pair: lock.replace(/^.*\/|\.lock\.json$/gu, ''),
   build: {status: build.status, byte_identical: build.products.package.byte_identical, files: build.products.package.files_count},
-  bundles: {bundles: bundles.bundles, modules: bundles.modules, duplicates: bundles.duplicates.length, over_budget: bundles.budgets.over.length,
+  bundles: {bundles: bundles.bundles, modules: bundles.modules, unparsed: bundles.unparsed.length, duplicates: bundles.duplicates.length, over_budget: bundles.budgets.over.length,
     total_js_gz: bundles.budgets.total_js_gz, total_css_gz: bundles.budgets.total_css_gz},
   receipt: JSON.parse(read('receipt.json')),
   unit, registry: JSON.parse(read('registry.json')),
   manifest: {checks: manifest.checks, passed: manifest.passed, failed: manifest.failed},
   browser: {passed: browser.passed, failed: browser.failed.length, skipped: browser.skipped.names},
-  first_paint: {measured: paint.measured, passed: paint.passed, cls: paint.cls, failed: paint.failed.length},
+  first_paint: {measured: paint.measured, passed: paint.passed, cls: paint.cls, failed: paint.failed.length,
+    slow_line: {measured: slow.measured, passed: slow.passed, cls: slow.cls, failed: slow.failed.length}},
 };
 writeFileSync(`${workspace}/gates.json`, `${JSON.stringify(summary, null, 1)}\n`);
 console.log(JSON.stringify(summary, null, 1));

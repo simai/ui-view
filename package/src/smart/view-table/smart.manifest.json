@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-table",
-  "version": "1.34.0",
+  "version": "1.35.0",
   "title": "Table",
   "summary": "Complete server-backed collection view with search, filters, table preferences, row and bulk actions, and pagination.",
   "kind": "composite",
@@ -3069,6 +3069,13 @@
           "LV3-11 phone fields, LV3-12 plain facts in cells, LV3-13 typed phone row figures, LV3-24 state word",
           "RV4-2 the row menu marks nothing when nothing is marked",
           "LV4-22 head label on the text line"
+        ]
+      },
+      {
+        "from": "1.34.0",
+        "to": "1.35.0",
+        "changes": [
+          "View round 15m: round/view-r14 and round/view-modular-1 joined into one line (merge, no rebase); the number is above both branches."
         ]
       }
     ]

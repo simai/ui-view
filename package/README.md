@@ -75,7 +75,16 @@ since the Loader does not read inside an element not yet defined; with a
 table list on the page `sf-view` is defined after the table, as before. The gate step «bundles»
 (`scripts/check-bundles.mjs`) fails a module found in two bundles and a bundle
 over its gzip budget in `bundle-budgets.json`, which also names the one
-allowed duplicate (sf-view-flow's copy of the record's field value).
+allowed duplicate (sf-view-flow's copy of the record's field value). The gate
+also fails a bundle it reads no module from (a webpack format it does not
+parse would otherwise read as «no duplicates»). Its module counts are distinct
+webpack modules of the set's code, the runtime's externals and the empty
+stylesheet stubs not counted, each module once however many bundles hold it;
+a duplicate's size is the gzip of one copy of the unminified module. On the
+build of `main` 308b3be (before the core) that is 98 modules, 29 of them in two
+or more bundles (141.5 KB); counted with no allowance, as the modular step's
+first measurement did, the flow and record copies add 7 (36 modules,
+163.3 KB).
 
 ## Connecting it
 

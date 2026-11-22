@@ -35,6 +35,10 @@ const EXTERNAL = /^\s*\(module\) \{\s*module\.exports = \(globalThis\.SF && glob
 const CSS_STUB = /^\s*\(__unused_webpack_module, __webpack_exports__, __webpack_require__\) \{\s*__webpack_require__\.r\(__webpack_exports__\);\s*\/\/ extracted by mini-css-extract-plugin\s*$/u;
 const EXPORTS = /\/\* harmony export \*\/\s+"?([A-Za-z0-9_$]+)"?:/gu;
 
+// Every module of a bundle (externals and stubs too): a bundle the gate reads
+// no module from is one it could not parse, never an empty bundle (MOD1-2).
+export const parsedCount = (file) => [...readFileSync(file, 'utf8').matchAll(MODULE)].length;
+
 export function readModules(file) {
   const text = readFileSync(file, 'utf8');
   const modules = [];
@@ -54,6 +58,10 @@ export function checkBundles(output, budgets) {
   const bundles = readdirSync(smart).filter((name) => existsSync(join(smart, name, 'js', `${name}.js`))).sort();
   const seen = new Map();
   const sizes = {};
+  // MOD1-2 (acceptance of view modular step 1): a bundle whose format the gate
+  // does not read yields no module, and a gate that reads nothing finds no
+  // duplicate; such a bundle fails the gate instead of passing it.
+  const unparsed = bundles.filter((name) => parsedCount(join(smart, name, 'js', `${name}.js`)) === 0);
   for (const name of bundles) {
     for (const module of readModules(join(smart, name, 'js', `${name}.js`))) {
       const entry = seen.get(module.id) ?? {...module, bundles: []};
@@ -97,10 +105,11 @@ export function checkBundles(output, budgets) {
   return {
     bundles: bundles.length,
     modules: seen.size,
+    unparsed,
     duplicates,
     allowed: {modules: allowed, by_bundles: allowances.map(({bundles: where, modules, gzip, max_gzip: max}) => ({bundles: where, modules, gzip, max_gzip: max})), problems: allowanceProblems},
     budgets: {over, sizes, total_js_gz: total('js_gz'), total_css_gz: total('css_gz')},
-    passed: duplicates.length === 0 && allowanceProblems.length === 0 && over.length === 0,
+    passed: bundles.length > 0 && unparsed.length === 0 && duplicates.length === 0 && allowanceProblems.length === 0 && over.length === 0,
   };
 }
 

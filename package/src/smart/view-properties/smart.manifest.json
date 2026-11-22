@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-properties",
-  "version": "1.29.0",
+  "version": "1.30.0",
   "title": "Property view",
   "summary": "One object's fields shown as sections, groups and fields, each drawn by the per-type field renderer set, behind a separate host port. A group is edited and saved as one revision by the button, and a reference field is picked from the host's own candidates a page at a time. The pair to the data view: that one is a set of records, this one is a single object.",
   "kind": "composite",
@@ -2056,6 +2056,13 @@
           "C403 section rail and level fallback under 20rem, the interim tabs of C399 gone, the badge row on the label's baseline",
           "LV4-12 block title a rung up"
         ]
+      },
+      {
+        "from": "1.29.0",
+        "to": "1.30.0",
+        "changes": [
+          "View round 15m: round/view-r14 and round/view-modular-1 joined into one line (merge, no rebase); the number is above both branches. RV4-3 docksBesideList(), dockWidth(), the over mark (data-sf-view-card-over, set by sf-view) undocks the card."
+        ]
       }
     ]
   },
@@ -2065,7 +2072,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-properties/index.js",
-        "sha256": "a9b54b07a3c97e2019b0d340e885b4a97451cc6793f9bfde51aab8ccea045b2d"
+        "sha256": "6f656e405abe98ad6829620ad1aa8d206aa0d2ee0b5604c8fa769e1524b3cd2a"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.js",

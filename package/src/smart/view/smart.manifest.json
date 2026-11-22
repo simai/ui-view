@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view",
-  "version": "1.35.0",
+  "version": "1.36.0",
   "title": "Data view",
   "summary": "Host-driven data view that composes toolbar, content and pagination around a separate data port.",
   "kind": "composite",
@@ -2008,6 +2008,13 @@
           "RV4-12 auto layout whatever the head",
           "LV4-21 marks kept over a part switch"
         ]
+      },
+      {
+        "from": "1.35.0",
+        "to": "1.36.0",
+        "changes": [
+          "View round 15m: round/view-r14 and round/view-modular-1 joined into one line (merge, no rebase); the number is above both branches. MOD1-1/MOD1-5 the first paint waits for the kind's element (table, board, cards, calendar) until defined or failed (_kindGivesUp), the switch hold too; the cards' skeleton bars one box; RV4-3 the record card over the list where docking would re-flow it (_cardGoesOver, head fitsNarrower)."
+        ]
       }
     ]
   },
@@ -2017,7 +2024,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view/index.js",
-        "sha256": "26a5d05da00ec5945d8637f6e291cb4535b8687889675d63d458529c77970f61"
+        "sha256": "6085d9e56e692af65e35a733fa3d1640f7759953c03315a1ad644511a8e6dccc"
       },
       {
         "path": "src/core/contracts/ports/simai.dataview-port/1.5.0/port.json",
@@ -2037,7 +2044,7 @@
       },
       {
         "path": "src/smart/view/js/first-paint.css",
-        "sha256": "5f259dd9282377ebf8c8a13926cd8694cfa2b1b6319803955801e6840afede2f"
+        "sha256": "116a48934114499c295a56dc34e263e70446c45bee3666bf8825093883fda32b"
       },
       {
         "path": "src/smart/view/js/cards.js",

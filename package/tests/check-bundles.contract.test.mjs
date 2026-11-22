@@ -109,3 +109,24 @@ test('the budgets name every bundle of the set and the package core', {skip}, ()
       `${entry.bundles}: an allowed duplicate is sf-view-flow's own copy, with its reason and a cap`);
   }
 });
+
+test('a bundle the gate reads no module from fails it, whatever the allowances (MOD1-2)', {skip}, async () => {
+  const checkBundles = await gate();
+  const output = lay({'view-common': [module('aaaaaaaaaaaa', code('formatThing'))], 'view-board': []});
+  // A bundle in a format the gate does not read: modules there, none parsed.
+  writeFileSync(join(output, 'smart', 'view-board', 'js', 'view-board.js'), 'var m = {"x": function () { return 1; }};\n');
+  try {
+    const result = checkBundles(output, roomy(['view-common', 'view-board']));
+    assert.equal(result.passed, false);
+    assert.deepEqual(result.unparsed, ['view-board']);
+    const none = lay({'view-board': []});
+    writeFileSync(join(none, 'smart', 'view-board', 'js', 'view-board.js'), 'var m = 1;\n');
+    try {
+      assert.equal(checkBundles(none, roomy(['view-board'])).passed, false, 'no module read anywhere and no allowance: still red');
+    } finally {
+      rmSync(none, {recursive: true, force: true});
+    }
+  } finally {
+    rmSync(output, {recursive: true, force: true});
+  }
+});

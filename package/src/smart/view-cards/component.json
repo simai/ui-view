@@ -2,8 +2,15 @@
   "$comment": "sf-view-cards, standard simai.smart-component 1.4 (vocabulary 1.1.5): the cards layout of the view set (a gallery of record cards; owner decisions C297, C306). Study: ui-control control/research/2026-11-18-cards-view. The card is .sf-card, the cover the layout's own frame, the card fields the Framework field renderers' cell output, «Показать ещё» sf-pagination in its more look, empty states sf-empty-state, menus SF.menu.open, the selection bar sf-bulk-actions where the pair has it.",
   "id": "smart.view-cards",
   "tag": "sf-view-cards",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "x-history": [
+    {
+      "version": "1.5.0",
+      "kind": "minor",
+      "recorded_on": "2026-11-22",
+      "consumer": "Nothing to change: the number follows the merge of view round 14 and view modular step 1 (a page that includes View bundles by hand adds smart/view-common/js/view-common.min.js before them, as modular step 1 says).",
+      "evidence": "control/evidence/2026-11-22-view-merge/README.md"
+    },
     {
       "version": "1.4.0",
       "kind": "minor",
@@ -646,6 +653,13 @@
           "changes": [
             "keep-selection and all-selected (LV2-2, LV2-7), select carries all, apply scope all; bulk-bar and selectAll(on): one bar under sf-view",
             "LV4-16 label at the value's size"
+          ]
+        },
+        {
+          "from": "1.4.0",
+          "to": "1.5.0",
+          "changes": [
+            "View round 15m: round/view-r14 and round/view-modular-1 joined into one line (merge, no rebase); the number is above both branches."
           ]
         }
       ]

@@ -16,6 +16,39 @@ same numbers with other content); every next set version is above them
 up). Each component.json says the same under `x-decisions`
 `pro-copy-versions`.
 
+## Unreleased — view round 15m (merge)
+
+View round 15m (round/view-r15m): `round/view-r14` 940d3fc and
+`round/view-modular-1` a9f1bef joined by a merge commit (no rebase), candidate
+1.15.0 over the same pair `ui-b654460cad2a`, with the returns of the acceptance
+of modular step 1 (MOD1-1..5) and DEV's decision on RV4-3 (msg-1f111575).
+r14's component code and modular step 1's bundling (the package core
+`smart/view-common`, the lazy table, the bundles gate and budgets) both stay.
+Every component either branch touched takes the next minor above both.
+
+- `sf-view` 1.36.0. MOD1-1, MOD1-5: the list keeps its first paint until the
+  shown kind's element (the table too) is defined and has drawn, with no time
+  bound while the Loader is bringing it (it stops when the Loader says the
+  module failed); on a slow line (300 ms, 750 kbit/s) the shift was 0.091
+  (table), 0.055 (board), 0.127 (cards) and is 0. The cards' skeleton keeps
+  one box when the Framework's skeleton sheet arrives (it shrank 4-8 px, shift
+  0.0016 / 0.0098 before modular step 1 too). A switch to a kind still on the
+  way holds its place the same way (an 8 s bound before). RV4-3: a record
+  opened in the list's card opens over the list where docking the card would
+  wrap the list head or turn the table into phone rows, and docks where the
+  head stays on one row; opening and closing a record no longer moves the
+  list (+44 px at 1440, +88 at 1280, phone rows at 1100 before).
+- `sf-view-properties` 1.30.0: `docksBesideList()` and `dockWidth()` for
+  sf-view's choice; a card sf-view opens over the list is not docked.
+- `sf-view-table` 1.35.0, `sf-view-cards` 1.5.0, `sf-view-board` 1.3.0,
+  `sf-view-calendar` 1.3.0, `sf-view-flow` 1.3.0: the merged line.
+- Gates: the first-paint step runs `scripts/run-first-paint-slow.mjs` too (the
+  slow-line case: table in markup, bare list, board, cards, calendar; 1440 and
+  390; 3 runs; shift 0). The bundles gate fails a bundle it reads no module
+  from (MOD1-2). A unit pins the shape of the SIMAI Framework internal
+  `SF.__internal.pendingTags.settled` that sf-view and sf-view-table read
+  (MOD1-3). `bundle-budgets.json` measured on the merged build (MOD1-4).
+
 ## Unreleased — view round 14
 
 View round 14 (round/view-r14, from `round/view-r13` ccea5c6, with `main` 308b3be (the view 1.11.0 release) merged), candidate
