@@ -427,7 +427,11 @@ export class ListHead {
         else zone.setAttribute("style", style);
         const open = folded ? line - menuWidth + kindsWidth : line - drawn + kindsWidth;
         const shut = folded ? line : line - drawn + menuWidth;
-        const fold = open > room + 0.5;
+        // sf-segmented folding itself says the kinds do not fit (it keeps
+        // a margin of its own); folded, they come back only with a margin
+        // of a space step, so the two never hand the line back and forth.
+        const selfFolded = !folded && kinds.hasAttribute("data-sf-folded");
+        const fold = selfFolded || (folded ? open > room - 16 : open > room + 0.5);
         if (fold !== folded) {
             this._kindsFolded = fold;
             kinds.hidden = fold;

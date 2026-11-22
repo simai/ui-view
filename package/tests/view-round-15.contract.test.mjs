@@ -23,7 +23,7 @@ const contract = JSON.parse(readFileSync(resolve(setRoot, '..', 'contracts', 'vi
 
 test('VM-1: the view strip keeps one line and folds the kinds into its menu', () => {
   assert.match(head, /\n {4}_layZone\(\) \{/u);
-  assert.match(head, /const fold = open > room \+ 0\.5;/u);
+  assert.match(head, /const fold = selfFolded \|\| \(folded \? open > room - 16 : open > room \+ 0\.5\);/u);
   // folded in the next frame, never inside the observers (VM-2)
   assert.match(head, /this\._zoneFrame = next\(\(\) => \{\n {12}this\._zoneFrame = null;\n {12}if \(this\.root\?\.isConnected\) this\._layZoneNow\(\);/u);
   // the desktop strip carries the kind menu beside the segmented kinds
