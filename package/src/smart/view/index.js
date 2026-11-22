@@ -931,6 +931,15 @@ class SfDataView extends DataViewElement {
             // «Выбраны все N» is its own too.
             this._noteMarks([...this._drawnIds(fromTag)], marked);
             (this._allMarkedOf ??= {})[marksKind(fromTag)] = Boolean(this.pagination?.actionForAll);
+            // The incoming kind's own marks are held until the switch's own
+            // query answers: a table drawn with the records the other kind
+            // showed, then cleared by its new result, says «none marked» for
+            // rows that are its marks.
+            const coming = this._marksOf?.[marksKind(toTag)];
+            this._ownHeld = coming && coming.key === this._markKey() ? [...coming.ids.values()] : null;
+            this._ownHeldSequence = this.sequence;
+            const all = Boolean(this._allMarkedOf?.[marksKind(toTag)]);
+            if (Boolean(this.pagination?.actionForAll) !== all) this.pagination?.setState?.({actionForAll: all});
             // The cards ask their own page size (24, C306) and the calendar
             // asks days, not pages: the list's page size is kept while either
             // is on screen and comes back with the table or the board (the
@@ -950,11 +959,7 @@ class SfDataView extends DataViewElement {
         this._drawnTag ??= fromTag;
         if (written === null) this.removeAttribute("layout");
         else this.setAttribute("layout", written);
-        if (fromTag !== toTag) {
-            const all = Boolean(this._allMarkedOf?.[marksKind(toTag)]);
-            if (Boolean(this.pagination?.actionForAll) !== all) this.pagination?.setState?.({actionForAll: all});
-            this.pagination?.setState?.({selectedCount: this.markedIds.length});
-        }
+        if (fromTag !== toTag) this.pagination?.setState?.({selectedCount: this.markedIds.length});
         // The list's bar follows the kind on screen at once (one bar).
         if (fromTag !== toTag && (this._bulkBar || this._bulkBand)) this._renderBulkBand();
         // refresh: false is for a caller that asks the host itself next.
@@ -1063,10 +1068,14 @@ class SfDataView extends DataViewElement {
         // own), so a switch never leaves two bars (owner, 2026-11-22).
         if (this._bulkBar || this._bulkBand) this._renderBulkBand();
         // What the person marked in this kind, on this page and others.
-        const ids = [...new Set(this.markedIds.map(String))];
+        const ids = [...new Set([...(this._ownHeld ?? []), ...this.markedIds].map(String))];
         const allMarked = Boolean(this.pagination?.actionForAll);
-        if (!ids.length && !(allMarked && this._layoutTag() === "sf-view-cards")) return;
         const tag = this._layoutTag();
+        // One bar: the list's stands for the cards (owner, 2026-11-22), with
+        // marks or without.
+        if (tag === "sf-view-cards") this.cards?.setAttribute?.("bulk-bar", "false");
+        if (!ids.length && !(allMarked && tag === "sf-view-cards")) return;
+        const answered = this.pending === null && this.sequence > (this._ownHeldSequence ?? 0);
         if (tag === "sf-view-board") {
             const board = this.board;
             if (!board || !this.boardLanes?.length) return;
@@ -1094,6 +1103,10 @@ class SfDataView extends DataViewElement {
             const marked = new Set((table.getSelectedRecordIds?.() ?? []).map(String));
             for (const id of ids) if (shown.has(id) && !marked.has(id)) table.applyRowSelection(id, true);
         }
+        // Once the switch's query answered, what was held is the kind's
+        // marks again (a clear on the way took them for unmarked).
+        if (answered && this._ownHeld?.length) this._noteMarks([], this._ownHeld);
+        if (answered) this._ownHeld = null;
     }
 
     // What the person changed in «Настроить вид» for a board, the cards or
@@ -3544,6 +3557,7 @@ class SfDataView extends DataViewElement {
     clearSelection() {
         this.table?.clearSelection?.();
         this._marks = null;
+        this._ownHeld = null;
         if (this.layoutKind === "cards") {
             const cards = this.cards;
             cards?.removeAttribute?.("all-selected");

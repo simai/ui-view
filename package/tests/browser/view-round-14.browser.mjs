@@ -491,8 +491,21 @@ try {
       await second.page.waitForTimeout(700);
       await second.page.locator(phone ? '#v sf-view-table .sf-table-list-head label.sf-checkbox' : '#v sf-view-table thead th[data-key="select"] label.sf-checkbox').first().click({timeout: 5000}).catch((error) => second.errors.push(`mark the page: ${error.message.slice(0, 80)}`));
       await second.page.waitForTimeout(300);
-      const pick = second.page.locator('#v sf-bulk-actions button, #v sf-bulk-actions [role="button"]').filter({hasText: /Выбрать все/u}).first();
-      await pick.click({timeout: 5000}).catch((error) => second.errors.push(`all: ${error.message.slice(0, 80)}`));
+      const pick = second.page.locator('#v sf-bulk-actions button, #v sf-bulk-actions [role="button"]').filter({hasText: /Выбрать все/u}).filter({visible: true}).first();
+      // The bar at size 1 (DEV msg-1fd8b681) folds «Выбрать все N» into its
+      // «⋯» on a phone: it is chosen there, by real clicks too.
+      if (await pick.count()) await pick.click({timeout: 5000}).catch((error) => second.errors.push(`all: ${error.message.slice(0, 80)}`));
+      else {
+        const folds = second.page.locator('#v sf-bulk-actions button').filter({hasText: /more_horiz/u}).filter({visible: true});
+        let chosen = false;
+        for (let at = 0; at < await folds.count() && !chosen; at += 1) {
+          await folds.nth(at).click({timeout: 5000}).catch(() => {});
+          await second.page.waitForTimeout(300);
+          const item = second.page.getByRole('menuitem', {name: /Выбрать все/u}).filter({visible: true}).first();
+          if (await item.count()) { await item.click({timeout: 5000}).catch(() => {}); chosen = true; } else await second.page.keyboard.press('Escape');
+        }
+        if (!chosen) second.errors.push('all: «Выбрать все» neither on the bar nor in its «⋯»');
+      }
       await second.page.waitForTimeout(400);
       const inTable = await marks(second.page);
       await pickKind(second.page, 'Карточки').catch((error) => second.errors.push(`cards: ${error.message.slice(0, 120)}`));
