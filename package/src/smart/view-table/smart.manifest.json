@@ -3079,7 +3079,7 @@
       },
       {
         "path": "src/smart/view-table/js/templates/default.css",
-        "sha256": "963a248aefc134ebcb0d4790174aea023f37a172a05446b3fdac487d52e9eb8f"
+        "sha256": "32402e324c863a0edbccc96b808100ace990c19a4a03b5d4ffe88f7f11cddb03"
       },
       {
         "path": "src/smart/helpers/option-badge.js",

@@ -326,6 +326,10 @@
        shadow tree where the sheet does not reach, which put an embedded list
        7px out once the table was styled. */
     --sf-table--row-text-inset: calc(var(--sf-table--cell-spacing) + var(--sf-space-1));
+    /* Where a list row's text starts (the phone rows and a narrow list):
+       its own padding, published so a related list in a record pulls its
+       list rows out by it as it pulls the table by the inset above. */
+    --sf-table--list-text-inset: var(--sf-a8);
   }
 
   /* The table's box, published so a page can hold the room of a list before
@@ -864,7 +868,7 @@
     grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: start;
     gap: var(--sf-a8);
-    padding: var(--sf-a8);
+    padding: var(--sf-table--list-text-inset, var(--sf-a8));
     border-block-end: var(--sf-px) solid var(--sf-outline-variant);
     background-color: var(--sf-table-row--background-color, var(--sf-surface-page));
   }

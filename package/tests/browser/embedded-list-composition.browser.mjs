@@ -128,15 +128,17 @@ try {
         return Math.round(range.getBoundingClientRect().left * 100) / 100;
       };
       const label = fields?.querySelector('.sf-property-view-field-label');
-      const firstRow = table?.querySelector('tbody tr');
+      // A phone width draws the list's own rows (view round 14, RV4-12: the
+      // layout is auto whatever the head), a wide one the table's.
+      const firstRow = table?.querySelector('tbody tr') || table?.querySelector('li[data-row-id]');
       const headerCells = [...(table?.querySelectorAll('thead th') || [])].map((cell) => cell.dataset.key);
       return {
         list: frame(list),
         tableParts: Object.fromEntries(['.sf-table', '.table-wrap', '.sf-table-scroll', 'table'].map((selector) => [selector, frame(table?.querySelector(selector) || (table?.matches?.(selector) ? table : null))])),
         labelLeft: textLeft(label),
-        rowTextLeft: textLeft(firstRow?.querySelector('td[data-key="number"]') || firstRow?.querySelector('td:last-child')),
+        rowTextLeft: textLeft(firstRow?.querySelector('td[data-key="number"]') || firstRow?.querySelector('td:last-child') || (firstRow?.matches('li') ? firstRow : null)),
         columns: headerCells,
-        rows: table?.querySelectorAll('tbody tr').length ?? 0,
+        rows: table?.querySelectorAll('tbody tr, li[data-row-id]').length ?? 0,
       };
     }, DUMP);
     await page.close();

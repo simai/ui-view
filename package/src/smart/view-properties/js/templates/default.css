@@ -946,6 +946,12 @@
     margin-inline-start: calc(-1 * var(--sf-table--row-text-inset, 0px));
   }
 
+  /* Drawn as the list's own rows (a phone width, view round 14 RV4-12), the
+     list is pulled out by the list row's inset instead. */
+  .sf-property-view-group-related:has(.sf-table-list-item) {
+    margin-inline-start: calc(-1 * var(--sf-table--list-text-inset, 0px));
+  }
+
   /* A record that holds nothing says so, rather than being an empty box that
      reads as something still loading. */
   .sf-property-view-empty-record {

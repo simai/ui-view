@@ -8,7 +8,7 @@
       "version": "1.29.0",
       "kind": "minor",
       "recorded_on": "2026-11-22",
-      "consumer": "Nothing to change for a host. Sections when the column does not fit (owner decision C403, 2026-11-21): a side panel draws a narrow rail of the section icons and names at the start; when the fields beside it would drop below 20rem, the panel turns into the section list, each section opening as a level with «←», as on a phone (C386). The interim tabs of C399 are gone from every side panel (sections-as tabs still draws tabs). A choice drawn as its badge sits on the label's baseline (DEV on round 13: it was 1 px above). LV4-12: a block's title stands a rung above its fields (16 over 14, 20 over 16).",
+      "consumer": "Nothing to change for a host. Sections when the column does not fit (owner decision C403, 2026-11-21): a side panel draws a narrow rail of the section icons and names at the start; when the fields beside it would drop below 20rem, the panel turns into the section list, each section opening as a level with «←», as on a phone (C386). The interim tabs of C399 are gone from every side panel (sections-as tabs still draws tabs). A choice drawn as its badge sits on the label's baseline (DEV on round 13: it was 1 px above). LV4-12: a block's title stands a rung above its fields (16 over 14, 20 over 16). A related list drawn as its own rows (a phone width) is pulled out by --sf-table--list-text-inset, so its row text stays on the field-label axis.",
       "evidence": "control/evidence/2026-11-22-view-r14/README.md"
     },
     {
