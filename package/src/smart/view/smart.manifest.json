@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view",
-  "version": "1.37.0",
+  "version": "1.37.1",
   "title": "Data view",
   "summary": "Host-driven data view that composes toolbar, content and pagination around a separate data port.",
   "kind": "composite",
@@ -2022,6 +2022,13 @@
         "to": "1.37.0",
         "changes": [
           "View round 15: VM-1 view strip one line, kinds fold into the strip's kind menu (_layZone, head.css nowrap, the zone contain: inline-size so its line does not widen the head); AN-3 the list head (index.js) and --sf-view--stuck-head (js/head.js _layStick) add --sf-admin-shell-stick (0 when absent); VL-48 a borrowed window keeps its kind on the popover's open, the name field takes the focus, Enter is the first action; C414 view.save without conditions (view-config 1.1.0); bulk bar at the head controls' size."
+        ]
+      },
+      {
+        "from": "1.37.0",
+        "to": "1.37.1",
+        "changes": [
+          "View round 16: VN-1 the desktop strip's kinds track flex-shrink 0 (head.css), so sf-segmented's own fold does not flip on the one-line strip; VN-2 the view-new window reads head-save-view-note (C414) instead of the saved filter's note."
         ]
       }
     ]

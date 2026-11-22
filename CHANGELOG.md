@@ -16,6 +16,26 @@ same numbers with other content); every next set version is above them
 up). Each component.json says the same under `x-decisions`
 `pro-copy-versions`.
 
+## Unreleased — view round 16
+
+View round 16 (round/view-r16, from round/view-r15 bc08d40, candidate 1.16.1
+over the same pair `ui-b654460cad2a`): the returns VN-1 and VN-2 of the
+acceptance of round 15. Evidence: ui-control
+`control/evidence/2026-11-23-view-r16/README.md`.
+
+- `sf-view` 1.37.1: on a desktop head the view strip keeps the display kinds'
+  track at its own width (VN-1). With a record docked beside the list at
+  1440 px the shrunk track measured less than its labels and sf-segmented
+  folded itself into a select; the select took more of the line than the
+  shrunk track and it unfolded, back and forth inside one frame («update loop
+  limit reached», a «ResizeObserver loop»). The strip folds the kinds into its
+  kind menu by its own measure, as since round 15. The cause in SIMAI
+  Framework sf-segmented is written in the evidence.
+- `sf-view` 1.37.1: «Сохранить представление» says what a view keeps — the
+  presentation, the columns, the sort order and the page size, without the
+  filter's conditions or the search (VN-2, owner decision C414; word
+  `head-save-view-note`, ru and en). The saved filter's window keeps its note.
+
 ## Unreleased — view round 15
 
 View round 15 (round/view-r15, from round/view-r15m f1f4d46, candidate

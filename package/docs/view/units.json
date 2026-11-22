@@ -5,6 +5,15 @@
   "entries": [
     {
       "unit": "smart.view",
+      "version": "1.37.1",
+      "recorded_on": "2026-11-23",
+      "change": "patch",
+      "consumer": "Nothing to change for a host. On a desktop head the view strip keeps the display kinds' track at its own width (VN-1): sf-segmented no longer folds itself into a select there and back again inside one frame when a record docks beside the list (the «update loop limit reached» warning and the «ResizeObserver loop» error at 1440 px); the strip folds the kinds into its kind menu by its own measure, as before. «Сохранить представление» says what a view keeps: the presentation, the columns, the sort order and the page size, without the filter's conditions or the search (VN-2, owner decision C414; new word head-save-view-note, ru and en); the saved filter's window keeps its own note.",
+      "summary": "View round 16: VN-1 the desktop strip's kinds track flex-shrink 0 (head.css), so sf-segmented's own fold does not flip on the one-line strip; VN-2 the view-new window reads head-save-view-note (C414) instead of the saved filter's note.",
+      "evidence": "control/evidence/2026-11-23-view-r16/README.md"
+    },
+    {
+      "unit": "smart.view",
       "version": "1.37.0",
       "recorded_on": "2026-11-22",
       "change": "minor",
