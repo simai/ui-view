@@ -1,25 +1,25 @@
 {
   "$comment": [
     "Gzip budgets of the set's bundles in bytes (min.js.gz, min.css.gz) and the duplicates the bundles gate allows, checked by scripts/check-bundles.mjs (gates.sh step «bundles»).",
-    "Each budget is the size measured on the build of view modular step 1 (round/view-modular-1, pair ui-b654460cad2a) plus 5 % and at least 1 KB, rounded up to 256 bytes; measured is that size.",
+    "Each budget is the size measured on the build of view round 15m (round/view-r15m, the merge of view round 14 and modular step 1, pair ui-b654460cad2a; MOD1-4) plus 5 % and at least 1 KB, rounded up to 256 bytes; measured is that size.",
     "A change that grows a bundle past its budget moves the budget in the same commit and says why; a bundle without a budget fails the gate.",
     "allowed_duplicates: modules found in exactly these bundles are allowed up to max_gzip in all (their gzip bytes as the unminified modules, measured the same way); any other module in two bundles fails, and so does an entry that matches nothing."
   ],
   "bundles": {
     "view": {
-      "js_gz": 59648,
+      "js_gz": 61952,
       "css_gz": 5632,
       "measured": {
-        "js_gz": 56565,
-        "css_gz": 4407
+        "js_gz": 58861,
+        "css_gz": 4557
       }
     },
     "view-board": {
       "js_gz": 13312,
-      "css_gz": 2816,
+      "css_gz": 3072,
       "measured": {
-        "js_gz": 12046,
-        "css_gz": 1691
+        "js_gz": 12052,
+        "css_gz": 1810
       }
     },
     "view-calendar": {
@@ -31,18 +31,18 @@
       }
     },
     "view-cards": {
-      "js_gz": 11264,
+      "js_gz": 11520,
       "css_gz": 2816,
       "measured": {
-        "js_gz": 10097,
-        "css_gz": 1651
+        "js_gz": 10380,
+        "css_gz": 1645
       }
     },
     "view-common": {
-      "js_gz": 56064,
+      "js_gz": 56320,
       "css_gz": 0,
       "measured": {
-        "js_gz": 53361,
+        "js_gz": 53600,
         "css_gz": 0
       }
     },
@@ -55,19 +55,19 @@
       }
     },
     "view-properties": {
-      "js_gz": 63488,
-      "css_gz": 6656,
+      "js_gz": 63744,
+      "css_gz": 6912,
       "measured": {
-        "js_gz": 60240,
-        "css_gz": 5499
+        "js_gz": 60505,
+        "css_gz": 5739
       }
     },
     "view-table": {
-      "js_gz": 71936,
+      "js_gz": 72704,
       "css_gz": 8960,
       "measured": {
-        "js_gz": 68278,
-        "css_gz": 7769
+        "js_gz": 69180,
+        "css_gz": 7873
       }
     }
   },
