@@ -1640,4 +1640,10 @@
     padding-block-end: 0;
     border-block-end: 0;
   }
+
+  /* VR14-3 (view round 15m): an edited group keeps the head it read with;
+     the head's «Изменить» stays as an unseen stand-in holding its height. */
+  .sf-property-view-group-action-kept {
+    visibility: hidden;
+  }
 }

@@ -2076,11 +2076,11 @@
       },
       {
         "path": "src/smart/view-properties/js/templates/default.js",
-        "sha256": "8e047612a94938b032fcc4fe127fb7b92c77a8a52784b9810173d6e035c7f811"
+        "sha256": "d49590c454c9848acffe58d3aa35cff071f99181a41c6606244a179ae8d9a84c"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.css",
-        "sha256": "e7de0a71fcfde4b22000ed8f269e4ee98bfd8be8c703700983154cf407f4c0f2"
+        "sha256": "cfef3bbecf133218d3fc1f629f5c4fd33878340c8c97c6d12110285f49d2db8a"
       },
       {
         "path": "src/smart/view-properties/js/conditions.js",

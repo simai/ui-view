@@ -716,9 +716,22 @@ function renderGroup(context, section, group) {
     if (editing && !configuring && form && form.group === groupKey && form.section === String(section.key ?? '')) {
         return html`
             <section class="sf-property-view-group sf-property-view-group--editing sf-property-view-group--form" data-group=${groupKey}>
-                ${titled ? html`<header class="sf-property-view-group-header flex items-cross-center justify-between gap-2">
-                    <div class="sf-property-view-group-title" role="heading" aria-level="3">${String(group.label ?? groupKey)}</div>
-                </header>` : nothing}
+                ${titled || readEdit ? html`<div class="sf-list-description-head sf-property-view-group-header">
+                    ${titled ? html`<div class="sf-list-description-title sf-property-view-group-title" role="heading" aria-level="3">${String(group.label ?? groupKey)}</div>`
+                            : html`<span class="sf-property-view-group-title-gap" aria-hidden="true"></span>`}
+                    ${readEdit
+                            // The head read had, kept edited (VR14-3, view round
+                            // 15m): its «Изменить» stays as an unseen, inert
+                            // stand-in, so the rows under it do not climb by the
+                            // head's height when the group turns into its form.
+                            ? html`<span class="sf-list-description-action sf-property-view-group-action-kept" aria-hidden="true" inert><sf-button
+                                    appearance="ghost"
+                                    size=${context.controlSize ?? nothing}
+                                    text=${context.editText}
+                                    tabindex="-1"
+                            ></sf-button></span>`
+                            : nothing}
+                </div>` : nothing}
                 <sf-form class="sf-property-view-form"
                          label=${String(group.label ?? groupKey)}
                          labels=${context.sectionsLayout === 'phone' ? 'top' : 'start'}
