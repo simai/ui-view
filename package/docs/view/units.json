@@ -530,7 +530,7 @@
       "version": "1.27.0",
       "recorded_on": "2026-11-22",
       "change": "minor",
-      "consumer": "Nothing to change for a host. Sections when the column does not fit (owner decision C403, 2026-11-21): a side panel draws a narrow rail of the section icons and names at the start; when the fields beside it would drop below 20rem, the panel turns into the section list, each section opening as a level with «←», as on a phone (C386). The interim tabs of C399 are gone from every side panel (sections-as tabs still draws tabs). A choice drawn as its badge sits on the label's baseline (DEV on round 13: it was 1 px above). LV4-12: a block's title stands a rung above its fields (16 over 14, 18 over 16).",
+      "consumer": "Nothing to change for a host. Sections when the column does not fit (owner decision C403, 2026-11-21): a side panel draws a narrow rail of the section icons and names at the start; when the fields beside it would drop below 20rem, the panel turns into the section list, each section opening as a level with «←», as on a phone (C386). The interim tabs of C399 are gone from every side panel (sections-as tabs still draws tabs). A choice drawn as its badge sits on the label's baseline (DEV on round 13: it was 1 px above). LV4-12: a block's title stands a rung above its fields (16 over 14, 20 over 16).",
       "summary": "C403 section rail and level fallback under 20rem, the interim tabs of C399 gone, the badge row on the label's baseline LV4-12 block title a rung up",
       "evidence": "control/evidence/2026-11-22-view-r14/README.md"
     },

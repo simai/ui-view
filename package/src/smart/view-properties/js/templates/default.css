@@ -1294,7 +1294,7 @@
 
   /* A block's title stands a rung above its fields (LV4-12): «Основное» was
      the fields' own 16, read as one more field. 16 over fields of 14 (size
-     1/2), 18 over 16 (size 1); compact densities move with the ladder. */
+     1/2), 20 over 16 (size 1); compact densities move with the ladder. */
   .sf-list-description--size-half .sf-property-view-group--list .sf-property-view-group-title {
     font-size: var(--sf-text-size-1);
     line-height: var(--sf-text-height-1);
