@@ -45,16 +45,23 @@ ui-pro.
 - `sf-view` 1.34.0: `cl-view-table` is a lazy relation, and the list asks for
   the current layout's element only: a list that shows the board, the cards or
   the calendar does not fetch the table; a switch to the table fetches it then.
+  A table written inside a list (`<sf-view><sf-view-table slot="content">`)
+  is still fetched at once: the Loader does not read the parts inside an
+  element that is not defined yet, so the package core asks for it
+  (`view-common/markup-table.js`), and a view whose script fails or comes late
+  leaves the table drawing on its own as before (D2).
 - `sf-view-table` 1.33.0, `sf-view-board` 1.2.0, `sf-view-cards` 1.3.0,
   `sf-view-calendar` 1.2.0, `sf-view-properties` 1.28.0, `sf-view-flow` 1.2.0:
-  their imports of the shared code go through the core. `sf-view` no longer
+  their imports of the shared code go through the core. `sf-view-table` also
+  draws alone at once when the view's module failed before the table was
+  defined (it read only the script errors after it). `sf-view` no longer
   warns of a row action without a catalogue entry before sf-view-table is
   defined (the projection is drawn again then).
 - Gates: `scripts/check-bundles.mjs` (gates.sh step «bundles», after the
   build): no module of the set in two bundles but the allowed one, and each
   bundle's min.js.gz and min.css.gz within its budget in `bundle-budgets.json`.
-- Sizes (JS + CSS gzip): the seven bundles 542.6 KB → the seven and the core
-  327.1 KB (JS 516.5 → 300.9, CSS 26.1 unchanged); a board, cards or calendar
+- Sizes (JS + CSS gzip, KB of 1024 bytes): the seven bundles 529.9 KB → the
+  seven and the core 319.4 KB (JS 504.4 → 293.9, CSS 25.5 unchanged); a board, cards or calendar
   list fetches about half the View bytes it did. The evidence has the full list
   and the single views in a browser.
 

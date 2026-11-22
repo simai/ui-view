@@ -69,7 +69,9 @@ takes them as `SF.runtimeModule("view/<module>", 1)`. Each component's rule
 relates to `cl-view-common`, so the Loader fetches it first; a page that
 includes View bundles by hand puts `smart/view-common/js/view-common.min.js`
 before them. `sf-view` relates to the table lazily: a list that shows the
-board, the cards or the calendar does not fetch it. The gate step «bundles»
+board, the cards or the calendar does not fetch it, and a table written in
+the list's markup is asked for by the core (`view-common/markup-table.js`),
+since the Loader does not read inside an element not yet defined. The gate step «bundles»
 (`scripts/check-bundles.mjs`) fails a module found in two bundles and a bundle
 over its gzip budget in `bundle-budgets.json`, which also names the one
 allowed duplicate (sf-view-flow's copy of the record's field value).
