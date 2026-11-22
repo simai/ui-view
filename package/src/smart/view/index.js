@@ -1080,6 +1080,7 @@ class SfDataView extends DataViewElement {
             const all = Boolean(this._allMarkedOf?.[marksKind(tag)]);
             if (Boolean(this.pagination?.actionForAll) !== all) this.pagination?.setState?.({actionForAll: all});
             this.pagination?.setState?.({selectedCount: this.markedIds.length});
+            if (this._bulkBar || this._bulkBand) this._renderBulkBand();
         }
         const allMarked = Boolean(this.pagination?.actionForAll);
         // One bar: the list's stands for the cards (owner, 2026-11-22), with
