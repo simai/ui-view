@@ -96,7 +96,9 @@ function lineWidth(container, search) {
 function partWidth(node) {
     if (!node || node.hidden) return 0;
     const look = globalThis.getComputedStyle?.(node);
-    if (look?.display === "none") return 0;
+    // Out of the line: not drawn, or laid over it (a folded sf-segmented
+    // keeps its buttons' group absolute beside the select it shows).
+    if (look?.display === "none" || look?.position === "absolute" || look?.position === "fixed") return 0;
     if (look?.display !== "contents") return node.getBoundingClientRect().width;
     let sum = 0;
     let count = 0;
