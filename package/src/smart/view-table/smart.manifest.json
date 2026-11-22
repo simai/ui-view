@@ -3075,11 +3075,11 @@
       },
       {
         "path": "src/smart/view-table/js/templates/default.js",
-        "sha256": "966d3b33d218f64bf0d5bb52e146910f00c1536d9dea848cf7066b704324189d"
+        "sha256": "0007620403f70b71c9236c75576a0d9b4d83211e4acdb0dd852cd649788c4268"
       },
       {
         "path": "src/smart/view-table/js/templates/default.css",
-        "sha256": "9d7e15d7fd864e2b020ffaf334e224e587f8ae1abed48403fedf87039bfd07fb"
+        "sha256": "963a248aefc134ebcb0d4790174aea023f37a172a05446b3fdac487d52e9eb8f"
       },
       {
         "path": "src/smart/helpers/option-badge.js",

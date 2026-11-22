@@ -1158,6 +1158,16 @@
       display: none;
     }
 
+    /* A resource list with quick actions keeps C31: of its facts only the
+       most worrying stays, none when all is well. */
+    :is(sf-view-table, sf-table) [data-sf-quick-list] .sf-table-resource-facts {
+      flex-direction: row;
+    }
+
+    :is(sf-view-table, sf-table) [data-sf-quick-list] .sf-table-resource-fact:not([data-worst]) {
+      display: none;
+    }
+
     :is(sf-view-table, sf-table) .sf-table-resource-fact {
       inline-size: auto;
       white-space: nowrap;

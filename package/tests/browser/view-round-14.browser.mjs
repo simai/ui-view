@@ -264,6 +264,20 @@ const chrome = (page) => page.evaluate(() => {
     search: r(one('.sf-view-head-search')),
     searchAppearance: one('.sf-view-head-search sf-input')?.getAttribute('appearance') ?? null,
     searchFramed: Boolean(one('.sf-view-head-search .sf-input--bordered')),
+    // LV4-24: the search as drawn, outlined like «⋯» and «Создать», never filled.
+    searchDrawn: (() => {
+      const field = one('.sf-view-head-search sf-input .sf-input-field');
+      if (!field) return null;
+      const style = getComputedStyle(field);
+      const alpha = (colour) => { const m = colour.match(/rgba?\(([^)]+)\)/u); if (!m) return 1; const parts = m[1].split(/[ ,/]+/u).filter(Boolean); return parts.length > 3 ? Number(parts[3]) : 1; };
+      return {fill: alpha(style.backgroundColor), border: parseFloat(style.borderTopWidth) || 0, borderInk: alpha(style.borderTopColor)};
+    })(),
+    // LV4-25: the chip row on a phone scrolls with no track drawn under it.
+    chipsBar: (() => {
+      const row = one('.sf-view-head-fields');
+      if (!row || !row.getClientRects().length) return null;
+      return {scrolls: row.scrollWidth > row.clientWidth + 1, track: row.offsetHeight - row.clientHeight - (parseFloat(getComputedStyle(row).borderTopWidth) || 0) - (parseFloat(getComputedStyle(row).borderBottomWidth) || 0), bar: getComputedStyle(row).scrollbarWidth};
+    })(),
     create: r(one('.sf-view-head-create button')), more: r(one('.sf-view-head-more button')),
     moreIcon: one('.sf-view-head-more i, .sf-view-head-more sf-icon')?.textContent.trim() ?? null, moreLook: one('.sf-view-head-more')?.getAttribute('appearance') ?? null,
     moreFrame: frame(one('.sf-view-head-more button')),
@@ -291,6 +305,8 @@ try {
       const got = await chrome(page);
       if (got.moreIcon !== 'more_horiz') failures.push({...label, item: 'C407', got: got.moreIcon, want: 'more_horiz'});
       if (got.moreLook !== 'outline' || !(got.moreFrame > 0)) failures.push({...label, item: 'LV3-9', got: {look: got.moreLook, frame: got.moreFrame}, want: 'outline with a frame'});
+      if (got.searchDrawn && (got.searchDrawn.fill > 0.01 || got.searchDrawn.border < 1 || got.searchDrawn.borderInk < 0.1)) failures.push({...label, item: 'LV4-24', got: got.searchDrawn, want: 'the search outlined, not filled'});
+      if (phone && got.chipsBar && got.chipsBar.track > 0) failures.push({...label, item: 'LV4-25', got: got.chipsBar, want: 'no scrollbar track under the chips'});
       if (!phone) {
         if (got.searchAppearance !== 'bordered' || !got.searchFramed) failures.push({...label, got: got.searchAppearance, want: 'the search framed'});
         if (!got.create || !got.more || got.more.h !== got.search?.h || got.create.h !== got.search?.h) failures.push({...label, item: 'LV3-9', got: {search: got.search, create: got.create, more: got.more}, want: '«Создать», «⋯» and the search one height'});

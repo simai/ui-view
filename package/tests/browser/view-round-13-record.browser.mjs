@@ -258,8 +258,12 @@ try {
     // With this pair's sf-tabs (no fold) a panel draws tabs and is not widened
     // (the interim); with a pair that has fold: over the list a column, docked
     // a column only while the list keeps 768.
-    const want = !got.tabsHold ? 'tabs' : !dock ? 'column' : (got.list >= 768 ? 'column' : 'tabs');
-    if (got.layout !== want) failures.push({...label, got, want});
+    // View round 14 (LV4-12): the record's section rail stands on the left
+    // in the panel too (rail, or its short level), so C399 holds as said:
+    // over the list a column, docked a column only while the list keeps 768.
+    const want = !dock ? 'column' : (got.list >= 768 ? 'column' : 'tabs');
+    const column = ['rail', 'level', 'column'].includes(got.layout);
+    if (want === 'column' ? !column : got.layout !== 'tabs') failures.push({...label, got, want});
     if (errors.length) failures.push({...label, errors});
     results.push({theme, item: 'C399', width, dock, ...got});
     await context.close();

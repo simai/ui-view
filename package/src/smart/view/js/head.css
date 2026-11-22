@@ -180,7 +180,10 @@
   overflow-x: auto;
   contain: inline-size;
   padding-block-end: var(--sf-space-1\/4);
+  /* The row scrolls by touch and wheel, with no track drawn under the chips (LV4-25). */
+  scrollbar-width: none;
 }
+.sf-view-head[data-phone] .sf-view-head-fields::-webkit-scrollbar { display: none; }
 .sf-view-head-fields[hidden] { display: none; }
 
 /* The windows' content: a popover on a desktop, a bottom sheet on the phone. */

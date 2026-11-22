@@ -1042,6 +1042,7 @@ export function renderTableTemplate(context) {
                     return keyed(`item:${component.rowsGeneration?.() ?? 0}:${row.id ?? rowIndex}`, html`
                         <li class="sf-table-list-item sf-table-resource"
                             data-sf-record=${record && menu ? '' : nothing}
+                            data-sf-quick-list=${record ? nothing : ''}
                             data-row-id=${component.getRowKey(row, rowIndex)}
                             data-selected=${row.select?.component?.props?.checked === true ? '' : nothing}
                             data-current=${component.isCursorRow(row, rowIndex) ? '' : nothing}

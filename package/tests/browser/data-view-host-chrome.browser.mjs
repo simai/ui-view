@@ -87,7 +87,9 @@ try {
       selectable: table.selectable, selectableAttribute: table.getAttribute('selectable'), settingsAttribute: table.getAttribute('settings'),
       head: [...table.querySelectorAll('thead th')].map((th) => th.dataset.key ?? th.textContent.trim()),
       boxes: table.querySelectorAll('tbody tr sf-checkbox, tbody tr input[type="checkbox"]').length,
-      menus: table.querySelectorAll('tbody td[data-key="settings"]').length,
+      // A row menu is a drawn button in the gear column (C406 keeps the
+      // column for the gear; an empty cell is no menu).
+      menus: [...table.querySelectorAll('tbody td[data-key="settings"]')].filter((cell) => [...cell.querySelectorAll('button')].some((button) => button.getClientRects().length)).length,
       overflow: scroller.scrollWidth - scroller.clientWidth,
       right: Math.round(table.getBoundingClientRect().right),
     }];

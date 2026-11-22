@@ -1996,7 +1996,7 @@
           "C404 fixed list look and footer grid, C405 «Вид» as the sf-settings drill menu with per-kind rows, C406 the gear always, C407 more_horiz data menu, C408 the look for every list of the kind, LV2-2 marks across pages and kinds, LV2-7 «Выбраны все N» to the cards, D1 paging for the cards",
           "LV3-9 head.menu, LV3-23 saved sets «⋯»",
           "one bulk bar: the list's bar stands for the cards (cards bulk-bar false), the cards keep the page row after a click switch (VR13-1)",
-          "LV4-2 head observer once, LV4-3 bulkActions [] clears, LV4-7 saved-set row end and window kept, LV4-14 one chip gap",
+          "LV4-2 head observer once, LV4-3 bulkActions [] clears, LV4-7 saved-set row end and window kept, LV4-14 one chip gap, LV4-24 the search outlined, LV4-25 no chip-row track",
           "RV4-12 auto layout whatever the head",
           "LV4-21 marks kept over a part switch"
         ]
@@ -2017,7 +2017,7 @@
       },
       {
         "path": "src/smart/view/docs.md",
-        "sha256": "ef962095be1ff7e72d7ab4b7430d673c6ed4eb4469c7d4f8ca12cb9cddb45d5d"
+        "sha256": "fd45ce1d335c093c60e09426a227e1b9182dbcf8c2c3ee05724da4bde7047254"
       },
       {
         "path": "tests/fixtures/data-view-composite-lab.html",
