@@ -8,7 +8,7 @@
       "version": "1.35.0",
       "kind": "minor",
       "recorded_on": "2026-11-22",
-      "consumer": "Nothing to change: the number follows the merge of view round 14 and view modular step 1 (a page that includes View bundles by hand adds smart/view-common/js/view-common.min.js before them, as modular step 1 says).",
+      "consumer": "Nothing to change: the number follows the merge of view round 14 and view modular step 1 (a page that includes View bundles by hand adds smart/view-common/js/view-common.min.js before them, as modular step 1 says). The row menu never changes the marks (VR14-2): with nothing marked it acts on its own row and selects nothing, with marks it acts on the marked rows; a row keeps aria-selected as its own box says. Phone rows of a list without row actions draw no «≡» (VR14-4). The column window has one «Поля» and opens from the head's «Поля» button, at the list's end, off the rows' handles (VR14-5). A phone row's label-value pairs stand on one grid, one field per line (VR14-8).",
       "evidence": "control/evidence/2026-11-22-view-merge/README.md"
     },
     {

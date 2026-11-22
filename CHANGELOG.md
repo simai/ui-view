@@ -44,6 +44,18 @@ Every component either branch touched takes the next minor above both.
   sf-view's choice; a card sf-view opens over the list is not docked.
 - `sf-view-table` 1.35.0, `sf-view-cards` 1.5.0, `sf-view-board` 1.3.0,
   `sf-view-calendar` 1.3.0, `sf-view-flow` 1.3.0: the merged line.
+- Returns of the r14 acceptance (DEV msg-afb6bff8). VR14-1: marks survive
+  table -> board -> table (the marked records a board lane had not loaded are
+  marked again). VR14-2: the row menu never changes the marks; rows keep
+  aria-selected as their box says. VR14-4: phone rows of a list without row
+  actions draw no «≡». VR14-5: one «Поля» in the column window, which opens
+  from the head's «Поля» at the list's end (it covered 20 of 20 row handles).
+  VR14-6: the footer's width mark is written in the next frame (the
+  «ResizeObserver loop» error on a record open is gone). VR14-8: phone rows'
+  label-value pairs on one grid, one field per line. VR14-3, part: an edited
+  group keeps its read head, so the first row no longer climbs 28 px; the
+  rows under a taller field (radios, 40 px fields in 48 px rows against 32 px
+  read rows) still move and wait for DEV's choice of rhythm.
 - Gates: the first-paint step runs `scripts/run-first-paint-slow.mjs` too (the
   slow-line case: table in markup, bare list, board, cards, calendar; 1440 and
   390; 3 runs; shift 0). The bundles gate fails a bundle it reads no module

@@ -44,7 +44,10 @@ test('the head switches through the view and hides the kinds it cannot draw (VR3
 test('a group named \'\' draws no head unless it has an action', () => {
   assert.match(card, /const titled = \(String\(group\.label \?\? groupKey\) !== '' \|\| Boolean\(group\.rare\)\) && !repeats;/u);
   assert.match(card, /\$\{titled \|\| readEdit \? html`<div class="sf-list-description-head sf-property-view-group-header">/u);
-  assert.match(card, /\$\{titled \? html`<header class="sf-property-view-group-header/u);
+  // VR14-3 (view round 15m): the edited group keeps the head it read with,
+  // under the same condition, its «Изменить» an unseen stand-in.
+  assert.equal(card.match(/\$\{titled \|\| readEdit \? html`<div class="sf-list-description-head sf-property-view-group-header">/gu)?.length, 2);
+  assert.match(card, /sf-property-view-group-action-kept" aria-hidden="true" inert>/u);
   assert.match(card, /\$\{titled \|\| configuring \|\| cardEdit \? html`<header class="sf-property-view-group-header/u);
 });
 

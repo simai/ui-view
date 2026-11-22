@@ -8,7 +8,7 @@
       "version": "1.30.0",
       "kind": "minor",
       "recorded_on": "2026-11-22",
-      "consumer": "Nothing to change for a host. docksBesideList() and dockWidth() tell sf-view whether and how wide the card would stand beside the list; sf-view marks the card data-sf-view-card-over where it opens it over the list instead (RV4-3), and the card is then not docked.",
+      "consumer": "Nothing to change for a host. docksBesideList() and dockWidth() tell sf-view whether and how wide the card would stand beside the list; sf-view marks the card data-sf-view-card-over where it opens it over the list instead (RV4-3), and the card is then not docked. An edited group keeps the head it read with, its «Изменить» an unseen stand-in, so the first row no longer climbs 28 px when a group turns into its form (VR14-3, part).",
       "evidence": "control/evidence/2026-11-22-view-merge/README.md"
     },
     {
