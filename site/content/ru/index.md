@@ -123,7 +123,7 @@ profile: landing
 ::::grid {columns=3 gap=4}
 :::card {variant=plain}
 ### Версия
-SIMAI View 1.10.2, кандидат выпуска; последняя выпущенная — 1.10.1 от 21 ноября 2026 года. [История изменений](/ru/guide/changes/)
+SIMAI View 1.11.0 от 22 ноября 2026 года. [История изменений](/ru/guide/changes/)
 :::
 :::card {variant=plain}
 ### Совместимость

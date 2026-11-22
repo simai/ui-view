@@ -26,14 +26,14 @@ Loader сам находит набор, загружает его правил�
 jsDelivr.
 
 <!-- release:compat -->
-Эта сборка сайта — кандидат версии 1.10.2: собрана над выпуском SIMAI Framework `ui-b654460cad2a` (npm `@simai-studio/ui@5.20261120.1816`) и работает с `core.runtime` 1.51.0 или новее. В npm последняя выпущенная версия — 1.10.1 (`view-3dc9ad31d0f4`).
+Версия 1.11.0 (выпуск `view-2cc3a6afbc95`) собрана над выпуском SIMAI Framework `ui-b654460cad2a` (npm `@simai-studio/ui@5.20261120.1816`) и работает с `core.runtime` 1.51.0 или новее.
 <!-- /release:compat -->
 
 Ссылка на выпуск закрепляет Core и набор вместе:
 
 <!-- release:cdn-pinned -->
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@simai-studio/ui@5.20261120.1816/distr/core/js/core.min.js" data-sf-sets="view@1.10.2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@simai-studio/ui@5.20261120.1816/distr/core/js/core.min.js" data-sf-sets="view@1.11.0"></script>
 ```
 <!-- /release:cdn-pinned -->
 
@@ -47,7 +47,7 @@ jsDelivr.
 <script>
   window.SF_BOOT_CONFIG = {
     packages: {
-      view: {base: '/assets/ui-view/smart', version: '1.10.2'}
+      view: {base: '/assets/ui-view/smart', version: '1.11.0'}
     }
   };
 </script>
@@ -77,7 +77,7 @@ jsDelivr.
 
 <!-- release:npm -->
 ```bash
-npm install @simai-studio/view@1.10.2 @simai-studio/ui@5.20261120.1816
+npm install @simai-studio/view@1.11.0 @simai-studio/ui@5.20261120.1816
 ```
 <!-- /release:npm -->
 
@@ -95,7 +95,7 @@ npm install @simai-studio/view@1.10.2 @simai-studio/ui@5.20261120.1816
 <!-- release:versions -->
 | Набор | Выпуск | Собран над SIMAI Framework | Нужен Core |
 |:---|:---|:---|:---|
-| 1.10.2 | кандидат, эта сборка сайта | `ui-b654460cad2a` | `core.runtime` 1.51.0 или новее |
+| 1.11.0 | `view-2cc3a6afbc95` | `ui-b654460cad2a` | `core.runtime` 1.51.0 или новее |
 | 1.10.1 | `view-3dc9ad31d0f4` | `ui-b654460cad2a` | `core.runtime` 1.51.0 или новее |
 | 1.10.0 | `view-705a90193256` | `ui-b654460cad2a` | `core.runtime` 1.51.0 или новее |
 | 1.9.0 | `view-acd69c85b6aa` | `ui-dc9fc39aeb26` | `core.runtime` 1.51.0 или новее |
