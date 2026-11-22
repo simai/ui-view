@@ -1948,6 +1948,14 @@ class SfTable extends TableElement {
                 clearTimeout(this._viewWaitTimer);
                 this._viewWaitTimer = setTimeout(() => done("failed"), VIEW_SCRIPT_RETRY_MS);
             }, {capture: true, signal: this._viewWaitAbort.signal});
+            // The view's module may have failed before this table was defined
+            // (view modular step 1: sf-view relates to the table lazily, so a
+            // table in the markup is asked for by the package core, and the
+            // view's script can err first): the Loader marks the view's tag
+            // failed for whoever waits (core pending-tags settled()), and the
+            // table draws on its own at once instead of at VIEW_WAIT_MS.
+            globalThis.SF?.__internal?.pendingTags?.settled?.(host.localName)
+                ?.then?.((how) => { if (how === "failed") done("failed"); });
         }
         return true;
     }
