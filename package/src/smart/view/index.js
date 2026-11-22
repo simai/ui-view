@@ -498,6 +498,8 @@ class SfDataView extends DataViewElement {
               margin-block-start: calc(-1 * var(--sf-data-view-gap, var(--sf-space-3)));
               padding-block: var(--sf-space-1\\/2);
             }
+            /* 8 under the rows on a phone (D1, VL-12). */
+            :host([data-sf-view-footer-narrow]) slot[name="more"]::slotted(*) { padding-block: var(--sf-space-1\\/3); }
             slot[name="more"]::slotted([hidden]) { display: none; }
             slot[name="pagination"]::slotted([data-sf-view-paging-off]) { display: none; }
             /* The parts' places in the grid are the light DOM sheet's
@@ -4179,7 +4181,8 @@ class SfDataView extends DataViewElement {
                 // a setting changed) keep their marks (LV4-21): the table
                 // clears its marks as it takes rows, and that clear was taken
                 // for the person's; it is not heard until the marks are back.
-                const reseat = !this._newResult && this.markedIds.length > 0;
+                // VL-37: a new page of the same search keeps its marks too.
+                const reseat = this.markedIds.length > 0;
                 if (reseat) this._holdMarks = (this._holdMarks ?? 0) + 1;
                 table.setRows?.(this.cappedRecords, this._newResult ? "result" : "rows");
                 this._newResult = false;

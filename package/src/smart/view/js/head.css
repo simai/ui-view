@@ -69,13 +69,10 @@
 /* One gap by role (C105 H5, LV4-14): «Фильтр», the chips and «Очистить» are
    buttons of one group, 8 apart (4 compact), as the row's own gap; the chips
    stood 4 apart with «Фильтр» 8 from the first. */
-.sf-view-head-fields {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--sf-space-1\/2) var(--sf-space-1\/3);
-  min-inline-size: 0;
-}
+/* The chips are items of the start's own line (VL-07, C404): right after
+   «Фильтр» and its bookmark, the chip gap apart, wrapping after them; as a
+   box of their own they wrapped whole onto a line under «Фильтр». */
+.sf-view-head-fields { display: contents; }
 .sf-view-head-fields > * { flex: none; }
 .sf-view-head-fields:empty { display: none; }
 /* The end keeps the search and «Create» on one line; the start gives way.
@@ -176,6 +173,10 @@
 .sf-view-head[data-phone] .sf-view-head-title { flex-wrap: nowrap; }
 .sf-view-head[data-phone] .sf-view-head-title-end { flex-wrap: nowrap; flex: none; }
 .sf-view-head[data-phone] .sf-view-head-fields {
+  display: flex;
+  align-items: center;
+  gap: var(--sf-space-1\/2) var(--sf-space-1\/3);
+  min-inline-size: 0;
   flex-wrap: nowrap;
   overflow-x: auto;
   contain: inline-size;

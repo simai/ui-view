@@ -49,6 +49,11 @@ Every component either branch touched takes the next minor above both.
   over their pages and when the list comes back to them; a switch carries
   none (the C298 / LV2-2 carry is gone, VR14-1 is replaced); «Выбраны все N»
   stays the kind's own. No view-config change: the marks are not stored.
+- Owner remarks register (DEV msg-3abb4a45): VL-07 the filter chips follow
+  «Фильтр» and its bookmark on the same line and wrap after them; VL-12
+  «Показать ещё» 8 px under the rows on a phone; VL-37 a page's marks come
+  back when the person turns back to it; VL-49 «Фильтр» names the open saved
+  filter, the default one too (C301 (2)).
 - Returns of the r14 acceptance (DEV msg-afb6bff8). VR14-2: the row menu never changes the marks; rows keep
   aria-selected as their box says. VR14-4: phone rows of a list without row
   actions draw no «≡». VR14-5: one «Поля» in the column window, which opens

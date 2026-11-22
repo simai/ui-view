@@ -621,7 +621,8 @@ export class ListHead {
         // The head row.
         const open = this.openFilter;
         const dot = this.changed ? " •" : "";
-        const filterName = open && String(open.id) !== this.defaultFilterId ? String(open.name ?? "") : "";
+        // C301 (2), VL-49: the open saved filter is named, the default one too.
+        const filterName = open ? String(open.name ?? "") : "";
         const filterText = filterName ? this.text("headFilterNamed").replace("{name}", filterName) : this.text("headFilter");
         const filterTitle = filterName ? `${filterText}${dot ? ` ${this.text("headFilterChanged")}` : ""}` : null;
         // «Filter» is outline; with conditions set it is toned (C301 (3)).
@@ -881,7 +882,8 @@ export class ListHead {
         const phone = this.mode === "phone";
         const size = esc(this.size);
         const open = this.openFilter;
-        const filterName = open && String(open.id) !== this.defaultFilterId ? String(open.name ?? "") : "";
+        // C301 (2), VL-49: the open saved filter is named, the default one too.
+        const filterName = open ? String(open.name ?? "") : "";
         const api = this.filterWindow;
         // The Framework's filter window comes with the field renderers, which
         // may load after the head: the fields are drawn again once they are in.
