@@ -318,6 +318,22 @@ export class ListHead {
         if (stacked !== root.hasAttribute("data-stacked")) root.toggleAttribute("data-stacked", stacked);
     }
 
+    // Whether the head row stays one row in a list `less` px narrower than
+    // now (RV4-3: a record card docked beside the list takes its width). False
+    // when the row is already two rows, or on a phone head.
+    fitsNarrower(less) {
+        const row = this.root?.querySelector?.(":scope > .sf-view-head-row");
+        const start = row?.querySelector(":scope > .sf-view-head-start");
+        const end = row?.querySelector(":scope > .sf-view-head-end");
+        if (this.mode !== "desktop" || !row || !start || !end || this.root.hasAttribute("data-stacked")) return false;
+        const room = contentWidth(row) - less;
+        const rem = Number.parseFloat(globalThis.getComputedStyle?.(document.documentElement)?.fontSize) || 16;
+        const gap = Number.parseFloat(globalThis.getComputedStyle?.(row)?.columnGap) || 0;
+        const startWidth = lineWidth(start, 20 * rem);
+        const need = (startWidth > 0 ? startWidth + gap : 0) + lineWidth(end, 20 * rem);
+        return room > 0 && need <= room + 0.5;
+    }
+
     // ---------- what the head knows ----------
 
     get size() { return this.view.controlSize || "1/2"; }

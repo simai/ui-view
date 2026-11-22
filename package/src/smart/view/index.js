@@ -663,6 +663,8 @@ class SfDataView extends DataViewElement {
 
     _openBeside(card, id) {
         if (!globalThis.document?.querySelector?.("[data-sf-drawer-dock-host]")) this.setAttribute("data-sf-drawer-dock-host", "");
+        // Decided as the card opens; a step to the next record keeps it.
+        if (card.getAttribute("open") !== "true") card.toggleAttribute("data-sf-view-card-over", this._cardGoesOver(card));
         this._wireCard(card);
         this._cardOpen = id;
         this.current = id;
@@ -670,6 +672,25 @@ class SfDataView extends DataViewElement {
         card.removeAttribute("hidden");
         card.setAttribute("open", "true");
         return {answer: "applied", record_id: id};
+    }
+
+    // RV4-3 (DEV msg-1f111575, C399 allows both): opening a record must not
+    // move the list. A card docked beside the list narrows it by the card's
+    // width; where the list head would then wrap (its row to two rows, the
+    // chips to a second line) or the table turn into phone rows, the list grew
+    // by 44-150 px and its rows moved (+44 at 1440, +88 at 1280, phone rows at
+    // 1100). There the card opens over the list instead; where the list keeps
+    // its head on one row and its table, the card docks and reserves its width.
+    _cardGoesOver(card) {
+        const width = card.dockWidth?.() ?? 0;
+        if (!(width > 0) || !card.docksBesideList?.()) return false;
+        const room = this.getBoundingClientRect?.().width ?? 0;
+        if (!(room > 0)) return false;
+        const table = this._layoutTag() === "sf-view-table" ? this.table : null;
+        const below = Number(table?.getProp?.("listBelow")) || 600;
+        if (table && !table.isNarrow && room - width < below) return true;
+        if (this.listHead && this._head && !this._head.fitsNarrower(width)) return true;
+        return false;
     }
 
     _wireCard(card) {

@@ -722,6 +722,28 @@ class SfPropertyView extends PropertyViewElement {
         return globalThis.matchMedia?.(`(min-width: ${DOCK_BREAKPOINT})`)?.matches ?? false;
     }
 
+    // Whether a docked card would stand beside the list here (sf-view asks
+    // before it opens one, RV4-3): a panel, docked by its settings, the window
+    // as wide as the drawer docks at. The over mark is not read.
+    docksBesideList() {
+        if (!this.panel || this.getAttribute("modal") === "true" || this.drawerStep === "full") return false;
+        return globalThis.matchMedia?.(`(min-width: ${DOCK_BREAKPOINT})`)?.matches ?? false;
+    }
+
+    // The width in px the card takes beside the list when docked (its step of
+    // the text measure, C396), for sf-view's choice above.
+    dockWidth() {
+        const doc = globalThis.document;
+        if (!doc?.body) return 0;
+        const probe = doc.createElement("div");
+        probe.setAttribute("aria-hidden", "true");
+        probe.style.cssText = `position: absolute; visibility: hidden; pointer-events: none; inset-block-start: 0; inset-inline-start: 0; inline-size: ${panelMeasure(this.drawerStep)};`;
+        doc.body.append(probe);
+        const value = probe.getBoundingClientRect().width;
+        probe.remove();
+        return value;
+    }
+
     // The least width the list keeps beside a docked card (C399): 48rem.
     _listLeast() {
         const size = Number.parseFloat(globalThis.getComputedStyle?.(globalThis.document?.documentElement ?? {})?.fontSize ?? "") || 16;
@@ -1005,6 +1027,9 @@ class SfPropertyView extends PropertyViewElement {
     // stays a window over the one below, which the Framework's overlay dims.
     get docked() {
         if (!this.panel || this.getAttribute("modal") === "true" || this.drawerStep === "full") return false;
+        // sf-view opens its record card over the list where docking it would
+        // re-flow the list (RV4-3; set by sf-view, not a public attribute).
+        if (this.hasAttribute("data-sf-view-card-over")) return false;
         // Only a panel below counts: the one under a related record stays docked.
         const own = this._ownDrawer();
         const cards = openLayers("panel").filter((owner) => owner?.parentElement?.localName === this.localName);
