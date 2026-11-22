@@ -108,6 +108,21 @@ function partWidth(node) {
     return sum + gap * Math.max(0, count - 1);
 }
 
+// The display kinds' width on one line. sf-segmented folds itself into a
+// select where its line has no room (data-sf-folded, its buttons still laid
+// out, inert): the strip reads the buttons' line then, so the kinds fold into
+// the strip's kind menu instead (VM-1) and do not squeeze the views button.
+function kindsLineWidth(kinds) {
+    if (!kinds?.hasAttribute?.("data-sf-folded")) return partWidth(kinds);
+    const group = kinds.querySelector(".sf-button-group");
+    const buttons = group ? [...group.querySelectorAll(":scope > button")].map((node) => node.getBoundingClientRect()).filter((box) => box.width > 0) : [];
+    if (!buttons.length) return partWidth(kinds);
+    const look = globalThis.getComputedStyle?.(group);
+    const edges = ["paddingInlineStart", "paddingInlineEnd", "borderInlineStartWidth", "borderInlineEndWidth"]
+        .reduce((sum, key) => sum + (Number.parseFloat(look?.[key]) || 0), 0);
+    return Math.max(...buttons.map((box) => box.right)) - Math.min(...buttons.map((box) => box.left)) + edges;
+}
+
 // Whether the page's sheets hold the Framework's toggle look (see
 // ListHead.toggleAppearance). Found once, it stays found; not found, it is
 // asked again only when the page has more sheets than at the last look.
@@ -365,12 +380,15 @@ export class ListHead {
         // where they are folded; no frame is drawn in between).
         const folded = this._kindsFolded === true;
         if (folded) kinds.hidden = false;
-        const kindsWidth = partWidth(kinds);
+        const kindsWidth = kindsLineWidth(kinds);
         if (folded) kinds.hidden = true;
         const line = lineWidth(zone, 0);
         const menuWidth = partWidth(menu);
-        const open = folded ? line - menuWidth + kindsWidth : line;
-        const shut = folded ? line : line - kindsWidth + menuWidth;
+        // Unfolded, the line holds the kinds as drawn (a select, where
+        // sf-segmented folded itself): their own line replaces that.
+        const drawn = folded ? 0 : partWidth(kinds);
+        const open = folded ? line - menuWidth + kindsWidth : line - drawn + kindsWidth;
+        const shut = folded ? line : line - drawn + menuWidth;
         const fold = open > room + 0.5;
         if (fold !== folded) {
             this._kindsFolded = fold;
