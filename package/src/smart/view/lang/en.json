@@ -92,6 +92,7 @@
     "head-save-note": "The fields and their values are saved, without the search text.",
     "head-save-shared": "Save for everyone",
     "head-save-shared-hint": "Everyone with access to the list will see it",
+    "head-save-view-note": "The presentation, columns, sort order and page size are saved, without the filter conditions or the search.",
     "head-saved-tab": "Saved",
     "head-search": "Search",
     "head-share": "Share with everyone",

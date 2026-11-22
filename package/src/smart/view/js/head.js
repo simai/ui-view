@@ -1310,7 +1310,7 @@ export class ListHead {
         if (kind === "state") return this._statePanel();
         if (kind === "view-new") {
             const shared = this.permissions.shared_settings || this.permissions.share_views;
-            return this._note(this.text("headSaveNote"))
+            return this._note(this.text("headSaveViewNote"))
                 + `<sf-input data-name size="${size}" label="${esc(this.text("headSaveName"))}"></sf-input>`
                 + (shared ? `<sf-checkbox data-shared size="${size}" label="${esc(this.text("headSaveShared"))}" description="${esc(this.text("headSaveSharedHint"))}"></sf-checkbox>` : "")
                 + this._foot(["view-save-new", this.text("headSave")], ["close", this.text("headCancel")]);

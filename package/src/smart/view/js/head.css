@@ -119,6 +119,15 @@
    the strip and moves the rows; only a strip that does not fit even folded
    wraps (data-wrap). The phone strip keeps its own flow. */
 .sf-view-head:not([data-phone]) > .sf-view-head-zone:not([data-wrap]) { flex-wrap: nowrap; }
+/* The strip folds the display kinds itself (VN-1, view round 16): on the
+   one-line strip the kinds' track keeps its width and never shrinks, so
+   sf-segmented never folds itself into a select there. Shrunk, the track
+   measured less than its labels and folded; folded, its select took more of
+   the line than the shrunk track had and it unfolded -- back and forth inside
+   one frame (pair b654: room 462 against need 491, select 508), the
+   «update loop limit» warning and a ResizeObserver loop. The strip's own
+   measure (js/head.js _layZoneNow) folds them into the kind menu instead. */
+.sf-view-head:not([data-phone]) > .sf-view-head-zone > [data-kinds] > :is(.sf-button-group, .sf-button-group-narrow) { flex-shrink: 0; }
 .sf-view-head-zone[hidden] { display: none; }
 .sf-view-head-zone:focus { outline: none; }
 .sf-view-head-zone > * { flex: none; }
