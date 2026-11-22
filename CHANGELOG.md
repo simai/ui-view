@@ -44,9 +44,12 @@ Every component either branch touched takes the next minor above both.
   sf-view's choice; a card sf-view opens over the list is not docked.
 - `sf-view-table` 1.35.0, `sf-view-cards` 1.5.0, `sf-view-board` 1.3.0,
   `sf-view-calendar` 1.3.0, `sf-view-flow` 1.3.0: the merged line.
-- Returns of the r14 acceptance (DEV msg-afb6bff8). VR14-1: marks survive
-  table -> board -> table (the marked records a board lane had not loaded are
-  marked again). VR14-2: the row menu never changes the marks; rows keep
+- Owner decision C413 (DEV msg-95e1e077): marks belong to the presentation.
+  The table, the board, the cards and the calendar each keep their own marks
+  over their pages and when the list comes back to them; a switch carries
+  none (the C298 / LV2-2 carry is gone, VR14-1 is replaced); «Выбраны все N»
+  stays the kind's own. No view-config change: the marks are not stored.
+- Returns of the r14 acceptance (DEV msg-afb6bff8). VR14-2: the row menu never changes the marks; rows keep
   aria-selected as their box says. VR14-4: phone rows of a list without row
   actions draw no «≡». VR14-5: one «Поля» in the column window, which opens
   from the head's «Поля» at the list's end (it covered 20 of 20 row handles).

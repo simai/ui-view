@@ -26,7 +26,7 @@ test('every layout is in the registry and in the layout setting', () => {
   }
 });
 
-test('the switch works over every layout and carries the marks', () => {
+test('the switch works over every layout; each kind keeps its own marks (C413)', () => {
   const body = view.slice(view.indexOf('    switchLayout(kind, {refresh = true} = {}) {'), view.indexOf('    // The content element the layout draws with.'));
   assert.match(body, /const fromTag = this\._layoutTag\(\);/u);
   assert.match(body, /const marked = this\._layoutSelection\(\);/u);
@@ -45,7 +45,7 @@ test('the switch works over every layout and carries the marks', () => {
   assert.match(swap, /this\._askForParts\(\["sf-view-cards"\]\);/u);
   assert.match(swap, /this\._askForParts\(\["sf-view-calendar"\]\);/u);
   assert.match(swap, /element\.selected = ids\.filter\(\(id\) => shown\.has\(id\)\);/u);
-  assert.match(view, /if \(this\.layoutKind === "cards" \|\| this\.layoutKind === "calendar"\) this\._applyCarriedSelection\(\);/u);
+  assert.match(view, /if \(this\.layoutKind === "cards" \|\| this\.layoutKind === "calendar"\) this\._applyOwnMarks\(\);/u);
 });
 
 test('layouts.calendar.span_days: 31 by default, up to 366', () => {

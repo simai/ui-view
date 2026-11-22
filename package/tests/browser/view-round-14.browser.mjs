@@ -20,8 +20,10 @@
 //   and opens the column window; «Колонки» opens the same window; it holds no
 //   «Просторно» and no «Для всех моих таблиц». LV3-11: «На телефоне» in it; a
 //   field switched on there by a real click shows in the phone row.
-// - LV2-2: marks on page 1 and page 2 add up and reach the cards. LV2-7:
-//   «Выбрать все 48» in the table marks every card.
+// - LV2-2: marks on page 1 and page 2 add up. C413 (view round 15m): each
+//   presentation keeps its own marks: the cards start unmarked, a card marked
+//   there stays the cards' own, and the table's three come back with the
+//   table. LV2-7: «Выбрать все 48» marks the table's 48 and stays the table's.
 // - D1 for the cards: «Вид» → «Подгрузка» → «Страницы» takes «Показать ещё»
 //   away at once.
 // - LV3-12: a fact column's plain money is its formatted value in a table
@@ -452,9 +454,26 @@ try {
       const cards = await marks(page);
       const cardsChrome = await switchChrome(page);
       if (!cardsChrome.nav || !/из 48/u.test(cardsChrome.range)) failures.push({...base, item: 'VR13-1', got: cardsChrome, want: 'the cards keep the page row and the range after a click switch'});
-      if (cardsChrome.bars !== 1) failures.push({...base, item: 'one bar', got: cardsChrome, want: 'one bulk bar on the cards'});
+      if (cardsChrome.bars > 1) failures.push({...base, item: 'one bar', got: cardsChrome, want: 'one bulk bar at most on the cards'});
       if (table.count !== 3) failures.push({...label, got: table, want: '3 marked over two pages'});
-      if (cards.count !== 3 || !['o0', 'o1', 'o10'].every((id) => cards.markedIds.includes(id) || !cards.cards)) failures.push({...label, got: cards, want: 'the three marks on the cards'});
+      const own = {...base, item: 'C413'};
+      if (cards.count !== 0 || cards.cardsMarked !== 0) failures.push({...own, got: cards, want: 'the cards start with their own marks, none'});
+      await page.locator('#v .sf-view-cards__card label.sf-checkbox').first().click({timeout: 5000}).catch((error) => errors.push(`card mark: ${error.message.slice(0, 80)}`));
+      await page.waitForTimeout(400);
+      const cardsMarked = await marks(page);
+      const markedChrome = await switchChrome(page);
+      if (cardsMarked.count !== 1 || cardsMarked.cardsMarked !== 1) failures.push({...own, got: cardsMarked, want: 'one card marked, «Выбрано 1»'});
+      if (markedChrome.bars !== 1) failures.push({...base, item: 'one bar', got: markedChrome, want: 'one bulk bar on the cards'});
+      await pickKind(page, 'Таблица').catch((error) => errors.push(`table: ${error.message.slice(0, 120)}`));
+      await page.waitForFunction(() => document.querySelectorAll('#v sf-view-table :is(tbody tr, li)[data-row-id]').length > 0, null, {timeout: 8000}).catch(() => errors.push('the table did not come back'));
+      await page.waitForTimeout(800);
+      const tableBack = await marks(page);
+      if (tableBack.count !== 3) failures.push({...own, got: tableBack, want: 'the table\'s own three marks back'});
+      await pickKind(page, 'Карточки').catch((error) => errors.push(`cards again: ${error.message.slice(0, 120)}`));
+      await page.waitForFunction(() => document.querySelectorAll('#v .sf-view-cards__card').length > 0, null, {timeout: 8000}).catch(() => errors.push('the cards did not come back'));
+      await page.waitForTimeout(800);
+      const cardsBack = await marks(page);
+      if (cardsBack.count !== 1) failures.push({...own, got: cardsBack, want: 'the cards\' own one mark back'});
       await pickKind(page, 'Канбан').catch((error) => errors.push(`board: ${error.message.slice(0, 120)}`));
       await page.waitForFunction(() => document.querySelectorAll('#v .sf-view-board__card').length > 0, null, {timeout: 8000}).catch(() => errors.push('the board did not come'));
       await page.waitForTimeout(800);
@@ -463,7 +482,7 @@ try {
       const boardChrome = await switchChrome(page);
       if (boardChrome.bars > 1) failures.push({...base, item: 'one bar', got: boardChrome, want: 'one bulk bar on the board'});
       if (errors.length) failures.push({...label, errors});
-      results.push({...label, table, cards, cardsChrome, boardChrome});
+      results.push({...label, table, cards, cardsChrome, cardsMarked, tableBack, cardsBack, boardChrome});
       await context.close();
       // LV2-7: «Выбрать все 48».
       const all = {...base, item: 'LV2-7'};
@@ -481,10 +500,16 @@ try {
       await second.page.waitForTimeout(800);
       const inCards = await marks(second.page);
       if (inTable.count !== 48) failures.push({...all, got: inTable, want: '«Выбраны все 48» in the table'});
-      if (inCards.count !== 48 || inCards.cardsMarked !== inCards.cards || !inCards.cards) failures.push({...all, got: inCards, want: 'every card marked, 48'});
+      // C413: the table's «Выбраны все» is the table's; the cards start unmarked.
+      if (inCards.count !== 0 || inCards.cardsMarked !== 0 || !inCards.cards) failures.push({...all, got: inCards, want: 'cards drawn, none marked (C413)'});
       if (run === 1) await shot(second.page, `all-cards-${width}-${theme}`);
+      await pickKind(second.page, 'Таблица').catch((error) => second.errors.push(`table: ${error.message.slice(0, 120)}`));
+      await second.page.waitForFunction(() => document.querySelectorAll('#v sf-view-table :is(tbody tr, li)[data-row-id]').length > 0, null, {timeout: 8000}).catch(() => second.errors.push('the table did not come back'));
+      await second.page.waitForTimeout(800);
+      const backInTable = await marks(second.page);
+      if (backInTable.count !== 48) failures.push({...all, got: backInTable, want: 'the table\'s «Выбраны все 48» back (C413)'});
       if (second.errors.length) failures.push({...all, errors: second.errors});
-      results.push({...all, inTable, inCards});
+      results.push({...all, inTable, inCards, backInTable});
       await second.context.close();
     }
     // LV3-16: the board card's first line.

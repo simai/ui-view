@@ -69,6 +69,9 @@ const layoutsOfBoard = (value) => LAYOUTS.get(layoutName(value)) === "sf-view-bo
 // The layouts that ask their own window instead of the list's page (cards:
 // page and per_page 24; calendar: days).
 const OWN_PAGING = new Set(["sf-view-cards", "sf-view-calendar"]);
+// The presentation a set of marks belongs to (C413): the table in any of its
+// layouts (auto, table, list), the board, the cards, the calendar.
+const marksKind = (tag) => (tag === "sf-view-board" ? "board" : tag === "sf-view-cards" ? "cards" : tag === "sf-view-calendar" ? "calendar" : "table");
 // The page of a page size that holds record number first (1-based, LV2-8).
 function pageHolding(first, perPage) {
     const per = Number(perPage) || VIEW_DEFAULT_PAGE_SIZE;
@@ -920,13 +923,14 @@ class SfDataView extends DataViewElement {
             const perBefore = Number(this.query?.per_page) || VIEW_DEFAULT_PAGE_SIZE;
             this._anchorFirst ??= ((Number(this._runStart ?? this.query?.page) || 1) - 1) * perBefore + 1;
             this._keepFirst = this._anchorFirst;
-            // VR14-1: the marks of records the kind on screen did not draw
-            // (a board loads a few cards a lane) ride along; only the drawn
-            // ones answer for themselves (unmarked on the board: gone).
-            const drawn = this._drawnIds(fromTag);
-            const unseen = this.markedIds.map(String).filter((id) => !drawn.has(id));
-            this._carrySelection = [...new Set([...marked.map(String), ...unseen])];
-            this._carrySequence = this.sequence;
+            // Marks belong to the presentation (owner decision C413, view
+            // round 15m; it replaces the carry of C298 / LV2-2 and VR14-1):
+            // the kind leaving keeps its own marks, the drawn ones as it
+            // shows them, for its other pages and for when it comes back;
+            // the kind coming in starts from its own, never from these. Its
+            // «Выбраны все N» is its own too.
+            this._noteMarks([...this._drawnIds(fromTag)], marked);
+            (this._allMarkedOf ??= {})[marksKind(fromTag)] = Boolean(this.pagination?.actionForAll);
             // The cards ask their own page size (24, C306) and the calendar
             // asks days, not pages: the list's page size is kept while either
             // is on screen and comes back with the table or the board (the
@@ -946,6 +950,11 @@ class SfDataView extends DataViewElement {
         this._drawnTag ??= fromTag;
         if (written === null) this.removeAttribute("layout");
         else this.setAttribute("layout", written);
+        if (fromTag !== toTag) {
+            const all = Boolean(this._allMarkedOf?.[marksKind(toTag)]);
+            if (Boolean(this.pagination?.actionForAll) !== all) this.pagination?.setState?.({actionForAll: all});
+            this.pagination?.setState?.({selectedCount: this.markedIds.length});
+        }
         // The list's bar follows the kind on screen at once (one bar).
         if (fromTag !== toTag && (this._bulkBar || this._bulkBand)) this._renderBulkBand();
         // refresh: false is for a caller that asks the host itself next.
@@ -959,7 +968,18 @@ class SfDataView extends DataViewElement {
         return LAYOUTS.get(this.layoutKind) ?? "sf-view-table";
     }
 
-    // The ids of the records a kind draws now (VR14-1).
+    // The marks of the presentation on screen (C413): each kind (table,
+    // board, cards, calendar) keeps its own, kept as before by the search and
+    // the filters they were made under (_markKey).
+    get _marks() {
+        return this._marksOf?.[marksKind(this._layoutTag())] ?? null;
+    }
+
+    set _marks(value) {
+        (this._marksOf ??= {})[marksKind(this._layoutTag())] = value;
+    }
+
+    // The ids of the records a kind draws now.
     _drawnIds(tag) {
         const records = tag === "sf-view-board" ? (this.boardLanes ?? []).flatMap((lane) => lane.records ?? [])
             : tag === "sf-view-calendar" ? (this._calendarRecords ?? [])
@@ -1034,20 +1054,18 @@ class SfDataView extends DataViewElement {
         }
     }
 
-    // The marks carried over a switch, given to the new element as it shows
-    // the records they name: at once from what is known, and again over the
+    // The kind's own marks (C413), given back to its element as it shows the
+    // records they name: at once from what is known, and again over the
     // answer to the switch's own query (a new result clears a table's marks).
-    _applyCarriedSelection() {
+    _applyOwnMarks() {
         // The list's bar follows the kind on screen: the table's and the
         // cards' marks, none under the board or the calendar (they draw their
         // own), so a switch never leaves two bars (owner, 2026-11-22).
         if (this._bulkBar || this._bulkBand) this._renderBulkBand();
-        // What a switch carried and what the person marked on other pages
-        // (LV2-2), given to the kind on screen.
-        const ids = [...new Set([...(this._carrySelection ?? []), ...this.markedIds.map(String)])];
+        // What the person marked in this kind, on this page and others.
+        const ids = [...new Set(this.markedIds.map(String))];
         const allMarked = Boolean(this.pagination?.actionForAll);
         if (!ids.length && !(allMarked && this._layoutTag() === "sf-view-cards")) return;
-        const answered = this.pending === null && this.sequence > (this._carrySequence ?? 0);
         const tag = this._layoutTag();
         if (tag === "sf-view-board") {
             const board = this.board;
@@ -1061,8 +1079,7 @@ class SfDataView extends DataViewElement {
             const shown = new Set(records.map((record) => String(record?.id)));
             if (tag === "sf-view-cards") {
                 // The cards keep the marks of other pages (keep-selection),
-                // and «Выбраны все N» carried from the table marks every card
-                // (LV2-7).
+                // and their own «Выбраны все N» marks every card (LV2-7).
                 element.setAttribute("keep-selection", "");
                 // One bar: the list's stands for the cards (owner, 2026-11-22).
                 element.setAttribute("bulk-bar", "false");
@@ -1077,9 +1094,6 @@ class SfDataView extends DataViewElement {
             const marked = new Set((table.getSelectedRecordIds?.() ?? []).map(String));
             for (const id of ids) if (shown.has(id) && !marked.has(id)) table.applyRowSelection(id, true);
         }
-        // What a switch carried is the person's marks from now on (LV2-2).
-        if (answered && this._carrySelection?.length) this._noteMarks([], this._carrySelection);
-        if (answered) this._carrySelection = null;
     }
 
     // What the person changed in «Настроить вид» for a board, the cards or
@@ -3530,7 +3544,6 @@ class SfDataView extends DataViewElement {
     clearSelection() {
         this.table?.clearSelection?.();
         this._marks = null;
-        this._carrySelection = null;
         if (this.layoutKind === "cards") {
             const cards = this.cards;
             cards?.removeAttribute?.("all-selected");
@@ -3540,9 +3553,10 @@ class SfDataView extends DataViewElement {
         return this._renderBulkBand();
     }
 
-    // The marks kept across pages and display kinds (C295, C298; list study
-    // v2 LV2-2): the records a person marked on one page stay marked on the
-    // others and in the other kinds, while the search and the filters stay
+    // The marks kept across pages (C295; list study v2 LV2-2), each kind its
+    // own (C413): the records a person marked on one page stay marked on the
+    // others of that kind and when the list comes back to it, while the
+    // search and the filters stay
     // the same; a new search or filter, a bulk action done, or «Снять
     // выделение» clears them. Kept as the host's own ids, by their text.
     _markKey() {
@@ -3934,8 +3948,8 @@ class SfDataView extends DataViewElement {
         this._syncBoard();
         if (this.layoutKind === "cards") syncCards(this);
         syncCalendar(this);
-        // The marks a switch carried, on the cards or the calendar as they draw.
-        if (this.layoutKind === "cards" || this.layoutKind === "calendar") this._applyCarriedSelection();
+        // The kind's own marks (C413), on the cards or the calendar as they draw.
+        if (this.layoutKind === "cards" || this.layoutKind === "calendar") this._applyOwnMarks();
         const table = this.table;
         if (table) {
             // The two chrome columns. Written as attributes rather than left to the
@@ -4148,12 +4162,12 @@ class SfDataView extends DataViewElement {
                 if (reseat) this._holdMarks = (this._holdMarks ?? 0) + 1;
                 table.setRows?.(this.cappedRecords, this._newResult ? "result" : "rows");
                 this._newResult = false;
-                this._applyCarriedSelection();
+                this._applyOwnMarks();
                 if (reseat) {
                     const back = () => {
                         this._holdMarks = Math.max(0, (this._holdMarks ?? 1) - 1);
                         if (this._holdMarks) return;
-                        this._applyCarriedSelection();
+                        this._applyOwnMarks();
                         this.pagination?.setState?.({selectedCount: this._bulkIds().length});
                         this._renderBulkBand();
                     };
@@ -4622,7 +4636,7 @@ class SfDataView extends DataViewElement {
             // The sums came with the cards (C304): nothing is held for them.
             board.removeAttribute("sums-pending");
             board.lanes = this.boardLanes ?? [];
-            this._applyCarriedSelection();
+            this._applyOwnMarks();
         }
         const refused = this._queryRefused === true;
         board.setAttribute("order-field", this._boardOrderField ?? "");

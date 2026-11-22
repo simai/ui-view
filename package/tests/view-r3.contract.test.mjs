@@ -27,10 +27,14 @@ test('sf-view switches its layout live and swaps the content element', () => {
   assert.match(view, /child\.setAttribute\("slot", "sf-view-parked"\);\n {16}child\.toggleAttribute\("data-sf-view-parked", true\);/u);
 });
 
-test('the marks carried over a switch survive the switch\'s own answer', () => {
-  assert.match(view, /const answered = this\.pending === null && this\.sequence > \(this\._carrySequence \?\? 0\);/u);
-  assert.match(view, /if \(answered\) this\._carrySelection = null;/u);
-  assert.match(view, /board\.lanes = this\.boardLanes \?\? \[\];\n {12}this\._applyCarriedSelection\(\);/u);
+test('each presentation keeps its own marks over a switch (C413, view round 15m)', () => {
+  // No carry between kinds (C413 replaces C298 / LV2-2 carry and VR14-1).
+  assert.doesNotMatch(view, /_carrySelection|_carrySequence/u);
+  assert.match(view, /const marksKind = \(tag\) => /u);
+  assert.match(view, /get _marks\(\) \{\n {8}return this\._marksOf\?\.\[marksKind\(this\._layoutTag\(\)\)\] \?\? null;/u);
+  assert.match(view, /this\._noteMarks\(\[\.\.\.this\._drawnIds\(fromTag\)\], marked\);/u);
+  assert.match(view, /const ids = \[\.\.\.new Set\(this\.markedIds\.map\(String\)\)\];/u);
+  assert.match(view, /board\.lanes = this\.boardLanes \?\? \[\];\n {12}this\._applyOwnMarks\(\);/u);
 });
 
 test('the head switches through the view and hides the kinds it cannot draw (VR3-1)', () => {
