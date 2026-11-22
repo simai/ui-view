@@ -1996,7 +1996,9 @@
           "C404 fixed list look and footer grid, C405 «Вид» as the sf-settings drill menu with per-kind rows, C406 the gear always, C407 more_horiz data menu, C408 the look for every list of the kind, LV2-2 marks across pages and kinds, LV2-7 «Выбраны все N» to the cards, D1 paging for the cards",
           "LV3-9 head.menu, LV3-23 saved sets «⋯»",
           "one bulk bar: the list's bar stands for the cards (cards bulk-bar false), the cards keep the page row after a click switch (VR13-1)",
-          "LV4-2 head observer once, LV4-3 bulkActions [] clears, LV4-7 saved-set row end and window kept, LV4-14 one chip gap"
+          "LV4-2 head observer once, LV4-3 bulkActions [] clears, LV4-7 saved-set row end and window kept, LV4-14 one chip gap",
+          "RV4-12 auto layout whatever the head",
+          "LV4-21 marks kept over a part switch"
         ]
       }
     ]
@@ -2007,7 +2009,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view/index.js",
-        "sha256": "835f54eab07476024a1eb430bc082b5da489ae7b3b587018129fc0fa2132445a"
+        "sha256": "2b1c1b66f1eb38aef611a1303ed5eefd16eb3cf5230a41962887c6b6f45afcbe"
       },
       {
         "path": "src/core/contracts/ports/simai.dataview-port/1.5.0/port.json",

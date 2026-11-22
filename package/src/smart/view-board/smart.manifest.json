@@ -577,7 +577,7 @@
       },
       {
         "path": "src/smart/view-board/js/templates/default.css",
-        "sha256": "a01644e66d892b63cdd6229966293c16d3e52da53194eadae84c1de4ad88cf1c"
+        "sha256": "a73a6e71d2fb6705ce9ed62ce3d740e30b961e549cccf19c91286f896e93f9e3"
       },
       {
         "path": "src/smart/field-renderers/index.js",

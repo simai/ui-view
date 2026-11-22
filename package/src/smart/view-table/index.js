@@ -9421,7 +9421,11 @@ class SfTable extends TableElement {
         if (!this.getPropsContext().selectable) return {ids: null, reselected: false};
         const selected = this.getSelectedRecordIds().map(String);
         if (selected.includes(String(row.id))) return {ids: selected, reselected: false};
-        if (selected.length) this.clearSelection();
+        // Nothing marked (RV4-2): the menu acts on its row alone and marks
+        // nothing; marking it put up «Выбрано 1» for a menu of one row. With
+        // other rows marked, C164 (3) holds: the row becomes the selection.
+        if (!selected.length) return {ids: null, reselected: false};
+        this.clearSelection();
         this.applyRowSelection(row.id, true);
         return {ids: null, reselected: true};
     }

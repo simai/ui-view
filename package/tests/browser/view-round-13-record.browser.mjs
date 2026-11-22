@@ -196,13 +196,14 @@ try {
       await page.waitForTimeout(500);
       const form = await formRows(page);
       const read = Object.fromEntries(rows.map((row) => [row.key, row]));
-      // The labels' axis: the list's start (on the whole screen the read
-      // record pairs its fields in two columns; sf-form beside does not pair).
+      // Each label stays where it was read (VR13-2, round 14): on the whole
+      // screen the form keeps the read record's two columns, so a label is
+      // held to its own read place, not to the list's start.
       const axis = Math.min(...rows.filter((row) => row.label).map((row) => Math.round(row.label.left)));
-      const shifts = (form?.rows ?? []).map((row) => ({key: row.key, label: row.labelLeft - axis, top: row.top - (read[row.key]?.top ?? row.top), height: row.height - (read[row.key]?.height ?? row.height)}));
+      const shifts = (form?.rows ?? []).map((row) => ({key: row.key, label: row.labelLeft - Math.round(read[row.key]?.label?.left ?? axis), top: row.top - (read[row.key]?.top ?? row.top), height: row.height - (read[row.key]?.height ?? row.height)}));
       const phone = where === 'phone';
       if (!form || form.labels !== (phone ? 'top' : 'start')) failures.push({...label, item: 'C401', got: form?.labels ?? 'no form', want: phone ? 'top' : 'start'});
-      if (shifts.some((shift) => Math.abs(shift.label) > 1)) failures.push({...label, item: 'C401', got: shifts, want: 'the labels at the read labels\' start'});
+      if (shifts.some((shift) => Math.abs(shift.label) > 1)) failures.push({...label, item: 'C401', got: shifts, want: 'each label at its read place'});
       // Beside its field wherever sf-form lays them beside (from 40rem of the form).
       const beside = (form?.rows ?? []).filter((row) => row.controlLeft > row.labelLeft + 8 && Math.abs(row.controlTop - row.labelTop) < 12).length;
       const over = (form?.rows ?? []).filter((row) => row.controlTop > row.labelTop + 8).length;

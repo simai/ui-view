@@ -2096,7 +2096,9 @@ class SfDataView extends DataViewElement {
         if (this.layoutKind === "cards") return "cards";
         if (this.layoutKind === "calendar") return "calendar";
         const written = table?.getAttribute?.("data-sf-host-layout") || table?.getAttribute?.("layout") || this.getAttribute?.("layout");
-        const own = ["auto", "table", "list"].includes(written) ? written : (this.renders("toolbar") ? "auto" : "table");
+        // The head's parts never decide the rows (RV4-12): without the head a
+        // list is auto too, a table where there is room and rows on a phone.
+        const own = ["auto", "table", "list"].includes(written) ? written : "auto";
         const value = this.getAttribute?.("layout-switch");
         const switched = value !== null && value !== undefined && value !== "false" && this.renders("toolbar");
         if (!switched) return own;
@@ -3881,12 +3883,13 @@ class SfDataView extends DataViewElement {
             if (!table.hasAttribute?.("data-sf-host-layout")) {
                 table.setAttribute("data-sf-host-layout", table.getAttribute?.("layout") ?? "");
             }
-            // The view's own layout is passed on (owner decision C31): a page's
-            // list is auto unless the view says list or table; an embedded one
-            // stays a table unless the view says otherwise.
+            // The view's own layout is passed on (owner decision C31): auto
+            // unless the view says list or table.
             if (!table.getAttribute?.("data-sf-host-layout")) {
                 const own = this.getAttribute("layout");
-                table.setAttribute("layout", ["auto", "table", "list"].includes(own) ? own : (this.renders("toolbar") ? "auto" : "table"));
+                // RV4-12: auto whether or not the head is drawn; with the head
+                // off a phone drew a desktop table squeezed into 390 px.
+                table.setAttribute("layout", ["auto", "table", "list"].includes(own) ? own : "auto");
             }
             // The list of resources (C31): the switch (where there is a
             // toolbar to hold it), the threshold, the quick actions and what a
@@ -4044,9 +4047,26 @@ class SfDataView extends DataViewElement {
                     table.removeAttribute("row-offset");
                 }
                 table.toggleAttribute?.("data-sf-view-total", known);
+                // The same rows set again (a part switched, the host port or
+                // a setting changed) keep their marks (LV4-21): the table
+                // clears its marks as it takes rows, and that clear was taken
+                // for the person's; it is not heard until the marks are back.
+                const reseat = !this._newResult && this.markedIds.length > 0;
+                if (reseat) this._holdMarks = (this._holdMarks ?? 0) + 1;
                 table.setRows?.(this.cappedRecords, this._newResult ? "result" : "rows");
                 this._newResult = false;
                 this._applyCarriedSelection();
+                if (reseat) {
+                    const back = () => {
+                        this._holdMarks = Math.max(0, (this._holdMarks ?? 1) - 1);
+                        if (this._holdMarks) return;
+                        this._applyCarriedSelection();
+                        this.pagination?.setState?.({selectedCount: this._bulkIds().length});
+                        this._renderBulkBand();
+                    };
+                    const frame = globalThis.requestAnimationFrame ?? ((callback) => setTimeout(callback, 16));
+                    frame(() => setTimeout(back, 0));
+                }
             }
             const first = this.query.sort[0];
             table.setSort?.(first?.key ?? null, first?.direction ?? null);
@@ -4642,6 +4662,9 @@ class SfDataView extends DataViewElement {
             return this._action({action_id: event.detail?.action, record_ids: this._bulkIds()}, {selectedBulk: true});
         }
         if (event.type === "sf-view-table-select") {
+            // Rows set again with their marks held (LV4-21): the table's own
+            // clear is not the person's.
+            if (this._holdMarks) return;
             // The rows the table holds now: their marks are what it says,
             // the marks of other pages stay (LV2-2).
             // The records the view gave it, not its own rows: a table answering a

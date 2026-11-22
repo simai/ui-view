@@ -131,7 +131,7 @@ const parts = (page) => page.evaluate(() => {
     search: box('.sf-view-head-search'),
     filter: box(':is([data-filter-group], .sf-view-head-filter-icon)'),
     fields: box('.sf-view-head-fields > *'),
-    look: box(':is(.sf-view-head-customize, .sf-view-head-tune)'),
+    look: box(':is(.sf-view-head-customize, .sf-view-head-tune, .sf-view-head-look)'),
     zone: box('.sf-view-head-zone-toggle'),
     size: box('.sf-view-footer-size'),
     range: view.querySelector('.sf-view-footer-range')?.textContent ?? '',
@@ -144,19 +144,22 @@ const parts = (page) => page.evaluate(() => {
   };
 });
 
-// «Настроить вид» by real clicks, the setting rows it shows (a setting is
-// an sf-radio or sf-checkbox drawn as display: contents: read by its box).
+// «Вид» by real clicks (C405, view round 14: «Настроить вид» became the
+// sf-settings drill menu), the rows it shows, as their words.
+const LOOK_WORDS = {'Плотность': 'density', 'Подгрузка': 'paging'};
 const lookRows = async (page) => {
   const zone = await page.evaluate(() => {
     const node = document.querySelector('#v .sf-view-head-zone');
     return Boolean(node && !node.hidden && node.getClientRects().length);
   });
   if (!zone) await page.locator('#v .sf-view-head-zone-toggle button').click({timeout: 5000});
-  await page.locator('#v :is(.sf-view-head-customize, .sf-view-head-tune) button').first().click({timeout: 5000});
-  const drawn = () => [...document.querySelectorAll('[data-setting]')].filter((node) => node.getClientRects().length
-    || [...node.querySelectorAll('*')].some((child) => child.getClientRects().length));
-  await page.waitForFunction(`(${drawn})().length > 0`, null, {timeout: 5000});
-  return page.evaluate(`[...new Set((${drawn})().map((node) => node.getAttribute('data-setting')))]`);
+  await page.locator('#v .sf-view-head-look button:visible').first().click({timeout: 5000});
+  await page.waitForSelector('sf-settings[data-look-menu] [role="menu"]', {state: 'visible', timeout: 5000});
+  const words = await page.evaluate(() => {
+    const menu = [...document.querySelectorAll('sf-settings[data-look-menu] [role="menu"]')].filter((node) => node.getClientRects().length).at(-1);
+    return menu ? [...menu.querySelectorAll('.sf-context-menu-item-label')].map((node) => node.textContent.trim()) : [];
+  });
+  return words.map((word) => LOOK_WORDS[word] ?? word);
 };
 
 const themes = QUICK ? ['light'] : ['light', 'dark'];
@@ -198,7 +201,7 @@ try {
     await step('chrome filter and look, no search', {chrome: 'toolbar filter look pagination page-size'}, async (label, got, page) => {
       check(label, !got.search && got.filter && got.size, got, '«Фильтр» and «По 20», no search');
       const rows = await lookRows(page).catch((error) => [`failed ${error.message.slice(0, 60)}`]);
-      check(label, rows.includes('columns'), rows, '«Настроить вид» opens by a click');
+      check(label, rows.length > 0 && !rows.some((row) => String(row).startsWith('failed')), rows, '«Вид» opens by a click');
     });
     await step('no filter fields', {fields: false}, async (label, got) => {
       check(label, !got.filter && got.search, got, 'no «Фильтр» without fields; the search stays');
@@ -226,7 +229,9 @@ try {
     });
     if (!phone) {
       await step('VR5-10 no row menu, no bulk', {caps: ['saved-views'], bulk: false}, async (label, got) => {
-        check(label, !got.settingsColumn && !/settings/u.test(got.firstCell ?? ''), got, 'no first column');
+        // C406 (view round 14): the gear above «≡» is always there, so the
+        // settings column stays; no box column without bulk actions.
+        check(label, Boolean(got.settingsColumn) && !/select/u.test(got.firstCell ?? ''), got, 'the gear column, no box column');
       });
       await step('VR5-10 row menu kept', {}, async (label, got) => {
         check(label, Boolean(got.settingsColumn) || /settings|select/u.test(got.firstCell ?? ''), got, 'the row menu column stays');

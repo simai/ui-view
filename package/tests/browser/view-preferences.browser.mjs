@@ -140,9 +140,12 @@ try {
     density: document.getElementById('t').getAttribute('data-sf-view-density'),
     stripes: document.getElementById('t').hasAttribute('data-sf-view-stripes'),
     kept: JSON.parse(localStorage.getItem('sf-pref:sf-table/demo.list') ?? 'null')?.view ?? null,
+    general: JSON.parse(localStorage.getItem('sf-pref:sf-table/*') ?? 'null')?.view ?? null,
     padding: getComputedStyle(document.querySelector('#t tbody td')).paddingTop,
   }));
-  await pick('everywhere');
+  // C408 (view round 14, LV3-20): the look is the person's for every table,
+  // so «Для всех моих таблиц» is no longer offered.
+  const offersEverywhere = await pick('everywhere');
   await viewed.waitForTimeout(200);
   await pick('lines');
   await viewed.waitForTimeout(300);
@@ -162,9 +165,10 @@ try {
       selected: panel?.querySelector('.sf-settings-panel-tabs [role="tab"][aria-selected="true"]')?.textContent.trim() ?? null};
   }, PANEL);
   if (!head.tabs || !head.close || !head.oneRow || head.selected !== 'Вид') note({case: 'the tab row: the tabs and a close button on one row', got: head});
-  if (own.density !== 'compact' || own.kept?.density !== 'compact') note({case: 'the view is set and kept for this table', got: own});
+  if (own.density !== 'compact' || (own.general?.density ?? own.kept?.density) !== 'compact') note({case: 'the view is set and kept for every table (C408)', got: own});
+  if (offersEverywhere) note({case: '«Для всех моих таблиц» is not offered (C408, LV3-20)'});
   if (offersStripes || own.stripes) note({case: 'alternate rows are the author\'s, not offered in «Вид»', got: {offersStripes, own}});
-  if (everywhere.general?.lines !== true || !everywhere.lines) note({case: '«Для всех моих таблиц» keeps it for every table', got: everywhere});
+  if (everywhere.general?.lines !== true || !everywhere.lines) note({case: 'a look row keeps it for every table (C408)', got: everywhere});
   await viewed.evaluate((selector) => document.querySelector(`${selector} .sf-settings-panel-close button`)?.click(), PANEL);
   await viewed.waitForTimeout(300);
   const closed = await viewed.evaluate(() => !document.querySelector('sf-settings[data-table-settings] .sf-settings-panel:not([hidden])'));

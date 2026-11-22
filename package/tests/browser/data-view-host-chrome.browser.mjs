@@ -109,7 +109,11 @@ try {
   // bulk actions draws them. The settings column has nothing to open.
   if (read.plain.head.includes('select') || read.plain.boxes) note(`a list with no bulk actions draws boxes: ${JSON.stringify(read.plain.head)}, ${read.plain.boxes}`);
   if (!read.bulk.head.includes('select')) note(`a list given bulk actions lost its boxes: ${JSON.stringify(read.bulk.head)}`);
-  if (read.plain.head.includes('settings') || read.plain.menus) note(`a list with no column settings and no row actions draws the settings column: ${JSON.stringify(read.plain.head)}`);
+  // The gear above «≡» is always there (owner decision C406, view round 14;
+  // it replaces VR5-10's «no settings column with nothing to open»): only
+  // row menus without row actions are a fault.
+  if (!read.plain.head.includes('settings')) note(`a list lost the gear column C406 asks for: ${JSON.stringify(read.plain.head)}`);
+  if (read.plain.menus) note(`a list with no row actions draws row menus: ${read.plain.menus}`);
   // Records with actions are a row menu, and the column carries it.
   if (!read.acting.head.includes('settings') || read.acting.menus !== 6) note(`a list whose records offer actions has no row menus: ${JSON.stringify(read.acting.head)}, ${read.acting.menus}`);
 

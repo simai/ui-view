@@ -522,6 +522,13 @@
     border-inline-end-color: transparent;
   }
 
+  /* The head's label on its column's text line (LV4-22): the transparent
+     borders above stood the label 1 px inside its cell's text (start 1 px
+     right, an end-aligned one 1 px left); the head's content takes them back. */
+  :is(sf-view-table, sf-table) thead th[data-key] > .sidebar-resizer {
+    margin-inline: calc(-1 * var(--sf-px));
+  }
+
   /* The head's own separator on hover: a neutral line, not `inherit`, which
      took whatever colour the head text happened to carry and read as a blue bar
      wherever that was the primary colour. */

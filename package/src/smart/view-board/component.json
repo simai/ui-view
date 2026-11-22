@@ -8,7 +8,7 @@
       "version": "1.1.6",
       "kind": "patch",
       "recorded_on": "2026-11-22",
-      "consumer": "Nothing to change for a host. The card's box and «⋯» stand on the title's first line (LV3-16: «⋯» was 6 px below it).",
+      "consumer": "Nothing to change for a host. The card's box and «⋯» stand on the title's first line (LV3-16: «⋯» was 6 px below it). RV4-11: the card is a grid of the box, the title and «⋯»; the fields stand under the title (the hidden box pushed the title 32 px right of the fields).",
       "evidence": "control/evidence/2026-11-22-view-r14/README.md"
     },
     {
@@ -672,7 +672,8 @@
           "from": "1.1.5",
           "to": "1.1.6",
           "changes": [
-            "LV3-16 box and «⋯» on the title's first line"
+            "LV3-16 box and «⋯» on the title's first line",
+            "RV4-11 title and fields share one start"
           ]
         }
       ]

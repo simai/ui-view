@@ -3058,7 +3058,9 @@
         "to": "1.32.0",
         "changes": [
           "C406 column window from the gear and openColumnSettings, C408 the look kept for every table by default",
-          "LV3-11 phone fields, LV3-12 plain facts in cells, LV3-13 typed phone row figures, LV3-24 state word"
+          "LV3-11 phone fields, LV3-12 plain facts in cells, LV3-13 typed phone row figures, LV3-24 state word",
+          "RV4-2 the row menu marks nothing when nothing is marked",
+          "LV4-22 head label on the text line"
         ]
       }
     ]
@@ -3069,7 +3071,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-table/index.js",
-        "sha256": "348e936608b04d55d3675513574df0f6145b55075f00e58803343d7df5b61a99"
+        "sha256": "78bedad48de16846f39a94ca94f5e864f0282fa69e887bb36a63aa272cf55ca8"
       },
       {
         "path": "src/smart/view-table/js/templates/default.js",
@@ -3077,7 +3079,7 @@
       },
       {
         "path": "src/smart/view-table/js/templates/default.css",
-        "sha256": "e320e690ec849ceb81769087ff488b39e41711d63117afb22e724ff839d88132"
+        "sha256": "9d7e15d7fd864e2b020ffaf334e224e587f8ae1abed48403fedf87039bfd07fb"
       },
       {
         "path": "src/smart/helpers/option-badge.js",
