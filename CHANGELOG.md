@@ -16,6 +16,38 @@ same numbers with other content); every next set version is above them
 up). Each component.json says the same under `x-decisions`
 `pro-copy-versions`.
 
+## Unreleased — view round 15
+
+View round 15 (round/view-r15, from round/view-r15m f1f4d46, candidate
+1.16.0 over the same pair `ui-b654460cad2a`): the returns of the acceptance of
+round 15m (VM-1..3), owner remarks register items VL-12, VL-48, VL-64, VL-65,
+the bulk bar's size and owner decision C414. Evidence:
+ui-control `control/evidence/2026-11-22-view-r15/README.md`.
+
+- `sf-view` 1.37.0: the view strip keeps one line (VM-1). Where the display
+  kinds no longer fit beside the views button, «Колонки» and «Вид» (a record
+  docked beside the list narrows it), they fold into the strip's kind menu
+  and come back when there is room; opening a record at 1440 no longer moves
+  the rows down 40 px. «Сохранить представление» opens its own window (it
+  opened the filter's), with the focus in the name field; Enter saves (VL-48).
+  A view is saved without conditions (C414): `view.save` and
+  `view.save_shared` carry the query without `filters`, `filters_chosen`,
+  `saved_filter`, `search` and `page`. The bulk bar is the list head
+  controls' size (the list's size, else 1/2), not a fixed 1.
+- `sf-view-table` 1.36.0: the columns that fit, the pinned offsets and the
+  sideways rail follow a width change in the next frame, so a record docked
+  beside the list raises no «ResizeObserver loop» error (VM-2). The phone
+  rows' list has no bottom inset: «Показать ещё» 8 px under the last row on a
+  phone (VL-12).
+- `sf-view-properties` 1.31.0: a value read in the record's list takes the
+  height of the field it turns into (40 normal, 32 compact), and a group the
+  card's own form edits is edited in place in the read list: «Изменить» moves
+  no label and no row (VL-64, VR14-3, C401). «не заполнено» takes
+  `--sf-on-surface-not-set` where the pair has it (VL-65, C402).
+- Contract `simai.view-config/1` 1.1.0 (C414): a view keeps how to show, a
+  saved filter what to show; `query.filter` is deprecated in a view (kept in
+  the schema so 1.0 documents stay valid), §2a describes the saved filter.
+
 ## Unreleased — view round 15m (merge)
 
 View round 15m (round/view-r15m): `round/view-r14` 940d3fc and

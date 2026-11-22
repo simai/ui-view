@@ -2,8 +2,15 @@
   "$comment": "sf-data-view from its component.json (standard simai.smart-component 1.3.8, vocabulary 1.1.5), migrated from ui-control control/smart-architecture/migration/out/data-view; every x-todo decided in x-decisions.",
   "id": "smart.view",
   "tag": "sf-view",
-  "version": "1.36.0",
+  "version": "1.37.0",
   "x-history": [
+    {
+      "version": "1.37.0",
+      "kind": "minor",
+      "recorded_on": "2026-11-22",
+      "consumer": "Nothing to change for a host. The view strip keeps one line (VM-1): where the display kinds no longer fit beside the views button, «Колонки» and «Вид» (a record docked beside the list narrows it), they fold into the strip's kind menu (the icon of the kind shown) and come back when there is room, so opening a record no longer moves the list's rows down. «Сохранить представление» asks for the name in its own window with the focus in the field, Enter saves (VL-48; the window opened the filter's before), and the view is saved without conditions (owner decision C414, view-config 1.1.0): view.save and view.save_shared carry the query without filters, filters_chosen, saved_filter, search and page; the order and the page size stay. A host that read conditions from a saved view keeps them in a saved filter (filter.save). The list's bulk bar is the list head controls' size (the list's size, else 1/2; it was a fixed 1).",
+      "evidence": "control/evidence/2026-11-22-view-r15/README.md"
+    },
     {
       "version": "1.36.0",
       "kind": "minor",
@@ -2185,6 +2192,13 @@
           "changes": [
             "View round 15m: round/view-r14 and round/view-modular-1 joined into one line (merge, no rebase); the number is above both branches. MOD1-1/MOD1-5 the first paint waits for the kind's element (table, board, cards, calendar) until defined or failed (_kindGivesUp), the switch hold too; the cards' skeleton bars one box; RV4-3 the record card over the list where docking would re-flow it (_cardGoesOver, head fitsNarrower).",
             "the bulk bar at size 1 (DEV msg-1fd8b681)"
+          ]
+        },
+        {
+          "from": "1.36.0",
+          "to": "1.37.0",
+          "changes": [
+            "View round 15: VM-1 view strip one line, kinds fold into the strip's kind menu (_layZone, head.css nowrap); VL-48 a borrowed window keeps its kind on the popover's open, the name field takes the focus, Enter is the first action; C414 view.save without conditions (view-config 1.1.0); bulk bar at the head controls' size."
           ]
         }
       ]

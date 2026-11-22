@@ -2,8 +2,15 @@
   "$comment": "sf-property-view from its component.json (standard simai.smart-component 1.3.8, vocabulary 1.1.5), migrated from ui-control control/smart-architecture/migration/out/property-view; every x-todo decided in x-decisions.",
   "id": "smart.view-properties",
   "tag": "sf-view-properties",
-  "version": "1.30.0",
+  "version": "1.31.0",
   "x-history": [
+    {
+      "version": "1.31.0",
+      "kind": "minor",
+      "recorded_on": "2026-11-22",
+      "consumer": "Nothing to change for a host. A value read in the record's list takes the height of the field it turns into (the list's control height: 40 at the normal density, 32 at the compact one), and a group edited in the card's own form (a group sf-form does not draw) is edited in place, row by row in the read list, so «Изменить» moves no label and no row (VL-64, VR14-3, C401): read rows are taller by the field's room. «не заполнено» takes the SIMAI Framework's not-set ink --sf-on-surface-not-set where the pair has it, the label's ink before (VL-65, C402).",
+      "evidence": "control/evidence/2026-11-22-view-r15/README.md"
+    },
     {
       "version": "1.30.0",
       "kind": "minor",
@@ -2542,6 +2549,13 @@
           "to": "1.30.0",
           "changes": [
             "View round 15m: round/view-r14 and round/view-modular-1 joined into one line (merge, no rebase); the number is above both branches. RV4-3 docksBesideList(), dockWidth(), the over mark (data-sf-view-card-over, set by sf-view) undocks the card."
+          ]
+        },
+        {
+          "from": "1.30.0",
+          "to": "1.31.0",
+          "changes": [
+            "View round 15: VL-64 read values reserve the control height, beside their value the labels keep the room above it; in-place edit rows (renderEditRow, sf-property-view-group--in-place); VL-65 .sf-property-view-empty in --sf-on-surface-not-set with the label's ink as fallback."
           ]
         }
       ]

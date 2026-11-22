@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view",
-  "version": "1.36.0",
+  "version": "1.37.0",
   "title": "Data view",
   "summary": "Host-driven data view that composes toolbar, content and pagination around a separate data port.",
   "kind": "composite",
@@ -2016,6 +2016,13 @@
           "View round 15m: round/view-r14 and round/view-modular-1 joined into one line (merge, no rebase); the number is above both branches. MOD1-1/MOD1-5 the first paint waits for the kind's element (table, board, cards, calendar) until defined or failed (_kindGivesUp), the switch hold too; the cards' skeleton bars one box; RV4-3 the record card over the list where docking would re-flow it (_cardGoesOver, head fitsNarrower).",
           "the bulk bar at size 1 (DEV msg-1fd8b681)"
         ]
+      },
+      {
+        "from": "1.36.0",
+        "to": "1.37.0",
+        "changes": [
+          "View round 15: VM-1 view strip one line, kinds fold into the strip's kind menu (_layZone, head.css nowrap); VL-48 a borrowed window keeps its kind on the popover's open, the name field takes the focus, Enter is the first action; C414 view.save without conditions (view-config 1.1.0); bulk bar at the head controls' size."
+        ]
       }
     ]
   },
@@ -2025,7 +2032,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view/index.js",
-        "sha256": "1c3637b7a4dafb7cb49f049eb84ee3d00ccfdf635af43fc5826f6ceef42f76b0"
+        "sha256": "71011beaaa67fd59de229d64c21a5db5651c2e0b40f208c8e26d4be65a8947c6"
       },
       {
         "path": "src/core/contracts/ports/simai.dataview-port/1.5.0/port.json",

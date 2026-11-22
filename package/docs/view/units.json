@@ -5,6 +5,15 @@
   "entries": [
     {
       "unit": "smart.view",
+      "version": "1.37.0",
+      "recorded_on": "2026-11-22",
+      "change": "minor",
+      "consumer": "Nothing to change for a host. The view strip keeps one line (VM-1): where the display kinds no longer fit beside the views button, «Колонки» and «Вид» (a record docked beside the list narrows it), they fold into the strip's kind menu (the icon of the kind shown) and come back when there is room, so opening a record no longer moves the list's rows down. «Сохранить представление» asks for the name in its own window with the focus in the field, Enter saves (VL-48; the window opened the filter's before), and the view is saved without conditions (owner decision C414, view-config 1.1.0): view.save and view.save_shared carry the query without filters, filters_chosen, saved_filter, search and page; the order and the page size stay. A host that read conditions from a saved view keeps them in a saved filter (filter.save). The list's bulk bar is the list head controls' size (the list's size, else 1/2; it was a fixed 1).",
+      "summary": "View round 15: VM-1 view strip one line, kinds fold into the strip's kind menu (_layZone, head.css nowrap); VL-48 a borrowed window keeps its kind on the popover's open, the name field takes the focus, Enter is the first action; C414 view.save without conditions (view-config 1.1.0); bulk bar at the head controls' size.",
+      "evidence": "control/evidence/2026-11-22-view-r15/README.md"
+    },
+    {
+      "unit": "smart.view",
       "version": "1.36.0",
       "recorded_on": "2026-11-22",
       "change": "minor",
@@ -293,6 +302,15 @@
     },
     {
       "unit": "smart.view-table",
+      "version": "1.36.0",
+      "recorded_on": "2026-11-22",
+      "change": "minor",
+      "consumer": "Nothing to change for a host. The table follows a change of its width in the next frame (the columns that fit, the pinned offsets, the sideways rail), so a record docked beside the list raises no «ResizeObserver loop completed» error (VM-2); the first width is still taken at once. The phone rows' list has no bottom inset of its own: «Показать ещё» stands 8 px under the last row on a phone (VL-12).",
+      "summary": "View round 15: VM-2 responsive columns, pinned offsets and rail synced in the next frame (_inNextFrame); VL-12 the resource list's bottom inset 0.",
+      "evidence": "control/evidence/2026-11-22-view-r15/README.md"
+    },
+    {
+      "unit": "smart.view-table",
       "version": "1.35.0",
       "recorded_on": "2026-11-22",
       "change": "minor",
@@ -560,6 +578,15 @@
       "consumer": "Nothing to change for a host: only the SIMAI Framework file it builds in moved with the repin.",
       "summary": "Over SIMAI Framework ui-078a4b4c6f6e (ui-source 10145e63b9dc) the Framework file it builds in, src/smart/pagination/index.js (sf-pagination 1.7: «Show more» within reach, C167; a deleting action listed last, C116), moved; the provenance and the version follow. Nothing of its own; nothing to change for a host. 1.19.7 and 1.19.8 are ui-pro's own patched copies, never this set's.",
       "evidence": "https://github.com/simai/ui-view/commit/e214dd608fdcf39cea527676fc522afd718922d4"
+    },
+    {
+      "unit": "smart.view-properties",
+      "version": "1.31.0",
+      "recorded_on": "2026-11-22",
+      "change": "minor",
+      "consumer": "Nothing to change for a host. A value read in the record's list takes the height of the field it turns into (the list's control height: 40 at the normal density, 32 at the compact one), and a group edited in the card's own form (a group sf-form does not draw) is edited in place, row by row in the read list, so «Изменить» moves no label and no row (VL-64, VR14-3, C401): read rows are taller by the field's room. «не заполнено» takes the SIMAI Framework's not-set ink --sf-on-surface-not-set where the pair has it, the label's ink before (VL-65, C402).",
+      "summary": "View round 15: VL-64 read values reserve the control height, beside their value the labels keep the room above it; in-place edit rows (renderEditRow, sf-property-view-group--in-place); VL-65 .sf-property-view-empty in --sf-on-surface-not-set with the label's ink as fallback.",
+      "evidence": "control/evidence/2026-11-22-view-r15/README.md"
     },
     {
       "unit": "smart.view-properties",

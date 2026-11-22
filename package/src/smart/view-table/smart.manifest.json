@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-table",
-  "version": "1.35.0",
+  "version": "1.36.0",
   "title": "Table",
   "summary": "Complete server-backed collection view with search, filters, table preferences, row and bulk actions, and pagination.",
   "kind": "composite",
@@ -3077,6 +3077,13 @@
         "changes": [
           "View round 15m: round/view-r14 and round/view-modular-1 joined into one line (merge, no rebase); the number is above both branches."
         ]
+      },
+      {
+        "from": "1.35.0",
+        "to": "1.36.0",
+        "changes": [
+          "View round 15: VM-2 responsive columns, pinned offsets and rail synced in the next frame (_inNextFrame); VL-12 the resource list's bottom inset 0."
+        ]
       }
     ]
   },
@@ -3086,7 +3093,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-table/index.js",
-        "sha256": "ad2ddc7eeeb2973e838fabd148dbed01630b4d747faba81b35e09d1d2f286870"
+        "sha256": "6046b386930dfef84ff6d0eab949469b6550ea6bdf3abef87b88b2af436eac23"
       },
       {
         "path": "src/smart/view-table/js/templates/default.js",
@@ -3094,7 +3101,7 @@
       },
       {
         "path": "src/smart/view-table/js/templates/default.css",
-        "sha256": "05954c2bfdf790a665df6ed9e3b0b4091a472e334e27d045b28c571b3af5a288"
+        "sha256": "7fbb6c190cc885a39000ea6946f7814e128128f715bf207e803158f08ea7d42c"
       },
       {
         "path": "src/smart/helpers/option-badge.js",
