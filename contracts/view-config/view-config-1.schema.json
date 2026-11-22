@@ -2,8 +2,8 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/simai/ui-view/contracts/view-config/view-config-1.schema.json",
   "title": "simai.view-config/1",
-  "description": "A saved view (представление) of a data source, and the board window and answer. Contract 1.0.1, view-config-1.md.",
-  "x-contract-version": "1.0.1",
+  "description": "A saved view (представление) of a data source, and the board window and answer. Contract 1.1.0, view-config-1.md.",
+  "x-contract-version": "1.1.0",
   "x-limits": {"views_per_level": 20, "view_bytes": 8192, "per_lane_default": 20, "per_lane_max": 100, "lanes_max": 200, "per_page_default": 20, "per_page": [10, 20, 50, 100]},
   "x-levels": ["system", "shared", "profile", "personal"],
   "x-level-aliases": {"package": {"of": "system", "until": "2027-01-01"}},
@@ -26,7 +26,7 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "filter": {"type": "object", "additionalProperties": {"$ref": "#/$defs/condition"}},
+            "filter": {"type": "object", "deprecated": true, "description": "Deprecated since 1.1.0 (C414): a view carries no conditions; the view writes none, a host neither writes nor applies one. Kept so 1.0 documents stay valid.", "additionalProperties": {"$ref": "#/$defs/condition"}},
             "sort": {"type": "array", "items": {"$ref": "#/$defs/sort"}},
             "per_page": {"type": "integer", "enum": [10, 20, 50, 100]}
           }

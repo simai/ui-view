@@ -91,6 +91,23 @@ function lineWidth(container, search) {
     return sum + gap * Math.max(0, count - 1);
 }
 
+// One part's width on its line: its box, or its laid children where it draws
+// none (display: contents).
+function partWidth(node) {
+    if (!node || node.hidden) return 0;
+    const look = globalThis.getComputedStyle?.(node);
+    if (look?.display === "none") return 0;
+    if (look?.display !== "contents") return node.getBoundingClientRect().width;
+    let sum = 0;
+    let count = 0;
+    for (const child of node.children) {
+        const width = partWidth(child);
+        if (width > 0) { sum += width; count += 1; }
+    }
+    const gap = Number.parseFloat(look?.columnGap) || 0;
+    return sum + gap * Math.max(0, count - 1);
+}
+
 // Whether the page's sheets hold the Framework's toggle look (see
 // ListHead.toggleAppearance). Found once, it stays found; not found, it is
 // asked again only when the page has more sheets than at the last look.
@@ -295,13 +312,15 @@ export class ListHead {
         const end = row?.querySelector(":scope > .sf-view-head-end");
         if (this.mode !== "desktop" || !row || !start || !end) {
             root.removeAttribute("data-stacked");
+            this._layZone();
             return;
         }
         // Each part is observed once (LV4-2): observing it again in the
         // observer's own callback fired the callback again at once, and the
         // head ran this ~57 times a second with "ResizeObserver loop" errors.
         if (this._parts) {
-            const now = new Set(row.querySelectorAll(".sf-view-head-join, .sf-view-head-fields > *, .sf-view-head-zone-toggle > *, .sf-view-head-create > *, .sf-view-head-more > *"));
+            const now = new Set([...row.querySelectorAll(".sf-view-head-join, .sf-view-head-fields > *, .sf-view-head-zone-toggle > *, .sf-view-head-create > *, .sf-view-head-more > *"),
+                ...root.querySelectorAll(":scope > [data-zone] > .sf-view-head-zone-end, :scope > [data-zone] > :not(.sf-view-head-zone-end) button")]);
             const seen = this._partsSeen ??= new Set();
             for (const part of seen) if (!now.has(part)) { this._parts.unobserve(part); seen.delete(part); }
             for (const part of now) if (!seen.has(part)) { this._parts.observe(part); seen.add(part); }
@@ -316,6 +335,50 @@ export class ListHead {
         // Half a pixel of rounding is not a reason to fold the row.
         const stacked = need > room + 0.5;
         if (stacked !== root.hasAttribute("data-stacked")) root.toggleAttribute("data-stacked", stacked);
+        this._layZone();
+    }
+
+    // The view strip is one line (VM-1, view round 15): a record docked
+    // beside the list narrows it, and the strip wrapped «Колонки» and «Вид»
+    // to a second line, moving every row of the list down 40 px. Where the
+    // display kinds no longer fit beside the rest, they fold into the strip's
+    // kind menu (the icon of the kind shown, the kinds in its menu); they come
+    // back once the strip has their room again. The strip keeps one line's
+    // height either way (head.css, no wrap), so folding changes nothing
+    // outside it. Only a strip that does not fit even folded may wrap.
+    _layZone() {
+        const root = this.root;
+        const zone = root?.querySelector?.(":scope > [data-zone]");
+        if (!zone) return;
+        const kinds = zone.querySelector(":scope > [data-kinds]");
+        const menu = zone.querySelector(":scope > sf-button-icon.sf-view-head-kind-menu");
+        const many = this.kinds.length > 1;
+        if (this.mode !== "desktop" || !kinds || !menu || !many || zone.hidden) {
+            zone.removeAttribute("data-wrap");
+            if (this.mode !== "desktop" && this._kindsFolded) this._kindsFolded = false;
+            return;
+        }
+        const room = contentWidth(zone);
+        if (!(room > 0)) return;
+        const gap = Number.parseFloat(globalThis.getComputedStyle?.(zone)?.columnGap) || 0;
+        // The kinds' own width, read while they are drawn (shown for the read
+        // where they are folded; no frame is drawn in between).
+        const folded = this._kindsFolded === true;
+        if (folded) kinds.hidden = false;
+        const kindsWidth = partWidth(kinds);
+        if (folded) kinds.hidden = true;
+        const line = lineWidth(zone, 0);
+        const menuWidth = partWidth(menu);
+        const open = folded ? line - menuWidth + kindsWidth : line;
+        const shut = folded ? line : line - kindsWidth + menuWidth;
+        const fold = open > room + 0.5;
+        if (fold !== folded) {
+            this._kindsFolded = fold;
+            kinds.hidden = fold;
+            menu.hidden = !fold;
+        }
+        const wrap = fold && shut > room + 0.5;
+        if (wrap !== zone.hasAttribute("data-wrap")) zone.toggleAttribute("data-wrap", wrap);
     }
 
     // Whether the head row stays one row in a list `less` px narrower than
@@ -555,6 +618,7 @@ export class ListHead {
                  <sf-button class="sf-view-head-views" data-views size="${size}" appearance="ghost" scheme="on-surface" icon-start="bookmarks" icon-end="expand_more" aria-haspopup="menu"></sf-button>
                  <span class="sf-view-head-zone-line" data-zone-line aria-hidden="true"></span>
                  <sf-segmented data-kinds size="${size}" hidden></sf-segmented>
+                 <sf-button-icon class="sf-view-head-kind-menu" data-kind-menu size="${size}" appearance="ghost" scheme="on-surface" icon="table_rows" aria-haspopup="menu" hidden></sf-button-icon>
                  ${changed}
                  <div class="sf-view-head-zone-end" data-zone-end>
                    <sf-button class="sf-view-head-columns" data-columns size="${size}" appearance="ghost" scheme="on-surface" icon-start="view_column" aria-haspopup="dialog"></sf-button>
@@ -842,15 +906,17 @@ export class ListHead {
         const kinds = one("[data-kinds]");
         if (kinds) {
             const items = this.kinds.map((kind) => ({id: kind, value: kind, label: this.kindLabel(kind), icon: KINDS[kind]}));
-            set(kinds, "hidden", items.length > 1 ? null : "");
+            // Folded into the kind menu where the strip has no room (VM-1).
+            set(kinds, "hidden", items.length > 1 && !(this.mode === "desktop" && this._kindsFolded) ? null : "");
             set(kinds, "items", JSON.stringify(items));
             set(kinds, "value", this.kind);
             set(kinds, "aria-label", this.text("headDisplay"));
         }
-        set(one("[data-zone-line]"), "hidden", views?.hasAttribute("hidden") || !kinds || kinds.hasAttribute("hidden") ? "" : null);
         const kindMenu = one(".sf-view-head-kind-menu");
         set(kindMenu, "icon", KINDS[this.kind]);
-        set(kindMenu, "hidden", this.kinds.length > 1 ? null : "");
+        set(kindMenu, "hidden", this.kinds.length > 1 && (this.mode !== "desktop" || this._kindsFolded) ? null : "");
+        const kindsShown = (kinds && !kinds.hasAttribute("hidden")) || (kindMenu && !kindMenu.hasAttribute("hidden"));
+        set(one("[data-zone-line]"), "hidden", views?.hasAttribute("hidden") || !kindsShown ? "" : null);
         set(kindMenu, "aria-label", `${this.text("headDisplay")}: ${this.kindLabel(this.kind)}`);
         for (const node of this.root.querySelectorAll(".sf-view-head-changed")) {
             const host = node.closest("sf-popover[data-pop]") ?? node;
@@ -997,6 +1063,14 @@ export class ListHead {
         body.addEventListener("change", (event) => this._onPanelChange(event, body));
         body.addEventListener("input", (event) => this._onPanelInput(event, body));
         body.addEventListener("sf-tabs-change", (event) => this._onTabs(event, body));
+        // Enter in a name field is the window's first action (save, rename).
+        body.addEventListener("keydown", (event) => {
+            if (event.key !== "Enter" || event.isComposing || !event.target?.closest?.("[data-name]")) return;
+            const act = body.querySelector(".sf-view-head-foot [data-act]");
+            if (!act) return;
+            event.preventDefault();
+            (act.matches("button") ? act : act.querySelector("button") ?? act).click();
+        });
     }
 
     _onPopoverOpen(event) {
@@ -1089,6 +1163,25 @@ export class ListHead {
         open.body.className = "sf-view-head-panel";
         open.body.setAttribute("data-kind", kind);
         open.body.innerHTML = this._panel(kind);
+        // A window that asks for a name takes the typing at once (VL-48:
+        // «Сохранить представление» drew its name field without the focus,
+        // so the name typed went nowhere).
+        if (open.body.querySelector("[data-name]")) this._focusName(open.body);
+    }
+
+    // The name field of a window gets the focus once the window and the field
+    // have drawn (a few frames at most).
+    _focusName(body, tries = 8) {
+        const next = globalThis.requestAnimationFrame ?? ((fn) => globalThis.setTimeout(fn, 16));
+        next(() => {
+            if (this.open?.body !== body) return;
+            const input = body.querySelector("[data-name] input");
+            if (input && input.getClientRects().length) {
+                if (!input.matches(":focus")) input.focus({preventScroll: true});
+                return;
+            }
+            if (tries > 0) this._focusName(body, tries - 1);
+        });
     }
 
     _foot(apply, reset) {

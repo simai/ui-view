@@ -1,7 +1,8 @@
 # `simai.view-config/1`: the view document and the board window
 
-Status: **contract 1.0.1** (2026-11-22: §4 levels keep whole documents, §2 host keys and
-`fields`; text only, no change of behaviour), 1.0.0 agreed between the SIMAI Framework dispatcher (DEV) and Larena
+Status: **contract 1.1.0** (2026-11-22, owner decision C414: a view keeps how to show, a saved
+filter keeps what to show; a view no longer carries conditions, §1, §2, §2a), 1.0.1 (2026-11-22: §4
+levels keep whole documents, §2 host keys and `fields`; text only, no change of behaviour), 1.0.0 agreed between the SIMAI Framework dispatcher (DEV) and Larena
 (Larena Audit, Larena Backend) on 2026-11-20. Source: the joint draft
 `ui-control control/research/2026-11-17-views-architecture/view-config-1-draft.md` (owner
 decisions C298, C299, C300), with Larena's answers to its open points. The machine-readable
@@ -23,7 +24,14 @@ The words of the interface are fixed here: a saved way of looking at a list is a
 | filter field (C300) | a button of the list head for one field. |
 | level | where a view lives: `system`, `shared` (for everyone), `profile` (a settings profile, C163), `personal`. |
 
-A saved filter is not a separate object: a view keeps its own `query.filter`.
+**A view and a saved filter are two objects** (owner decision C414, contract 1.1.0). The view
+keeps **how** to show: the layout, the fields and their order, the sort, the page size, each
+layout's settings (density, parts) and the head. A saved filter keeps **what** to show: the
+conditions and the filter fields it was saved with. «Сохранить представление» asks for a name and
+saves the view without conditions; «Сохранить фильтр» saves the conditions without the view. Each
+has its own list in the head (views in the view strip, filters in «Фильтр»), and choosing one
+never changes the other: opening a view keeps the conditions on screen, choosing a filter keeps the
+view. Before 1.1.0 a view kept its own `query.filter`.
 
 ## 2. The document
 
@@ -35,7 +43,6 @@ A saved filter is not a separate object: a view keeps its own `query.filter`.
   "source": "orders",
   "layout": "board",
   "query": {
-    "filter": {"status": {"operator": "in", "value": ["new", "work"]}},
     "sort": [{"field": "due", "dir": "asc"}],
     "per_page": 20
   },
@@ -46,7 +53,7 @@ A saved filter is not a separate object: a view keeps its own `query.filter`.
   },
   "head": {"filter_fields": ["status", "owner", "due"]},
   "required": false,
-  "locked": ["query.filter", "fields.visible"],
+  "locked": ["query.sort", "fields.visible"],
   "revision": 7
 }
 ```
@@ -58,7 +65,7 @@ A saved filter is not a separate object: a view keeps its own `query.filter`.
 | `name` | yes | the view's name in the person's words, 1–120 characters. |
 | `source` | yes | the data source's key. |
 | `layout` | yes | the layout the view opens in. |
-| `query` | no | `filter` (one `{operator, value}` per field, the condition models of C293 and C294), `sort` (`[{field, dir}]`), `per_page`. The search text is never saved. A `filter` key that starts with `_` is a host's service field, not a field of the source (Larena: `_archived`, archived records shown); a reader that does not know it keeps it and shows no filter field for it. |
+| `query` | no | `sort` (`[{field, dir}]`), `per_page`. The search text is never saved, and since 1.1.0 neither are conditions (C414): the view in the browser writes no `filter`, and a host neither writes one into a view nor applies one when a view opens. A document from 1.0 that still holds `query.filter` stays valid (the schema keeps the key, deprecated); its conditions belong in a saved filter of their own (§2a). Inside a saved filter, `filters` is one `{operator, value}` per field (the condition models of C293 and C294). A `filter` key that starts with `_` is a host's service field, not a field of the source (Larena: `_archived`, archived records shown); a reader that does not know it keeps it and shows no filter field for it. |
 | `fields` | no | `visible` and `order`: field keys. Optional; a writer fills them when it knows them, so another reader of the document sees the fields. |
 | `layouts` | no | the options of each layout, under that layout's name; switching layouts keeps the others' options. A host keeps its own parts of a view (column layout, roles, its settings) under `layouts.<layout>`; a reader keeps keys it does not know and leaves them alone. |
 | `head.filter_fields` | no | the fields the person put in the list head as filter fields (C300). |
@@ -71,6 +78,20 @@ A saved filter is not a separate object: a view keeps its own `query.filter`.
 
 **Page size.** `query.per_page` is one of 10, 20, 50 and 100. A view without one opens at **20**
 (owner decision 2026-11-20).
+
+## 2a. The saved filter (1.1.0)
+
+A saved filter is the host's own record, listed in the answer's `saved_filters` and written
+through the port's `filter.save`, `filter.update`, `filter.rename`, `filter.share`,
+`filter.default` and `filter.delete`:
+
+```json
+{"id": "my-orders", "name": "Мои заказы", "fields": ["status", "manager"],
+ "filters": {"manager": {"operator": "in", "values": ["me"]}}, "shared": false, "default": false}
+```
+
+It carries no layout, columns, sort or layout settings. Choosing it sets the query's
+`saved_filter`, `filters_chosen` and `filters` and leaves `view` as it is.
 
 ## 3. The board window and answer
 
@@ -160,7 +181,9 @@ browser.
 
 ## Кратко по-русски
 
-Контракт `simai.view-config/1`: документ представления (запрос без поиска, вид показа, поля,
+Контракт `simai.view-config/1` 1.1.0: представление хранит, как показать, сохранённый фильтр — что
+показать (решение C414); в представлении нет условий, «Сохранить представление» сохраняет его без
+условий, выбор одного не меняет другое. Документ представления (запрос без поиска и условий: порядок и размер страницы, вид показа, поля,
 настройки каждого вида, поля фильтра в шапке, блокировки, ревизия), окно доски (20 записей на
 колонку по умолчанию, не больше 100, не больше 200 колонок) и её ответ, уровни
 system/shared/profile/personal (каждый уровень хранит документ целиком; порядок слияния system < shared < profile < personal, кроме закреплённых путей), лимиты (20 представлений на список на уровень, 8 КБ на

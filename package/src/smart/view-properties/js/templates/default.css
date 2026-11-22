@@ -1614,14 +1614,13 @@
     color: var(--sf-on-surface-variant);
   }
 
-  /* C402: an empty value keeps its words («не заполнено») (VRS-5). Its ink
-     stays --sf-on-surface-variant: C402 asks for --sf-on-surface-muted,
-     paler than the label, but that role is the disabled ink (C43) at 3.10:1
-     on the light page, below the 4.5:1 text needs, and the SIMAI Framework's
-     gate keeps it off readable text (muted-role contract). The paler ink
-     waits for the owner's answer. */
+  /* C402: an empty value keeps its words («не заполнено») (VRS-5), paler
+     than the label and still text: the SIMAI Framework's not-set ink
+     --sf-on-surface-not-set (VL-65; the text ink at the ink family's 64,
+     4.5:1 at the least). A pair without that role keeps the label's ink,
+     --sf-on-surface-variant, as before. */
   .sf-property-view-empty {
-    color: var(--sf-on-surface-variant);
+    color: var(--sf-on-surface-not-set, var(--sf-on-surface-variant));
   }
 
   /* C401: «Изменить» turns the values into their fields in place: the group

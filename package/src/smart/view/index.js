@@ -3470,10 +3470,13 @@ class SfDataView extends DataViewElement {
         }
         this._bulkBar = bar;
         const forAll = Boolean(pagination?.showActionForAll) && pagination?.countKnown !== false && Number(pagination?.total) > 0;
-        // The bar at the list head controls' size, 1, whatever the list's own
-        // size (DEV decision msg-1fd8b681; it took the list's size, 1/2 on
-        // the docs' lists). The bar's own layout is SIMAI Framework's.
-        chosen("size", "1");
+        // The bar at the list head controls' size (view round 15, DEV): the
+        // head draws its buttons at the list's size, else 1/2 (js/head.js
+        // ListHead.size), and the bar is the same size, so where the head's
+        // buttons are 32 the bar is the 32 row. A fixed 1 drew a 50 px bar
+        // with 40 px buttons under a 32 px head. The bar's own layout is
+        // SIMAI Framework's.
+        chosen("size", this.controlSize || "1/2");
         chosen("label", pagination?.actionsRegionLabel);
         chosen("count-text", selected.length ? pagination?.bulkCountText : "");
         chosen("page-count", pagination?.bulkPageCount ?? this.records.length);
@@ -4301,8 +4304,14 @@ class SfDataView extends DataViewElement {
         if (level === "shared" && !(major > 1 || (major === 1 && minor >= 1))) {
             return Promise.resolve({answer: "unavailable", reason: "saved-view-levels-require-port-1.1.0"});
         }
+        // A view keeps how to show, never what (owner decision C414,
+        // view-config 1.1.0): the query it is saved with has no conditions,
+        // no saved filter, no search and no page -- the order and the page
+        // size stay. A saved filter is its own object (filter.save).
+        const how = copy(this.query ?? {});
+        for (const key of ["filters", "filters_chosen", "saved_filter", "search", "page"]) delete how[key];
         return this._raise(level === "shared" ? "view.save_shared" : "view.save", {
-            key, label, revision, query: copy(this.query),
+            key, label, revision, query: how,
             roles: copy(roles ?? {}), layout: copy(layout ?? {columns: this.columns}),
             // With the layout switch the view's list or table rides with it (C31).
             settings: copy(settings ?? {...(this.columnSettings ?? {}),

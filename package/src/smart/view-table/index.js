@@ -1989,13 +1989,17 @@ class SfTable extends TableElement {
             }, {capture: true, signal});
         }
         if (typeof ResizeObserver !== "undefined" && !this._responsiveObserver) {
+            // The pinned offsets are written in the next frame (VM-2, view
+            // round 15): written in the observer's own callback they resized
+            // the table in the frame that was being observed, and a record
+            // docked beside the list drew «ResizeObserver loop completed».
             this._responsiveObserver = new ResizeObserver(([entry]) => {
                 const width = Math.floor(entry.contentRect.width);
                 if (width > 0 && width !== this._responsiveWidth) {
                     this._responsiveWidth = width;
                     this.requestComponentUpdate("responsive-columns");
                 }
-                this.measurePinnedColumns();
+                this._inNextFrame("pinned", () => this.measurePinnedColumns());
             });
             this._observeResponsiveBox();
         }
@@ -6420,6 +6424,18 @@ class SfTable extends TableElement {
     // the other. In the clipping area (VHF-14) the rail alone scrolls: it
     // moves the table, a sideways wheel or swipe over the rows moves the rail,
     // and a cell that takes the focus out of sight brings the rail to it.
+    // One call of `work` in the next frame per name, however often it is asked
+    // before then (VM-2): observers hand their layout writes over to it.
+    _inNextFrame(name, work) {
+        const queued = this._frameQueue ??= new Map();
+        if (queued.has(name)) return;
+        const next = globalThis.requestAnimationFrame ?? ((fn) => globalThis.setTimeout(fn, 16));
+        queued.set(name, next(() => {
+            queued.delete(name);
+            if (this.isConnected) work();
+        }));
+    }
+
     syncRail() {
         const rail = this.refs.rail?.value;
         const scroll = this.refs.scroll?.value;
@@ -6469,7 +6485,7 @@ class SfTable extends TableElement {
             // late fonts): the rail follows the table's size, not the render.
             this._railObserver?.disconnect();
             if (typeof ResizeObserver !== "undefined") {
-                this._railObserver = new ResizeObserver(() => this.syncRail());
+                this._railObserver = new ResizeObserver(() => this._inNextFrame("rail", () => this.syncRail()));
                 this._railObserver.observe(scroll);
                 if (this.refs.table?.value) this._railObserver.observe(this.refs.table.value);
             }

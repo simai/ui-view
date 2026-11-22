@@ -109,6 +109,11 @@
   border: var(--sf-px) solid var(--sf-outline-variant);
   border-radius: var(--sf-radius--surface);
 }
+/* One line (VM-1): the display kinds fold into the kind menu where they do not
+   fit (js/head.js _layZone), so a record docked beside the list never wraps
+   the strip and moves the rows; only a strip that does not fit even folded
+   wraps (data-wrap). The phone strip keeps its own flow. */
+.sf-view-head:not([data-phone]) > .sf-view-head-zone:not([data-wrap]) { flex-wrap: nowrap; }
 .sf-view-head-zone[hidden] { display: none; }
 .sf-view-head-zone:focus { outline: none; }
 .sf-view-head-zone > * { flex: none; }
