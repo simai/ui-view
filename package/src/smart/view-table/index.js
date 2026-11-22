@@ -8001,6 +8001,11 @@ class SfTable extends TableElement {
             // The selection rule (C164 (3)): a selected row speaks for the
             // selection, a row outside it becomes the selection first.
             const {ids} = this.rowMenuTargets(row);
+            // VR14-2: SIMAI Framework sf-menu-context selects an unselected
+            // row (aria-selected) right after this question (C164 (3)); the
+            // row menu never changes the marks, so each row's aria-selected
+            // is put back to its box once the engine has written it.
+            queueMicrotask(() => this.syncRowSelectedState());
             const anchor = element.querySelector(LIST_ROW_MENU_BUTTON) ?? element;
             if (!this.fillRowMenu(menu, row, ids, anchor)) event.preventDefault();
         });
@@ -9445,6 +9450,14 @@ class SfTable extends TableElement {
             observer.disconnect();
             if (queued) cancelAnimationFrame(queued);
         });
+    }
+
+    // Each drawn row's aria-selected as its box says (VR14-2).
+    syncRowSelectedState() {
+        for (const row of this.querySelectorAll?.("[data-row-id][aria-selected]") ?? []) {
+            const on = row.hasAttribute("data-selected") ? "true" : "false";
+            if (row.getAttribute("aria-selected") !== on) row.setAttribute("aria-selected", on);
+        }
     }
 
     rowOfElement(element) {
