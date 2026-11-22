@@ -306,7 +306,7 @@ try {
       if (got.moreIcon !== 'more_horiz') failures.push({...label, item: 'C407', got: got.moreIcon, want: 'more_horiz'});
       if (got.moreLook !== 'outline' || !(got.moreFrame > 0)) failures.push({...label, item: 'LV3-9', got: {look: got.moreLook, frame: got.moreFrame}, want: 'outline with a frame'});
       if (got.searchDrawn && (got.searchDrawn.fill > 0.01 || got.searchDrawn.border < 1 || got.searchDrawn.borderInk < 0.1)) failures.push({...label, item: 'LV4-24', got: got.searchDrawn, want: 'the search outlined, not filled'});
-      if (phone && got.chipsBar && got.chipsBar.track > 0) failures.push({...label, item: 'LV4-25', got: got.chipsBar, want: 'no scrollbar track under the chips'});
+      if (phone && got.chipsBar && (got.chipsBar.track > 0 || got.chipsBar.bar !== 'none')) failures.push({...label, item: 'LV4-25', got: got.chipsBar, want: 'no scrollbar track under the chips'});
       if (!phone) {
         if (got.searchAppearance !== 'bordered' || !got.searchFramed) failures.push({...label, got: got.searchAppearance, want: 'the search framed'});
         if (!got.create || !got.more || got.more.h !== got.search?.h || got.create.h !== got.search?.h) failures.push({...label, item: 'LV3-9', got: {search: got.search, create: got.create, more: got.more}, want: '«Создать», «⋯» and the search one height'});
