@@ -260,6 +260,8 @@ export class ListHead {
 
     detach() {
         this._resize?.disconnect();
+        this._kindsWatch?.disconnect();
+        this._kindsWatched = null;
         this._resize = null;
         this._parts?.disconnect();
         this._parts = null;
@@ -370,6 +372,14 @@ export class ListHead {
         const kinds = zone.querySelector(":scope > [data-kinds]");
         const menu = zone.querySelector(":scope > sf-button-icon.sf-view-head-kind-menu");
         const many = this.kinds.length > 1;
+        // sf-segmented folds itself into a select a frame later, which no
+        // size observed here shows: its mark (data-sf-folded) is watched.
+        if (kinds && this._kindsWatched !== kinds && typeof MutationObserver === "function") {
+            this._kindsWatch ??= new MutationObserver(() => this._layZone());
+            this._kindsWatch.disconnect();
+            this._kindsWatch.observe(kinds, {attributes: true, attributeFilter: ["data-sf-folded"]});
+            this._kindsWatched = kinds;
+        }
         if (this.mode !== "desktop" || !kinds || !menu || !many || zone.hidden) {
             zone.removeAttribute("data-wrap");
             if (this.mode !== "desktop" && this._kindsFolded) this._kindsFolded = false;

@@ -81,5 +81,6 @@ test('AN-3: the list head and the table head stick under --sf-admin-shell-stick,
 
 test('VM-1: a segmented that folds itself is read by its buttons\' line', () => {
   assert.match(head, /\nfunction kindsLineWidth\(kinds\) \{/u);
+  assert.match(head, /observe\(kinds, \{attributes: true, attributeFilter: \["data-sf-folded"\]\}\)/u);
   assert.match(head, /const open = folded \? line - menuWidth \+ kindsWidth : line - drawn \+ kindsWidth;/u);
 });
