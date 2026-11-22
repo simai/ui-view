@@ -391,6 +391,15 @@ export class ListHead {
         // The kinds' own width, read while they are drawn (shown for the read
         // where they are folded; no frame is drawn in between).
         const folded = this._kindsFolded === true;
+        // The parts are read at their own widths: on one line the strip
+        // shrinks them (the views button truncates) and the line would seem
+        // to fit until sf-segmented folded itself a frame later, inside the
+        // observers, in a loop (VM-2). The strip is laid at max-content for
+        // the read and put back before anything is drawn or observed.
+        const style = zone.getAttribute("style");
+        zone.style.setProperty("contain", "none");
+        zone.style.setProperty("inline-size", "max-content");
+        zone.style.setProperty("max-inline-size", "none");
         if (folded) kinds.hidden = false;
         const kindsWidth = kindsLineWidth(kinds);
         if (folded) kinds.hidden = true;
@@ -399,6 +408,8 @@ export class ListHead {
         // Unfolded, the line holds the kinds as drawn (a select, where
         // sf-segmented folded itself): their own line replaces that.
         const drawn = folded ? 0 : partWidth(kinds);
+        if (style === null) zone.removeAttribute("style");
+        else zone.setAttribute("style", style);
         const open = folded ? line - menuWidth + kindsWidth : line - drawn + kindsWidth;
         const shut = folded ? line : line - drawn + menuWidth;
         const fold = open > room + 0.5;
