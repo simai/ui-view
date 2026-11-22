@@ -3086,15 +3086,15 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-table/index.js",
-        "sha256": "9000d2af90a7d33d32d6bf2b8d3077b69ed94dca6b106627325320585e9d0282"
+        "sha256": "ad2ddc7eeeb2973e838fabd148dbed01630b4d747faba81b35e09d1d2f286870"
       },
       {
         "path": "src/smart/view-table/js/templates/default.js",
-        "sha256": "0007620403f70b71c9236c75576a0d9b4d83211e4acdb0dd852cd649788c4268"
+        "sha256": "c37151bb91e54c87bbcdb2cab187d2c980134d4f6451f90ff40e93aaccdf38f0"
       },
       {
         "path": "src/smart/view-table/js/templates/default.css",
-        "sha256": "32402e324c863a0edbccc96b808100ace990c19a4a03b5d4ffe88f7f11cddb03"
+        "sha256": "05954c2bfdf790a665df6ed9e3b0b4091a472e334e27d045b28c571b3af5a288"
       },
       {
         "path": "src/smart/helpers/option-badge.js",

@@ -5608,7 +5608,9 @@ class SfTable extends TableElement {
         // the list's end, so it no longer covers the rows' «≡» at their start.
         const columns = this.hasAttribute("data-sf-columns-only")
             ? this.closest?.("sf-view, sf-data-view")?.querySelector?.(':scope > [slot="head"] .sf-view-head-columns') : null;
-        if (columns?.getClientRects?.().length && !columns.contains(e.target)) {
+        // sf-button's host is display: contents: its <button> has the box.
+        const drawn = (columns?.querySelector?.("button") ?? columns)?.getClientRects?.().length > 0;
+        if (columns && drawn && !columns.contains(e.target)) {
             this.openColumnSettings(columns);
             return;
         }

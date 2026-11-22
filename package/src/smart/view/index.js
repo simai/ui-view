@@ -1300,7 +1300,14 @@ class SfDataView extends DataViewElement {
             const narrow = width > 0 && width < 37.5 * rem;
             if (narrow !== this.hasAttribute("data-sf-view-footer-narrow")) this.toggleAttribute("data-sf-view-footer-narrow", narrow);
         };
-        this._footerWidth = new ResizeObserver(mark);
+        // The mark is written in the next frame (VR14-6): written in the
+        // observer's own callback it moved the footer, which resized the
+        // view in the same frame («ResizeObserver loop completed»).
+        let queued = 0;
+        this._footerWidth = new ResizeObserver(() => {
+            if (queued) return;
+            queued = (globalThis.requestAnimationFrame ?? globalThis.setTimeout)(() => { queued = 0; mark(); });
+        });
         this._footerWidth.observe(this);
         mark();
     }
