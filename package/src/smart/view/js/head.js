@@ -365,7 +365,20 @@ export class ListHead {
     // back once the strip has their room again. The strip keeps one line's
     // height either way (head.css, no wrap), so folding changes nothing
     // outside it. Only a strip that does not fit even folded may wrap.
+    // Laid in the next frame (VM-2): folded inside the observers, the kinds'
+    // sf-segmented answered being hidden in the same frame and the browser
+    // reported a «ResizeObserver loop». The strip keeps its one line's height
+    // meanwhile, so the frame between moves nothing below it.
     _layZone() {
+        if (this._zoneFrame) return;
+        const next = globalThis.requestAnimationFrame ?? ((fn) => globalThis.setTimeout(fn, 16));
+        this._zoneFrame = next(() => {
+            this._zoneFrame = null;
+            if (this.root?.isConnected) this._layZoneNow();
+        });
+    }
+
+    _layZoneNow() {
         const root = this.root;
         const zone = root?.querySelector?.(":scope > [data-zone]");
         if (!zone) return;

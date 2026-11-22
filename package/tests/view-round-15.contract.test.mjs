@@ -24,6 +24,8 @@ const contract = JSON.parse(readFileSync(resolve(setRoot, '..', 'contracts', 'vi
 test('VM-1: the view strip keeps one line and folds the kinds into its menu', () => {
   assert.match(head, /\n {4}_layZone\(\) \{/u);
   assert.match(head, /const fold = open > room \+ 0\.5;/u);
+  // folded in the next frame, never inside the observers (VM-2)
+  assert.match(head, /this\._zoneFrame = next\(\(\) => \{\n {12}this\._zoneFrame = null;\n {12}if \(this\.root\?\.isConnected\) this\._layZoneNow\(\);/u);
   // the desktop strip carries the kind menu beside the segmented kinds
   assert.match(head, /<sf-segmented data-kinds size="\$\{size\}" hidden><\/sf-segmented>\n {17}<sf-button-icon class="sf-view-head-kind-menu" data-kind-menu/u);
   assert.match(headCss, /\.sf-view-head:not\(\[data-phone\]\) > \.sf-view-head-zone:not\(\[data-wrap\]\) \{ flex-wrap: nowrap; \}/u);
