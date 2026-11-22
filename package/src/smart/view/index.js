@@ -2277,12 +2277,13 @@ class SfDataView extends DataViewElement {
                 syncCalendar(this);
                 await calendarOf(this)?.whenRendered?.();
             });
-            this._firstPaintWait = Promise.race([wait, new Promise((done) => globalThis.setTimeout(done, 3000))]).catch(() => {}).then(() => {
+            this._firstPaintWait = Promise.race([wait, this._kindGivesUp("sf-view-calendar")]).catch(() => {}).then(() => {
                 this._firstPaintWait = null;
                 drop();
             });
             return;
         }
+        if (this._layoutTag() === "sf-view-table" && typeof registry?.whenDefined === "function") return this._dropTableFirstPaint(drop);
         if (this.layoutKind !== "board" || typeof registry?.whenDefined !== "function") return drop();
         if (registry.get("sf-view-board") && this.board?.querySelector?.(".sf-view-board__lanes > *")) return drop();
         if (this._firstPaintWait) return;
@@ -2295,11 +2296,48 @@ class SfDataView extends DataViewElement {
                 await frame();
             }
         });
-        const late = new Promise((done) => globalThis.setTimeout(done, 3000));
-        this._firstPaintWait = Promise.race([wait, late]).catch(() => {}).then(() => {
+        this._firstPaintWait = Promise.race([wait, this._kindGivesUp("sf-view-board")]).catch(() => {}).then(() => {
             this._firstPaintWait = null;
             drop();
         });
+    }
+
+    // MOD1-1 (acceptance of view modular step 1): since sf-view-table is a
+    // lazy relation, the view may be defined and have its host's answer long
+    // before the table's code is in (on a slow line, or a list added after
+    // the page loaded, MOD1-5). The skeleton stays until sf-view-table is
+    // defined and has drawn, as the board's and the cards' do; before, the
+    // view dropped it at the answer and drew «Показать ещё» and the footer
+    // where the rows would be, then moved them down when the table came.
+    _dropTableFirstPaint(drop) {
+        const registry = globalThis.customElements;
+        if (registry.get("sf-view-table")) return drop();
+        if (this._firstPaintWait) return undefined;
+        const wait = registry.whenDefined("sf-view-table").then(async () => {
+            await this.table?.whenRendered?.();
+        });
+        this._firstPaintWait = Promise.race([wait, this._kindGivesUp("sf-view-table")]).catch(() => {}).then(() => {
+            this._firstPaintWait = null;
+            drop();
+        });
+        return undefined;
+    }
+
+    // When the view stops waiting for a display kind's code that is not
+    // defined yet (MOD1-1). With the Loader bringing it (a rule claims the
+    // tag), only when the Loader says the module failed to load: a time bound
+    // would end the wait on a slow line and the list would move when the code
+    // came. The Loader's word is SIMAI Framework internal state
+    // (SF.__internal.pendingTags.settled, the same read as sf-view-table's
+    // _waitsForView; pinned by tests/view-kind-settled.contract.test.mjs until
+    // the Framework has a public call, Compatibility Ledger). Without the
+    // Loader, or a tag no rule claims (bundles included by hand), after 3 s as
+    // before.
+    _kindGivesUp(tag) {
+        const settled = globalThis.SF?.__internal?.pendingTags?.settled;
+        const claimed = Boolean(globalThis.SF?.Loader?.getCustomElementRules?.()?.[tag]);
+        if (typeof settled !== "function" || !claimed) return new Promise((done) => globalThis.setTimeout(done, 3000));
+        return Promise.resolve(settled(tag)).then((state) => (state === "failed" ? state : new Promise(() => {})));
     }
 
     // The cards' skeleton stays until sf-view-cards is defined and has drawn
@@ -2316,8 +2354,7 @@ class SfDataView extends DataViewElement {
                 await frame();
             }
         });
-        const late = new Promise((done) => globalThis.setTimeout(done, 3000));
-        this._firstPaintWait = Promise.race([wait, late]).catch(() => {}).then(() => {
+        this._firstPaintWait = Promise.race([wait, this._kindGivesUp("sf-view-cards")]).catch(() => {}).then(() => {
             this._firstPaintWait = null;
             drop();
         });
@@ -2594,8 +2631,9 @@ class SfDataView extends DataViewElement {
         const wait = registry.whenDefined(tag).then(async () => {
             for (let tries = 0; tries < 120 && !drawn(); tries += 1) await frame();
         });
-        const late = new Promise((done) => globalThis.setTimeout(done, 8000));
-        Promise.race([wait, late]).catch(() => {}).then(() => {
+        // Until the kind's code is in, or the Loader says it failed (MOD1-1;
+        // an 8 s bound moved the list on a slow line).
+        Promise.race([wait, this._kindGivesUp(tag)]).catch(() => {}).then(() => {
             if (token !== this._layoutHoldToken) return;
             hold.remove();
             if (this._layoutHold === hold) this._layoutHold = null;
