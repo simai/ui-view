@@ -85,9 +85,13 @@ const initializeHead = async () => {
   table.setFilterFields?.(FIELDS);
   table.setCreateItems?.([{id: 'order', name: 'Заказ'}]);
   let first = false;
+  // The person's column layer (personal-column-settings): «Колонки» saves
+  // against its revision with settings.save_personal.
+  let personal = {revision: '1', columns: {}};
+  const columnSettings = () => ({target: {kind: 'personal', revision: personal.revision}, layers: {personal}});
   view.setHostPort({
     version: '1.15.0',
-    capabilities: ['row-actions', 'create-record'],
+    capabilities: ['row-actions', 'create-record', 'personal-column-settings'],
     // Which fields filter the list and which display kinds the application
     // allows: the head's switch offers exactly these.
     describe: () => ({fields: FIELDS, layouts: ['table', 'board', 'cards', 'calendar']}),
@@ -101,6 +105,12 @@ const initializeHead = async () => {
         log.textContent = `Открыть ${payload.record_ids.join(', ')}: переход делает приложение.`;
         return {answer: 'applied'};
       }
+      if (intent === 'settings.save_personal') {
+        if (String(payload.base_revision) !== personal.revision) return {answer: 'conflict', current_revision: personal.revision};
+        personal = {revision: String(Number(personal.revision) + 1), columns: payload.columnSettings ?? {}};
+        log.textContent = 'Приложение сохранило для вас колонки (settings.save_personal).';
+        return {answer: 'applied', data: {column_settings: columnSettings()}};
+      }
       if (intent !== 'query.change') return {answer: 'unavailable', reason: 'capability-not-provided'};
       const query = payload.query ?? {};
       // The records without a date, the calendar's own list: every order has one.
@@ -109,7 +119,7 @@ const initializeHead = async () => {
       const found = orders.filter((order) => matches(order, query));
       const [order] = query.sort ?? [];
       if (order) found.sort((a, b) => (a[order.key] > b[order.key] ? 1 : -1) * (order.direction === 'desc' ? -1 : 1));
-      const data = {columns: COLUMNS, total: found.length, view_config: {layouts: LAYOUTS},
+      const data = {columns: COLUMNS, total: found.length, view_config: {layouts: LAYOUTS}, column_settings: columnSettings(),
         echo: {filters_chosen: query.filters_chosen ?? ['status', 'manager'], filters: query.filters ?? {}, search: query.search ?? '', sort: query.sort ?? [], page: query.page ?? 1, per_page: query.per_page ?? 10, view: query.view ?? {id: null, type: 'table'}}};
       if (query.window?.lanes) {
         data.records = [];

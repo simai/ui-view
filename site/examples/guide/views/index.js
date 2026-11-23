@@ -46,10 +46,16 @@ const LAYOUTS = {
   calendar: {date_field: 'due', color_field: 'status', event_fields: ['client'], per_day: 3},
 };
 const VIEWS = [
-  {key: 'all', label: 'Все заказы', level: 'system', default: true, revision: '1', query: {filters: {}}},
-  {key: 'wait', label: 'Ждут оплаты', level: 'system', revision: '1', query: {filters: {status: {operator: 'in', values: ['wait']}}}, settings: {filter_fields: ['status']}},
-  {key: 'by-status', label: 'Заказы по состоянию', level: 'shared', revision: '1', query: {filters: {}}, settings: {layout: 'board'}},
-  {key: 'mine', label: 'Мои заказы', level: 'personal', revision: '1', query: {filters: {manager: {operator: 'in', values: ['u1']}}}, settings: {filter_fields: ['manager']}},
+  {key: 'all', label: 'Все заказы', level: 'system', default: true, revision: '1', query: {}},
+  {key: 'large', label: 'Крупные сверху', level: 'system', revision: '1', query: {sort: [{key: 'amount', direction: 'desc'}]}},
+  {key: 'by-status', label: 'Заказы по состоянию', level: 'shared', revision: '1', query: {}, settings: {layout: 'board'}},
+  {key: 'mine', label: 'Мои карточки', level: 'personal', revision: '1', query: {}, settings: {layout: 'cards'}},
+];
+// What to show is a saved filter's (view-config/1 1.1.0): the conditions
+// live here, under «Фильтр», never in a view.
+const SAVED_FILTERS = [
+  {id: 'wait', name: 'Ждут оплаты', fields: ['status'], filters: {status: {operator: 'in', values: ['wait']}}, shared: true, default: false},
+  {id: 'mine', name: 'Мои заказы', fields: ['manager'], filters: {manager: {operator: 'in', values: ['u1']}}, shared: false, default: false},
 ];
 
 const makeOrders = (count) => Array.from({length: count}, (_, index) => {
@@ -71,15 +77,21 @@ const ordersApp = ({count = 60, views = false, say = () => {}, bulk = null, colu
   const orders = makeOrders(count);
   let opened = null;
   let current = null; // the key of the open view, echoed with every answer
+  const filters = JSON.parse(JSON.stringify(SAVED_FILTERS));
   const value = (order, key) => (key === 'manager' ? order.managerId : order[key]);
   const matches = (order, query) => {
     const search = String(query.search ?? '').trim().toLowerCase();
     if (search && !`${order.title} ${order.client}`.toLowerCase().includes(search)) return false;
     return Object.entries(query.filters ?? {}).every(([key, condition]) => !condition?.values?.length || condition.values.includes(value(order, key)));
   };
+  // The person's column layer (port capability personal-column-settings):
+  // every answer carries it with its revision, and a change made in
+  // «Колонки» or the table's gear comes back as settings.save_personal.
+  let personal = {revision: '1', columns: {}};
+  const columnSettings = () => ({target: {kind: 'personal', revision: personal.revision}, layers: {personal}});
   const listPort = {
     version: '1.15.0',
-    capabilities: ['row-actions', ...(views ? ['saved-views'] : [])],
+    capabilities: ['row-actions', 'personal-column-settings', ...(views ? ['saved-views'] : [])],
     describe: () => ({fields: FIELDS, layouts: ['table', 'board', 'cards', 'calendar'], permissions: {shared_settings: Boolean(views)}}),
     async raise(intent, payload) {
       await pause();
@@ -88,9 +100,27 @@ const ordersApp = ({count = 60, views = false, say = () => {}, bulk = null, colu
         say(`Приложение открыло представление «${opened?.label ?? payload.key}».`);
         return {answer: 'applied', data: {saved_views: VIEWS}};
       }
+      // Saved filters: «Фильтр» and its bookmark (filter.save, rename, delete…).
+      if (intent.startsWith('filter.')) {
+        if (intent === 'filter.save') filters.push({...payload.filter, id: `f${filters.length + 1}`});
+        if (intent === 'filter.rename') Object.assign(filters.find((one) => one.id === payload.id) ?? {}, {name: payload.name});
+        if (intent === 'filter.update') Object.assign(filters.find((one) => one.id === payload.id) ?? {}, {fields: payload.fields, filters: payload.filters});
+        if (intent === 'filter.share') Object.assign(filters.find((one) => one.id === payload.id) ?? {}, {shared: payload.shared});
+        if (intent === 'filter.default') filters.forEach((one) => { one.default = one.id === payload.id; });
+        const at = filters.findIndex((one) => one.id === payload.id);
+        if (intent === 'filter.delete' && at >= 0) filters.splice(at, 1);
+        say(`Приложение: ${intent}.`);
+        return {answer: 'applied', data: {saved_filters: filters}};
+      }
       if (intent === 'view.save' || intent === 'view.save_shared') {
         say(intent === 'view.save_shared' ? 'Приложение сохранило представление для всех.' : 'Приложение сохранило представление.');
         return {answer: 'applied', data: {saved_views: VIEWS}};
+      }
+      if (intent === 'settings.save_personal') {
+        if (String(payload.base_revision) !== personal.revision) return {answer: 'conflict', current_revision: personal.revision};
+        personal = {revision: String(Number(personal.revision) + 1), columns: payload.columnSettings ?? {}};
+        say('Приложение сохранило для вас колонки (settings.save_personal).');
+        return {answer: 'applied', data: {column_settings: columnSettings()}};
       }
       if (intent === 'settings.save') {
         const patch = payload?.patch ?? {};
@@ -109,9 +139,10 @@ const ordersApp = ({count = 60, views = false, say = () => {}, bulk = null, colu
       if (intent !== 'query.change') return {answer: 'unavailable', reason: 'capability-not-provided'};
       const query = {...(payload.query ?? {})};
       let view = query.view ?? {id: current, type: 'table'};
+      // A view keeps how to show the list, not what: its sort and its
+      // layout apply, and the conditions on screen stay as they are.
       if (opened) {
-        query.filters = JSON.parse(JSON.stringify(opened.query?.filters ?? {}));
-        if (opened.settings?.filter_fields) query.filters_chosen = opened.settings.filter_fields;
+        query.sort = JSON.parse(JSON.stringify(opened.query?.sort ?? []));
         current = opened.key;
         view = {...view, type: opened.settings?.layout ?? view.type ?? 'table'};
         opened = null;
@@ -122,7 +153,7 @@ const ordersApp = ({count = 60, views = false, say = () => {}, bulk = null, colu
       const [order] = query.sort ?? [];
       if (order) found.sort((a, b) => (a[order.key] > b[order.key] ? 1 : -1) * (order.direction === 'desc' ? -1 : 1));
       const perPage = query.per_page ?? 20;
-      const data = {columns, total: found.length, view_config: {layouts: LAYOUTS}, ...(views ? {saved_views: VIEWS} : {}),
+      const data = {columns, total: found.length, view_config: {layouts: LAYOUTS}, column_settings: columnSettings(), ...(views ? {saved_views: VIEWS, saved_filters: filters} : {}),
         echo: {filters_chosen: query.filters_chosen ?? ['status', 'manager'], filters: query.filters ?? {}, search: query.search ?? '', sort: query.sort ?? [], page: query.page ?? 1, per_page: perPage, view}};
       if (window.undated) {
         data.records = [];
@@ -208,6 +239,7 @@ const settle = async (root) => {
 // ---- Saved views by level ---------------------------------------------------
 // The application lists its views in saved_views with a level: system (the
 // application's own), shared (for everyone) and personal (the person's).
+// A view keeps how to show (layout, sort), a saved filter what to show.
 // Opening one is view.open; saving is view.save (the person's) or
 // view.save_shared (for everyone, where describe() allows shared_settings).
 const openZoneOnce = (key) => {

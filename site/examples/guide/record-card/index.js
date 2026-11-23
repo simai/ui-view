@@ -77,9 +77,14 @@ const ordersApp = ({count = 60, views = false, say = () => {}, bulk = null, colu
     if (search && !`${order.title} ${order.client}`.toLowerCase().includes(search)) return false;
     return Object.entries(query.filters ?? {}).every(([key, condition]) => !condition?.values?.length || condition.values.includes(value(order, key)));
   };
+  // The person's column layer (port capability personal-column-settings):
+  // every answer carries it with its revision, and a change made in
+  // «Колонки» or the table's gear comes back as settings.save_personal.
+  let personal = {revision: '1', columns: {}};
+  const columnSettings = () => ({target: {kind: 'personal', revision: personal.revision}, layers: {personal}});
   const listPort = {
     version: '1.15.0',
-    capabilities: ['row-actions', ...(views ? ['saved-views'] : [])],
+    capabilities: ['row-actions', 'personal-column-settings', ...(views ? ['saved-views'] : [])],
     describe: () => ({fields: FIELDS, layouts: ['table', 'board', 'cards', 'calendar'], permissions: {shared_settings: Boolean(views)}}),
     async raise(intent, payload) {
       await pause();
@@ -91,6 +96,12 @@ const ordersApp = ({count = 60, views = false, say = () => {}, bulk = null, colu
       if (intent === 'view.save' || intent === 'view.save_shared') {
         say(intent === 'view.save_shared' ? 'Приложение сохранило представление для всех.' : 'Приложение сохранило представление.');
         return {answer: 'applied', data: {saved_views: VIEWS}};
+      }
+      if (intent === 'settings.save_personal') {
+        if (String(payload.base_revision) !== personal.revision) return {answer: 'conflict', current_revision: personal.revision};
+        personal = {revision: String(Number(personal.revision) + 1), columns: payload.columnSettings ?? {}};
+        say('Приложение сохранило для вас колонки (settings.save_personal).');
+        return {answer: 'applied', data: {column_settings: columnSettings()}};
       }
       if (intent === 'settings.save') return {answer: 'applied'};
       if (intent === 'record.open') return {answer: 'applied'};
@@ -117,7 +128,7 @@ const ordersApp = ({count = 60, views = false, say = () => {}, bulk = null, colu
       const [order] = query.sort ?? [];
       if (order) found.sort((a, b) => (a[order.key] > b[order.key] ? 1 : -1) * (order.direction === 'desc' ? -1 : 1));
       const perPage = query.per_page ?? 20;
-      const data = {columns, total: found.length, view_config: {layouts: LAYOUTS}, ...(views ? {saved_views: VIEWS} : {}),
+      const data = {columns, total: found.length, view_config: {layouts: LAYOUTS}, column_settings: columnSettings(), ...(views ? {saved_views: VIEWS} : {}),
         echo: {filters_chosen: query.filters_chosen ?? ['status', 'manager'], filters: query.filters ?? {}, search: query.search ?? '', sort: query.sort ?? [], page: query.page ?? 1, per_page: perPage, view}};
       if (window.undated) {
         data.records = [];
