@@ -114,5 +114,5 @@ flowchart LR
 
 - [Карточка записи sf-view-properties](/ru/components/view-properties/)
 - [Правка записей](/ru/recipes/editing/)
-- [Настроить вид и плотность](../view-settings/)
+- [Вид и плотность](../view-settings/)
 - [Работа со списком](../)

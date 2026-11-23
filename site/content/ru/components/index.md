@@ -33,7 +33,7 @@ SIMAI Framework — их описывает [документация SIMAI Fram
 [Работа со списком](/ru/guide/list/):
 [поиск, фильтр и сортировка](/ru/guide/list/search-filter-sort/),
 [представления](/ru/guide/list/views/),
-[«Настроить вид» и плотность](/ru/guide/list/view-settings/),
+[вид и плотность](/ru/guide/list/view-settings/),
 [где открывается карточка](/ru/guide/list/record-card/),
 [подвал и страницы](/ru/guide/list/footer/) и
 [массовые действия](/ru/guide/list/bulk-actions/).
