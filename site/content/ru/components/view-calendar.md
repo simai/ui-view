@@ -5,7 +5,7 @@ profile: reference
 
 # Календарь
 
-:badge[sf-view-calendar]{variant=main scheme=on-surface size=1} :badge[Версия 1.1.3]{variant=tonal scheme=neutral size=1} :badge[Предварительная версия]{variant=tonal scheme=warning size=1}
+:badge[sf-view-calendar]{variant=main scheme=on-surface size=1} :badge[Версия 1.3.1]{variant=tonal scheme=neutral size=1} :badge[Предварительная версия]{variant=tonal scheme=warning size=1}
 
 Календарь показывает записи **на днях их даты**: месяц из шести недель, неделю или день по часам, список по дням. Запись переносят на другой день или время и растягивают за край — мышью, пальцем или клавишами; календарь сразу показывает новое место, а приложение сохраняет его или отказывает и объясняет почему.
 
@@ -81,13 +81,13 @@ query.context  // {timeZone: 'Europe/Moscow', weekStart: 1, locale: 'ru'}
 
 ## Параметры
 
-Справочник собран из манифеста компонента в выпуске набора `view-2cc3a6afbc95` (версия 1.11.0) и обновляется вместе с выпуском. Каждому атрибуту соответствует свойство элемента с тем же именем в camelCase: `search-placeholder` — `searchPlaceholder`.
+Справочник собран из манифеста компонента в выпуске набора `view-974a2524bd40` (версия 1.17.0) и обновляется вместе с выпуском. Каждому атрибуту соответствует свойство элемента с тем же именем в camelCase: `search-placeholder` — `searchPlaceholder`.
 
 | | |
 |:---|:---|
 | Тег | `<sf-view-calendar>` |
 | Назначение | Календарь набора представлений: месяц, неделя, день и список; записи стоят в днях своего поля даты, перенос или растягивание — изменение полей даты, которое подтверждает хост. sf-view с layout="calendar" рисует его над окном дат. |
-| Контракт | `smart.view-calendar`, версия `1.1.3` |
+| Контракт | `smart.view-calendar`, версия `1.3.1` |
 | Жизненный цикл | экспериментальный: API может меняться между выпусками |
 
 ### Атрибуты
@@ -162,7 +162,7 @@ query.context  // {timeZone: 'Europe/Moscow', weekStart: 1, locale: 'ru'}
 
 ## Источник
 
-- `simai/ui-view@2cc3a6afbc95:package/src/smart/view-calendar`
+- `simai/ui-view@974a2524bd40:package/src/smart/view-calendar`
 
 ## См. также
 

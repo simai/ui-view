@@ -5,7 +5,7 @@ profile: reference
 
 # Умная таблица
 
-:badge[sf-view-table]{variant=main scheme=on-surface size=1} :badge[Версия 1.31.0]{variant=tonal scheme=neutral size=1}
+:badge[sf-view-table]{variant=main scheme=on-surface size=1} :badge[Версия 1.37.0]{variant=tonal scheme=neutral size=1}
 
 Умная таблица показывает записи таблицей или компактным списком. Каждая колонка называет тип своих значений, и таблица сама рисует подходящую ячейку: ссылку на запись, выбор цветной меткой, файл, цвет. Настройка колонок, выбор строк, меню строки и колонки встроены.
 
@@ -89,13 +89,13 @@ CSS-переменные меняют фон шапки, отступ ячейк
 
 ## Параметры
 
-Справочник собран из манифеста компонента в выпуске набора `view-2cc3a6afbc95` (версия 1.11.0) и обновляется вместе с выпуском. Каждому атрибуту соответствует свойство элемента с тем же именем в camelCase: `search-placeholder` — `searchPlaceholder`.
+Справочник собран из манифеста компонента в выпуске набора `view-974a2524bd40` (версия 1.17.0) и обновляется вместе с выпуском. Каждому атрибуту соответствует свойство элемента с тем же именем в camelCase: `search-placeholder` — `searchPlaceholder`.
 
 | | |
 |:---|:---|
 | Тег | `<sf-view-table>` |
 | Назначение | Полное представление коллекции с серверными данными: поиск, фильтры, настройки таблицы, действия над строками и массовые действия, пагинация. |
-| Контракт | `smart.view-table`, версия `1.31.0` |
+| Контракт | `smart.view-table`, версия `1.37.0` |
 | Жизненный цикл | экспериментальный: API может меняться между выпусками |
 | Порт | `simai.dataview-port`, версия `1.0.0` |
 
@@ -191,7 +191,7 @@ CSS-переменные меняют фон шапки, отступ ячейк
 - `sf-view-table-rows-drag` — `detail`: `{ ids: array, source: string|null }`. Строки с drag-rows начали перетаскивать из списка к цели вроде дерева; те же {ids, source} лежат в данных перетаскивания как application/x-sf-records+json.
 - `sf-view-table-move` — `detail`: `{ ids: array, before, order: array }`. Строки переставили, словарь §5 move `{ids, before, order}`. Прежнее имя `sf-table-rows-reorder` приходит следом с прежним `detail` до 2027-01-01.
 - `sf-view-table-cell-set` — `detail`: `{ id: object, key: string, value: object, revision: object }`. Ячейку изменили на месте: нажали флажок, выбрали короткое поле в его меню или сохранили в его окне: запись, поле, новое значение и ревизия записи.
-- `sf-view-table-view-change` — `detail`: `{ view: object, everywhere: boolean }`. Сменился вид таблицы (`view-change`).
+- `sf-view-table-view-change` — `detail`: `{ view: object, everywhere: boolean }`. Изменился вид таблицы (плотность, одна строка, линии): `view` — весь вид; `everywhere` — `true`, когда он сохранён для всех списков этого рода (общее личное предпочтение; так по умолчанию), `false` — только для этого списка.
 - `sf-view-table-window` — `detail`: `{ first: integer, last: integer }`. Изменилось окно нарисованных строк длинного списка: `{first, last}` — номера строк в списке.
 - `sf-view-table-layout-change` — `detail`: `{ layout }`. Человек выбрал список или таблицу переключателем (или вызван `setLayout`); выбор уже сохранён. `sf-view` хранит его вместе с видом.
 - `sf-view-table-open` — `detail`: `{ id, newTab: boolean }`. Человек открыл запись: нажал её заголовок, дважды нажал строку или Enter (`newTab` — false) либо нажал заголовок с клавишей-модификатором или средней кнопкой там, где у записи есть адрес (`newTab` — true). Отправляется рядом с намерением представления; хост открывает карточку записи или переходит по адресу.
@@ -277,7 +277,7 @@ CSS-переменные меняют фон шапки, отступ ячейк
 
 ## Источник
 
-- `simai/ui-view@2cc3a6afbc95:package/src/smart/view-table`
+- `simai/ui-view@974a2524bd40:package/src/smart/view-table`
 
 ## См. также
 
