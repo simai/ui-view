@@ -1,7 +1,7 @@
 import {html, nothing} from 'lit';
 import {guard} from 'lit/directives/guard.js';
 import "./default.css";
-import {renderViewField, renderEditField} from '../../../field-renderers/index.js';
+import {renderViewField, renderEditField} from '../../../view-common/field-renderers.js';
 import {renderFieldValue} from '../field-value.js';
 
 // The arrangement, drawn in the component's own light DOM. Not in a shadow root:
@@ -396,6 +396,32 @@ function renderReadRow(context, field, sectionKey, groupKey) {
     `;
 }
 
+// A field of a group edited in place in the record's list (C401, VL-64, view
+// round 15): the read row's own parts -- the list's row, label and value -- with
+// the field's control in the value, so «Изменить» moves no label and no row.
+// The read row reserves the control's height (default.css), so the field takes
+// the room the value already had.
+function renderEditRow(context, field) {
+    const disabled = Boolean(field.when) && context.fieldDisabled(field);
+    if (field.when) field = context.conditionedField(field);
+    const key = String(field.key ?? '');
+    const error = context.controlErrors?.has(key) ? null : context.errors.get(key);
+    return html`
+        <div class="sf-list-description-row sf-property-view-field sf-property-view-row sf-property-view-row--edit" data-field=${key}>
+            <div class="sf-list-description-label sf-property-view-field-label" id=${`sf-property-view-label-${context.recordId || 'record'}-${key}`}>${String(field.label ?? key)}${field.required
+                    ? html`<span class="sf-property-view-required" aria-hidden="true">*</span>`
+                    : nothing}${field.hint
+                    ? html`<sf-help-mark class="sf-list-description-help sf-property-view-hint" size=${context.size === '1/2' ? '1/3' : '1/2'}
+                                         label=${String(field.hint)} text=${String(field.hint)}></sf-help-mark>`
+                    : nothing}</div>
+            <div class="sf-list-description-value">
+                <div class="sf-property-view-field-value min-w-0 flex items-cross-center gap-2 flex-wrap">${renderFieldValue(context, field, true, {disabled})}</div>
+                ${error ? html`<span class="sf-property-view-field-error color-error" role="alert">${error}</span>` : nothing}
+            </div>
+        </div>
+    `;
+}
+
 // A short field edited in a window at its value (C305 (1), as the table's
 // cell, C296): sf-popover with the value as its trigger, the field's own
 // control, Save first and a quiet Cancel. One value per save -- group.save of
@@ -716,9 +742,22 @@ function renderGroup(context, section, group) {
     if (editing && !configuring && form && form.group === groupKey && form.section === String(section.key ?? '')) {
         return html`
             <section class="sf-property-view-group sf-property-view-group--editing sf-property-view-group--form" data-group=${groupKey}>
-                ${titled ? html`<header class="sf-property-view-group-header flex items-cross-center justify-between gap-2">
-                    <div class="sf-property-view-group-title" role="heading" aria-level="3">${String(group.label ?? groupKey)}</div>
-                </header>` : nothing}
+                ${titled || readEdit ? html`<div class="sf-list-description-head sf-property-view-group-header">
+                    ${titled ? html`<div class="sf-list-description-title sf-property-view-group-title" role="heading" aria-level="3">${String(group.label ?? groupKey)}</div>`
+                            : html`<span class="sf-property-view-group-title-gap" aria-hidden="true"></span>`}
+                    ${readEdit
+                            // The head read had, kept edited (VR14-3, view round
+                            // 15m): its «Изменить» stays as an unseen, inert
+                            // stand-in, so the rows under it do not climb by the
+                            // head's height when the group turns into its form.
+                            ? html`<span class="sf-list-description-action sf-property-view-group-action-kept" aria-hidden="true" inert><sf-button
+                                    appearance="ghost"
+                                    size=${context.controlSize ?? nothing}
+                                    text=${context.editText}
+                                    tabindex="-1"
+                            ></sf-button></span>`
+                            : nothing}
+                </div>` : nothing}
                 <sf-form class="sf-property-view-form"
                          label=${String(group.label ?? groupKey)}
                          labels=${context.sectionsLayout === 'phone' ? 'top' : 'start'}
@@ -732,6 +771,28 @@ function renderGroup(context, section, group) {
                              if (at) context.component.changeField(at.field, event.detail?.value);
                          }}
                 ></sf-form>
+            </section>`;
+    }
+    // Edited in the card's own form (a group sf-form does not draw: a lookup,
+    // a file, a person), the group stays a part of the record's list (VL-64):
+    // the read head with its «Изменить» kept as an unseen stand-in, and each
+    // field a row of the list at the place it read in.
+    if (editing && !configuring && !context.openAll && group.kind !== 'related' && waiting === 0) {
+        return html`
+            <section class="sf-property-view-group sf-property-view-group--list sf-property-view-group--editing sf-property-view-group--in-place" data-group=${groupKey}>
+                ${titled || readEdit ? html`<div class="sf-list-description-head sf-property-view-group-header">
+                    ${titled ? html`<div class="sf-list-description-title sf-property-view-group-title" role="heading" aria-level="3">${String(group.label ?? groupKey)}</div>`
+                            : html`<span class="sf-property-view-group-title-gap" aria-hidden="true"></span>`}
+                    ${readEdit
+                            ? html`<span class="sf-list-description-action sf-property-view-group-action-kept" aria-hidden="true" inert><sf-button
+                                    appearance="ghost"
+                                    size=${context.controlSize ?? nothing}
+                                    text=${context.editText}
+                                    tabindex="-1"
+                            ></sf-button></span>`
+                            : nothing}
+                </div>` : nothing}
+                ${fields.length ? html`<div class="sf-list-description-part sf-property-view-group-fields" role="group" aria-label=${String(group.label ?? groupKey)}>${fields.map((field) => renderEditRow(context, field))}</div>` : nothing}
             </section>`;
     }
     const rows = waiting > 0
@@ -885,7 +946,7 @@ function renderSectionList(context, sections) {
         // 48rem into the line with «Ещё (n)», full screen at 1440 too.
         return html`
             <div class="sf-property-view-sections self-cross-stretch flex flex-col min-w-0">
-                ${context.sectionColumnTabs ? renderSectionVerticalTabs(context, sections) : renderSectionMenu(context, sections)}
+                ${context.sectionColumnTabs && context.sectionsLayout !== 'rail' ? renderSectionVerticalTabs(context, sections) : renderSectionMenu(context, sections)}
             </div>
         `;
     }
@@ -1510,9 +1571,15 @@ function inPlaceActions(context) {
         || context.canDeleteRecord || (context.recordMenuItems?.length ?? 0) > 0);
 }
 
+// The sections as a list, each a level with «←» (C386): on a phone, and in a
+// side panel the rail would leave the fields under 20rem (C403).
+function sectionLevels(context) {
+    return !context.wide || context.sectionsLayout === 'level';
+}
+
 // A section opened on a phone, inside a panel: a level of the panel (C157 (6)).
 function phoneLevel(context) {
-    return Boolean(context.panel && !context.wide && (context.sections?.length ?? 0) > 1 && context.phoneSection !== null);
+    return Boolean(context.panel && sectionLevels(context) && (context.sections?.length ?? 0) > 1 && context.phoneSection !== null);
 }
 
 // The phone's list screen: below the breakpoint, with more than one section and
@@ -1523,7 +1590,7 @@ function phoneLevel(context) {
 function onPhoneSectionList(context, sections) {
     // Arranging draws «Вкладки» over the fields at every width (C311 (4)): the
     // phone's list screen is a way to read, not to arrange.
-    return !context.configuring && !context.wide && sections.length > 1 && context.phoneSection === null;
+    return !context.configuring && sectionLevels(context) && sections.length > 1 && context.phoneSection === null;
 }
 
 // The section being arranged, named where its areas are. The section list is
@@ -1667,7 +1734,8 @@ function renderAddSection(context) {
 // column reaches the top of the panel the way a rail of tabs does.
 function sidebarDrawn(context) {
     const sections = listed(context, context.sections);
-    return Boolean(context.sectionsLayout === 'column'
+    // The rail of a side panel (C403) stands where the column does.
+    return Boolean((context.sectionsLayout === 'column' || context.sectionsLayout === 'rail')
         && (sections.length > 1 || context.configuring));
 }
 

@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-properties",
-  "version": "1.26.0",
+  "version": "1.31.1",
   "title": "Property view",
   "summary": "One object's fields shown as sections, groups and fields, each drawn by the per-type field renderer set, behind a separate host port. A group is edited and saved as one revision by the button, and a reference field is picked from the host's own candidates a page at a time. The pair to the data view: that one is a set of records, this one is a single object.",
   "kind": "composite",
@@ -75,6 +75,7 @@
       "smart.tabs",
       "smart.tag",
       "smart.view",
+      "smart.view-common",
       "smart.view-table"
     ],
     "public_parts": [],
@@ -2040,6 +2041,42 @@
         "changes": [
           "View round 13 (round/view-r13): C399 sectionColumnFits: docked beside the list (_docksBesideList: docked and the dock breakpoint) the list keeps _listLeast (48rem) beside the widened card, over the list always; COLUMN_WINDOW_SHARE gone. C400 default.css: .sf-property-view-list .sf-list-description-label takes the list's font size and line, ink on-surface-variant. C401 default.js: sf-form labels start except on a phone; default.css: the edited group in the list has no frame, padding or fill and the list's row gap. C402 field-value.js: the empty value drops its utility class; default.css: .sf-property-view-empty keeps --sf-on-surface-variant (muted fails 4.5:1). docs.md says it."
         ]
+      },
+      {
+        "from": "1.26.0",
+        "to": "1.28.0",
+        "changes": [
+          "View modular step 1 (round/view-modular-1): takes its shared code (the Framework field renderers, formats, conditions and filter window, density, the manifest actions) from the package core smart/view-common once per page, instead of a copy in its own bundle; its field value, set fields and money import the field renderers and decimal through the core; relation cl-view-common."
+        ]
+      },
+      {
+        "from": "1.28.0",
+        "to": "1.29.0",
+        "changes": [
+          "C403 section rail and level fallback under 20rem, the interim tabs of C399 gone, the badge row on the label's baseline",
+          "LV4-12 block title a rung up"
+        ]
+      },
+      {
+        "from": "1.29.0",
+        "to": "1.30.0",
+        "changes": [
+          "View round 15m: round/view-r14 and round/view-modular-1 joined into one line (merge, no rebase); the number is above both branches. RV4-3 docksBesideList(), dockWidth(), the over mark (data-sf-view-card-over, set by sf-view) undocks the card."
+        ]
+      },
+      {
+        "from": "1.30.0",
+        "to": "1.31.0",
+        "changes": [
+          "View round 15: VL-64 read values reserve the control height, beside their value the labels keep the room above it; in-place edit rows (renderEditRow, sf-property-view-group--in-place); VL-65 .sf-property-view-empty in --sf-on-surface-not-set with the label's ink as fallback."
+        ]
+      },
+      {
+        "from": "1.31.0",
+        "to": "1.31.1",
+        "changes": [
+          "View round 17: the full-screen edit form's fields grid-column auto with their own label column over sf-form's start labels (selectors above .sf-form[data-labels]); the panel's foot bar position static, margin-block-end 0, padding-block --sf-space-1 over sf-drawer's content-actions rule."
+        ]
       }
     ]
   },
@@ -2049,15 +2086,15 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-properties/index.js",
-        "sha256": "8b58e9c607ed0a92b3af4f07bf60f7cebd696b0eef188d34dd297ca11112c461"
+        "sha256": "6f656e405abe98ad6829620ad1aa8d206aa0d2ee0b5604c8fa769e1524b3cd2a"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.js",
-        "sha256": "51d1b2de2f8df1eea0f85eb1007b911ce74138a54cbb14462a2b9f4e5dcefc3b"
+        "sha256": "38ffa66db0e6abfe82ab72526a92e83a599602a5f943e4c634a134acf1430c21"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.css",
-        "sha256": "111d8920f05dc8fcaeb61c71082daafc0e7c8b657884a7b47ab93c5b8bae08db"
+        "sha256": "0b31af8dca6b192d10ed597dd3579c5fa639a4293686ef412eb0720c6d0c6d68"
       },
       {
         "path": "src/smart/view-properties/js/conditions.js",
@@ -2065,11 +2102,11 @@
       },
       {
         "path": "src/smart/view-properties/js/field-value.js",
-        "sha256": "8773043c226a0aba2b261086d53522be5d40444f15559447d0937cbcc1afc8df"
+        "sha256": "5a74dd04d9e634b60d0048300dbc501609b6128def2e8aa08905d2835010a6d3"
       },
       {
         "path": "src/smart/view-properties/js/history.js",
-        "sha256": "7b6fe4d1c1bd88686edb70e31a2b13e508f6f075d7116d5e7da36af2489a359b"
+        "sha256": "a1650f3276eae38bf6370a0d71c04be0a8191cbe3a0b8621c65d3b07d9149d54"
       },
       {
         "path": "src/smart/view-properties/js/history-port.js",
@@ -2089,7 +2126,7 @@
       },
       {
         "path": "src/smart/view-properties/js/money.js",
-        "sha256": "ca936af5b59ee2f0fe8788df3f69cccdc1cb6fd3045213bbd1a14d4f5963f537"
+        "sha256": "c7dac1ae136edb7d9120416f39a253e362104288565fcd054d3f8419e40d92ae"
       },
       {
         "path": "src/smart/view-properties/js/set-fields.css",
@@ -2097,11 +2134,11 @@
       },
       {
         "path": "src/smart/view-properties/js/set-fields.js",
-        "sha256": "8b5c3d72c4359bdbee46e6d1cc3f58abdf84c6a57bffa829e1695d84356622bc"
+        "sha256": "74b3b9c0f49dd86770b53c420088cf76987f9c91c8eee26bf58f2f9479bcf0f2"
       },
       {
         "path": "src/smart/view-properties/rule.js",
-        "sha256": "7ee0d5f20ac88d2d56663eba2fd9a0a3db183273009d54a494a9461f899eae1e"
+        "sha256": "7fab6edf91100e63b5ef6309c9623901d5dd178f36d9e58668342537e62049d1"
       },
       {
         "path": "src/core/contracts/ports/simai.property-view-port/1.4.0/port.json",
@@ -2109,7 +2146,7 @@
       },
       {
         "path": "src/smart/view-properties/docs.md",
-        "sha256": "5e5b408aa8bc44b88592394e8a189a93adbdf01904fc0e59cddfd6097eda3cae"
+        "sha256": "c3e05dbbb66e57d1e1506145588db0ad28136a250a9ce6b5feefe7047eb9661d"
       }
     ],
     "generated_runtime": []

@@ -157,11 +157,47 @@
   .sf-view-board__title:hover { text-decoration: underline; }
 
   .sf-view-board__box { flex: 0 0 auto; display: inline-flex; opacity: 0; }
+
+  /* The box and «⋯» stand on the title's first line (LV3-16: «⋯» stood
+     6 px below it): each is as tall as that line and centres its control,
+     which may be taller and overhangs it evenly. */
+  .sf-view-board__box,
+  .sf-view-board__end {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    block-size: var(--sf-text-height-1\/2);
+    overflow: visible;
+  }
+
+  .sf-view-board[data-size="1"] .sf-view-board__box,
+  .sf-view-board[data-size="1"] .sf-view-board__end {
+    block-size: var(--sf-text-height-1);
+  }
   .sf-view-board__card:hover .sf-view-board__box,
   .sf-view-board__card:focus-within .sf-view-board__box,
   .sf-view-board__card:focus .sf-view-board__box,
   .sf-view-board[data-selecting] .sf-view-board__box { opacity: 1; }
   @media (pointer: coarse) { .sf-view-board__box { opacity: 1; } }
+
+  /* The title and the fields share one start (RV4-11): the card is a grid
+     of the box, the title and «⋯», and the fields stand under the title, so
+     the hidden box no longer pushed the title 32 px right of the fields. */
+  .sf-view-board__card.sf-card:has(> .sf-view-board__top > .sf-view-board__box) {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: start;
+    column-gap: var(--sf-space-1\/3);
+    row-gap: var(--sf-card-gap);
+  }
+
+  .sf-view-board__card.sf-card:has(> .sf-view-board__top > .sf-view-board__box) > .sf-view-board__top {
+    display: contents;
+  }
+
+  .sf-view-board__card.sf-card:has(> .sf-view-board__top > .sf-view-board__box) > .sf-view-board__fields {
+    grid-column: 2 / -1;
+  }
 
   /* Up to four «Кратко» fields in two columns: text at the start, numbers and dates at the end. */
   .sf-view-board__fields {

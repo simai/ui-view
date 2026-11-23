@@ -2,8 +2,43 @@
   "$comment": "sf-property-view from its component.json (standard simai.smart-component 1.3.8, vocabulary 1.1.5), migrated from ui-control control/smart-architecture/migration/out/property-view; every x-todo decided in x-decisions.",
   "id": "smart.view-properties",
   "tag": "sf-view-properties",
-  "version": "1.26.0",
+  "version": "1.31.1",
   "x-history": [
+    {
+      "version": "1.31.1",
+      "kind": "patch",
+      "recorded_on": "2026-11-23",
+      "consumer": "Nothing to change for a host on the pair ui-b4f79e1c58b7. The record keeps its layout over the pair: on the whole screen «Изменить» keeps the two columns of reading, each label at its read place (VR13-2, C401; the pair's sf-form spans each start-labelled field across its grid, which moved «Клиент» 603 px left at 1440), and the panel's foot bar keeps its own place under sf-drawer's new content actions (D-SCROLL), so arranging the view no longer scrolls the panel by 16 px.",
+      "evidence": "control/evidence/2026-11-23-view-r17/README.md"
+    },
+    {
+      "version": "1.31.0",
+      "kind": "minor",
+      "recorded_on": "2026-11-22",
+      "consumer": "Nothing to change for a host. A value read in the record's list takes the height of the field it turns into (the list's control height: 40 at the normal density, 32 at the compact one), and a group edited in the card's own form (a group sf-form does not draw) is edited in place, row by row in the read list, so «Изменить» moves no label and no row (VL-64, VR14-3, C401): read rows are taller by the field's room. «не заполнено» takes the SIMAI Framework's not-set ink --sf-on-surface-not-set where the pair has it, the label's ink before (VL-65, C402).",
+      "evidence": "control/evidence/2026-11-22-view-r15/README.md"
+    },
+    {
+      "version": "1.30.0",
+      "kind": "minor",
+      "recorded_on": "2026-11-22",
+      "consumer": "Nothing to change for a host. docksBesideList() and dockWidth() tell sf-view whether and how wide the card would stand beside the list; sf-view marks the card data-sf-view-card-over where it opens it over the list instead (RV4-3), and the card is then not docked. An edited group keeps the head it read with, its «Изменить» an unseen stand-in, so the first row no longer climbs 28 px when a group turns into its form (VR14-3, part).",
+      "evidence": "control/evidence/2026-11-22-view-merge/README.md"
+    },
+    {
+      "version": "1.29.0",
+      "kind": "minor",
+      "recorded_on": "2026-11-22",
+      "consumer": "Nothing to change for a host. Sections when the column does not fit (owner decision C403, 2026-11-21): a side panel draws a narrow rail of the section icons and names at the start; when the fields beside it would drop below 20rem, the panel turns into the section list, each section opening as a level with «←», as on a phone (C386). The interim tabs of C399 are gone from every side panel (sections-as tabs still draws tabs). A choice drawn as its badge sits on the label's baseline (DEV on round 13: it was 1 px above). LV4-12: a block's title stands a rung above its fields (16 over 14, 20 over 16). A related list drawn as its own rows (a phone width) is pulled out by --sf-table--list-text-inset, so its row text stays on the field-label axis.",
+      "evidence": "control/evidence/2026-11-22-view-r14/README.md"
+    },
+    {
+      "version": "1.28.0",
+      "kind": "minor",
+      "recorded_on": "2026-11-22",
+      "consumer": "Nothing to change for a page that loads the set through the SIMAI Framework Loader (the documented way): the rule relates to cl-view-common, which the Loader fetches first. A page that includes View bundles by hand adds smart/view-common/js/view-common.min.js before them.",
+      "evidence": "control/evidence/2026-11-22-view-modular-1/README.md"
+    },
     {
       "version": "1.26.0",
       "kind": "minor",
@@ -1007,6 +1042,12 @@
     "contract": "src/core/contracts/ports/simai.property-view-port/1.18.0/port.json"
   },
   "relations": [
+    {
+      "name": "cl-view-common",
+      "$comment": [
+        "The View package core (view-common): the shared code every View bundle takes once (field renderers, formats, conditions, the filter window, and what two View components share), fetched before the component runs."
+      ]
+    },
     {
       "name": "icons"
     },
@@ -2493,6 +2534,42 @@
           "to": "1.26.0",
           "changes": [
             "View round 13 (round/view-r13): C399 sectionColumnFits: docked beside the list (_docksBesideList: docked and the dock breakpoint) the list keeps _listLeast (48rem) beside the widened card, over the list always; COLUMN_WINDOW_SHARE gone. C400 default.css: .sf-property-view-list .sf-list-description-label takes the list's font size and line, ink on-surface-variant. C401 default.js: sf-form labels start except on a phone; default.css: the edited group in the list has no frame, padding or fill and the list's row gap. C402 field-value.js: the empty value drops its utility class; default.css: .sf-property-view-empty keeps --sf-on-surface-variant (muted fails 4.5:1). docs.md says it."
+          ]
+        },
+        {
+          "from": "1.26.0",
+          "to": "1.28.0",
+          "changes": [
+            "View modular step 1 (round/view-modular-1): takes its shared code (the Framework field renderers, formats, conditions and filter window, density, the manifest actions) from the package core smart/view-common once per page, instead of a copy in its own bundle; its field value, set fields and money import the field renderers and decimal through the core; relation cl-view-common."
+          ]
+        },
+        {
+          "from": "1.28.0",
+          "to": "1.29.0",
+          "changes": [
+            "C403 section rail and level fallback under 20rem, the interim tabs of C399 gone, the badge row on the label's baseline",
+            "LV4-12 block title a rung up"
+          ]
+        },
+        {
+          "from": "1.29.0",
+          "to": "1.30.0",
+          "changes": [
+            "View round 15m: round/view-r14 and round/view-modular-1 joined into one line (merge, no rebase); the number is above both branches. RV4-3 docksBesideList(), dockWidth(), the over mark (data-sf-view-card-over, set by sf-view) undocks the card."
+          ]
+        },
+        {
+          "from": "1.30.0",
+          "to": "1.31.0",
+          "changes": [
+            "View round 15: VL-64 read values reserve the control height, beside their value the labels keep the room above it; in-place edit rows (renderEditRow, sf-property-view-group--in-place); VL-65 .sf-property-view-empty in --sf-on-surface-not-set with the label's ink as fallback."
+          ]
+        },
+        {
+          "from": "1.31.0",
+          "to": "1.31.1",
+          "changes": [
+            "View round 17: the full-screen edit form's fields grid-column auto with their own label column over sf-form's start labels (selectors above .sf-form[data-labels]); the panel's foot bar position static, margin-block-end 0, padding-block --sf-space-1 over sf-drawer's content-actions rule."
           ]
         }
       ]

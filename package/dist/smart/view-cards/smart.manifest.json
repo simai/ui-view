@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-cards",
-  "version": "1.1.0",
+  "version": "1.5.1",
   "title": "Cards",
   "summary": "The cards layout of the view set: records as cards in a grid whose columns follow its width, a cover the layout draws, a title and up to four fields in the «Кратко» place; «Показать ещё» appends the next page. sf-view layout=\"cards\" draws it where the author turned it on.",
   "kind": "smart",
@@ -40,7 +40,8 @@
       "smart.progress-scale",
       "smart.reference-link",
       "smart.skeleton",
-      "smart.tag"
+      "smart.tag",
+      "smart.view-common"
     ],
     "public_parts": []
   },
@@ -107,6 +108,21 @@
         "type": "boolean",
         "default": true,
         "description": "false when the host does not count: «Показано N» without «из M»."
+      },
+      "keep-selection": {
+        "type": "boolean",
+        "default": false,
+        "description": "The marks of records not on screen stay (sf-view sets it: the marks hold across pages and display kinds, C295, C298; view round 14 LV2-2): selected may name records of other pages, and the bar counts every mark."
+      },
+      "all-selected": {
+        "type": "boolean",
+        "default": false,
+        "description": "Every record under the filter is marked (the bar's «Выбрать все N», or «Выбраны все N» carried from the table, LV2-7): every card is drawn marked, the bar says the total, an action asks scope all; unmarking one card ends it."
+      },
+      "bulk-bar": {
+        "type": "boolean",
+        "default": true,
+        "description": "Whether the cards draw their own selection bar. sf-view sets it false: the list's bar stands for the cards, so a switch from the table shows one bar, not two (owner, 2026-11-22; view round 14)."
       },
       "current": {
         "type": "string",
@@ -211,15 +227,19 @@
       }
     },
     "sf-view-cards-select": {
-      "summary": "The selection changed (vocabulary select).",
+      "summary": "The selection changed (vocabulary select); all is true while «Выбраны все N» holds the whole list under its filter and false once it ends (LV2-7, view round 14).",
       "payload": {
         "type": "object",
         "required": [
-          "ids"
+          "ids",
+          "all"
         ],
         "properties": {
           "ids": {
             "type": "array"
+          },
+          "all": {
+            "type": "boolean"
           }
         },
         "additionalProperties": true
@@ -262,7 +282,7 @@
       }
     },
     "sf-view-cards-apply": {
-      "summary": "A host action chosen on the selection (scope selection) or in a card's menu (scope record).",
+      "summary": "A host action chosen on the selection (scope selection) or in a card's menu (scope record); scope all while every record under the filter is chosen.",
       "payload": {
         "type": "object",
         "required": [
@@ -470,6 +490,35 @@
         "changes": [
           "View round 13 (round/view-r13): js/cards.js cardLabels defaults to true; default.css fields one column, label over value, gaps by role (space-1/2 after the title, space-1/3 between fields); the two-column, end-aligned and phone S rules are gone; docs.md says it."
         ]
+      },
+      {
+        "from": "1.1.0",
+        "to": "1.3.0",
+        "changes": [
+          "View modular step 1 (round/view-modular-1): takes its shared code (the Framework field renderers, formats, conditions and filter window, and what two View components share) from the package core smart/view-common once per page, instead of a copy in its own bundle; relation cl-view-common."
+        ]
+      },
+      {
+        "from": "1.3.0",
+        "to": "1.4.0",
+        "changes": [
+          "keep-selection and all-selected (LV2-2, LV2-7), select carries all, apply scope all; bulk-bar and selectAll(on): one bar under sf-view",
+          "LV4-16 label at the value's size"
+        ]
+      },
+      {
+        "from": "1.4.0",
+        "to": "1.5.0",
+        "changes": [
+          "View round 15m: round/view-r14 and round/view-modular-1 joined into one line (merge, no rebase); the number is above both branches."
+        ]
+      },
+      {
+        "from": "1.5.0",
+        "to": "1.5.1",
+        "changes": [
+          "View round 17: repin on SIMAI Framework pair ui-b4f79e1c58b7 (ui-source e59dbad1c108, core.runtime 1.67.0); provenance of src/smart/field-renderers/index.js."
+        ]
       }
     ]
   },
@@ -479,7 +528,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-cards/index.js",
-        "sha256": "e41164f4575c0b66ec0a132c3454bdf847df80df1351d3d4de6ab573baca0594"
+        "sha256": "2a2a1c717c68bf864c13837e5f3ca1005eb88216c66ab65d1a1a2d95c9a6e5bc"
       },
       {
         "path": "src/smart/view-cards/js/cards.js",
@@ -487,23 +536,23 @@
       },
       {
         "path": "src/smart/view-cards/js/templates/default.js",
-        "sha256": "756fcba9329d0d162606e3fbc13d8ae67f3357d7cd4aa485ceee3bc82c03acb3"
+        "sha256": "afc2f3c53b91c203c908c4af0693ee5df0b6ef505110edecc55ae191e68517ca"
       },
       {
         "path": "src/smart/view-cards/js/templates/default.css",
-        "sha256": "45bc3ab09d093ae2b5e12dcf605be306f4a8aafaf33cf6dd0a4dd3352ba5ac86"
+        "sha256": "40b4b940fe34c2e007ea8efc9c5d5698850284af497ce3c2589644c7a6402975"
       },
       {
         "path": "src/smart/field-renderers/index.js",
-        "sha256": "10defcf40a022bd86cd32235fb21649008e2e8cf8d94464d2c61a557214dddd8"
+        "sha256": "be1d7608cbde16eb80ece5a9120c4b2130d40bd8760240a51b8fd922579c931b"
       },
       {
         "path": "src/smart/view-cards/rule.js",
-        "sha256": "18499d538cee331e73dee23975c05407d3404be6105487a332b382a49fc6550d"
+        "sha256": "3fb7709c3231d6ee8d64e0e137e8f8cb21ca6b965a2cb379a38730e3e272c3ce"
       },
       {
         "path": "src/smart/view-cards/docs.md",
-        "sha256": "78ad3fd98bb337b8f7337d6bfee6c913a8f47545c65797934bc4f5dad3aa352a"
+        "sha256": "553ca9cbaa931a87e2100c70ea5031911586e5f55bfa00c9d88047ac3d69a39e"
       }
     ],
     "generated_runtime": []

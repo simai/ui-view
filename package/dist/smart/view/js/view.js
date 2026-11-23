@@ -2,641 +2,6 @@
 /******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
 
-/***/ "1412c5875b4d"
-(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   RELATIVE: () => (/* binding */ RELATIVE),
-/* harmony export */   densityOf: () => (/* binding */ densityOf),
-/* harmony export */   drawing: () => (/* binding */ drawing),
-/* harmony export */   followDensity: () => (/* binding */ followDensity),
-/* harmony export */   markRelativeSizes: () => (/* binding */ markRelativeSizes),
-/* harmony export */   noteAuthored: () => (/* binding */ noteAuthored),
-/* harmony export */   sizeOf: () => (/* binding */ sizeOf),
-/* harmony export */   sizeStep: () => (/* binding */ sizeStep),
-/* harmony export */   sizedBefore: () => (/* binding */ sizedBefore)
-/* harmony export */ });
-// Density (owner decision C22, 2026-11-09). data-sf-density="compact" on the
-// root or on a container moves every component one ladder step down; the CSS
-// does it (core/scss/_sf_css__density.scss): each step variable holds the step
-// below. An explicit size is a step on the region's ladder (owner decision
-// C79, 2026-11-12, changing C22): it comes down with the region, and only
-// data-sf-density="normal" takes the normal ladder back.
-//
-// A size a component's template gives an element it draws (sf-input's clear
-// button, a pager's buttons, a submenu) is relative to the component's own
-// size; those are still marked data-sf-size-relative once the component has
-// drawn. Since C79 the density CSS treats both alike; the mark stays a
-// published runtime mark (host-runtime-marks) for hosts that read it.
-//
-// What a component holds of the page's own (captured slot content, children
-// left in place) keeps its size explicit. The store is on the shared global:
-// every bundle carries its own copy of this module.
-const store = () => {
-  const SF = globalThis.SF = globalThis.SF || {};
-  const internal = SF.__internal || (SF.__internal = {});
-  return internal.density ||= {
-    authored: new WeakSet(),
-    depth: 0
-  };
-};
-
-const RELATIVE = 'data-sf-size-relative'; // Page content a component captured to place in its own drawing. Content a
-// template hands to a child while it draws is the template's, not the page's.
-
-function noteAuthored(nodes) {
-  const state = store();
-  if (state.depth > 0) return;
-
-  for (const node of nodes) if (node && typeof node === 'object') state.authored.add(node);
-}
-function drawing(callback) {
-  const state = store();
-  state.depth += 1;
-
-  try {
-    return callback();
-  } finally {
-    state.depth -= 1;
-  }
-} // The sized elements present before a host first draws are the page's.
-// A printed first-paint picture is the drawing's, not the page's.
-
-function sizedBefore(host) {
-  return new Set(Array.from(host.querySelectorAll?.('[size]') ?? []).filter(element => {
-    const picture = element.closest('[data-sf-static]');
-    return !picture || !host.contains(picture);
-  }));
-} // After a host drew: every sized element its drawing holds that is not the
-// page's is relative to the host.
-
-function markRelativeSizes(host, before = null) {
-  const {
-    authored
-  } = store();
-
-  for (const element of host.querySelectorAll?.('[size]') ?? []) {
-    if (element.hasAttribute(RELATIVE) || before?.has(element)) continue;
-    let node = element;
-    let page = false;
-
-    while (node && node !== host) {
-      if (authored.has(node)) {
-        page = true;
-        break;
-      }
-
-      node = node.parentNode;
-    }
-
-    if (!page) element.setAttribute(RELATIVE, '');
-  }
-} // A popup a component builds itself and places outside its own box (a menu on
-// <body>, in an open dialog): sized from the component, so relative, and in
-// the component's density, not the density of where it was placed.
-
-function followDensity(element, from) {
-  if (!element?.setAttribute) return element;
-  if (element.hasAttribute('size')) element.setAttribute(RELATIVE, '');
-  const density = densityOf(from);
-  if (density) element.setAttribute('data-sf-density', density);else element.removeAttribute('data-sf-density');
-  return element;
-} // The density an element stands in: the nearest region's (an explicit size
-// follows its region since C79); null outside any.
-
-function densityOf(from) {
-  for (let node = from; node?.nodeType === 1; node = node.parentElement) {
-    if (node.hasAttribute('data-sf-density')) return node.getAttribute('data-sf-density');
-  }
-
-  return null;
-} // The size step of the control a popup opens from (owner remark 2026-11-15:
-// the row menu of a table of size 1 opened at 1/2). A popup a component
-// builds outside itself -- a menu on <body> or in the open dialog -- stood on
-// the default step whatever opened it. The step is the first size written
-// from the opener up: the opener's own (a row's «⋯», the native button an
-// sf-button draws), else its component's, else the Smart component that
-// holds it (sf-view-table size="1"). A size a template gave a part it draws
-// (data-sf-size-relative) follows its host, so the walk goes on past it. It
-// ends on the default step (null) at the second custom element without a
-// size: the opener's own component may stand on its default, the host
-// holding it decides.
-
-function sizeOf(from) {
-  let own = true;
-
-  for (let node = from; node?.nodeType === 1; node = node.parentElement) {
-    if (node.hasAttribute('size')) {
-      if (!node.hasAttribute(RELATIVE)) return node.getAttribute('size');
-      continue;
-    }
-
-    if (!node.localName.includes('-')) continue;
-    if (!own) return null;
-    own = false;
-  }
-
-  return null;
-} // A size step as a number of the ladder ("1/2" is 0.5, "2" is 2); NaN for
-// anything else.
-
-function sizeStep(size) {
-  const [top, bottom = '1'] = String(size ?? '').trim().split('/');
-  const step = Number(top) / Number(bottom);
-  return top !== '' && Number.isFinite(step) && step > 0 ? step : Number.NaN;
-}
-
-/***/ },
-
-/***/ "8d229b7c92e9"
-(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__),
-/* harmony export */   menuOpen: () => (/* binding */ menuOpen),
-/* harmony export */   publishMenu: () => (/* binding */ publishMenu)
-/* harmony export */ });
-/* harmony import */ var _density_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("1412c5875b4d");
-// SF.menu.open: the page's one menu of actions (owner decision C184 (4),
-// 2026-11-14; the public name is the owner's; study control/research/
-// 2026-11-14-toolbar-menu-open.md, K-03).
-//
-// A row's «⋯», a toolbar's «Ещё», the right button and the menu key on a row
-// all open the standard menu -- sf-menu-context -- and every component used to
-// place its own and wait for it (nine in SIMAI Pro, more in the Framework).
-// Now one call opens the one menu of the page:
-//
-//   const choice = await SF.menu.open({anchor, entries, label});
-//   const choice = await SF.menu.open({x, y, entries, label, returnTo: row});
-//   // choice: {id, entry} of the row chosen, or null (closed without one)
-//
-// - anchor: the control the menu hangs from (a press on the same control
-//   while its menu is open closes it, as a toggle); or x, y: a point in the
-//   window -- where a right-click was, or a row's corner for Shift+F10 -- the
-//   menu's corner exactly there;
-// - entries: the rows, as sf-menu-context takes them;
-// - label: the menu's name, read by a screen reader;
-// - size: the menu's size step, as sf-menu-context's size attribute; left
-//   out, the step of what opens it (the anchor's, its component's or the
-//   Smart component holding it: a row menu of a table of size 1 is size 1);
-// - returnTo: where the focus goes when the menu closes (the row it acted
-//   on); left out, the menu gives the focus back to where it was, or to the
-//   anchor;
-// - align: 'start' (the default) lines the menu's start edge up with the
-//   anchor's, 'end' its end edge -- for a control at the end of a toolbar,
-//   whose menu would otherwise run past it towards the window's edge (view
-//   round 1, table group). Start and end follow the page's direction (in a
-//   right-to-left page 'end' is the left edge), and a menu that does not fit
-//   still flips to the other side and is shifted inside the window. At a
-//   point, 'end' puts the menu's end corner at the point.
-//
-// The menu is fetched by the Loader the first time (SF.Loader.ensure), one on
-// the page -- on the body, or in the open modal dialog the anchor is in, since
-// a modal dialog makes the rest of the page inert. A second opening while one
-// is open closes the first, which answers null. The answer never rejects:
-// without a menu (no Loader, no sf-menu-context) it is null.
-//
-// Every bundle may carry a copy of this module (bundles each carry their own
-// module copy), so the one menu and its pending answer live behind the shared
-// global: the first copy to run publishes SF.menu.open and every other copy
-// calls the published one.
-
-const SHARED = 'data-sf-menu-shared';
-const ALIGNS = new Set(['start', 'end']);
-
-function installMenuOpen() {
-  let pending = null;
-  let point = null; // The opening the menu belongs to now, kept past its answer: a choice
-  // answers before the menu closes, and the focus goes back on closing.
-
-  let shown = null;
-
-  const settle = value => {
-    const waiting = pending;
-    pending = null;
-    waiting?.resolve(value);
-    return waiting;
-  };
-
-  function sharedMenu(anchor) {
-    const doc = globalThis.document;
-    let menu = doc.querySelector(`[${SHARED}]`);
-
-    if (!menu) {
-      menu = doc.createElement('sf-menu-context');
-      menu.setAttribute('popup', '');
-      menu.setAttribute(SHARED, '');
-      menu.addEventListener('sf-menu-context-select', event => {
-        if (event.target !== menu) return;
-        settle({
-          id: event.detail?.id ?? null,
-          entry: event.detail?.entry ?? null
-        });
-      });
-      menu.addEventListener('sf-menu-context-closed', event => {
-        if (event.target !== menu) return;
-        settle(null);
-        const opening = shown;
-        shown = null;
-        const back = opening?.returnTo;
-        if (!back?.isConnected) return; // After the menu's own return: the row the person acted on, when the
-        // focus fell to the page, stayed in the closed menu or went back to
-        // the «⋯» that opened it (a pointer's control, not a Tab stop).
-
-        const anchor = opening.anchor;
-        setTimeout(() => {
-          const active = doc.activeElement;
-
-          if (!active || active === doc.body || active === doc.documentElement || menu.contains(active) || anchor && (active === anchor || anchor.contains?.(active))) {
-            back.focus?.({
-              preventScroll: true
-            });
-          }
-        }, 0);
-      });
-    } // In the open modal dialog the opener is in, or on the body.
-
-
-    const home = anchor?.closest?.('dialog[open]') || doc.body;
-    if (menu.parentNode !== home && !menu.isOpen) home.append(menu);
-    return menu;
-  } // A point in the window as an anchor of no size: sf-menu-context hangs its
-  // corner exactly there and reads the page under it (density, focus back).
-
-
-  function pointAnchor(x, y, near) {
-    const doc = globalThis.document;
-
-    if (!point?.isConnected) {
-      point = doc.createElement('span');
-      point.setAttribute('aria-hidden', 'true');
-      point.setAttribute('data-sf-menu-point', '');
-    }
-
-    const home = near?.closest?.('dialog[open]') || doc.body;
-    if (point.parentNode !== home) home.append(point);
-    point.style.cssText = `position:fixed;left:${x}px;top:${y}px;inline-size:0;block-size:0;pointer-events:none;overflow:hidden`;
-    return point;
-  }
-
-  return async function open(options = {}) {
-    const {
-      anchor = null,
-      x,
-      y,
-      entries = [],
-      label = '',
-      size = '',
-      returnTo = null
-    } = options || {}; // Logical, so a right-to-left page mirrors it; anything else is start.
-
-    const align = ALIGNS.has(options?.align) ? options.align : 'start';
-    const atPoint = !(anchor instanceof Element);
-    if (atPoint && !(Number.isFinite(Number(x)) && Number.isFinite(Number(y)))) return null;
-    const doc = globalThis.document;
-    if (!doc) return null;
-    await globalThis.SF?.Loader?.ensure?.(['sf-menu-context']);
-    if (!globalThis.customElements?.get('sf-menu-context')) return null;
-    const menu = sharedMenu(atPoint ? returnTo : anchor); // The same control again: its open menu closes (a toggle).
-
-    if (!atPoint && menu.isOpen && pending?.anchor === anchor) {
-      menu.close({
-        reason: 'api'
-      });
-      return null;
-    }
-
-    if (menu.isOpen) {
-      settle(null);
-      shown = null;
-      menu.close({
-        restoreFocus: false,
-        reason: 'api',
-        ask: false
-      });
-    }
-
-    if (label) menu.setAttribute('aria-label', label);else menu.removeAttribute('aria-label');
-    if (size) menu.setAttribute('size', String(size));else {
-      menu.removeAttribute('size');
-      menu.removeAttribute(_density_js__WEBPACK_IMPORTED_MODULE_0__.RELATIVE);
-    } // In the density of the control or the row it opens from (C22, C79), not
-    // of the body it stands on.
-
-    (0,_density_js__WEBPACK_IMPORTED_MODULE_0__.followDensity)(menu, atPoint ? returnTo : anchor);
-    menu.search = null;
-    menu.entries = Array.isArray(entries) ? entries : [];
-    return new Promise(resolve => {
-      pending = {
-        resolve,
-        anchor,
-        returnTo: returnTo instanceof Element ? returnTo : null
-      };
-      shown = pending;
-      const mine = pending;
-      const opening = atPoint ? typeof menu.openAt === 'function' ? menu.openAt(Number(x), Number(y), {
-        target: returnTo ?? undefined,
-        align
-      }) : menu.openFor(pointAnchor(Number(x), Number(y), returnTo), {
-        side: 'block-end',
-        align,
-        focus: 'first'
-      }) : menu.openFor(anchor, {
-        side: 'block-end',
-        align,
-        focus: 'first'
-      });
-      Promise.resolve(opening).then(answer => {
-        // Refused (a listener kept it closed) or no surface: nothing chosen.
-        if (pending === mine && answer && answer !== true && answer.outcome !== 'applied') settle(null);
-      }, () => {
-        if (pending === mine) settle(null);
-      });
-    });
-  };
-} // The published one, or this copy published.
-
-
-function publishMenu() {
-  const SF = globalThis.SF = globalThis.SF || {};
-  SF.menu = SF.menu || {};
-  if (typeof SF.menu.open !== 'function') SF.menu.open = installMenuOpen();
-  return SF.menu;
-}
-function menuOpen(options) {
-  return publishMenu().open(options);
-}
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (menuOpen);
-
-/***/ },
-
-/***/ "51250bf01ab0"
-(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   createPreferences: () => (/* binding */ createPreferences),
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
-/* harmony export */ });
-// SF.Preferences: what a person changes about how a thing looks -- column
-// order, widths, sort, density, a menu's column widths -- kept one way for
-// every component (owner, 2026-10-14; ui-control
-// control/designs/2026-10-14-view-preferences.md).
-//
-// - A preference is a plain JSON value under a key `<component>/<instance>`,
-//   e.g. `sf-table/cms.solutions`. No key, nothing is kept.
-// - It is read synchronously, so a component applies it before its first
-//   paint: the skeleton is already in the person's order.
-// - The browser keeps a copy always (localStorage `sf-pref:<key>`), the cache
-//   a first paint can read. A host that keeps preferences for its user
-//   (Larena) plugs in with useHost(); its values win over the cache, and every
-//   write goes to it as well, debounced per key.
-// - A page can preload the host's values: preload({key: value}), or a
-//   <script type="application/json" data-sf-preferences> (or id
-//   "sf-preferences") in the page, read before the first value is.
-//
-// The registry lives on globalThis.SF: every bundle carries its own copy of
-// this module, and two copies with two caches would disagree.
-const PREFIX = 'sf-pref:';
-const DELAY = 400;
-const KEY = /^[\w.*:-]+(?:\/[\w.*:/-]+)?$/u;
-
-function storage() {
-  try {
-    return globalThis.localStorage ?? null;
-  } catch {
-    return null;
-  }
-}
-
-function validKey(key) {
-  return typeof key === 'string' && key.length > 0 && key.length <= 200 && KEY.test(key);
-}
-
-function same(a, b) {
-  try {
-    return JSON.stringify(a) === JSON.stringify(b);
-  } catch {
-    return false;
-  }
-}
-
-function plain(value) {
-  return value === null || value === undefined ? null : JSON.parse(JSON.stringify(value));
-}
-
-function createPreferences() {
-  const host = {
-    adapter: null,
-    values: new Map()
-  };
-  const listeners = new Map();
-  const timers = new Map(); // The page's own block of the host's values, read once, before the first
-  // read: a component may connect before this module's start-up ran.
-
-  let inlineRead = false;
-
-  const readInline = () => {
-    if (inlineRead) return;
-    const node = globalThis.document?.querySelector?.('script[type="application/json"][data-sf-preferences], script#sf-preferences[type="application/json"]');
-    if (!node) return;
-    inlineRead = true;
-
-    try {
-      api.preload(JSON.parse(node.textContent || '{}'));
-    } catch {
-      /* not JSON: ignored */
-    }
-  };
-
-  const notify = (key, value) => {
-    for (const listener of listeners.get(key) ?? []) {
-      try {
-        listener(plain(value), key);
-      } catch (error) {
-        console.error('SF.Preferences listener failed', key, error);
-      }
-    }
-  };
-
-  const readCache = key => {
-    const store = storage();
-    if (!store) return null;
-
-    try {
-      const raw = store.getItem(PREFIX + key);
-      return raw === null ? null : JSON.parse(raw);
-    } catch {
-      return null;
-    }
-  };
-
-  const writeCache = (key, value) => {
-    const store = storage();
-    if (!store) return;
-
-    try {
-      if (value === null) store.removeItem(PREFIX + key);else store.setItem(PREFIX + key, JSON.stringify(value));
-    } catch {// A full or refused storage keeps the value for this page only.
-    }
-  };
-
-  const saveToHost = key => {
-    clearTimeout(timers.get(key));
-    timers.delete(key);
-    const adapter = host.adapter;
-    if (!adapter) return;
-    const value = host.values.has(key) ? host.values.get(key) : readCache(key);
-
-    try {
-      const answer = value === null ? adapter.remove?.(key) : adapter.save?.(key, plain(value));
-      Promise.resolve(answer).catch(error => console.warn('SF.Preferences: the host did not keep', key, error));
-    } catch (error) {
-      console.warn('SF.Preferences: the host did not keep', key, error);
-    }
-  };
-
-  const schedule = key => {
-    if (!host.adapter) return;
-    clearTimeout(timers.get(key));
-    timers.set(key, setTimeout(() => saveToHost(key), DELAY));
-  };
-
-  const api = {
-    // The value for a key: the host's when it gave one, else this browser's.
-    read(key) {
-      if (!validKey(key)) return null;
-      readInline();
-      if (host.values.has(key)) return plain(host.values.get(key));
-      return plain(readCache(key));
-    },
-
-    // Several keys from the most general to the most particular, merged field
-    // by field: `sf-table/*` (the person's tables) under `sf-table/<instance>`.
-    readMerged(...keys) {
-      const merged = {};
-      let found = false;
-
-      for (const key of keys.flat()) {
-        const value = api.read(key);
-
-        if (value && typeof value === 'object' && !Array.isArray(value)) {
-          Object.assign(merged, value);
-          found = true;
-        }
-      }
-
-      return found ? merged : null;
-    },
-
-    write(key, value) {
-      if (!validKey(key)) return false;
-      const next = plain(value); // The value already kept is not written again: a component restoring
-      // what the host gave it (sf-resizer's value) sent it back to the host on
-      // every load (docs trial 5).
-
-      if (JSON.stringify(api.read(key)) === JSON.stringify(next)) return true;
-      if (host.values.has(key)) host.values.set(key, next);
-      writeCache(key, next);
-      schedule(key);
-      return true;
-    },
-
-    // «Сбросить вид»: gone from both.
-    remove(key) {
-      if (!validKey(key)) return false;
-      if (host.values.has(key)) host.values.set(key, null);
-      writeCache(key, null);
-      schedule(key);
-      notify(key, null);
-      return true;
-    },
-
-    subscribe(key, listener) {
-      if (!validKey(key) || typeof listener !== 'function') return () => {};
-      if (!listeners.has(key)) listeners.set(key, new Set());
-      listeners.get(key).add(listener);
-      return () => listeners.get(key)?.delete(listener);
-    },
-
-    // The host's values for this person. Each that differs from this
-    // browser's copy replaces it and is announced, so a component re-applies.
-    preload(values) {
-      if (!values || typeof values !== 'object') return;
-
-      for (const [key, value] of Object.entries(values)) {
-        if (!validKey(key)) continue;
-        const next = plain(value);
-        const before = api.read(key);
-        host.values.set(key, next);
-        writeCache(key, next);
-        if (!same(before, next)) notify(key, next);
-      }
-    },
-
-    // {save(key, value), remove(key), load?(keys) → Promise<{key: value}>}.
-    useHost(adapter) {
-      if (!adapter || typeof adapter.save !== 'function') throw new TypeError('A preferences host saves: {save(key, value)}');
-      host.adapter = adapter;
-      return api;
-    },
-
-    // Asks the host for keys it has not given yet (a component that appears
-    // after the page loaded).
-    async load(keys) {
-      const wanted = [].concat(keys).filter(key => validKey(key) && !host.values.has(key));
-      if (!wanted.length || typeof host.adapter?.load !== 'function') return;
-
-      try {
-        api.preload(await host.adapter.load(wanted));
-      } catch (error) {
-        console.warn('SF.Preferences: the host did not answer', wanted, error);
-      }
-    },
-
-    get hosted() {
-      return Boolean(host.adapter);
-    },
-
-    // Writes still waiting go now (a page that is leaving).
-    flush() {
-      for (const key of [...timers.keys()]) saveToHost(key);
-    }
-
-  }; // Another tab changed a preference.
-
-  globalThis.addEventListener?.('storage', event => {
-    if (!event.key?.startsWith(PREFIX) || event.storageArea !== storage()) return;
-    const key = event.key.slice(PREFIX.length);
-    if (host.values.has(key)) return;
-    let value = null;
-
-    try {
-      value = event.newValue === null ? null : JSON.parse(event.newValue);
-    } catch {
-      value = null;
-    }
-
-    notify(key, value);
-  });
-  globalThis.addEventListener?.('pagehide', () => api.flush());
-  readInline();
-  return Object.freeze(api);
-}
-
-if (typeof globalThis !== 'undefined') {
-  globalThis.SF = globalThis.SF || {};
-  if (!globalThis.SF.Preferences) globalThis.SF.Preferences = createPreferences();
-}
-
-const Preferences = globalThis.SF?.Preferences;
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (Preferences);
-
-
-/***/ },
-
 /***/ "d26573af0eef"
 (__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
@@ -690,142 +55,6 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ },
 
-/***/ "17828be41e75"
-(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   answerActions: () => (/* binding */ answerActions),
-/* harmony export */   outcomeOf: () => (/* binding */ outcomeOf),
-/* harmony export */   settingSetters: () => (/* binding */ settingSetters)
-/* harmony export */ });
-// The actions a manifest declares, on a class that already has the methods
-// (standard simai.smart-component 1.3.8 §4.4). elementFromManifest makes a
-// method per action, but a component whose class predates its manifest keeps
-// its own methods, which shadow the generated ones. This wraps those methods
-// once per class so that, as the standard asks, each:
-//
-// - takes its `with` parameters as one object, as well as positionally;
-// - answers an outcome: {outcome: applied | refused | conflict | unavailable
-//   | cancelled, reason?, message?}. A host port's answer ({answer, reason,
-//   message}, vocabulary §3.1) is read as the outcome it is; a method that
-//   answered nothing, or the element itself, answered applied.
-//
-// Helpers the class calls internally go through the same wrapper; nothing in
-// the package reads their old return value (the element, or the port's
-// answer under `answer`), and `answer` stays on the outcome for one that does.
-const camel = name => String(name).replace(/-([a-z0-9])/gu, (_, letter) => letter.toUpperCase());
-
-const isPlain = value => value !== null && typeof value === "object" && !Array.isArray(value) && Object.getPrototypeOf(value) === Object.prototype;
-
-function outcomeOf(result, element) {
-  if (result === undefined || result === null || result === true || result === element) return {
-    outcome: "applied"
-  };
-  if (result === false) return {
-    outcome: "refused",
-    reason: "refused"
-  };
-  if (typeof result === "object" && typeof result.outcome === "string") return result;
-
-  if (typeof result === "object" && typeof result.answer === "string") {
-    const {
-      answer,
-      reason,
-      message
-    } = result;
-    return { ...result,
-      outcome: answer,
-      ...(reason ? {
-        reason
-      } : {}),
-      ...(message ? {
-        message
-      } : {})
-    };
-  }
-
-  return {
-    outcome: "applied",
-    value: result
-  };
-}
-function answerActions(Class, manifest) {
-  const proto = Class.prototype;
-
-  for (const [name, spec] of Object.entries(manifest.actions || {})) {
-    const method = camel(name);
-    const run = proto[method];
-    if (typeof run !== "function" || run.sfAction) continue;
-    const names = Object.keys(spec?.with || {});
-
-    const wrapped = function manifestAction(...args) {
-      // One object naming only declared parameters is the object form.
-      if (args.length === 1 && isPlain(args[0])) {
-        const given = Object.keys(args[0]);
-        if (!names.length && !given.length) args = [];else if (names.length && given.length && given.every(key => names.includes(key) || names.map(camel).includes(key))) {
-          args = names.map(key => args[0][key] ?? args[0][camel(key)]);
-        }
-      }
-
-      const result = run.apply(this, args);
-      if (result && typeof result.then === "function") return result.then(value => outcomeOf(value, this));
-      return outcomeOf(result, this);
-    };
-
-    wrapped.sfAction = true;
-    Object.defineProperty(proto, method, {
-      configurable: true,
-      writable: true,
-      value: wrapped
-    });
-  }
-
-  return Class;
-} // A setting the class reads through a getter of its own (an attribute read
-// with its parsing) is writable as a property too, as §4 makes every setting:
-// an assembly binds by property when the element has one (SF.Assembly's
-// adaptElement), and a getter alone threw «has only a getter» at the first
-// binding. The setter writes the attribute the getter reads.
-
-function settingSetters(Class, manifest) {
-  const proto = Class.prototype;
-
-  for (const [name, spec] of Object.entries(manifest.settings || {})) {
-    if (["list", "object", "state"].includes(spec?.type)) continue;
-    const property = camel(name);
-    let owner = proto;
-    let found = null;
-
-    while (owner && owner !== globalThis.HTMLElement?.prototype && owner !== Object.prototype) {
-      found = Object.getOwnPropertyDescriptor(owner, property);
-      if (found) break;
-      owner = Object.getPrototypeOf(owner);
-    }
-
-    if (!found || !found.get || found.set) continue;
-    Object.defineProperty(owner, property, {
-      configurable: true,
-      get: found.get,
-
-      set(value) {
-        if (spec.type === "boolean") {
-          if (value === true || value === "" || value === "true") this.setAttribute(name, "");else if (value === false && spec.default === true) this.setAttribute(name, "false");else this.removeAttribute(name);
-        } else if (value === null || value === undefined) {
-          this.removeAttribute(name);
-        } else {
-          this.setAttribute(name, String(value));
-        }
-      }
-
-    });
-  }
-
-  return Class;
-}
-
-/***/ },
-
 /***/ "36b027867bab"
 (module, __webpack_exports__, __webpack_require__) {
 
@@ -842,27 +71,29 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _core_js_aliases_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__("892a0da25239");
 /* harmony import */ var _pagination_js_actions_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__("0b6c983d0722");
 /* harmony import */ var _core_js_deprecations_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__("d3818183b14c");
-/* harmony import */ var _view_table_js_manifest_actions_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__("17828be41e75");
+/* harmony import */ var _view_common_manifest_actions_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__("f17a957e50f6");
 /* harmony import */ var _component_json__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__("7086146c00cc");
 /* harmony import */ var _aliases_json__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__("80ad38cb6908");
 /* harmony import */ var _lang_en_json__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__("ce0305e57fa5");
 /* harmony import */ var _lang_ru_json__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__("3e9dffe84919");
-/* harmony import */ var _view_table_lang_en_json__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__("678dc07d76bf");
-/* harmony import */ var _view_table_lang_ru_json__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__("32294b89604f");
-/* harmony import */ var _pagination_lang_en_json__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__("38d83a636029");
-/* harmony import */ var _pagination_lang_ru_json__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__("96e8b718b20a");
-/* harmony import */ var _core_js_preferences_js__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__("51250bf01ab0");
-/* harmony import */ var _js_tree_js__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__("29f88c884ba1");
-/* harmony import */ var _js_head_js__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__("dc0227f16aec");
-/* harmony import */ var _js_cards_js__WEBPACK_IMPORTED_MODULE_20__ = __webpack_require__("1caedc1977b8");
-/* harmony import */ var _js_calendar_js__WEBPACK_IMPORTED_MODULE_21__ = __webpack_require__("d120fce454af");
-var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_core_js_page_language__WEBPACK_IMPORTED_MODULE_2__, _core_js_element_manifest__WEBPACK_IMPORTED_MODULE_3__, _core_js_smart_base__WEBPACK_IMPORTED_MODULE_4__, _core_js_aliases_js__WEBPACK_IMPORTED_MODULE_5__, _core_js_deprecations_js__WEBPACK_IMPORTED_MODULE_7__]);
-([_core_js_page_language__WEBPACK_IMPORTED_MODULE_2__, _core_js_element_manifest__WEBPACK_IMPORTED_MODULE_3__, _core_js_smart_base__WEBPACK_IMPORTED_MODULE_4__, _core_js_aliases_js__WEBPACK_IMPORTED_MODULE_5__, _core_js_deprecations_js__WEBPACK_IMPORTED_MODULE_7__] = __webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
+/* harmony import */ var _view_common_table_words_js__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__("cb7ac7caf6a5");
+/* harmony import */ var _pagination_lang_en_json__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__("38d83a636029");
+/* harmony import */ var _pagination_lang_ru_json__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__("96e8b718b20a");
+/* harmony import */ var _view_common_preferences_js__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__("15cc710b6cd3");
+/* harmony import */ var _js_tree_js__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__("29f88c884ba1");
+/* harmony import */ var _js_head_js__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__("dc0227f16aec");
+/* harmony import */ var _js_cards_js__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__("1caedc1977b8");
+/* harmony import */ var _js_calendar_js__WEBPACK_IMPORTED_MODULE_20__ = __webpack_require__("d120fce454af");
+var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_core_js_page_language__WEBPACK_IMPORTED_MODULE_2__, _core_js_element_manifest__WEBPACK_IMPORTED_MODULE_3__, _core_js_smart_base__WEBPACK_IMPORTED_MODULE_4__, _core_js_aliases_js__WEBPACK_IMPORTED_MODULE_5__, _core_js_deprecations_js__WEBPACK_IMPORTED_MODULE_7__, _view_common_manifest_actions_js__WEBPACK_IMPORTED_MODULE_8__, _view_common_table_words_js__WEBPACK_IMPORTED_MODULE_13__, _view_common_preferences_js__WEBPACK_IMPORTED_MODULE_16__, _js_head_js__WEBPACK_IMPORTED_MODULE_18__]);
+([_core_js_page_language__WEBPACK_IMPORTED_MODULE_2__, _core_js_element_manifest__WEBPACK_IMPORTED_MODULE_3__, _core_js_smart_base__WEBPACK_IMPORTED_MODULE_4__, _core_js_aliases_js__WEBPACK_IMPORTED_MODULE_5__, _core_js_deprecations_js__WEBPACK_IMPORTED_MODULE_7__, _view_common_manifest_actions_js__WEBPACK_IMPORTED_MODULE_8__, _view_common_table_words_js__WEBPACK_IMPORTED_MODULE_13__, _view_common_preferences_js__WEBPACK_IMPORTED_MODULE_16__, _js_head_js__WEBPACK_IMPORTED_MODULE_18__] = __webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
 /* harmony import */ var _core_js_page_language__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(_core_js_page_language__WEBPACK_IMPORTED_MODULE_2__);
 /* harmony import */ var _core_js_element_manifest__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(_core_js_element_manifest__WEBPACK_IMPORTED_MODULE_3__);
 /* harmony import */ var _core_js_smart_base__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(_core_js_smart_base__WEBPACK_IMPORTED_MODULE_4__);
 /* harmony import */ var _core_js_aliases_js__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(_core_js_aliases_js__WEBPACK_IMPORTED_MODULE_5__);
 /* harmony import */ var _core_js_deprecations_js__WEBPACK_IMPORTED_MODULE_7___default = /*#__PURE__*/__webpack_require__.n(_core_js_deprecations_js__WEBPACK_IMPORTED_MODULE_7__);
+/* harmony import */ var _view_common_manifest_actions_js__WEBPACK_IMPORTED_MODULE_8___default = /*#__PURE__*/__webpack_require__.n(_view_common_manifest_actions_js__WEBPACK_IMPORTED_MODULE_8__);
+/* harmony import */ var _view_common_table_words_js__WEBPACK_IMPORTED_MODULE_13___default = /*#__PURE__*/__webpack_require__.n(_view_common_table_words_js__WEBPACK_IMPORTED_MODULE_13__);
+/* harmony import */ var _view_common_preferences_js__WEBPACK_IMPORTED_MODULE_16___default = /*#__PURE__*/__webpack_require__.n(_view_common_preferences_js__WEBPACK_IMPORTED_MODULE_16__);
 // A composition shell. The host owns access, storage and query semantics;
 // this element owns the browser lifecycle and projects answers into its slots.
 // sf-view-table, sf-pagination and sf-toast are not imported: a package carries no
@@ -895,7 +126,6 @@ var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_cor
 
 
 
-
  // Whether the pair carries the group actions bar sf-bulk-actions (C295):
 // defined, or a rule the Loader can fetch. Where it does, the marked rows'
 // band is that bar (Larena L-2, view round 9); where it does not, the view's
@@ -907,8 +137,8 @@ function bulkBarAvailable() {
 
 const LISTENED = Object.freeze(["sf-view-table-search-change", "sf-view-table-filter-change", "sf-view-table-sort-change", "sf-view-table-save", "sf-view-table-apply", "sf-view-table-refresh", "sf-view-table-select", "sf-view-table-column-settings-reset", "sf-view-table-expand", "sf-view-table-load-more", "sf-view-table-reference-open", "sf-view-table-cell-set", "sf-view-table-move", "sf-pagination-change", "sf-pagination-size-change", "sf-pagination-apply", "sf-pagination-load-more", "sf-pagination-selection-clear", "sf-pagination-count", "sf-pagination-action-change", "sf-pagination-action-for-all-change", "sf-view-save", // The board's (sf-view-board, layout="board"; owner decisions C298, C304).
 "sf-view-board-move", "sf-view-board-more", "sf-view-board-open", "sf-view-board-create", "sf-view-board-select", "sf-view-board-apply", // The cards' (sf-view-cards, layout="cards"; owner decisions C297, C306).
-..._js_cards_js__WEBPACK_IMPORTED_MODULE_20__.CARDS_EVENTS, // The calendar's (sf-view-calendar, layout="calendar"; owner decision C307).
-..._js_calendar_js__WEBPACK_IMPORTED_MODULE_21__.CALENDAR_EVENTS]); // The layout registry (owner decision C298, BD-1): a layout name and the
+..._js_cards_js__WEBPACK_IMPORTED_MODULE_19__.CARDS_EVENTS, // The calendar's (sf-view-calendar, layout="calendar"; owner decision C307).
+..._js_calendar_js__WEBPACK_IMPORTED_MODULE_20__.CALENDAR_EVENTS]); // The layout registry (owner decision C298, BD-1): a layout name and the
 // element that draws it. auto, table and list are the table's; board is
 // sf-view-board, calendar is sf-view-calendar. Larena's word kanban reads as board. A name the registry does
 // not hold warns once and draws the table, as before.
@@ -929,7 +159,11 @@ const layoutsOfBoard = value => LAYOUTS.get(layoutName(value)) === "sf-view-boar
 // page and per_page 24; calendar: days).
 
 
-const OWN_PAGING = new Set(["sf-view-cards", "sf-view-calendar"]); // The page of a page size that holds record number first (1-based, LV2-8).
+const OWN_PAGING = new Set(["sf-view-cards", "sf-view-calendar"]); // The presentation a set of marks belongs to (C413): the table in any of its
+// layouts (auto, table, list), the board, the cards, the calendar.
+
+const marksKind = tag => tag === "sf-view-board" ? "board" : tag === "sf-view-cards" ? "cards" : tag === "sf-view-calendar" ? "calendar" : "table"; // The page of a page size that holds record number first (1-based, LV2-8).
+
 
 function pageHolding(first, perPage) {
   const per = Number(perPage) || VIEW_DEFAULT_PAGE_SIZE;
@@ -1057,27 +291,35 @@ const DATA_VIEW_TEXT = {
 
 const TABLE_TOOLBAR_TEXT = {
   en: {
-    filterText: _view_table_lang_en_json__WEBPACK_IMPORTED_MODULE_13__.runtime["filter-text"],
-    createText: _view_table_lang_en_json__WEBPACK_IMPORTED_MODULE_13__.runtime["create-text"]
+    filterText: _view_common_table_words_js__WEBPACK_IMPORTED_MODULE_13__.en.runtime["filter-text"],
+    createText: _view_common_table_words_js__WEBPACK_IMPORTED_MODULE_13__.en.runtime["create-text"]
   },
   ru: {
-    filterText: _view_table_lang_ru_json__WEBPACK_IMPORTED_MODULE_14__.runtime["filter-text"],
-    createText: _view_table_lang_ru_json__WEBPACK_IMPORTED_MODULE_14__.runtime["create-text"]
+    filterText: _view_common_table_words_js__WEBPACK_IMPORTED_MODULE_13__.ru.runtime["filter-text"],
+    createText: _view_common_table_words_js__WEBPACK_IMPORTED_MODULE_13__.ru.runtime["create-text"]
   }
 }; // The table footer's range words are sf-pagination's (range, range-many): a
 // board and cards say their count in the same words (view round 7), read
 // under sf-pagination, so words a product registers for it reach them too.
 
 const PAGINATION_RANGE_TEXT = {
-  en: Object.fromEntries(["range", "range-many", "page-size-text", "page-size-label", "show-more-count", "show-more-text"].map(key => [key, _pagination_lang_en_json__WEBPACK_IMPORTED_MODULE_15__.runtime[key]])),
-  ru: Object.fromEntries(["range", "range-many", "page-size-text", "page-size-label", "show-more-count", "show-more-text"].map(key => [key, _pagination_lang_ru_json__WEBPACK_IMPORTED_MODULE_16__.runtime[key]]))
+  en: Object.fromEntries(["range", "range-many", "page-size-text", "page-size-label", "show-more-count", "show-more-text"].map(key => [key, _pagination_lang_en_json__WEBPACK_IMPORTED_MODULE_14__.runtime[key]])),
+  ru: Object.fromEntries(["range", "range-many", "page-size-text", "page-size-label", "show-more-count", "show-more-text"].map(key => [key, _pagination_lang_ru_json__WEBPACK_IMPORTED_MODULE_15__.runtime[key]]))
 }; // How a table's list goes on past its first page (owner decision D1,
 // 2026-11-21): «Страницами» (pages), «Показать ещё» alone (more), both --
 // the button under the last row and the page numbers below it -- (both, the
 // default), or by itself as the person scrolls (endless).
 
 const VIEW_PAGING = ["pages", "more", "both", "endless"];
-const VIEW_PAGING_DEFAULT = "both";
+const VIEW_PAGING_DEFAULT = "both"; // The person's look of a display kind, for all their lists of it (C408).
+
+const GENERAL_VIEW_PREFERENCE = "sf-view/*";
+const KIND_LOOK_KEYS = Object.freeze({
+  table: ["paging"],
+  cards: ["size", "card_labels", "paging"],
+  board: ["empty_lanes"],
+  calendar: []
+});
 
 const escapeText = text => String(text).replace(/[&<>"]/gu, letter => ({
   "&": "&amp;",
@@ -1141,7 +383,7 @@ const VIEW_PAGE_SIZES = "10,20,50,100"; // The page size of a view whose page se
 
 const VIEW_DEFAULT_PAGE_SIZE = 20;
 
-const preferences = () => globalThis.SF?.Preferences || _core_js_preferences_js__WEBPACK_IMPORTED_MODULE_17__["default"]; // The stored key keeps the former tag's spelling: it names what a person has
+const preferences = () => globalThis.SF?.Preferences || (_view_common_preferences_js__WEBPACK_IMPORTED_MODULE_16___default()); // The stored key keeps the former tag's spelling: it names what a person has
 // already saved (SF.Preferences, a host's store), not the element.
 
 
@@ -1231,7 +473,7 @@ class SfDataView extends DataViewElement {
     // tree, flat or flattened as the last answer said, null before one.
 
     this.treeMode = null;
-    this.tree = (0,_js_tree_js__WEBPACK_IMPORTED_MODULE_18__.createTree)();
+    this.tree = (0,_js_tree_js__WEBPACK_IMPORTED_MODULE_17__.createTree)();
     this._treeAppend = new Set();
     this.treeSequence = 0; // The host's labels and groups for its own action ids (row_actions).
 
@@ -1284,11 +526,15 @@ class SfDataView extends DataViewElement {
                the part of the head that stays). In the page or in a scrolling
                box around the view alike: a sticky part binds to the nearest
                scroll container. A view without the list head says 0, so a
-               list inside another view's record card is not pushed down. */
+               list inside another view's record card is not pushed down.
+               Under a fixed bar of the page (AN-3, view round 15) both go
+               down by --sf-admin-shell-stick, which the Admin set's
+               sf-admin-shell writes (its bar and the phone top line); absent,
+               it is 0 and nothing moves. */
             :host { --sf-view--stuck-head: 0px; }
             :host([head="list"]) [part="head"] {
               position: sticky;
-              inset-block-start: var(--sf-view--head-offset, 0px);
+              inset-block-start: calc(var(--sf-admin-shell-stick, 0px) + var(--sf-view--head-offset, 0px));
               z-index: var(--sf-z-index-2, 20);
               background-color: var(--sf-view-head--background-color, var(--sf-surface-page));
             }
@@ -1366,35 +612,49 @@ class SfDataView extends DataViewElement {
                (slot footer) take the room at the start, the page field stands
                last; where the two do not fit, the page field wraps to a line
                of its own and still ends there. */
+            /* C404 (the list's look, owner 2026-11-21): the footer is the
+               list's last band -- no gap above it and no line of its own --
+               the range at the start, the page numbers in the centre, «По 20»
+               at the end (three columns, the outer two as wide as each
+               other); under 37.5rem of the list two columns, the page numbers
+               on a line of their own in the centre
+               (data-sf-view-footer-narrow, written by the view). */
             [part="footer"] {
               --sf-view--footer-control-height: var(--sf-ui-1--control-height);
-              display: flex;
-              flex-wrap: wrap;
+              display: grid;
+              grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
               align-items: center;
-              gap: var(--sf-space-1);
+              gap: var(--sf-space-1\\/2) var(--sf-space-1);
               box-sizing: border-box;
-              min-block-size: calc(2 * var(--sf-space-1) + var(--sf-view--footer-control-height) + var(--sf-px));
-              padding-block: var(--sf-space-1);
-              border-block-end: var(--sf-px) solid var(--sf-outline-variant);
+              min-block-size: calc(2 * var(--sf-space-1\\/2) + var(--sf-view--footer-control-height));
+              margin-block-start: calc(-1 * var(--sf-data-view-gap, var(--sf-space-3)));
+              padding-block: var(--sf-space-1\\/2);
             }
+            :host([data-sf-view-footer-narrow]) [part="footer"] { grid-template-columns: minmax(0, 1fr) auto; }
             :host([size="1/2"]) [part="footer"] { --sf-view--footer-control-height: var(--sf-ui-1\\/2--control-height); }
             /* A footer with no page row in it (the page row hidden: a tree, a
                failed or refused list) draws nothing, not an empty line. */
             /* A board and cards have no page row but say their count
                (data-sf-view-footer-count, view round 7). */
             :host(:not([data-sf-view-footer-count])) [part="footer"]:has(> slot[name="pagination"][hidden]) { display: none; }
-            slot[name="footer"]::slotted(*) { flex: 1 1 auto; min-inline-size: 0; }
+            slot[name="footer"]::slotted(*) { min-inline-size: 0; }
             /* «Показать ещё» right under the last row, across the list (D1):
-               half a space step under the rows, not the layout's gap. The page
-               numbers stay in the footer below it («Вместе»), or go («Показать
-               ещё», «Бесконечно»). */
+               12 under the rows, not the layout's gap -- half a space step
+               with a floor of 12 (--sf-b2), as the fields' value inset (C77):
+               the half step is 8 below 60rem, and the register's VL-12 asks
+               12 at 768 too (view round 17, VN-3). The page numbers stay in
+               the footer below it («Вместе»), or go («Показать ещё»,
+               «Бесконечно»). */
             slot[name="more"]::slotted(*) {
               margin-block-start: calc(-1 * var(--sf-data-view-gap, var(--sf-space-3)));
-              padding-block: var(--sf-space-1\\/2);
+              padding-block: max(var(--sf-space-1\\/2), var(--sf-b2));
             }
+            /* 8 under the rows on a phone (D1, VL-12). */
+            :host([data-sf-view-footer-narrow]) slot[name="more"]::slotted(*) { padding-block: var(--sf-space-1\\/3); }
             slot[name="more"]::slotted([hidden]) { display: none; }
             slot[name="pagination"]::slotted([data-sf-view-paging-off]) { display: none; }
-            slot[name="pagination"]::slotted(*) { margin-inline-start: auto; }
+            /* The parts' places in the grid are the light DOM sheet's
+               (js/first-paint.css): the hosts there are display: contents. */
           </style>
           <slot name="first-paint"></slot>
           <section part="layout" style="position: relative">
@@ -1444,7 +704,7 @@ class SfDataView extends DataViewElement {
     this._current = id === null || id === undefined ? "" : String(id);
     if (this.table) this.table.current = this._current;
     if (this.layoutKind === "cards" && this.cards) this.cards.current = this._current;
-    const calendar = this.layoutKind === "calendar" ? (0,_js_calendar_js__WEBPACK_IMPORTED_MODULE_21__.calendarOf)(this) : null;
+    const calendar = this.layoutKind === "calendar" ? (0,_js_calendar_js__WEBPACK_IMPORTED_MODULE_20__.calendarOf)(this) : null;
     if (calendar) calendar.current = this._current;
   }
 
@@ -1458,7 +718,7 @@ class SfDataView extends DataViewElement {
 
   recordBeside(id, direction = "next") {
     // A board's order is its lanes', left to right, top to bottom.
-    const rows = this.layoutKind === "board" ? (this.board?.boardLanes ?? this.boardLanes ?? []).filter(lane => !lane.hidden).flatMap(lane => lane.records ?? []) : this.layoutKind === "calendar" ? (0,_js_calendar_js__WEBPACK_IMPORTED_MODULE_21__.calendarOrder)(this) : this.cappedRecords ?? [];
+    const rows = this.layoutKind === "board" ? (this.board?.boardLanes ?? this.boardLanes ?? []).filter(lane => !lane.hidden).flatMap(lane => lane.records ?? []) : this.layoutKind === "calendar" ? (0,_js_calendar_js__WEBPACK_IMPORTED_MODULE_20__.calendarOrder)(this) : this.cappedRecords ?? [];
     const at = rows.findIndex(record => String(record?.id) === String(id));
     if (at < 0) return null;
     const next = rows[at + (direction === "previous" ? -1 : 1)];
@@ -1568,7 +828,7 @@ class SfDataView extends DataViewElement {
     const board = this.layoutKind === "board" ? this.board : null;
     const cardOf = board?.querySelector?.(`.sf-view-board__card[data-id="${globalThis.CSS?.escape ? CSS.escape(id) : id}"]`);
     const cardsCard = this.layoutKind === "cards" ? this.cards?.querySelector?.(`.sf-view-cards__card[data-id="${globalThis.CSS?.escape ? CSS.escape(id) : id}"]`) : null;
-    const calendar = this.layoutKind === "calendar" ? (0,_js_calendar_js__WEBPACK_IMPORTED_MODULE_21__.calendarOf)(this) : null;
+    const calendar = this.layoutKind === "calendar" ? (0,_js_calendar_js__WEBPACK_IMPORTED_MODULE_20__.calendarOf)(this) : null;
     if (cardOf ?? cardsCard) (cardOf ?? cardsCard).focus?.({
       preventScroll: true
     });else if (calendar) calendar.focusRecord?.(id);else this.table?.focusRow?.(id, {
@@ -1577,7 +837,9 @@ class SfDataView extends DataViewElement {
   }
 
   _openBeside(card, id) {
-    if (!globalThis.document?.querySelector?.("[data-sf-drawer-dock-host]")) this.setAttribute("data-sf-drawer-dock-host", "");
+    if (!globalThis.document?.querySelector?.("[data-sf-drawer-dock-host]")) this.setAttribute("data-sf-drawer-dock-host", ""); // Decided as the card opens; a step to the next record keeps it.
+
+    if (card.getAttribute("open") !== "true") card.toggleAttribute("data-sf-view-card-over", this._cardGoesOver(card));
 
     this._wireCard(card);
 
@@ -1590,6 +852,25 @@ class SfDataView extends DataViewElement {
       answer: "applied",
       record_id: id
     };
+  } // RV4-3 (DEV msg-1f111575, C399 allows both): opening a record must not
+  // move the list. A card docked beside the list narrows it by the card's
+  // width; where the list head would then wrap (its row to two rows, the
+  // chips to a second line) or the table turn into phone rows, the list grew
+  // by 44-150 px and its rows moved (+44 at 1440, +88 at 1280, phone rows at
+  // 1100). There the card opens over the list instead; where the list keeps
+  // its head on one row and its table, the card docks and reserves its width.
+
+
+  _cardGoesOver(card) {
+    const width = card.dockWidth?.() ?? 0;
+    if (!(width > 0) || !card.docksBesideList?.()) return false;
+    const room = this.getBoundingClientRect?.().width ?? 0;
+    if (!(room > 0)) return false;
+    const table = this._layoutTag() === "sf-view-table" ? this.table : null;
+    const below = Number(table?.getProp?.("listBelow")) || 600;
+    if (table && !table.isNarrow && room - width < below) return true;
+    if (this.listHead && this._head && !this._head.fitsNarrower(width)) return true;
+    return false;
   }
 
   _wireCard(card) {
@@ -1659,7 +940,14 @@ class SfDataView extends DataViewElement {
 
     this._applyBulkActions();
 
-    this._syncSelects();
+    this._syncSelects(); // None left (LV4-3): no boxes, no bar, and the marks go with them;
+    // the marks would otherwise keep «Выбрано N» with nothing to do.
+
+
+    if (!this.hasBulkActions) {
+      if (this.markedIds?.length || this.table?.getSelectedRecordIds?.()?.length) this.clearSelection?.();
+      this._renderBulkBand?.();
+    }
   } // Actions given or taken away bring or take the boxes (VHF-11), whether
   // they come as bulkActions or on the page row's actions attribute, now or
   // after the first draw.
@@ -1681,18 +969,26 @@ class SfDataView extends DataViewElement {
     }
 
     if (this.layoutKind === "board") this._syncBoard?.();
-    if (this.layoutKind === "cards") (0,_js_cards_js__WEBPACK_IMPORTED_MODULE_20__.syncCards)(this);
+    if (this.layoutKind === "cards") (0,_js_cards_js__WEBPACK_IMPORTED_MODULE_19__.syncCards)(this);
   }
 
   _applyBulkActions() {
     const pagination = this.pagination;
-    if (!pagination || !this._bulkActions?.length) return;
+    if (!pagination) return; // Taken away (LV4-3): the actions the view wrote on its page row go
+    // too; the page's own markup stays the page's.
+
+    if (!this._bulkActions?.length) {
+      if (this._mirroredActions != null && pagination.getAttribute("actions") === this._mirroredActions) pagination.removeAttribute("actions");
+      this._mirroredActions = null;
+      return;
+    }
 
     const clean = text => String(text ?? "").replace(/[|:]/gu, " ").trim();
 
     const markup = this._bulkActions.map(item => `${clean(item.id ?? item.value)}:${clean(item.label ?? item.text ?? item.id ?? item.value)}`).join("|");
 
     if (pagination.getAttribute("actions") !== markup) pagination.setAttribute("actions", markup);
+    this._mirroredActions = markup;
   }
 
   get selection() {
@@ -1848,9 +1144,27 @@ class SfDataView extends DataViewElement {
       // anything else: table page 2 -> cards 1-24 -> table page 2.
       const perBefore = Number(this.query?.per_page) || VIEW_DEFAULT_PAGE_SIZE;
       this._anchorFirst ??= ((Number(this._runStart ?? this.query?.page) || 1) - 1) * perBefore + 1;
-      this._keepFirst = this._anchorFirst;
-      this._carrySelection = marked.map(String);
-      this._carrySequence = this.sequence; // The cards ask their own page size (24, C306) and the calendar
+      this._keepFirst = this._anchorFirst; // Marks belong to the presentation (owner decision C413, view
+      // round 15m; it replaces the carry of C298 / LV2-2 and VR14-1):
+      // the kind leaving keeps its own marks, the drawn ones as it
+      // shows them, for its other pages and for when it comes back;
+      // the kind coming in starts from its own, never from these. Its
+      // «Выбраны все N» is its own too.
+
+      this._noteMarks([...this._drawnIds(fromTag)], marked);
+
+      (this._allMarkedOf ??= {})[marksKind(fromTag)] = Boolean(this.pagination?.actionForAll); // The incoming kind's own marks are held until the switch's own
+      // query answers: a table drawn with the records the other kind
+      // showed, then cleared by its new result, says «none marked» for
+      // rows that are its marks.
+
+      const coming = this._marksOf?.[marksKind(toTag)];
+      this._ownHeld = coming && coming.key === this._markKey() && coming.ids.size ? [...coming.ids.values()] : null;
+      this._ownHeldSequence = this.sequence;
+      const all = Boolean(this._allMarkedOf?.[marksKind(toTag)]);
+      if (Boolean(this.pagination?.actionForAll) !== all) this.pagination?.setState?.({
+        actionForAll: all
+      }); // The cards ask their own page size (24, C306) and the calendar
       // asks days, not pages: the list's page size is kept while either
       // is on screen and comes back with the table or the board (the
       // calendar's query has none, and the page row's own default was
@@ -1868,7 +1182,12 @@ class SfDataView extends DataViewElement {
     }
 
     this._drawnTag ??= fromTag;
-    if (written === null) this.removeAttribute("layout");else this.setAttribute("layout", written); // refresh: false is for a caller that asks the host itself next.
+    if (written === null) this.removeAttribute("layout");else this.setAttribute("layout", written);
+    if (fromTag !== toTag) this.pagination?.setState?.({
+      selectedCount: this.markedIds.length
+    }); // The list's bar follows the kind on screen at once (one bar).
+
+    if (fromTag !== toTag && (this._bulkBar || this._bulkBand)) this._renderBulkBand(); // refresh: false is for a caller that asks the host itself next.
 
     if (refresh && this.isConnected) this.refresh("layout-change");
     return {
@@ -1881,6 +1200,23 @@ class SfDataView extends DataViewElement {
 
   _layoutTag() {
     return LAYOUTS.get(this.layoutKind) ?? "sf-view-table";
+  } // The marks of the presentation on screen (C413): each kind (table,
+  // board, cards, calendar) keeps its own, kept as before by the search and
+  // the filters they were made under (_markKey).
+
+
+  get _marks() {
+    return this._marksOf?.[marksKind(this._layoutTag())] ?? null;
+  }
+
+  set _marks(value) {
+    (this._marksOf ??= {})[marksKind(this._layoutTag())] = value;
+  } // The ids of the records a kind draws now.
+
+
+  _drawnIds(tag) {
+    const records = tag === "sf-view-board" ? (this.boardLanes ?? []).flatMap(lane => lane.records ?? []) : tag === "sf-view-calendar" ? this._calendarRecords ?? [] : tag === "sf-view-cards" ? this.records ?? [] : this.cappedRecords ?? [];
+    return new Set(records.map(record => String(record?.id)));
   } // The marked records of the layout on screen (table, board, cards or
   // calendar), as ids.
 
@@ -1890,7 +1226,7 @@ class SfDataView extends DataViewElement {
 
     if (tag === "sf-view-board") return this.board?.selected ?? [];
     if (tag === "sf-view-cards") return this.cards?.selected ?? [];
-    if (tag === "sf-view-calendar") return (0,_js_calendar_js__WEBPACK_IMPORTED_MODULE_21__.calendarOf)(this)?.selected ?? [];
+    if (tag === "sf-view-calendar") return (0,_js_calendar_js__WEBPACK_IMPORTED_MODULE_20__.calendarOf)(this)?.selected ?? [];
     return this.table?.selection ?? [];
   } // The content element the layout draws with. A view-made table or board
   // of the other layout is replaced by the layout's own; the page's own
@@ -1956,17 +1292,43 @@ class SfDataView extends DataViewElement {
     } else {
       this._askForParts(["sf-view-table", "sf-pagination"]);
     }
-  } // The marks carried over a switch, given to the new element as it shows
-  // the records they name: at once from what is known, and again over the
+  } // The kind's own marks (C413), given back to its element as it shows the
+  // records they name: at once from what is known, and again over the
   // answer to the switch's own query (a new result clears a table's marks).
 
 
-  _applyCarriedSelection() {
-    const ids = this._carrySelection;
-    if (!ids?.length) return;
-    const answered = this.pending === null && this.sequence > (this._carrySequence ?? 0);
+  _applyOwnMarks() {
+    // The list's bar follows the kind on screen: the table's and the
+    // cards' marks, none under the board or the calendar (they draw their
+    // own), so a switch never leaves two bars (owner, 2026-11-22).
+    if (this._bulkBar || this._bulkBand) this._renderBulkBand(); // What the person marked in this kind, on this page and others.
 
-    const tag = this._layoutTag();
+    const ids = [...new Set([...(this._ownHeld ?? []), ...this.markedIds].map(String))];
+
+    const tag = this._layoutTag(); // Once the switch's query answered, what was held is the kind's marks
+    // again (a table drawn with the other kind's records, then cleared by
+    // its new result, took them for unmarked), and its «Выбраны все N».
+
+
+    if (this._ownHeld && this.pending === null && this.sequence > (this._ownHeldSequence ?? 0)) {
+      const held = this._ownHeld;
+      this._ownHeld = null;
+      if (held.length) this._noteMarks([], held);
+      const all = Boolean(this._allMarkedOf?.[marksKind(tag)]);
+      if (Boolean(this.pagination?.actionForAll) !== all) this.pagination?.setState?.({
+        actionForAll: all
+      });
+      this.pagination?.setState?.({
+        selectedCount: this.markedIds.length
+      });
+      if (this._bulkBar || this._bulkBand) this._renderBulkBand();
+    }
+
+    const allMarked = Boolean(this.pagination?.actionForAll); // One bar: the list's stands for the cards (owner, 2026-11-22), with
+    // marks or without.
+
+    if (tag === "sf-view-cards") this.cards?.setAttribute?.("bulk-bar", "false");
+    if (!ids.length && !(allMarked && tag === "sf-view-cards")) return;
 
     if (tag === "sf-view-board") {
       const board = this.board;
@@ -1974,12 +1336,21 @@ class SfDataView extends DataViewElement {
       const shown = new Set(this.boardLanes.flatMap(lane => lane.records ?? []).map(record => String(record?.id)));
       board.selected = ids.filter(id => shown.has(id));
     } else if (tag === "sf-view-cards" || tag === "sf-view-calendar") {
-      const element = tag === "sf-view-cards" ? this.cards : (0,_js_calendar_js__WEBPACK_IMPORTED_MODULE_21__.calendarOf)(this);
+      const element = tag === "sf-view-cards" ? this.cards : (0,_js_calendar_js__WEBPACK_IMPORTED_MODULE_20__.calendarOf)(this);
       const records = tag === "sf-view-cards" ? this.records : this._calendarRecords;
       if (!element || !Array.isArray(records) || !records.length) return;
       const shown = new Set(records.map(record => String(record?.id)));
-      element.selected = ids.filter(id => shown.has(id));
-      if (tag === "sf-view-cards") this._cardsSelection = element.selected;
+
+      if (tag === "sf-view-cards") {
+        // The cards keep the marks of other pages (keep-selection),
+        // and their own «Выбраны все N» marks every card (LV2-7).
+        element.setAttribute("keep-selection", ""); // One bar: the list's stands for the cards (owner, 2026-11-22).
+
+        element.setAttribute("bulk-bar", "false");
+        element.toggleAttribute("all-selected", allMarked);
+        element.selected = ids;
+        this._cardsSelection = element.selected;
+      } else element.selected = ids.filter(id => shown.has(id));
     } else {
       const table = this.table;
       if (typeof table?.applyRowSelection !== "function" || !this.cappedRecords?.length) return;
@@ -1988,8 +1359,6 @@ class SfDataView extends DataViewElement {
 
       for (const id of ids) if (shown.has(id) && !marked.has(id)) table.applyRowSelection(id, true);
     }
-
-    if (answered) this._carrySelection = null;
   } // What the person changed in «Настроить вид» for a board, the cards or
   // the calendar (the list head's own settings, saved for them at once,
   // C298): laid over the layout's options the host answers, so they show
@@ -1998,8 +1367,12 @@ class SfDataView extends DataViewElement {
 
 
   ownLayoutSettings(kind) {
-    const own = this._head?._settings?.[kind];
-    return own && typeof own === "object" ? copy(own) : {};
+    const own = this._head?._settings?.[kind]; // What the person set for every list of the kind (C408) under what
+    // they set here.
+
+    return { ...this.kindPreferences(kind),
+      ...(own && typeof own === "object" ? copy(own) : {})
+    };
   } // A layout setting changed in «Настроить вид» (VHF-13): drawn at once. A
   // board's lane field and a calendar's date field change what is asked, so
   // the list is asked again; the rest (card fields, empty lanes, the card
@@ -2028,7 +1401,7 @@ class SfDataView extends DataViewElement {
   }
 
   get cards() {
-    return (0,_js_cards_js__WEBPACK_IMPORTED_MODULE_20__.cardsOf)(this);
+    return (0,_js_cards_js__WEBPACK_IMPORTED_MODULE_19__.cardsOf)(this);
   }
 
   get table() {
@@ -2209,6 +1582,39 @@ class SfDataView extends DataViewElement {
     if (!pagination?.setAttribute || pagination.hasAttribute?.("appearance")) return;
     pagination.setAttribute("appearance", "field");
     pagination.setAttribute("data-sf-view-appearance", "");
+  } // The footer under 37.5rem of the list (C404): two columns, the page
+  // numbers on a line of their own (data-sf-view-footer-narrow). The list's
+  // own width -- the content box: a record card docked beside it pads the
+  // view by its own width (VHF-5).
+
+
+  _watchFooterWidth() {
+    if (this._footerWidth || typeof ResizeObserver !== "function") return;
+
+    const mark = () => {
+      const style = globalThis.getComputedStyle?.(this);
+      const pad = style ? (Number.parseFloat(style.paddingInlineStart) || 0) + (Number.parseFloat(style.paddingInlineEnd) || 0) : 0;
+      const width = this.getBoundingClientRect().width - pad;
+      const rem = Number.parseFloat(globalThis.getComputedStyle?.(document.documentElement)?.fontSize) || 16;
+      const narrow = width > 0 && width < 37.5 * rem;
+      if (narrow !== this.hasAttribute("data-sf-view-footer-narrow")) this.toggleAttribute("data-sf-view-footer-narrow", narrow);
+    }; // The mark is written in the next frame (VR14-6): written in the
+    // observer's own callback it moved the footer, which resized the
+    // view in the same frame («ResizeObserver loop completed»).
+
+
+    let queued = 0;
+    this._footerWidth = new ResizeObserver(() => {
+      if (queued) return;
+      queued = (globalThis.requestAnimationFrame ?? globalThis.setTimeout)(() => {
+        queued = 0;
+        mark();
+      });
+    });
+
+    this._footerWidth.observe(this);
+
+    mark();
   } // The start of the footer: the range (and the offer to count), then the
   // page size. In the light DOM, slotted, so the Framework's styles reach
   // the buttons and the menu (the band of bulk controls is placed so too).
@@ -2432,16 +1838,63 @@ class SfDataView extends DataViewElement {
       }
     });
   } // ---------- going on past the first page (owner decision D1) ----------
-  // How the table's list goes on: the person's choice in «Настроить вид»
-  // (the view's layouts.table.paging, saved for them), else the view's
-  // document, else what this browser kept, else the page's paging
-  // attribute, else «Вместе».
+  // How the list goes on: the table's and, since view round 14, the
+  // cards' own (D1 for the cards, DEV r13 answer). The person's choice in
+  // «Вид» (layouts.<kind>.paging, saved for them), else theirs for every
+  // list of the kind (C408), else the view's document, else what this
+  // browser kept for the list, else the page's paging attribute, else
+  // «Вместе».
+
+
+  pagingOf(kind = "table") {
+    const own = kind === "cards" ? "cards" : "table";
+
+    const valid = value => VIEW_PAGING.includes(String(value)) ? String(value) : null;
+
+    return valid(this._head?._settings?.[own]?.paging) ?? valid(this.kindPreferences(own).paging) ?? valid(this.viewConfig?.layouts?.[own]?.paging) ?? valid(this.preferencesKey ? preferences()?.read(this.preferencesKey)?.[own === "cards" ? "cardsPaging" : "paging"] : null) ?? valid(this.getAttribute("paging")) ?? VIEW_PAGING_DEFAULT;
+  } // The paging of the kind on screen (a table list, or the cards).
 
 
   get paging() {
-    const valid = value => VIEW_PAGING.includes(String(value)) ? String(value) : null;
+    return this.pagingOf(this.layoutKind === "cards" ? "cards" : "table");
+  } // What a person set for how a kind looks, kept for all their lists of
+  // that kind (owner decision C408, «похожие списки» = the lists of the
+  // same kind, C410): SF.Preferences sf-view/* {kinds: {<kind>: {...}}}.
+  // Only the look of the kind travels -- the paging, the card size and
+  // labels, the empty lanes; fields (card fields, a lane or a date field)
+  // belong to a list's own data and stay that list's.
 
-    return valid(this._head?._settings?.table?.paging) ?? valid(this.viewConfig?.layouts?.table?.paging) ?? valid(this.preferencesKey ? preferences()?.read(this.preferencesKey)?.paging : null) ?? valid(this.getAttribute("paging")) ?? VIEW_PAGING_DEFAULT;
+
+  kindPreferences(kind) {
+    let kept = null;
+
+    try {
+      kept = preferences()?.read(GENERAL_VIEW_PREFERENCE)?.kinds?.[kind];
+    } catch {
+      kept = null;
+    }
+
+    if (!kept || typeof kept !== "object") return {};
+    const keys = KIND_LOOK_KEYS[kind] ?? [];
+    return Object.fromEntries(Object.entries(kept).filter(([key]) => keys.includes(key)));
+  }
+
+  keepKindSetting(kind, key, value) {
+    if (!(KIND_LOOK_KEYS[kind] ?? []).includes(key)) return;
+
+    try {
+      const stored = preferences()?.read(GENERAL_VIEW_PREFERENCE) ?? {};
+      const kinds = { ...(stored.kinds ?? {})
+      };
+      kinds[kind] = { ...(kinds[kind] ?? {}),
+        [key]: copy(value)
+      };
+      preferences()?.write(GENERAL_VIEW_PREFERENCE, { ...stored,
+        v: 1,
+        kinds
+      });
+    } catch {// No store (a page without SF.Preferences): the choice holds for this list.
+    }
   } // Whether the view chooses how the table goes on: its own page row, or
   // one the page wrote without an appearance. A page row the page gave an
   // appearance of its own is the page's choice, and the view leaves it.
@@ -2472,16 +1925,19 @@ class SfDataView extends DataViewElement {
     if (this.countKnown !== false && Number.isSafeInteger(this.total)) return shown < this.total;
     return this.hasNext === true;
   } // A paging the person chose (D1): kept in this browser for the first
-  // paint (the view's document comes with the answer), then drawn.
+  // paint (the view's document comes with the answer), then drawn. The
+  // cards keep theirs apart (view round 14).
 
 
-  applyPaging(value) {
+  applyPaging(value, kind = "table") {
     if (!VIEW_PAGING.includes(String(value))) return;
     if (this.preferencesKey) this._keepPreference({
-      paging: String(value)
+      [kind === "cards" ? "cardsPaging" : "paging"]: String(value)
     });
 
     this._queueFooter();
+
+    if (kind === "cards") this._renderProjection?.();
   } // «Показать ещё N» across the list, right under its last row (D1): in
   // «Вместе» above the page numbers, alone in «Показать ещё», and in
   // «Бесконечно» the button the list loads by itself from as a person's
@@ -2768,7 +2224,13 @@ class SfDataView extends DataViewElement {
 
     if (this.getAttribute("data-sf-instance")) this._ownParts();
 
-    this._askForParts(["sf-view-table", "sf-pagination"]); // Dated aliases (§16.20), installed once per element as the Smart base does.
+    this._watchFooterWidth(); // The current layout's element only: the table is a lazy relation now
+    // (view modular step 1), so a list that shows only the board, the cards
+    // or the calendar never fetches it; a switch to the table asks for it
+    // then (_swapContent's _askForParts).
+
+
+    this._askForParts([this._layoutTag(), "sf-pagination"]); // Dated aliases (§16.20), installed once per element as the Smart base does.
 
 
     if (!this.__sfAliases) {
@@ -3051,10 +2513,13 @@ class SfDataView extends DataViewElement {
     return Boolean(this.knownPort) && !this.knownCapability("row-actions");
   } // The table's «≡» column has nothing to open: no row menu, no column
   // gear (personal-column-settings outside the list head), no reordering.
+  // Since C406 the column always holds the gear in its head, so the view
+  // never leaves it out on its own (VR5-10 stays for a table whose host
+  // writes settings-menu="false" itself, and chrome without settings).
 
 
   _settingsColumnUnused() {
-    return this._rowMenuOff() && !(this.knownCapability("personal-column-settings") && !this.listHead) && !(this.knownCapability("row-reorder") && this.treeMode !== "tree");
+    return false;
   } // The query the page printed: the first answer's own (first-answer.query),
   // else the declared port's first query.change. The view asks exactly that,
   // so an early call the page started is the view's own (one request) and
@@ -3144,8 +2609,10 @@ class SfDataView extends DataViewElement {
     if (this.layoutKind === "board") return "board";
     if (this.layoutKind === "cards") return "cards";
     if (this.layoutKind === "calendar") return "calendar";
-    const written = table?.getAttribute?.("data-sf-host-layout") || table?.getAttribute?.("layout") || this.getAttribute?.("layout");
-    const own = ["auto", "table", "list"].includes(written) ? written : this.renders("toolbar") ? "auto" : "table";
+    const written = table?.getAttribute?.("data-sf-host-layout") || table?.getAttribute?.("layout") || this.getAttribute?.("layout"); // The head's parts never decide the rows (RV4-12): without the head a
+    // list is auto too, a table where there is room and rows on a phone.
+
+    const own = ["auto", "table", "list"].includes(written) ? written : "auto";
     const value = this.getAttribute?.("layout-switch");
     const switched = value !== null && value !== undefined && value !== "false" && this.renders("toolbar");
     if (!switched) return own;
@@ -3238,11 +2705,11 @@ class SfDataView extends DataViewElement {
     if (layoutSwitch) skeleton.setAttribute("data-layout-switch", "");else skeleton.removeAttribute?.("data-layout-switch");
     skeleton.setAttribute("data-layout", ["auto", "table", "list", "board", "cards", "calendar"].includes(layout) ? layout : "table"); // The cards' shape (CD-2): a grid of cards, no table and no page row.
 
-    if (layout === "cards") return (0,_js_cards_js__WEBPACK_IMPORTED_MODULE_20__.cardsSkeleton)(this, bar); // The board's shape (BD-2): lanes of a head and cards, no table and no
+    if (layout === "cards") return (0,_js_cards_js__WEBPACK_IMPORTED_MODULE_19__.cardsSkeleton)(this, bar); // The board's shape (BD-2): lanes of a head and cards, no table and no
     // page row, so nothing flashes a table before the lanes come.
     // The calendar's (CL-2): its bar and the month grid of six weeks.
 
-    if (layout === "calendar") return (0,_js_calendar_js__WEBPACK_IMPORTED_MODULE_21__.calendarSkeleton)();
+    if (layout === "calendar") return (0,_js_calendar_js__WEBPACK_IMPORTED_MODULE_20__.calendarSkeleton)();
 
     if (layout === "board") {
       const lane = `<div><div data-part="head">${bar}</div>${'<div data-part="card"><i class="sf-skeleton-text"></i><i class="sf-skeleton-text"></i></div>'.repeat(FIRST_PAINT_CARDS)}</div>`; // On a phone the lane switcher's row stands above (the sheet shows it).
@@ -3318,19 +2785,20 @@ class SfDataView extends DataViewElement {
 
     if (this.layoutKind === "calendar" && typeof registry?.whenDefined === "function") {
       // The calendar draws its days at once from its first render.
-      if (registry.get("sf-view-calendar") && (0,_js_calendar_js__WEBPACK_IMPORTED_MODULE_21__.calendarOf)(this)?.querySelector?.(".sf-view-calendar__main")) return drop();
+      if (registry.get("sf-view-calendar") && (0,_js_calendar_js__WEBPACK_IMPORTED_MODULE_20__.calendarOf)(this)?.querySelector?.(".sf-view-calendar__main")) return drop();
       if (this._firstPaintWait) return;
       const wait = registry.whenDefined("sf-view-calendar").then(async () => {
-        (0,_js_calendar_js__WEBPACK_IMPORTED_MODULE_21__.syncCalendar)(this);
-        await (0,_js_calendar_js__WEBPACK_IMPORTED_MODULE_21__.calendarOf)(this)?.whenRendered?.();
+        (0,_js_calendar_js__WEBPACK_IMPORTED_MODULE_20__.syncCalendar)(this);
+        await (0,_js_calendar_js__WEBPACK_IMPORTED_MODULE_20__.calendarOf)(this)?.whenRendered?.();
       });
-      this._firstPaintWait = Promise.race([wait, new Promise(done => globalThis.setTimeout(done, 3000))]).catch(() => {}).then(() => {
+      this._firstPaintWait = Promise.race([wait, this._kindGivesUp("sf-view-calendar")]).catch(() => {}).then(() => {
         this._firstPaintWait = null;
         drop();
       });
       return;
     }
 
+    if (this._layoutTag() === "sf-view-table" && typeof registry?.whenDefined === "function") return this._dropTableFirstPaint(drop);
     if (this.layoutKind !== "board" || typeof registry?.whenDefined !== "function") return drop();
     if (registry.get("sf-view-board") && this.board?.querySelector?.(".sf-view-board__lanes > *")) return drop();
     if (this._firstPaintWait) return;
@@ -3346,32 +2814,68 @@ class SfDataView extends DataViewElement {
         await frame();
       }
     });
-    const late = new Promise(done => globalThis.setTimeout(done, 3000));
-    this._firstPaintWait = Promise.race([wait, late]).catch(() => {}).then(() => {
+    this._firstPaintWait = Promise.race([wait, this._kindGivesUp("sf-view-board")]).catch(() => {}).then(() => {
       this._firstPaintWait = null;
       drop();
     });
+  } // MOD1-1 (acceptance of view modular step 1): since sf-view-table is a
+  // lazy relation, the view may be defined and have its host's answer long
+  // before the table's code is in (on a slow line, or a list added after
+  // the page loaded, MOD1-5). The skeleton stays until sf-view-table is
+  // defined and has drawn, as the board's and the cards' do; before, the
+  // view dropped it at the answer and drew «Показать ещё» and the footer
+  // where the rows would be, then moved them down when the table came.
+
+
+  _dropTableFirstPaint(drop) {
+    const registry = globalThis.customElements;
+    if (registry.get("sf-view-table")) return drop();
+    if (this._firstPaintWait) return undefined;
+    const wait = registry.whenDefined("sf-view-table").then(async () => {
+      await this.table?.whenRendered?.();
+    });
+    this._firstPaintWait = Promise.race([wait, this._kindGivesUp("sf-view-table")]).catch(() => {}).then(() => {
+      this._firstPaintWait = null;
+      drop();
+    });
+    return undefined;
+  } // When the view stops waiting for a display kind's code that is not
+  // defined yet (MOD1-1). With the Loader bringing it (a rule claims the
+  // tag), only when the Loader says the module failed to load: a time bound
+  // would end the wait on a slow line and the list would move when the code
+  // came. The Loader's word is its public call SF.Loader.settled(tag)
+  // ("defined" or "failed", never rejects; core.runtime 1.67.0, group build
+  // 17 L2), the same read as sf-view-table's _waitsForView; it replaced the
+  // read of the core's internal pending tags (view round 17). Without the
+  // Loader, or a tag no rule claims (bundles included by hand), after 3 s as
+  // before.
+
+
+  _kindGivesUp(tag) {
+    const loader = globalThis.SF?.Loader;
+    const claimed = Boolean(loader?.getCustomElementRules?.()?.[tag]);
+    if (typeof loader?.settled !== "function" || !claimed) return new Promise(done => globalThis.setTimeout(done, 3000));
+    return Promise.resolve(loader.settled(tag)).then(state => state === "failed" ? state : new Promise(() => {}));
   } // The cards' skeleton stays until sf-view-cards is defined and has drawn
   // its grid (CD-2), as the board's does.
 
 
   _dropCardsFirstPaint(drop) {
-    if ((0,_js_cards_js__WEBPACK_IMPORTED_MODULE_20__.cardsDrawn)(this)) return drop();
+    if ((0,_js_cards_js__WEBPACK_IMPORTED_MODULE_19__.cardsDrawn)(this)) return drop();
     if (this._firstPaintWait) return undefined;
 
     const frame = () => new Promise(done => (globalThis.requestAnimationFrame ?? globalThis.setTimeout)(() => done()));
 
     const wait = globalThis.customElements.whenDefined("sf-view-cards").then(async () => {
-      (0,_js_cards_js__WEBPACK_IMPORTED_MODULE_20__.syncCards)(this);
+      (0,_js_cards_js__WEBPACK_IMPORTED_MODULE_19__.syncCards)(this);
 
-      for (let tries = 0; tries < 120 && !(0,_js_cards_js__WEBPACK_IMPORTED_MODULE_20__.cardsDrawn)(this); tries += 1) {
+      for (let tries = 0; tries < 120 && !(0,_js_cards_js__WEBPACK_IMPORTED_MODULE_19__.cardsDrawn)(this); tries += 1) {
         await this.cards?.whenRendered?.();
-        if ((0,_js_cards_js__WEBPACK_IMPORTED_MODULE_20__.cardsDrawn)(this)) return;
+        if ((0,_js_cards_js__WEBPACK_IMPORTED_MODULE_19__.cardsDrawn)(this)) return;
         await frame();
       }
     });
-    const late = new Promise(done => globalThis.setTimeout(done, 3000));
-    this._firstPaintWait = Promise.race([wait, late]).catch(() => {}).then(() => {
+    this._firstPaintWait = Promise.race([wait, this._kindGivesUp("sf-view-cards")]).catch(() => {}).then(() => {
       this._firstPaintWait = null;
       drop();
     });
@@ -3423,6 +2927,8 @@ class SfDataView extends DataViewElement {
   }
 
   disconnectedCallback() {
+    this._footerWidth?.disconnect();
+    this._footerWidth = null;
     this.epoch += 1;
     this._endlessWatched = null;
     globalThis.cancelAnimationFrame?.(this._endlessFrame ?? 0);
@@ -3544,7 +3050,7 @@ class SfDataView extends DataViewElement {
 
   get cappedRecords() {
     // A tree is drawn whole, as far as it is open: the cap is a list's.
-    if (this.treeMode === "tree") return (0,_js_tree_js__WEBPACK_IMPORTED_MODULE_18__.visibleRows)(this.tree);
+    if (this.treeMode === "tree") return (0,_js_tree_js__WEBPACK_IMPORTED_MODULE_17__.visibleRows)(this.tree);
     const cap = this.rowCap;
     return cap ? this.records.slice(0, cap) : this.records;
   }
@@ -3683,9 +3189,10 @@ class SfDataView extends DataViewElement {
 
     const wait = registry.whenDefined(tag).then(async () => {
       for (let tries = 0; tries < 120 && !drawn(); tries += 1) await frame();
-    });
-    const late = new Promise(done => globalThis.setTimeout(done, 8000));
-    Promise.race([wait, late]).catch(() => {}).then(() => {
+    }); // Until the kind's code is in, or the Loader says it failed (MOD1-1;
+    // an 8 s bound moved the list on a slow line).
+
+    Promise.race([wait, this._kindGivesUp(tag)]).catch(() => {}).then(() => {
       if (token !== this._layoutHoldToken) return;
       hold.remove();
       if (this._layoutHold === hold) this._layoutHold = null;
@@ -3699,9 +3206,10 @@ class SfDataView extends DataViewElement {
 
   get listHead() {
     return this.getAttribute("head") === "list";
-  } // «Настроить вид» of the list head (head="list"), opened from outside the
-  // head: the table's column menu «Все колонки…» (C296, VR2-1). Answers an
-  // outcome; without the list head nothing opens.
+  } // «Вид» of the list head (head="list", C405: the drill menu of the shown
+  // display kind), opened from outside the head. Answers an outcome;
+  // without the list head nothing opens. The table's «Все колонки…» opens
+  // its own column window since C406 (the gear is always there).
 
 
   openCustomize() {
@@ -3709,11 +3217,11 @@ class SfDataView extends DataViewElement {
       outcome: "refused",
       reason: "no-list-head"
     };
-
-    this._head._openKind("view");
-
-    return {
+    return this._head.openLook() ? {
       outcome: "applied"
+    } : {
+      outcome: "refused",
+      reason: "look-off"
     };
   }
 
@@ -3733,11 +3241,11 @@ class SfDataView extends DataViewElement {
     }
 
     if (!this._head) {
-      this._head = new _js_head_js__WEBPACK_IMPORTED_MODULE_19__.ListHead(this, {
+      this._head = new _js_head_js__WEBPACK_IMPORTED_MODULE_18__.ListHead(this, {
         text: key => (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_2__.pageText)(DATA_VIEW_TEXT, key, this),
         raise: (intent, payload) => this._raise(intent, payload)
       });
-      this._ensureElements(["sf-button", "sf-button-icon", "sf-segmented", "sf-badge", "sf-input", "sf-popover", "sf-drawer", "sf-tabs", "sf-checkbox", "sf-radio", "sf-icon", "sf-menu-context"])?.catch?.(() => {});
+      this._ensureElements(["sf-button", "sf-button-icon", "sf-segmented", "sf-badge", "sf-input", "sf-popover", "sf-drawer", "sf-tabs", "sf-checkbox", "sf-radio", "sf-icon", "sf-menu-context", "sf-settings"])?.catch?.(() => {});
     }
 
     if (!this.isConnected) return;
@@ -3805,7 +3313,7 @@ class SfDataView extends DataViewElement {
     }
 
     this.table?.setDataState?.(state);
-    if (this.layoutKind === "cards") (0,_js_cards_js__WEBPACK_IMPORTED_MODULE_20__.syncCardsState)(this, state); // A failed or refused list has nothing to count: the page row goes with
+    if (this.layoutKind === "cards") (0,_js_cards_js__WEBPACK_IMPORTED_MODULE_19__.syncCardsState)(this, state); // A failed or refused list has nothing to count: the page row goes with
     // it until a list comes back (docs trial 4: «Всего: 10» over an error).
 
     const pageRow = this.shadowRoot.querySelector('slot[name="pagination"]');
@@ -4353,14 +3861,14 @@ class SfDataView extends DataViewElement {
 
     if (tree?.mode === "tree" && tree.parent !== null && tree.parent !== undefined && Array.isArray(data.records)) {
       const parent = String(tree.parent);
-      (0,_js_tree_js__WEBPACK_IMPORTED_MODULE_18__.acceptLevel)(this.tree, {
+      (0,_js_tree_js__WEBPACK_IMPORTED_MODULE_17__.acceptLevel)(this.tree, {
         parent,
         records: copy(data.records),
         hasNext: tree.has_next === true,
         cursor: tree.cursor ?? null,
         append: this._treeAppend.delete(parent)
       });
-      this.records = (0,_js_tree_js__WEBPACK_IMPORTED_MODULE_18__.knownRecords)(this.tree);
+      this.records = (0,_js_tree_js__WEBPACK_IMPORTED_MODULE_17__.knownRecords)(this.tree);
 
       this._renderProjection();
 
@@ -4373,18 +3881,18 @@ class SfDataView extends DataViewElement {
 
     if (this.treeMode === "tree" && Array.isArray(data.records)) {
       const reopen = [...this.tree.expanded];
-      (0,_js_tree_js__WEBPACK_IMPORTED_MODULE_18__.acceptLevel)(this.tree, {
+      (0,_js_tree_js__WEBPACK_IMPORTED_MODULE_17__.acceptLevel)(this.tree, {
         records: copy(data.records),
         hasNext: tree.has_next === true,
         cursor: tree.cursor ?? null,
         append: this.continuing && this.records.length > 0
       });
-      this.records = (0,_js_tree_js__WEBPACK_IMPORTED_MODULE_18__.knownRecords)(this.tree);
+      this.records = (0,_js_tree_js__WEBPACK_IMPORTED_MODULE_17__.knownRecords)(this.tree);
       this.appended = null; // Branches a person had open stay open: their children are asked
       // for again, since a re-read may have changed them.
 
       for (const id of reopen) {
-        if (this.tree.nodes.get(id)?.has_children === true && !(0,_js_tree_js__WEBPACK_IMPORTED_MODULE_18__.hasLevel)(this.tree, id)) this.expandNode(id);
+        if (this.tree.nodes.get(id)?.has_children === true && !(0,_js_tree_js__WEBPACK_IMPORTED_MODULE_17__.hasLevel)(this.tree, id)) this.expandNode(id);
       }
     } else if (Array.isArray(data.records)) {
       const next = copy(data.records); // A continuation keeps what is already shown and adds to it, and
@@ -4426,8 +3934,8 @@ class SfDataView extends DataViewElement {
 
     this._acceptBoard(data);
 
-    (0,_js_cards_js__WEBPACK_IMPORTED_MODULE_20__.acceptCards)(this, data);
-    (0,_js_calendar_js__WEBPACK_IMPORTED_MODULE_21__.acceptCalendar)(this, data);
+    (0,_js_cards_js__WEBPACK_IMPORTED_MODULE_19__.acceptCards)(this, data);
+    (0,_js_calendar_js__WEBPACK_IMPORTED_MODULE_20__.acceptCalendar)(this, data);
     this._answered = true;
     if (Array.isArray(data.saved_views)) this.savedViews = copy(data.saved_views);
     if (data.preferences && typeof data.preferences === "object") this._acceptPersonal(data.preferences);
@@ -4487,8 +3995,12 @@ class SfDataView extends DataViewElement {
 
   _renderBulkBand() {
     const pagination = this.pagination;
-    const table = this.table;
-    const selected = table?.getSelectedRecordIds?.() ?? [];
+    const table = this.table; // The board and the calendar draw their own bar; the list's bar
+    // stands for the table and the cards (one bar, owner 2026-11-22).
+
+    const kind = this._layoutTag();
+
+    const selected = kind === "sf-view-table" || kind === "sf-view-cards" ? this._bulkIds() : [];
     const actions = pagination?.actions ?? [];
     if (bulkBarAvailable()) return this._renderBulkBar({
       pagination,
@@ -4665,8 +4177,14 @@ class SfDataView extends DataViewElement {
     }
 
     this._bulkBar = bar;
-    const forAll = Boolean(pagination?.showActionForAll) && pagination?.countKnown !== false && Number(pagination?.total) > 0;
-    chosen("size", this.controlSize);
+    const forAll = Boolean(pagination?.showActionForAll) && pagination?.countKnown !== false && Number(pagination?.total) > 0; // The bar at the list head controls' size (view round 15, DEV): the
+    // head draws its buttons at the list's size, else 1/2 (js/head.js
+    // ListHead.size), and the bar is the same size, so where the head's
+    // buttons are 32 the bar is the 32 row. A fixed 1 drew a 50 px bar
+    // with 40 px buttons under a 32 px head. The bar's own layout is
+    // SIMAI Framework's.
+
+    chosen("size", this.controlSize || "1/2");
     chosen("label", pagination?.actionsRegionLabel);
     chosen("count-text", selected.length ? pagination?.bulkCountText : "");
     chosen("page-count", pagination?.bulkPageCount ?? this.records.length);
@@ -4678,7 +4196,9 @@ class SfDataView extends DataViewElement {
   }
 
   _setBulkForAll(on) {
-    this.pagination?.setActionForAll?.(on);
+    this.pagination?.setActionForAll?.(on); // «Выбрать все N» on the list's bar marks every card too (LV2-7).
+
+    if (this._layoutTag() === "sf-view-cards") this.cards?.selectAll?.(Boolean(on));
 
     this._renderBulkBand();
   }
@@ -4687,7 +4207,9 @@ class SfDataView extends DataViewElement {
     const id = event.detail?.id;
     if (id === undefined || id === null || id === "") return undefined;
     const scope = event.detail?.scope === "all" ? "all" : "selection";
-    const ids = this.table?.getSelectedRecordIds?.() ?? [];
+
+    const ids = this._bulkIds();
+
     let answer;
     if (scope === "all") answer = await this.applyUnderFilter(String(id), this.total);else {
       this._bulkBarRaising = true;
@@ -4776,7 +4298,7 @@ class SfDataView extends DataViewElement {
     if (pagination.actionForAll) return this.applyUnderFilter(action, this.total);
     return this._action({
       action_id: action,
-      record_ids: this.table?.getSelectedRecordIds?.() ?? []
+      record_ids: this._bulkIds()
     }, {
       selectedBulk: true
     });
@@ -4784,10 +4306,58 @@ class SfDataView extends DataViewElement {
 
   clearSelection() {
     this.table?.clearSelection?.();
+    this._marks = null;
+    this._ownHeld = null;
+
+    if (this.layoutKind === "cards") {
+      const cards = this.cards;
+      cards?.removeAttribute?.("all-selected");
+      cards?.clearSelection?.();
+    }
+
     this.pagination?.setState?.({
       selectedCount: 0
     });
     return this._renderBulkBand();
+  } // The marks kept across pages (C295; list study v2 LV2-2), each kind its
+  // own (C413): the records a person marked on one page stay marked on the
+  // others of that kind and when the list comes back to it, while the
+  // search and the filters stay
+  // the same; a new search or filter, a bulk action done, or «Снять
+  // выделение» clears them. Kept as the host's own ids, by their text.
+
+
+  _markKey() {
+    return JSON.stringify([this.query?.search ?? "", this.query?.filters ?? {}]);
+  }
+
+  _noteMarks(shown, marked) {
+    const key = this._markKey();
+
+    if (!this._marks || this._marks.key !== key) this._marks = {
+      key,
+      ids: new Map()
+    };
+    const on = new Map((Array.isArray(marked) ? marked : []).map(id => [String(id), id]));
+
+    for (const id of Array.isArray(shown) ? shown : []) {
+      const text = String(id);
+      if (on.has(text)) this._marks.ids.set(text, on.get(text));else this._marks.ids.delete(text);
+    }
+
+    for (const [text, id] of on) this._marks.ids.set(text, id);
+  }
+
+  get markedIds() {
+    if (!this._marks || this._marks.key !== this._markKey()) return [];
+    return [...this._marks.ids.values()];
+  } // The records a bulk action is for: every marked one, else the table's
+  // own marks (a page that drives the table itself).
+
+
+  _bulkIds() {
+    const kept = this.markedIds;
+    return kept.length ? kept : this.table?.getSelectedRecordIds?.() ?? [];
   } // One record, changed in place. A write that touches a row does not need
   // the page re-queried and the body rebuilt: the host answers with the
   // record it changed, or the page calls this itself, and only that row is
@@ -4804,8 +4374,8 @@ class SfDataView extends DataViewElement {
         ...copy(patch),
         id: known.id
       });
-      this.records = (0,_js_tree_js__WEBPACK_IMPORTED_MODULE_18__.knownRecords)(this.tree);
-      this.table?.setRows?.((0,_js_tree_js__WEBPACK_IMPORTED_MODULE_18__.visibleRows)(this.tree));
+      this.records = (0,_js_tree_js__WEBPACK_IMPORTED_MODULE_17__.knownRecords)(this.tree);
+      this.table?.setRows?.((0,_js_tree_js__WEBPACK_IMPORTED_MODULE_17__.visibleRows)(this.tree));
 
       this._renderBulkBand();
 
@@ -4836,15 +4406,15 @@ class SfDataView extends DataViewElement {
     const node = this.tree.nodes.get(key);
     if (!node || node.has_children !== true) return null;
 
-    if ((0,_js_tree_js__WEBPACK_IMPORTED_MODULE_18__.hasLevel)(this.tree, key)) {
-      (0,_js_tree_js__WEBPACK_IMPORTED_MODULE_18__.expandKnown)(this.tree, key);
+    if ((0,_js_tree_js__WEBPACK_IMPORTED_MODULE_17__.hasLevel)(this.tree, key)) {
+      (0,_js_tree_js__WEBPACK_IMPORTED_MODULE_17__.expandKnown)(this.tree, key);
 
       this._renderTreeRows();
 
       return null;
     }
 
-    (0,_js_tree_js__WEBPACK_IMPORTED_MODULE_18__.markLoading)(this.tree, key);
+    (0,_js_tree_js__WEBPACK_IMPORTED_MODULE_17__.markLoading)(this.tree, key);
 
     this._renderTreeRows();
 
@@ -4856,7 +4426,7 @@ class SfDataView extends DataViewElement {
   }
 
   collapseNode(id) {
-    (0,_js_tree_js__WEBPACK_IMPORTED_MODULE_18__.collapse)(this.tree, id);
+    (0,_js_tree_js__WEBPACK_IMPORTED_MODULE_17__.collapse)(this.tree, id);
 
     this._renderTreeRows();
   } // The next page of one level: of the roots through the query, as a list
@@ -5093,8 +4663,8 @@ class SfDataView extends DataViewElement {
   }
 
   _renderTreeRows() {
-    this.records = (0,_js_tree_js__WEBPACK_IMPORTED_MODULE_18__.knownRecords)(this.tree);
-    this.table?.setRows?.((0,_js_tree_js__WEBPACK_IMPORTED_MODULE_18__.visibleRows)(this.tree));
+    this.records = (0,_js_tree_js__WEBPACK_IMPORTED_MODULE_17__.knownRecords)(this.tree);
+    this.table?.setRows?.((0,_js_tree_js__WEBPACK_IMPORTED_MODULE_17__.visibleRows)(this.tree));
   } // An answer that carries records and nothing else is a patch of those
   // records, not a new page: it has no echo of the query, no total and no
   // columns, so there is nothing to lay out again.
@@ -5260,10 +4830,10 @@ class SfDataView extends DataViewElement {
 
     this._syncBoard();
 
-    if (this.layoutKind === "cards") (0,_js_cards_js__WEBPACK_IMPORTED_MODULE_20__.syncCards)(this);
-    (0,_js_calendar_js__WEBPACK_IMPORTED_MODULE_21__.syncCalendar)(this); // The marks a switch carried, on the cards or the calendar as they draw.
+    if (this.layoutKind === "cards") (0,_js_cards_js__WEBPACK_IMPORTED_MODULE_19__.syncCards)(this);
+    (0,_js_calendar_js__WEBPACK_IMPORTED_MODULE_20__.syncCalendar)(this); // The kind's own marks (C413), on the cards or the calendar as they draw.
 
-    if (this.layoutKind === "cards" || this.layoutKind === "calendar") this._applyCarriedSelection();
+    if (this.layoutKind === "cards" || this.layoutKind === "calendar") this._applyOwnMarks();
     const table = this.table;
 
     if (table) {
@@ -5295,14 +4865,15 @@ class SfDataView extends DataViewElement {
 
       if (!table.hasAttribute?.("data-sf-host-layout")) {
         table.setAttribute("data-sf-host-layout", table.getAttribute?.("layout") ?? "");
-      } // The view's own layout is passed on (owner decision C31): a page's
-      // list is auto unless the view says list or table; an embedded one
-      // stays a table unless the view says otherwise.
+      } // The view's own layout is passed on (owner decision C31): auto
+      // unless the view says list or table.
 
 
       if (!table.getAttribute?.("data-sf-host-layout")) {
-        const own = this.getAttribute("layout");
-        table.setAttribute("layout", ["auto", "table", "list"].includes(own) ? own : this.renders("toolbar") ? "auto" : "table");
+        const own = this.getAttribute("layout"); // RV4-12: auto whether or not the head is drawn; with the head
+        // off a phone drew a desktop table squeezed into 390 px.
+
+        table.setAttribute("layout", ["auto", "table", "list"].includes(own) ? own : "auto");
       } // The list of resources (C31): the switch (where there is a
       // toolbar to hold it), the threshold, the quick actions and what a
       // press on a row opens go to the table as the view has them.
@@ -5315,15 +4886,18 @@ class SfDataView extends DataViewElement {
       this._tableScrollMode(table);
 
       const hostOffSettings = hostWroteOff(table, "settings");
-      table.setAttribute("settings", !hostOffSettings && this.renders("settings") ? "true" : "false"); // The column settings, without the column: it also carries each
-      // row's menu, which is the host's row-actions, not this.
-      // No gear in the table head under the list head: the view settings
-      // are «Customize view» above the list (C301 (1)); the row menu stays.
+      table.setAttribute("settings", !hostOffSettings && this.renders("settings") ? "true" : "false"); // The gear in the table's header row is always there (owner
+      // decision C406): a bare table switches its columns on and off,
+      // and under the list head it duplicates «Колонки» -- the columns
+      // alone (data-sf-columns-only), the look being the head's «Вид».
+      // Where the host keeps no personal column settings a change holds
+      // for the page (the table's session), as before on a bare table.
 
-      table.setAttribute("settings-menu", this.hostOffers("personal-column-settings") && !this.listHead ? "true" : "false"); // The column head menu keeps pin, hide and «Все колонки…» under the
-      // list head (C296, VR2-1): «Все колонки…» opens «Настроить вид».
+      table.setAttribute("settings-menu", "true");
+      table.toggleAttribute?.("data-sf-columns-only", this.listHead); // «Все колонки…» of the column head menu opens the same column
+      // window at the gear (C406); it opened «Настроить вид» before.
 
-      if (this.hostOffers("personal-column-settings") && this.listHead) table.setAttribute("data-sf-view-columns", "head");else table.removeAttribute?.("data-sf-view-columns");
+      table.removeAttribute?.("data-sf-view-columns");
       table.setAttribute("creatable", this.hostOffers("create-record") && !refused ? "true" : "false");
       table.setAttribute("row-reorder", this.hostOffers("row-reorder") && this.treeMode !== "tree" ? "true" : "false");
       table.setAttribute("inline-edit", this.hostOffers("inline-edit") ? "true" : "false"); // A filter template is a saved view the table keeps by itself; in a
@@ -5415,8 +4989,16 @@ class SfDataView extends DataViewElement {
 
 
         const found = known.find(action => action.id === id);
-        if (found) return found;
-        console.warn(`[sf-view] row action «${id}» has no row_actions entry; name it in the host's catalogue.`);
+        if (found) return found; // Before sf-view-table is defined its catalogue cannot be read
+        // (_captureRowActions): the projection is drawn again once it
+        // is, and only then is an id it does not name the host's to fix.
+        // The table is a lazy relation since view modular step 1, so it
+        // is often defined after the first answer.
+
+        if (globalThis.customElements?.get?.("sf-view-table")) {
+          console.warn(`[sf-view] row action «${id}» has no row_actions entry; name it in the host's catalogue.`);
+        }
+
         const label = (0,_core_js_page_language__WEBPACK_IMPORTED_MODULE_2__.pageText)(DATA_VIEW_TEXT, "unnamedAction", this);
         return {
           id,
@@ -5507,11 +5089,37 @@ class SfDataView extends DataViewElement {
           table.removeAttribute("row-offset");
         }
 
-        table.toggleAttribute?.("data-sf-view-total", known);
+        table.toggleAttribute?.("data-sf-view-total", known); // The same rows set again (a part switched, the host port or
+        // a setting changed) keep their marks (LV4-21): the table
+        // clears its marks as it takes rows, and that clear was taken
+        // for the person's; it is not heard until the marks are back.
+        // VL-37: a new page of the same search keeps its marks too.
+
+        const reseat = this.markedIds.length > 0;
+        if (reseat) this._holdMarks = (this._holdMarks ?? 0) + 1;
         table.setRows?.(this.cappedRecords, this._newResult ? "result" : "rows");
         this._newResult = false;
 
-        this._applyCarriedSelection();
+        this._applyOwnMarks();
+
+        if (reseat) {
+          const back = () => {
+            this._holdMarks = Math.max(0, (this._holdMarks ?? 1) - 1);
+            if (this._holdMarks) return;
+
+            this._applyOwnMarks();
+
+            this.pagination?.setState?.({
+              selectedCount: this._bulkIds().length
+            });
+
+            this._renderBulkBand();
+          };
+
+          const frame = globalThis.requestAnimationFrame ?? (callback => setTimeout(callback, 16));
+
+          frame(() => setTimeout(back, 0));
+        }
       }
 
       const first = this.query.sort[0];
@@ -5636,13 +5244,21 @@ class SfDataView extends DataViewElement {
         answer: "unavailable",
         reason: "saved-view-levels-require-port-1.1.0"
       });
-    }
+    } // A view keeps how to show, never what (owner decision C414,
+    // view-config 1.1.0): the query it is saved with has no conditions,
+    // no saved filter, no search and no page -- the order and the page
+    // size stay. A saved filter is its own object (filter.save).
+
+
+    const how = copy(this.query ?? {});
+
+    for (const key of ["filters", "filters_chosen", "saved_filter", "search", "page"]) delete how[key];
 
     return this._raise(level === "shared" ? "view.save_shared" : "view.save", {
       key,
       label,
       revision,
-      query: copy(this.query),
+      query: how,
       roles: copy(roles ?? {}),
       layout: copy(layout ?? {
         columns: this.columns
@@ -6066,8 +5682,8 @@ class SfDataView extends DataViewElement {
 
   _layoutQuery(extra = null) {
     const query = copy(this.query);
-    if (this.layoutKind === "cards") return (0,_js_cards_js__WEBPACK_IMPORTED_MODULE_20__.cardsQuery)(this, query);
-    if (this.layoutKind === "calendar") return (0,_js_calendar_js__WEBPACK_IMPORTED_MODULE_21__.calendarQuery)(this, query, extra);
+    if (this.layoutKind === "cards") return (0,_js_cards_js__WEBPACK_IMPORTED_MODULE_19__.cardsQuery)(this, query);
+    if (this.layoutKind === "calendar") return (0,_js_calendar_js__WEBPACK_IMPORTED_MODULE_20__.calendarQuery)(this, query, extra);
     if (this.layoutKind !== "board") return query;
 
     const options = this._boardOptions(); // One request (owner decision C304, VR2-9): the first cards of every
@@ -6161,7 +5777,7 @@ class SfDataView extends DataViewElement {
       board.removeAttribute("sums-pending");
       board.lanes = this.boardLanes ?? [];
 
-      this._applyCarriedSelection();
+      this._applyOwnMarks();
     }
 
     const refused = this._queryRefused === true;
@@ -6259,8 +5875,8 @@ class SfDataView extends DataViewElement {
     this._seenEvents.add(event);
 
     if (event.type.startsWith("sf-view-board-")) return this._onBoardEvent(event);
-    if (event.type.startsWith("sf-view-cards-")) return (0,_js_cards_js__WEBPACK_IMPORTED_MODULE_20__.onCardsEvent)(this, event);
-    if (event.type.startsWith("sf-view-calendar-")) return (0,_js_calendar_js__WEBPACK_IMPORTED_MODULE_21__.onCalendarEvent)(this, event); // The port's event for a shared saved view (view.save_shared): a page
+    if (event.type.startsWith("sf-view-cards-")) return (0,_js_cards_js__WEBPACK_IMPORTED_MODULE_19__.onCardsEvent)(this, event);
+    if (event.type.startsWith("sf-view-calendar-")) return (0,_js_calendar_js__WEBPACK_IMPORTED_MODULE_20__.onCalendarEvent)(this, event); // The port's event for a shared saved view (view.save_shared): a page
     // raises save {kind: "view", key, label} on the view itself (vocabulary
     // 1.1.5 §9; sf-view 1.12.0), so it is taken before the rule that
     // ignores the view's own events. The former name
@@ -6364,12 +5980,18 @@ class SfDataView extends DataViewElement {
     }
 
     if (event.type === "sf-view-table-load-more") return this.loadMoreNodes(event.detail?.parent, event.detail?.cursor);
-    if (event.type === "sf-view-table-apply") return this._action({
-      action_id: event.detail?.action,
-      record_ids: event.detail?.ids
-    }, {
-      selectedBulk: event.detail?.scope === "selection"
-    });
+
+    if (event.type === "sf-view-table-apply") {
+      // A bulk action names every marked record, of every page (LV2-2);
+      // a row's own action names its row.
+      const bulk = event.detail?.scope === "selection";
+      return this._action({
+        action_id: event.detail?.action,
+        record_ids: bulk && this._bulkIds().length ? this._bulkIds() : event.detail?.ids
+      }, {
+        selectedBulk: bulk
+      });
+    }
 
     if (event.type === "sf-view-table-save") {
       return this.saveColumnSettings(event.detail?.columnSettings ?? event.detail, {
@@ -6382,15 +6004,30 @@ class SfDataView extends DataViewElement {
       if (event.detail?.scope === "filter") return this.applyUnderFilter(event.detail.action, event.detail.total);
       return this._action({
         action_id: event.detail?.action,
-        record_ids: this.table?.getSelectedRecordIds?.() ?? []
+        record_ids: this._bulkIds()
       }, {
         selectedBulk: true
       });
     }
 
     if (event.type === "sf-view-table-select") {
+      // Rows set again with their marks held (LV4-21): the table's own
+      // clear is not the person's.
+      // While a switch back to the table waits for its own answer, the
+      // table's marks are the ones held for it (C413), not what a table
+      // drawn with the other kind's records says.
+      if (this._holdMarks || this._ownHeld) return; // The rows the table holds now: their marks are what it says,
+      // the marks of other pages stay (LV2-2).
+      // The records the view gave it, not its own rows: a table answering a
+      // new page clears its marks while it still holds the old rows,
+      // and those were taken for unmarked.
+
+      const rows = (this.cappedRecords ?? this.table?.getTableData?.().rows ?? []).map(row => row?.id);
+
+      this._noteMarks(rows, event.detail?.ids ?? []);
+
       this.pagination?.setState?.({
-        selectedCount: event.detail?.ids?.length ?? 0
+        selectedCount: this._bulkIds().length
       });
 
       this._renderBulkBand();
@@ -6430,19 +6067,43 @@ class SfDataView extends DataViewElement {
 
 
 SfDataView.sfElementBrand = "simai.smart-base.v1";
-(0,_view_table_js_manifest_actions_js__WEBPACK_IMPORTED_MODULE_8__.answerActions)(SfDataView, _component_json__WEBPACK_IMPORTED_MODULE_9__);
-(0,_view_table_js_manifest_actions_js__WEBPACK_IMPORTED_MODULE_8__.settingSetters)(SfDataView, _component_json__WEBPACK_IMPORTED_MODULE_9__);
-const definedDataView = customElements.get("sf-view");
+(0,_view_common_manifest_actions_js__WEBPACK_IMPORTED_MODULE_8__.answerActions)(SfDataView, _component_json__WEBPACK_IMPORTED_MODULE_9__);
+(0,_view_common_manifest_actions_js__WEBPACK_IMPORTED_MODULE_8__.settingSetters)(SfDataView, _component_json__WEBPACK_IMPORTED_MODULE_9__);
 
-if (!definedDataView) {
-  customElements.define("sf-view", SfDataView); // sf-data-view, the former tag, is a subclass defined beside it until
-  // 2027-01-01 (aliases.json, ui-source change journal tag-sf-data-view-to-sf-view).
+function defineDataView() {
+  const definedDataView = customElements.get("sf-view");
 
-  (0,_core_js_smart_base__WEBPACK_IMPORTED_MODULE_4__.defineTagAliases)(SfDataView, "sf-view");
-} else if (definedDataView.sfElementBrand !== SfDataView.sfElementBrand) {
-  console.warn("SfDataView.define(): sf-view is already defined", definedDataView);
+  if (!definedDataView) {
+    customElements.define("sf-view", SfDataView); // sf-data-view, the former tag, is a subclass defined beside it until
+    // 2027-01-01 (aliases.json, ui-source change journal tag-sf-data-view-to-sf-view).
+
+    (0,_core_js_smart_base__WEBPACK_IMPORTED_MODULE_4__.defineTagAliases)(SfDataView, "sf-view");
+  } else if (definedDataView.sfElementBrand !== SfDataView.sfElementBrand) {
+    console.warn("SfDataView.define(): sf-view is already defined", definedDataView);
+  }
+} // View modular step 1: sf-view relates to the table lazily, so the Loader no
+// longer runs the table's script before this one. A list on the page that
+// draws the table (no layout, or auto, table, list) would then draw first
+// with an undefined table and move when the table came (first paint of the
+// view examples, gate 24). Where such a list is on the page and the Loader
+// is there, the view is defined once sf-view-table is (asked for now, as the
+// eager relation asked for it), or after 3 s, the table's own bound for the
+// view (D2). A page of boards, cards or calendars defines it at once and
+// never fetches the table; so does a page without the Loader.
+
+
+function waitsForTable() {
+  if (typeof globalThis.SF?.Loader?.ensure !== "function" || customElements.get("sf-view-table")) return false;
+  const lists = globalThis.document?.querySelectorAll?.("sf-view, sf-data-view") ?? [];
+  return [...lists].some(node => {
+    const written = node.getAttribute("layout");
+    return !written || tableLayout(written);
+  });
 }
 
+if (waitsForTable()) globalThis.SF.Loader.ensure(["sf-view-table"], {
+  timeout: 3000
+}).then(defineDataView, defineDataView);else defineDataView();
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (SfDataView);
 __webpack_async_result__();
 } catch(e) { __webpack_async_result__(e); } });
@@ -6911,16 +6572,32 @@ function onCardsEvent(view, event) {
       }, "show-more");
 
     case "sf-view-cards-select":
-      view._cardsSelection = Array.isArray(detail.ids) ? detail.ids.map(String) : [];
-      return undefined;
+      {
+        view._cardsSelection = Array.isArray(detail.ids) ? detail.ids.map(String) : []; // The cards keep every page's marks (keep-selection): their list is
+        // the person's marks (LV2-2); «Выбрать все N» on their bar is the
+        // list's «for all» (LV2-7), as on the table's.
+
+        const known = new Map([...(view.markedIds ?? []).map(id => [String(id), id]), ...(view.records ?? []).map(record => [String(record.id), record.id])]);
+        view._marks = null;
+        view._noteMarks?.([], view._cardsSelection.map(id => known.has(id) ? known.get(id) : id));
+        if (typeof detail.all === "boolean" && Boolean(view.pagination?.actionForAll) !== detail.all) view.pagination?.setActionForAll?.(detail.all);
+        view.pagination?.setState?.({
+          selectedCount: view._cardsSelection.length
+        });
+        view._renderBulkBand?.();
+        return undefined;
+      }
 
     case "sf-view-cards-apply":
       {
         // The cards say ids as text; the records keep the host's own.
-        const ids = (detail.ids ?? []).map(id => (view.records ?? []).find(record => String(record.id) === String(id))?.id ?? id);
+        const ids = (detail.ids ?? []).map(id => (view.records ?? []).find(record => String(record.id) === String(id))?.id ?? id); // «Выбраны все N» (LV2-7): the action under the filter, as the table's bar asks it.
+
+        if (detail.scope === "all") return view.applyUnderFilter(String(detail.action), view.total);
+        const kept = new Map(view.markedIds.map(id => [String(id), id]));
         return view._action({
           action_id: String(detail.action),
-          record_ids: ids
+          record_ids: ids.map(id => kept.get(String(id)) ?? id)
         }, {
           selectedBulk: detail.scope !== "record"
         });
@@ -6972,15 +6649,20 @@ function cardsSkeleton(view, bar) {
 /***/ },
 
 /***/ "dc0227f16aec"
-(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+(module, __webpack_exports__, __webpack_require__) {
 
+__webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   ListHead: () => (/* binding */ ListHead),
 /* harmony export */   conditionActive: () => (/* binding */ conditionActive),
 /* harmony export */   conditionCount: () => (/* binding */ conditionCount)
 /* harmony export */ });
-/* harmony import */ var _core_js_menu_open_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("8d229b7c92e9");
+/* harmony import */ var _view_common_menu_open_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("5ccd44f050bf");
+var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_view_common_menu_open_js__WEBPACK_IMPORTED_MODULE_0__]);
+var __webpack_async_dependencies_result__ = (__webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
+_view_common_menu_open_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_async_dependencies_result__[0];
+/* harmony import */ var _view_common_menu_open_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_view_common_menu_open_js__WEBPACK_IMPORTED_MODULE_0__);
 // The list head of sf-view (head="list"; owner decisions C297, C299, C300,
 // C301; ui-control research 2026-11-17-list-head-filters, sections 5-7).
 //
@@ -7076,6 +6758,45 @@ function lineWidth(container, search) {
   }
 
   return sum + gap * Math.max(0, count - 1);
+} // One part's width on its line: its box, or its laid children where it draws
+// none (display: contents).
+
+
+function partWidth(node) {
+  if (!node || node.hidden) return 0;
+  const look = globalThis.getComputedStyle?.(node); // Out of the line: not drawn, or laid over it (a folded sf-segmented
+  // keeps its buttons' group absolute beside the select it shows).
+
+  if (look?.display === "none" || look?.position === "absolute" || look?.position === "fixed") return 0;
+  if (look?.display !== "contents") return node.getBoundingClientRect().width;
+  let sum = 0;
+  let count = 0;
+
+  for (const child of node.children) {
+    const width = partWidth(child);
+
+    if (width > 0) {
+      sum += width;
+      count += 1;
+    }
+  }
+
+  const gap = Number.parseFloat(look?.columnGap) || 0;
+  return sum + gap * Math.max(0, count - 1);
+} // The display kinds' width on one line. sf-segmented folds itself into a
+// select where its line has no room (data-sf-folded, its buttons still laid
+// out, inert): the strip reads the buttons' line then, so the kinds fold into
+// the strip's kind menu instead (VM-1) and do not squeeze the views button.
+
+
+function kindsLineWidth(kinds) {
+  if (!kinds?.hasAttribute?.("data-sf-folded")) return partWidth(kinds);
+  const group = kinds.querySelector(".sf-button-group");
+  const buttons = group ? [...group.querySelectorAll(":scope > button")].map(node => node.getBoundingClientRect()).filter(box => box.width > 0) : [];
+  if (!buttons.length) return partWidth(kinds);
+  const look = globalThis.getComputedStyle?.(group);
+  const edges = ["paddingInlineStart", "paddingInlineEnd", "borderInlineStartWidth", "borderInlineEndWidth"].reduce((sum, key) => sum + (Number.parseFloat(look?.[key]) || 0), 0);
+  return Math.max(...buttons.map(box => box.right)) - Math.min(...buttons.map(box => box.left)) + edges;
 } // Whether the page's sheets hold the Framework's toggle look (see
 // ListHead.toggleAppearance). Found once, it stays found; not found, it is
 // asked again only when the page has more sheets than at the last look.
@@ -7207,6 +6928,7 @@ class ListHead {
     this._resize = typeof ResizeObserver === "function" ? new ResizeObserver(this._onResize) : null;
     this._resize?.observe(this.view);
     this._parts = typeof ResizeObserver === "function" ? new ResizeObserver(this._onPartsResize) : null;
+    this._partsSeen = null;
     this._stick = typeof ResizeObserver === "function" ? new ResizeObserver(this._onHeadResize) : null;
     this._stick?.observe(root);
 
@@ -7235,15 +6957,20 @@ class ListHead {
       if (layout.style.getPropertyValue(name) !== value) layout.style.setProperty(name, value);
     };
 
-    set("--sf-view--head-offset", `${-away}px`);
-    set("--sf-view--stuck-head", `${stays}px`);
+    set("--sf-view--head-offset", `${-away}px`); // Under the page's fixed bar, where the Admin set's shell has one
+    // (AN-3): the table's head sticks below it as the list head does.
+
+    set("--sf-view--stuck-head", `calc(var(--sf-admin-shell-stick, 0px) + ${stays}px)`);
   }
 
   detach() {
     this._resize?.disconnect();
+    this._kindsWatch?.disconnect();
+    this._kindsWatched = null;
     this._resize = null;
     this._parts?.disconnect();
     this._parts = null;
+    this._partsSeen = null;
     this._stick?.disconnect();
     this._stick = null;
     const layout = this.view.shadowRoot?.querySelector?.('[part="layout"]');
@@ -7315,13 +7042,30 @@ class ListHead {
 
     if (this.mode !== "desktop" || !row || !start || !end) {
       root.removeAttribute("data-stacked");
+
+      this._layZone();
+
       return;
-    }
+    } // Each part is observed once (LV4-2): observing it again in the
+    // observer's own callback fired the callback again at once, and the
+    // head ran this ~57 times a second with "ResizeObserver loop" errors.
+
 
     if (this._parts) {
-      this._parts.disconnect();
+      const now = new Set([...row.querySelectorAll(".sf-view-head-join, .sf-view-head-fields > *, .sf-view-head-zone-toggle > *, .sf-view-head-create > *, .sf-view-head-more > *"), ...root.querySelectorAll(":scope > [data-zone] > .sf-view-head-zone-end, :scope > [data-zone] > :not(.sf-view-head-zone-end) button")]);
+      const seen = this._partsSeen ??= new Set();
 
-      for (const part of row.querySelectorAll(".sf-view-head-join, .sf-view-head-fields > *, .sf-view-head-zone-toggle > *, .sf-view-head-create > *, .sf-view-head-more > *")) this._parts.observe(part);
+      for (const part of seen) if (!now.has(part)) {
+        this._parts.unobserve(part);
+
+        seen.delete(part);
+      }
+
+      for (const part of now) if (!seen.has(part)) {
+        this._parts.observe(part);
+
+        seen.add(part);
+      }
     }
 
     const room = contentWidth(row);
@@ -7334,6 +7078,117 @@ class ListHead {
 
     const stacked = need > room + 0.5;
     if (stacked !== root.hasAttribute("data-stacked")) root.toggleAttribute("data-stacked", stacked);
+
+    this._layZone();
+  } // The view strip is one line (VM-1, view round 15): a record docked
+  // beside the list narrows it, and the strip wrapped «Колонки» and «Вид»
+  // to a second line, moving every row of the list down 40 px. Where the
+  // display kinds no longer fit beside the rest, they fold into the strip's
+  // kind menu (the icon of the kind shown, the kinds in its menu); they come
+  // back once the strip has their room again. The strip keeps one line's
+  // height either way (head.css, no wrap), so folding changes nothing
+  // outside it. Only a strip that does not fit even folded may wrap.
+  // Laid in the next frame (VM-2): folded inside the observers, the kinds'
+  // sf-segmented answered being hidden in the same frame and the browser
+  // reported a «ResizeObserver loop». The strip keeps its one line's height
+  // meanwhile, so the frame between moves nothing below it.
+
+
+  _layZone() {
+    if (this._zoneFrame) return;
+
+    const next = globalThis.requestAnimationFrame ?? (fn => globalThis.setTimeout(fn, 16));
+
+    this._zoneFrame = next(() => {
+      this._zoneFrame = null;
+      if (this.root?.isConnected) this._layZoneNow();
+    });
+  }
+
+  _layZoneNow() {
+    const root = this.root;
+    const zone = root?.querySelector?.(":scope > [data-zone]");
+    if (!zone) return;
+    const kinds = zone.querySelector(":scope > [data-kinds]");
+    const menu = zone.querySelector(":scope > sf-button-icon.sf-view-head-kind-menu");
+    const many = this.kinds.length > 1; // sf-segmented folds itself into a select a frame later, which no
+    // size observed here shows: its mark (data-sf-folded) is watched.
+
+    if (kinds && this._kindsWatched !== kinds && typeof MutationObserver === "function") {
+      this._kindsWatch ??= new MutationObserver(() => this._layZone());
+
+      this._kindsWatch.disconnect();
+
+      this._kindsWatch.observe(kinds, {
+        attributes: true,
+        attributeFilter: ["data-sf-folded"]
+      });
+
+      this._kindsWatched = kinds;
+    }
+
+    if (this.mode !== "desktop" || !kinds || !menu || !many || zone.hidden) {
+      zone.removeAttribute("data-wrap");
+      if (this.mode !== "desktop" && this._kindsFolded) this._kindsFolded = false;
+      return;
+    }
+
+    const room = contentWidth(zone);
+    if (!(room > 0)) return;
+    const gap = Number.parseFloat(globalThis.getComputedStyle?.(zone)?.columnGap) || 0; // The kinds' own width, read while they are drawn (shown for the read
+    // where they are folded; no frame is drawn in between).
+
+    const folded = this._kindsFolded === true; // The parts are read at their own widths: on one line the strip
+    // shrinks them (the views button truncates) and the line would seem
+    // to fit until sf-segmented folded itself a frame later, inside the
+    // observers, in a loop (VM-2). The strip is laid at max-content for
+    // the read and put back before anything is drawn or observed.
+
+    const style = zone.getAttribute("style");
+    zone.style.setProperty("contain", "none");
+    zone.style.setProperty("inline-size", "max-content");
+    zone.style.setProperty("max-inline-size", "none");
+    if (folded) kinds.hidden = false;
+    const kindsWidth = kindsLineWidth(kinds);
+    if (folded) kinds.hidden = true;
+    const line = lineWidth(zone, 0);
+    const menuWidth = partWidth(menu); // Unfolded, the line holds the kinds as drawn (a select, where
+    // sf-segmented folded itself): their own line replaces that.
+
+    const drawn = folded ? 0 : partWidth(kinds);
+    if (style === null) zone.removeAttribute("style");else zone.setAttribute("style", style);
+    const open = folded ? line - menuWidth + kindsWidth : line - drawn + kindsWidth;
+    const shut = folded ? line : line - drawn + menuWidth; // sf-segmented folding itself says the kinds do not fit (it keeps
+    // a margin of its own); folded, they come back only with a margin
+    // of a space step, so the two never hand the line back and forth.
+
+    const selfFolded = !folded && kinds.hasAttribute("data-sf-folded");
+    const fold = selfFolded || (folded ? open > room - 16 : open > room + 0.5);
+
+    if (fold !== folded) {
+      this._kindsFolded = fold;
+      kinds.hidden = fold;
+      menu.hidden = !fold;
+    }
+
+    const wrap = fold && shut > room + 0.5;
+    if (wrap !== zone.hasAttribute("data-wrap")) zone.toggleAttribute("data-wrap", wrap);
+  } // Whether the head row stays one row in a list `less` px narrower than
+  // now (RV4-3: a record card docked beside the list takes its width). False
+  // when the row is already two rows, or on a phone head.
+
+
+  fitsNarrower(less) {
+    const row = this.root?.querySelector?.(":scope > .sf-view-head-row");
+    const start = row?.querySelector(":scope > .sf-view-head-start");
+    const end = row?.querySelector(":scope > .sf-view-head-end");
+    if (this.mode !== "desktop" || !row || !start || !end || this.root.hasAttribute("data-stacked")) return false;
+    const room = contentWidth(row) - less;
+    const rem = Number.parseFloat(globalThis.getComputedStyle?.(document.documentElement)?.fontSize) || 16;
+    const gap = Number.parseFloat(globalThis.getComputedStyle?.(row)?.columnGap) || 0;
+    const startWidth = lineWidth(start, 20 * rem);
+    const need = (startWidth > 0 ? startWidth + gap : 0) + lineWidth(end, 20 * rem);
+    return room > 0 && need <= room + 0.5;
   } // ---------- what the head knows ----------
 
 
@@ -7560,8 +7415,9 @@ class ListHead {
     // placement waits one owner confirmation: moving the toggle to the end
     // of the row is the order of these two strings.
 
-    const toggle = `<sf-button-icon class="sf-view-head-zone-toggle" data-zone-toggle size="${size}" appearance="ghost" scheme="on-surface" icon="view_quilt" aria-controls="" hidden></sf-button-icon>`;
-    const more = `<sf-button-icon class="sf-view-head-more" data-list-menu size="${size}" appearance="ghost" scheme="on-surface" icon="more_vert" aria-haspopup="menu" hidden></sf-button-icon>`;
+    const toggle = `<sf-button-icon class="sf-view-head-zone-toggle" data-zone-toggle size="${size}" appearance="ghost" scheme="on-surface" icon="view_quilt" aria-controls="" hidden></sf-button-icon>`; // The owner's data menu is «⋯» (C407), not more_vert.
+
+    const more = `<sf-button-icon class="sf-view-head-more" data-list-menu size="${size}" appearance="outline" scheme="on-surface" icon="more_horiz" aria-haspopup="menu" hidden></sf-button-icon>`;
     const changed = pop("state", "bottom-start", `<sf-button slot="trigger" class="sf-view-head-changed" size="${size}" appearance="ghost" scheme="primary" icon-start="edit_note"></sf-button>`);
     this.root.innerHTML = phone ? `<div class="sf-view-head-title" data-title>
                  <h2 class="sf-view-head-name"><span data-name></span></h2>
@@ -7569,7 +7425,7 @@ class ListHead {
                <div class="sf-view-head-row">
                  ${toggle}
                  <sf-button-icon class="sf-view-head-filter-icon" data-head-open="filter" size="${size}" icon="filter_list"></sf-button-icon>
-                 <div class="sf-view-head-search"><sf-input data-search appearance="filled" size="${size}" icon-start="search" input-type="search" clearable></sf-input></div>
+                 <div class="sf-view-head-search"><sf-input data-search appearance="bordered" size="${size}" icon-start="search" input-type="search" clearable></sf-input></div>
                  <sf-button-icon class="sf-view-head-create" data-create size="${size}" icon="add" aria-haspopup="menu" hidden></sf-button-icon>
                  ${more}
                </div>
@@ -7577,7 +7433,7 @@ class ListHead {
                <div class="sf-view-head-zone" data-zone hidden>
                  <sf-button class="sf-view-head-views" data-views size="${size}" appearance="ghost" scheme="on-surface" icon-start="bookmarks" icon-end="expand_more" aria-haspopup="menu"></sf-button>
                  <sf-button-icon class="sf-view-head-kind-menu" data-kind-menu size="${size}" appearance="ghost" scheme="on-surface" icon="table_rows" aria-haspopup="menu"></sf-button-icon>
-                 <sf-button-icon class="sf-view-head-tune" data-head-open="view" size="${size}" appearance="ghost" scheme="on-surface" icon="tune"></sf-button-icon>
+                 <sf-button-icon class="sf-view-head-tune sf-view-head-look" data-look size="${size}" appearance="ghost" scheme="on-surface" icon="tune" aria-haspopup="menu"></sf-button-icon>
                  <sf-button class="sf-view-head-changed" data-head-open="state" size="${size}" appearance="ghost" scheme="primary" icon-start="edit_note" hidden></sf-button>
                </div>
                <sf-drawer data-sheet data-sf-role="head-sheet" placement="bottom"><div slot="content" data-body></div></sf-drawer>` : `<div class="sf-view-head-title" data-title>
@@ -7593,7 +7449,7 @@ class ListHead {
                    <div class="sf-view-head-fields" data-fields></div>
                  </div>
                  <div class="sf-view-head-end">
-                   <div class="sf-view-head-search"><sf-input data-search appearance="filled" size="${size}" icon-start="search" input-type="search" clearable></sf-input></div>
+                   <div class="sf-view-head-search"><sf-input data-search appearance="bordered" size="${size}" icon-start="search" input-type="search" clearable></sf-input></div>
                    <sf-button class="sf-view-head-create" size="${size}" icon-start="add" hidden></sf-button>
                    ${more}
                  </div>
@@ -7602,11 +7458,34 @@ class ListHead {
                  <sf-button class="sf-view-head-views" data-views size="${size}" appearance="ghost" scheme="on-surface" icon-start="bookmarks" icon-end="expand_more" aria-haspopup="menu"></sf-button>
                  <span class="sf-view-head-zone-line" data-zone-line aria-hidden="true"></span>
                  <sf-segmented data-kinds size="${size}" hidden></sf-segmented>
-                 ${pop("view", "bottom-start", `<sf-button slot="trigger" class="sf-view-head-customize" size="${size}" appearance="ghost" scheme="on-surface" icon-start="tune"></sf-button>`)}
+                 <sf-button-icon class="sf-view-head-kind-menu" data-kind-menu size="${size}" appearance="ghost" scheme="on-surface" icon="table_rows" aria-haspopup="menu" hidden></sf-button-icon>
                  ${changed}
+                 <div class="sf-view-head-zone-end" data-zone-end>
+                   <sf-button class="sf-view-head-columns" data-columns size="${size}" appearance="ghost" scheme="on-surface" icon-start="view_column" aria-haspopup="dialog"></sf-button>
+                   <sf-button class="sf-view-head-look" data-look size="${size}" appearance="ghost" scheme="on-surface" icon-start="tune" aria-haspopup="menu"></sf-button>
+                 </div>
                </div>`;
     const zone = this.root.querySelector("[data-zone]");
-    zone.id = `sf-view-head-zone-${++ZONE_IDS}`;
+    zone.id = `sf-view-head-zone-${++ZONE_IDS}`; // «Вид» (C405): SIMAI Framework sf-settings in its drill look, the
+    // shown display kind's own rows, each applied at once. It opens
+    // against the «Вид» button (for=), in the head's light DOM.
+
+    const lookTrigger = this.root.querySelector(".sf-view-head-look");
+    if (lookTrigger) lookTrigger.id = `sf-view-head-look-${ZONE_IDS}`;
+    const lookMenu = document.createElement("sf-settings");
+    lookMenu.setAttribute("look", "drill");
+    lookMenu.setAttribute("data-look-menu", "");
+    lookMenu.setAttribute("size", this.size);
+    if (lookTrigger) lookMenu.setAttribute("for", lookTrigger.id);
+    lookMenu.addEventListener("sf-settings-changed", event => this._onLookChanged(event));
+
+    for (const name of ["sf-settings-change", "sf-settings-open", "sf-settings-opened", "sf-settings-close", "sf-settings-closed"]) {
+      lookMenu.addEventListener(name, event => event.stopPropagation());
+    }
+
+    this.root.append(lookMenu);
+    this._lookMenu = lookMenu;
+    this._lookKey = null;
     this.root.querySelector("sf-button-icon.sf-view-head-zone-toggle")?.setAttribute("aria-controls", zone.id); // The windows' drawers carry a role (data-sf-role): their path ids are
     // then sf-view's own (…/head-sheet). Counted among the
     // page's drawers by document order, the head's first drawer took the
@@ -7650,8 +7529,9 @@ class ListHead {
 
 
     const open = this.openFilter;
-    const dot = this.changed ? " •" : "";
-    const filterName = open && String(open.id) !== this.defaultFilterId ? String(open.name ?? "") : "";
+    const dot = this.changed ? " •" : ""; // C301 (2), VL-49: the open saved filter is named, the default one too.
+
+    const filterName = open ? String(open.name ?? "") : "";
     const filterText = filterName ? this.text("headFilterNamed").replace("{name}", filterName) : this.text("headFilter");
     const filterTitle = filterName ? `${filterText}${dot ? ` ${this.text("headFilterChanged")}` : ""}` : null; // «Filter» is outline; with conditions set it is toned (C301 (3)).
 
@@ -7684,7 +7564,11 @@ class ListHead {
     set(search, "aria-label", this.view.getAttribute("aria-label") ? `${this.text("headSearch")}: ${this.view.getAttribute("aria-label")}` : this.text("headSearch"));
     set(search, "disabled", refused ? "" : null);
     const typed = String(this.query.search ?? "");
-    if (search && !search.contains(document.activeElement) && (search.value ?? "") !== typed) search.value = typed;
+    if (search && !search.contains(document.activeElement) && (search.value ?? "") !== typed) search.value = typed; // The data menu's look (LV3-9): outline by default, the height and
+    // frame of the search and «Создать»; the view's head.menu tonal or ghost.
+
+    const menuLook = String(this.view.viewConfig?.head?.menu ?? "").trim();
+    set(one(".sf-view-head-more"), "appearance", ["outline", "tonal", "ghost"].includes(menuLook) ? menuLook : "outline");
     const create = one(".sf-view-head-create");
     set(create, "hidden", this.creatable ? null : "");
     set(create, phone ? "aria-label" : "text", this.text("headCreate"));
@@ -7709,9 +7593,12 @@ class ListHead {
     set(one("[data-filter-group]"), "hidden", filterShown ? null : "");
     set(one(".sf-view-head-filter-icon"), "hidden", filterShown ? null : "");
     const lookShown = this.view.renders("look");
-    set(one('sf-popover[data-pop="view"]'), "hidden", lookShown ? null : "");
-    set(one(".sf-view-head-tune"), "hidden", lookShown ? null : "");
-    if (!lookShown && this.open?.kind === "view") this._closeAll();
+
+    for (const node of root.querySelectorAll(".sf-view-head-look")) set(node, "hidden", lookShown ? null : "");
+
+    if (!lookShown) this._lookMenu?.close?.();
+
+    this._renderLook(one, set, lookShown);
 
     this._renderFields();
 
@@ -7755,7 +7642,8 @@ class ListHead {
     this.view._keepPreference?.({
       viewZone: this._zoneOpen
     });
-    if (!this._zoneOpen && ["view", "state"].includes(this.open?.kind)) this._closeOpen();
+    if (!this._zoneOpen && this.open?.kind === "state") this._closeOpen();
+    if (!this._zoneOpen) this._lookMenu?.close?.();
     this.render();
     if (this._zoneOpen) this.root?.querySelector("[data-zone]")?.focus?.({
       preventScroll: true
@@ -7906,20 +7794,20 @@ class ListHead {
         value: kind,
         label: this.kindLabel(kind),
         icon: KINDS[kind]
-      }));
-      set(kinds, "hidden", items.length > 1 ? null : "");
+      })); // Folded into the kind menu where the strip has no room (VM-1).
+
+      set(kinds, "hidden", items.length > 1 && !(this.mode === "desktop" && this._kindsFolded) ? null : "");
       set(kinds, "items", JSON.stringify(items));
       set(kinds, "value", this.kind);
       set(kinds, "aria-label", this.text("headDisplay"));
     }
 
-    set(one("[data-zone-line]"), "hidden", views?.hasAttribute("hidden") || !kinds || kinds.hasAttribute("hidden") ? "" : null);
     const kindMenu = one(".sf-view-head-kind-menu");
     set(kindMenu, "icon", KINDS[this.kind]);
-    set(kindMenu, "hidden", this.kinds.length > 1 ? null : "");
+    set(kindMenu, "hidden", this.kinds.length > 1 && (this.mode !== "desktop" || this._kindsFolded) ? null : "");
+    const kindsShown = kinds && !kinds.hasAttribute("hidden") || kindMenu && !kindMenu.hasAttribute("hidden");
+    set(one("[data-zone-line]"), "hidden", views?.hasAttribute("hidden") || !kindsShown ? "" : null);
     set(kindMenu, "aria-label", `${this.text("headDisplay")}: ${this.kindLabel(this.kind)}`);
-    set(one(".sf-view-head-customize"), "text", this.text("headCustomize"));
-    set(one(".sf-view-head-tune"), "aria-label", this.text("headCustomize"));
 
     for (const node of this.root.querySelectorAll(".sf-view-head-changed")) {
       const host = node.closest("sf-popover[data-pop]") ?? node;
@@ -7952,8 +7840,9 @@ class ListHead {
 
     const phone = this.mode === "phone";
     const size = esc(this.size);
-    const open = this.openFilter;
-    const filterName = open && String(open.id) !== this.defaultFilterId ? String(open.name ?? "") : "";
+    const open = this.openFilter; // C301 (2), VL-49: the open saved filter is named, the default one too.
+
+    const filterName = open ? String(open.name ?? "") : "";
     const api = this.filterWindow; // The Framework's filter window comes with the field renderers, which
     // may load after the head: the fields are drawn again once they are in.
 
@@ -8097,14 +7986,27 @@ class ListHead {
     body.addEventListener("click", event => this._onPanelClick(event, body));
     body.addEventListener("change", event => this._onPanelChange(event, body));
     body.addEventListener("input", event => this._onPanelInput(event, body));
-    body.addEventListener("sf-tabs-change", event => this._onTabs(event, body));
+    body.addEventListener("sf-tabs-change", event => this._onTabs(event, body)); // Enter in a name field is the window's first action (save, rename).
+
+    body.addEventListener("keydown", event => {
+      if (event.key !== "Enter" || event.isComposing || !event.target?.closest?.("[data-name]")) return;
+      const act = body.querySelector(".sf-view-head-foot [data-act]");
+      if (!act) return;
+      event.preventDefault();
+      (act.matches("button") ? act : act.querySelector("button") ?? act).click();
+    });
   }
 
   _onPopoverOpen(event) {
     const popover = event.target?.closest?.("sf-popover[data-pop]");
-    if (!popover || !this.root?.contains(popover)) return;
-    const kind = popover.getAttribute("data-pop");
-    if (["view", "filter", "save", "state"].includes(kind)) popover.setAttribute("label", this._title(kind));
+    if (!popover || !this.root?.contains(popover)) return; // A window opened in another's popover (a new view, a rename) keeps
+    // its own kind: the popover's open event named the popover's, so
+    // «Сохранить представление» opened the filter window (VL-48).
+
+    const borrowed = popover.__sfViewHeadKind;
+    popover.__sfViewHeadKind = null;
+    const kind = borrowed ?? popover.getAttribute("data-pop");
+    if (["filter", "save", "state", "view-new"].includes(kind) || kind.startsWith("rename:")) popover.setAttribute("label", this._title(kind));
 
     this._show(kind, popover, popover.querySelector("[data-body]"));
   }
@@ -8139,17 +8041,27 @@ class ListHead {
       return;
     } // A window without its own button opens in its zone's: a new view in
     // «Customize view»'s, a rename in the filter's.
+    // A new view opens in «Изменено»'s window where it is drawn (the
+    // window it is asked from), else in the filter's (C405: «Вид» is a
+    // menu, it holds no window).
 
 
-    const popover = this.root?.querySelector(`sf-popover[data-pop="${CSS.escape(kind)}"]`) ?? this.root?.querySelector(`sf-popover[data-pop="${kind === "view-new" ? "view" : "filter"}"]`);
+    const state = this.root?.querySelector('sf-popover[data-pop="state"]');
+    const popover = this.root?.querySelector(`sf-popover[data-pop="${CSS.escape(kind)}"]`) ?? (kind === "view-new" && state && !state.hidden ? state : null) ?? this.root?.querySelector('sf-popover[data-pop="filter"]');
     if (!popover) return;
 
     if (popover.getAttribute("data-pop") !== kind) {
       // a window without its own button (rename) opens in the filter's
       this._show(kind, popover, popover.querySelector("[data-body]"));
+
+      popover.setAttribute("label", this._title(kind));
+      popover.__sfViewHeadKind = kind;
     }
 
-    if (!(popover.open || popover.hasAttribute("open"))) popover.show?.();else if (popover.getAttribute("data-pop") === kind) this._renderOpen();
+    if (!(popover.open || popover.hasAttribute("open"))) popover.show?.();else {
+      popover.__sfViewHeadKind = null;
+      if (popover.getAttribute("data-pop") === kind) this._renderOpen();
+    }
   }
 
   _show(kind, host, body) {
@@ -8177,7 +8089,6 @@ class ListHead {
   _title(kind) {
     if (kind === "filter") return this.text("headFilter");
     if (kind === "save") return this.text("headSaveFilter");
-    if (kind === "view") return this.text("headCustomize");
     if (kind === "state") return this.text("headViewState");
     if (kind === "view-new") return this.text("headViewNew");
     if (kind.startsWith("rename:")) return this.text("headRename");
@@ -8199,7 +8110,31 @@ class ListHead {
 
     open.body.className = "sf-view-head-panel";
     open.body.setAttribute("data-kind", kind);
-    open.body.innerHTML = this._panel(kind);
+    open.body.innerHTML = this._panel(kind); // A window that asks for a name takes the typing at once (VL-48:
+    // «Сохранить представление» drew its name field without the focus,
+    // so the name typed went nowhere).
+
+    if (open.body.querySelector("[data-name]")) this._focusName(open.body);
+  } // The name field of a window gets the focus once the window and the field
+  // have drawn (a few frames at most).
+
+
+  _focusName(body, tries = 8) {
+    const next = globalThis.requestAnimationFrame ?? (fn => globalThis.setTimeout(fn, 16));
+
+    next(() => {
+      if (this.open?.body !== body) return;
+      const input = body.querySelector("[data-name] input");
+
+      if (input && input.getClientRects().length) {
+        if (!input.matches(":focus")) input.focus({
+          preventScroll: true
+        });
+        return;
+      }
+
+      if (tries > 0) this._focusName(body, tries - 1);
+    });
   }
 
   _foot(apply, reset) {
@@ -8232,8 +8167,8 @@ class ListHead {
       return `<div class="sf-view-head-list" role="radiogroup" aria-label="${esc(this.text("headSavedTab"))}">${this.savedFilters.map(item => {
         const id = String(item.id);
         const label = `${item.name ?? id}${id === open && this.changed ? " •" : ""}`;
-        const marks = [id === this.defaultFilterId ? `<sf-icon icon="push_pin" size="1/2" aria-label="${esc(this.text("headDefaultMark"))}" title="${esc(this.text("headDefaultMark"))}"></sf-icon>` : "", item.shared || item.kind === "shared" ? `<sf-icon icon="group" size="1/2" aria-label="${esc(this.text("headSharedMark"))}" title="${esc(item.owner_name ? `${this.text("headSharedMark")}: ${item.owner_name}` : this.text("headSharedMark"))}"></sf-icon>` : ""].join("");
-        return `<div class="sf-view-head-saved"><sf-radio data-saved="${esc(id)}" size="${size}" name="sf-view-head-saved" value="${esc(id)}" label="${esc(label)}"${id === open ? " checked" : ""}></sf-radio>${marks}` + `<sf-button-icon data-saved-menu="${esc(id)}" size="${size}" icon="more_vert" appearance="ghost" scheme="on-surface" aria-haspopup="menu" aria-label="${esc(this.text("headFilterActions").replace("{name}", item.name ?? id))}"></sf-button-icon></div>`;
+        const marks = [id === this.defaultFilterId ? `<sf-icon icon="push_pin" size="${size}" aria-label="${esc(this.text("headDefaultMark"))}" title="${esc(this.text("headDefaultMark"))}"></sf-icon>` : "", item.shared || item.kind === "shared" ? `<sf-icon icon="group" size="${size}" aria-label="${esc(this.text("headSharedMark"))}" title="${esc(item.owner_name ? `${this.text("headSharedMark")}: ${item.owner_name}` : this.text("headSharedMark"))}"></sf-icon>` : ""].join("");
+        return `<div class="sf-view-head-saved"><sf-radio data-saved="${esc(id)}" size="${size}" name="sf-view-head-saved" value="${esc(id)}" label="${esc(label)}"${id === open ? " checked" : ""}></sf-radio><span class="sf-view-head-saved-end">${marks}` + `<sf-button-icon data-saved-menu="${esc(id)}" size="${size}" icon="more_horiz" appearance="ghost" scheme="on-surface" aria-haspopup="menu" aria-label="${esc(this.text("headFilterActions").replace("{name}", item.name ?? id))}"></sf-button-icon></span></div>`;
       }).join("")}</div>`;
     }
 
@@ -8258,42 +8193,87 @@ class ListHead {
       return `<div class="sf-view-head-actions">${this._savedMenu(item).filter(entry => !entry.kind).map(entry => `<sf-button data-saved-act="${esc(entry.id)}" data-saved-id="${esc(item.id)}" size="${size}" appearance="ghost" scheme="${entry.status === "danger" ? "primary" : "on-surface"}"${entry.status === "danger" ? ' status="danger"' : ""} icon-start="${esc(entry.icon)}" text="${esc(entry.text)}"></sf-button>`).join("")}</div>`;
     }
 
-    if (kind === "view") return this._viewPanel();
     if (kind === "state") return this._statePanel();
 
     if (kind === "view-new") {
       const shared = this.permissions.shared_settings || this.permissions.share_views;
-      return this._note(this.text("headSaveNote")) + `<sf-input data-name size="${size}" label="${esc(this.text("headSaveName"))}"></sf-input>` + (shared ? `<sf-checkbox data-shared size="${size}" label="${esc(this.text("headSaveShared"))}" description="${esc(this.text("headSaveSharedHint"))}"></sf-checkbox>` : "") + this._foot(["view-save-new", this.text("headSave")], ["close", this.text("headCancel")]);
+      return this._note(this.text("headSaveViewNote")) + `<sf-input data-name size="${size}" label="${esc(this.text("headSaveName"))}"></sf-input>` + (shared ? `<sf-checkbox data-shared size="${size}" label="${esc(this.text("headSaveShared"))}" description="${esc(this.text("headSaveSharedHint"))}"></sf-checkbox>` : "") + this._foot(["view-save-new", this.text("headSave")], ["close", this.text("headCancel")]);
     }
 
     return "";
-  } // «Customize view» by display kind (LH-7), at the levels of C298: a
-  // personal change applies at once; «Save for everyone» only where the host
-  // allows; a locked setting shows a lock; «Reset to everyone's» resets one's own.
+  } // «Вид» (owner decisions C405, C404; LH-7 and C298 before): the drill
+  // menu of SIMAI Framework (sf-settings look="drill") with the shown
+  // display kind's own rows -- each kind its own set -- every choice
+  // applied at once and saved for the person (settings.save personal). A
+  // locked row is drawn disabled; a row head.look leaves out is not drawn
+  // (VR5-5). The columns are «Колонки» beside it (the table's own window,
+  // C406), not rows here. Saving for everyone and resetting go through
+  // «Изменено» (the state window).
 
 
-  _viewPanel() {
-    const size = esc(this.size);
+  _lookItems() {
     const kind = this.kind;
 
     const settings = this._kindSettings(kind);
 
     const locked = new Set(this._locked());
 
-    const lock = key => locked.has(key) || locked.has(`layouts.${kind}.${key}`) ? ` disabled data-locked` : "";
+    const off = key => locked.has(key) || locked.has(`layouts.${kind}.${key}`);
 
-    const lockMark = key => lock(key) ? `<sf-icon icon="lock" size="1/2" aria-label="${esc(this.text("headLocked"))}" title="${esc(this.text("headLocked"))}"></sf-icon>` : "";
+    const look = this.view.look;
 
-    const title = (key, text) => `<p class="sf-view-head-sub">${esc(text)}${lockMark(key)}</p>`;
+    const shows = key => !look || look.includes(key);
 
-    const radios = (key, list, current) => `<div class="sf-view-head-list" role="radiogroup" aria-label="${esc(key)}">${list.map(([value, label]) => `<sf-radio data-setting="${esc(key)}" size="${size}" name="sf-view-head-${esc(key)}" value="${esc(value)}" label="${esc(label)}"${String(value) === String(current) ? " checked" : ""}${lock(key)}></sf-radio>`).join("")}</div>`;
+    const lockText = this.text("headLocked");
 
-    const checks = (key, list, current) => `<div class="sf-view-head-list">${list.map(([value, label]) => `<sf-checkbox data-setting="${esc(key)}" data-value="${esc(value)}" size="${size}" label="${esc(label)}"${current.includes(String(value)) ? " checked" : ""}${lock(key)}></sf-checkbox>`).join("")}</div>`; // The view's own fields (VHF-13): the record fields the list draws
-    // (its columns), not the filter's -- «Сумма» on a card is no filter
-    // field and was missing from «Поля на карточке». The title is the
-    // card's own line, never a field of it. A field of a type a row
-    // needs (a lane, a date) the columns do not say is looked up among
-    // the host's described fields.
+    const caption = key => off(key) ? {
+      caption: lockText
+    } : {};
+
+    const choice = (key, word, list, current) => ({
+      id: key,
+      type: "choice",
+      text: this.text(word),
+      value: String(current ?? ""),
+      ...(off(key) ? {
+        disabled: true
+      } : {}),
+      ...caption(key),
+      options: list.map(([value, label]) => ({
+        id: String(value),
+        text: String(label)
+      }))
+    });
+
+    const toggle = (key, word, value) => ({
+      id: key,
+      type: "switch",
+      text: this.text(word),
+      value: Boolean(value),
+      ...(off(key) ? {
+        disabled: true
+      } : {}),
+      ...caption(key)
+    }); // A list of several (card fields, row actions) is a group of
+    // switches, one per entry (the drill look has no multi-choice row).
+
+
+    const switches = (key, word, list, current) => ({
+      type: "group",
+      text: this.text(word),
+      items: list.map(([value, label]) => ({
+        id: `${key}:${value}`,
+        type: "switch",
+        text: String(label),
+        value: current.includes(String(value)),
+        ...(off(key) ? {
+          disabled: true
+        } : {})
+      }))
+    }); // The view's own fields (VHF-13): the record fields the list draws
+    // (its columns), not the filter's. The title is the card's own line,
+    // never a field of it. A field of a type a row needs (a lane, a date)
+    // the columns do not say is looked up among the host's described fields.
 
 
     const described = Array.isArray(this.description?.fields) ? this.description.fields : this.fields;
@@ -8308,39 +8288,117 @@ class ListHead {
       return pairs([...own, ...described.filter(field => !known.has(String(field.key)) && test(fieldType(field)))]);
     };
 
-    const all = pairs(record.filter(field => field.role !== "title" && field.title !== true)); // The rows the host shows (VR5-5, head.look or view.look): a row it
-    // leaves out is not drawn; a locked row is drawn, disabled.
+    const all = pairs(record.filter(field => field.role !== "title" && field.title !== true)); // How the list goes on past its first page (owner decision D1), the
+    // table's and the cards' (view round 14): «Вместе» by default.
 
-    const look = this.view.look;
+    const paging = [["pages", "headPagingPages"], ["more", "headPagingMore"], ["both", "headPagingBoth"], ["endless", "headPagingEndless"]].map(([value, word]) => [value, this.text(word)]);
+    const items = [];
 
-    const shows = key => !look || look.includes(key);
-
-    const only = (key, html) => shows(key) ? html : "";
-
-    let body = "";
+    const add = (key, item) => {
+      if (shows(key) && item) items.push(item);
+    };
 
     if (kind === "table") {
-      const columns = (this.view.columns ?? []).map(column => [column.key, column.label ?? column.key]);
-      const actions = (this.view.rowActionCatalog ?? []).map(action => [action.id, action.label ?? action.id]); // How the list goes on past its first page (owner decision D1):
-      // stored with the view's other settings, «Вместе» by default.
+      const actions = (this.view.rowActionCatalog ?? []).map(action => [action.id, action.label ?? action.id]); // The table's own look (VR12A-1, D4, D5): under the list head the
+      // gear holds the columns only (C406), so the density, the lines
+      // and «Текст в одну строку» are set here.
 
-      const paging = [["pages", "headPagingPages"], ["more", "headPagingMore"], ["both", "headPagingBoth"], ["endless", "headPagingEndless"]].map(([value, word]) => [value, this.text(word)]);
-      body = only("columns", title("columns", this.text("headColumns")) + checks("columns", columns, settings.columns)) + (actions.length ? only("row_actions", title("row_actions", this.text("headRowActions")) + checks("row_actions", actions, settings.row_actions)) : "") // The table's own look (VR12A-1): under the list head the
-      // table draws no gear, so its density (D4) and «Текст в одну
-      // строку» (D5) are set here, as the gear's «Вид» set them.
-      + (this.view.table ? only("density", title("density", this.text("headDensity")) + radios("density", [["normal", this.text("headDensityNormal")], ["compact", this.text("headDensityCompact")]], settings.density)) + only("single_line", `<div class="sf-view-head-list"><sf-checkbox data-setting="single_line" size="${size}" label="${esc(this.text("headSingleLine"))}"${settings.single_line ? " checked" : ""}${lock("single_line")}></sf-checkbox></div>`) : "") + (this.view.pagingOffered ? only("paging", title("paging", this.text("headPaging")) + radios("paging", paging, settings.paging)) : "");
+      if (this.view.table) {
+        add("density", choice("density", "headDensity", [["normal", this.text("headDensityNormal")], ["compact", this.text("headDensityCompact")]], settings.density));
+        add("single_line", toggle("single_line", "headSingleLine", settings.single_line));
+        add("lines", toggle("lines", "headLines", settings.lines));
+      }
+
+      if (this.view.pagingOffered) add("paging", choice("paging", "headPaging", paging, settings.paging));
+      if (actions.length) add("row_actions", switches("row_actions", "headRowActions", actions, settings.row_actions));
     } else if (kind === "board") {
-      body = only("lane_field", title("lane_field", this.text("headLaneField")) + radios("lane_field", fieldsOf(type => LIST_TYPES.has(type)), settings.lane_field)) + only("card_fields", title("card_fields", this.text("headCardFields")) + checks("card_fields", all, settings.card_fields)) + only("empty_lanes", `<sf-checkbox data-setting="empty_lanes" size="${size}" label="${esc(this.text("headEmptyLanes"))}"${settings.empty_lanes ? " checked" : ""}${lock("empty_lanes")}></sf-checkbox>`);
+      add("lane_field", choice("lane_field", "headLaneField", fieldsOf(type => LIST_TYPES.has(type)), settings.lane_field));
+      add("empty_lanes", toggle("empty_lanes", "headEmptyLanes", settings.empty_lanes));
+      add("card_fields", switches("card_fields", "headCardFields", all, settings.card_fields));
     } else if (kind === "cards") {
-      body = only("size", title("size", this.text("headCardSize")) + radios("size", [["s", this.text("headSizeS")], ["m", this.text("headSizeM")], ["l", this.text("headSizeL")]], settings.size)) + only("card_fields", title("card_fields", this.text("headCardFields")) + checks("card_fields", all, settings.card_fields));
+      add("size", choice("size", "headCardSize", [["s", this.text("headSizeS")], ["m", this.text("headSizeM")], ["l", this.text("headSizeL")]], settings.size));
+      add("card_labels", toggle("card_labels", "headCardLabels", settings.card_labels));
+      if (this.view.pagingOffered) add("paging", choice("paging", "headPaging", paging, settings.paging));
+      add("card_fields", switches("card_fields", "headCardFields", all, settings.card_fields));
     } else if (kind === "calendar") {
-      body = only("date_field", title("date_field", this.text("headDateField")) + radios("date_field", fieldsOf(type => DATE_TYPES.has(type)), settings.date_field)) // The week start and the time zone are the request's (C293), never the view's.
-      + only("color_field", title("color_field", this.text("headColourField")) + radios("color_field", [...fieldsOf(type => LIST_TYPES.has(type)), ["", this.text("headColourNone")]], settings.color_field ?? ""));
+      // The week start and the time zone are the request's (C293), never the view's.
+      add("date_field", choice("date_field", "headDateField", fieldsOf(type => DATE_TYPES.has(type)), settings.date_field));
+      add("color_field", choice("color_field", "headColourField", [...fieldsOf(type => LIST_TYPES.has(type)), ["", this.text("headColourNone")]], settings.color_field ?? ""));
     }
 
-    const viewName = this.currentView?.label ?? this.currentView?.name ?? "";
-    const kindName = this.text(`headKind${kind[0].toUpperCase()}${kind.slice(1)}`);
-    return this._note(`${viewName ? `${viewName} · ` : ""}${kindName}. ${this.text("headCustomizeNote")}`) + body + `<div class="sf-view-head-foot" data-one><sf-button data-act="view-reset" size="${size}" appearance="outline" scheme="on-surface" text="${esc(this.text("headResetToShared"))}"></sf-button>` + (this.permissions.shared_settings ? `<sf-button data-act="view-share" size="${size}" text="${esc(this.text("headSaveForAll"))}"></sf-button>` : "") + "</div>";
+    return items;
+  } // «Вид» and «Колонки» as the shown kind has them: «Колонки» for a table
+  // only (the table's column window); the drill menu given its rows, anew
+  // only when they change.
+
+
+  _renderLook(one, set, lookShown) {
+    const columns = one(".sf-view-head-columns");
+    const table = this.view.table;
+    const look = this.view.look;
+    const columnsShown = lookShown && (!look || look.includes("columns")) && this.kind === "table" && typeof table?.openColumnSettings === "function" && this.view.renders("settings");
+    set(columns, "hidden", columnsShown ? null : "");
+    set(columns, "text", this.text("headColumns"));
+    set(columns, "title", this.text("headColumns"));
+
+    for (const node of this.root.querySelectorAll(".sf-view-head-look")) {
+      if (node.localName === "sf-button") {
+        set(node, "text", this.text("headLook"));
+        set(node, "title", this.text("headLook"));
+      } else set(node, "aria-label", this.text("headLook"));
+    }
+
+    const menu = this._lookMenu;
+    if (!menu) return;
+    set(menu, "label", this.text("headLook"));
+    set(menu, "size", this.size);
+    const items = lookShown ? this._lookItems() : [];
+    const key = JSON.stringify([this.kind, items]);
+
+    if (this._lookKey !== key) {
+      this._lookKey = key;
+      menu.items = items;
+    }
+  } // «Вид» opened by a call (sf-view openCustomize): the menu against its button.
+
+
+  openLook() {
+    const menu = this._lookMenu;
+    const trigger = [...(this.root?.querySelectorAll(".sf-view-head-look") ?? [])].find(node => !node.hidden);
+    if (!menu || !trigger || !this.view.renders("look")) return false;
+    this._lookKey = null;
+    this.render();
+    if (typeof menu.open === "function") menu.open();else menu.toggle?.(trigger);
+    return true;
+  } // A row of «Вид» changed (sf-settings changed: {id, value}): a list of
+  // switches (card fields, row actions) is one setting, the rest their own.
+
+
+  _onLookChanged(event) {
+    event.stopPropagation();
+    const {
+      id,
+      value
+    } = event.detail ?? {};
+    if (typeof id !== "string" || !id) return;
+    const kind = this.kind;
+
+    const current = this._kindSettings(kind);
+
+    const at = id.indexOf(":");
+
+    if (at > 0) {
+      const key = id.slice(0, at);
+      const entry = id.slice(at + 1);
+      const now = Array.isArray(current[key]) ? current[key].map(String) : [];
+      const next = value === true ? now.includes(entry) ? now : [...now, entry] : now.filter(one => one !== entry);
+
+      this._applySetting(kind, key, next);
+
+      return;
+    }
+
+    this._applySetting(kind, id, typeof value === "boolean" ? value : String(value ?? ""));
   } // «Changed» (VS-2, VS-3): what is changed and the ways out -- save for
   // everyone (where the host allows, never over a system view), save as a
   // new view, reset to what is saved.
@@ -8376,8 +8434,11 @@ class ListHead {
 
   _kindSettings(kind) {
     const config = this.view.viewConfig?.layouts?.[kind] ?? {};
-    const own = this._settings?.[kind] ?? {};
+    const own = this._settings?.[kind] ?? {}; // The person's look of the kind in all their lists (C408) over the
+    // view's document, what they set here over both.
+
     const merged = { ...copy(config),
+      ...copy(this.view.kindPreferences?.(kind) ?? {}),
       ...copy(own)
     };
 
@@ -8385,11 +8446,12 @@ class ListHead {
       const visible = this.view.viewConfig?.fields?.visible;
       merged.columns ??= (Array.isArray(visible) ? visible : (this.view.columns ?? []).filter(column => column.visible !== false).map(column => column.key)).map(String);
       merged.row_actions ??= (this.view.rowActionCatalog ?? []).map(action => String(action.id));
-      merged.paging ??= this.view.paging ?? "both"; // The density and one line as the table shows them (VR12A-1).
+      merged.paging ??= this.view.pagingOf?.("table") ?? "both"; // The density and one line as the table shows them (VR12A-1).
 
       const table = this.view.table;
       merged.density ??= table?.shownViewDensity === "compact" ? "compact" : "normal";
       merged.single_line ??= table?.tableView?.singleLine === true;
+      merged.lines ??= table?.tableView?.lines === true;
     } // The card fields a board or the cards draw now (their own defaults
     // when the view names none), so the window ticks what is on the cards.
 
@@ -8405,7 +8467,10 @@ class ListHead {
 
     if (kind === "cards") {
       merged.size ??= "m";
-      merged.card_fields ??= Array.isArray(drawn) ? [...drawn] : [];
+      merged.card_fields ??= Array.isArray(drawn) ? [...drawn] : []; // Labels over the values by default (D3); the cards' own paging (view round 14).
+
+      merged.card_labels ??= this.view.cards?.cardsOptions?.cardLabels !== false;
+      merged.paging ??= this.view.pagingOf?.("cards") ?? "both";
     }
 
     for (const key of ["columns", "row_actions", "card_fields"]) if (Array.isArray(merged[key])) merged[key] = merged[key].map(String);
@@ -8567,7 +8632,7 @@ class ListHead {
 
   async _menu(anchor, label, entries) {
     const button = anchor?.querySelector?.("button") ?? anchor;
-    const choice = await (0,_core_js_menu_open_js__WEBPACK_IMPORTED_MODULE_0__.menuOpen)({
+    const choice = await (0,_view_common_menu_open_js__WEBPACK_IMPORTED_MODULE_0__.menuOpen)({
       anchor: button,
       label,
       entries,
@@ -8628,6 +8693,17 @@ class ListHead {
     if (opener) {
       this._openKind(opener.getAttribute("data-head-open"));
 
+      return;
+    } // «Колонки» (C404, C406): the table's own column window, against it.
+
+
+    const columns = target.closest(".sf-view-head-columns, [data-columns]");
+
+    if (columns) {
+      // After this click has gone by: the window opened during it took
+      // the same click for one outside it and closed at once.
+      const anchor = columns.closest(".sf-view-head-columns") ?? columns;
+      setTimeout(() => this.view.table?.openColumnSettings?.(anchor), 0);
       return;
     }
 
@@ -8893,14 +8969,6 @@ class ListHead {
 
       return;
     }
-
-    const setting = target?.closest?.("[data-setting]");
-
-    if (setting && this.open?.kind === "view") {
-      if (setting.hasAttribute("data-locked")) return;
-
-      this._changeSetting(setting, body);
-    }
   }
 
   _checked(node) {
@@ -8913,23 +8981,13 @@ class ListHead {
   _value(node) {
     const input = node?.querySelector?.("input");
     return input?.value ?? node?.value ?? "";
-  } // A personal setting applies at once (C298): settings.save personal.
+  } // A personal setting applies at once (C298): settings.save personal. What
+  // a person sets for how a kind looks holds in all their lists of that
+  // kind (owner decision C408): kept by the view as theirs for the kind.
 
 
-  _changeSetting(node, body) {
-    const kind = this.kind;
-    const key = node.getAttribute("data-setting");
-
+  _applySetting(kind, key, value) {
     const current = this._kindSettings(kind);
-
-    let value;
-
-    if (node.localName === "sf-radio") {
-      const checked = [...body.querySelectorAll(`sf-radio[data-setting="${CSS.escape(key)}"]`)].find(radio => this._checked(radio));
-      value = checked?.getAttribute("value") ?? "";
-    } else if (node.hasAttribute("data-value")) {
-      value = [...body.querySelectorAll(`sf-checkbox[data-setting="${CSS.escape(key)}"]`)].filter(box => this._checked(box)).map(box => box.getAttribute("data-value"));
-    } else value = this._checked(node);
 
     if (same(current[key], value)) return;
     this._settings ??= {};
@@ -8941,15 +8999,21 @@ class ListHead {
       density: value
     });else if (kind === "table" && key === "single_line") this.view.table?.setTableView?.({
       singleLine: value === true
-    }); // A board's, the cards' and the calendar's settings show at once too
+    });else if (kind === "table" && key === "lines") this.view.table?.setTableView?.({
+      lines: value === true
+    }); // The cards' paging (view round 14, D1 for the cards) shows at once too.
+    else if (kind === "cards" && key === "paging") this.view.applyPaging?.(value, "cards"); // A board's, the cards' and the calendar's settings show at once too
     // (VHF-13, C298): they only went to the host and showed after a reload.
     else if (kind !== "table") this.view.applyLayoutSettings?.(kind, {
       [key]: value
     });
+    this.view.keepKindSetting?.(kind, key, value);
 
     this._saveSettings("personal", {
       [key]: value
     });
+
+    this.render();
   } // The table's columns as «Настроить вид» says (view round 10, V10-2): a
   // column switched off there stayed in the table -- the setting went to the
   // host (settings.save) and nothing changed on screen. The table's own
@@ -8999,10 +9063,19 @@ class ListHead {
     if (menu) {
       const item = this.savedFilter(menu.getAttribute("data-saved-menu"));
       if (!item) return;
-      if (this.mode === "phone") return this._openKind(`saved:${item.id}`);
+      if (this.mode === "phone") return this._openKind(`saved:${item.id}`); // The shared menu is not a layer of the filter window, so a press
+      // on its item closed the window (LV4-7): the window opens again on
+      // its saved sets, and shows the answer there (the pin after «по
+      // умолчанию»). A rename opens its own window.
 
       this._menu(menu, this.text("headFilterActions").replace("{name}", item.name ?? item.id), this._savedMenu(item)).then(id => {
         if (id) this._savedAction(id, item);
+
+        if (id && id !== "rename" && !this.open) {
+          this.tab.filter = "saved";
+
+          this._openKind("filter");
+        }
       });
 
       return;
@@ -9146,15 +9219,6 @@ class ListHead {
           return;
         }
 
-      case "view-reset":
-        if (this._settings) delete this._settings[this.kind];
-
-        this._saveSettings("personal", null);
-
-        this._renderOpen();
-
-        return;
-
       case "view-open-new":
         this._closeOpen();
 
@@ -9243,13 +9307,6 @@ class ListHead {
           return;
         }
 
-      case "view-share":
-        this._saveSettings("shared", this._kindSettings(this.kind));
-
-        this._closeOpen();
-
-        return;
-
       default:
     }
   }
@@ -9311,6 +9368,8 @@ class ListHead {
   }
 
 }
+__webpack_async_result__();
+} catch(e) { __webpack_async_result__(e); } });
 
 /***/ },
 
@@ -9520,6 +9579,34 @@ module.exports = (globalThis.SF && globalThis.SF.runtimeModule ? globalThis.SF.r
 
 /***/ },
 
+/***/ "f17a957e50f6"
+(module) {
+
+module.exports = (globalThis.SF && globalThis.SF.runtimeModule ? globalThis.SF.runtimeModule("view/manifest-actions", 1) : new Promise((resolve, reject) => globalThis.addEventListener("sf-runtime-ready", () => globalThis.SF.runtimeModule("view/manifest-actions", 1).then(resolve, reject), { once: true })));
+
+/***/ },
+
+/***/ "5ccd44f050bf"
+(module) {
+
+module.exports = (globalThis.SF && globalThis.SF.runtimeModule ? globalThis.SF.runtimeModule("view/menu-open", 1) : new Promise((resolve, reject) => globalThis.addEventListener("sf-runtime-ready", () => globalThis.SF.runtimeModule("view/menu-open", 1).then(resolve, reject), { once: true })));
+
+/***/ },
+
+/***/ "15cc710b6cd3"
+(module) {
+
+module.exports = (globalThis.SF && globalThis.SF.runtimeModule ? globalThis.SF.runtimeModule("view/preferences", 1) : new Promise((resolve, reject) => globalThis.addEventListener("sf-runtime-ready", () => globalThis.SF.runtimeModule("view/preferences", 1).then(resolve, reject), { once: true })));
+
+/***/ },
+
+/***/ "cb7ac7caf6a5"
+(module) {
+
+module.exports = (globalThis.SF && globalThis.SF.runtimeModule ? globalThis.SF.runtimeModule("view/table-words", 1) : new Promise((resolve, reject) => globalThis.addEventListener("sf-runtime-ready", () => globalThis.SF.runtimeModule("view/table-words", 1).then(resolve, reject), { once: true })));
+
+/***/ },
+
 /***/ "38d83a636029"
 (module) {
 
@@ -9534,20 +9621,6 @@ module.exports = /*#__PURE__*/JSON.parse('{"title":"Пагинация","events"
 
 /***/ },
 
-/***/ "678dc07d76bf"
-(module) {
-
-module.exports = /*#__PURE__*/JSON.parse('{"title":"Table","events":{"column-settings-reset":{"label":"Column settings reset"},"filter-change":{"label":"Filter changed"},"search-change":{"label":"Search changed"},"sort-change":{"label":"Order changed"},"template-delete":{"label":"View deleted"},"template-save":{"label":"View saved"},"template-select":{"label":"View chosen"},"toolbar-action":{"label":"Toolbar action"},"reference-open":{"label":"Open the linked record"},"rows-drag":{"label":"Rows dragged"},"cell-set":{"label":"Cell value changed"},"view-change":{"label":"Table view changed"},"window":{"label":"Rows shown"}},"runtime":{"actions-column-label":"Actions","apply-text":"Apply","cell-edit-apply":"Save","cell-edit-cancel":"Cancel","cell-edit-label":"Change","cell-edit-no":"No","cell-edit-yes":"Yes","clear-text":"Clear","close-text":"Close","column-all":"All columns…","column-hide":"Hide the column","column-menu-label":"Column","column-move-label":"Move the column","column-pin":"Pin","column-resize-label":"Resize the column","column-search-empty-text":"No field matches","column-search-placeholder":"Search the fields","column-sort-asc":"Sort ascending","column-sort-desc":"Sort descending","column-unpin":"Unpin","column-width-change-text":"Change the width","column-width-default-text":"Default width","column-width-fit-text":"Fit to content","column-width-value":"{n}%","context-create-options-label":"Ways to create","context-field-filter-label":"Filtering by","context-filter-settings-label":"Filter settings","context-row-actions-label":"Row actions","context-save-template-label":"Saving the view","context-table-settings-label":"Table settings","context-template-actions-label":"View actions","context-view-actions-label":"View actions","create-more-label":"More ways to create","create-options-label":"Ways to create","create-text":"Create","default-template-text":"Default","delete-action-text":"Delete","edit-action-text":"Edit","empty-text":"No data","error-text":"The data could not be loaded","field-word-text":"field","fields-tab-text":"Fields","filter-apply-text":"Apply","filter-badge-label":"{count} condition|{count} conditions","filter-settings-label":"Filter settings","filter-text":"Filter","layout-list":"List","layout-switch-label":"Layout","layout-table":"Table","list-select-page":"All on the page","loading-text":"Loading","make-default-label":"Make it the default","menu-label":"Menu","more-actions-label":"More actions","operator-after":"After","operator-any":"Any date","operator-before":"Before","operator-between":"Range","operator-contains":"Contains","operator-eq":"Exactly","operator-gt":"Greater than","operator-gte":"Greater or equal","operator-in":"In the list","operator-lt":"Less than","operator-lte":"Less or equal","operator-month":"This month","operator-on-or-after":"On or after","operator-on-or-before":"On or before","operator-starts-with":"Starts with","operator-today":"Today","operator-week":"This week","pin-column-label":"Pin the column","rename-text":"Rename","reset-both-text":"Reset the search and filters","reset-filters-text":"Reset the filters","reset-search-text":"Clear the search","reset-text":"Reset","restore-text":"Restore","retry-text":"Try again","row-actions-label":"Row actions","save-filter-template-label":"Save the view","save-for-everyone-label":"Save for everyone","save-template-label":"Saving the view","save-text":"Save","search-placeholder":"Search","select-all-label":"Select every row","select-row-label":"Select the row","selected-rows-heading":"Selected","settings-column-label":"Settings","settings-fields-tab":"Fields","settings-view-tab":"View","sort-ascending":"ascending","sort-descending":"descending","sort-label":"Sort","sort-none":"As the host orders it","status-error":"Error","status-ok":"Working","status-stopped":"Stopped","status-warning":"Needs attention","template-actions-label":"View actions","template-move-label":"Move the view","template-name-placeholder":"Name","template-pin-label":"Keep the view at the top","templates-tab-text":"Views","totals-all":"Total","totals-page":"On this page","tree-collapse":"Collapse","tree-expand":"Expand","tree-more":"Show more","unpin-column-label":"Unpin the column","untitled-template-text":"All records","view-action-text":"View","view-density":"Density","view-density-compact":"Compact","view-density-normal":"Normal","view-everywhere":"For all my tables","view-lines":"Lines between columns","view-reset":"Reset the view","view-single-line":"Text on one line","view-sticky-head":"Keep the filter and the head in view","view-stripes":"Alternate rows"}}');
-
-/***/ },
-
-/***/ "32294b89604f"
-(module) {
-
-module.exports = /*#__PURE__*/JSON.parse('{"title":"Таблица","events":{"column-settings-reset":{"label":"Настройки столбцов сброшены"},"filter-change":{"label":"Фильтр изменён"},"search-change":{"label":"Поиск изменён"},"sort-change":{"label":"Порядок изменён"},"template-delete":{"label":"Представление удалено"},"template-save":{"label":"Представление сохранено"},"template-select":{"label":"Представление выбрано"},"toolbar-action":{"label":"Действие панели"},"reference-open":{"label":"Открыть связанную запись"},"rows-drag":{"label":"Строки перетащены"},"cell-set":{"label":"Значение в ячейке изменено"},"view-change":{"label":"Вид таблицы изменён"},"window":{"label":"Показаны строки"}},"runtime":{"actions-column-label":"Действия","apply-text":"Применить","cell-edit-apply":"Сохранить","cell-edit-cancel":"Отмена","cell-edit-label":"Изменить","cell-edit-no":"Нет","cell-edit-yes":"Да","clear-text":"Очистить","close-text":"Закрыть","column-all":"Все колонки…","column-hide":"Скрыть колонку","column-menu-label":"Колонка","column-move-label":"Переместить столбец","column-pin":"Закрепить","column-resize-label":"Изменить ширину столбца","column-search-empty-text":"Поля не найдены","column-search-placeholder":"Поиск по полям","column-sort-asc":"По возрастанию","column-sort-desc":"По убыванию","column-unpin":"Открепить","column-width-change-text":"Изменить ширину","column-width-default-text":"По умолчанию","column-width-fit-text":"По содержимому","column-width-value":"{n} %","context-create-options-label":"Варианты создания","context-field-filter-label":"Настройка фильтра","context-filter-settings-label":"Настройки фильтра","context-row-actions-label":"Действия со строкой","context-save-template-label":"Сохранение представления","context-table-settings-label":"Настройки таблицы","context-template-actions-label":"Действия с представлением","context-view-actions-label":"Действия с представлением","create-more-label":"Дополнительные действия создания","create-options-label":"Варианты создания","create-text":"Создать","default-template-text":"По умолчанию","delete-action-text":"Удалить","edit-action-text":"Редактировать","empty-text":"Нет данных","error-text":"Не удалось загрузить данные","field-word-text":"поле","fields-tab-text":"Поля","filter-apply-text":"Применить","filter-badge-label":"{count} условие|{count} условия|{count} условий","filter-settings-label":"Настройки фильтра","filter-text":"Фильтр","layout-list":"Список","layout-switch-label":"Вид","layout-table":"Таблица","list-select-page":"Все на странице","loading-text":"Загрузка данных","make-default-label":"Сделать по умолчанию","menu-label":"Меню","more-actions-label":"Ещё действия","operator-after":"Позже","operator-any":"Любая дата","operator-before":"Раньше","operator-between":"Диапазон","operator-contains":"Содержит","operator-eq":"Точно","operator-gt":"Больше чем","operator-gte":"Больше или равно","operator-in":"В списке","operator-lt":"Меньше чем","operator-lte":"Меньше или равно","operator-month":"Месяц","operator-on-or-after":"Не раньше","operator-on-or-before":"Не позже","operator-starts-with":"Начинается с","operator-today":"Сегодня","operator-week":"Неделя","pin-column-label":"Закрепить столбец","rename-text":"Переименовать","reset-both-text":"Сбросить поиск и фильтры","reset-filters-text":"Сбросить фильтры","reset-search-text":"Очистить поиск","reset-text":"Сбросить","restore-text":"Восстановить","retry-text":"Повторить","row-actions-label":"Действия со строкой","save-filter-template-label":"Сохранить представление","save-for-everyone-label":"Сохранить для всех","save-template-label":"Сохранение представления","save-text":"Сохранить","search-placeholder":"Поиск","select-all-label":"Выбрать все строки","select-row-label":"Выбрать строку","selected-rows-heading":"Выбрано","settings-column-label":"Настройки","settings-fields-tab":"Поля","settings-view-tab":"Вид","sort-ascending":"по возрастанию","sort-descending":"по убыванию","sort-label":"Сортировка","sort-none":"Как задано источником","status-error":"Ошибка","status-ok":"Работает","status-stopped":"Остановлен","status-warning":"Есть замечания","template-actions-label":"Действия с представлением","template-move-label":"Переместить представление","template-name-placeholder":"Название","template-pin-label":"Закрепить представление сверху","templates-tab-text":"Представления","totals-all":"Всего по фильтру","totals-page":"На странице","tree-collapse":"Свернуть","tree-expand":"Развернуть","tree-more":"Показать ещё","unpin-column-label":"Открепить столбец","untitled-template-text":"Все записи","view-action-text":"Посмотреть","view-density":"Плотность","view-density-compact":"Компактная","view-density-normal":"Обычная","view-everywhere":"Для всех моих таблиц","view-lines":"Линии между столбцами","view-reset":"Сбросить вид","view-single-line":"Текст в одну строку","view-sticky-head":"Закреплять фильтр и шапку","view-stripes":"Чередовать строки"}}');
-
-/***/ },
-
 /***/ "80ad38cb6908"
 (module) {
 
@@ -9558,21 +9631,21 @@ module.exports = /*#__PURE__*/JSON.parse('{"$comment":"Dated aliases of sf-view 
 /***/ "7086146c00cc"
 (module) {
 
-module.exports = /*#__PURE__*/JSON.parse('{"id":"smart.view","tag":"sf-view","version":"1.32.0","kind":"leaf","settings":{"chrome":{"type":"string","default":"toolbar pagination select settings"},"head":{"type":"enum","values":["","list"],"default":""},"heading":{"type":"string","default":""},"row-cap":{"type":"number","default":0,"integer":true,"min":0},"expected-columns":{"type":"number","default":4,"integer":true,"min":1},"list-shape":{"type":"string","default":""},"port-owner":{"type":"string","default":""},"port-record":{"type":"string","default":""},"port-group":{"type":"string","default":""},"size":{"type":"enum","values":["1/2","1"],"default":"1"},"layout":{"type":"enum","values":["auto","table","list","board","cards","calendar"],"default":"auto"},"layout-switch":{"type":"boolean","default":false},"list-below":{"type":"number","default":600},"quick-actions":{"type":"string","default":""},"row-open":{"type":"enum","values":["title","row"],"default":"title"},"list-roles":{"type":"string","default":""},"column-search-placeholder":{"type":"string"},"column-search-empty-text":{"type":"string"},"column-move-label":{"type":"string"},"filter-apply-text":{"type":"string"},"show-more-text":{"type":"string"},"selected-label":{"type":"string"},"total-label":{"type":"string"},"pages-label":{"type":"string"},"first-label":{"type":"string"},"previous-label":{"type":"string"},"page-label":{"type":"string"},"next-label":{"type":"string"},"last-label":{"type":"string"},"page-field-label":{"type":"string"},"action-choose-label":{"type":"string"},"actions-label":{"type":"string"},"actions-region-label":{"type":"string"},"clear-selection-label":{"type":"string"},"page-size-label":{"type":"string"},"pagination-aria-label":{"type":"string"},"paging":{"type":"enum","values":["pages","more","both","endless"],"default":"both"},"preferences-key":{"type":"string","default":""},"accept-files":{"type":"boolean","default":false},"collection":{"type":"string","default":""},"current":{"type":"string","default":""},"record-card":{"type":"string","default":""},"bulk-actions":{"type":"list","of":{"id":"string","label":"string","icon":{"type":"icon","optional":true}}},"first-answer":{"type":"object","optional":true}},"values":{"state":{"type":"state"},"total":{"type":"number","nullable":true},"selected":{"type":"id","optional":true},"selection":{"type":"list"}},"events":{"open":{"carries":{"id":"id"},"cancelable":true},"deleted":{"carries":{"ids":"list"}},"answer":{"carries":{"intent":{"type":"string"},"answer":{"type":"enum","values":["applied","conflict","refused","unavailable"],"schema":{"type":"string"}},"reason":{"type":"string","optional":true},"message":{"type":"string","optional":true},"data":{"type":"object","optional":true},"sequence":{"type":"number","integer":true,"optional":true},"effects":{"type":"list","optional":true},"instance_id":{"type":"string"}},"own-verb":true},"state":{"carries":{"state":{"type":"enum","values":["loading","populated","empty","error","no-access"],"schema":{"type":"string"}},"message":{"type":"string"},"instance_id":{"type":"string"}},"own-verb":true},"tree":{"carries":{"intent":"string","payload":{"type":"object","optional":true}},"own-verb":true},"files-drop":{"carries":{"files":{"type":"list","schema":{"items":{"type":"object"},"minItems":1}}},"own-verb":true},"pagination-count":{"shared":"count-on-request@1","carries":{"component":{"type":"object"},"tagName":{"type":"string"},"template":{"type":"string"},"reason":{"type":"enum","values":["total","last-page","action-for-all"],"schema":{"type":"string"}},"current":{"type":"number","integer":true},"pageSize":{"type":"number","integer":true}}},"save":{"carries":{"kind":{"type":"enum","values":["view"],"optional":true},"key":{"type":"string"},"label":{"type":"string"},"revision":{"type":"string","schema":{"type":["string","integer"]},"optional":true},"roles":{"type":"object","optional":true}}},"table-action-intent":{"shared":"table-intents@1","carries":{"action_id":{"type":"string","schema":{"minLength":1}},"record_ids":{"type":"list","schema":{"items":{"type":["string","integer"]},"minItems":1}}}},"table-column-settings-change":{"shared":"table-intents@1","carries":{"reason":{"type":"string"},"columnSettings":{"type":"object"},"tableSettingsKey":{"type":"string"},"target":{"type":"enum","values":["personal","shared"],"schema":{"type":"string"},"optional":true},"base_revision":{"type":"string","schema":{"type":["string","number"]},"optional":true}}},"table-column-settings-reset":{"shared":"table-intents@1","carries":{"target":{"type":"enum","values":["personal"],"schema":{"type":"string"}},"tableSettingsKey":{"type":"string","schema":{"type":["string","null"]}}}},"table-create-intent":{"shared":"table-intents@1","carries":{"item":{"type":"string","schema":{"type":["string","null"]}}}},"table-query-intent":{"shared":"table-intents@1","carries":{"reason":{"type":"enum","values":["context"]},"context":{"type":"object"},"sequence":{"type":"number","integer":true,"schema":{"minimum":1}}}},"table-template-delete":{"shared":"table-intents@1","carries":{"key":{"type":"string","schema":{"minLength":1}}}},"table-template-save":{"shared":"table-intents@1","carries":{"templates":{"type":"list","of":{"key":"string","label":"string","selected":"boolean","data":"object","settings":"object"},"schema":{"items":{"type":"object","required":["key","label","settings"],"properties":{"key":{"type":"string"},"label":{"type":"string"},"selected":{"type":"boolean"},"data":{"type":"object"},"settings":{"type":"object","properties":{"filter_fields":{"type":"array","items":{"type":"string"}}}}}},"minItems":1}}},"x-decision":"Event detail that is not a flat object (decision 2026-11-09, control/evidence/2026-11-09-pro-queue): a non-flat detail is a flat carries map whose fields carry the nesting -- §4.2 types, `of` for a list\'s entries and `schema` for what the manifest checks; a detail that is not an object (§8) is carried in a named field, and its old shape stays on the dated alias names with mode split and the element\'s adapter. template-save carries templates, a list of one or more templates; sf-table-template-save and onTemplateSave keep the 1.3 detail (the template object, or the array of them) through sfAliasAdapters. sf-view reads detail.templates and, until 2027-01-01, a bare template or array from a table before sf-view-table 1.16.0."},"table-template-select":{"shared":"table-intents@1","carries":{"key":{"type":"string","schema":{"minLength":1}}}},"host-port-request":{"shared":"host-port@1","carries":{"component":{"type":"object","optional":true},"context":{"type":"object","optional":true}}},"list-open":{"carries":{"reason":{"type":"id","schema":{"enum":["row-cap"]}},"query":{"type":"object"}}},"table-cell-set":{"shared":"table-intents@1","carries":{"id":{"type":"string","schema":{"type":["string","integer"]}},"key":{"type":"string"},"value":{"type":"id"},"revision":{"type":"string","schema":{"type":["string","integer","null"]}}}},"table-rows-reorder":{"shared":"table-intents@1","carries":{"ids":{"type":"list","schema":{"items":{"type":"string"},"minItems":1}},"before":{"type":"string","schema":{"type":["string","null"]}},"order":{"type":"list","schema":{"items":{"type":"string"}}}}},"display-change":{"carries":{"kind":{"type":"enum","values":["table","board","cards","calendar","list","tree"]},"previous":{"type":"string"}},"cancelable":true},"settings-open":{"carries":{"id":{"type":"enum","values":["rights","export","record-field-add"]}}}},"actions":{"refresh":{"with":{"reason":{"type":"string","optional":true}}},"change-query":{"with":{"patch":"object","reason":{"type":"string","optional":true}},"concurrency":"latest"},"open-view":{"with":{"key":"string"}},"save-view":{"with":{"view":{"type":"object"}},"concurrency":"drop"},"delete-view":{"with":{"key":"string"},"concurrency":"drop"},"apply-under-filter":{"with":{"action-id":"string","confirmed-total":"number"},"concurrency":"drop"},"reset-column-settings":{},"clear-selection":{},"notify":{"with":{"text":"string","options":{"type":"object","optional":true}}}},"port":{"id":"simai.dataview-port","version":"1.15.0","contract":"src/core/contracts/ports/simai.dataview-port/1.15.0/port.json"},"presentation":{"skeleton":{"late":[]}},"css-variables":{"--sf-data-view-gap":{"type":"length","state":"default"},"--sf-data-view-drop-border-color":{"type":"color","state":"dragged-over"},"--sf-data-view-drop-background-color":{"type":"color","state":"dragged-over"},"--sf-data-view-drop-color":{"type":"color","state":"dragged-over"},"--sf-data-view-toolbar-gap":{"type":"length","state":"default"}},"host-states":{"data-state":"string","aria-busy":"string"}}');
+module.exports = /*#__PURE__*/JSON.parse('{"id":"smart.view","tag":"sf-view","version":"1.38.0","kind":"leaf","settings":{"chrome":{"type":"string","default":"toolbar pagination select settings"},"head":{"type":"enum","values":["","list"],"default":""},"heading":{"type":"string","default":""},"row-cap":{"type":"number","default":0,"integer":true,"min":0},"expected-columns":{"type":"number","default":4,"integer":true,"min":1},"list-shape":{"type":"string","default":""},"port-owner":{"type":"string","default":""},"port-record":{"type":"string","default":""},"port-group":{"type":"string","default":""},"size":{"type":"enum","values":["1/2","1"],"default":"1"},"layout":{"type":"enum","values":["auto","table","list","board","cards","calendar"],"default":"auto"},"layout-switch":{"type":"boolean","default":false},"list-below":{"type":"number","default":600},"quick-actions":{"type":"string","default":""},"row-open":{"type":"enum","values":["title","row"],"default":"title"},"list-roles":{"type":"string","default":""},"column-search-placeholder":{"type":"string"},"column-search-empty-text":{"type":"string"},"column-move-label":{"type":"string"},"filter-apply-text":{"type":"string"},"show-more-text":{"type":"string"},"selected-label":{"type":"string"},"total-label":{"type":"string"},"pages-label":{"type":"string"},"first-label":{"type":"string"},"previous-label":{"type":"string"},"page-label":{"type":"string"},"next-label":{"type":"string"},"last-label":{"type":"string"},"page-field-label":{"type":"string"},"action-choose-label":{"type":"string"},"actions-label":{"type":"string"},"actions-region-label":{"type":"string"},"clear-selection-label":{"type":"string"},"page-size-label":{"type":"string"},"pagination-aria-label":{"type":"string"},"paging":{"type":"enum","values":["pages","more","both","endless"],"default":"both"},"preferences-key":{"type":"string","default":""},"accept-files":{"type":"boolean","default":false},"collection":{"type":"string","default":""},"current":{"type":"string","default":""},"record-card":{"type":"string","default":""},"bulk-actions":{"type":"list","of":{"id":"string","label":"string","icon":{"type":"icon","optional":true}}},"first-answer":{"type":"object","optional":true}},"values":{"state":{"type":"state"},"total":{"type":"number","nullable":true},"selected":{"type":"id","optional":true},"selection":{"type":"list"}},"events":{"open":{"carries":{"id":"id"},"cancelable":true},"deleted":{"carries":{"ids":"list"}},"answer":{"carries":{"intent":{"type":"string"},"answer":{"type":"enum","values":["applied","conflict","refused","unavailable"],"schema":{"type":"string"}},"reason":{"type":"string","optional":true},"message":{"type":"string","optional":true},"data":{"type":"object","optional":true},"sequence":{"type":"number","integer":true,"optional":true},"effects":{"type":"list","optional":true},"instance_id":{"type":"string"}},"own-verb":true},"state":{"carries":{"state":{"type":"enum","values":["loading","populated","empty","error","no-access"],"schema":{"type":"string"}},"message":{"type":"string"},"instance_id":{"type":"string"}},"own-verb":true},"tree":{"carries":{"intent":"string","payload":{"type":"object","optional":true}},"own-verb":true},"files-drop":{"carries":{"files":{"type":"list","schema":{"items":{"type":"object"},"minItems":1}}},"own-verb":true},"pagination-count":{"shared":"count-on-request@1","carries":{"component":{"type":"object"},"tagName":{"type":"string"},"template":{"type":"string"},"reason":{"type":"enum","values":["total","last-page","action-for-all"],"schema":{"type":"string"}},"current":{"type":"number","integer":true},"pageSize":{"type":"number","integer":true}}},"save":{"carries":{"kind":{"type":"enum","values":["view"],"optional":true},"key":{"type":"string"},"label":{"type":"string"},"revision":{"type":"string","schema":{"type":["string","integer"]},"optional":true},"roles":{"type":"object","optional":true}}},"table-action-intent":{"shared":"table-intents@1","carries":{"action_id":{"type":"string","schema":{"minLength":1}},"record_ids":{"type":"list","schema":{"items":{"type":["string","integer"]},"minItems":1}}}},"table-column-settings-change":{"shared":"table-intents@1","carries":{"reason":{"type":"string"},"columnSettings":{"type":"object"},"tableSettingsKey":{"type":"string"},"target":{"type":"enum","values":["personal","shared"],"schema":{"type":"string"},"optional":true},"base_revision":{"type":"string","schema":{"type":["string","number"]},"optional":true}}},"table-column-settings-reset":{"shared":"table-intents@1","carries":{"target":{"type":"enum","values":["personal"],"schema":{"type":"string"}},"tableSettingsKey":{"type":"string","schema":{"type":["string","null"]}}}},"table-create-intent":{"shared":"table-intents@1","carries":{"item":{"type":"string","schema":{"type":["string","null"]}}}},"table-query-intent":{"shared":"table-intents@1","carries":{"reason":{"type":"enum","values":["context"]},"context":{"type":"object"},"sequence":{"type":"number","integer":true,"schema":{"minimum":1}}}},"table-template-delete":{"shared":"table-intents@1","carries":{"key":{"type":"string","schema":{"minLength":1}}}},"table-template-save":{"shared":"table-intents@1","carries":{"templates":{"type":"list","of":{"key":"string","label":"string","selected":"boolean","data":"object","settings":"object"},"schema":{"items":{"type":"object","required":["key","label","settings"],"properties":{"key":{"type":"string"},"label":{"type":"string"},"selected":{"type":"boolean"},"data":{"type":"object"},"settings":{"type":"object","properties":{"filter_fields":{"type":"array","items":{"type":"string"}}}}}},"minItems":1}}},"x-decision":"Event detail that is not a flat object (decision 2026-11-09, control/evidence/2026-11-09-pro-queue): a non-flat detail is a flat carries map whose fields carry the nesting -- §4.2 types, `of` for a list\'s entries and `schema` for what the manifest checks; a detail that is not an object (§8) is carried in a named field, and its old shape stays on the dated alias names with mode split and the element\'s adapter. template-save carries templates, a list of one or more templates; sf-table-template-save and onTemplateSave keep the 1.3 detail (the template object, or the array of them) through sfAliasAdapters. sf-view reads detail.templates and, until 2027-01-01, a bare template or array from a table before sf-view-table 1.16.0."},"table-template-select":{"shared":"table-intents@1","carries":{"key":{"type":"string","schema":{"minLength":1}}}},"host-port-request":{"shared":"host-port@1","carries":{"component":{"type":"object","optional":true},"context":{"type":"object","optional":true}}},"list-open":{"carries":{"reason":{"type":"id","schema":{"enum":["row-cap"]}},"query":{"type":"object"}}},"table-cell-set":{"shared":"table-intents@1","carries":{"id":{"type":"string","schema":{"type":["string","integer"]}},"key":{"type":"string"},"value":{"type":"id"},"revision":{"type":"string","schema":{"type":["string","integer","null"]}}}},"table-rows-reorder":{"shared":"table-intents@1","carries":{"ids":{"type":"list","schema":{"items":{"type":"string"},"minItems":1}},"before":{"type":"string","schema":{"type":["string","null"]}},"order":{"type":"list","schema":{"items":{"type":"string"}}}}},"display-change":{"carries":{"kind":{"type":"enum","values":["table","board","cards","calendar","list","tree"]},"previous":{"type":"string"}},"cancelable":true},"settings-open":{"carries":{"id":{"type":"enum","values":["rights","export","record-field-add"]}}}},"actions":{"refresh":{"with":{"reason":{"type":"string","optional":true}}},"change-query":{"with":{"patch":"object","reason":{"type":"string","optional":true}},"concurrency":"latest"},"open-view":{"with":{"key":"string"}},"save-view":{"with":{"view":{"type":"object"}},"concurrency":"drop"},"delete-view":{"with":{"key":"string"},"concurrency":"drop"},"apply-under-filter":{"with":{"action-id":"string","confirmed-total":"number"},"concurrency":"drop"},"reset-column-settings":{},"clear-selection":{},"notify":{"with":{"text":"string","options":{"type":"object","optional":true}}}},"port":{"id":"simai.dataview-port","version":"1.15.0","contract":"src/core/contracts/ports/simai.dataview-port/1.15.0/port.json"},"presentation":{"skeleton":{"late":[]}},"css-variables":{"--sf-data-view-gap":{"type":"length","state":"default"},"--sf-data-view-drop-border-color":{"type":"color","state":"dragged-over"},"--sf-data-view-drop-background-color":{"type":"color","state":"dragged-over"},"--sf-data-view-drop-color":{"type":"color","state":"dragged-over"},"--sf-data-view-toolbar-gap":{"type":"length","state":"default"}},"host-states":{"data-state":"string","aria-busy":"string"}}');
 
 /***/ },
 
 /***/ "ce0305e57fa5"
 (module) {
 
-module.exports = /*#__PURE__*/JSON.parse('{"title":"Data view","events":{"answer":{"label":"The host answered"},"state":{"label":"List state"},"tree":{"label":"Tree request"},"files-drop":{"label":"Files dropped on the list"},"display-change":{"label":"Display kind changed"},"settings-open":{"label":"List setting asked"}},"runtime":{"cancel":"Cancel","close-notice-label":"Close the message","confirm-apply":"Confirm","confirm-title":"Confirm the change","create-child-action":"Add a nested one","drop-files":"Drop the files here to upload them","empty-text":"No data","head-apply":"Apply","head-cancel":"Cancel","head-card-fields":"Card fields","head-card-size":"Card size","head-clear":"Clear","head-colour-field":"Record colour by field","head-colour-none":"No colour","head-columns":"Columns","head-copy":"Save a copy","head-copy-suffix":"(copy)","head-count":"Records: {count}","head-create":"Create","head-customize":"Customize view","head-customize-note":"Your changes apply at once and only for you.","head-date-field":"Date that places a record","head-default-mark":"Default","head-delete":"Delete","head-density":"Density","head-density-compact":"Compact","head-density-normal":"Normal","head-display":"Display","head-display-menu":"Display and views","head-empty-lanes":"Show empty lanes","head-export":"Export","head-favorite-add":"Add to favourites","head-favorite-remove":"Remove from favourites","head-fields-tab":"Fields","head-filter":"Filter","head-filter-actions":"Actions on the filter «{name}»","head-filter-changed":"(changed, not saved)","head-filter-named":"Filter: {name}","head-kind-board":"Kanban","head-kind-calendar":"Calendar","head-kind-cards":"Cards","head-kind-list":"List","head-kind-table":"Table","head-kind-tree":"Tree","head-lane-field":"Board lanes by field","head-level-personal":"Mine","head-level-shared":"For everyone","head-level-system":"System","head-list-menu":"More: list settings","head-locked":"Locked by the administrator","head-make-default":"Make default","head-no-saved":"No saved filters yet.","head-paging":"Loading","head-paging-both":"Both","head-paging-endless":"Endless","head-paging-more":"«Show more»","head-paging-pages":"By pages","head-record-fields":"Record field settings","head-remove-field":"Remove the field «{name}»","head-rename":"Rename","head-reset":"Reset","head-reset-to-shared":"Reset to everyone\'s","head-rights":"Access rights","head-row-actions":"Row actions","head-save":"Save","head-save-default":"Make default","head-save-filter":"Save filter","head-save-for-all":"Save for everyone","head-save-name":"Name","head-save-note":"The fields and their values are saved, without the search text.","head-save-shared":"Save for everyone","head-save-shared-hint":"Everyone with access to the list will see it","head-saved-tab":"Saved","head-search":"Search","head-share":"Share with everyone","head-shared-mark":"Shared","head-single-line":"Text on one line","head-size-l":"Large","head-size-m":"Medium","head-size-s":"Small","head-unshare":"Only for me","head-update":"Update","head-update-filter":"Update «{name}»","head-view-changed":"Changed","head-view-new":"Save the view","head-view-new-name":"New view","head-view-reset":"Reset","head-view-save-all":"Save for everyone","head-view-save-mine":"Save as mine","head-view-save-new":"Save the view","head-view-state":"View state","head-view-state-mine":"Changed. Saved only for you; everyone else sees «{name}» as it was.","head-view-state-none":"«{name}»: no changes.","head-view-state-unsaved":"Changed, not saved: everyone still sees «{name}» as it was.","head-view-unsaved":"changed, not saved","head-view-zone":"View: {name}","head-view-zone-none":"View","head-views":"Views","layout-label":"Data view","move-action":"Move…","move-apply":"Move","move-first":"First","move-last":"Last","move-no-targets":"There is nowhere this record can be moved.","move-place":"Place","move-root":"To the top level","move-title":"Move «{label}»","notice-action-not-allowed":"That action is not available for the chosen record.","notice-capability-not-provided":"The host does not support that action.","notice-confirm-required":"The action has to be confirmed first.","notice-conflict":"The data changed. Read the view again and repeat the action.","notice-failed":"The action was not carried out.","notice-fetch-failed":"The data could not be fetched. Try again.","notice-forbidden":"You may not do this.","notice-load-failed":"The data could not be loaded.","notice-no-base-revision":"The settings cannot be saved yet: the view has no current version of them. Read the view again.","notice-not-confirmed":"The action was cancelled.","notice-port-not-connected":"The data source is not connected.","notice-record-invalid":"The record was not found.","notice-refused":"The action was refused.","notice-saved-view-levels":"Shared views need a newer port.","notice-stale-revision":"Someone changed this in the meantime. Read the view again and repeat the action.","notice-unavailable":"The action is unavailable.","of-total":"{shown} of {total}","records-label":"Records","show-all":"Show all","state-load-failed":"The data could not be loaded","state-loading":"Loading","state-port-not-connected":"The data port is not connected","state-query-failed":"The request could not be completed","state-unavailable":"The data is temporarily unavailable","unnamed-action":"Action"}}');
+module.exports = /*#__PURE__*/JSON.parse('{"title":"Data view","events":{"answer":{"label":"The host answered"},"state":{"label":"List state"},"tree":{"label":"Tree request"},"files-drop":{"label":"Files dropped on the list"},"display-change":{"label":"Display kind changed"},"settings-open":{"label":"List setting asked"}},"runtime":{"cancel":"Cancel","close-notice-label":"Close the message","confirm-apply":"Confirm","confirm-title":"Confirm the change","create-child-action":"Add a nested one","drop-files":"Drop the files here to upload them","empty-text":"No data","head-apply":"Apply","head-cancel":"Cancel","head-card-fields":"Card fields","head-card-labels":"Field labels","head-card-size":"Card size","head-clear":"Clear","head-colour-field":"Record colour by field","head-colour-none":"No colour","head-columns":"Columns","head-copy":"Save a copy","head-copy-suffix":"(copy)","head-count":"Records: {count}","head-create":"Create","head-date-field":"Date that places a record","head-default-mark":"Default","head-delete":"Delete","head-density":"Density","head-density-compact":"Compact","head-density-normal":"Normal","head-display":"Display","head-display-menu":"Display and views","head-empty-lanes":"Show empty lanes","head-export":"Export","head-favorite-add":"Add to favourites","head-favorite-remove":"Remove from favourites","head-fields-tab":"Fields","head-filter":"Filter","head-filter-actions":"Actions on the filter «{name}»","head-filter-changed":"(changed, not saved)","head-filter-named":"Filter: {name}","head-kind-board":"Kanban","head-kind-calendar":"Calendar","head-kind-cards":"Cards","head-kind-list":"List","head-kind-table":"Table","head-kind-tree":"Tree","head-lane-field":"Board lanes by field","head-level-personal":"Mine","head-level-shared":"For everyone","head-level-system":"System","head-lines":"Lines between columns","head-list-menu":"More: list settings","head-locked":"Locked by the administrator","head-look":"View","head-make-default":"Make default","head-no-saved":"No saved filters yet.","head-paging":"Loading","head-paging-both":"Both","head-paging-endless":"Endless","head-paging-more":"«Show more»","head-paging-pages":"By pages","head-record-fields":"Record field settings","head-remove-field":"Remove the field «{name}»","head-rename":"Rename","head-reset":"Reset","head-rights":"Access rights","head-row-actions":"Row actions","head-save":"Save","head-save-default":"Make default","head-save-filter":"Save filter","head-save-name":"Name","head-save-note":"The fields and their values are saved, without the search text.","head-save-shared":"Save for everyone","head-save-shared-hint":"Everyone with access to the list will see it","head-save-view-note":"The presentation, columns, sort order and page size are saved, without the filter conditions or the search.","head-saved-tab":"Saved","head-search":"Search","head-share":"Share with everyone","head-shared-mark":"Shared","head-single-line":"Text on one line","head-size-l":"Large","head-size-m":"Medium","head-size-s":"Small","head-unshare":"Only for me","head-update":"Update","head-update-filter":"Update «{name}»","head-view-changed":"Changed","head-view-new":"Save the view","head-view-new-name":"New view","head-view-reset":"Reset","head-view-save-all":"Save for everyone","head-view-save-mine":"Save as mine","head-view-save-new":"Save the view","head-view-state":"View state","head-view-state-mine":"Changed. Saved only for you; everyone else sees «{name}» as it was.","head-view-state-none":"«{name}»: no changes.","head-view-state-unsaved":"Changed, not saved: everyone still sees «{name}» as it was.","head-view-unsaved":"changed, not saved","head-view-zone":"View: {name}","head-view-zone-none":"View","head-views":"Views","layout-label":"Data view","move-action":"Move…","move-apply":"Move","move-first":"First","move-last":"Last","move-no-targets":"There is nowhere this record can be moved.","move-place":"Place","move-root":"To the top level","move-title":"Move «{label}»","notice-action-not-allowed":"That action is not available for the chosen record.","notice-capability-not-provided":"The host does not support that action.","notice-confirm-required":"The action has to be confirmed first.","notice-conflict":"The data changed. Read the view again and repeat the action.","notice-failed":"The action was not carried out.","notice-fetch-failed":"The data could not be fetched. Try again.","notice-forbidden":"You may not do this.","notice-load-failed":"The data could not be loaded.","notice-no-base-revision":"The settings cannot be saved yet: the view has no current version of them. Read the view again.","notice-not-confirmed":"The action was cancelled.","notice-port-not-connected":"The data source is not connected.","notice-record-invalid":"The record was not found.","notice-refused":"The action was refused.","notice-saved-view-levels":"Shared views need a newer port.","notice-stale-revision":"Someone changed this in the meantime. Read the view again and repeat the action.","notice-unavailable":"The action is unavailable.","of-total":"{shown} of {total}","records-label":"Records","show-all":"Show all","state-load-failed":"The data could not be loaded","state-loading":"Loading","state-port-not-connected":"The data port is not connected","state-query-failed":"The request could not be completed","state-unavailable":"The data is temporarily unavailable","unnamed-action":"Action"}}');
 
 /***/ },
 
 /***/ "3e9dffe84919"
 (module) {
 
-module.exports = /*#__PURE__*/JSON.parse('{"title":"Представление данных","events":{"answer":{"label":"Ответ хоста"},"state":{"label":"Состояние списка"},"tree":{"label":"Запрос ветви дерева"},"files-drop":{"label":"Файлы брошены на список"},"display-change":{"label":"Сменён вид показа"},"settings-open":{"label":"Запрошена настройка списка"}},"runtime":{"cancel":"Отмена","close-notice-label":"Закрыть сообщение","confirm-apply":"Подтвердить","confirm-title":"Подтвердите изменение","create-child-action":"Добавить вложенную","drop-files":"Отпустите, чтобы загрузить файлы сюда","empty-text":"Нет данных","head-apply":"Применить","head-cancel":"Отменить","head-card-fields":"Поля на карточке","head-card-size":"Размер карточек","head-clear":"Очистить","head-colour-field":"Цвет записи — по полю","head-colour-none":"Без цвета","head-columns":"Колонки","head-copy":"Сохранить копию","head-copy-suffix":"(копия)","head-count":"Записей: {count}","head-create":"Создать","head-customize":"Настроить вид","head-customize-note":"Ваши изменения сохраняются сразу и только для вас.","head-date-field":"Дата, по которой стоит запись","head-default-mark":"По умолчанию","head-delete":"Удалить","head-density":"Плотность","head-density-compact":"Компактная","head-density-normal":"Обычная","head-display":"Вид показа","head-display-menu":"Вид показа и представления","head-empty-lanes":"Показывать пустые колонки","head-export":"Экспорт","head-favorite-add":"Добавить в избранное","head-favorite-remove":"Убрать из избранного","head-fields-tab":"Поля","head-filter":"Фильтр","head-filter-actions":"Действия с фильтром «{name}»","head-filter-changed":"(изменён, не сохранён)","head-filter-named":"Фильтр: {name}","head-kind-board":"Канбан","head-kind-calendar":"Календарь","head-kind-cards":"Карточки","head-kind-list":"Список","head-kind-table":"Таблица","head-kind-tree":"Дерево","head-lane-field":"Колонки доски — по полю","head-level-personal":"Мои","head-level-shared":"Для всех","head-level-system":"Системные","head-list-menu":"Ещё: настройки списка","head-locked":"Закрыл администратор","head-make-default":"Сделать по умолчанию","head-no-saved":"Сохранённых фильтров пока нет.","head-paging":"Подгрузка","head-paging-both":"Вместе","head-paging-endless":"Бесконечно","head-paging-more":"«Показать ещё»","head-paging-pages":"Страницами","head-record-fields":"Настройки полей записи","head-remove-field":"Убрать поле «{name}»","head-rename":"Переименовать","head-reset":"Сбросить","head-reset-to-shared":"Вернуть как у всех","head-rights":"Права доступа","head-row-actions":"Действия в строке","head-save":"Сохранить","head-save-default":"Сделать по умолчанию","head-save-filter":"Сохранить фильтр","head-save-for-all":"Сохранить для всех","head-save-name":"Название","head-save-note":"Сохранятся поля и их значения, без текста поиска.","head-save-shared":"Сохранить для всех","head-save-shared-hint":"Увидят все, у кого есть доступ к списку","head-saved-tab":"Сохранённые","head-search":"Поиск","head-share":"Поделиться со всеми","head-shared-mark":"Общий","head-single-line":"Текст в одну строку","head-size-l":"Крупные","head-size-m":"Средние","head-size-s":"Малые","head-unshare":"Только для меня","head-update":"Обновить","head-update-filter":"Обновить «{name}»","head-view-changed":"Изменено","head-view-new":"Сохранить представление","head-view-new-name":"Новое представление","head-view-reset":"Сбросить","head-view-save-all":"Сохранить для всех","head-view-save-mine":"Сохранить как моё","head-view-save-new":"Сохранить представление","head-view-state":"Состояние представления","head-view-state-mine":"Изменено. Сохранено только для вас; остальные видят «{name}» как было.","head-view-state-none":"«{name}»: изменений нет.","head-view-state-unsaved":"Изменено и не сохранено: у всех «{name}» остаётся как было.","head-view-unsaved":"изменено, не сохранено","head-view-zone":"Представление: {name}","head-view-zone-none":"Представление","head-views":"Представления","layout-label":"Представление данных","move-action":"Переместить…","move-apply":"Переместить","move-first":"Первым","move-last":"Последним","move-no-targets":"Эту запись некуда переместить.","move-place":"Место","move-root":"На верхний уровень","move-title":"Переместить «{label}»","notice-action-not-allowed":"Это действие недоступно для выбранной записи.","notice-capability-not-provided":"Хост не поддерживает это действие.","notice-confirm-required":"Действие нужно сначала подтвердить.","notice-conflict":"Данные изменились. Обновите представление и повторите действие.","notice-failed":"Действие не выполнено.","notice-fetch-failed":"Не удалось получить данные. Повторите попытку.","notice-forbidden":"Недостаточно прав для этого действия.","notice-load-failed":"Не удалось загрузить данные.","notice-no-base-revision":"Настройки пока нельзя сохранить: у представления нет их текущей версии. Обновите представление.","notice-not-confirmed":"Действие отменено.","notice-port-not-connected":"Источник данных не подключён.","notice-record-invalid":"Запись не найдена.","notice-refused":"Действие отклонено.","notice-saved-view-levels":"Общие виды требуют более новой версии порта.","notice-stale-revision":"Данные успели изменить. Обновите представление и повторите действие.","notice-unavailable":"Действие недоступно.","of-total":"{shown} из {total}","records-label":"Записи","show-all":"Показать все","state-load-failed":"Не удалось загрузить данные","state-loading":"Загрузка данных","state-port-not-connected":"Порт данных не подключён","state-query-failed":"Запрос не выполнен","state-unavailable":"Данные временно недоступны","unnamed-action":"Действие"}}');
+module.exports = /*#__PURE__*/JSON.parse('{"title":"Представление данных","events":{"answer":{"label":"Ответ хоста"},"state":{"label":"Состояние списка"},"tree":{"label":"Запрос ветви дерева"},"files-drop":{"label":"Файлы брошены на список"},"display-change":{"label":"Сменён вид показа"},"settings-open":{"label":"Запрошена настройка списка"}},"runtime":{"cancel":"Отмена","close-notice-label":"Закрыть сообщение","confirm-apply":"Подтвердить","confirm-title":"Подтвердите изменение","create-child-action":"Добавить вложенную","drop-files":"Отпустите, чтобы загрузить файлы сюда","empty-text":"Нет данных","head-apply":"Применить","head-cancel":"Отменить","head-card-fields":"Поля на карточке","head-card-labels":"Подписи полей","head-card-size":"Размер карточек","head-clear":"Очистить","head-colour-field":"Цвет записи — по полю","head-colour-none":"Без цвета","head-columns":"Колонки","head-copy":"Сохранить копию","head-copy-suffix":"(копия)","head-count":"Записей: {count}","head-create":"Создать","head-date-field":"Дата, по которой стоит запись","head-default-mark":"По умолчанию","head-delete":"Удалить","head-density":"Плотность","head-density-compact":"Компактная","head-density-normal":"Обычная","head-display":"Вид показа","head-display-menu":"Вид показа и представления","head-empty-lanes":"Показывать пустые колонки","head-export":"Экспорт","head-favorite-add":"Добавить в избранное","head-favorite-remove":"Убрать из избранного","head-fields-tab":"Поля","head-filter":"Фильтр","head-filter-actions":"Действия с фильтром «{name}»","head-filter-changed":"(изменён, не сохранён)","head-filter-named":"Фильтр: {name}","head-kind-board":"Канбан","head-kind-calendar":"Календарь","head-kind-cards":"Карточки","head-kind-list":"Список","head-kind-table":"Таблица","head-kind-tree":"Дерево","head-lane-field":"Колонки доски — по полю","head-level-personal":"Мои","head-level-shared":"Для всех","head-level-system":"Системные","head-lines":"Линии между столбцами","head-list-menu":"Ещё: настройки списка","head-locked":"Закрыл администратор","head-look":"Вид","head-make-default":"Сделать по умолчанию","head-no-saved":"Сохранённых фильтров пока нет.","head-paging":"Подгрузка","head-paging-both":"Вместе","head-paging-endless":"Бесконечно","head-paging-more":"«Показать ещё»","head-paging-pages":"Страницами","head-record-fields":"Настройки полей записи","head-remove-field":"Убрать поле «{name}»","head-rename":"Переименовать","head-reset":"Сбросить","head-rights":"Права доступа","head-row-actions":"Действия в строке","head-save":"Сохранить","head-save-default":"Сделать по умолчанию","head-save-filter":"Сохранить фильтр","head-save-name":"Название","head-save-note":"Сохранятся поля и их значения, без текста поиска.","head-save-shared":"Сохранить для всех","head-save-shared-hint":"Увидят все, у кого есть доступ к списку","head-save-view-note":"Сохранятся вид, колонки, сортировка и число строк на странице, без условий фильтра и поиска.","head-saved-tab":"Сохранённые","head-search":"Поиск","head-share":"Поделиться со всеми","head-shared-mark":"Общий","head-single-line":"Текст в одну строку","head-size-l":"Крупные","head-size-m":"Средние","head-size-s":"Малые","head-unshare":"Только для меня","head-update":"Обновить","head-update-filter":"Обновить «{name}»","head-view-changed":"Изменено","head-view-new":"Сохранить представление","head-view-new-name":"Новое представление","head-view-reset":"Сбросить","head-view-save-all":"Сохранить для всех","head-view-save-mine":"Сохранить как моё","head-view-save-new":"Сохранить представление","head-view-state":"Состояние представления","head-view-state-mine":"Изменено. Сохранено только для вас; остальные видят «{name}» как было.","head-view-state-none":"«{name}»: изменений нет.","head-view-state-unsaved":"Изменено и не сохранено: у всех «{name}» остаётся как было.","head-view-unsaved":"изменено, не сохранено","head-view-zone":"Представление: {name}","head-view-zone-none":"Представление","head-views":"Представления","layout-label":"Представление данных","move-action":"Переместить…","move-apply":"Переместить","move-first":"Первым","move-last":"Последним","move-no-targets":"Эту запись некуда переместить.","move-place":"Место","move-root":"На верхний уровень","move-title":"Переместить «{label}»","notice-action-not-allowed":"Это действие недоступно для выбранной записи.","notice-capability-not-provided":"Хост не поддерживает это действие.","notice-confirm-required":"Действие нужно сначала подтвердить.","notice-conflict":"Данные изменились. Обновите представление и повторите действие.","notice-failed":"Действие не выполнено.","notice-fetch-failed":"Не удалось получить данные. Повторите попытку.","notice-forbidden":"Недостаточно прав для этого действия.","notice-load-failed":"Не удалось загрузить данные.","notice-no-base-revision":"Настройки пока нельзя сохранить: у представления нет их текущей версии. Обновите представление.","notice-not-confirmed":"Действие отменено.","notice-port-not-connected":"Источник данных не подключён.","notice-record-invalid":"Запись не найдена.","notice-refused":"Действие отклонено.","notice-saved-view-levels":"Общие виды требуют более новой версии порта.","notice-stale-revision":"Данные успели изменить. Обновите представление и повторите действие.","notice-unavailable":"Действие недоступно.","of-total":"{shown} из {total}","records-label":"Записи","show-all":"Показать все","state-load-failed":"Не удалось загрузить данные","state-loading":"Загрузка данных","state-port-not-connected":"Порт данных не подключён","state-query-failed":"Запрос не выполнен","state-unavailable":"Данные временно недоступны","unnamed-action":"Действие"}}');
 
 /***/ }
 

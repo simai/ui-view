@@ -9,9 +9,13 @@ SF.RuleLoader.registerPackage("view", {
       "mode": "smart",
       "relation": [
         {
+          "name": "cl-view-common"
+        },
+        {
           "name": "icons"
         },
         {
+          "lazy": true,
           "name": "cl-view-table"
         },
         {
@@ -72,6 +76,10 @@ SF.RuleLoader.registerPackage("view", {
           "name": "cl-icon"
         },
         {
+          "lazy": true,
+          "name": "cl-settings"
+        },
+        {
           "name": "align-items/default"
         },
         {
@@ -110,6 +118,9 @@ SF.RuleLoader.registerPackage("view", {
       "js": true,
       "mode": "smart",
       "relation": [
+        {
+          "name": "cl-view-common"
+        },
         {
           "name": "icons"
         },
@@ -195,6 +206,9 @@ SF.RuleLoader.registerPackage("view", {
       "mode": "smart",
       "relation": [
         {
+          "name": "cl-view-common"
+        },
+        {
           "name": "icons"
         },
         {
@@ -276,6 +290,9 @@ SF.RuleLoader.registerPackage("view", {
       "mode": "smart",
       "relation": [
         {
+          "name": "cl-view-common"
+        },
+        {
           "name": "icons"
         },
         {
@@ -331,11 +348,21 @@ SF.RuleLoader.registerPackage("view", {
       ],
       "type": "smart"
     },
+    "cl-view-common": {
+      "css": false,
+      "js": true,
+      "mode": "smart",
+      "tags": [],
+      "type": "smart"
+    },
     "cl-view-flow": {
       "css": true,
       "js": true,
       "mode": "smart",
       "relation": [
+        {
+          "name": "cl-view-common"
+        },
         {
           "name": "icons"
         },
@@ -451,6 +478,9 @@ SF.RuleLoader.registerPackage("view", {
       "js": true,
       "mode": "smart",
       "relation": [
+        {
+          "name": "cl-view-common"
+        },
         {
           "name": "icons"
         },
@@ -679,6 +709,9 @@ SF.RuleLoader.registerPackage("view", {
       "js": true,
       "mode": "smart",
       "relation": [
+        {
+          "name": "cl-view-common"
+        },
         {
           "name": "cl-checkbox"
         },

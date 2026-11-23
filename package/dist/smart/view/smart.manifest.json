@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view",
-  "version": "1.32.0",
+  "version": "1.38.0",
   "title": "Data view",
   "summary": "Host-driven data view that composes toolbar, content and pagination around a separate data port.",
   "kind": "composite",
@@ -44,9 +44,11 @@
       "smart.popover",
       "smart.radio",
       "smart.segmented",
+      "smart.settings",
       "smart.spinner",
       "smart.tabs",
       "smart.toast",
+      "smart.view-common",
       "smart.view-table"
     ],
     "public_parts": [],
@@ -415,7 +417,7 @@
       "paging": {
         "type": "string",
         "default": "both",
-        "description": "How the table's rows come page after page (owner decision D1): pages (page numbers only), more (a full-width «Показать ещё» under the last row), both (the button with the page numbers under it and «1–20 из 48» beside them; the default), endless (the next page loads when the end of the list comes into view; offered, not recommended for tables). The person's choice in «Настроить вид» is kept per view; a view's layouts.table.paging comes before this attribute.",
+        "description": "How the table's rows come page after page (owner decision D1): pages (page numbers only), more (a full-width «Показать ещё» under the last row), both (the button with the page numbers under it and «1–20 из 48» beside them; the default), endless (the next page loads when the end of the list comes into view; offered, not recommended for tables). The person's choice in «Вид» is kept per view; a view's layouts.table.paging comes before this attribute.",
         "enum": [
           "pages",
           "more",
@@ -1987,6 +1989,54 @@
           "VR5-10 index.js: the projection writes data-sf-row-menu-off on the table when a known host offers no row-actions (_rowMenuOff); the first paint leaves the «≡» column out where the known host gives it nothing to open (_settingsColumnUnused: no row-actions, no personal-column-settings outside the list head, no row-reorder).",
           "LV2-6: layout cards get the list's page row (pagination by default, the footer range, a page size chosen there kept for the cards); the cards' grid no longer offers its own more button while the row is drawn. LV2-8: switchLayout opens the new kind on the page holding the record first on screen, held over switches back and forth until the next query change; the head's kind switch no longer resets the page to 1."
         ]
+      },
+      {
+        "from": "1.32.0",
+        "to": "1.34.0",
+        "changes": [
+          "View modular step 1 (round/view-modular-1): takes its shared code (the Framework field renderers, formats, conditions and filter window, and what two View components share) from the package core smart/view-common once per page, instead of a copy in its own bundle; relation cl-view-common; cl-view-table is a lazy relation and connectedCallback asks for the current layout's element only (the table on a switch, _swapContent); the row-action catalogue warning waits until sf-view-table is defined."
+        ]
+      },
+      {
+        "from": "1.34.0",
+        "to": "1.35.0",
+        "changes": [
+          "C404 fixed list look and footer grid, C405 «Вид» as the sf-settings drill menu with per-kind rows, C406 the gear always, C407 more_horiz data menu, C408 the look for every list of the kind, LV2-2 marks across pages and kinds, LV2-7 «Выбраны все N» to the cards, D1 paging for the cards",
+          "LV3-9 head.menu, LV3-23 saved sets «⋯»",
+          "one bulk bar: the list's bar stands for the cards (cards bulk-bar false), the cards keep the page row after a click switch (VR13-1)",
+          "LV4-2 head observer once, LV4-3 bulkActions [] clears, LV4-7 saved-set row end and window kept, LV4-14 one chip gap, LV4-24 the search outlined, LV4-25 no chip-row track",
+          "RV4-12 auto layout whatever the head",
+          "LV4-21 marks kept over a part switch"
+        ]
+      },
+      {
+        "from": "1.35.0",
+        "to": "1.36.0",
+        "changes": [
+          "View round 15m: round/view-r14 and round/view-modular-1 joined into one line (merge, no rebase); the number is above both branches. MOD1-1/MOD1-5 the first paint waits for the kind's element (table, board, cards, calendar) until defined or failed (_kindGivesUp), the switch hold too; the cards' skeleton bars one box; RV4-3 the record card over the list where docking would re-flow it (_cardGoesOver, head fitsNarrower).",
+          "the bulk bar at size 1 (DEV msg-1fd8b681)"
+        ]
+      },
+      {
+        "from": "1.36.0",
+        "to": "1.37.0",
+        "changes": [
+          "View round 15: VM-1 view strip one line, kinds fold into the strip's kind menu (_layZone, head.css nowrap, the zone contain: inline-size so its line does not widen the head); AN-3 the list head (index.js) and --sf-view--stuck-head (js/head.js _layStick) add --sf-admin-shell-stick (0 when absent); VL-48 a borrowed window keeps its kind on the popover's open, the name field takes the focus, Enter is the first action; C414 view.save without conditions (view-config 1.1.0); bulk bar at the head controls' size."
+        ]
+      },
+      {
+        "from": "1.37.0",
+        "to": "1.37.1",
+        "changes": [
+          "View round 16: VN-1 the desktop strip's kinds track flex-shrink 0 (head.css), so sf-segmented's own fold does not flip on the one-line strip; VN-2 the view-new window reads head-save-view-note (C414) instead of the saved filter's note."
+        ]
+      },
+      {
+        "from": "1.37.1",
+        "to": "1.38.0",
+        "changes": [
+          "View round 17: repin on SIMAI Framework pair ui-b4f79e1c58b7 (ui-source e59dbad1c108, core.runtime 1.67.0); VN-3 the more slot padding max(--sf-space-1/2, --sf-b2) (12 at 768 too), the skeleton's the same and --sf-space-1/3 under 37.5rem, the more holder raised over the table rail (z-index 6, the view-made holder lets the pointer through its gap); _kindGivesUp reads SF.Loader.settled(tag)."
+        ]
       }
     ]
   },
@@ -1996,7 +2046,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view/index.js",
-        "sha256": "f1b84c049d8c3975df76b80a0e44bcb6a0430d2844dfcd904c4ea3252f64009a"
+        "sha256": "168c0c41e0aa69e18ca97ae77b0809be927551216f615f401965319879eaf83e"
       },
       {
         "path": "src/core/contracts/ports/simai.dataview-port/1.5.0/port.json",
@@ -2004,7 +2054,7 @@
       },
       {
         "path": "src/smart/view/docs.md",
-        "sha256": "fce3a0a39f18b25b542d4acef9c107a2da5fb574365c7c0a7bc8d075365522ab"
+        "sha256": "96930d81e74d051bfbaf93a868d580e56754a26f80a9bd21455179fbe606ed70"
       },
       {
         "path": "tests/fixtures/data-view-composite-lab.html",
@@ -2016,11 +2066,11 @@
       },
       {
         "path": "src/smart/view/js/first-paint.css",
-        "sha256": "1328436385e46f08b37db3728660124736fb2b248338627bf951c49b85b6db1e"
+        "sha256": "4bd38fd67485f34d54db45a18d5fa6faafd898096e8fde5ae513907e14d9d87c"
       },
       {
         "path": "src/smart/view/js/cards.js",
-        "sha256": "4dc33c756fd743b91ca21f995cae00b10fc2dcfb48a34619b08b8f376760d9df"
+        "sha256": "77458bbfc8d052a33d2e92f19b301839436918b36348011ef9e7ed9ec8ce6102"
       }
     ],
     "generated_runtime": []

@@ -138,11 +138,13 @@ function renderMore(context) {
 
 function renderBulk(context) {
     const component = context.component;
-    const count = context.selected.size;
+    // Every mark, of every page (keep-selection); all under the filter says the total (LV2-7).
+    const count = context.allSelected ? context.total : context.selected.size;
     if (context.bulkActions) {
         // sf-bulk-actions (C295), where the pair carries it.
         return html`<sf-bulk-actions class="sf-view-cards__bulk-bar" size=${context.size} place="dock" count=${String(count)}
                                      page-count=${String(context.records.length)} total=${String(context.total)}
+                                     ?all-selected=${context.allSelected}
                                      .actions=${context.actions}></sf-bulk-actions>`;
     }
     // Without it (a pair before sf-bulk-actions): the same strip from
@@ -171,6 +173,6 @@ export function renderViewCardsTemplate(context) {
                 </div>
                 ${skeleton ? nothing : renderMore(context)}`}
             <div class="sf-view-cards__live" role="status" aria-live="polite">${context.message}</div>
-            ${context.selectable && (context.selected.size > 0 || !context.bulkActions) ? renderBulk(context) : nothing}
+            ${context.selectable && context.bulkBar && (context.selected.size > 0 || !context.bulkActions) ? renderBulk(context) : nothing}
         </div>`;
 }

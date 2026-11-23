@@ -14,8 +14,8 @@
     "spdx": "PolyForm-Small-Business-1.0.0 OR PolyForm-Noncommercial-1.0.0 OR LicenseRef-SIMAI-Commercial"
   },
   "framework": {
-    "core_runtime": ">=1.51.0",
-    "source_revision": "049a2ba3dc7d35cbec5c95eb495fab71eddac6f2"
+    "core_runtime": ">=1.67.0",
+    "source_revision": "e59dbad1c10848ec4f2663f52c04aa14b7be39f6"
   },
   "requires_sets": [],
   "families": [
@@ -43,9 +43,11 @@
         "cl-popover",
         "cl-radio",
         "cl-segmented",
+        "cl-settings",
         "cl-spinner",
         "cl-tabs",
         "cl-toast",
+        "cl-view-common",
         "cl-view-table"
       ],
       "element_aliases": [
@@ -89,7 +91,8 @@
         "cl-sortable",
         "cl-spinner",
         "cl-tabs",
-        "cl-tag"
+        "cl-tag",
+        "cl-view-common"
       ],
       "element_aliases": [
         {
@@ -146,6 +149,7 @@
         "cl-tabs",
         "cl-tag",
         "cl-view",
+        "cl-view-common",
         "cl-view-table"
       ],
       "element_aliases": [
@@ -166,7 +170,6 @@
         "cl-avatar",
         "cl-badge",
         "cl-button",
-        "cl-segmented",
         "cl-button-icon",
         "cl-checkbox",
         "cl-dropdown",
@@ -184,10 +187,12 @@
         "cl-list-item",
         "cl-progress-scale",
         "cl-reference-link",
+        "cl-segmented",
         "cl-slider-range",
         "cl-spinner",
         "cl-switch",
-        "cl-tag"
+        "cl-tag",
+        "cl-view-common"
       ]
     },
     {
@@ -209,7 +214,8 @@
         "cl-sortable",
         "cl-tabs",
         "cl-tag",
-        "cl-toast"
+        "cl-toast",
+        "cl-view-common"
       ]
     },
     {
@@ -231,7 +237,8 @@
         "cl-progress-scale",
         "cl-reference-link",
         "cl-skeleton",
-        "cl-tag"
+        "cl-tag",
+        "cl-view-common"
       ]
     },
     {
@@ -253,7 +260,8 @@
         "cl-reference-link",
         "cl-segmented",
         "cl-tag",
-        "cl-toast"
+        "cl-toast",
+        "cl-view-common"
       ]
     }
   ]

@@ -327,6 +327,10 @@
        shadow tree where the sheet does not reach, which put an embedded list
        7px out once the table was styled. */
     --sf-table--row-text-inset: calc(var(--sf-table--cell-spacing) + var(--sf-space-1));
+    /* Where a list row's text starts (the phone rows and a narrow list):
+       its own padding, published so a related list in a record pulls its
+       list rows out by it as it pulls the table by the inset above. */
+    --sf-table--list-text-inset: var(--sf-a8);
   }
 
   /* The table's box, published so a page can hold the room of a list before
@@ -521,6 +525,13 @@
     border-inline-end-width: var(--sf-px);
     border-inline-end-style: solid;
     border-inline-end-color: transparent;
+  }
+
+  /* The head's label on its column's text line (LV4-22): the transparent
+     borders above stood the label 1 px inside its cell's text (start 1 px
+     right, an end-aligned one 1 px left); the head's content takes them back. */
+  :is(sf-view-table, sf-table) thead th[data-key] > .sidebar-resizer {
+    margin-inline: calc(-1 * var(--sf-px));
   }
 
   /* The head's own separator on hover: a neutral line, not `inherit`, which
@@ -858,7 +869,7 @@
     grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: start;
     gap: var(--sf-a8);
-    padding: var(--sf-a8);
+    padding: var(--sf-table--list-text-inset, var(--sf-a8));
     border-block-end: var(--sf-px) solid var(--sf-outline-variant);
     background-color: var(--sf-table-row--background-color, var(--sf-surface-page));
   }
@@ -924,20 +935,20 @@
     font-weight: 500;
   }
 
+  /* One fixed grid (VR14-8): a field a line, the labels in one column and
+     the values in the next, the same in every row; the pairs flowed one
+     after another and broke unevenly, two on a line in one row and one in
+     the next. */
   :is(sf-view-table, sf-table) .sf-table-list-fields {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+    align-items: center;
     gap: var(--sf-a4) var(--sf-space-1\/2);
     min-inline-size: 0;
   }
 
   :is(sf-view-table, sf-table) .sf-table-list-field {
-    display: inline-flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--sf-a4);
-    min-inline-size: 0;
-    max-inline-size: 100%;
+    display: contents;
   }
 
   :is(sf-view-table, sf-table) .sf-table-list-label {
@@ -981,8 +992,10 @@
     container-type: inline-size;
     gap: var(--sf-px);
     /* No inline padding: the rows' fill runs from edge to edge, in line with
-       the field and the last button of the toolbar above (R077). */
-    padding-block: var(--sf-space-1\/4);
+       the field and the last button of the toolbar above (R077). Nothing
+       under the last row either (VL-12, view round 15): «Показать ещё»
+       stands its own 8 under the list, and the list's 4 made it 12. */
+    padding-block: var(--sf-space-1\/4) 0;
     padding-inline: 0;
     font-size: var(--sf-text-size-1\/2);
     line-height: var(--sf-text-height-1\/2);
@@ -1089,6 +1102,14 @@
     color: var(--sf-on-surface);
   }
 
+  /* A coloured state's word stays for a narrow list and a phone (LV3-24);
+     a wide resource list says it by the dot and its tip (C31). */
+  @container (inline-size >= 37.5rem) {
+    :is(sf-view-table, sf-table) .sf-table-resource-lead[data-coloured] {
+      display: none;
+    }
+  }
+
   :is(sf-view-table, sf-table) .sf-table-resource-facts {
     gap: var(--sf-space-1\/2);
   }
@@ -1128,13 +1149,35 @@
      quick actions fold into «more», and of the facts only the most worrying
      stays -- none when all is well. */
   @container (inline-size < 37.5rem) {
-    :is(sf-view-table, sf-table) .sf-table-resource-quick,
-    :is(sf-view-table, sf-table) .sf-table-resource-fact:not([data-worst]) {
+    :is(sf-view-table, sf-table) .sf-table-resource-quick {
+      display: none;
+    }
+
+    /* Every figure a row has, one under another at the end (LV3-13: one
+       fact only hid the due date); an empty place takes no line. */
+    :is(sf-view-table, sf-table) .sf-table-resource-facts {
+      flex-direction: column;
+      align-items: flex-end;
+      gap: var(--sf-a4);
+    }
+
+    :is(sf-view-table, sf-table) .sf-table-resource-fact:not(:has(sf-badge)) {
+      display: none;
+    }
+
+    /* A resource list with quick actions keeps C31: of its facts only the
+       most worrying stays, none when all is well. */
+    :is(sf-view-table, sf-table) [data-sf-quick-list] .sf-table-resource-facts {
+      flex-direction: row;
+    }
+
+    :is(sf-view-table, sf-table) [data-sf-quick-list] .sf-table-resource-fact:not([data-worst]) {
       display: none;
     }
 
     :is(sf-view-table, sf-table) .sf-table-resource-fact {
       inline-size: auto;
+      white-space: nowrap;
     }
 
     :is(sf-view-table, sf-table) .sf-table-resource-actions {
@@ -1450,6 +1493,20 @@
 
   :is(sf-view-table, sf-table) .sf-table-rail[hidden] {
     display: none;
+  }
+
+  /* In a list whose «Показать ещё» follows the rows (view round 17, VN-3,
+     register VL-12): the rail takes no room after the rows. It was an empty
+     strip of 15 px at rest (its 1 px track and the 14 px strip the drawn bar
+     lies over, C210), so the button stood 27 under the last row where D1 asks
+     12. The rail keeps its place and its scroll, laid over the gap above the
+     button, without the page fill (the drawn bar is painted only while it
+     shows). sf-view raises the button's holder over it (z-index 6, js/
+     first-paint.css): a press on the button's top edge is the button's, and
+     the empty gap still lets the pointer reach the rail and its bar. */
+  :is(sf-view, sf-data-view):has(> [slot="more"]:not([hidden])) sf-view-table .sf-table-rail:not([hidden]) {
+    margin-block-end: calc(-1 * (var(--sf-px) + var(--sf-scroll-bg-width)));
+    background-color: transparent;
   }
 
   :is(sf-view-table, sf-table) .sf-table-rail-track {

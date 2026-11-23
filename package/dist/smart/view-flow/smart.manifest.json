@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-flow",
-  "version": "1.1.7",
+  "version": "1.3.0",
   "title": "Flow block",
   "summary": "A few properties as a block in a flow (a chat message, a feed, any stream): shows a record's fields, or asks for a few and sends them, then keeps the answer read-only. Fields are sf-view-properties' descriptors drawn by the Framework field renderers; a press is an event, the host answers with settle.",
   "kind": "smart",
@@ -52,7 +52,8 @@
       "smart.slider-range",
       "smart.spinner",
       "smart.switch",
-      "smart.tag"
+      "smart.tag",
+      "smart.view-common"
     ],
     "public_parts": []
   },
@@ -487,6 +488,20 @@
         "changes": [
           "View round 13 (round/view-r13): the bundled view-properties js/field-value.js draws the empty value as <span class=\"sf-property-view-empty\"> without color-on-surface-variant (the sheet gives the same ink)."
         ]
+      },
+      {
+        "from": "1.1.7",
+        "to": "1.2.0",
+        "changes": [
+          "View modular step 1 (round/view-modular-1): takes the Framework field renderers, formats and conditions from the package core smart/view-common once per page (through sf-view-properties' field value, which it still bundles with the Framework confirm surface: the one allowed duplicate of the bundles gate, bundle-budgets.json, so a list without a flow block does not carry them); relation cl-view-common."
+        ]
+      },
+      {
+        "from": "1.2.0",
+        "to": "1.3.0",
+        "changes": [
+          "View round 15m: round/view-r14 and round/view-modular-1 joined into one line (merge, no rebase); the number is above both branches."
+        ]
       }
     ]
   },
@@ -512,7 +527,7 @@
       },
       {
         "path": "src/smart/view-properties/js/field-value.js",
-        "sha256": "8773043c226a0aba2b261086d53522be5d40444f15559447d0937cbcc1afc8df"
+        "sha256": "5a74dd04d9e634b60d0048300dbc501609b6128def2e8aa08905d2835010a6d3"
       },
       {
         "path": "src/smart/view-properties/js/conditions.js",
@@ -524,7 +539,7 @@
       },
       {
         "path": "src/smart/view-flow/rule.js",
-        "sha256": "7dcd2bb147ab45091906a27e898fb4a41788fbb028a8c104854d40c3494b1580"
+        "sha256": "05569fbdd20b30f66d51ab0c824a1b70639db00349ff10be31a2541c0f6ee09b"
       },
       {
         "path": "src/smart/view-flow/docs.md",

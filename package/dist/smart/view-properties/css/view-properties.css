@@ -705,6 +705,25 @@
     background-color: var(--sf-surface-2);
     border-top: var(--sf-px) solid var(--sf-outline-variant);
   }
+  /* The bar is the panel's own foot, held there by the panel's column (above).
+     Since the pair ui-b4f79e1c58b7 sf-drawer holds a row of buttons its
+     content writes last at the panel's foot (D-SCROLL, core window-footer
+     content-actions): it matched this bar when it holds buttons alone
+     (arranging) and gave it a sticky place, the drawer's end inset as padding
+     and the same inset back as a negative margin -- which the panel had
+     already taken back (its negative block margin), so the panel scrolled 16
+     px (view round 17). The bar keeps its own geometry; the id in :is() only
+     weighs the rule above the drawer's long selector (nothing has that id). */
+  .sf-property-view-panel > .sf-property-view-actions:is(.sf-property-view-actions, #sf-property-view-own-foot) {
+    position: static;
+    margin-bottom: 0;
+    -webkit-margin-after: 0;
+            margin-block-end: 0;
+    padding-top: var(--sf-space-1);
+    padding-bottom: var(--sf-space-1);
+    padding-block: var(--sf-space-1);
+    box-shadow: none;
+  }
   /* Save and cancel hold the end of the bar; what is said about the edit, and
      the record's own actions, hold the start. */
   /* The group being edited says so, so a person can see which card the bar at the
@@ -962,6 +981,18 @@
     -webkit-margin-start: calc(-1 * var(--sf-table--row-text-inset, 0px));
             margin-inline-start: calc(-1 * var(--sf-table--row-text-inset, 0px));
   }
+  /* Drawn as the list's own rows (a phone width, view round 14 RV4-12), the
+     list is pulled out by the list row's inset instead. */
+  .sf-property-view-group-related:has(.sf-table-list-item):where(:dir(ltr)){
+    margin-left: calc(-1 * var(--sf-table--list-text-inset, 0px));
+  }
+  .sf-property-view-group-related:has(.sf-table-list-item):where(:dir(rtl)){
+    margin-right: calc(-1 * var(--sf-table--list-text-inset, 0px));
+  }
+  .sf-property-view-group-related:has(.sf-table-list-item) {
+    -webkit-margin-start: calc(-1 * var(--sf-table--list-text-inset, 0px));
+            margin-inline-start: calc(-1 * var(--sf-table--list-text-inset, 0px));
+  }
   /* A record that holds nothing says so, rather than being an empty box that
      reads as something still loading. */
   .sf-property-view-empty-record {
@@ -1186,6 +1217,22 @@
        reason the handle gives. */
     --sf-icon--color: var(--sf-on-surface-variant);
   }
+  /* A choice drawn as its badge sits on the label's baseline (DEV on view
+     round 13: the badge row was 1 px off). The badge's type is a step
+     smaller, so a centred badge put its text above the label's line; in the
+     button's own line the badge aligns its text to the line's baseline, the
+     label's line of the same size and height. */
+  .sf-property-view-field-open.sf-property-view-quick-value:has(> sf-badge) {
+    display: inline-block;
+    align-self: flex-start;
+  }
+  .sf-property-view-field-open.sf-property-view-quick-value:has(> sf-badge) > sf-badge > .sf-badge {
+    display: inline-flex;
+    vertical-align: baseline;
+  }
+  .sf-property-view-field-open.sf-property-view-quick-value:has(> sf-badge) > .sf-icon {
+    display: inline-flex;
+  }
   .sf-property-view-field-open:hover .sf-property-view-pen,
   .sf-property-view-field-open.focus-visible .sf-property-view-pen {
     opacity: 1;
@@ -1297,6 +1344,17 @@
   .sf-property-view-group--list .sf-property-view-group-title {
     font-size: inherit;
     line-height: inherit;
+  }
+  /* A block's title stands a rung above its fields (LV4-12): «Основное» was
+     the fields' own 16, read as one more field. 16 over fields of 14 (size
+     1/2), 20 over 16 (size 1); compact densities move with the ladder. */
+  .sf-list-description--size-half .sf-property-view-group--list .sf-property-view-group-title {
+    font-size: var(--sf-text-size-1);
+    line-height: var(--sf-text-height-1);
+  }
+  .sf-list-description--size-1 .sf-property-view-group--list .sf-property-view-group-title {
+    font-size: var(--sf-text-size-2);
+    line-height: var(--sf-text-height-2);
   }
   /* The value's line keeps its room from the first frame (VW-1, C8): a row is
      the rung's control height whatever arrives in it, a value that upgrades
@@ -1412,6 +1470,43 @@
   .sf-property-view-sections:has(> sf-tabs) {
     width: var(--sf-view-properties-sections-width, var(--sf-property-view--sections-width, 12rem));
     inline-size: var(--sf-view-properties-sections-width, var(--sf-property-view--sections-width, 12rem));
+  }
+  /* The column of the full screen and of «Поверх» (C399: always a column on
+     the left) is the column's width, its sections as wide as it: the
+     vertical tabs kept the width of their longest name, so the full screen
+     showed a column of 99 px inside its 192 (owner, 2026-11-22). */
+  .sf-property-view-panel[data-sections-layout=column] .sf-property-view-sections :is(.sf-tabs-top-container, .sf-tabs-top) {
+    flex: 1 1 auto;
+    width: 100%;
+    inline-size: 100%;
+    align-items: stretch;
+  }
+  .sf-property-view-panel[data-sections-layout=column] .sf-property-view-sections .sf-tabs-top > sf-button > button {
+    width: 100%;
+    inline-size: 100%;
+    justify-content: flex-start;
+  }
+  /* The rail of a side panel (owner decision C403): icons and names as wide
+     as the longest name, at most 10rem; a longer name is cut with «…». */
+  .sf-property-view-panel[data-sections-layout=rail] .sf-property-view-sections {
+    width: -webkit-max-content;
+    width: -moz-max-content;
+    width: max-content;
+    inline-size: -webkit-max-content;
+    inline-size: -moz-max-content;
+    inline-size: max-content;
+    max-width: 10rem;
+    max-inline-size: 10rem;
+    flex: none;
+    padding-left: 0;
+    padding-right: 0;
+    padding-inline: 0;
+  }
+  /* Narrow means narrow: the rail stands half a step from the fields. */
+  .sf-property-view-panel[data-sections-layout=rail] .sf-property-view-scroll {
+    -webkit-column-gap: var(--sf-space-1\/2);
+       -moz-column-gap: var(--sf-space-1\/2);
+            column-gap: var(--sf-space-1\/2);
   }
   /* Stacked (arranging in a panel, C311 (4)), the list is a row of the panel's
      width over the fields, not a column. */
@@ -1580,6 +1675,29 @@
          -moz-column-gap: var(--sf-space-1);
               column-gap: var(--sf-space-1);
     }
+    /* C401 on the full screen (VR13-2): «Изменить» keeps the two columns of
+       reading, each label beside its field on the same axis, so a value
+       becomes its field in place: the form went to one column with a third
+       of the width for its labels, moving «Клиент» 403 px left and the values
+       99 px right. */
+    .sf-property-view-list .sf-property-view-group--form :is(.sf-form, .sf-form[data-labels]) .sf-form-fields {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      -webkit-column-gap: var(--sf-space-2);
+         -moz-column-gap: var(--sf-space-2);
+              column-gap: var(--sf-space-2);
+    }
+    /* The pair ui-b4f79e1c58b7's sf-form (C401 labels beside from 20rem)
+       spans each field across its fields' grid (grid-column 1 / -1, a
+       subgrid of one label column): here each field keeps its own cell of
+       the two columns and its own label column (view round 17); the
+       selectors weigh more than sf-form's .sf-form[data-labels="start"]. */
+    .sf-property-view-list .sf-property-view-group--form :is(.sf-form, .sf-form[data-labels]) .sf-form-field {
+      grid-column: auto;
+      grid-template-columns: minmax(0, var(--sf-view-properties-label-width, 10rem)) minmax(0, 1fr);
+      -webkit-column-gap: var(--sf-space-1);
+         -moz-column-gap: var(--sf-space-1);
+              column-gap: var(--sf-space-1);
+    }
   }
   /* ─── View round 13: owner decisions C400-C402 (the record).
      C400: a field's label is its value's size (14; 12 at the compact
@@ -1591,14 +1709,13 @@
     line-height: var(--sf-list-description--line);
     color: var(--sf-on-surface-variant);
   }
-  /* C402: an empty value keeps its words («не заполнено») (VRS-5). Its ink
-     stays --sf-on-surface-variant: C402 asks for --sf-on-surface-muted,
-     paler than the label, but that role is the disabled ink (C43) at 3.10:1
-     on the light page, below the 4.5:1 text needs, and the SIMAI Framework's
-     gate keeps it off readable text (muted-role contract). The paler ink
-     waits for the owner's answer. */
+  /* C402: an empty value keeps its words («не заполнено») (VRS-5), paler
+     than the label and still text: the SIMAI Framework's not-set ink
+     --sf-on-surface-not-set (VL-65; the text ink at the ink family's 64,
+     4.5:1 at the least). A pair without that role keeps the label's ink,
+     --sf-on-surface-variant, as before. */
   .sf-property-view-empty {
-    color: var(--sf-on-surface-variant);
+    color: var(--sf-on-surface-not-set, var(--sf-on-surface-variant));
   }
   /* C401: «Изменить» turns the values into their fields in place: the group
      stays a part of the record's list (no frame, no fill, no inner padding,
@@ -1618,6 +1735,42 @@
     border-bottom: 0;
     -webkit-border-after: 0;
             border-block-end: 0;
+  }
+  /* VR14-3 (view round 15m): an edited group keeps the head it read with;
+     the head's «Изменить» stays as an unseen stand-in holding its height. */
+  .sf-property-view-group-action-kept {
+    visibility: hidden;
+  }
+  /* VL-64 / VR14-3 (view round 15, C401): a value read in the record's list
+     takes the room of the field it turns into -- the list's control height,
+     40 at the normal density and 32 at the compact one -- so «Изменить»
+     moves no row. The value's text stands in the middle of that room, as
+     the field's text does. Beside its value (a wide list) the label stands
+     on the same line: it keeps the room above it the value has. */
+  .sf-property-view-list .sf-property-view-row > .sf-list-description-value {
+    min-height: var(--sf-list-description--control);
+    min-block-size: var(--sf-list-description--control);
+    justify-content: center;
+  }
+  @media (min-width: 44rem) {
+    @container not (max-width: 20rem) {
+      .sf-property-view-list.sf-list-description--layout-auto .sf-property-view-row > .sf-list-description-label {
+        padding-top: calc((var(--sf-list-description--control) - var(--sf-list-description--line)) / 2);
+        padding-bottom: calc((var(--sf-list-description--control) - var(--sf-list-description--line)) / 2);
+        padding-block: calc((var(--sf-list-description--control) - var(--sf-list-description--line)) / 2);
+      }
+    }
+  }
+  /* A group edited in place (the card's own form, a group sf-form does not
+     draw) is the read group's list: its rows are the read rows (the same
+     label column, no 21 px card inset), the label in the text ink of a form
+     field (C153 (1)). */
+  .sf-property-view-row--edit > .sf-list-description-label {
+    color: var(--sf-on-surface);
+  }
+  .sf-property-view-row--edit > .sf-list-description-value > .sf-property-view-field-value {
+    min-height: var(--sf-list-description--control);
+    min-block-size: var(--sf-list-description--control);
   }
 }
 @layer sf.components {

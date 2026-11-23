@@ -412,19 +412,20 @@
      the start, the page-size button, the page field last; where they do not
      fit, the page field takes a line of its own and still ends there. */
   .sf-data-view-skeleton-footer {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     align-items: center;
-    gap: var(--sf-space-1);
+    grid-gap: var(--sf-space-1\/2) var(--sf-space-1);
+    gap: var(--sf-space-1\/2) var(--sf-space-1);
     box-sizing: border-box;
-    min-height: calc(2 * var(--sf-space-1) + var(--sf-data-view-skeleton--control) + var(--sf-px));
-    min-block-size: calc(2 * var(--sf-space-1) + var(--sf-data-view-skeleton--control) + var(--sf-px));
-    padding-top: var(--sf-space-1);
-    padding-bottom: var(--sf-space-1);
-    padding-block: var(--sf-space-1);
-    border-bottom: var(--sf-px) solid var(--sf-outline-variant);
-    -webkit-border-after: var(--sf-px) solid var(--sf-outline-variant);
-            border-block-end: var(--sf-px) solid var(--sf-outline-variant);
+    min-height: calc(2 * var(--sf-space-1\/2) + var(--sf-data-view-skeleton--control));
+    min-block-size: calc(2 * var(--sf-space-1\/2) + var(--sf-data-view-skeleton--control));
+    margin-top: calc(-1 * var(--sf-data-view-gap, var(--sf-space-3)));
+    -webkit-margin-before: calc(-1 * var(--sf-data-view-gap, var(--sf-space-3)));
+            margin-block-start: calc(-1 * var(--sf-data-view-gap, var(--sf-space-3)));
+    padding-top: var(--sf-space-1\/2);
+    padding-bottom: var(--sf-space-1\/2);
+    padding-block: var(--sf-space-1\/2);
   }
   /* The page numbers go where the list goes on by «Показать ещё» alone or
      by itself (D1): the view marks its page row. Important: a part host
@@ -433,32 +434,52 @@
     display: none !important;
   }
   /* «Показать ещё» across the list under its last row (D1), as the live
-     view draws it: half a space step under the rows, not the layout's gap. */
+     view draws it: 12 under the rows (half a space step with a floor of 12,
+     view round 17), not the layout's gap. */
   .sf-data-view-skeleton-more {
     margin-top: calc(-1 * var(--sf-data-view-gap, var(--sf-space-3)));
     -webkit-margin-before: calc(-1 * var(--sf-data-view-gap, var(--sf-space-3)));
             margin-block-start: calc(-1 * var(--sf-data-view-gap, var(--sf-space-3)));
-    padding-top: var(--sf-space-1\/2);
-    padding-bottom: var(--sf-space-1\/2);
-    padding-block: var(--sf-space-1\/2);
+    padding-top: max(var(--sf-space-1\/2), var(--sf-b2));
+    padding-bottom: max(var(--sf-space-1\/2), var(--sf-b2));
+    padding-block: max(var(--sf-space-1\/2), var(--sf-b2));
+  }
+  /* The live «Показать ещё» stands over the table's sideways rail, which
+     takes no room after the rows (view round 17, VN-3; sf-view-table's sheet
+     lays the rail over the gap, sticky at z-index 5): the holder is raised
+     above it, so a press on the button's top edge is the button's. The
+     holder the view makes lets the pointer through its empty gap to the rail
+     and its drawn bar; only the button takes it. */
+  :is(sf-view, sf-data-view) > [slot=more] {
+    position: relative;
+    z-index: 6;
+  }
+  :is(sf-view, sf-data-view) > .sf-view-more[data-sf-view-made] {
+    pointer-events: none;
+  }
+  :is(sf-view, sf-data-view) > .sf-view-more[data-sf-view-made] sf-button {
+    pointer-events: auto;
   }
   .sf-data-view-skeleton .sf-data-view-skeleton-more > .sf-skeleton-text[data-control=more] {
     width: 100%;
     inline-size: 100%;
   }
+  /* As the live footer (C404): the range in the first column, «По 20» in
+     the last, the page numbers in the centre. */
   .sf-data-view-skeleton-footer-start {
-    display: flex;
-    flex: 1 1 auto;
-    align-items: center;
-    gap: var(--sf-space-1);
-    min-width: 0;
-    min-inline-size: 0;
+    display: contents;
   }
   /* The range: as long as the words it stands for. */
   .sf-data-view-skeleton-footer-start > span {
-    flex: 1 1 auto;
+    grid-column: 1;
+    grid-row: 1;
     min-width: 0;
     min-inline-size: 0;
+  }
+  .sf-data-view-skeleton-footer-start > .sf-skeleton-text[data-control=size] {
+    grid-column: -2;
+    grid-row: 1;
+    justify-self: end;
   }
   .sf-data-view-skeleton-footer-start > span > .sf-skeleton-text {
     width: 6em;
@@ -466,18 +487,28 @@
   }
   /* The page row: first, previous, the field of one digit with «из N» (2.5
      controls), next, last, with the pagination's gap between them. */
-  .sf-data-view-skeleton-footer-pages:where(:dir(ltr)){
-    margin-left: auto;
-  }
-  .sf-data-view-skeleton-footer-pages:where(:dir(rtl)){
-    margin-right: auto;
-  }
   .sf-data-view-skeleton-footer-pages {
     display: flex;
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: center;
     align-items: center;
     gap: var(--sf-pagination-gap, var(--sf-space-1\/3));
-    -webkit-margin-start: auto;
-            margin-inline-start: auto;
+  }
+  @container (width < 37.5rem) {
+    .sf-data-view-skeleton-footer {
+      grid-template-columns: minmax(0, 1fr) auto;
+    }
+    .sf-data-view-skeleton-footer-pages {
+      grid-column: 1/-1;
+      grid-row: 2;
+    }
+    /* 8 under the rows on a phone, as the live view (D1, VL-12). */
+    .sf-data-view-skeleton-more {
+      padding-top: var(--sf-space-1\/3);
+      padding-bottom: var(--sf-space-1\/3);
+      padding-block: var(--sf-space-1\/3);
+    }
   }
   .sf-data-view-skeleton-footer .sf-skeleton-text[data-control=page] {
     width: calc(var(--sf-data-view-skeleton--control) * 2.5);
@@ -488,22 +519,27 @@
     width: calc(var(--sf-data-view-skeleton--control) * 2.75);
     inline-size: calc(var(--sf-data-view-skeleton--control) * 2.75);
   }
-  /* The live footer's start (slot footer of the view): the range, the offer
-     to count, then the page-size button at its end, beside the page row. */
+  /* The live footer (slot footer of the view, C404): its start holds the
+     range and the offer to count (the first column of the view's footer
+     grid) and «По 20 ▾», which stands in the last column, at the end; the
+     page numbers are in the centre. The start and the button's host are
+     display: contents, so their parts are the grid's items. */
   :is(sf-view, sf-data-view) > .sf-view-footer-start {
-    display: flex;
-    align-items: center;
-    gap: var(--sf-space-1);
-    min-width: 0;
-    min-inline-size: 0;
+    display: contents;
   }
   :is(sf-view, sf-data-view) > .sf-view-footer-start > .sf-view-footer-total {
     display: flex;
-    flex: 1 1 auto;
+    grid-column: 1;
+    grid-row: 1;
     align-items: center;
     gap: var(--sf-space-1\/3);
     min-width: 0;
     min-inline-size: 0;
+  }
+  :is(sf-view, sf-data-view) > .sf-view-footer-start > .sf-view-footer-size > button {
+    grid-column: -2;
+    grid-row: 1;
+    justify-self: end;
   }
   /* The range: the step's text in the quiet ink, figures of one width so the
      number does not move its neighbours while a person pages. */
@@ -524,18 +560,17 @@
   :is(sf-view, sf-data-view) > .sf-view-footer-start [hidden] {
     display: none;
   }
-  /* The page row ends the footer, on its own line too where it wraps
-     (sf-pagination's host is display: contents: its nav is the footer's
-     item). */
-  :is(sf-view, sf-data-view) > sf-pagination[slot=pagination] > nav:where(:dir(ltr)){
-    margin-left: auto;
-  }
-  :is(sf-view, sf-data-view) > sf-pagination[slot=pagination] > nav:where(:dir(rtl)){
-    margin-right: auto;
-  }
+  /* The page numbers in the footer's centre (C404; sf-pagination's host is
+     display: contents: its nav is the footer's item); under 37.5rem of the
+     list on a line of their own, centred. */
   :is(sf-view, sf-data-view) > sf-pagination[slot=pagination] > nav {
-    -webkit-margin-start: auto;
-            margin-inline-start: auto;
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: center;
+  }
+  :is(sf-view, sf-data-view)[data-sf-view-footer-narrow] > sf-pagination[slot=pagination] > nav {
+    grid-column: 1/-1;
+    grid-row: 2;
   }
   .sf-data-view-skeleton[data-layout=list] .sf-data-view-skeleton-table {
     display: none;
@@ -767,10 +802,12 @@
     min-width: 0;
     min-inline-size: 0;
   }
-  .sf-data-view-skeleton-cards > div > i {
-    height: var(--sf-text-height-1\/2);
-    block-size: var(--sf-text-height-1\/2);
-  }
+  /* The bars of a card are the list's text bars (the box of
+     .sf-data-view-skeleton .sf-skeleton-text: a line's room, the bar in the
+     middle). They had a block size of their own here, which the skeleton
+     component's sheet replaces when it arrives through the Loader: every card
+     shrank by 4-8 px then, on any line (shift 0.0016 at 1440, 0.0098 at 390;
+     the slow-line case of gate 24, MOD1-1). */
   /* The fields one under the other, a label over each value (D3): half a
      space step under the title, a third of a step apart. */
   .sf-data-view-skeleton-cards [data-part=fields] {
@@ -784,13 +821,7 @@
   .sf-data-view-skeleton-cards [data-part=fields] > span {
     display: grid;
   }
-  .sf-data-view-skeleton-cards [data-part=fields] > span > i {
-    height: var(--sf-text-height-1\/2);
-    block-size: var(--sf-text-height-1\/2);
-  }
   .sf-data-view-skeleton-cards [data-part=fields] > span > i[data-part=label] {
-    height: var(--sf-text-height-1\/3);
-    block-size: var(--sf-text-height-1\/3);
     width: 40%;
     inline-size: 40%;
   }
@@ -953,13 +984,14 @@ _:-ms-input-placeholder, [dir="rtl"] .sf-view-head-title-end{
   flex: none;
 }
 
+/* One gap by role (C105 H5, LV4-14): «Фильтр», the chips and «Очистить» are
+   buttons of one group, 8 apart (4 compact), as the row's own gap; the chips
+   stood 4 apart with «Фильтр» 8 from the first. */
+/* The chips are items of the start's own line (VL-07, C404): right after
+   «Фильтр» and its bookmark, the chip gap apart, wrapping after them; as a
+   box of their own they wrapped whole onto a line under «Фильтр». */
 .sf-view-head-fields {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--sf-space-1\/4);
-  min-width: 0;
-  min-inline-size: 0;
+  display: contents;
 }
 
 .sf-view-head-fields > * {
@@ -1023,27 +1055,49 @@ _:-ms-input-placeholder, [dir="rtl"] .sf-view-head-title-end{
 }
 
 /* The view zone (VZ-1, option D; owner C393, C394): below the head row, its
-   own frame (--sf-outline-variant 1 px, --sf-radius--surface), as wide as
-   what it holds; opened and closed by the view toggle first in the head row. */
+   own frame (--sf-outline-variant 1 px, --sf-radius--surface) across the
+   list's whole width (C404), «Колонки» and «Вид» at its end; opened and
+   closed by the view toggle first in the head row. */
 .sf-view-head-zone {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--sf-space-1\/3);
-  width: -webkit-fit-content;
-  width: -moz-fit-content;
-  width: fit-content;
-  inline-size: -webkit-fit-content;
-  inline-size: -moz-fit-content;
-  inline-size: fit-content;
+  width: 100%;
+  inline-size: 100%;
   max-width: 100%;
   max-inline-size: 100%;
   min-width: 0;
   min-inline-size: 0;
+  /* Its line does not widen the head (VM-2, view round 15): kept on one line,
+     the strip's own width pushed the head past the list at 768 px, the page
+     scrolled sideways and the observers of the list ran in a loop. The room
+     is the head's; what does not fit folds (js/head.js _layZone). */
+  contain: inline-size;
   box-sizing: border-box;
   padding: var(--sf-space-1\/3) var(--sf-space-1\/2);
   border: var(--sf-px) solid var(--sf-outline-variant);
   border-radius: var(--sf-radius--surface);
+}
+
+/* One line (VM-1): the display kinds fold into the kind menu where they do not
+   fit (js/head.js _layZone), so a record docked beside the list never wraps
+   the strip and moves the rows; only a strip that does not fit even folded
+   wraps (data-wrap). The phone strip keeps its own flow. */
+.sf-view-head:not([data-phone]) > .sf-view-head-zone:not([data-wrap]) {
+  flex-wrap: nowrap;
+}
+
+/* The strip folds the display kinds itself (VN-1, view round 16): on the
+   one-line strip the kinds' track keeps its width and never shrinks, so
+   sf-segmented never folds itself into a select there. Shrunk, the track
+   measured less than its labels and folded; folded, its select took more of
+   the line than the shrunk track had and it unfolded -- back and forth inside
+   one frame (pair b654: room 462 against need 491, select 508), the
+   «update loop limit» warning and a ResizeObserver loop. The strip's own
+   measure (js/head.js _layZoneNow) folds them into the kind menu instead. */
+.sf-view-head:not([data-phone]) > .sf-view-head-zone > [data-kinds] > :is(.sf-button-group, .sf-button-group-narrow) {
+  flex-shrink: 0;
 }
 
 .sf-view-head-zone[hidden] {
@@ -1070,6 +1124,56 @@ _:-ms-input-placeholder, [dir="rtl"] .sf-view-head-title-end{
 
 .sf-view-head-zone-line[hidden] {
   display: none;
+}
+
+_:-ms-input-placeholder, html:not([dir="rtl"]) .sf-view-head-zone-end{
+  margin-left: auto;
+}
+
+@supports not (margin-inline-start: initial){
+
+html:not([dir="rtl"]) .sf-view-head-zone-end{
+  margin-left: auto;
+  }
+}
+
+.sf-view-head-zone-end:where(:dir(ltr)){
+  margin-left: auto;
+}
+
+_:-ms-input-placeholder, [dir="rtl"] .sf-view-head-zone-end{
+  margin-right: auto;
+}
+
+@supports not (margin-inline-start: initial){
+
+[dir="rtl"] .sf-view-head-zone-end{
+  margin-right: auto;
+  }
+}
+
+.sf-view-head-zone-end:where(:dir(rtl)){
+  margin-right: auto;
+}
+
+.sf-view-head-zone-end {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: var(--sf-space-1\/3);
+  -webkit-margin-start: auto;
+          margin-inline-start: auto;
+  min-width: 0;
+  min-inline-size: 0;
+}
+
+.sf-view-head-zone-end > [hidden] {
+  display: none;
+}
+
+/* The drill menu of «Вид» draws nothing in the head's flow. */
+.sf-view-head > sf-settings[data-look-menu] {
+  display: contents;
 }
 
 /* The view toggle's look until the pair's sf-button-icon carries the toggle
@@ -1149,12 +1253,23 @@ _:-ms-input-placeholder, [dir="rtl"] .sf-view-head-title-end{
 }
 
 .sf-view-head[data-phone] .sf-view-head-fields {
+  display: flex;
+  align-items: center;
+  gap: var(--sf-space-1\/2) var(--sf-space-1\/3);
+  min-width: 0;
+  min-inline-size: 0;
   flex-wrap: nowrap;
   overflow-x: auto;
   contain: inline-size;
   padding-bottom: var(--sf-space-1\/4);
   -webkit-padding-after: var(--sf-space-1\/4);
           padding-block-end: var(--sf-space-1\/4);
+  /* The row scrolls by touch and wheel, with no track drawn under the chips (LV4-25). */
+  scrollbar-width: none;
+}
+
+.sf-view-head[data-phone] .sf-view-head-fields::-webkit-scrollbar {
+  display: none;
 }
 
 .sf-view-head-fields[hidden] {
@@ -1206,6 +1321,43 @@ sf-popover:not([open]) > .sf-view-head-panel[slot=content] {
 }
 
 .sf-view-head-saved > sf-icon {
+  color: var(--sf-on-surface-variant);
+}
+
+/* LV4-7: the marks and «⋯» stand at the row's end, every row's at one edge
+   (the menus stood after each name: right edges 306, 273, 274). */
+_:-ms-input-placeholder, html:not([dir="rtl"]) .sf-view-head-saved-end{
+  margin-left: auto;
+}
+@supports not (margin-inline-start: initial){
+html:not([dir="rtl"]) .sf-view-head-saved-end{
+  margin-left: auto;
+  }
+}
+.sf-view-head-saved-end:where(:dir(ltr)){
+  margin-left: auto;
+}
+_:-ms-input-placeholder, [dir="rtl"] .sf-view-head-saved-end{
+  margin-right: auto;
+}
+@supports not (margin-inline-start: initial){
+[dir="rtl"] .sf-view-head-saved-end{
+  margin-right: auto;
+  }
+}
+.sf-view-head-saved-end:where(:dir(rtl)){
+  margin-right: auto;
+}
+.sf-view-head-saved-end {
+  display: flex;
+  align-items: center;
+  gap: var(--sf-space-1\/3);
+  -webkit-margin-start: auto;
+          margin-inline-start: auto;
+  flex: none;
+}
+
+.sf-view-head-saved-end > sf-icon {
   color: var(--sf-on-surface-variant);
 }
 
@@ -1282,11 +1434,15 @@ sf-popover:not([open]) > .sf-view-head-panel[slot=content] {
    host's own content. */
 /* Both hosts may be display: contents, so their content stands aside too.
    The footer start stays where the view says the count of a board or cards
-   (data-sf-view-footer-count, view round 8 R67-1): «1–16 из 60». */
-:is(sf-view, sf-data-view)[data-display]:not([data-display=table]) > :is(:is(sf-view-table, sf-table)[slot=content], sf-pagination[slot=pagination]),
-:is(sf-view, sf-data-view)[data-display]:not([data-display=table]) > :is(:is(sf-view-table, sf-table)[slot=content], sf-pagination[slot=pagination]) > *,
-:is(sf-view, sf-data-view)[data-display]:not([data-display=table]):not([data-sf-view-footer-count]) > [slot=footer][data-sf-view-made],
-:is(sf-view, sf-data-view)[data-display]:not([data-display=table]):not([data-sf-view-footer-count]) > [slot=footer][data-sf-view-made] > * {
+   (data-sf-view-footer-count, view round 8 R67-1): «1–16 из 60». The cards
+   keep the list's page row (LV2-6): switched to by a click they lost it
+   (VR13-1), as this rule took the row of every kind but the table. */
+:is(sf-view, sf-data-view)[data-display]:not([data-display=table]) > :is(sf-view-table, sf-table)[slot=content],
+:is(sf-view, sf-data-view)[data-display]:not([data-display=table]) > :is(sf-view-table, sf-table)[slot=content] > *,
+:is(sf-view, sf-data-view)[data-display]:not([data-display=table]):not([data-display=cards]) > sf-pagination[slot=pagination],
+:is(sf-view, sf-data-view)[data-display]:not([data-display=table]):not([data-display=cards]) > sf-pagination[slot=pagination] > *,
+:is(sf-view, sf-data-view)[data-display]:not([data-display=table]):not([data-display=cards]):not([data-sf-view-footer-count]) > [slot=footer][data-sf-view-made],
+:is(sf-view, sf-data-view)[data-display]:not([data-display=table]):not([data-display=cards]):not([data-sf-view-footer-count]) > [slot=footer][data-sf-view-made] > * {
   display: none;
 }
 
@@ -1333,12 +1489,8 @@ sf-popover:not([open]) > .sf-view-head-panel[slot=content] {
 /* The view zone left open (VZ-1): its frame and one control row inside. */
 .sf-view-head-skeleton > div[data-zone] {
   justify-content: flex-start;
-  width: -webkit-fit-content;
-  width: -moz-fit-content;
-  width: fit-content;
-  inline-size: -webkit-fit-content;
-  inline-size: -moz-fit-content;
-  inline-size: fit-content;
+  width: 100%;
+  inline-size: 100%;
   box-sizing: border-box;
   height: calc(var(--sf-view-head--control-height) + 2 * var(--sf-space-1\/3) + 2 * var(--sf-px));
   block-size: calc(var(--sf-view-head--control-height) + 2 * var(--sf-space-1\/3) + 2 * var(--sf-px));

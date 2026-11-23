@@ -186,7 +186,7 @@
      narrow second column and a value beside its label broke into syllables).
      They start under the title, half a space step below the card's own gap
      (the first field stuck to the title), a third of a step apart; the label
-     a step smaller in the variant ink, the value in the card's ink. No field
+     in the variant ink at the value's size (LV4-16), the value in the card's ink. No field
      is ever cut: a value wraps at its spaces. Tabular digits for numbers. */
   .sf-view-cards__fields {
     margin-block-start: var(--sf-space-1\/2);
@@ -213,15 +213,18 @@
   .sf-view-cards__value,
   .sf-view-cards__values { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--sf-space-1\/4); max-inline-size: 100%; min-inline-size: 0; }
 
+  /* A field's label is its value's size in the variant ink (LV4-16, as the
+     kanban card and the record's C400): at size 1 both 16 (14 compact); the
+     label was a step smaller, 14 (12 compact). */
   .sf-view-cards__label {
-    font-size: var(--sf-text-size-1\/3);
-    line-height: var(--sf-text-height-1\/3);
+    font-size: var(--sf-text-size-1\/2);
+    line-height: var(--sf-text-height-1\/2);
     color: var(--sf-on-surface-variant);
   }
 
   .sf-view-cards[data-size="1"] .sf-view-cards__label {
-    font-size: var(--sf-text-size-1\/2);
-    line-height: var(--sf-text-height-1\/2);
+    font-size: var(--sf-text-size-1);
+    line-height: var(--sf-text-height-1);
   }
 
   .sf-view-cards__empty { display: flex; justify-content: center; padding-block: var(--sf-space-2); }

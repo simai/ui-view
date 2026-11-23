@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-table",
-  "version": "1.31.0",
+  "version": "1.37.0",
   "title": "Table",
   "summary": "Complete server-backed collection view with search, filters, table preferences, row and bulk actions, and pagination.",
   "kind": "composite",
@@ -60,7 +60,8 @@
       "smart.sortable",
       "smart.spinner",
       "smart.tabs",
-      "smart.tag"
+      "smart.tag",
+      "smart.view-common"
     ],
     "public_parts": [],
     "declarative": {
@@ -1876,7 +1877,7 @@
       "canonical": true
     },
     "sf-view-table-view-change": {
-      "summary": "view-change (vocabulary).",
+      "summary": "The table look changed (density, single line, lines): view is the whole look, everywhere true when it is kept for every list of the kind (the general personal preference; since view round 14 the default, owner decision C408), false when kept for this list alone.",
       "payload": {
         "type": "object",
         "required": [
@@ -3052,6 +3053,44 @@
           "VR5-10 (DEV msg-b581533a): settingsColumnHasUse returns false when actions is off, or rowActions is off on a table marked data-sf-row-menu-off (sf-view writes it for a host without row-actions), and rowReorder is not on.",
           "LV2-1: readFittedWidths keeps a short column's fitted width; only long-text types shrink to the text floor."
         ]
+      },
+      {
+        "from": "1.31.0",
+        "to": "1.33.0",
+        "changes": [
+          "View modular step 1 (round/view-modular-1): takes its shared code (the Framework field renderers, formats, conditions and filter window, and what two View components share) from the package core smart/view-common once per page, instead of a copy in its own bundle, its dictionaries and manifest actions included (sf-view reads them too); relation cl-view-common."
+        ]
+      },
+      {
+        "from": "1.33.0",
+        "to": "1.34.0",
+        "changes": [
+          "C406 column window from the gear and openColumnSettings, C408 the look kept for every table by default",
+          "LV3-11 phone fields, LV3-12 plain facts in cells, LV3-13 typed phone row figures, LV3-24 state word",
+          "RV4-2 the row menu marks nothing when nothing is marked",
+          "LV4-22 head label on the text line"
+        ]
+      },
+      {
+        "from": "1.34.0",
+        "to": "1.35.0",
+        "changes": [
+          "View round 15m: round/view-r14 and round/view-modular-1 joined into one line (merge, no rebase); the number is above both branches."
+        ]
+      },
+      {
+        "from": "1.35.0",
+        "to": "1.36.0",
+        "changes": [
+          "View round 15: VM-2 responsive columns, pinned offsets and rail synced in the next frame (_inNextFrame); VL-12 the resource list's bottom inset 0."
+        ]
+      },
+      {
+        "from": "1.36.0",
+        "to": "1.37.0",
+        "changes": [
+          "View round 17: repin on SIMAI Framework pair ui-b4f79e1c58b7 (ui-source e59dbad1c108, core.runtime 1.67.0); VN-3 the rail's margin-block-end -(1px + --sf-scroll-bg-width) and no fill under sf-view with a shown more slot; _waitsForView reads SF.Loader.settled; adoptSelectionGlyphs removed; option-badge.js provenance."
+        ]
       }
     ]
   },
@@ -3061,23 +3100,23 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-table/index.js",
-        "sha256": "d6ca15fd0f8811e0a77b9b2b08f81cd942066d7545824dab551533ba6c195494"
+        "sha256": "1c885528f37c406b4d57192509d9e205438916347c66489239bfe1d13d7f3981"
       },
       {
         "path": "src/smart/view-table/js/templates/default.js",
-        "sha256": "8c4b92ffe8f97d0079e06066fabc886542156c40435bb785c42ee35dbebdd4f8"
+        "sha256": "c37151bb91e54c87bbcdb2cab187d2c980134d4f6451f90ff40e93aaccdf38f0"
       },
       {
         "path": "src/smart/view-table/js/templates/default.css",
-        "sha256": "ae758c5a66f384c51f1f26dcec12d3bce2fafc9944967d555f2a447999095262"
+        "sha256": "bf7590e5e130553aae1058e0dd25058e81d42c9246daad4eda3327b4c727b8fd"
       },
       {
         "path": "src/smart/helpers/option-badge.js",
-        "sha256": "ad7638a3bc1c7baf8895dcd10b3eebcd08f47843c8f56a973a4e18974dc0dfca"
+        "sha256": "eae115413fa54f7c6fbb12fe2be205ad3b5aad8cb9ac0b982d0608d196f8815e"
       },
       {
         "path": "src/smart/view-table/rule.js",
-        "sha256": "4b63aae2d02533f4ff00c26be9843b39c6a5804a40745997dbf4f04dc2cb6b7c"
+        "sha256": "5a2542d11e049b606820a67eb7aeb15d4f421536bd2c633f0d66cd03a7a44747"
       },
       {
         "path": "src/smart/view-table/docs/smart-table-guide.md",
