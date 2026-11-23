@@ -46,6 +46,16 @@ newer): VN-3 (register VL-12) and the set on the pair. Evidence: ui-control
   typed-cells probe reads a choice badge on the line of the row text (VL-54).
 - The registry gives the board, the cards and the calendar `preview`: the
   pending entries of the passport test are gone.
+- `sf-view-properties` 1.31.1: the record keeps its layout over the pair. On
+  the whole screen «Изменить» keeps the two columns of reading, each label at
+  its read place (VR13-2, C401): the pair's `sf-form` spans a start-labelled
+  field across its grid, which moved «Клиент» 603 px left at 1440. The
+  panel's foot bar keeps its own place under `sf-drawer`'s new content
+  actions (D-SCROLL): it is no longer sticky with a negative margin, so
+  arranging the view does not scroll the panel by 16 px.
+- Browser probes follow the pair: the year marker's no-break space (A4), the
+  settings drop line as `SF.Sortable`'s indicator (VR11-5), sections that
+  never fold (`fold="never"`), the not-set ink composited in sRGB (C402).
 
 ## Unreleased — view round 16
 

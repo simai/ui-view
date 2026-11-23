@@ -608,6 +608,15 @@
     },
     {
       "unit": "smart.view-properties",
+      "version": "1.31.1",
+      "recorded_on": "2026-11-23",
+      "change": "patch",
+      "consumer": "Nothing to change for a host on the pair ui-b4f79e1c58b7. The record keeps its layout over the pair: on the whole screen «Изменить» keeps the two columns of reading, each label at its read place (VR13-2, C401; the pair's sf-form spans each start-labelled field across its grid, which moved «Клиент» 603 px left at 1440), and the panel's foot bar keeps its own place under sf-drawer's new content actions (D-SCROLL), so arranging the view no longer scrolls the panel by 16 px.",
+      "summary": "View round 17: the full-screen edit form's fields grid-column auto with their own label column over sf-form's start labels (selectors above .sf-form[data-labels]); the panel's foot bar position static, margin-block-end 0, padding-block --sf-space-1 over sf-drawer's content-actions rule.",
+      "evidence": "control/evidence/2026-11-23-view-r17/README.md"
+    },
+    {
+      "unit": "smart.view-properties",
       "version": "1.31.0",
       "recorded_on": "2026-11-22",
       "change": "minor",

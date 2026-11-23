@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-properties",
-  "version": "1.31.0",
+  "version": "1.31.1",
   "title": "Property view",
   "summary": "One object's fields shown as sections, groups and fields, each drawn by the per-type field renderer set, behind a separate host port. A group is edited and saved as one revision by the button, and a reference field is picked from the host's own candidates a page at a time. The pair to the data view: that one is a set of records, this one is a single object.",
   "kind": "composite",
@@ -2070,6 +2070,13 @@
         "changes": [
           "View round 15: VL-64 read values reserve the control height, beside their value the labels keep the room above it; in-place edit rows (renderEditRow, sf-property-view-group--in-place); VL-65 .sf-property-view-empty in --sf-on-surface-not-set with the label's ink as fallback."
         ]
+      },
+      {
+        "from": "1.31.0",
+        "to": "1.31.1",
+        "changes": [
+          "View round 17: the full-screen edit form's fields grid-column auto with their own label column over sf-form's start labels (selectors above .sf-form[data-labels]); the panel's foot bar position static, margin-block-end 0, padding-block --sf-space-1 over sf-drawer's content-actions rule."
+        ]
       }
     ]
   },
@@ -2087,7 +2094,7 @@
       },
       {
         "path": "src/smart/view-properties/js/templates/default.css",
-        "sha256": "14b072a27ce730b6bf1224b0cdf812eebb22ed8481d801d51ae315594ea0a31e"
+        "sha256": "0b31af8dca6b192d10ed597dd3579c5fa639a4293686ef412eb0720c6d0c6d68"
       },
       {
         "path": "src/smart/view-properties/js/conditions.js",
