@@ -56,6 +56,11 @@ newer): VN-3 (register VL-12) and the set on the pair. Evidence: ui-control
 - Browser probes follow the pair: the year marker's no-break space (A4), the
   settings drop line as `SF.Sortable`'s indicator (VR11-5), sections that
   never fold (`fold="never"`), the not-set ink composited in sRGB (C402).
+- First-paint snapshots rewritten by `scripts/run-first-paint.mjs snapshot` over
+  the pair (six files, no View markup change): the cards' choice badges are
+  on the row text line (`line="text"`, the badge padding variable of the
+  Pro option badge) and the flow's dates carry the year marker's no-break
+  space (A4).
 
 ## Unreleased — view round 16
 
