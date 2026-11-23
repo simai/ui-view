@@ -676,6 +676,22 @@
     border-top: var(--sf-px) solid var(--sf-outline-variant);
   }
 
+  /* The bar is the panel's own foot, held there by the panel's column (above).
+     Since the pair ui-b4f79e1c58b7 sf-drawer holds a row of buttons its
+     content writes last at the panel's foot (D-SCROLL, core window-footer
+     content-actions): it matched this bar when it holds buttons alone
+     (arranging) and gave it a sticky place, the drawer's end inset as padding
+     and the same inset back as a negative margin -- which the panel had
+     already taken back (its negative block margin), so the panel scrolled 16
+     px (view round 17). The bar keeps its own geometry; the id in :is() only
+     weighs the rule above the drawer's long selector (nothing has that id). */
+  .sf-property-view-panel > .sf-property-view-actions:is(.sf-property-view-actions, #sf-property-view-own-foot) {
+    position: static;
+    margin-block-end: 0;
+    padding-block: var(--sf-space-1);
+    box-shadow: none;
+  }
+
   /* Save and cancel hold the end of the bar; what is said about the edit, and
      the record's own actions, hold the start. */
 
