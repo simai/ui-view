@@ -81,7 +81,10 @@ try {
   if (JSON.stringify(cells.docs.map((one) => one.label)) !== '["Договор.pdf","Акт.pdf"]') note(`several documents draw ${JSON.stringify(cells.docs)}`);
   if (!cells.docs.every((one) => one.icon === 'picture_as_pdf')) note(`a document is drawn without its icon: ${JSON.stringify(cells.docs)}`);
   if (JSON.stringify(cells.one) !== '["Счёт № 45.pdf"]') note(`one document draws ${JSON.stringify(cells.one)}`);
-  const ru = (options, at) => new Intl.DateTimeFormat('ru', options).format(at);
+  // Since the pair ui-b4f79e1c58b7 (ui-source 4dab1cafc, 497d25069, core
+  // format-intl.js, A4) the year keeps its abbreviated marker: «2026 г.» is
+  // held by a no-break space, so it never wraps before «г.».
+  const ru = (options, at) => new Intl.DateTimeFormat('ru', options).format(at).replace(/(\d{4})[\s\u202f]+(?=\p{L}+\.)/gu, '$1\u00a0');
   const expected = {
     day: ru({dateStyle: 'medium'}, new Date(2026, 10, 2)),
     at: ru({dateStyle: 'medium', timeStyle: 'short'}, new Date(2026, 10, 15, 10, 30)),

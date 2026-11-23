@@ -1182,6 +1182,9 @@ try {
         const width = parent.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
         return {width, md: 44 * parseFloat(getComputedStyle(document.documentElement).fontSize)};
       })(),
+      // fold="never" (sf-tabs 1.5.0, pair ui-b4f79e1c58b7; set by the card
+      // while the column holds, VR11-1): the vertical list whatever its place.
+      fold: root.querySelector('.sf-property-view-sections sf-tabs')?.getAttribute('fold') ?? null,
       named: root.querySelector('.sf-property-view-sections sf-tabs')?.getAttribute('aria-label') ?? null,
       selected: tabs.filter((tab) => tab.getAttribute('aria-selected') === 'true').length,
       tree: Boolean(root.querySelector('.sf-property-view-sections sf-tree, .sf-property-view-sections .sf-tree')),
@@ -1434,7 +1437,7 @@ try {
     // TR-13, decision C96 point 5: the list is vertical tabs, not a tree; its
     // orientation follows its place (sf-tabs 1.4.0, C181 (2)).
     const list = measured.sectionList ?? {};
-    const folds = list.place ? list.place.width < list.place.md : null;
+    const folds = list.fold === 'never' ? false : list.place ? list.place.width < list.place.md : null;
     const orientation = folds === null ? null : folds ? 'horizontal' : 'vertical';
     if (list.onTop) {
       // VR11-1: tabs on top are the underline row, and no column is reserved.

@@ -1597,7 +1597,12 @@
       column-gap: var(--sf-space-2);
     }
 
+    /* The pair ui-b4f79e1c58b7's sf-form (C401 labels beside from 20rem)
+       spans each field across its fields' grid (grid-column 1 / -1, a
+       subgrid of one label column): here each field keeps its own cell of
+       the two columns and its own label column (view round 17). */
     .sf-property-view-list .sf-property-view-group--form .sf-form-field {
+      grid-column: auto;
       grid-template-columns: minmax(0, var(--sf-view-properties-label-width, 10rem)) minmax(0, 1fr);
       column-gap: var(--sf-space-1);
     }

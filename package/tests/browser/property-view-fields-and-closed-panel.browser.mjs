@@ -118,7 +118,10 @@ try {
   // Dates read in the page's language; the host's own text wins.
   const shown = await page.evaluate(() => Object.fromEntries(['birthday', 'meeting', 'workday'].map((key) => [key,
     document.querySelector(`#read [data-field="${key}"] .sf-field-view`)?.textContent.trim() ?? null])));
-  const ru = (options, at) => new Intl.DateTimeFormat('ru', options).format(at);
+  // Since the pair ui-b4f79e1c58b7 (ui-source 4dab1cafc, 497d25069, core
+  // format-intl.js, A4) the year keeps its abbreviated marker: «2026 г.» is
+  // held by a no-break space, so it never wraps before «г.».
+  const ru = (options, at) => new Intl.DateTimeFormat('ru', options).format(at).replace(/(\d{4})[\s\u202f]+(?=\p{L}+\.)/gu, '$1\u00a0');
   const expected = {
     birthday: ru({dateStyle: 'medium'}, new Date(1990, 3, 12)),
     meeting: ru({dateStyle: 'medium', timeStyle: 'short'}, new Date(2026, 10, 15, 10, 30)),

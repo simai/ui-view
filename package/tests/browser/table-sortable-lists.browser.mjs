@@ -107,8 +107,16 @@ try {
   await page.mouse.move(from.x + from.width / 2, onto.y + onto.height * 0.75, {steps: 10});
   const during = await page.evaluate((panel) => {
     const key = (node) => node?.querySelector('[data-sf-option]')?.dataset.sfOption ?? null;
+    // Since the pair ui-b4f79e1c58b7 (sf-settings 1.10.2, owner remark VR11-5)
+    // the place is SF.Sortable's drop line (.sf-sortable-indicator, owner
+    // sf-settings) across the list at the top of the row it lands before; the
+    // row's own drop-before class is gone.
+    const line = document.querySelector(`${panel} .sf-sortable-indicator[data-sf-drop-line-owner="sf-settings"]:not([hidden])`);
+    const at = line ? line.getBoundingClientRect() : null;
+    const rowAt = at ? [...document.querySelectorAll(`${panel} .sf-settings-row:not(.sf-settings-row--dragging)`)]
+      .find((node) => Math.abs(node.getBoundingClientRect().top - (at.top + at.height / 2)) <= 2) : null;
     return {dragging: key(document.querySelector(`${panel} .sf-settings-row--dragging`)),
-      dropBefore: key(document.querySelector(`${panel} .sf-settings-row--drop-before`))};
+      dropBefore: key(document.querySelector(`${panel} .sf-settings-row--drop-before`) ?? rowAt)};
   }, PANEL);
   await page.mouse.up();
   await page.waitForTimeout(600);

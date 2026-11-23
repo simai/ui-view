@@ -181,10 +181,20 @@ try {
       if (text.some((row) => row.label.color === row.value.color && !row.empty)) failures.push({...label, item: 'C400', got: 'the label in the value\'s ink'});
       // C402: «не заполнено», paler than the label.
       const empty = rows.find((row) => row.empty);
-      const labelInk = lum(text[0]?.label.color ?? 'rgb(0,0,0)');
-      const emptyInk = lum(empty?.empty.color ?? 'rgb(0,0,0)');
-      const page_ = lum(await page.evaluate(() => getComputedStyle(document.body).backgroundColor));
-      const apart = (ink) => Math.abs((ink.l * ink.a + page_.l * (1 - ink.a)) - page_.l);
+      // A translucent ink is laid over the page as the browser paints it: the
+      // channels mixed in sRGB, then the luminance (VL-65's not-set ink, the
+      // text ink at 64, reads paler than the label in dark too; mixing the
+      // luminances in linear light read it darker).
+      const channels = (color) => color.match(/[\d.]+/gu)?.map(Number) ?? [0, 0, 0];
+      const pageColor = channels(await page.evaluate(() => getComputedStyle(document.body).backgroundColor));
+      const over = (color) => {
+        const [r, g, b, a = 1] = channels(color);
+        return `rgb(${[r, g, b].map((v, i) => v * a + pageColor[i] * (1 - a)).join(', ')})`;
+      };
+      const labelInk = lum(over(text[0]?.label.color ?? 'rgb(0,0,0)'));
+      const emptyInk = lum(over(empty?.empty.color ?? 'rgb(0,0,0)'));
+      const page_ = lum(`rgb(${pageColor.slice(0, 3).join(', ')})`);
+      const apart = (ink) => Math.abs(ink.l - page_.l);
       if (!empty || empty.empty.text !== 'не заполнено') failures.push({...label, item: 'C402', got: empty?.empty ?? 'no empty value'});
       // The paler ink C402 names (--sf-on-surface-muted) is below 4.5:1 and the
       // SIMAI Framework keeps it off readable text: the empty value keeps the
