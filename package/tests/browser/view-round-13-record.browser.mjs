@@ -187,12 +187,12 @@ try {
       // luminances in linear light read it darker).
       const channels = (color) => color.match(/[\d.]+/gu)?.map(Number) ?? [0, 0, 0];
       const pageColor = channels(await page.evaluate(() => getComputedStyle(document.body).backgroundColor));
-      const over = (color) => {
+      const laid = (color) => {
         const [r, g, b, a = 1] = channels(color);
         return `rgb(${[r, g, b].map((v, i) => v * a + pageColor[i] * (1 - a)).join(', ')})`;
       };
-      const labelInk = lum(over(text[0]?.label.color ?? 'rgb(0,0,0)'));
-      const emptyInk = lum(over(empty?.empty.color ?? 'rgb(0,0,0)'));
+      const labelInk = lum(laid(text[0]?.label.color ?? 'rgb(0,0,0)'));
+      const emptyInk = lum(laid(empty?.empty.color ?? 'rgb(0,0,0)'));
       const page_ = lum(`rgb(${pageColor.slice(0, 3).join(', ')})`);
       const apart = (ink) => Math.abs(ink.l - page_.l);
       if (!empty || empty.empty.text !== 'не заполнено') failures.push({...label, item: 'C402', got: empty?.empty ?? 'no empty value'});

@@ -1592,7 +1592,7 @@
        becomes its field in place: the form went to one column with a third
        of the width for its labels, moving «Клиент» 403 px left and the values
        99 px right. */
-    .sf-property-view-list .sf-property-view-group--form .sf-form-fields {
+    .sf-property-view-list .sf-property-view-group--form :is(.sf-form, .sf-form[data-labels]) .sf-form-fields {
       grid-template-columns: repeat(2, minmax(0, 1fr));
       column-gap: var(--sf-space-2);
     }
@@ -1600,8 +1600,9 @@
     /* The pair ui-b4f79e1c58b7's sf-form (C401 labels beside from 20rem)
        spans each field across its fields' grid (grid-column 1 / -1, a
        subgrid of one label column): here each field keeps its own cell of
-       the two columns and its own label column (view round 17). */
-    .sf-property-view-list .sf-property-view-group--form .sf-form-field {
+       the two columns and its own label column (view round 17); the
+       selectors weigh more than sf-form's .sf-form[data-labels="start"]. */
+    .sf-property-view-list .sf-property-view-group--form :is(.sf-form, .sf-form[data-labels]) .sf-form-field {
       grid-column: auto;
       grid-template-columns: minmax(0, var(--sf-view-properties-label-width, 10rem)) minmax(0, 1fr);
       column-gap: var(--sf-space-1);
