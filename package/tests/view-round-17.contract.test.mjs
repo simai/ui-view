@@ -15,10 +15,12 @@ const read = (path) => readFileSync(resolve(root, path), 'utf8');
 const view = read('src/smart/view/index.js');
 const paint = read('src/smart/view/js/first-paint.css');
 const tableCss = read('src/smart/view-table/js/templates/default.css');
-const lock = JSON.parse(read('framework.lock.json'));
-const set = JSON.parse(read('set.json'));
+// The passport and the lock sit beside the overlay (SET_ROOT, as the passport tests read them).
+const setRoot = process.env.SET_ROOT;
 
-test('the set is pinned on the pair ui-b4f79e1c58b7 and needs its runtime', () => {
+test('the set is pinned on the pair ui-b4f79e1c58b7 and needs its runtime', {skip: !setRoot && 'SET_ROOT is not given'}, () => {
+  const lock = JSON.parse(readFileSync(resolve(setRoot, 'framework.lock.json'), 'utf8'));
+  const set = JSON.parse(readFileSync(resolve(setRoot, 'set.json'), 'utf8'));
   assert.equal(lock.source.revision, 'e59dbad1c10848ec4f2663f52c04aa14b7be39f6');
   assert.equal(set.framework.source_revision, lock.source.revision);
   assert.equal(set.framework.core_runtime, '>=1.67.0');
