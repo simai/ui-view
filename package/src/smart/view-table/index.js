@@ -1954,10 +1954,12 @@ class SfTable extends TableElement {
             // The view's module may have failed before this table was defined
             // (view modular step 1: sf-view relates to the table lazily, so a
             // table in the markup is asked for by the package core, and the
-            // view's script can err first): the Loader marks the view's tag
-            // failed for whoever waits (core pending-tags settled()), and the
-            // table draws on its own at once instead of at VIEW_WAIT_MS.
-            globalThis.SF?.__internal?.pendingTags?.settled?.(host.localName)
+            // view's script can err first): the Loader says the view's tag
+            // failed in public (SF.Loader.settled(tag), core.runtime 1.67.0,
+            // group build 17 L2; the core's internal pending tags before view
+            // round 17), and the table draws on its own at once instead of at
+            // VIEW_WAIT_MS.
+            globalThis.SF?.Loader?.settled?.(host.localName)
                 ?.then?.((how) => { if (how === "failed") done("failed"); });
         }
         return true;
@@ -8858,23 +8860,15 @@ class SfTable extends TableElement {
         loader.preloadIcons(['check', 'remove']);
     }
 
-    // A box checked since the last drawing names its tick now; the Loader's
-    // page observer marks such a glyph a few frames later (115 ms measured),
-    // so the drawing hands the new ticks over at once, as the Smart base hands
-    // over the glyphs of an ignored region (SF.Loader.adoptStaticIcons). Only
-    // the checked boxes' glyphs not yet marked: nothing per row otherwise.
-    adoptSelectionGlyphs() {
-        const loader = globalThis.SF?.Loader;
-        if (typeof loader?.adoptStaticIcons !== 'function') return;
-        for (const glyph of this.querySelectorAll('input[data-sf-row-box]:checked + .sf-icon:not(.sf-icon-loaded)')) {
-            loader.adoptStaticIcons(glyph);
-        }
-    }
+    // A box checked since the last drawing names its tick now. The Loader
+    // shows a renamed icon whose name its font already draws at once
+    // (core.runtime 1.67.0, group build 17 L1); before, its page observer
+    // marked it a few frames later (115 ms measured) and the table handed the
+    // new ticks over itself (adoptSelectionGlyphs, removed in view round 17).
 
     afterDraw() {
         this.noteContainerSettings();
         this.preloadSelectionGlyphs();
-        this.adoptSelectionGlyphs();
         this._observeResponsiveBox();
         this.bindRowActionsEvents(this.refs.table?.value);
         this.bindToolbarKeyboard();

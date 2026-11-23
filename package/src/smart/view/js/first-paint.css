@@ -382,10 +382,30 @@
   }
 
   /* «Показать ещё» across the list under its last row (D1), as the live
-     view draws it: half a space step under the rows, not the layout's gap. */
+     view draws it: 12 under the rows (half a space step with a floor of 12,
+     view round 17), not the layout's gap. */
   .sf-data-view-skeleton-more {
     margin-block-start: calc(-1 * var(--sf-data-view-gap, var(--sf-space-3)));
-    padding-block: var(--sf-space-1\/2);
+    padding-block: max(var(--sf-space-1\/2), var(--sf-b2));
+  }
+
+  /* The live «Показать ещё» stands over the table's sideways rail, which
+     takes no room after the rows (view round 17, VN-3; sf-view-table's sheet
+     lays the rail over the gap, sticky at z-index 5): the holder is raised
+     above it, so a press on the button's top edge is the button's. The
+     holder the view makes lets the pointer through its empty gap to the rail
+     and its drawn bar; only the button takes it. */
+  :is(sf-view, sf-data-view) > [slot="more"] {
+    position: relative;
+    z-index: 6;
+  }
+
+  :is(sf-view, sf-data-view) > .sf-view-more[data-sf-view-made] {
+    pointer-events: none;
+  }
+
+  :is(sf-view, sf-data-view) > .sf-view-more[data-sf-view-made] sf-button {
+    pointer-events: auto;
   }
 
   .sf-data-view-skeleton .sf-data-view-skeleton-more > .sf-skeleton-text[data-control="more"] {
@@ -429,6 +449,8 @@
   @container (width < 37.5rem) {
     .sf-data-view-skeleton-footer { grid-template-columns: minmax(0, 1fr) auto; }
     .sf-data-view-skeleton-footer-pages { grid-column: 1 / -1; grid-row: 2; }
+    /* 8 under the rows on a phone, as the live view (D1, VL-12). */
+    .sf-data-view-skeleton-more { padding-block: var(--sf-space-1\/3); }
   }
 
   .sf-data-view-skeleton-footer .sf-skeleton-text[data-control="page"] {

@@ -495,12 +495,15 @@ class SfDataView extends DataViewElement {
             :host(:not([data-sf-view-footer-count])) [part="footer"]:has(> slot[name="pagination"][hidden]) { display: none; }
             slot[name="footer"]::slotted(*) { min-inline-size: 0; }
             /* «Показать ещё» right under the last row, across the list (D1):
-               half a space step under the rows, not the layout's gap. The page
-               numbers stay in the footer below it («Вместе»), or go («Показать
-               ещё», «Бесконечно»). */
+               12 under the rows, not the layout's gap -- half a space step
+               with a floor of 12 (--sf-b2), as the fields' value inset (C77):
+               the half step is 8 below 60rem, and the register's VL-12 asks
+               12 at 768 too (view round 17, VN-3). The page numbers stay in
+               the footer below it («Вместе»), or go («Показать ещё»,
+               «Бесконечно»). */
             slot[name="more"]::slotted(*) {
               margin-block-start: calc(-1 * var(--sf-data-view-gap, var(--sf-space-3)));
-              padding-block: var(--sf-space-1\\/2);
+              padding-block: max(var(--sf-space-1\\/2), var(--sf-b2));
             }
             /* 8 under the rows on a phone (D1, VL-12). */
             :host([data-sf-view-footer-narrow]) slot[name="more"]::slotted(*) { padding-block: var(--sf-space-1\\/3); }
@@ -2409,17 +2412,17 @@ class SfDataView extends DataViewElement {
     // defined yet (MOD1-1). With the Loader bringing it (a rule claims the
     // tag), only when the Loader says the module failed to load: a time bound
     // would end the wait on a slow line and the list would move when the code
-    // came. The Loader's word is SIMAI Framework internal state
-    // (SF.__internal.pendingTags.settled, the same read as sf-view-table's
-    // _waitsForView; pinned by tests/view-kind-settled.contract.test.mjs until
-    // the Framework has a public call, Compatibility Ledger). Without the
+    // came. The Loader's word is its public call SF.Loader.settled(tag)
+    // ("defined" or "failed", never rejects; core.runtime 1.67.0, group build
+    // 17 L2), the same read as sf-view-table's _waitsForView; it replaced the
+    // read of the core's internal pending tags (view round 17). Without the
     // Loader, or a tag no rule claims (bundles included by hand), after 3 s as
     // before.
     _kindGivesUp(tag) {
-        const settled = globalThis.SF?.__internal?.pendingTags?.settled;
-        const claimed = Boolean(globalThis.SF?.Loader?.getCustomElementRules?.()?.[tag]);
-        if (typeof settled !== "function" || !claimed) return new Promise((done) => globalThis.setTimeout(done, 3000));
-        return Promise.resolve(settled(tag)).then((state) => (state === "failed" ? state : new Promise(() => {})));
+        const loader = globalThis.SF?.Loader;
+        const claimed = Boolean(loader?.getCustomElementRules?.()?.[tag]);
+        if (typeof loader?.settled !== "function" || !claimed) return new Promise((done) => globalThis.setTimeout(done, 3000));
+        return Promise.resolve(loader.settled(tag)).then((state) => (state === "failed" ? state : new Promise(() => {})));
     }
 
     // The cards' skeleton stays until sf-view-cards is defined and has drawn

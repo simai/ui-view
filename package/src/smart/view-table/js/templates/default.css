@@ -1494,6 +1494,20 @@
     display: none;
   }
 
+  /* In a list whose «Показать ещё» follows the rows (view round 17, VN-3,
+     register VL-12): the rail takes no room after the rows. It was an empty
+     strip of 15 px at rest (its 1 px track and the 14 px strip the drawn bar
+     lies over, C210), so the button stood 27 under the last row where D1 asks
+     12. The rail keeps its place and its scroll, laid over the gap above the
+     button, without the page fill (the drawn bar is painted only while it
+     shows). sf-view raises the button's holder over it (z-index 6, js/
+     first-paint.css): a press on the button's top edge is the button's, and
+     the empty gap still lets the pointer reach the rail and its bar. */
+  :is(sf-view, sf-data-view):has(> [slot="more"]:not([hidden])) sf-view-table .sf-table-rail:not([hidden]) {
+    margin-block-end: calc(-1 * (var(--sf-px) + var(--sf-scroll-bg-width)));
+    background-color: transparent;
+  }
+
   :is(sf-view-table, sf-table) .sf-table-rail-track {
     block-size: var(--sf-px);
   }
