@@ -108,16 +108,11 @@ test('the passport lists every component of the set and only them', {skip: !setR
 
 // Draft set standard §3.2 (VW-4, view round 1 F4): a component's status in
 // set.json is its status in the shared registry. sf-view-flow agrees since the
-// pair ui-b654460cad2a (preview in both). The pair registers the board, the
-// cards and the calendar by name as reserved; the set ships them as preview,
-// so each waits for the registry to say preview (ordered from SIMAI Framework
-// through the dispatcher, view round 9, 2026-11-20). An entry fails once the
-// registry agrees, so it is removed then.
-const STATUS_PENDING = {
-  'sf-view-board': {set: 'preview', registry: 'reserved', order: 'registry status reserved -> preview for sf-view-board in contracts/registry/names.json (view round 9, 2026-11-20)'},
-  'sf-view-cards': {set: 'preview', registry: 'reserved', order: 'registry status reserved -> preview for sf-view-cards in contracts/registry/names.json (view round 9, 2026-11-20)'},
-  'sf-view-calendar': {set: 'preview', registry: 'reserved', order: 'registry status reserved -> preview for sf-view-calendar in contracts/registry/names.json (view round 9, 2026-11-20)'},
-};
+// pair ui-b654460cad2a (preview in both); the board, the cards and the
+// calendar since the pair ui-b4f79e1c58b7 (the registry says preview, the
+// order of view round 9, 2026-11-20, is done; their pending entries were
+// removed in view round 17). A new entry here fails once the registry agrees.
+const STATUS_PENDING = {};
 
 test('each component has the status the registry gives it', {skip: !setRoot && 'SET_ROOT is not given'}, () => {
   const passport = json(join(setRoot, 'set.json'));

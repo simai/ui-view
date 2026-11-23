@@ -5,6 +5,15 @@
   "entries": [
     {
       "unit": "smart.view",
+      "version": "1.38.0",
+      "recorded_on": "2026-11-23",
+      "change": "minor",
+      "consumer": "Nothing to change for a host on the pair ui-b4f79e1c58b7 (the set now needs core.runtime 1.67.0 or newer). «Показать ещё» stands 12 under the last row at every desktop and tablet width (VN-3, register VL-12, C404, D1): half a space step with a floor of 12 (--sf-b2), as the fields' value inset (C77); it was 8 below 60rem. On a list under 37.5rem it stays 8, and the first paint's skeleton follows both. The view's «Показать ещё» holder stands over the table's sideways rail, which no longer takes room after the rows (sf-view-table 1.37.0): a press on the button's top edge is the button's, the empty gap above it still reaches the rail and its drawn bar. The view asks the SIMAI Framework Loader whether a display kind's module failed through its public call SF.Loader.settled(tag) (group build 17 L2), no longer the core's internal pending tags.",
+      "summary": "View round 17: repin on SIMAI Framework pair ui-b4f79e1c58b7 (ui-source e59dbad1c108, core.runtime 1.67.0); VN-3 the more slot padding max(--sf-space-1/2, --sf-b2) (12 at 768 too), the skeleton's the same and --sf-space-1/3 under 37.5rem, the more holder raised over the table rail (z-index 6, the view-made holder lets the pointer through its gap); _kindGivesUp reads SF.Loader.settled(tag).",
+      "evidence": "control/evidence/2026-11-23-view-r17/README.md"
+    },
+    {
+      "unit": "smart.view",
       "version": "1.37.1",
       "recorded_on": "2026-11-23",
       "change": "patch",
@@ -308,6 +317,15 @@
       "consumer": "Nothing to change for a host: the compact list toolbar keeps its spacing when the list comes.",
       "summary": "C144: the skeleton's compact list toolbar holds the field, filter and Создать --sf-space-1 apart, as sf-view-table 1.20.1 draws them (the field no longer moves 8 when the list comes)",
       "evidence": "https://github.com/simai/ui-view/commit/961bdae11e2749f69ac7fbb744b197b74e8c4a23"
+    },
+    {
+      "unit": "smart.view-table",
+      "version": "1.37.0",
+      "recorded_on": "2026-11-23",
+      "change": "minor",
+      "consumer": "Nothing to change for a host on the pair ui-b4f79e1c58b7. In a list whose «Показать ещё» follows the rows the sideways rail takes no room after the rows (VN-3, register VL-12): it was an empty 15 px strip at rest (its 1 px track and the 14 px strip of the drawn bar, C210), so the button stood 27 under the last row (23 at 768); it is 12 now at 1440, 1280, 1024 and 768. The rail keeps its place and scroll, laid without the page fill over the gap above the button; the bar still shows on hover and drags. The table waits for its view's module through SF.Loader.settled(tag) (group build 17 L2) and no longer hands a checked box's tick to the Loader itself (adoptSelectionGlyphs removed): the pair's Loader shows a renamed icon whose name its font draws at once (group build 17 L1). Provenance of the Framework helper option-badge.js follows the pair (group build 17 F2).",
+      "summary": "View round 17: repin on SIMAI Framework pair ui-b4f79e1c58b7 (ui-source e59dbad1c108, core.runtime 1.67.0); VN-3 the rail's margin-block-end -(1px + --sf-scroll-bg-width) and no fill under sf-view with a shown more slot; _waitsForView reads SF.Loader.settled; adoptSelectionGlyphs removed; option-badge.js provenance.",
+      "evidence": "control/evidence/2026-11-23-view-r17/README.md"
     },
     {
       "unit": "smart.view-table",
@@ -923,6 +941,15 @@
     },
     {
       "unit": "smart.view-board",
+      "version": "1.3.1",
+      "recorded_on": "2026-11-23",
+      "change": "patch",
+      "consumer": "Nothing to change for a host. Repinned on the pair ui-b4f79e1c58b7: the provenance of the Framework helper field-renderers/index.js follows the pair (group build 17 F4, FS-9); the code and the markup are unchanged.",
+      "summary": "View round 17: repin on SIMAI Framework pair ui-b4f79e1c58b7 (ui-source e59dbad1c108, core.runtime 1.67.0); provenance of src/smart/field-renderers/index.js.",
+      "evidence": "control/evidence/2026-11-23-view-r17/README.md"
+    },
+    {
+      "unit": "smart.view-board",
       "version": "1.3.0",
       "recorded_on": "2026-11-22",
       "change": "minor",
@@ -1010,6 +1037,15 @@
       "consumer": "New: sf-view layout=\"board\" (or Larena's kanban) draws it; a host answers the lane window (lanes, per_lane) and settles moves.",
       "summary": "New: the board layout (owner decisions C298, C304): lanes by one field from the host's lane window, cards with up to four fields in the «Кратко» place, moves as a change of the lane field the host settles (settleMove), «Показать ещё» per lane (appendLane), soft limits, folded and hidden lanes, one lane per screen on a phone, one Tab stop with the arrows inside.",
       "evidence": "control/evidence/2026-11-18-view-r2-board"
+    },
+    {
+      "unit": "smart.view-cards",
+      "version": "1.5.1",
+      "recorded_on": "2026-11-23",
+      "change": "patch",
+      "consumer": "Nothing to change for a host. Repinned on the pair ui-b4f79e1c58b7: the provenance of the Framework helper field-renderers/index.js follows the pair (group build 17 F4, FS-9); the code and the markup are unchanged.",
+      "summary": "View round 17: repin on SIMAI Framework pair ui-b4f79e1c58b7 (ui-source e59dbad1c108, core.runtime 1.67.0); provenance of src/smart/field-renderers/index.js.",
+      "evidence": "control/evidence/2026-11-23-view-r17/README.md"
     },
     {
       "unit": "smart.view-cards",
@@ -1109,6 +1145,15 @@
       "consumer": "New: sf-view layout=\"cards\" draws it, where the author turned cards on (C297); a host answers the window {page, per_page: 24} with {records, total, has_next}.",
       "summary": "New: the cards layout (owner decisions C297, C306): records as .sf-card in a grid whose columns follow its width (sizes S, M, L), a cover in a frame of one ratio drawn by the layout (cover or contain, lazy), the title in two lines and up to four fields in the «Кратко» place, «Показать ещё» over the window {page, per_page: 24}, one Tab stop with the arrows by rows, a selection for sf-bulk-actions, empty states by sf-empty-state.",
       "evidence": "control/evidence/2026-11-18-view-cards"
+    },
+    {
+      "unit": "smart.view-calendar",
+      "version": "1.3.1",
+      "recorded_on": "2026-11-23",
+      "change": "patch",
+      "consumer": "Nothing to change for a host. Repinned on the pair ui-b4f79e1c58b7: the provenance of the Framework helper field-renderers/index.js follows the pair (group build 17 F4, FS-9); the code and the markup are unchanged.",
+      "summary": "View round 17: repin on SIMAI Framework pair ui-b4f79e1c58b7 (ui-source e59dbad1c108, core.runtime 1.67.0); provenance of src/smart/field-renderers/index.js.",
+      "evidence": "control/evidence/2026-11-23-view-r17/README.md"
     },
     {
       "unit": "smart.view-calendar",

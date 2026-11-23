@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view",
-  "version": "1.37.1",
+  "version": "1.38.0",
   "title": "Data view",
   "summary": "Host-driven data view that composes toolbar, content and pagination around a separate data port.",
   "kind": "composite",
@@ -2030,6 +2030,13 @@
         "changes": [
           "View round 16: VN-1 the desktop strip's kinds track flex-shrink 0 (head.css), so sf-segmented's own fold does not flip on the one-line strip; VN-2 the view-new window reads head-save-view-note (C414) instead of the saved filter's note."
         ]
+      },
+      {
+        "from": "1.37.1",
+        "to": "1.38.0",
+        "changes": [
+          "View round 17: repin on SIMAI Framework pair ui-b4f79e1c58b7 (ui-source e59dbad1c108, core.runtime 1.67.0); VN-3 the more slot padding max(--sf-space-1/2, --sf-b2) (12 at 768 too), the skeleton's the same and --sf-space-1/3 under 37.5rem, the more holder raised over the table rail (z-index 6, the view-made holder lets the pointer through its gap); _kindGivesUp reads SF.Loader.settled(tag)."
+        ]
       }
     ]
   },
@@ -2039,7 +2046,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view/index.js",
-        "sha256": "e68c2ffe7c8749638fe62ae5f2f94303165af0764e6e31a029d9e1ab2258ad0e"
+        "sha256": "168c0c41e0aa69e18ca97ae77b0809be927551216f615f401965319879eaf83e"
       },
       {
         "path": "src/core/contracts/ports/simai.dataview-port/1.5.0/port.json",
@@ -2059,7 +2066,7 @@
       },
       {
         "path": "src/smart/view/js/first-paint.css",
-        "sha256": "116a48934114499c295a56dc34e263e70446c45bee3666bf8825093883fda32b"
+        "sha256": "4bd38fd67485f34d54db45a18d5fa6faafd898096e8fde5ae513907e14d9d87c"
       },
       {
         "path": "src/smart/view/js/cards.js",

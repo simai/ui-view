@@ -2,8 +2,15 @@
   "$comment": "sf-view-board, standard simai.smart-component 1.4 (vocabulary 1.1.5): the board layout of the view set (kanban; owner decisions C298, C304). Study: ui-control control/research/2026-11-17-board-view. Drag and keys are sf-sortable's, the card is .sf-card, the card fields the Framework field renderers' cell output, menus SF.menu.open, the selection bar sf-bulk-actions where the pair has it.",
   "id": "smart.view-board",
   "tag": "sf-view-board",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "x-history": [
+    {
+      "version": "1.3.1",
+      "kind": "patch",
+      "recorded_on": "2026-11-23",
+      "consumer": "Nothing to change for a host. Repinned on the pair ui-b4f79e1c58b7: the provenance of the Framework helper field-renderers/index.js follows the pair (group build 17 F4, FS-9); the code and the markup are unchanged.",
+      "evidence": "control/evidence/2026-11-23-view-r17/README.md"
+    },
     {
       "version": "1.3.0",
       "kind": "minor",
@@ -708,6 +715,13 @@
           "to": "1.3.0",
           "changes": [
             "View round 15m: round/view-r14 and round/view-modular-1 joined into one line (merge, no rebase); the number is above both branches."
+          ]
+        },
+        {
+          "from": "1.3.0",
+          "to": "1.3.1",
+          "changes": [
+            "View round 17: repin on SIMAI Framework pair ui-b4f79e1c58b7 (ui-source e59dbad1c108, core.runtime 1.67.0); provenance of src/smart/field-renderers/index.js."
           ]
         }
       ]

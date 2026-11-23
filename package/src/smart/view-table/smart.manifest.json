@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-table",
-  "version": "1.36.0",
+  "version": "1.37.0",
   "title": "Table",
   "summary": "Complete server-backed collection view with search, filters, table preferences, row and bulk actions, and pagination.",
   "kind": "composite",
@@ -3084,6 +3084,13 @@
         "changes": [
           "View round 15: VM-2 responsive columns, pinned offsets and rail synced in the next frame (_inNextFrame); VL-12 the resource list's bottom inset 0."
         ]
+      },
+      {
+        "from": "1.36.0",
+        "to": "1.37.0",
+        "changes": [
+          "View round 17: repin on SIMAI Framework pair ui-b4f79e1c58b7 (ui-source e59dbad1c108, core.runtime 1.67.0); VN-3 the rail's margin-block-end -(1px + --sf-scroll-bg-width) and no fill under sf-view with a shown more slot; _waitsForView reads SF.Loader.settled; adoptSelectionGlyphs removed; option-badge.js provenance."
+        ]
       }
     ]
   },
@@ -3093,7 +3100,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-table/index.js",
-        "sha256": "6046b386930dfef84ff6d0eab949469b6550ea6bdf3abef87b88b2af436eac23"
+        "sha256": "1c885528f37c406b4d57192509d9e205438916347c66489239bfe1d13d7f3981"
       },
       {
         "path": "src/smart/view-table/js/templates/default.js",
@@ -3101,7 +3108,7 @@
       },
       {
         "path": "src/smart/view-table/js/templates/default.css",
-        "sha256": "7fbb6c190cc885a39000ea6946f7814e128128f715bf207e803158f08ea7d42c"
+        "sha256": "bf7590e5e130553aae1058e0dd25058e81d42c9246daad4eda3327b4c727b8fd"
       },
       {
         "path": "src/smart/helpers/option-badge.js",

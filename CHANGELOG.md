@@ -16,6 +16,37 @@ same numbers with other content); every next set version is above them
 up). Each component.json says the same under `x-decisions`
 `pro-copy-versions`.
 
+## Unreleased — view round 17
+
+View round 17 (round/view-r17, from round/view-r16 75d74a7, candidate 1.17.0
+over the pair `ui-b4f79e1c58b7`, ui-source e59dbad1c108, npm
+`@simai-studio/ui` 5.20261123.1101; the set needs core.runtime 1.67.0 or
+newer): VN-3 (register VL-12) and the set on the pair. Evidence: ui-control
+`control/evidence/2026-11-23-view-r17/README.md`.
+
+- `sf-view-table` 1.37.0: in a list whose «Показать ещё» follows the rows the
+  sideways rail takes no room after the rows (VN-3). It was an empty 15 px
+  strip at rest, so the button stood 27 under the last row (23 at 768); it
+  is 12 now at 1440, 1280, 1024 and 768 and 8 on a phone. The rail keeps its
+  scroll and its drawn bar, laid over the gap above the button without the
+  page fill.
+- `sf-view` 1.38.0: «Показать ещё» 12 under the rows at every desktop and
+  tablet width (half a space step with a floor of 12, `--sf-b2`, as C77; it
+  was 8 below 60rem), 8 on a list under 37.5rem; the skeleton follows. Its
+  holder stands over the rail: a press on the button's top edge is the
+  button's, the empty gap above it still reaches the rail and its bar.
+- `sf-view`, `sf-view-table`: the Loader is read through its public calls of
+  the pair: `SF.Loader.settled(tag)` for a display kind's module (no longer
+  `SF.__internal.pendingTags`), and the table no longer hands a checked box's
+  tick to the Loader (`adoptSelectionGlyphs` removed; group build 17 L1 shows
+  it at once).
+- `sf-view-table` 1.37.0, `sf-view-board` 1.3.1, `sf-view-cards` 1.5.1,
+  `sf-view-calendar` 1.3.1: provenance of the Framework helpers
+  `option-badge.js` and `field-renderers/index.js` follows the pair; the
+  typed-cells probe reads a choice badge on the line of the row text (VL-54).
+- The registry gives the board, the cards and the calendar `preview`: the
+  pending entries of the passport test are gone.
+
 ## Unreleased — view round 16
 
 View round 16 (round/view-r16, from round/view-r15 bc08d40, candidate 1.16.1

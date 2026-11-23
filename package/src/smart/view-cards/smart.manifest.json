@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-cards",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "title": "Cards",
   "summary": "The cards layout of the view set: records as cards in a grid whose columns follow its width, a cover the layout draws, a title and up to four fields in the «Кратко» place; «Показать ещё» appends the next page. sf-view layout=\"cards\" draws it where the author turned it on.",
   "kind": "smart",
@@ -512,6 +512,13 @@
         "changes": [
           "View round 15m: round/view-r14 and round/view-modular-1 joined into one line (merge, no rebase); the number is above both branches."
         ]
+      },
+      {
+        "from": "1.5.0",
+        "to": "1.5.1",
+        "changes": [
+          "View round 17: repin on SIMAI Framework pair ui-b4f79e1c58b7 (ui-source e59dbad1c108, core.runtime 1.67.0); provenance of src/smart/field-renderers/index.js."
+        ]
       }
     ]
   },
@@ -537,7 +544,7 @@
       },
       {
         "path": "src/smart/field-renderers/index.js",
-        "sha256": "10defcf40a022bd86cd32235fb21649008e2e8cf8d94464d2c61a557214dddd8"
+        "sha256": "be1d7608cbde16eb80ece5a9120c4b2130d40bd8760240a51b8fd922579c931b"
       },
       {
         "path": "src/smart/view-cards/rule.js",
