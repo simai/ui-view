@@ -16,10 +16,34 @@ same numbers with other content); every next set version is above them
 up). Each component.json says the same under `x-decisions`
 `pro-copy-versions`.
 
-## Unreleased — view round 17
+## 1.17.0 — 2026-11-23
 
-View round 17 (round/view-r17, from round/view-r16 75d74a7, candidate 1.17.0
-over the pair `ui-b4f79e1c58b7`, ui-source e59dbad1c108, npm
+View rounds 14 to 17 with the modular step 1 (round/view-r14,
+round/view-modular-1, their merge round/view-r15m, round/view-r15,
+round/view-r16, round/view-r17; round 17 accepted on 2026-11-23 with no
+return: ui-control `control/evidence/2026-11-23-view-r17-acceptance`); the
+rounds' entries below. Versions 1.12.0 to 1.16.1 were candidates only and
+were never published.
+
+- Over the SIMAI Framework pair `ui-b4f79e1c58b7` (ui-source
+  `e59dbad1c108`, npm `@simai-studio/ui@5.20261123.1101`, core.runtime
+  1.67.0). The set now needs core.runtime 1.67.0 or newer (was 1.51.0).
+- `sf-view` 1.38.0, `sf-view-table` 1.37.0, `sf-view-properties` 1.31.1,
+  `sf-view-flow` 1.3.0, `sf-view-board` 1.3.1, `sf-view-cards` 1.5.1,
+  `sf-view-calendar` 1.3.1.
+- The owner remarks register over this build and pair: 67 pass, 0 fail
+  (6 superseded, VL-69 not built, VL-O1 open for the owner).
+- Known issues, open in this release:
+  - VO-2 (low, older than round 17): at 390 in customise mode the hint «Ваши
+    правки сохраняются сразу, только для вас.» starts left of «Вид» and
+    «Вкладки» and touches «Вкладки» without a space step.
+  - VL-69: parts by one setting `parts` and the quiet line for a hidden
+    filter are not built yet.
+
+### view round 17
+
+View round 17 (round/view-r17, from round/view-r16 75d74a7, over
+the pair `ui-b4f79e1c58b7`, ui-source e59dbad1c108, npm
 `@simai-studio/ui` 5.20261123.1101; the set needs core.runtime 1.67.0 or
 newer): VN-3 (register VL-12) and the set on the pair. Evidence: ui-control
 `control/evidence/2026-11-23-view-r17/README.md`.
@@ -62,10 +86,10 @@ newer): VN-3 (register VL-12) and the set on the pair. Evidence: ui-control
   Pro option badge) and the flow's dates carry the year marker's no-break
   space (A4).
 
-## Unreleased — view round 16
+### view round 16
 
-View round 16 (round/view-r16, from round/view-r15 bc08d40, candidate 1.16.1
-over the same pair `ui-b654460cad2a`): the returns VN-1 and VN-2 of the
+View round 16 (round/view-r16, from round/view-r15 bc08d40, over
+the same pair `ui-b654460cad2a`): the returns VN-1 and VN-2 of the
 acceptance of round 15. Evidence: ui-control
 `control/evidence/2026-11-23-view-r16/README.md`.
 
@@ -82,10 +106,10 @@ acceptance of round 15. Evidence: ui-control
   filter's conditions or the search (VN-2, owner decision C414; word
   `head-save-view-note`, ru and en). The saved filter's window keeps its note.
 
-## Unreleased — view round 15
+### view round 15
 
-View round 15 (round/view-r15, from round/view-r15m f1f4d46, candidate
-1.16.0 over the same pair `ui-b654460cad2a`): the returns of the acceptance of
+View round 15 (round/view-r15, from round/view-r15m f1f4d46, over
+the same pair `ui-b654460cad2a`): the returns of the acceptance of
 round 15m (VM-1..3), owner remarks register items VL-12, VL-48, VL-64, VL-65,
 the bulk bar's size and owner decision C414. Evidence:
 ui-control `control/evidence/2026-11-22-view-r15/README.md`.
@@ -119,11 +143,11 @@ ui-control `control/evidence/2026-11-22-view-r15/README.md`.
   saved filter what to show; `query.filter` is deprecated in a view (kept in
   the schema so 1.0 documents stay valid), §2a describes the saved filter.
 
-## Unreleased — view round 15m (merge)
+### view round 15m (merge)
 
 View round 15m (round/view-r15m): `round/view-r14` 940d3fc and
-`round/view-modular-1` a9f1bef joined by a merge commit (no rebase), candidate
-1.15.0 over the same pair `ui-b654460cad2a`, with the returns of the acceptance
+`round/view-modular-1` a9f1bef joined by a merge commit (no rebase), over
+the same pair `ui-b654460cad2a`, with the returns of the acceptance
 of modular step 1 (MOD1-1..5) and DEV's decision on RV4-3 (msg-1f111575).
 r14's component code and modular step 1's bundling (the package core
 `smart/view-common`, the lazy table, the bundles gate and budgets) both stay.
@@ -174,10 +198,10 @@ Every component either branch touched takes the next minor above both.
   `SF.__internal.pendingTags.settled` that sf-view and sf-view-table read
   (MOD1-3). `bundle-budgets.json` measured on the merged build (MOD1-4).
 
-## Unreleased — view round 14
+### view round 14
 
-View round 14 (round/view-r14, from `round/view-r13` ccea5c6, with `main` 308b3be (the view 1.11.0 release) merged), candidate
-1.14.0 over the same pair `ui-b654460cad2a`: the owner decisions C403-C408
+View round 14 (round/view-r14, from `round/view-r13` ccea5c6, with `main` 308b3be (the view 1.11.0 release) merged), over
+the same pair `ui-b654460cad2a`: the owner decisions C403-C408
 (DEV msg-3ed3de7b), the list study v2 returns LV2-2 and LV2-7
 (msg-04ef4018), DEV's answers on round 13 (the cards' «Подгрузка», the
 record's badge row), the owner's list review v3 (msg-2733819c: LV3-9, 11, 12,
@@ -232,11 +256,11 @@ RV4). Numbers are above every branch of this set and of ui-pro, round/view-modul
 - C402: the ink of «не заполнено» is unchanged (a SIMAI Framework token
   later); measured contrasts are in the evidence.
 
-## Unreleased — view modular step 1
+### view modular step 1
 
 View modular step 1 (round/view-modular-1, from `round/view-r13` ccea5c6,
 with `main` 308b3be, the view 1.11.0 release, merged),
-candidate 1.13.0 over the same pair `ui-b654460cad2a`: the first step of the
+over the same pair `ui-b654460cad2a`: the first step of the
 C409 modularity study (DEV msg-8ccf829d, ui-control
 control/research/2026-11-21-view-modular). Nothing an author sees changes.
 Numbers are above every branch of this set (round/view-r14 included) and of
