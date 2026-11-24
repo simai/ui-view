@@ -324,7 +324,17 @@ class SfViewBoard extends BoardElement {
         this.addEventListener("sf-bulk-actions-action", (event) => this._onBulkAction(event), {signal});
         this.addEventListener("sf-bulk-actions-clear", () => this.clearSelection(), {signal});
         this.addEventListener("scroll", (event) => this._onScroll(event), {signal, capture: true});
-        if (typeof globalThis.ResizeObserver === "function") this._resize = new ResizeObserver(() => this._measure());
+        // A width crossing the phone line redraws the board (one lane, the lane
+        // tabs), which changes its height inside its own observer: the redraw
+        // waits for the next frame, as the list head's does (view round 18).
+        if (typeof globalThis.ResizeObserver === "function") this._resize = new ResizeObserver(() => {
+            if (this._measureFrame) return;
+            const later = globalThis.requestAnimationFrame ?? ((run) => globalThis.setTimeout(run, 16));
+            this._measureFrame = later(() => {
+                this._measureFrame = null;
+                if (this.isConnected) this._measure();
+            });
+        });
         this._measure();
         const tags = ["sf-sortable", "sf-badge", "sf-button", "sf-button-icon", "sf-checkbox", "sf-tabs", "sf-toast", "sf-menu-context"];
         if (bulkActionsAvailable()) tags.push("sf-bulk-actions");
