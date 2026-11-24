@@ -7,7 +7,7 @@ import {fileURLToPath} from 'node:url';
 // View round 18 (sf-view 1.39.0, sf-view-table 1.38.0, sf-view-board 1.4.0,
 // sf-view-cards 1.5.2, sf-view-properties 1.31.2, package 1.18.0): DEV's
 // returns on View 1.17.0 -- VL-71, VL-74, VL-75, VO-2 and the view site guide's
-// V1-V4. Measurements in ui-control control/evidence/2026-11-24-view-r18/README.md.
+// V1-V5. Measurements in ui-control control/evidence/2026-11-24-view-r18/README.md.
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const read = (path) => readFileSync(resolve(root, path), 'utf8');
 const view = read('src/smart/view/index.js');
@@ -76,4 +76,19 @@ test('V3: the descriptions speak of 1.17.0: «Вид», each kind its own marks 
 test('V4: the conditions are not the view\'s (C414): no filter comparison in viewChanged', () => {
   const body = head.slice(head.indexOf('get viewChanged()'), head.indexOf('viewKind(view) {'));
   assert.doesNotMatch(body, /view\.query\?\.filters/u);
+});
+
+test('V5: the head\'s kind is the kind drawn; switchLayout names it in the query', () => {
+  const body = head.slice(head.indexOf('    get kind() {'), head.indexOf('    drawable(kind) {'));
+  assert.ok(body.indexOf('this.view.layoutKind') > -1 && body.indexOf('this.view.layoutKind') < body.indexOf('this.query.view?.type'), 'layoutKind is read first');
+  const sw = view.slice(view.indexOf('    switchLayout(kind, {refresh = true} = {}) {'), view.indexOf('    switchLayout(kind, {refresh = true} = {}) {') + 6000);
+  assert.match(sw, /const drawnKind = this\.layoutKind;/u);
+  assert.match(sw, /view: \{\.\.\.this\.query\.view, type: drawnKind\}/u);
+});
+
+test('V5 note: a phone-line crossing rebuilds the head in the next frame, not inside its observer', () => {
+  const body = head.slice(head.indexOf('this._onResize = () => {'), head.indexOf('this._onPartsResize'));
+  assert.match(body, /if \(this\._modeOf\(\) === this\.mode\) return this\._layRow\(\);/u);
+  assert.match(body, /requestAnimationFrame/u);
+  assert.doesNotMatch(body, /=> this\._measure\(\);\n/u);
 });

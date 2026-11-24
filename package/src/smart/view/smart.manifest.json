@@ -2042,7 +2042,7 @@
         "from": "1.38.0",
         "to": "1.39.0",
         "changes": [
-          "View round 18: _syncSelectMarks on a chrome change (marks kept, table cleared under a hold, bar redrawn), _bulkIds and _applyOwnMarks read renders('select'); saveColumnSettings returns capability-not-provided {session: true} without a notice when the host does not offer personal-column-settings; head viewChanged compares no conditions (C414); head «Вид» group lanes (lane:<value> switches, board showLane/hideLane), sf-view-board-save redraws the head; filter set marks data-sf-icon-scale=ladder; words head-lanes."
+          "View round 18: _syncSelectMarks on a chrome change (marks kept, table cleared under a hold, bar redrawn), _bulkIds and _applyOwnMarks read renders('select'); saveColumnSettings returns capability-not-provided {session: true} without a notice when the host does not offer personal-column-settings; head viewChanged compares no conditions (C414); head «Вид» group lanes (lane:<value> switches, board showLane/hideLane), sf-view-board-save redraws the head; filter set marks data-sf-icon-scale=ladder; words head-lanes; V5 head kind reads layoutKind first, switchLayout writes query.view.type of the kind drawn; head _onResize rebuilds on a phone-line crossing in the next frame (_modeOf, _measureFrame)."
         ]
       }
     ]

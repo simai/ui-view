@@ -202,7 +202,20 @@ export class ListHead {
         this.optionSearch = {};
         this.tab = {filter: "saved"};
         this.root = null;
-        this._onResize = () => this._measure();
+        // The view's width crossing the phone line rebuilds the head, which
+        // changes the view's height inside its own observer: the rebuild waits
+        // for the next frame, and the window said «ResizeObserver loop
+        // completed with undelivered notifications» at every crossing (V5
+        // note, review page 2026-11-24). The row is laid at once otherwise.
+        this._onResize = () => {
+            if (this._modeOf() === this.mode) return this._layRow();
+            if (this._measureFrame) return;
+            const later = globalThis.requestAnimationFrame ?? ((run) => globalThis.setTimeout(run, 16));
+            this._measureFrame = later(() => {
+                this._measureFrame = null;
+                if (this.root?.isConnected) this._measure();
+            });
+        };
         this._onPartsResize = () => this._layRow();
         this._onHeadResize = () => this._layStick();
     }
@@ -261,6 +274,8 @@ export class ListHead {
     }
 
     detach() {
+        if (this._measureFrame) (globalThis.cancelAnimationFrame ?? globalThis.clearTimeout)(this._measureFrame);
+        this._measureFrame = null;
         this._resize?.disconnect();
         this._kindsWatch?.disconnect();
         this._kindsWatched = null;
@@ -308,9 +323,13 @@ export class ListHead {
     // desktop head over a list the table had already turned into rows, in
     // what the card left of it (view round 12, VHF-5). The view's content
     // box is the list's own width, the one sf-view-table measures too.
-    _measure() {
+    _modeOf() {
         const width = contentWidth(this.view) || globalThis.innerWidth || 0;
-        const mode = width > 0 && width < PHONE_WIDTH ? "phone" : "desktop";
+        return width > 0 && width < PHONE_WIDTH ? "phone" : "desktop";
+    }
+
+    _measure() {
+        const mode = this._modeOf();
         if (mode !== this.mode) {
             this.mode = mode;
             this._build();

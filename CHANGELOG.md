@@ -20,7 +20,7 @@ up). Each component.json says the same under `x-decisions`
 
 View round 18 (round/view-r18, from main 517da06 = view 1.17.0): DEV's
 returns on 1.17.0 (register VL-71, VL-74, VL-75, the r17 acceptance note
-VO-2, and the view site guide's V1-V4). Not released; package 1.18.0 is a
+VO-2, the view site guide's V1-V4, and V5). Not released; package 1.18.0 is a
 candidate.
 
 - `sf-view` 1.39.0: «Флажки» off (a chrome without `select`) with rows
@@ -31,7 +31,12 @@ candidate.
   marks the view «Изменено» (C414, V4). A board's «Вид» lists its lanes with
   a switch each, the way back for a hidden lane (V2). The saved filter marks
   «Общий» and «По умолчанию» are the size of the «⋯» beside them (VL-74).
-  The chrome and head descriptions name «Колонки» and «Вид» (V3).
+  The chrome and head descriptions name «Колонки» and «Вид» (V3). The
+  list's kind switch shows the kind drawn, whether a page's
+  `layout="board"`, `view.switchLayout()` or a press drew it, and a press
+  on another kind changes it (V5). The list's width crossing the phone
+  line no longer raises the window's «ResizeObserver loop completed»
+  notice: the head is rebuilt on the next frame.
 - `sf-view-table` 1.38.0: on a phone the list row's second line (the words
   under the title, the sum and the date) is the row's text size, 14 / 20,
   secondary by ink only (VL-75); a list row's figures stand on its line
