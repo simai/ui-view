@@ -346,3 +346,39 @@ test('the page row offers the filter-wide action when the host can act on all', 
   await tick();
   assert.equal(given.pagination.getAttribute('show-action-for-all'), 'false', 'a page that wrote it decides');
 });
+
+// View round 18 (VL-71): the row boxes taken away by the chrome act on nothing,
+// and the marks stay kept for when the boxes come back.
+test('a chrome without select leaves the bar nothing to act on and keeps the marks', () => {
+  const view = new DataView();
+  view.isConnected = true;
+  view.records = [{id: 'one'}, {id: 'two'}];
+  view._noteMarks(['one', 'two'], ['one']);
+  view.table.getSelectedRecordIds = () => ['one'];
+  assert.deepEqual(view._bulkIds(), ['one']);
+  view.setAttribute('chrome', 'toolbar pagination settings');
+  assert.deepEqual(view._bulkIds(), [], 'no boxes: nothing marked to act on');
+  assert.deepEqual(view.markedIds, ['one'], 'the mark is kept');
+  view.setAttribute('chrome', 'toolbar pagination select settings');
+  assert.deepEqual(view._bulkIds(), ['one'], 'the boxes back: the mark acts again');
+});
+
+// View round 18 (V1): a host without personal-column-settings keeps the
+// columns for the session; nothing is raised and nothing is said.
+test('column settings without personal-column-settings stay on screen silently', async () => {
+  const view = new DataView();
+  view.isConnected = true;
+  const raised = [];
+  const said = [];
+  view.notify = (text) => { if (text) said.push(text); return view; };
+  view.hostPort = {version: '1.16.0', capabilities: ['row-actions'], raise: (intent, payload) => { raised.push({intent, payload}); return {answer: 'applied'}; }};
+  const answer = await view.saveColumnSettings({manager: {visible: false}});
+  assert.equal(answer.reason, 'capability-not-provided');
+  assert.equal(answer.session, true);
+  assert.deepEqual(raised, [], 'no save reaches the host');
+  assert.deepEqual(said, [], 'no notice');
+  view.hostPort = {version: '1.16.0', capabilities: ['personal-column-settings'], raise: (intent, payload) => { raised.push({intent, payload}); return {answer: 'applied'}; }};
+  view.columnSettings = {layers: {personal: {revision: 4}}};
+  await view.saveColumnSettings({manager: {visible: false}});
+  assert.deepEqual(raised.map((one) => one.intent), ['settings.save_personal'], 'the host that offers it is asked');
+});
