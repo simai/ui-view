@@ -16,12 +16,34 @@ same numbers with other content); every next set version is above them
 up). Each component.json says the same under `x-decisions`
 `pro-copy-versions`.
 
-## Unreleased — view round 18
+## 1.18.0 — 2026-11-24
+
+View round 18 (round/view-r18; accepted on 2026-11-24: ui-control
+`control/evidence/2026-11-24-view-r18-acceptance`); the round's entry
+below.
+
+- Over the SIMAI Framework pair `ui-b4f79e1c58b7` (ui-source
+  `e59dbad1c108`, npm `@simai-studio/ui@5.20261123.1101`, core.runtime
+  1.67.0). The set needs core.runtime 1.67.0 or newer (unchanged).
+- `sf-view` 1.39.0, `sf-view-table` 1.38.0, `sf-view-properties` 1.31.2,
+  `sf-view-flow` 1.3.0, `sf-view-board` 1.4.0, `sf-view-cards` 1.5.2,
+  `sf-view-calendar` 1.3.1.
+- The owner remarks register over this build and pair: 71 pass, 1 fail
+  (VL-73, the SIMAI Framework's: record value tags 14 px on a 16 px record
+  value, fixed in the Framework's next pair), 6 superseded, VL-69 not
+  built, VL-O1 open for the owner.
+- Known issues, open in this release:
+  - VL-73: see above; it goes with the next SIMAI Framework pair.
+  - VL-69: parts by one setting `parts` and the quiet line for a hidden
+    filter are not built yet.
+  - The folded head's kind menu marks the current kind with a check glyph
+    only; its items carry no `aria-checked` (next View round).
+
+### view round 18
 
 View round 18 (round/view-r18, from main 517da06 = view 1.17.0): DEV's
 returns on 1.17.0 (register VL-71, VL-74, VL-75, the r17 acceptance note
-VO-2, the view site guide's V1-V4, and V5). Not released; package 1.18.0 is a
-candidate.
+VO-2, the view site guide's V1-V4, and V5).
 
 - `sf-view` 1.39.0: «Флажки» off (a chrome without `select`) with rows
   marked takes the bar away with the boxes and keeps the marks; the boxes
