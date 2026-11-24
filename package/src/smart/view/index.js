@@ -968,6 +968,11 @@ class SfDataView extends DataViewElement {
         this._drawnTag ??= fromTag;
         if (written === null) this.removeAttribute("layout");
         else this.setAttribute("layout", written);
+        // The query names the kind drawn (V5): a switch by a call left the
+        // query, and the list head's switch, on the kind before.
+        const drawnKind = this.layoutKind;
+        if (this.query && typeof this.query === "object" && this.query.view && typeof this.query.view === "object"
+            && this.query.view.type !== drawnKind) this.query = {...this.query, view: {...this.query.view, type: drawnKind}};
         if (fromTag !== toTag) this.pagination?.setState?.({selectedCount: this.markedIds.length});
         // The list's bar follows the kind on screen at once (one bar).
         if (fromTag !== toTag && (this._bulkBar || this._bulkBand)) this._renderBulkBand();

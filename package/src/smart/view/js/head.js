@@ -492,13 +492,16 @@ export class ListHead {
         return kinds.length ? kinds : ["table"];
     }
 
+    // The kind on screen: what the view draws, however it got there -- a page
+    // that wrote layout="board", view.switchLayout(), a press here (V5, DEV
+    // 2026-11-24: layout="board" drew the board with «Таблица» checked, and
+    // pressing «Таблица» did nothing). The query's kind only when the view
+    // draws none the head offers.
     get kind() {
-        const asked = this.query.view?.type;
-        if (this.kinds.includes(asked)) return asked;
-        // Without a view in the query, the layout the view draws (a page that
-        // wrote layout="board").
         const drawn = this.view.layoutKind;
-        return this.kinds.includes(drawn) ? drawn : this.kinds[0];
+        if (this.kinds.includes(drawn)) return drawn;
+        const asked = this.query.view?.type;
+        return this.kinds.includes(asked) ? asked : this.kinds[0];
     }
 
     // Whether the view draws a kind in this page (its layout in the running set).
