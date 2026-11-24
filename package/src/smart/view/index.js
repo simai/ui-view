@@ -1092,7 +1092,7 @@ class SfDataView extends DataViewElement {
             if (this._bulkBar || this._bulkBand) this._renderBulkBand();
         }
         // Boxes taken away by the chrome: the marks stay kept, not shown (VL-71).
-        if (!this.selects()) return;
+        if (!this.renders("select")) return;
         const allMarked = Boolean(this.pagination?.actionForAll);
         // One bar: the list's stands for the cards (owner, 2026-11-22), with
         // marks or without.
@@ -2689,7 +2689,7 @@ class SfDataView extends DataViewElement {
     // them -- a bar would act on rows whose marks nobody sees. They are kept,
     // and the boxes back bring them back with their bar (VL-30).
     _syncSelectMarks() {
-        const on = this.selects();
+        const on = this.renders("select");
         if (on) {
             if (!this._marksHidden) return;
             this._marksHidden = false;
@@ -3648,8 +3648,8 @@ class SfDataView extends DataViewElement {
     // The records a bulk action is for: every marked one, else the table's
     // own marks (a page that drives the table itself).
     _bulkIds() {
-        // No boxes, nothing marked to act on (VL-71).
-        if (!this.selects()) return [];
+        // The boxes taken away by the chrome: nothing marked to act on (VL-71).
+        if (!this.renders("select")) return [];
         const kept = this.markedIds;
         return kept.length ? kept : (this.table?.getSelectedRecordIds?.() ?? []);
     }

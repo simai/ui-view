@@ -596,7 +596,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-board/index.js",
-        "sha256": "5c6a1be4304468fd1f1b4370927f8acc1bb921fe4edc20a33bd55e57896bcc01"
+        "sha256": "226a13fd13d2b14da7a066a1794092167f82e89f5b1fcf7d38269a4340adf15e"
       },
       {
         "path": "src/smart/view-board/js/board.js",
@@ -620,7 +620,7 @@
       },
       {
         "path": "src/smart/view-board/docs.md",
-        "sha256": "a1d9d047de0ba2186af57f0c50b1be154ba066cc709690d71eb15877c27a0c86"
+        "sha256": "6e10b9f881c3489857b3bc28d6303a0a23e3c07e1a70d0b7f5576cc5269900cc"
       }
     ],
     "generated_runtime": []
