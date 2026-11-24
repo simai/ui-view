@@ -136,7 +136,7 @@ function bulkBarAvailable() {
 }
 
 const LISTENED = Object.freeze(["sf-view-table-search-change", "sf-view-table-filter-change", "sf-view-table-sort-change", "sf-view-table-save", "sf-view-table-apply", "sf-view-table-refresh", "sf-view-table-select", "sf-view-table-column-settings-reset", "sf-view-table-expand", "sf-view-table-load-more", "sf-view-table-reference-open", "sf-view-table-cell-set", "sf-view-table-move", "sf-pagination-change", "sf-pagination-size-change", "sf-pagination-apply", "sf-pagination-load-more", "sf-pagination-selection-clear", "sf-pagination-count", "sf-pagination-action-change", "sf-pagination-action-for-all-change", "sf-view-save", // The board's (sf-view-board, layout="board"; owner decisions C298, C304).
-"sf-view-board-move", "sf-view-board-more", "sf-view-board-open", "sf-view-board-create", "sf-view-board-select", "sf-view-board-apply", // The cards' (sf-view-cards, layout="cards"; owner decisions C297, C306).
+"sf-view-board-move", "sf-view-board-more", "sf-view-board-open", "sf-view-board-create", "sf-view-board-select", "sf-view-board-apply", "sf-view-board-save", // The cards' (sf-view-cards, layout="cards"; owner decisions C297, C306).
 ..._js_cards_js__WEBPACK_IMPORTED_MODULE_19__.CARDS_EVENTS, // The calendar's (sf-view-calendar, layout="calendar"; owner decision C307).
 ..._js_calendar_js__WEBPACK_IMPORTED_MODULE_20__.CALENDAR_EVENTS]); // The layout registry (owner decision C298, BD-1): a layout name and the
 // element that draws it. auto, table and list are the table's; board is
@@ -1182,7 +1182,15 @@ class SfDataView extends DataViewElement {
     }
 
     this._drawnTag ??= fromTag;
-    if (written === null) this.removeAttribute("layout");else this.setAttribute("layout", written);
+    if (written === null) this.removeAttribute("layout");else this.setAttribute("layout", written); // The query names the kind drawn (V5): a switch by a call left the
+    // query, and the list head's switch, on the kind before.
+
+    const drawnKind = this.layoutKind;
+    if (this.query && typeof this.query === "object" && this.query.view && typeof this.query.view === "object" && this.query.view.type !== drawnKind) this.query = { ...this.query,
+      view: { ...this.query.view,
+        type: drawnKind
+      }
+    };
     if (fromTag !== toTag) this.pagination?.setState?.({
       selectedCount: this.markedIds.length
     }); // The list's bar follows the kind on screen at once (one bar).
@@ -1322,8 +1330,10 @@ class SfDataView extends DataViewElement {
         selectedCount: this.markedIds.length
       });
       if (this._bulkBar || this._bulkBand) this._renderBulkBand();
-    }
+    } // Boxes taken away by the chrome: the marks stay kept, not shown (VL-71).
 
+
+    if (!this.renders("select")) return;
     const allMarked = Boolean(this.pagination?.actionForAll); // One bar: the list's stands for the cards (owner, 2026-11-22), with
     // marks or without.
 
@@ -3149,6 +3159,53 @@ class SfDataView extends DataViewElement {
     }
 
     this._renderProjection();
+
+    if (name === "chrome") this._syncSelectMarks();
+  } // The row boxes taken away by the chrome (select off) with rows marked
+  // (register VL-71, LV4-3): the marks are not shown and the bar goes with
+  // them -- a bar would act on rows whose marks nobody sees. They are kept,
+  // and the boxes back bring them back with their bar (VL-30).
+
+
+  _syncSelectMarks() {
+    const on = this.renders("select");
+
+    if (on) {
+      if (!this._marksHidden) return;
+      this._marksHidden = false;
+
+      this._applyOwnMarks();
+
+      this.pagination?.setState?.({
+        selectedCount: this._bulkIds().length
+      });
+
+      this._renderBulkBand();
+
+      return;
+    }
+
+    if (this._marksHidden) return;
+    const table = this.table;
+    if (!this.markedIds.length && !(table?.getSelectedRecordIds?.() ?? []).length) return;
+    this._marksHidden = true; // The table's own clear is not the person's: the marks stay kept.
+
+    this._holdMarks = (this._holdMarks ?? 0) + 1;
+    table?.clearSelection?.();
+    if (this.layoutKind === "cards") this.cards?.clearSelection?.();
+    this.pagination?.setState?.({
+      selectedCount: 0
+    });
+
+    this._renderBulkBand();
+
+    const release = () => {
+      this._holdMarks = Math.max(0, (this._holdMarks ?? 1) - 1);
+    };
+
+    const frame = globalThis.requestAnimationFrame ?? (callback => setTimeout(callback, 16));
+
+    frame(() => setTimeout(release, 0));
   } // A layout switched to after the first paint whose code is still on the
   // way (the Loader brings sf-view-board, -cards, -calendar when first
   // used): the head, the marks and the footer stay; only the list's place
@@ -4356,6 +4413,8 @@ class SfDataView extends DataViewElement {
 
 
   _bulkIds() {
+    // The boxes taken away by the chrome: nothing marked to act on (VL-71).
+    if (!this.renders("select")) return [];
     const kept = this.markedIds;
     return kept.length ? kept : this.table?.getSelectedRecordIds?.() ?? [];
   } // One record, changed in place. A write that touches a row does not need
@@ -5434,7 +5493,20 @@ class SfDataView extends DataViewElement {
 
     const target = this.columnSettings?.target;
     const targetRevision = target && (target.kind ?? target.target ?? target) === layer ? target.revision : target?.revision ?? null;
-    const revision = base_revision ?? this.columnSettings?.layers?.[layer]?.revision ?? targetRevision;
+    const revision = base_revision ?? this.columnSettings?.layers?.[layer]?.revision ?? targetRevision; // A host that does not keep a person's columns (no
+    // personal-column-settings): the change holds on screen for the
+    // session, as in 1.11.0, and nothing is said -- a red notice on every
+    // column hidden in «Колонки» told the person of a save nobody asked
+    // for (view site guide, DEV 2026-11-24). The save runs only when the
+    // host offers it.
+
+    if (!shared && !this.hostOffers("personal-column-settings")) {
+      return Promise.resolve({
+        answer: "unavailable",
+        reason: "capability-not-provided",
+        session: true
+      });
+    }
 
     if (revision == null) {
       this._showAnswer(shared ? "settings.save_shared" : "settings.save_personal", {
@@ -5866,7 +5938,11 @@ class SfDataView extends DataViewElement {
       }, {
         selectedBulk: true
       });
-    }
+    } // A lane folded, hidden or brought back: «Вид» lists the lanes as
+    // they are now.
+
+
+    if (event.type === "sf-view-board-save") this._head?.render?.();
   }
 
   _onEvent(event) {
@@ -6898,9 +6974,23 @@ class ListHead {
     this.tab = {
       filter: "saved"
     };
-    this.root = null;
+    this.root = null; // The view's width crossing the phone line rebuilds the head, which
+    // changes the view's height inside its own observer: the rebuild waits
+    // for the next frame, and the window said «ResizeObserver loop
+    // completed with undelivered notifications» at every crossing (V5
+    // note, review page 2026-11-24). The row is laid at once otherwise.
 
-    this._onResize = () => this._measure();
+    this._onResize = () => {
+      if (this._modeOf() === this.mode) return this._layRow();
+      if (this._measureFrame) return;
+
+      const later = globalThis.requestAnimationFrame ?? (run => globalThis.setTimeout(run, 16));
+
+      this._measureFrame = later(() => {
+        this._measureFrame = null;
+        if (this.root?.isConnected) this._measure();
+      });
+    };
 
     this._onPartsResize = () => this._layRow();
 
@@ -6964,6 +7054,8 @@ class ListHead {
   }
 
   detach() {
+    if (this._measureFrame) (globalThis.cancelAnimationFrame ?? globalThis.clearTimeout)(this._measureFrame);
+    this._measureFrame = null;
     this._resize?.disconnect();
     this._kindsWatch?.disconnect();
     this._kindsWatched = null;
@@ -7013,9 +7105,13 @@ class ListHead {
   // box is the list's own width, the one sf-view-table measures too.
 
 
-  _measure() {
+  _modeOf() {
     const width = contentWidth(this.view) || globalThis.innerWidth || 0;
-    const mode = width > 0 && width < PHONE_WIDTH ? "phone" : "desktop";
+    return width > 0 && width < PHONE_WIDTH ? "phone" : "desktop";
+  }
+
+  _measure() {
+    const mode = this._modeOf();
 
     if (mode !== this.mode) {
       this.mode = mode;
@@ -7232,15 +7328,18 @@ class ListHead {
     const asked = Array.isArray(this.description?.layouts) ? this.description.layouts.map(String) : [];
     const kinds = asked.filter(kind => Object.hasOwn(KINDS, kind) && this.drawable(kind));
     return kinds.length ? kinds : ["table"];
-  }
+  } // The kind on screen: what the view draws, however it got there -- a page
+  // that wrote layout="board", view.switchLayout(), a press here (V5, DEV
+  // 2026-11-24: layout="board" drew the board with «Таблица» checked, and
+  // pressing «Таблица» did nothing). The query's kind only when the view
+  // draws none the head offers.
+
 
   get kind() {
-    const asked = this.query.view?.type;
-    if (this.kinds.includes(asked)) return asked; // Without a view in the query, the layout the view draws (a page that
-    // wrote layout="board").
-
     const drawn = this.view.layoutKind;
-    return this.kinds.includes(drawn) ? drawn : this.kinds[0];
+    if (this.kinds.includes(drawn)) return drawn;
+    const asked = this.query.view?.type;
+    return this.kinds.includes(asked) ? asked : this.kinds[0];
   } // Whether the view draws a kind in this page (its layout in the running set).
 
 
@@ -7680,12 +7779,11 @@ class ListHead {
   get viewChanged() {
     const view = this.currentView;
     if (!view || this.viewLevel(view) === "personal") return false;
-    if (this._settings && Object.values(this._settings).some(entry => entry && Object.keys(entry).length)) return true;
-
-    const active = filters => Object.fromEntries(Object.entries(filters ?? {}).filter(([, entry]) => conditionActive(entry)));
-
-    const saved = view.query?.filters ?? view.filters ?? {};
-    if (!same(active(saved), active(this.filters))) return true; // Its filter fields: a field added or taken away is a change (VS-8).
+    if (this._settings && Object.values(this._settings).some(entry => entry && Object.keys(entry).length)) return true; // The conditions are not the view's (owner decision C414): a view
+    // keeps the look, the conditions are the filter's, so choosing a
+    // saved filter or a condition leaves the view as it is (it showed
+    // «Изменено», and saving then stored the view without them).
+    // Its filter fields: a field added or taken away is a change (VS-8).
 
     const fields = this.viewFilterFields(view);
     if (fields && !same(fields.filter(key => this.field(key)).sort(), [...this.chosen].sort())) return true;
@@ -8166,8 +8264,10 @@ class ListHead {
       const open = this.query.saved_filter == null ? null : String(this.query.saved_filter);
       return `<div class="sf-view-head-list" role="radiogroup" aria-label="${esc(this.text("headSavedTab"))}">${this.savedFilters.map(item => {
         const id = String(item.id);
-        const label = `${item.name ?? id}${id === open && this.changed ? " •" : ""}`;
-        const marks = [id === this.defaultFilterId ? `<sf-icon icon="push_pin" size="${size}" aria-label="${esc(this.text("headDefaultMark"))}" title="${esc(this.text("headDefaultMark"))}"></sf-icon>` : "", item.shared || item.kind === "shared" ? `<sf-icon icon="group" size="${size}" aria-label="${esc(this.text("headSharedMark"))}" title="${esc(item.owner_name ? `${this.text("headSharedMark")}: ${item.owner_name}` : this.text("headSharedMark"))}"></sf-icon>` : ""].join("");
+        const label = `${item.name ?? id}${id === open && this.changed ? " •" : ""}`; // The marks on the UI ladder of the row's size, as the «⋯»
+        // icon beside them (register VL-74, remark 7): 24, 20 compact.
+
+        const marks = [id === this.defaultFilterId ? `<sf-icon icon="push_pin" size="${size}" data-sf-icon-scale="ladder" aria-label="${esc(this.text("headDefaultMark"))}" title="${esc(this.text("headDefaultMark"))}"></sf-icon>` : "", item.shared || item.kind === "shared" ? `<sf-icon icon="group" size="${size}" data-sf-icon-scale="ladder" aria-label="${esc(this.text("headSharedMark"))}" title="${esc(item.owner_name ? `${this.text("headSharedMark")}: ${item.owner_name}` : this.text("headSharedMark"))}"></sf-icon>` : ""].join("");
         return `<div class="sf-view-head-saved"><sf-radio data-saved="${esc(id)}" size="${size}" name="sf-view-head-saved" value="${esc(id)}" label="${esc(label)}"${id === open ? " checked" : ""}></sf-radio><span class="sf-view-head-saved-end">${marks}` + `<sf-button-icon data-saved-menu="${esc(id)}" size="${size}" icon="more_horiz" appearance="ghost" scheme="on-surface" aria-haspopup="menu" aria-label="${esc(this.text("headFilterActions").replace("{name}", item.name ?? id))}"></sf-button-icon></span></div>`;
       }).join("")}</div>`;
     }
@@ -8313,7 +8413,21 @@ class ListHead {
       if (actions.length) add("row_actions", switches("row_actions", "headRowActions", actions, settings.row_actions));
     } else if (kind === "board") {
       add("lane_field", choice("lane_field", "headLaneField", fieldsOf(type => LIST_TYPES.has(type)), settings.lane_field));
-      add("empty_lanes", toggle("empty_lanes", "headEmptyLanes", settings.empty_lanes));
+      add("empty_lanes", toggle("empty_lanes", "headEmptyLanes", settings.empty_lanes)); // The board's lanes, each with its switch, before the long list
+      // of card fields: a lane hidden by its own «Скрыть» comes back
+      // here (DEV 2026-11-24; the board's message names «Вид»).
+
+      const lanes = this.view.board?.laneChoices ?? [];
+      if (lanes.length) add("lanes", {
+        type: "group",
+        text: this.text("headLanes"),
+        items: lanes.map(lane => ({
+          id: `lane:${lane.value}`,
+          type: "switch",
+          text: String(lane.label),
+          value: lane.shown === true
+        }))
+      });
       add("card_fields", switches("card_fields", "headCardFields", all, settings.card_fields));
     } else if (kind === "cards") {
       add("size", choice("size", "headCardSize", [["s", this.text("headSizeS")], ["m", this.text("headSizeM")], ["l", this.text("headSizeL")]], settings.size));
@@ -8385,7 +8499,16 @@ class ListHead {
 
     const current = this._kindSettings(kind);
 
-    const at = id.indexOf(":");
+    const at = id.indexOf(":"); // A board lane shown or hidden: the board's own (it says so and
+    // keeps it), not a setting of the kind.
+
+    if (at > 0 && id.slice(0, at) === "lane") {
+      const board = this.view.board;
+      const entry = id.slice(at + 1);
+      if (value === true) board?.showLane?.(entry);else board?.hideLane?.(entry);
+      this.render();
+      return;
+    }
 
     if (at > 0) {
       const key = id.slice(0, at);
@@ -9631,21 +9754,21 @@ module.exports = /*#__PURE__*/JSON.parse('{"$comment":"Dated aliases of sf-view 
 /***/ "7086146c00cc"
 (module) {
 
-module.exports = /*#__PURE__*/JSON.parse('{"id":"smart.view","tag":"sf-view","version":"1.38.0","kind":"leaf","settings":{"chrome":{"type":"string","default":"toolbar pagination select settings"},"head":{"type":"enum","values":["","list"],"default":""},"heading":{"type":"string","default":""},"row-cap":{"type":"number","default":0,"integer":true,"min":0},"expected-columns":{"type":"number","default":4,"integer":true,"min":1},"list-shape":{"type":"string","default":""},"port-owner":{"type":"string","default":""},"port-record":{"type":"string","default":""},"port-group":{"type":"string","default":""},"size":{"type":"enum","values":["1/2","1"],"default":"1"},"layout":{"type":"enum","values":["auto","table","list","board","cards","calendar"],"default":"auto"},"layout-switch":{"type":"boolean","default":false},"list-below":{"type":"number","default":600},"quick-actions":{"type":"string","default":""},"row-open":{"type":"enum","values":["title","row"],"default":"title"},"list-roles":{"type":"string","default":""},"column-search-placeholder":{"type":"string"},"column-search-empty-text":{"type":"string"},"column-move-label":{"type":"string"},"filter-apply-text":{"type":"string"},"show-more-text":{"type":"string"},"selected-label":{"type":"string"},"total-label":{"type":"string"},"pages-label":{"type":"string"},"first-label":{"type":"string"},"previous-label":{"type":"string"},"page-label":{"type":"string"},"next-label":{"type":"string"},"last-label":{"type":"string"},"page-field-label":{"type":"string"},"action-choose-label":{"type":"string"},"actions-label":{"type":"string"},"actions-region-label":{"type":"string"},"clear-selection-label":{"type":"string"},"page-size-label":{"type":"string"},"pagination-aria-label":{"type":"string"},"paging":{"type":"enum","values":["pages","more","both","endless"],"default":"both"},"preferences-key":{"type":"string","default":""},"accept-files":{"type":"boolean","default":false},"collection":{"type":"string","default":""},"current":{"type":"string","default":""},"record-card":{"type":"string","default":""},"bulk-actions":{"type":"list","of":{"id":"string","label":"string","icon":{"type":"icon","optional":true}}},"first-answer":{"type":"object","optional":true}},"values":{"state":{"type":"state"},"total":{"type":"number","nullable":true},"selected":{"type":"id","optional":true},"selection":{"type":"list"}},"events":{"open":{"carries":{"id":"id"},"cancelable":true},"deleted":{"carries":{"ids":"list"}},"answer":{"carries":{"intent":{"type":"string"},"answer":{"type":"enum","values":["applied","conflict","refused","unavailable"],"schema":{"type":"string"}},"reason":{"type":"string","optional":true},"message":{"type":"string","optional":true},"data":{"type":"object","optional":true},"sequence":{"type":"number","integer":true,"optional":true},"effects":{"type":"list","optional":true},"instance_id":{"type":"string"}},"own-verb":true},"state":{"carries":{"state":{"type":"enum","values":["loading","populated","empty","error","no-access"],"schema":{"type":"string"}},"message":{"type":"string"},"instance_id":{"type":"string"}},"own-verb":true},"tree":{"carries":{"intent":"string","payload":{"type":"object","optional":true}},"own-verb":true},"files-drop":{"carries":{"files":{"type":"list","schema":{"items":{"type":"object"},"minItems":1}}},"own-verb":true},"pagination-count":{"shared":"count-on-request@1","carries":{"component":{"type":"object"},"tagName":{"type":"string"},"template":{"type":"string"},"reason":{"type":"enum","values":["total","last-page","action-for-all"],"schema":{"type":"string"}},"current":{"type":"number","integer":true},"pageSize":{"type":"number","integer":true}}},"save":{"carries":{"kind":{"type":"enum","values":["view"],"optional":true},"key":{"type":"string"},"label":{"type":"string"},"revision":{"type":"string","schema":{"type":["string","integer"]},"optional":true},"roles":{"type":"object","optional":true}}},"table-action-intent":{"shared":"table-intents@1","carries":{"action_id":{"type":"string","schema":{"minLength":1}},"record_ids":{"type":"list","schema":{"items":{"type":["string","integer"]},"minItems":1}}}},"table-column-settings-change":{"shared":"table-intents@1","carries":{"reason":{"type":"string"},"columnSettings":{"type":"object"},"tableSettingsKey":{"type":"string"},"target":{"type":"enum","values":["personal","shared"],"schema":{"type":"string"},"optional":true},"base_revision":{"type":"string","schema":{"type":["string","number"]},"optional":true}}},"table-column-settings-reset":{"shared":"table-intents@1","carries":{"target":{"type":"enum","values":["personal"],"schema":{"type":"string"}},"tableSettingsKey":{"type":"string","schema":{"type":["string","null"]}}}},"table-create-intent":{"shared":"table-intents@1","carries":{"item":{"type":"string","schema":{"type":["string","null"]}}}},"table-query-intent":{"shared":"table-intents@1","carries":{"reason":{"type":"enum","values":["context"]},"context":{"type":"object"},"sequence":{"type":"number","integer":true,"schema":{"minimum":1}}}},"table-template-delete":{"shared":"table-intents@1","carries":{"key":{"type":"string","schema":{"minLength":1}}}},"table-template-save":{"shared":"table-intents@1","carries":{"templates":{"type":"list","of":{"key":"string","label":"string","selected":"boolean","data":"object","settings":"object"},"schema":{"items":{"type":"object","required":["key","label","settings"],"properties":{"key":{"type":"string"},"label":{"type":"string"},"selected":{"type":"boolean"},"data":{"type":"object"},"settings":{"type":"object","properties":{"filter_fields":{"type":"array","items":{"type":"string"}}}}}},"minItems":1}}},"x-decision":"Event detail that is not a flat object (decision 2026-11-09, control/evidence/2026-11-09-pro-queue): a non-flat detail is a flat carries map whose fields carry the nesting -- §4.2 types, `of` for a list\'s entries and `schema` for what the manifest checks; a detail that is not an object (§8) is carried in a named field, and its old shape stays on the dated alias names with mode split and the element\'s adapter. template-save carries templates, a list of one or more templates; sf-table-template-save and onTemplateSave keep the 1.3 detail (the template object, or the array of them) through sfAliasAdapters. sf-view reads detail.templates and, until 2027-01-01, a bare template or array from a table before sf-view-table 1.16.0."},"table-template-select":{"shared":"table-intents@1","carries":{"key":{"type":"string","schema":{"minLength":1}}}},"host-port-request":{"shared":"host-port@1","carries":{"component":{"type":"object","optional":true},"context":{"type":"object","optional":true}}},"list-open":{"carries":{"reason":{"type":"id","schema":{"enum":["row-cap"]}},"query":{"type":"object"}}},"table-cell-set":{"shared":"table-intents@1","carries":{"id":{"type":"string","schema":{"type":["string","integer"]}},"key":{"type":"string"},"value":{"type":"id"},"revision":{"type":"string","schema":{"type":["string","integer","null"]}}}},"table-rows-reorder":{"shared":"table-intents@1","carries":{"ids":{"type":"list","schema":{"items":{"type":"string"},"minItems":1}},"before":{"type":"string","schema":{"type":["string","null"]}},"order":{"type":"list","schema":{"items":{"type":"string"}}}}},"display-change":{"carries":{"kind":{"type":"enum","values":["table","board","cards","calendar","list","tree"]},"previous":{"type":"string"}},"cancelable":true},"settings-open":{"carries":{"id":{"type":"enum","values":["rights","export","record-field-add"]}}}},"actions":{"refresh":{"with":{"reason":{"type":"string","optional":true}}},"change-query":{"with":{"patch":"object","reason":{"type":"string","optional":true}},"concurrency":"latest"},"open-view":{"with":{"key":"string"}},"save-view":{"with":{"view":{"type":"object"}},"concurrency":"drop"},"delete-view":{"with":{"key":"string"},"concurrency":"drop"},"apply-under-filter":{"with":{"action-id":"string","confirmed-total":"number"},"concurrency":"drop"},"reset-column-settings":{},"clear-selection":{},"notify":{"with":{"text":"string","options":{"type":"object","optional":true}}}},"port":{"id":"simai.dataview-port","version":"1.15.0","contract":"src/core/contracts/ports/simai.dataview-port/1.15.0/port.json"},"presentation":{"skeleton":{"late":[]}},"css-variables":{"--sf-data-view-gap":{"type":"length","state":"default"},"--sf-data-view-drop-border-color":{"type":"color","state":"dragged-over"},"--sf-data-view-drop-background-color":{"type":"color","state":"dragged-over"},"--sf-data-view-drop-color":{"type":"color","state":"dragged-over"},"--sf-data-view-toolbar-gap":{"type":"length","state":"default"}},"host-states":{"data-state":"string","aria-busy":"string"}}');
+module.exports = /*#__PURE__*/JSON.parse('{"id":"smart.view","tag":"sf-view","version":"1.39.0","kind":"leaf","settings":{"chrome":{"type":"string","default":"toolbar pagination select settings"},"head":{"type":"enum","values":["","list"],"default":""},"heading":{"type":"string","default":""},"row-cap":{"type":"number","default":0,"integer":true,"min":0},"expected-columns":{"type":"number","default":4,"integer":true,"min":1},"list-shape":{"type":"string","default":""},"port-owner":{"type":"string","default":""},"port-record":{"type":"string","default":""},"port-group":{"type":"string","default":""},"size":{"type":"enum","values":["1/2","1"],"default":"1"},"layout":{"type":"enum","values":["auto","table","list","board","cards","calendar"],"default":"auto"},"layout-switch":{"type":"boolean","default":false},"list-below":{"type":"number","default":600},"quick-actions":{"type":"string","default":""},"row-open":{"type":"enum","values":["title","row"],"default":"title"},"list-roles":{"type":"string","default":""},"column-search-placeholder":{"type":"string"},"column-search-empty-text":{"type":"string"},"column-move-label":{"type":"string"},"filter-apply-text":{"type":"string"},"show-more-text":{"type":"string"},"selected-label":{"type":"string"},"total-label":{"type":"string"},"pages-label":{"type":"string"},"first-label":{"type":"string"},"previous-label":{"type":"string"},"page-label":{"type":"string"},"next-label":{"type":"string"},"last-label":{"type":"string"},"page-field-label":{"type":"string"},"action-choose-label":{"type":"string"},"actions-label":{"type":"string"},"actions-region-label":{"type":"string"},"clear-selection-label":{"type":"string"},"page-size-label":{"type":"string"},"pagination-aria-label":{"type":"string"},"paging":{"type":"enum","values":["pages","more","both","endless"],"default":"both"},"preferences-key":{"type":"string","default":""},"accept-files":{"type":"boolean","default":false},"collection":{"type":"string","default":""},"current":{"type":"string","default":""},"record-card":{"type":"string","default":""},"bulk-actions":{"type":"list","of":{"id":"string","label":"string","icon":{"type":"icon","optional":true}}},"first-answer":{"type":"object","optional":true}},"values":{"state":{"type":"state"},"total":{"type":"number","nullable":true},"selected":{"type":"id","optional":true},"selection":{"type":"list"}},"events":{"open":{"carries":{"id":"id"},"cancelable":true},"deleted":{"carries":{"ids":"list"}},"answer":{"carries":{"intent":{"type":"string"},"answer":{"type":"enum","values":["applied","conflict","refused","unavailable"],"schema":{"type":"string"}},"reason":{"type":"string","optional":true},"message":{"type":"string","optional":true},"data":{"type":"object","optional":true},"sequence":{"type":"number","integer":true,"optional":true},"effects":{"type":"list","optional":true},"instance_id":{"type":"string"}},"own-verb":true},"state":{"carries":{"state":{"type":"enum","values":["loading","populated","empty","error","no-access"],"schema":{"type":"string"}},"message":{"type":"string"},"instance_id":{"type":"string"}},"own-verb":true},"tree":{"carries":{"intent":"string","payload":{"type":"object","optional":true}},"own-verb":true},"files-drop":{"carries":{"files":{"type":"list","schema":{"items":{"type":"object"},"minItems":1}}},"own-verb":true},"pagination-count":{"shared":"count-on-request@1","carries":{"component":{"type":"object"},"tagName":{"type":"string"},"template":{"type":"string"},"reason":{"type":"enum","values":["total","last-page","action-for-all"],"schema":{"type":"string"}},"current":{"type":"number","integer":true},"pageSize":{"type":"number","integer":true}}},"save":{"carries":{"kind":{"type":"enum","values":["view"],"optional":true},"key":{"type":"string"},"label":{"type":"string"},"revision":{"type":"string","schema":{"type":["string","integer"]},"optional":true},"roles":{"type":"object","optional":true}}},"table-action-intent":{"shared":"table-intents@1","carries":{"action_id":{"type":"string","schema":{"minLength":1}},"record_ids":{"type":"list","schema":{"items":{"type":["string","integer"]},"minItems":1}}}},"table-column-settings-change":{"shared":"table-intents@1","carries":{"reason":{"type":"string"},"columnSettings":{"type":"object"},"tableSettingsKey":{"type":"string"},"target":{"type":"enum","values":["personal","shared"],"schema":{"type":"string"},"optional":true},"base_revision":{"type":"string","schema":{"type":["string","number"]},"optional":true}}},"table-column-settings-reset":{"shared":"table-intents@1","carries":{"target":{"type":"enum","values":["personal"],"schema":{"type":"string"}},"tableSettingsKey":{"type":"string","schema":{"type":["string","null"]}}}},"table-create-intent":{"shared":"table-intents@1","carries":{"item":{"type":"string","schema":{"type":["string","null"]}}}},"table-query-intent":{"shared":"table-intents@1","carries":{"reason":{"type":"enum","values":["context"]},"context":{"type":"object"},"sequence":{"type":"number","integer":true,"schema":{"minimum":1}}}},"table-template-delete":{"shared":"table-intents@1","carries":{"key":{"type":"string","schema":{"minLength":1}}}},"table-template-save":{"shared":"table-intents@1","carries":{"templates":{"type":"list","of":{"key":"string","label":"string","selected":"boolean","data":"object","settings":"object"},"schema":{"items":{"type":"object","required":["key","label","settings"],"properties":{"key":{"type":"string"},"label":{"type":"string"},"selected":{"type":"boolean"},"data":{"type":"object"},"settings":{"type":"object","properties":{"filter_fields":{"type":"array","items":{"type":"string"}}}}}},"minItems":1}}},"x-decision":"Event detail that is not a flat object (decision 2026-11-09, control/evidence/2026-11-09-pro-queue): a non-flat detail is a flat carries map whose fields carry the nesting -- §4.2 types, `of` for a list\'s entries and `schema` for what the manifest checks; a detail that is not an object (§8) is carried in a named field, and its old shape stays on the dated alias names with mode split and the element\'s adapter. template-save carries templates, a list of one or more templates; sf-table-template-save and onTemplateSave keep the 1.3 detail (the template object, or the array of them) through sfAliasAdapters. sf-view reads detail.templates and, until 2027-01-01, a bare template or array from a table before sf-view-table 1.16.0."},"table-template-select":{"shared":"table-intents@1","carries":{"key":{"type":"string","schema":{"minLength":1}}}},"host-port-request":{"shared":"host-port@1","carries":{"component":{"type":"object","optional":true},"context":{"type":"object","optional":true}}},"list-open":{"carries":{"reason":{"type":"id","schema":{"enum":["row-cap"]}},"query":{"type":"object"}}},"table-cell-set":{"shared":"table-intents@1","carries":{"id":{"type":"string","schema":{"type":["string","integer"]}},"key":{"type":"string"},"value":{"type":"id"},"revision":{"type":"string","schema":{"type":["string","integer","null"]}}}},"table-rows-reorder":{"shared":"table-intents@1","carries":{"ids":{"type":"list","schema":{"items":{"type":"string"},"minItems":1}},"before":{"type":"string","schema":{"type":["string","null"]}},"order":{"type":"list","schema":{"items":{"type":"string"}}}}},"display-change":{"carries":{"kind":{"type":"enum","values":["table","board","cards","calendar","list","tree"]},"previous":{"type":"string"}},"cancelable":true},"settings-open":{"carries":{"id":{"type":"enum","values":["rights","export","record-field-add"]}}}},"actions":{"refresh":{"with":{"reason":{"type":"string","optional":true}}},"change-query":{"with":{"patch":"object","reason":{"type":"string","optional":true}},"concurrency":"latest"},"open-view":{"with":{"key":"string"}},"save-view":{"with":{"view":{"type":"object"}},"concurrency":"drop"},"delete-view":{"with":{"key":"string"},"concurrency":"drop"},"apply-under-filter":{"with":{"action-id":"string","confirmed-total":"number"},"concurrency":"drop"},"reset-column-settings":{},"clear-selection":{},"notify":{"with":{"text":"string","options":{"type":"object","optional":true}}}},"port":{"id":"simai.dataview-port","version":"1.15.0","contract":"src/core/contracts/ports/simai.dataview-port/1.15.0/port.json"},"presentation":{"skeleton":{"late":[]}},"css-variables":{"--sf-data-view-gap":{"type":"length","state":"default"},"--sf-data-view-drop-border-color":{"type":"color","state":"dragged-over"},"--sf-data-view-drop-background-color":{"type":"color","state":"dragged-over"},"--sf-data-view-drop-color":{"type":"color","state":"dragged-over"},"--sf-data-view-toolbar-gap":{"type":"length","state":"default"}},"host-states":{"data-state":"string","aria-busy":"string"}}');
 
 /***/ },
 
 /***/ "ce0305e57fa5"
 (module) {
 
-module.exports = /*#__PURE__*/JSON.parse('{"title":"Data view","events":{"answer":{"label":"The host answered"},"state":{"label":"List state"},"tree":{"label":"Tree request"},"files-drop":{"label":"Files dropped on the list"},"display-change":{"label":"Display kind changed"},"settings-open":{"label":"List setting asked"}},"runtime":{"cancel":"Cancel","close-notice-label":"Close the message","confirm-apply":"Confirm","confirm-title":"Confirm the change","create-child-action":"Add a nested one","drop-files":"Drop the files here to upload them","empty-text":"No data","head-apply":"Apply","head-cancel":"Cancel","head-card-fields":"Card fields","head-card-labels":"Field labels","head-card-size":"Card size","head-clear":"Clear","head-colour-field":"Record colour by field","head-colour-none":"No colour","head-columns":"Columns","head-copy":"Save a copy","head-copy-suffix":"(copy)","head-count":"Records: {count}","head-create":"Create","head-date-field":"Date that places a record","head-default-mark":"Default","head-delete":"Delete","head-density":"Density","head-density-compact":"Compact","head-density-normal":"Normal","head-display":"Display","head-display-menu":"Display and views","head-empty-lanes":"Show empty lanes","head-export":"Export","head-favorite-add":"Add to favourites","head-favorite-remove":"Remove from favourites","head-fields-tab":"Fields","head-filter":"Filter","head-filter-actions":"Actions on the filter «{name}»","head-filter-changed":"(changed, not saved)","head-filter-named":"Filter: {name}","head-kind-board":"Kanban","head-kind-calendar":"Calendar","head-kind-cards":"Cards","head-kind-list":"List","head-kind-table":"Table","head-kind-tree":"Tree","head-lane-field":"Board lanes by field","head-level-personal":"Mine","head-level-shared":"For everyone","head-level-system":"System","head-lines":"Lines between columns","head-list-menu":"More: list settings","head-locked":"Locked by the administrator","head-look":"View","head-make-default":"Make default","head-no-saved":"No saved filters yet.","head-paging":"Loading","head-paging-both":"Both","head-paging-endless":"Endless","head-paging-more":"«Show more»","head-paging-pages":"By pages","head-record-fields":"Record field settings","head-remove-field":"Remove the field «{name}»","head-rename":"Rename","head-reset":"Reset","head-rights":"Access rights","head-row-actions":"Row actions","head-save":"Save","head-save-default":"Make default","head-save-filter":"Save filter","head-save-name":"Name","head-save-note":"The fields and their values are saved, without the search text.","head-save-shared":"Save for everyone","head-save-shared-hint":"Everyone with access to the list will see it","head-save-view-note":"The presentation, columns, sort order and page size are saved, without the filter conditions or the search.","head-saved-tab":"Saved","head-search":"Search","head-share":"Share with everyone","head-shared-mark":"Shared","head-single-line":"Text on one line","head-size-l":"Large","head-size-m":"Medium","head-size-s":"Small","head-unshare":"Only for me","head-update":"Update","head-update-filter":"Update «{name}»","head-view-changed":"Changed","head-view-new":"Save the view","head-view-new-name":"New view","head-view-reset":"Reset","head-view-save-all":"Save for everyone","head-view-save-mine":"Save as mine","head-view-save-new":"Save the view","head-view-state":"View state","head-view-state-mine":"Changed. Saved only for you; everyone else sees «{name}» as it was.","head-view-state-none":"«{name}»: no changes.","head-view-state-unsaved":"Changed, not saved: everyone still sees «{name}» as it was.","head-view-unsaved":"changed, not saved","head-view-zone":"View: {name}","head-view-zone-none":"View","head-views":"Views","layout-label":"Data view","move-action":"Move…","move-apply":"Move","move-first":"First","move-last":"Last","move-no-targets":"There is nowhere this record can be moved.","move-place":"Place","move-root":"To the top level","move-title":"Move «{label}»","notice-action-not-allowed":"That action is not available for the chosen record.","notice-capability-not-provided":"The host does not support that action.","notice-confirm-required":"The action has to be confirmed first.","notice-conflict":"The data changed. Read the view again and repeat the action.","notice-failed":"The action was not carried out.","notice-fetch-failed":"The data could not be fetched. Try again.","notice-forbidden":"You may not do this.","notice-load-failed":"The data could not be loaded.","notice-no-base-revision":"The settings cannot be saved yet: the view has no current version of them. Read the view again.","notice-not-confirmed":"The action was cancelled.","notice-port-not-connected":"The data source is not connected.","notice-record-invalid":"The record was not found.","notice-refused":"The action was refused.","notice-saved-view-levels":"Shared views need a newer port.","notice-stale-revision":"Someone changed this in the meantime. Read the view again and repeat the action.","notice-unavailable":"The action is unavailable.","of-total":"{shown} of {total}","records-label":"Records","show-all":"Show all","state-load-failed":"The data could not be loaded","state-loading":"Loading","state-port-not-connected":"The data port is not connected","state-query-failed":"The request could not be completed","state-unavailable":"The data is temporarily unavailable","unnamed-action":"Action"}}');
+module.exports = /*#__PURE__*/JSON.parse('{"title":"Data view","events":{"answer":{"label":"The host answered"},"state":{"label":"List state"},"tree":{"label":"Tree request"},"files-drop":{"label":"Files dropped on the list"},"display-change":{"label":"Display kind changed"},"settings-open":{"label":"List setting asked"}},"runtime":{"cancel":"Cancel","close-notice-label":"Close the message","confirm-apply":"Confirm","confirm-title":"Confirm the change","create-child-action":"Add a nested one","drop-files":"Drop the files here to upload them","empty-text":"No data","head-apply":"Apply","head-cancel":"Cancel","head-card-fields":"Card fields","head-card-labels":"Field labels","head-card-size":"Card size","head-clear":"Clear","head-colour-field":"Record colour by field","head-colour-none":"No colour","head-columns":"Columns","head-copy":"Save a copy","head-copy-suffix":"(copy)","head-count":"Records: {count}","head-create":"Create","head-date-field":"Date that places a record","head-default-mark":"Default","head-delete":"Delete","head-density":"Density","head-density-compact":"Compact","head-density-normal":"Normal","head-display":"Display","head-display-menu":"Display and views","head-empty-lanes":"Show empty lanes","head-lanes":"Lanes on the board","head-export":"Export","head-favorite-add":"Add to favourites","head-favorite-remove":"Remove from favourites","head-fields-tab":"Fields","head-filter":"Filter","head-filter-actions":"Actions on the filter «{name}»","head-filter-changed":"(changed, not saved)","head-filter-named":"Filter: {name}","head-kind-board":"Kanban","head-kind-calendar":"Calendar","head-kind-cards":"Cards","head-kind-list":"List","head-kind-table":"Table","head-kind-tree":"Tree","head-lane-field":"Board lanes by field","head-level-personal":"Mine","head-level-shared":"For everyone","head-level-system":"System","head-lines":"Lines between columns","head-list-menu":"More: list settings","head-locked":"Locked by the administrator","head-look":"View","head-make-default":"Make default","head-no-saved":"No saved filters yet.","head-paging":"Loading","head-paging-both":"Both","head-paging-endless":"Endless","head-paging-more":"«Show more»","head-paging-pages":"By pages","head-record-fields":"Record field settings","head-remove-field":"Remove the field «{name}»","head-rename":"Rename","head-reset":"Reset","head-rights":"Access rights","head-row-actions":"Row actions","head-save":"Save","head-save-default":"Make default","head-save-filter":"Save filter","head-save-name":"Name","head-save-note":"The fields and their values are saved, without the search text.","head-save-shared":"Save for everyone","head-save-shared-hint":"Everyone with access to the list will see it","head-save-view-note":"The presentation, columns, sort order and page size are saved, without the filter conditions or the search.","head-saved-tab":"Saved","head-search":"Search","head-share":"Share with everyone","head-shared-mark":"Shared","head-single-line":"Text on one line","head-size-l":"Large","head-size-m":"Medium","head-size-s":"Small","head-unshare":"Only for me","head-update":"Update","head-update-filter":"Update «{name}»","head-view-changed":"Changed","head-view-new":"Save the view","head-view-new-name":"New view","head-view-reset":"Reset","head-view-save-all":"Save for everyone","head-view-save-mine":"Save as mine","head-view-save-new":"Save the view","head-view-state":"View state","head-view-state-mine":"Changed. Saved only for you; everyone else sees «{name}» as it was.","head-view-state-none":"«{name}»: no changes.","head-view-state-unsaved":"Changed, not saved: everyone still sees «{name}» as it was.","head-view-unsaved":"changed, not saved","head-view-zone":"View: {name}","head-view-zone-none":"View","head-views":"Views","layout-label":"Data view","move-action":"Move…","move-apply":"Move","move-first":"First","move-last":"Last","move-no-targets":"There is nowhere this record can be moved.","move-place":"Place","move-root":"To the top level","move-title":"Move «{label}»","notice-action-not-allowed":"That action is not available for the chosen record.","notice-capability-not-provided":"The host does not support that action.","notice-confirm-required":"The action has to be confirmed first.","notice-conflict":"The data changed. Read the view again and repeat the action.","notice-failed":"The action was not carried out.","notice-fetch-failed":"The data could not be fetched. Try again.","notice-forbidden":"You may not do this.","notice-load-failed":"The data could not be loaded.","notice-no-base-revision":"The settings cannot be saved yet: the view has no current version of them. Read the view again.","notice-not-confirmed":"The action was cancelled.","notice-port-not-connected":"The data source is not connected.","notice-record-invalid":"The record was not found.","notice-refused":"The action was refused.","notice-saved-view-levels":"Shared views need a newer port.","notice-stale-revision":"Someone changed this in the meantime. Read the view again and repeat the action.","notice-unavailable":"The action is unavailable.","of-total":"{shown} of {total}","records-label":"Records","show-all":"Show all","state-load-failed":"The data could not be loaded","state-loading":"Loading","state-port-not-connected":"The data port is not connected","state-query-failed":"The request could not be completed","state-unavailable":"The data is temporarily unavailable","unnamed-action":"Action"}}');
 
 /***/ },
 
 /***/ "3e9dffe84919"
 (module) {
 
-module.exports = /*#__PURE__*/JSON.parse('{"title":"Представление данных","events":{"answer":{"label":"Ответ хоста"},"state":{"label":"Состояние списка"},"tree":{"label":"Запрос ветви дерева"},"files-drop":{"label":"Файлы брошены на список"},"display-change":{"label":"Сменён вид показа"},"settings-open":{"label":"Запрошена настройка списка"}},"runtime":{"cancel":"Отмена","close-notice-label":"Закрыть сообщение","confirm-apply":"Подтвердить","confirm-title":"Подтвердите изменение","create-child-action":"Добавить вложенную","drop-files":"Отпустите, чтобы загрузить файлы сюда","empty-text":"Нет данных","head-apply":"Применить","head-cancel":"Отменить","head-card-fields":"Поля на карточке","head-card-labels":"Подписи полей","head-card-size":"Размер карточек","head-clear":"Очистить","head-colour-field":"Цвет записи — по полю","head-colour-none":"Без цвета","head-columns":"Колонки","head-copy":"Сохранить копию","head-copy-suffix":"(копия)","head-count":"Записей: {count}","head-create":"Создать","head-date-field":"Дата, по которой стоит запись","head-default-mark":"По умолчанию","head-delete":"Удалить","head-density":"Плотность","head-density-compact":"Компактная","head-density-normal":"Обычная","head-display":"Вид показа","head-display-menu":"Вид показа и представления","head-empty-lanes":"Показывать пустые колонки","head-export":"Экспорт","head-favorite-add":"Добавить в избранное","head-favorite-remove":"Убрать из избранного","head-fields-tab":"Поля","head-filter":"Фильтр","head-filter-actions":"Действия с фильтром «{name}»","head-filter-changed":"(изменён, не сохранён)","head-filter-named":"Фильтр: {name}","head-kind-board":"Канбан","head-kind-calendar":"Календарь","head-kind-cards":"Карточки","head-kind-list":"Список","head-kind-table":"Таблица","head-kind-tree":"Дерево","head-lane-field":"Колонки доски — по полю","head-level-personal":"Мои","head-level-shared":"Для всех","head-level-system":"Системные","head-lines":"Линии между столбцами","head-list-menu":"Ещё: настройки списка","head-locked":"Закрыл администратор","head-look":"Вид","head-make-default":"Сделать по умолчанию","head-no-saved":"Сохранённых фильтров пока нет.","head-paging":"Подгрузка","head-paging-both":"Вместе","head-paging-endless":"Бесконечно","head-paging-more":"«Показать ещё»","head-paging-pages":"Страницами","head-record-fields":"Настройки полей записи","head-remove-field":"Убрать поле «{name}»","head-rename":"Переименовать","head-reset":"Сбросить","head-rights":"Права доступа","head-row-actions":"Действия в строке","head-save":"Сохранить","head-save-default":"Сделать по умолчанию","head-save-filter":"Сохранить фильтр","head-save-name":"Название","head-save-note":"Сохранятся поля и их значения, без текста поиска.","head-save-shared":"Сохранить для всех","head-save-shared-hint":"Увидят все, у кого есть доступ к списку","head-save-view-note":"Сохранятся вид, колонки, сортировка и число строк на странице, без условий фильтра и поиска.","head-saved-tab":"Сохранённые","head-search":"Поиск","head-share":"Поделиться со всеми","head-shared-mark":"Общий","head-single-line":"Текст в одну строку","head-size-l":"Крупные","head-size-m":"Средние","head-size-s":"Малые","head-unshare":"Только для меня","head-update":"Обновить","head-update-filter":"Обновить «{name}»","head-view-changed":"Изменено","head-view-new":"Сохранить представление","head-view-new-name":"Новое представление","head-view-reset":"Сбросить","head-view-save-all":"Сохранить для всех","head-view-save-mine":"Сохранить как моё","head-view-save-new":"Сохранить представление","head-view-state":"Состояние представления","head-view-state-mine":"Изменено. Сохранено только для вас; остальные видят «{name}» как было.","head-view-state-none":"«{name}»: изменений нет.","head-view-state-unsaved":"Изменено и не сохранено: у всех «{name}» остаётся как было.","head-view-unsaved":"изменено, не сохранено","head-view-zone":"Представление: {name}","head-view-zone-none":"Представление","head-views":"Представления","layout-label":"Представление данных","move-action":"Переместить…","move-apply":"Переместить","move-first":"Первым","move-last":"Последним","move-no-targets":"Эту запись некуда переместить.","move-place":"Место","move-root":"На верхний уровень","move-title":"Переместить «{label}»","notice-action-not-allowed":"Это действие недоступно для выбранной записи.","notice-capability-not-provided":"Хост не поддерживает это действие.","notice-confirm-required":"Действие нужно сначала подтвердить.","notice-conflict":"Данные изменились. Обновите представление и повторите действие.","notice-failed":"Действие не выполнено.","notice-fetch-failed":"Не удалось получить данные. Повторите попытку.","notice-forbidden":"Недостаточно прав для этого действия.","notice-load-failed":"Не удалось загрузить данные.","notice-no-base-revision":"Настройки пока нельзя сохранить: у представления нет их текущей версии. Обновите представление.","notice-not-confirmed":"Действие отменено.","notice-port-not-connected":"Источник данных не подключён.","notice-record-invalid":"Запись не найдена.","notice-refused":"Действие отклонено.","notice-saved-view-levels":"Общие виды требуют более новой версии порта.","notice-stale-revision":"Данные успели изменить. Обновите представление и повторите действие.","notice-unavailable":"Действие недоступно.","of-total":"{shown} из {total}","records-label":"Записи","show-all":"Показать все","state-load-failed":"Не удалось загрузить данные","state-loading":"Загрузка данных","state-port-not-connected":"Порт данных не подключён","state-query-failed":"Запрос не выполнен","state-unavailable":"Данные временно недоступны","unnamed-action":"Действие"}}');
+module.exports = /*#__PURE__*/JSON.parse('{"title":"Представление данных","events":{"answer":{"label":"Ответ хоста"},"state":{"label":"Состояние списка"},"tree":{"label":"Запрос ветви дерева"},"files-drop":{"label":"Файлы брошены на список"},"display-change":{"label":"Сменён вид показа"},"settings-open":{"label":"Запрошена настройка списка"}},"runtime":{"cancel":"Отмена","close-notice-label":"Закрыть сообщение","confirm-apply":"Подтвердить","confirm-title":"Подтвердите изменение","create-child-action":"Добавить вложенную","drop-files":"Отпустите, чтобы загрузить файлы сюда","empty-text":"Нет данных","head-apply":"Применить","head-cancel":"Отменить","head-card-fields":"Поля на карточке","head-card-labels":"Подписи полей","head-card-size":"Размер карточек","head-clear":"Очистить","head-colour-field":"Цвет записи — по полю","head-colour-none":"Без цвета","head-columns":"Колонки","head-copy":"Сохранить копию","head-copy-suffix":"(копия)","head-count":"Записей: {count}","head-create":"Создать","head-date-field":"Дата, по которой стоит запись","head-default-mark":"По умолчанию","head-delete":"Удалить","head-density":"Плотность","head-density-compact":"Компактная","head-density-normal":"Обычная","head-display":"Вид показа","head-display-menu":"Вид показа и представления","head-empty-lanes":"Показывать пустые колонки","head-lanes":"Колонки на доске","head-export":"Экспорт","head-favorite-add":"Добавить в избранное","head-favorite-remove":"Убрать из избранного","head-fields-tab":"Поля","head-filter":"Фильтр","head-filter-actions":"Действия с фильтром «{name}»","head-filter-changed":"(изменён, не сохранён)","head-filter-named":"Фильтр: {name}","head-kind-board":"Канбан","head-kind-calendar":"Календарь","head-kind-cards":"Карточки","head-kind-list":"Список","head-kind-table":"Таблица","head-kind-tree":"Дерево","head-lane-field":"Колонки доски — по полю","head-level-personal":"Мои","head-level-shared":"Для всех","head-level-system":"Системные","head-lines":"Линии между столбцами","head-list-menu":"Ещё: настройки списка","head-locked":"Закрыл администратор","head-look":"Вид","head-make-default":"Сделать по умолчанию","head-no-saved":"Сохранённых фильтров пока нет.","head-paging":"Подгрузка","head-paging-both":"Вместе","head-paging-endless":"Бесконечно","head-paging-more":"«Показать ещё»","head-paging-pages":"Страницами","head-record-fields":"Настройки полей записи","head-remove-field":"Убрать поле «{name}»","head-rename":"Переименовать","head-reset":"Сбросить","head-rights":"Права доступа","head-row-actions":"Действия в строке","head-save":"Сохранить","head-save-default":"Сделать по умолчанию","head-save-filter":"Сохранить фильтр","head-save-name":"Название","head-save-note":"Сохранятся поля и их значения, без текста поиска.","head-save-shared":"Сохранить для всех","head-save-shared-hint":"Увидят все, у кого есть доступ к списку","head-save-view-note":"Сохранятся вид, колонки, сортировка и число строк на странице, без условий фильтра и поиска.","head-saved-tab":"Сохранённые","head-search":"Поиск","head-share":"Поделиться со всеми","head-shared-mark":"Общий","head-single-line":"Текст в одну строку","head-size-l":"Крупные","head-size-m":"Средние","head-size-s":"Малые","head-unshare":"Только для меня","head-update":"Обновить","head-update-filter":"Обновить «{name}»","head-view-changed":"Изменено","head-view-new":"Сохранить представление","head-view-new-name":"Новое представление","head-view-reset":"Сбросить","head-view-save-all":"Сохранить для всех","head-view-save-mine":"Сохранить как моё","head-view-save-new":"Сохранить представление","head-view-state":"Состояние представления","head-view-state-mine":"Изменено. Сохранено только для вас; остальные видят «{name}» как было.","head-view-state-none":"«{name}»: изменений нет.","head-view-state-unsaved":"Изменено и не сохранено: у всех «{name}» остаётся как было.","head-view-unsaved":"изменено, не сохранено","head-view-zone":"Представление: {name}","head-view-zone-none":"Представление","head-views":"Представления","layout-label":"Представление данных","move-action":"Переместить…","move-apply":"Переместить","move-first":"Первым","move-last":"Последним","move-no-targets":"Эту запись некуда переместить.","move-place":"Место","move-root":"На верхний уровень","move-title":"Переместить «{label}»","notice-action-not-allowed":"Это действие недоступно для выбранной записи.","notice-capability-not-provided":"Хост не поддерживает это действие.","notice-confirm-required":"Действие нужно сначала подтвердить.","notice-conflict":"Данные изменились. Обновите представление и повторите действие.","notice-failed":"Действие не выполнено.","notice-fetch-failed":"Не удалось получить данные. Повторите попытку.","notice-forbidden":"Недостаточно прав для этого действия.","notice-load-failed":"Не удалось загрузить данные.","notice-no-base-revision":"Настройки пока нельзя сохранить: у представления нет их текущей версии. Обновите представление.","notice-not-confirmed":"Действие отменено.","notice-port-not-connected":"Источник данных не подключён.","notice-record-invalid":"Запись не найдена.","notice-refused":"Действие отклонено.","notice-saved-view-levels":"Общие виды требуют более новой версии порта.","notice-stale-revision":"Данные успели изменить. Обновите представление и повторите действие.","notice-unavailable":"Действие недоступно.","of-total":"{shown} из {total}","records-label":"Записи","show-all":"Показать все","state-load-failed":"Не удалось загрузить данные","state-loading":"Загрузка данных","state-port-not-connected":"Порт данных не подключён","state-query-failed":"Запрос не выполнен","state-unavailable":"Данные временно недоступны","unnamed-action":"Действие"}}');
 
 /***/ }
 

@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-table",
-  "version": "1.37.0",
+  "version": "1.38.0",
   "title": "Table",
   "summary": "Complete server-backed collection view with search, filters, table preferences, row and bulk actions, and pagination.",
   "kind": "composite",
@@ -3091,6 +3091,13 @@
         "changes": [
           "View round 17: repin on SIMAI Framework pair ui-b4f79e1c58b7 (ui-source e59dbad1c108, core.runtime 1.67.0); VN-3 the rail's margin-block-end -(1px + --sf-scroll-bg-width) and no fill under sf-view with a shown more slot; _waitsForView reads SF.Loader.settled; adoptSelectionGlyphs removed; option-badge.js provenance."
         ]
+      },
+      {
+        "from": "1.37.0",
+        "to": "1.38.0",
+        "changes": [
+          "View round 18: list row facts renderFactBadge(fact, 'text'); under 31.98rem .sf-table-resource-supporting, .sf-table-list-end and .sf-table-resource-facts take --sf-text-size-1 / --sf-text-height-1."
+        ]
       }
     ]
   },
@@ -3104,11 +3111,11 @@
       },
       {
         "path": "src/smart/view-table/js/templates/default.js",
-        "sha256": "c37151bb91e54c87bbcdb2cab187d2c980134d4f6451f90ff40e93aaccdf38f0"
+        "sha256": "eaa7a446f805a606b18852f7e6e0623234d1d11c874a9d166232f627c0cea1b7"
       },
       {
         "path": "src/smart/view-table/js/templates/default.css",
-        "sha256": "bf7590e5e130553aae1058e0dd25058e81d42c9246daad4eda3327b4c727b8fd"
+        "sha256": "c87690fe7ac3174c6cf275c8531e6aa50af886b730c51f8e041306af1d09cb76"
       },
       {
         "path": "src/smart/helpers/option-badge.js",

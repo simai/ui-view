@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-cards",
-  "version": "1.5.1",
+  "version": "1.5.2",
   "title": "Cards",
   "summary": "The cards layout of the view set: records as cards in a grid whose columns follow its width, a cover the layout draws, a title and up to four fields in the «Кратко» place; «Показать ещё» appends the next page. sf-view layout=\"cards\" draws it where the author turned it on.",
   "kind": "smart",
@@ -112,12 +112,12 @@
       "keep-selection": {
         "type": "boolean",
         "default": false,
-        "description": "The marks of records not on screen stay (sf-view sets it: the marks hold across pages and display kinds, C295, C298; view round 14 LV2-2): selected may name records of other pages, and the bar counts every mark."
+        "description": "The marks of records not on screen stay (sf-view sets it: the marks hold across the pages of the cards, C295; each display kind keeps its own marks, C413; view round 14 LV2-2): selected may name records of other pages, and the bar counts every mark."
       },
       "all-selected": {
         "type": "boolean",
         "default": false,
-        "description": "Every record under the filter is marked (the bar's «Выбрать все N», or «Выбраны все N» carried from the table, LV2-7): every card is drawn marked, the bar says the total, an action asks scope all; unmarking one card ends it."
+        "description": "Every record under the filter is marked (the bar's «Выбрать все N» in the cards, LV2-7; the table's «Выбраны все N» stays the table's, C413): every card is drawn marked, the bar says the total, an action asks scope all; unmarking one card ends it."
       },
       "bulk-bar": {
         "type": "boolean",
@@ -518,6 +518,13 @@
         "to": "1.5.1",
         "changes": [
           "View round 17: repin on SIMAI Framework pair ui-b4f79e1c58b7 (ui-source e59dbad1c108, core.runtime 1.67.0); provenance of src/smart/field-renderers/index.js."
+        ]
+      },
+      {
+        "from": "1.5.1",
+        "to": "1.5.2",
+        "changes": [
+          "View round 18: keep-selection and all-selected summaries (C413)."
         ]
       }
     ]

@@ -101,7 +101,10 @@ class SfViewBoard extends BoardElement {
     this._pending = new Map(); // Lanes the person folded or unfolded here, over the options.
 
     this._folded = new Map();
-    this._hidden = new Set();
+    this._hidden = new Set(); // Lanes the person brought back here over the options' hidden ones
+    // («Вид» → the board's lanes).
+
+    this._unhidden = new Set();
     this._loading = new Set();
     this._refusals = new Map();
     this._held = null;
@@ -219,13 +222,43 @@ class SfViewBoard extends BoardElement {
 
   get boardLanes() {
     const options = this.boardOptions;
-    options.lanes.hidden = [...new Set([...options.lanes.hidden, ...this._hidden])];
+    options.lanes.hidden = this._hiddenValues(options);
     return (0,_js_board_js__WEBPACK_IMPORTED_MODULE_4__.orderLanes)({
       field: this.laneField,
       answered: this.lanes,
       options
     }).map(lane => ({ ...lane,
       collapsed: this._folded.has(lane.value) ? this._folded.get(lane.value) : lane.collapsed
+    }));
+  } // What is hidden: the options' lanes and those hidden here, less the
+  // ones brought back here.
+
+
+  _hiddenValues(options = this.boardOptions) {
+    return [...new Set([...options.lanes.hidden, ...this._hidden])].filter(value => !this._unhidden.has(value));
+  }
+  /** Every lane of the board, hidden ones too, with whether it is shown
+   *  ([{value, label, shown}]): «Вид» lists them, a hidden one with its way
+   *  back (DEV 2026-11-24: «Скрыть» pointed at a window 1.17.0 no longer has). */
+
+
+  get laneChoices() {
+    const options = this.boardOptions;
+    const hidden = new Set(this._hiddenValues(options));
+    const all = (0,_js_board_js__WEBPACK_IMPORTED_MODULE_4__.orderLanes)({
+      field: this.laneField,
+      answered: this.lanes,
+      options: { ...options,
+        emptyLanes: "show",
+        lanes: { ...options.lanes,
+          hidden: []
+        }
+      }
+    });
+    return all.map(lane => ({
+      value: lane.value,
+      label: lane.label,
+      shown: !hidden.has(lane.value)
     }));
   }
 
@@ -385,8 +418,20 @@ class SfViewBoard extends BoardElement {
     this.addEventListener("scroll", event => this._onScroll(event), {
       signal,
       capture: true
+    }); // A width crossing the phone line redraws the board (one lane, the lane
+    // tabs), which changes its height inside its own observer: the redraw
+    // waits for the next frame, as the list head's does (view round 18).
+
+    if (typeof globalThis.ResizeObserver === "function") this._resize = new ResizeObserver(() => {
+      if (this._measureFrame) return;
+
+      const later = globalThis.requestAnimationFrame ?? (run => globalThis.setTimeout(run, 16));
+
+      this._measureFrame = later(() => {
+        this._measureFrame = null;
+        if (this.isConnected) this._measure();
+      });
     });
-    if (typeof globalThis.ResizeObserver === "function") this._resize = new ResizeObserver(() => this._measure());
 
     this._measure();
 
@@ -850,6 +895,8 @@ class SfViewBoard extends BoardElement {
 
     this._hidden.add(String(value));
 
+    this._unhidden.delete(String(value));
+
     this._say(this.word("hidden-text", {
       lane: lane?.label ?? value
     }));
@@ -857,6 +904,25 @@ class SfViewBoard extends BoardElement {
     this._save();
 
     this.requestComponentUpdate("hide");
+  }
+  /** A hidden lane back on the board (the way back «Вид» offers). */
+
+
+  showLane(value) {
+    const key = String(value);
+    const lane = this.laneChoices.find(entry => entry.value === key);
+
+    this._hidden.delete(key);
+
+    this._unhidden.add(key);
+
+    this._say(this.word("shown-text", {
+      lane: lane?.label ?? key
+    }));
+
+    this._save();
+
+    this.requestComponentUpdate("show");
   }
 
   _save() {
@@ -869,7 +935,7 @@ class SfViewBoard extends BoardElement {
 
     this.sfEmit("save", {
       collapsed: [...collapsed],
-      hidden: [...new Set([...options.lanes.hidden, ...this._hidden])],
+      hidden: this._hiddenValues(options),
       order: options.lanes.order
     });
   } // ── selection (BD-9) ───────────────────────────────────────────────────
@@ -1728,21 +1794,21 @@ module.exports = (globalThis.SF && globalThis.SF.runtimeModule ? globalThis.SF.r
 /***/ "6169da476610"
 (module) {
 
-module.exports = /*#__PURE__*/JSON.parse('{"id":"smart.view-board","tag":"sf-view-board","version":"1.3.1","kind":"leaf","settings":{"size":{"type":"enum","values":["1/2","1"],"default":"1/2"},"title-field":{"type":"string","default":"title"},"order-field":{"type":"string","default":""},"sort-active":{"type":"boolean","default":false},"selectable":{"type":"boolean","default":true},"creatable":{"type":"boolean","default":false},"movable":{"type":"boolean","default":true},"lanes":{"type":"list","default":[],"of":{"value":"string","label":{"type":"string","optional":true},"total":{"type":"number","optional":true},"totals":{"type":"object","optional":true},"records":"list","cursor":{"type":"any","nullable":true,"optional":true}}},"fields":{"type":"list","default":[],"of":{"key":"string","label":{"type":"string","optional":true},"propertyType":{"type":"string","optional":true},"options":{"type":"list","optional":true}}},"options":{"type":"object","default":{}},"moves":{"type":"object","default":{}},"actions":{"type":"list","default":[],"of":{"id":"id","text":"string","icon":{"type":"icon","optional":true}}},"selected":{"type":"list","default":[]},"sums-pending":{"type":"boolean","default":false}},"values":{},"events":{"move":{"carries":{"id":"id","field":"string","from":"string","to":"string","before":{"type":"id","nullable":true},"revision":{"type":"any","nullable":true},"how":"string"},"cancelable":true},"open":{"carries":{"id":"id"}},"create":{"carries":{"field":"string","value":"string"},"own-verb":true},"more":{"carries":{"lane":"string","cursor":{"type":"any","nullable":true},"offset":"number"},"own-verb":true},"select":{"carries":{"ids":"list"}},"save":{"carries":{"collapsed":"list","hidden":"list","order":"list"}},"apply":{"carries":{"action":"id","ids":"list","scope":"string"},"own-verb":true}},"actions":{"settle-move":{"with":{"id":"id","result":"object"}},"append-lane":{"with":{"lane":"string","records":"list","cursor":{"type":"any","nullable":true},"total":"number"}},"set-lane-totals":{"with":{"lanes":"list"}}},"layer":{"kind":"surface","locks-page":false,"traps-focus":false},"host-states":{},"css-variables":{"--sf-view-board-lane-width":{"type":"length","state":"default"},"--sf-view-board-gap":{"type":"length","state":"default"},"--sf-view-board-lane-background":{"type":"color","state":"default"},"--sf-view-board-lane-radius":{"type":"length","state":"default"},"--sf-view-board-refused-opacity":{"type":"number","state":"default"}}}');
+module.exports = /*#__PURE__*/JSON.parse('{"id":"smart.view-board","tag":"sf-view-board","version":"1.4.0","kind":"leaf","settings":{"size":{"type":"enum","values":["1/2","1"],"default":"1/2"},"title-field":{"type":"string","default":"title"},"order-field":{"type":"string","default":""},"sort-active":{"type":"boolean","default":false},"selectable":{"type":"boolean","default":true},"creatable":{"type":"boolean","default":false},"movable":{"type":"boolean","default":true},"lanes":{"type":"list","default":[],"of":{"value":"string","label":{"type":"string","optional":true},"total":{"type":"number","optional":true},"totals":{"type":"object","optional":true},"records":"list","cursor":{"type":"any","nullable":true,"optional":true}}},"fields":{"type":"list","default":[],"of":{"key":"string","label":{"type":"string","optional":true},"propertyType":{"type":"string","optional":true},"options":{"type":"list","optional":true}}},"options":{"type":"object","default":{}},"moves":{"type":"object","default":{}},"actions":{"type":"list","default":[],"of":{"id":"id","text":"string","icon":{"type":"icon","optional":true}}},"selected":{"type":"list","default":[]},"sums-pending":{"type":"boolean","default":false}},"values":{},"events":{"move":{"carries":{"id":"id","field":"string","from":"string","to":"string","before":{"type":"id","nullable":true},"revision":{"type":"any","nullable":true},"how":"string"},"cancelable":true},"open":{"carries":{"id":"id"}},"create":{"carries":{"field":"string","value":"string"},"own-verb":true},"more":{"carries":{"lane":"string","cursor":{"type":"any","nullable":true},"offset":"number"},"own-verb":true},"select":{"carries":{"ids":"list"}},"save":{"carries":{"collapsed":"list","hidden":"list","order":"list"}},"apply":{"carries":{"action":"id","ids":"list","scope":"string"},"own-verb":true}},"actions":{"settle-move":{"with":{"id":"id","result":"object"}},"append-lane":{"with":{"lane":"string","records":"list","cursor":{"type":"any","nullable":true},"total":"number"}},"set-lane-totals":{"with":{"lanes":"list"}}},"layer":{"kind":"surface","locks-page":false,"traps-focus":false},"host-states":{},"css-variables":{"--sf-view-board-lane-width":{"type":"length","state":"default"},"--sf-view-board-gap":{"type":"length","state":"default"},"--sf-view-board-lane-background":{"type":"color","state":"default"},"--sf-view-board-lane-radius":{"type":"length","state":"default"},"--sf-view-board-refused-opacity":{"type":"number","state":"default"}}}');
 
 /***/ },
 
 /***/ "21765acb70ff"
 (module) {
 
-module.exports = /*#__PURE__*/JSON.parse('{"title":"Kanban","runtime":{"actions-text":"Actions","add-short-text":"Add","add-text":"New record in “{lane}”","board-label":"Kanban","bulk-label":"Actions on the selection","card-menu-text":"Actions: {title}","clear-text":"Clear selection","collapse-text":"Collapse lane","collapsed-text":"Lane “{lane}” collapsed","empty-text":"Empty","expand-text":"Expand “{lane}”, {count}","expanded-text":"Lane “{lane}” expanded","hidden-text":"Lane “{lane}” hidden; bring it back in “Customize view”","hide-hint":"Bring it back in “Customize view”","hide-text":"Hide lane","lane-label":"{lane}, {count}","lane-menu-text":"Lane “{lane}”","lane-short-text":"Lane","lanes-label":"Board lanes","more-text":"Show {count} more","move-selected-text":"Move to…","move-to-text":"Move to","moved-text":"{title} moved to “{lane}”, {index} of {count}","new-text":"New record","no-move-text":"No permission to change","not-moved-text":"{title} not moved: {reason}","open-text":"Open","placed-text":"{title}: place {index} in the lane","refuse-default":"Not allowed here","refuse-text":"Not allowed: {reason}","select-text":"Select {title}","selected-text":"{count} selected","sorted-text":"The lane follows the sort: {title} stays in place","to-end-text":"To the end of the lane","to-start-text":"To the start of the lane"}}');
+module.exports = /*#__PURE__*/JSON.parse('{"title":"Kanban","runtime":{"actions-text":"Actions","add-short-text":"Add","add-text":"New record in “{lane}”","board-label":"Kanban","bulk-label":"Actions on the selection","card-menu-text":"Actions: {title}","clear-text":"Clear selection","collapse-text":"Collapse lane","collapsed-text":"Lane “{lane}” collapsed","empty-text":"Empty","expand-text":"Expand “{lane}”, {count}","expanded-text":"Lane “{lane}” expanded","hidden-text":"Lane “{lane}” hidden; bring it back in “View”","shown-text":"Lane “{lane}” is back on the board","hide-hint":"Bring it back in “View”","hide-text":"Hide lane","lane-label":"{lane}, {count}","lane-menu-text":"Lane “{lane}”","lane-short-text":"Lane","lanes-label":"Board lanes","more-text":"Show {count} more","move-selected-text":"Move to…","move-to-text":"Move to","moved-text":"{title} moved to “{lane}”, {index} of {count}","new-text":"New record","no-move-text":"No permission to change","not-moved-text":"{title} not moved: {reason}","open-text":"Open","placed-text":"{title}: place {index} in the lane","refuse-default":"Not allowed here","refuse-text":"Not allowed: {reason}","select-text":"Select {title}","selected-text":"{count} selected","sorted-text":"The lane follows the sort: {title} stays in place","to-end-text":"To the end of the lane","to-start-text":"To the start of the lane"}}');
 
 /***/ },
 
 /***/ "b04d01ca8dbb"
 (module) {
 
-module.exports = /*#__PURE__*/JSON.parse('{"title":"Канбан","runtime":{"actions-text":"Действия","add-short-text":"Добавить","add-text":"Новая запись в «{lane}»","board-label":"Канбан","bulk-label":"Действия с выбранными","card-menu-text":"Действия: {title}","clear-text":"Снять выбор","collapse-text":"Свернуть колонку","collapsed-text":"Колонка «{lane}» свёрнута","empty-text":"Пусто","expand-text":"Развернуть «{lane}», {count}","expanded-text":"Колонка «{lane}» развёрнута","hidden-text":"Колонка «{lane}» скрыта, вернуть — в «Настроить вид»","hide-hint":"Вернуть — в «Настроить вид»","hide-text":"Скрыть колонку","lane-label":"{lane}, {count}","lane-menu-text":"Колонка «{lane}»","lane-short-text":"Колонка","lanes-label":"Колонки доски","more-text":"Показать ещё {count}","move-selected-text":"Переместить в…","move-to-text":"Переместить в","moved-text":"{title} — в «{lane}», {index} из {count}","new-text":"Новая запись","no-move-text":"Нет права менять","not-moved-text":"{title} — не перенесено: {reason}","open-text":"Открыть","placed-text":"{title} — {index}-е место в колонке","refuse-default":"Сюда нельзя","refuse-text":"Нельзя: {reason}","select-text":"Выбрать {title}","selected-text":"Выбрано {count}","sorted-text":"Порядок в колонке задаёт сортировка: {title} — на месте","to-end-text":"В конец колонки","to-start-text":"В начало колонки"}}');
+module.exports = /*#__PURE__*/JSON.parse('{"title":"Канбан","runtime":{"actions-text":"Действия","add-short-text":"Добавить","add-text":"Новая запись в «{lane}»","board-label":"Канбан","bulk-label":"Действия с выбранными","card-menu-text":"Действия: {title}","clear-text":"Снять выбор","collapse-text":"Свернуть колонку","collapsed-text":"Колонка «{lane}» свёрнута","empty-text":"Пусто","expand-text":"Развернуть «{lane}», {count}","expanded-text":"Колонка «{lane}» развёрнута","hidden-text":"Колонка «{lane}» скрыта, вернуть — в «Вид»","shown-text":"Колонка «{lane}» снова на доске","hide-hint":"Вернуть — в «Вид»","hide-text":"Скрыть колонку","lane-label":"{lane}, {count}","lane-menu-text":"Колонка «{lane}»","lane-short-text":"Колонка","lanes-label":"Колонки доски","more-text":"Показать ещё {count}","move-selected-text":"Переместить в…","move-to-text":"Переместить в","moved-text":"{title} — в «{lane}», {index} из {count}","new-text":"Новая запись","no-move-text":"Нет права менять","not-moved-text":"{title} — не перенесено: {reason}","open-text":"Открыть","placed-text":"{title} — {index}-е место в колонке","refuse-default":"Сюда нельзя","refuse-text":"Нельзя: {reason}","select-text":"Выбрать {title}","selected-text":"Выбрано {count}","sorted-text":"Порядок в колонке задаёт сортировка: {title} — на месте","to-end-text":"В конец колонки","to-start-text":"В начало колонки"}}');
 
 /***/ }
 

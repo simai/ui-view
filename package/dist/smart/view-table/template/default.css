@@ -1210,6 +1210,16 @@
       font-size: var(--sf-text-size-1);
       line-height: var(--sf-text-height-1);
     }
+
+    /* The second line -- the words under the title and the figures at the
+       end (sum, date) -- at the row's text size and line, secondary by ink
+       only (register VL-75, owner remarks 9 and 13): 12 under a 14 title
+       read as a footnote on a phone. The figures' badges take this line
+       (line="text"). */
+    :is(sf-view-table, sf-table) :is(.sf-table-resource-supporting, .sf-table-list-end, .sf-table-resource-facts) {
+      font-size: var(--sf-text-size-1);
+      line-height: var(--sf-text-height-1);
+    }
   }
 
   /* The filter button carries how many conditions are on: the icon

@@ -1091,14 +1091,17 @@ export function renderTableTemplate(context) {
 
     // A fact: a badge without its column's label, which a screen reader
     // still hears; quiet when all is well, warning or error when not.
+    // In a list row the badge stands on the row's second line (register
+    // VL-75, owner remarks 9 and 13): the line's own text size and height,
+    // which is the row text on a phone, secondary by ink only.
     function renderFact(column, fact) {
-        return html`<span class="sf-table-visually-hidden">${column.label ?? column.key}: </span>${renderFactBadge(fact)}`;
+        return html`<span class="sf-table-visually-hidden">${column.label ?? column.key}: </span>${renderFactBadge(fact, 'text')}`;
     }
 
     // The badge of a fact, in a list row and in a table cell alike.
-    function renderFactBadge(fact) {
+    function renderFactBadge(fact, line = null) {
         const size = context.size === '1/2' ? '1/3' : '1/2';
-        const badge = html`<sf-badge size=${size} appearance="tonal"
+        const badge = html`<sf-badge size=${size} line=${line || nothing} appearance="tonal"
                 scheme=${fact.status ? nothing : (fact.scheme || 'neutral')} status=${fact.status || nothing}
                 text=${fact.text} data-tooltip=${fact.tip ? '' : nothing}></sf-badge>`;
         return fact.tip ? tooltip(badge, fact.tip) : badge;

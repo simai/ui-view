@@ -580,6 +580,19 @@
     .sf-property-view-sections {
     margin-block-end: var(--sf-space-3);
   }
+
+    /* Arranging, stacked (VO-2): the layout's gap is gone with its flex, so
+       the picker and its hint keep the same step above «Вкладки» as the list
+       keeps above the fields; the hint on its own line starts where
+       «Вкладки» does (the list's inset and its head's). */
+    .sf-property-view-configure-top {
+      margin-block-end: var(--sf-space-3);
+    }
+
+    .sf-property-view-configure-hint {
+      flex: 1 1 100%;
+      padding-inline-start: calc(var(--sf-space-1\/4) * 2);
+    }
   }
 
   /* A field asking for the whole row gets it in either arrangement. */
@@ -723,6 +736,19 @@
     .sf-property-view-sections {
     margin-block-end: var(--sf-space-3);
   }
+
+    /* Arranging, stacked (VO-2): the layout's gap is gone with its flex, so
+       the picker and its hint keep the same step above «Вкладки» as the list
+       keeps above the fields; the hint on its own line starts where
+       «Вкладки» does (the list's inset and its head's). */
+    .sf-property-view-configure-top {
+      margin-block-end: var(--sf-space-3);
+    }
+
+    .sf-property-view-configure-hint {
+      flex: 1 1 100%;
+      padding-inline-start: calc(var(--sf-space-1\/4) * 2);
+    }
   }
   @media (forced-colors: active) {
     .sf-property-view-group {
