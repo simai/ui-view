@@ -37,7 +37,7 @@ and a lane folded or hidden are events; the host answers a move with
 
 - `lane_field`: the field whose values are the lanes; the field's options give
   their order, names and colours (a tonal badge, C140).
-- `lanes`: order, hidden (brought back in «Настроить вид»), collapsed (a narrow
+- `lanes`: order, hidden (brought back in «Вид»: the board's lanes, each with its switch), collapsed (a narrow
   strip with the name and the count).
 - `card_fields`: up to four fields under the title, drawn in the «Кратко»
   place by the Framework field renderers (C300 (2)).

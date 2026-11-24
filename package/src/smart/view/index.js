@@ -47,7 +47,7 @@ const LISTENED = Object.freeze([
     "sf-pagination-action-for-all-change", "sf-view-save",
     // The board's (sf-view-board, layout="board"; owner decisions C298, C304).
     "sf-view-board-move", "sf-view-board-more", "sf-view-board-open", "sf-view-board-create",
-    "sf-view-board-select", "sf-view-board-apply",
+    "sf-view-board-select", "sf-view-board-apply", "sf-view-board-save",
     // The cards' (sf-view-cards, layout="cards"; owner decisions C297, C306).
     ...CARDS_EVENTS,
     // The calendar's (sf-view-calendar, layout="calendar"; owner decision C307).
@@ -1091,6 +1091,8 @@ class SfDataView extends DataViewElement {
             this.pagination?.setState?.({selectedCount: this.markedIds.length});
             if (this._bulkBar || this._bulkBand) this._renderBulkBand();
         }
+        // Boxes taken away by the chrome: the marks stay kept, not shown (VL-71).
+        if (!this.selects()) return;
         const allMarked = Boolean(this.pagination?.actionForAll);
         // One bar: the list's stands for the cards (owner, 2026-11-22), with
         // marks or without.
@@ -2679,6 +2681,36 @@ class SfDataView extends DataViewElement {
             this._holdLayoutLoad();
         }
         this._renderProjection();
+        if (name === "chrome") this._syncSelectMarks();
+    }
+
+    // The row boxes taken away by the chrome (select off) with rows marked
+    // (register VL-71, LV4-3): the marks are not shown and the bar goes with
+    // them -- a bar would act on rows whose marks nobody sees. They are kept,
+    // and the boxes back bring them back with their bar (VL-30).
+    _syncSelectMarks() {
+        const on = this.selects();
+        if (on) {
+            if (!this._marksHidden) return;
+            this._marksHidden = false;
+            this._applyOwnMarks();
+            this.pagination?.setState?.({selectedCount: this._bulkIds().length});
+            this._renderBulkBand();
+            return;
+        }
+        if (this._marksHidden) return;
+        const table = this.table;
+        if (!this.markedIds.length && !(table?.getSelectedRecordIds?.() ?? []).length) return;
+        this._marksHidden = true;
+        // The table's own clear is not the person's: the marks stay kept.
+        this._holdMarks = (this._holdMarks ?? 0) + 1;
+        table?.clearSelection?.();
+        if (this.layoutKind === "cards") this.cards?.clearSelection?.();
+        this.pagination?.setState?.({selectedCount: 0});
+        this._renderBulkBand();
+        const release = () => { this._holdMarks = Math.max(0, (this._holdMarks ?? 1) - 1); };
+        const frame = globalThis.requestAnimationFrame ?? ((callback) => setTimeout(callback, 16));
+        frame(() => setTimeout(release, 0));
     }
 
     // A layout switched to after the first paint whose code is still on the
@@ -3616,6 +3648,8 @@ class SfDataView extends DataViewElement {
     // The records a bulk action is for: every marked one, else the table's
     // own marks (a page that drives the table itself).
     _bulkIds() {
+        // No boxes, nothing marked to act on (VL-71).
+        if (!this.selects()) return [];
         const kept = this.markedIds;
         return kept.length ? kept : (this.table?.getSelectedRecordIds?.() ?? []);
     }
@@ -4443,6 +4477,15 @@ class SfDataView extends DataViewElement {
         const target = this.columnSettings?.target;
         const targetRevision = target && (target.kind ?? target.target ?? target) === layer ? target.revision : (target?.revision ?? null);
         const revision = base_revision ?? this.columnSettings?.layers?.[layer]?.revision ?? targetRevision;
+        // A host that does not keep a person's columns (no
+        // personal-column-settings): the change holds on screen for the
+        // session, as in 1.11.0, and nothing is said -- a red notice on every
+        // column hidden in «Колонки» told the person of a save nobody asked
+        // for (view site guide, DEV 2026-11-24). The save runs only when the
+        // host offers it.
+        if (!shared && !this.hostOffers("personal-column-settings")) {
+            return Promise.resolve({answer: "unavailable", reason: "capability-not-provided", session: true});
+        }
         if (revision == null) {
             this._showAnswer(shared ? "settings.save_shared" : "settings.save_personal", {answer: "unavailable", reason: "no-base-revision"});
             return Promise.resolve({answer: "unavailable", reason: "no-base-revision"});
@@ -4726,6 +4769,9 @@ class SfDataView extends DataViewElement {
         if (event.type === "sf-view-board-apply") {
             await this._action({action_id: detail.action, record_ids: detail.ids ?? []}, {selectedBulk: true});
         }
+        // A lane folded, hidden or brought back: «Вид» lists the lanes as
+        // they are now.
+        if (event.type === "sf-view-board-save") this._head?.render?.();
     }
 
     _onEvent(event) {

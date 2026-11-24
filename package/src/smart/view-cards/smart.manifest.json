@@ -112,12 +112,12 @@
       "keep-selection": {
         "type": "boolean",
         "default": false,
-        "description": "The marks of records not on screen stay (sf-view sets it: the marks hold across pages and display kinds, C295, C298; view round 14 LV2-2): selected may name records of other pages, and the bar counts every mark."
+        "description": "The marks of records not on screen stay (sf-view sets it: the marks hold across the pages of the cards, C295; each display kind keeps its own marks, C413; view round 14 LV2-2): selected may name records of other pages, and the bar counts every mark."
       },
       "all-selected": {
         "type": "boolean",
         "default": false,
-        "description": "Every record under the filter is marked (the bar's «Выбрать все N», or «Выбраны все N» carried from the table, LV2-7): every card is drawn marked, the bar says the total, an action asks scope all; unmarking one card ends it."
+        "description": "Every record under the filter is marked (the bar's «Выбрать все N» in the cards, LV2-7; the table's «Выбраны все N» stays the table's, C413): every card is drawn marked, the bar says the total, an action asks scope all; unmarking one card ends it."
       },
       "bulk-bar": {
         "type": "boolean",

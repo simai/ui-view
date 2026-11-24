@@ -76,6 +76,9 @@ class SfViewBoard extends BoardElement {
         // Lanes the person folded or unfolded here, over the options.
         this._folded = new Map();
         this._hidden = new Set();
+        // Lanes the person brought back here over the options' hidden ones
+        // («Вид» → the board's lanes).
+        this._unhidden = new Set();
         this._loading = new Set();
         this._refusals = new Map();
         this._held = null;
@@ -174,11 +177,28 @@ class SfViewBoard extends BoardElement {
     /** The lanes drawn, in order, with what the person folded or hid here. */
     get boardLanes() {
         const options = this.boardOptions;
-        options.lanes.hidden = [...new Set([...options.lanes.hidden, ...this._hidden])];
+        options.lanes.hidden = this._hiddenValues(options);
         return orderLanes({field: this.laneField, answered: this.lanes, options}).map((lane) => ({
             ...lane,
             collapsed: this._folded.has(lane.value) ? this._folded.get(lane.value) : lane.collapsed,
         }));
+    }
+
+    // What is hidden: the options' lanes and those hidden here, less the
+    // ones brought back here.
+    _hiddenValues(options = this.boardOptions) {
+        return [...new Set([...options.lanes.hidden, ...this._hidden])].filter((value) => !this._unhidden.has(value));
+    }
+
+    /** Every lane of the board, hidden ones too, with whether it is shown
+     *  ([{value, label, shown}]): «Вид» lists them, a hidden one with its way
+     *  back (DEV 2026-11-24: «Скрыть» pointed at a window 1.17.0 no longer has). */
+    get laneChoices() {
+        const options = this.boardOptions;
+        const hidden = new Set(this._hiddenValues(options));
+        const all = orderLanes({field: this.laneField, answered: this.lanes,
+            options: {...options, emptyLanes: "show", lanes: {...options.lanes, hidden: []}}});
+        return all.map((lane) => ({value: lane.value, label: lane.label, shown: !hidden.has(lane.value)}));
     }
 
     get manualOrder() {
@@ -617,9 +637,21 @@ class SfViewBoard extends BoardElement {
     hideLane(value) {
         const lane = this._lane(value);
         this._hidden.add(String(value));
+        this._unhidden.delete(String(value));
         this._say(this.word("hidden-text", {lane: lane?.label ?? value}));
         this._save();
         this.requestComponentUpdate("hide");
+    }
+
+    /** A hidden lane back on the board (the way back «Вид» offers). */
+    showLane(value) {
+        const key = String(value);
+        const lane = this.laneChoices.find((entry) => entry.value === key);
+        this._hidden.delete(key);
+        this._unhidden.add(key);
+        this._say(this.word("shown-text", {lane: lane?.label ?? key}));
+        this._save();
+        this.requestComponentUpdate("show");
     }
 
     _save() {
@@ -631,7 +663,7 @@ class SfViewBoard extends BoardElement {
         }
         this.sfEmit("save", {
             collapsed: [...collapsed],
-            hidden: [...new Set([...options.lanes.hidden, ...this._hidden])],
+            hidden: this._hiddenValues(options),
             order: options.lanes.order,
         });
     }

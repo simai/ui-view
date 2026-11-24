@@ -867,9 +867,10 @@ export class ListHead {
         const view = this.currentView;
         if (!view || this.viewLevel(view) === "personal") return false;
         if (this._settings && Object.values(this._settings).some((entry) => entry && Object.keys(entry).length)) return true;
-        const active = (filters) => Object.fromEntries(Object.entries(filters ?? {}).filter(([, entry]) => conditionActive(entry)));
-        const saved = view.query?.filters ?? view.filters ?? {};
-        if (!same(active(saved), active(this.filters))) return true;
+        // The conditions are not the view's (owner decision C414): a view
+        // keeps the look, the conditions are the filter's, so choosing a
+        // saved filter or a condition leaves the view as it is (it showed
+        // «Изменено», and saving then stored the view without them).
         // Its filter fields: a field added or taken away is a change (VS-8).
         const fields = this.viewFilterFields(view);
         if (fields && !same(fields.filter((key) => this.field(key)).sort(), [...this.chosen].sort())) return true;
@@ -1275,9 +1276,11 @@ export class ListHead {
             return `<div class="sf-view-head-list" role="radiogroup" aria-label="${esc(this.text("headSavedTab"))}">${this.savedFilters.map((item) => {
                 const id = String(item.id);
                 const label = `${item.name ?? id}${id === open && this.changed ? " •" : ""}`;
+                // The marks on the UI ladder of the row's size, as the «⋯»
+                // icon beside them (register VL-74, remark 7): 24, 20 compact.
                 const marks = [
-                    id === this.defaultFilterId ? `<sf-icon icon="push_pin" size="${size}" aria-label="${esc(this.text("headDefaultMark"))}" title="${esc(this.text("headDefaultMark"))}"></sf-icon>` : "",
-                    item.shared || item.kind === "shared" ? `<sf-icon icon="group" size="${size}" aria-label="${esc(this.text("headSharedMark"))}" title="${esc(item.owner_name ? `${this.text("headSharedMark")}: ${item.owner_name}` : this.text("headSharedMark"))}"></sf-icon>` : "",
+                    id === this.defaultFilterId ? `<sf-icon icon="push_pin" size="${size}" data-sf-icon-scale="ladder" aria-label="${esc(this.text("headDefaultMark"))}" title="${esc(this.text("headDefaultMark"))}"></sf-icon>` : "",
+                    item.shared || item.kind === "shared" ? `<sf-icon icon="group" size="${size}" data-sf-icon-scale="ladder" aria-label="${esc(this.text("headSharedMark"))}" title="${esc(item.owner_name ? `${this.text("headSharedMark")}: ${item.owner_name}` : this.text("headSharedMark"))}"></sf-icon>` : "",
                 ].join("");
                 return `<div class="sf-view-head-saved"><sf-radio data-saved="${esc(id)}" size="${size}" name="sf-view-head-saved" value="${esc(id)}" label="${esc(label)}"${id === open ? " checked" : ""}></sf-radio><span class="sf-view-head-saved-end">${marks}`
                     + `<sf-button-icon data-saved-menu="${esc(id)}" size="${size}" icon="more_horiz" appearance="ghost" scheme="on-surface" aria-haspopup="menu" aria-label="${esc(this.text("headFilterActions").replace("{name}", item.name ?? id))}"></sf-button-icon></span></div>`;
@@ -1382,6 +1385,12 @@ export class ListHead {
             add("lane_field", choice("lane_field", "headLaneField", fieldsOf((type) => LIST_TYPES.has(type)), settings.lane_field));
             add("empty_lanes", toggle("empty_lanes", "headEmptyLanes", settings.empty_lanes));
             add("card_fields", switches("card_fields", "headCardFields", all, settings.card_fields));
+            // The board's lanes, each with its switch: a lane hidden by its
+            // own «Скрыть» comes back here (DEV 2026-11-24; the board's
+            // message names «Вид»).
+            const lanes = this.view.board?.laneChoices ?? [];
+            if (lanes.length) add("lanes", {type: "group", text: this.text("headLanes"), items: lanes.map((lane) => ({
+                id: `lane:${lane.value}`, type: "switch", text: String(lane.label), value: lane.shown === true}))});
         } else if (kind === "cards") {
             add("size", choice("size", "headCardSize", [["s", this.text("headSizeS")], ["m", this.text("headSizeM")], ["l", this.text("headSizeL")]], settings.size));
             add("card_labels", toggle("card_labels", "headCardLabels", settings.card_labels));
@@ -1443,6 +1452,16 @@ export class ListHead {
         const kind = this.kind;
         const current = this._kindSettings(kind);
         const at = id.indexOf(":");
+        // A board lane shown or hidden: the board's own (it says so and
+        // keeps it), not a setting of the kind.
+        if (at > 0 && id.slice(0, at) === "lane") {
+            const board = this.view.board;
+            const entry = id.slice(at + 1);
+            if (value === true) board?.showLane?.(entry);
+            else board?.hideLane?.(entry);
+            this.render();
+            return;
+        }
         if (at > 0) {
             const key = id.slice(0, at);
             const entry = id.slice(at + 1);
