@@ -42,7 +42,8 @@ candidate.
   secondary by ink only (VL-75); a list row's figures stand on its line
   (sf-badge `line="text"`).
 - `sf-view-board` 1.4.0: «Скрыть колонку» names «Вид» as the way back;
-  `laneChoices` and `showLane(value)` (V2).
+  `laneChoices` and `showLane(value)` (V2); its width crossing the phone
+  line no longer raises the «ResizeObserver loop completed» notice.
 - `sf-view-cards` 1.5.2: keep-selection and all-selected descriptions as
   1.17.0 behaves (C413, V3).
 - `sf-view-properties` 1.31.2: arranging stacked (a phone, a narrow panel)

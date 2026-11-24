@@ -8,7 +8,7 @@
       "version": "1.4.0",
       "kind": "minor",
       "recorded_on": "2026-11-24",
-      "consumer": "Nothing to change for a host. «Скрыть колонку» says the lane comes back in «Вид» (it named «Настроить вид», which 1.17.0 no longer has). The board offers laneChoices (every lane with whether it is shown) and showLane(value), the way back sf-view's «Вид» uses; the lane shown again is said aloud (shown-text) and saved as hiding is.",
+      "consumer": "Nothing to change for a host. «Скрыть колонку» says the lane comes back in «Вид» (it named «Настроить вид», which 1.17.0 no longer has). The board offers laneChoices (every lane with whether it is shown) and showLane(value), the way back sf-view's «Вид» uses; the lane shown again is said aloud (shown-text) and saved as hiding is. The board's width crossing the phone line no longer raises the window's «ResizeObserver loop completed» notice.",
       "evidence": "control/evidence/2026-11-24-view-r18/README.md"
     },
     {
@@ -735,7 +735,7 @@
           "from": "1.3.1",
           "to": "1.4.0",
           "changes": [
-            "View round 18: laneChoices, showLane, _unhidden over the options' hidden lanes, words hidden-text / hide-hint name «Вид», new word shown-text."
+            "View round 18: laneChoices, showLane, _unhidden over the options' hidden lanes, words hidden-text / hide-hint name «Вид», new word shown-text; the ResizeObserver callback measures on the next frame (_measureFrame)."
           ]
         }
       ]
