@@ -16,6 +16,34 @@ same numbers with other content); every next set version is above them
 up). Each component.json says the same under `x-decisions`
 `pro-copy-versions`.
 
+## Unreleased — view round 18
+
+View round 18 (round/view-r18, from main 517da06 = view 1.17.0): DEV's
+returns on 1.17.0 (register VL-71, VL-74, VL-75, the r17 acceptance note
+VO-2, and the view site guide's V1-V4). Not released; package 1.18.0 is a
+candidate.
+
+- `sf-view` 1.39.0: «Флажки» off (a chrome without `select`) with rows
+  marked takes the bar away with the boxes and keeps the marks; the boxes
+  back bring the marks and «Выбрано N» back (VL-71). A host without
+  `personal-column-settings` keeps a «Колонки» change for the session with
+  no notice, as 1.11.0 did (V1). A saved filter or a condition no longer
+  marks the view «Изменено» (C414, V4). A board's «Вид» lists its lanes with
+  a switch each, the way back for a hidden lane (V2). The saved filter marks
+  «Общий» and «По умолчанию» are the size of the «⋯» beside them (VL-74).
+  The chrome and head descriptions name «Колонки» and «Вид» (V3).
+- `sf-view-table` 1.38.0: on a phone the list row's second line (the words
+  under the title, the sum and the date) is the row's text size, 14 / 20,
+  secondary by ink only (VL-75); a list row's figures stand on its line
+  (sf-badge `line="text"`).
+- `sf-view-board` 1.4.0: «Скрыть колонку» names «Вид» as the way back;
+  `laneChoices` and `showLane(value)` (V2).
+- `sf-view-cards` 1.5.2: keep-selection and all-selected descriptions as
+  1.17.0 behaves (C413, V3).
+- `sf-view-properties` 1.31.2: arranging stacked (a phone, a narrow panel)
+  keeps a space step above «Вкладки», the hint starting where «Вкладки»
+  does (VO-2).
+
 ## 1.17.0 — 2026-11-23
 
 View rounds 14 to 17 with the modular step 1 (round/view-r14,

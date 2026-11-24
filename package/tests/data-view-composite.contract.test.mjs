@@ -355,12 +355,12 @@ test('a chrome without select leaves the bar nothing to act on and keeps the mar
   view.records = [{id: 'one'}, {id: 'two'}];
   view._noteMarks(['one', 'two'], ['one']);
   view.table.getSelectedRecordIds = () => ['one'];
-  assert.deepEqual(view._bulkIds(), ['one']);
+  assert.equal(JSON.stringify(view._bulkIds()), '["one"]');
   view.setAttribute('chrome', 'toolbar pagination settings');
-  assert.deepEqual(view._bulkIds(), [], 'no boxes: nothing marked to act on');
-  assert.deepEqual(view.markedIds, ['one'], 'the mark is kept');
+  assert.equal(JSON.stringify(view._bulkIds()), '[]', 'no boxes: nothing marked to act on');
+  assert.equal(JSON.stringify(view.markedIds), '["one"]', 'the mark is kept');
   view.setAttribute('chrome', 'toolbar pagination select settings');
-  assert.deepEqual(view._bulkIds(), ['one'], 'the boxes back: the mark acts again');
+  assert.equal(JSON.stringify(view._bulkIds()), '["one"]', 'the boxes back: the mark acts again');
 });
 
 // View round 18 (V1): a host without personal-column-settings keeps the
@@ -375,10 +375,10 @@ test('column settings without personal-column-settings stay on screen silently',
   const answer = await view.saveColumnSettings({manager: {visible: false}});
   assert.equal(answer.reason, 'capability-not-provided');
   assert.equal(answer.session, true);
-  assert.deepEqual(raised, [], 'no save reaches the host');
-  assert.deepEqual(said, [], 'no notice');
+  assert.equal(raised.length, 0, 'no save reaches the host');
+  assert.equal(said.length, 0, 'no notice');
   view.hostPort = {version: '1.16.0', capabilities: ['personal-column-settings'], raise: (intent, payload) => { raised.push({intent, payload}); return {answer: 'applied'}; }};
   view.columnSettings = {layers: {personal: {revision: 4}}};
   await view.saveColumnSettings({manager: {visible: false}});
-  assert.deepEqual(raised.map((one) => one.intent), ['settings.save_personal'], 'the host that offers it is asked');
+  assert.equal(raised.map((one) => one.intent).join(), 'settings.save_personal', 'the host that offers it is asked');
 });

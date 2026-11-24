@@ -1384,13 +1384,13 @@ export class ListHead {
         } else if (kind === "board") {
             add("lane_field", choice("lane_field", "headLaneField", fieldsOf((type) => LIST_TYPES.has(type)), settings.lane_field));
             add("empty_lanes", toggle("empty_lanes", "headEmptyLanes", settings.empty_lanes));
-            add("card_fields", switches("card_fields", "headCardFields", all, settings.card_fields));
-            // The board's lanes, each with its switch: a lane hidden by its
-            // own «Скрыть» comes back here (DEV 2026-11-24; the board's
-            // message names «Вид»).
+            // The board's lanes, each with its switch, before the long list
+            // of card fields: a lane hidden by its own «Скрыть» comes back
+            // here (DEV 2026-11-24; the board's message names «Вид»).
             const lanes = this.view.board?.laneChoices ?? [];
             if (lanes.length) add("lanes", {type: "group", text: this.text("headLanes"), items: lanes.map((lane) => ({
                 id: `lane:${lane.value}`, type: "switch", text: String(lane.label), value: lane.shown === true}))});
+            add("card_fields", switches("card_fields", "headCardFields", all, settings.card_fields));
         } else if (kind === "cards") {
             add("size", choice("size", "headCardSize", [["s", this.text("headSizeS")], ["m", this.text("headSizeM")], ["l", this.text("headSizeL")]], settings.size));
             add("card_labels", toggle("card_labels", "headCardLabels", settings.card_labels));

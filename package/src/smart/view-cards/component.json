@@ -2,8 +2,15 @@
   "$comment": "sf-view-cards, standard simai.smart-component 1.4 (vocabulary 1.1.5): the cards layout of the view set (a gallery of record cards; owner decisions C297, C306). Study: ui-control control/research/2026-11-18-cards-view. The card is .sf-card, the cover the layout's own frame, the card fields the Framework field renderers' cell output, «Показать ещё» sf-pagination in its more look, empty states sf-empty-state, menus SF.menu.open, the selection bar sf-bulk-actions where the pair has it.",
   "id": "smart.view-cards",
   "tag": "sf-view-cards",
-  "version": "1.5.1",
+  "version": "1.5.2",
   "x-history": [
+    {
+      "version": "1.5.2",
+      "kind": "patch",
+      "recorded_on": "2026-11-24",
+      "consumer": "Nothing to change for a host. The keep-selection and all-selected descriptions say what 1.17.0 does: the marks hold across the cards' pages, each display kind keeps its own (C413).",
+      "evidence": "control/evidence/2026-11-24-view-r18/README.md"
+    },
     {
       "version": "1.5.1",
       "kind": "patch",
@@ -674,6 +681,13 @@
           "to": "1.5.1",
           "changes": [
             "View round 17: repin on SIMAI Framework pair ui-b4f79e1c58b7 (ui-source e59dbad1c108, core.runtime 1.67.0); provenance of src/smart/field-renderers/index.js."
+          ]
+        },
+        {
+          "from": "1.5.1",
+          "to": "1.5.2",
+          "changes": [
+            "View round 18: keep-selection and all-selected summaries (C413)."
           ]
         }
       ]

@@ -5,6 +5,15 @@
   "entries": [
     {
       "unit": "smart.view",
+      "version": "1.39.0",
+      "recorded_on": "2026-11-24",
+      "change": "minor",
+      "consumer": "Nothing to change for a host. A chrome that takes the row boxes away (select off) with rows marked no longer leaves «Выбрано N» and its actions over marks nobody sees: the marks are kept but not shown, the bar goes, and the boxes back bring both back (register VL-71, LV4-3). A host that does not offer personal-column-settings keeps a «Колонки» change for the session, as 1.11.0 did, with no notice; the personal save runs only when the host offers it (view site guide V1). Choosing a saved filter or a condition no longer marks the view «Изменено»: the conditions are the filter's, not the view's (owner decision C414; V4). «Вид» of a board lists the board's lanes, each with its switch, so a lane hidden by its own «Скрыть» comes back there (V2). The saved filter marks «Общий» and «По умолчанию» stand on the UI icon ladder of their row, the size of the «⋯» beside them: 24, 20 compact (register VL-74, remark 7). The chrome and head descriptions name «Колонки» and «Вид» (V3).",
+      "summary": "View round 18: _syncSelectMarks on a chrome change (marks kept, table cleared under a hold, bar redrawn), _bulkIds and _applyOwnMarks read renders('select'); saveColumnSettings returns capability-not-provided {session: true} without a notice when the host does not offer personal-column-settings; head viewChanged compares no conditions (C414); head «Вид» group lanes (lane:<value> switches, board showLane/hideLane), sf-view-board-save redraws the head; filter set marks data-sf-icon-scale=ladder; words head-lanes.",
+      "evidence": "control/evidence/2026-11-24-view-r18/README.md"
+    },
+    {
+      "unit": "smart.view",
       "version": "1.38.0",
       "recorded_on": "2026-11-23",
       "change": "minor",
@@ -320,6 +329,15 @@
     },
     {
       "unit": "smart.view-table",
+      "version": "1.38.0",
+      "recorded_on": "2026-11-24",
+      "change": "minor",
+      "consumer": "Nothing to change for a host. On a phone the list row's second line -- the words under the title and the figures at the end (sum, date) -- is drawn at the row's text size and line (14 / 20 on the phone ladder), secondary by ink only (register VL-75, owner remarks 9 and 13); it was 12 / 16. The figures of a list row stand on that line (sf-badge line=\"text\") at every width; a wider list keeps its 12 / 16 line.",
+      "summary": "View round 18: list row facts renderFactBadge(fact, 'text'); under 31.98rem .sf-table-resource-supporting, .sf-table-list-end and .sf-table-resource-facts take --sf-text-size-1 / --sf-text-height-1.",
+      "evidence": "control/evidence/2026-11-24-view-r18/README.md"
+    },
+    {
+      "unit": "smart.view-table",
       "version": "1.37.0",
       "recorded_on": "2026-11-23",
       "change": "minor",
@@ -605,6 +623,15 @@
       "consumer": "Nothing to change for a host: only the SIMAI Framework file it builds in moved with the repin.",
       "summary": "Over SIMAI Framework ui-078a4b4c6f6e (ui-source 10145e63b9dc) the Framework file it builds in, src/smart/pagination/index.js (sf-pagination 1.7: «Show more» within reach, C167; a deleting action listed last, C116), moved; the provenance and the version follow. Nothing of its own; nothing to change for a host. 1.19.7 and 1.19.8 are ui-pro's own patched copies, never this set's.",
       "evidence": "https://github.com/simai/ui-view/commit/e214dd608fdcf39cea527676fc522afd718922d4"
+    },
+    {
+      "unit": "smart.view-properties",
+      "version": "1.31.2",
+      "recorded_on": "2026-11-24",
+      "change": "patch",
+      "consumer": "Nothing to change for a host. Arranging the record stacked (a phone, a narrow panel) keeps a space step between the view picker with its hint and «Вкладки», and the hint on its own line starts where «Вкладки» does (VO-2): it started 8 px left of it and touched it.",
+      "summary": "View round 18: under the stacked rules .sf-property-view-configure-top margin-block-end --sf-space-3, .sf-property-view-configure-hint flex 1 1 100% and padding-inline-start 2 x --sf-space-1/4.",
+      "evidence": "control/evidence/2026-11-24-view-r18/README.md"
     },
     {
       "unit": "smart.view-properties",
@@ -950,6 +977,15 @@
     },
     {
       "unit": "smart.view-board",
+      "version": "1.4.0",
+      "recorded_on": "2026-11-24",
+      "change": "minor",
+      "consumer": "Nothing to change for a host. «Скрыть колонку» says the lane comes back in «Вид» (it named «Настроить вид», which 1.17.0 no longer has). The board offers laneChoices (every lane with whether it is shown) and showLane(value), the way back sf-view's «Вид» uses; the lane shown again is said aloud (shown-text) and saved as hiding is.",
+      "summary": "View round 18: laneChoices, showLane, _unhidden over the options' hidden lanes, words hidden-text / hide-hint name «Вид», new word shown-text.",
+      "evidence": "control/evidence/2026-11-24-view-r18/README.md"
+    },
+    {
+      "unit": "smart.view-board",
       "version": "1.3.1",
       "recorded_on": "2026-11-23",
       "change": "patch",
@@ -1046,6 +1082,15 @@
       "consumer": "New: sf-view layout=\"board\" (or Larena's kanban) draws it; a host answers the lane window (lanes, per_lane) and settles moves.",
       "summary": "New: the board layout (owner decisions C298, C304): lanes by one field from the host's lane window, cards with up to four fields in the «Кратко» place, moves as a change of the lane field the host settles (settleMove), «Показать ещё» per lane (appendLane), soft limits, folded and hidden lanes, one lane per screen on a phone, one Tab stop with the arrows inside.",
       "evidence": "control/evidence/2026-11-18-view-r2-board"
+    },
+    {
+      "unit": "smart.view-cards",
+      "version": "1.5.2",
+      "recorded_on": "2026-11-24",
+      "change": "patch",
+      "consumer": "Nothing to change for a host. The keep-selection and all-selected descriptions say what 1.17.0 does: the marks hold across the cards' pages, each display kind keeps its own (C413).",
+      "summary": "View round 18: keep-selection and all-selected summaries (C413).",
+      "evidence": "control/evidence/2026-11-24-view-r18/README.md"
     },
     {
       "unit": "smart.view-cards",

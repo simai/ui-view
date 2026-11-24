@@ -58,14 +58,18 @@ test('V2: «Вид» lists the board lanes and the board names «Вид» as the
 });
 
 test('V3: the descriptions speak of 1.17.0: «Вид», each kind its own marks (C413)', () => {
-  for (const file of ['component.json', 'smart.manifest.json']) {
-    const text = JSON.stringify(json(`src/smart/view/${file}`).settings ?? json(`src/smart/view/${file}`));
-    const viewJson = json(`src/smart/view/${file}`);
-    const chrome = file === 'component.json' ? viewJson.settings.chrome.summary : JSON.stringify(viewJson).match(/"description": "Which chrome[^"]*"/u)?.[0] ?? text;
-    assert.doesNotMatch(chrome, /Настроить вид/u, file);
-    const cards = JSON.stringify(json(`src/smart/view-cards/${file}`));
-    assert.doesNotMatch(cards, /across pages and display kinds/u, file);
-    assert.doesNotMatch(cards, /carried from the table/u, file);
+  const viewC = json('src/smart/view/component.json');
+  const viewM = json('src/smart/view/smart.manifest.json');
+  for (const key of ['chrome', 'head']) {
+    assert.doesNotMatch(viewC.settings[key].summary, /Настроить вид/u, key);
+    assert.doesNotMatch(viewM.inputs.properties[key].description, /Настроить вид/u, key);
+  }
+  const cardsC = json('src/smart/view-cards/component.json');
+  const cardsM = json('src/smart/view-cards/smart.manifest.json');
+  for (const key of ['keep-selection', 'all-selected']) {
+    for (const text of [cardsC.settings[key].summary, cardsM.inputs.properties[key].description]) {
+      assert.doesNotMatch(text, /across pages and display kinds|carried from the table/u, key);
+    }
   }
 });
 

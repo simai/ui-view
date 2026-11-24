@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-cards",
-  "version": "1.5.1",
+  "version": "1.5.2",
   "title": "Cards",
   "summary": "The cards layout of the view set: records as cards in a grid whose columns follow its width, a cover the layout draws, a title and up to four fields in the «Кратко» place; «Показать ещё» appends the next page. sf-view layout=\"cards\" draws it where the author turned it on.",
   "kind": "smart",
@@ -518,6 +518,13 @@
         "to": "1.5.1",
         "changes": [
           "View round 17: repin on SIMAI Framework pair ui-b4f79e1c58b7 (ui-source e59dbad1c108, core.runtime 1.67.0); provenance of src/smart/field-renderers/index.js."
+        ]
+      },
+      {
+        "from": "1.5.1",
+        "to": "1.5.2",
+        "changes": [
+          "View round 18: keep-selection and all-selected summaries (C413)."
         ]
       }
     ]

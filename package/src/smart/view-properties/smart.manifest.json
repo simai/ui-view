@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-properties",
-  "version": "1.31.1",
+  "version": "1.31.2",
   "title": "Property view",
   "summary": "One object's fields shown as sections, groups and fields, each drawn by the per-type field renderer set, behind a separate host port. A group is edited and saved as one revision by the button, and a reference field is picked from the host's own candidates a page at a time. The pair to the data view: that one is a set of records, this one is a single object.",
   "kind": "composite",
@@ -2076,6 +2076,13 @@
         "to": "1.31.1",
         "changes": [
           "View round 17: the full-screen edit form's fields grid-column auto with their own label column over sf-form's start labels (selectors above .sf-form[data-labels]); the panel's foot bar position static, margin-block-end 0, padding-block --sf-space-1 over sf-drawer's content-actions rule."
+        ]
+      },
+      {
+        "from": "1.31.1",
+        "to": "1.31.2",
+        "changes": [
+          "View round 18: under the stacked rules .sf-property-view-configure-top margin-block-end --sf-space-3, .sf-property-view-configure-hint flex 1 1 100% and padding-inline-start 2 x --sf-space-1/4."
         ]
       }
     ]
