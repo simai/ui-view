@@ -604,14 +604,21 @@ try {
     // A field dragged into another group. The drop is reported the way sf-sortable
     // reports one, so this measures the component's reaction and not a method
     // nobody calls: the event is what a pointer would produce.
+    const savesBeforeMove = viewAsks.filter((ask) => ask.intent === 'view.save').length;
     const list = configView.querySelector('sf-sortable[id="field:g2"]');
     list?.dispatchEvent(new CustomEvent('sf-sortable-intent', {
       bubbles: true, detail: {item: 'b', from: 'field:g1', to: 'field:g2', index: 0, mode: 'move'},
     }));
     await new Promise((done) => setTimeout(done, 400));
-    const afterMove = viewAsks.filter((ask) => ask.intent === 'view.save').at(-1) ?? null;
+    // The arrangement is a draft until «Сохранить» (study S-B, save model C1,
+    // View round 19): the field moved under the hand, nothing written yet.
     const movedInDom = [...configView.querySelectorAll('sf-sortable[id="field:g2"] [data-sf-sortable-item]')]
       .map((node) => node.getAttribute('data-sf-sortable-item'));
+    const savesBeforeCommit = viewAsks.filter((ask) => ask.intent === 'view.save').length;
+    await configView.commitConfiguringView();
+    const afterMove = viewAsks.filter((ask) => ask.intent === 'view.save').at(-1) ?? null;
+    configView.startConfiguringView();
+    await new Promise((done) => setTimeout(done, 200));
     // The host's own record, after a move the host has accepted but never applied
     // to its own copy.
     const hostRecordUntouched = hostRecord.sections[0].groups[0].fields.map((field) => field.key).includes('b');
@@ -621,19 +628,26 @@ try {
     // would hand the person a conflict for being quick.
     const beforeRapid = viewAsks.filter((ask) => ask.intent === 'view.save').length;
     configView.setFieldView('d', {width: 'full'});
+    await configView.commitConfiguringView();
+    configView.startConfiguringView();
     configView.setFieldView('d', {hint: 'Быстро'});
-    await new Promise((done) => setTimeout(done, 600));
+    await configView.commitConfiguringView();
+    configView.startConfiguringView();
+    await new Promise((done) => setTimeout(done, 300));
     const rapidRevisions = viewAsks.filter((ask) => ask.intent === 'view.save')
       .slice(beforeRapid)
       .map((ask) => ask.payload?.target?.revision ?? null);
 
     configView.setFieldView('a', {width: 'full'});
+    await configView.commitConfiguringView();
+    configView.startConfiguringView();
     await new Promise((done) => setTimeout(done, 300));
     const afterWidth = viewAsks.filter((ask) => ask.intent === 'view.save').at(-1) ?? null;
 
     const loadsBeforeConflict = viewAsks.filter((ask) => ask.intent === 'record.load').length;
     nextConflict = true;
     configView.setFieldView('a', {hint: 'Подсказка'});
+    await configView.commitConfiguringView();
     await new Promise((done) => setTimeout(done, 500));
     const loadsAfterConflict = viewAsks.filter((ask) => ask.intent === 'record.load').length;
 
@@ -650,6 +664,7 @@ try {
       hiddenBeforeConfiguring,
       ...configuringShape,
       saveTarget: afterMove?.payload?.target ?? null,
+      draftWrites: savesBeforeCommit - savesBeforeMove,
       // The layer is sent whole, and the orders are dense for the two containers
       // the move touched -- a sparse single order cannot say «between B and C».
       movedFields: afterMove?.payload?.view?.fields ?? null,
@@ -1800,6 +1815,10 @@ try {
         got: set.hostRecordUntouched,
         expected: "b still in g1 in the host's own record -- a host that caches its answer would find it rewritten by a drag it had not accepted"});
     }
+    if (set.draftWrites !== 0) {
+      note({case: 'an arrangement is a draft until «Сохранить» (save model C1)',
+        got: set.draftWrites, expected: 'no view.save for a move until the person saves'});
+    }
     if (set.rapidRevisions?.length !== 2 || set.rapidRevisions[0] === set.rapidRevisions[1]) {
       note({case: 'two changes in a row are written against moving revisions, not both against the old one',
         got: set.rapidRevisions,
@@ -2079,25 +2098,28 @@ try {
     });
     await new Promise((done) => setTimeout(done, 700));
     const screenOf = () => view.querySelector('.sf-property-view-layout')?.getAttribute('data-screen') ?? null;
-    // The phone's sections are sf-list rows since 1.17.0 (C289 (5)); a row
-    // opens its section through the list's sf-list-open.
+    // S-A 3 (View round 19, replaces C386 at phone widths): the phone's
+    // sections are tabs on top, the first section's groups drawn under them;
+    // a tab (or a sideways swipe) turns to another section, no level and no
+    // way back. The C289 (5) list of section rows is gone.
     const listedRows = () => view.querySelector('sf-list.sf-property-view-phone-sections')?.items?.length ?? 0;
-    const openRow = (id) => view.querySelector('sf-list.sf-property-view-phone-sections')
-      ?.dispatchEvent(new CustomEvent('sf-list-open', {detail: {id}, bubbles: true}));
+    const tabButtons = () => [...view.querySelectorAll('.sf-property-view-tabs button[role="tab"]')].filter((node) => node.getClientRects().length);
+    const openTab = (label) => tabButtons().find((node) => node.textContent.includes(label))?.click();
+    const shownGroup = () => [...view.querySelectorAll('.sf-property-view-group')].find((node) => node.getClientRects().length)?.getAttribute('data-group') ?? null;
     const first = {
       screen: screenOf(),
       listed: listedRows(),
-      groups: view.querySelectorAll('.sf-property-view-group').length,
+      tabs: tabButtons().length,
+      group: shownGroup(),
       tree: Boolean(view.querySelector('sf-tree')),
     };
-    openRow('extra');
+    openTab('Прочее');
     await new Promise((done) => setTimeout(done, 400));
     const opened = {
       screen: screenOf(),
-      title: view.querySelector('.sf-property-view-phone-title')?.textContent?.trim() ?? null,
       back: Boolean(view.querySelector('[data-action="phone-back"]')),
-      group: view.querySelector('.sf-property-view-group')?.getAttribute('data-group') ?? null,
-      listed: listedRows(),
+      group: shownGroup(),
+      active: view.querySelector('.sf-property-view-tabs')?.getAttribute('active-index') ?? null,
     };
     view.editGroup('extra', 'g2');
     await new Promise((done) => setTimeout(done, 400));
@@ -2121,13 +2143,11 @@ try {
     };
     view.cancelEdit();
     await new Promise((done) => setTimeout(done, 200));
-    view.querySelector('[data-action="phone-back"]')?.click();
+    openTab('Основное');
     await new Promise((done) => setTimeout(done, 400));
-    const back = {screen: screenOf(), listed: listedRows()};
+    const back = {screen: screenOf(), group: shownGroup(), active: view.querySelector('.sf-property-view-tabs')?.getAttribute('active-index') ?? null};
     // A two-column group on a phone: the container query has to collapse it, or
     // every label and every value wraps onto two lines in a 390px panel.
-    openRow('main');
-    await new Promise((done) => setTimeout(done, 400));
     const fields = view.querySelector('[data-group="g1"] .sf-property-view-group-fields');
     // Read as a list since 1.17.0 (C289 (4)): the group's rows are a subgrid of
     // the description list, so the list's own tracks are the columns.
@@ -2145,21 +2165,20 @@ try {
     view.remove();
     return {first, opened, barSeen, back, columns, containment, columnCount: columns ? columns.split(/\s+/u).length : null};
   });
-  if (phone.first.listed !== 2 || phone.first.groups !== 0 || phone.first.tree !== false
-    || phone.first.screen !== 'sections') {
-    note({case: 'on a phone the sections are a list and the groups are the screen behind it',
+  if (phone.first.tabs !== 2 || phone.first.listed !== 0 || phone.first.group !== 'g1' || phone.first.tree !== false
+    || phone.first.screen !== 'groups') {
+    note({case: 'on a phone the sections are tabs on top and the first section is drawn under them (S-A 3)',
       got: phone.first,
-      expected: 'two section rows, no groups drawn yet, and no desktop section tree'});
+      expected: 'two tabs, no section list, g1 drawn, and no desktop section tree'});
   }
-  if (phone.opened.screen !== 'groups' || phone.opened.title !== 'Прочее' || !phone.opened.back
-    || phone.opened.group !== 'g2' || phone.opened.listed !== 0) {
-    note({case: 'a section is a screen of its own, named, with a way back',
+  if (phone.opened.screen !== 'groups' || phone.opened.back || phone.opened.group !== 'g2' || phone.opened.active !== '1') {
+    note({case: 'a tab turns to its section in place, with no level and no way back (S-A 3)',
       got: phone.opened,
-      expected: {screen: 'groups', title: 'Прочее', back: true, group: 'g2', listed: 0}});
+      expected: {screen: 'groups', back: false, group: 'g2', active: '1'}});
   }
-  if (phone.back.screen !== 'sections' || phone.back.listed !== 2) {
-    note({case: 'back returns to the list of sections', got: phone.back,
-      expected: 'the list screen with both sections again'});
+  if (phone.back.group !== 'g1' || phone.back.active !== '0') {
+    note({case: 'the first tab brings the first section back', got: phone.back,
+      expected: {group: 'g1', active: '0'}});
   }
   if (phone.columnCount !== 1) {
     note({case: 'a two-column group becomes one column in a phone-width panel',

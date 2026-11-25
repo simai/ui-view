@@ -1754,7 +1754,19 @@
   }
 
   .sf-property-view-list .sf-property-view-group.sf-property-view-group--list > .sf-property-view-group-fields {
+    grid-column: 1 / -1;
     row-gap: var(--sf-view-properties-row-gap, 0px);
+  }
+
+  /* A group of related records is a group like the others (white on the
+     panel's grey, VL-85): its embedded list starts on the labels' axis, as
+     C289 (4) keeps it, inside the same inset. */
+  .sf-property-view-list > .sf-list-description-list > .sf-property-view-group.sf-property-view-group--related {
+    padding-block: var(--sf-space-1\/2);
+    padding-inline: var(--sf-space-1);
+    background-color: var(--sf-surface-card);
+    border: var(--sf-px) solid var(--sf-outline-variant);
+    border-radius: var(--sf-radius--surface);
   }
 
   .sf-property-view-list .sf-property-view-group--list > .sf-property-view-group-fields > .sf-property-view-row {

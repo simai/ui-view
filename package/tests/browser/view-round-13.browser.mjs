@@ -377,15 +377,17 @@ try {
       await page.keyboard.press('Escape');
       await page.waitForTimeout(200);
       if (await menuOpen(page)) { await page.keyboard.press('Escape'); await page.waitForTimeout(200); }
-      await choose(page, 'single_line').catch(() => errors.push('«Текст в одну строку» could not be ticked'));
+      // S-A 1 (View round 19): a phone's «Вид» has no table-only settings, so
+      // «Текст в одну строку» is not there to tick.
+      if (width >= 768) await choose(page, 'single_line').catch(() => errors.push('«Текст в одну строку» could not be ticked'));
       await page.keyboard.press('Escape');
       await page.waitForTimeout(500);
       const after = await look();
       const saves = await page.evaluate(() => window.__saves.map((save) => Object.keys(save.patch ?? {}).join('+')).filter(Boolean));
-      if (offered.density.join('|') !== 'Обычная|Компактная' || offered.singleLine.join('|') !== 'Текст в одну строку') failures.push({...label, got: offered});
+      if (offered.density.join('|') !== 'Обычная|Компактная' || offered.singleLine.join('|') !== (width >= 768 ? 'Текст в одну строку' : '')) failures.push({...label, got: offered});
       // On a phone the rows are list rows of the phone ladder (the phone layout
       // stays as it is this round): the choice is taken, the rows keep their height.
-      if (after.density !== 'compact' || !after.singleLine || (width >= 768 && !(after.row < before.row))) failures.push({...label, got: {before, after}, want: 'compact rows on one line'});
+      if (after.density !== 'compact' || (width >= 768 && !after.singleLine) || (width >= 768 && !(after.row < before.row))) failures.push({...label, got: {before, after}, want: 'compact rows on one line'});
       if (errors.length) failures.push({...label, errors});
       results.push({theme, item: 'VR12A-1', width, offered, before, after, saves});
       await context.close();

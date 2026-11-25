@@ -650,10 +650,17 @@ try {
       expected: 'gone from the area and waiting among the unplaced, where the area offers it back'});
   }
 
+  // The arrangement is a draft until «Сохранить» (study S-B, save model C1,
+  // View round 19): nothing is written while it is made, one view.save when
+  // the person saves it.
+  const draftWrites = await page.evaluate(() => globalThis.__viewWrites ?? 0);
+  if (draftWrites) note({case: 'an arrangement is a draft until it is saved', got: draftWrites, expected: 'no view.save before «Сохранить»'});
+  await page.locator('button[data-action="done-configuring"]').first().click({timeout: 5000}).catch(() => {});
+  await page.waitForTimeout(600);
   const saved = await page.evaluate(() => globalThis.__viewWrites ?? 0);
   if (!saved) {
     note({case: 'an arrangement a person made is written to the layer',
-      got: saved, expected: 'at least one view.save'});
+      got: saved, expected: 'at least one view.save after «Сохранить»'});
   }
 
   // A full-screen panel has no outside, so the strip that stands beyond the

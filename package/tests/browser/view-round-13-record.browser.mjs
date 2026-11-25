@@ -162,8 +162,8 @@ try {
       await ready(page).catch(() => errors.push('the record did not come'));
       await page.waitForTimeout(700);
       if (where === 'phone') {
-        // The first section by a real tap on its row.
-        await page.locator('.sf-property-view-phone-sections .sf-list__row').first().click({timeout: 5000}).catch(() => errors.push('the section row could not be clicked'));
+        // The first section is drawn under the section tabs (S-A 3, View
+        // round 19; it was a list of section rows opened by a tap).
         await page.waitForFunction(() => [...document.querySelectorAll('.sf-property-view-row')].some((node) => node.getClientRects().length), null, {timeout: 5000}).catch(() => errors.push('the section did not open'));
         await page.waitForTimeout(400);
       }

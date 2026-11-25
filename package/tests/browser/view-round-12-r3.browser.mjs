@@ -20,7 +20,7 @@
 //   them the boxes come, and a click on one brings the bar.
 // - VHF-12: a card's «⋯» and box are centred on the title's first line.
 // - VRS-7: the record history beside the fields draws the fields' text step.
-// - VRS-8: on a phone the section rows are list rows of the phone ladder (44, size 2 of 28/36/44/52) with
+// - VRS-8 (View round 19: tabs on top, S-A 3; was) on a phone the section rows are list rows of the phone ladder (44, size 2 of 28/36/44/52) with
 //   a «›»; a click opens the section.
 // - VRS-9: a section whose only group has the section's name draws no group
 //   title; a group of another name keeps it.
@@ -385,28 +385,20 @@ try {
         continue;
       }
       if (width === 390) {
+        // VRS-8 since View round 19 (S-A 3, replaces C386 at phone widths):
+        // the sections are tabs on top, not a list of rows; a tab turns to its
+        // section in place.
         const got = await page.evaluate(() => {
-          const list = document.querySelector('.sf-property-view-phone-sections');
-          const rows = [...document.querySelectorAll('.sf-property-view-phone-sections .sf-list__row')].filter((node) => node.getBoundingClientRect().height > 0);
-          // The list row of the size ladder: sf-list's own row of its size.
-          const probe = document.createElement('div');
-          probe.style.blockSize = 'var(--sf-list--row-height)';
-          list?.querySelector('.sf-list')?.append(probe);
-          const ladder = Math.round(probe.getBoundingClientRect().height);
-          probe.remove();
-          const after = rows[0] ? getComputedStyle(rows[0], '::after') : null;
-          const text = rows[0]?.querySelector('sf-list-item > :first-child');
-          return {rows: rows.length, height: rows[0] ? Math.round(rows[0].getBoundingClientRect().height) : null, ladder,
-            chevron: Boolean(after && after.content !== 'none' && after.maskImage !== 'none' && parseFloat(after.width) > 0),
-            textEnd: text && rows[0] ? Math.round(rows[0].getBoundingClientRect().right - text.getBoundingClientRect().right) : null};
+          const tabs = [...document.querySelectorAll('.sf-property-view-tabs button[role="tab"]')].filter((node) => node.getClientRects().length);
+          return {tabs: tabs.length, list: Boolean(document.querySelector('.sf-property-view-phone-sections')),
+            active: document.querySelector('.sf-property-view-tabs')?.getAttribute('active-index') ?? null};
         });
-        if (got.rows !== 3 || got.height < Math.max(44, got.ladder) || !got.chevron) failures.push({...label, item: 'VRS-8', got});
-        await page.locator('.sf-property-view-phone-sections .sf-list__row').nth(1).click({timeout: 5000}).catch(() => failures.push({...label, item: 'VRS-8', got: 'the section row could not be clicked'}));
-        await page.waitForFunction(() => [...document.querySelectorAll('.sf-property-view-layout[data-screen="groups"]')].some((node) => node.getBoundingClientRect().height > 0), null, {timeout: 5000})
-          .catch(() => failures.push({...label, item: 'VRS-8', got: 'a click on a section row did not open it'}));
+        if (got.tabs !== 3 || got.list || got.active !== '0') failures.push({...label, item: 'VRS-8', got});
+        await page.locator('.sf-property-view-tabs button[role="tab"]').nth(1).click({timeout: 5000}).catch(() => failures.push({...label, item: 'VRS-8', got: 'the section tab could not be clicked'}));
+        await page.waitForFunction(() => document.querySelector('.sf-property-view-tabs')?.getAttribute('active-index') === '1'
+          && [...document.querySelectorAll('.sf-property-view-group')].some((node) => node.getBoundingClientRect().height > 0), null, {timeout: 5000})
+          .catch(() => failures.push({...label, item: 'VRS-8', got: 'a click on a section tab did not turn to it'}));
         if (run === 1) results.push({theme, item: 'VRS-8', width, ...got});
-        await page.locator('button[data-action="phone-back"], [data-action="phone-back"] button').first().click().catch(() => {});
-        await page.waitForTimeout(300);
       }
       if (width === 1440 && panel) {
         await page.locator('button[data-quick="status"]').first().click({timeout: 5000}).catch(() => failures.push({...label, item: 'VFC-1', got: 'no quick value to click'}));

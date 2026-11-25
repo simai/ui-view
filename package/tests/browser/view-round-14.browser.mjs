@@ -177,7 +177,8 @@ const pickKind = async (page, text) => {
   const phone = await page.evaluate(() => !document.querySelector('#v sf-segmented[data-kinds] button[data-sf-button-group-value]')?.getClientRects().length);
   if (phone) {
     await page.locator('#v .sf-view-head-kind-menu button').click({timeout: 5000});
-    await page.getByRole('menuitem', {name: text}).first().click({timeout: 5000});
+    // The kind menu's items are radio items since View round 19 (aria-checked on the current kind).
+    await page.getByRole('menuitemradio', {name: text}).first().click({timeout: 5000});
   } else {
     const value = {Таблица: 'table', Карточки: 'cards', Канбан: 'board'}[text];
     await page.locator(`#v sf-segmented[data-kinds] button[data-sf-button-group-value="${value}"]`).first().click({timeout: 5000});
