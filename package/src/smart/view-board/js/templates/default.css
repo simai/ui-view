@@ -319,7 +319,10 @@
     gap: var(--sf-space-1\/3);
   }
   .sf-view-board__switch-row > .sf-view-board__switch { flex: 1 1 auto; min-inline-size: 0; }
-  .sf-view-board__switch-row > .sf-view-board__choose > button { flex: none; }
+  /* The button keeps to the row's end (sf-tabs draws through a contents
+     host, so its flex does not fill the row): the tabs' first paint does not
+     move it (first-paint gate 24, view-board/phone). */
+  .sf-view-board__switch-row > .sf-view-board__choose > button { flex: none; margin-inline-start: auto; }
 
   /* S-A 4 (draft «Touch screens» 4): a phone layout under a fine pointer (a
      narrow desktop window) reserves no slot for a box nobody sees: the box

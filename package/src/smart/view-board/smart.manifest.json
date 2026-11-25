@@ -622,7 +622,7 @@
       },
       {
         "path": "src/smart/view-board/js/templates/default.css",
-        "sha256": "989c68d7c72fc73e424d9bf17cef414e58fce3e809ad071ffef960b7624b9321"
+        "sha256": "728ba0e84778b606838375fafa5acfb40f0c9f2249ad67519031125f4aa46cbd"
       },
       {
         "path": "src/smart/field-renderers/index.js",
