@@ -16,14 +16,39 @@ same numbers with other content); every next set version is above them
 up). Each component.json says the same under `x-decisions`
 `pro-copy-versions`.
 
-## Unreleased — view round 19
+## 1.19.0 — 2026-11-25
+
+View round 19 (round/view-r19; accepted on 2026-11-25: ui-control
+`control/evidence/2026-11-25-view-r19-acceptance`); the round's entry
+below.
+
+- Over the SIMAI Framework pair `ui-3963bfe39302` (ui-source
+  `96234dd717fb`, npm `@simai-studio/ui@5.20261124.2316`, core.runtime
+  1.68.0). The set needs core.runtime 1.68.0 or newer (was 1.67.0).
+- `sf-view` 1.40.0, `sf-view-table` 1.39.0, `sf-view-properties` 1.32.0,
+  `sf-view-flow` 1.3.0, `sf-view-board` 1.5.0, `sf-view-cards` 1.5.2,
+  `sf-view-calendar` 1.3.1.
+- The owner remarks register over this build and pair: 82 pass, 1 fail
+  (VL-77, the SIMAI Framework's: the split button divider, group build
+  19), 6 superseded, VL-69 not built, 9 open (no register check yet).
+- Known issues, open in this release (next View round unless named):
+  - VL-77: see above; it goes with the next SIMAI Framework pair.
+  - The include field error in the record panel and S-A 2's per-column
+    phone switch: see the round's entry below.
+  - Customize mode and the record card do not yet agree.
+  - Density at 390.
+  - The kind menu after `?kind=board`.
+  - The phone section tabs are 36 px high.
+  - The «Сохранить» menu is to be a plain menu.
+
+### view round 19
 
 View round 19 (round/view-r19, from main 3b010b7 = view 1.18.0): the owner
 remarks VL-76..VL-94 on the View review page and the studies S-A (phone)
 and S-B (record card) as decided. Over the SIMAI Framework pair
 `ui-3963bfe39302` (ui-source `96234dd717fb`, npm
 `@simai-studio/ui@5.20261124.2316`, core.runtime 1.68.0); the set needs
-core.runtime 1.68.0 or newer. Not released; package 1.19.0 is a candidate.
+core.runtime 1.68.0 or newer.
 
 - `sf-view` 1.40.0: «Дублировать» for «Сохранить копию» (VL-79). A view
   that differs from its save shows «Сохранить» with «Сохранить как новое»
