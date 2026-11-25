@@ -311,4 +311,60 @@
   .sf-view-board__switch-row { min-block-size: var(--sf-ui-1\/2--control-height); }
   .sf-view-board[data-size="1"] .sf-view-board__switch-row { min-block-size: var(--sf-ui-1--control-height); }
   .sf-view-board__switch-row .sf-tabs-main-container { display: none; }
+
+  /* S-A 4: «Выбрать» at the end of the lane tabs' row, the tabs scroll in
+     the rest of it. */
+  .sf-view-board__switch-row {
+    display: flex;
+    align-items: center;
+    gap: var(--sf-space-1\/3);
+  }
+  .sf-view-board__switch-row > .sf-view-board__switch { flex: 1 1 auto; min-inline-size: 0; }
+  /* The button keeps to the row's end (sf-tabs draws through a contents
+     host, so its flex does not fill the row): the tabs' first paint does not
+     move it (first-paint gate 24, view-board/phone). */
+  .sf-view-board__switch-row > .sf-view-board__choose > button { flex: none; margin-inline-start: auto; }
+
+  /* S-A 4 (draft «Touch screens» 4): a phone layout under a fine pointer (a
+     narrow desktop window) reserves no slot for a box nobody sees: the box
+     column goes until the choosing mode («Выбрать», Space) brings the boxes;
+     the title starts where the fields do (an empty 28 px gap before). */
+  @media not (pointer: coarse) {
+    .sf-view-board[data-phone]:not([data-selecting]) .sf-view-board__box { display: none; }
+    .sf-view-board[data-phone]:not([data-selecting]) .sf-view-board__card.sf-card:has(> .sf-view-board__top > .sf-view-board__box) {
+      grid-template-columns: minmax(0, 1fr) auto;
+    }
+    .sf-view-board[data-phone]:not([data-selecting]) .sf-view-board__card.sf-card:has(> .sf-view-board__top > .sf-view-board__box) > .sf-view-board__fields {
+      grid-column: 1 / -1;
+    }
+  }
+
+  /* S-A draft 6: on a coarse pointer a box and a lane tab are hit over
+     44 x 44 (--sf-hit--touch, C49), drawn at their size on the ladder; the tab row keeps
+     room for the taller hit area so its scroller does not cut it. */
+  @media (pointer: coarse) {
+    .sf-view-board__box { position: relative; }
+    .sf-view-board__box::before {
+      content: "";
+      position: absolute;
+      inline-size: var(--sf-hit--touch);
+      block-size: var(--sf-hit--touch);
+      inset-block-start: 50%;
+      inset-inline-start: 50%;
+      translate: -50% -50%;
+    }
+    [dir="rtl"] .sf-view-board__box::before { translate: 50% -50%; }
+    .sf-view-board__switch .sf-tabs-top > sf-button > button { position: relative; }
+    .sf-view-board__switch .sf-tabs-top > sf-button > button::after {
+      content: "";
+      position: absolute;
+      inset-inline: 0;
+      inset-block: min(0px, calc((var(--sf-ui-1\/2--control-height) - var(--sf-hit--touch)) / 2));
+    }
+    .sf-view-board[data-size="1"] .sf-view-board__switch .sf-tabs-top > sf-button > button::after {
+      inset-block: min(0px, calc((var(--sf-ui-1--control-height) - var(--sf-hit--touch)) / 2));
+    }
+    .sf-view-board__switch :is(.sf-tabs-top-container, .sf-tabs-top) { padding-block: max(0px, calc((var(--sf-hit--touch) - var(--sf-ui-1\/2--control-height)) / 2)); }
+    .sf-view-board[data-size="1"] .sf-view-board__switch :is(.sf-tabs-top-container, .sf-tabs-top) { padding-block: max(0px, calc((var(--sf-hit--touch) - var(--sf-ui-1--control-height)) / 2)); }
+  }
 }

@@ -2052,6 +2052,15 @@
   :is(sf-view-table, sf-table) > .sf-table-settings-host {
     display: contents;
   }
+  /* Its layer is no item of the table's own column either (VL-81): an empty
+     block there took the table's row gap, so opening the column window moved
+     the whole table 24 px down under the gear that opened it. The panel is a
+     popover and is placed by its trigger, not by this box. */
+  :is(sf-view-table, sf-table) > .sf-table-settings-host > .sf-table-context-layer {
+    position: absolute;
+    inline-size: 0;
+    block-size: 0;
+  }
 
   /* A narrow column (yes/no, a short number) is at least as wide as its head's
      words on one line, so the head never breaks letter by letter (C146 (1):

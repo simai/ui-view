@@ -96,7 +96,10 @@ class SfViewBoard extends BoardElement {
     this._options = null;
     this._moves = null;
     this._actions = [];
-    this._selected = new Set(); // id -> {from, to, index, record}: a move shown and not yet settled.
+    this._selected = new Set(); // S-A 4 (VL-87): the choosing mode a long press or «Выбрать» enters --
+    // boxes on every card, a tap marks a card -- until «Готово» or ×.
+
+    this._choosing = false; // id -> {from, to, index, record}: a move shown and not yet settled.
 
     this._pending = new Map(); // Lanes the person folded or unfolded here, over the options.
 
@@ -356,6 +359,7 @@ class SfViewBoard extends BoardElement {
       cardFields,
       perLane: options.perLane,
       selected: this._selected,
+      choosing: this._choosing || this._selected.size > 0,
       pending: this._pending,
       refusals: this._refusals,
       loadingLanes: this._loading,
@@ -395,6 +399,17 @@ class SfViewBoard extends BoardElement {
       signal
     });
     this.addEventListener("contextmenu", event => this._onContextMenu(event), {
+      signal
+    });
+    this.addEventListener("pointerdown", event => this._onPressStart(event), {
+      signal
+    });
+
+    for (const type of ["pointerup", "pointercancel", "pointerleave"]) this.addEventListener(type, () => this._pressEnd(), {
+      signal
+    });
+
+    this.addEventListener("pointermove", event => this._onPressMove(event), {
       signal
     });
     this.addEventListener("sf-sortable-state", event => this._onDragState(event), {
@@ -641,17 +656,87 @@ class SfViewBoard extends BoardElement {
 
 
   _onClick(event) {
-    const target = event.target.closest?.("[data-open], [data-menu], [data-add], [data-lanemenu], [data-more], [data-unfold], [data-bulk], [data-clear]");
+    // The click that ends a long press is the press's, not a tap.
+    if (this._pressFired) {
+      this._pressFired = false;
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+
+    const target = event.target.closest?.("[data-open], [data-menu], [data-add], [data-lanemenu], [data-more], [data-unfold], [data-bulk], [data-clear], [data-choose], .sf-view-board__box");
     if (!target || !this.contains(target)) return;
-    const data = target.dataset;
+    const data = target.dataset; // The box's touch area around the check box (44 on a coarse pointer):
+    // a press beside the box marks the card as a press on it does.
+
+    if (target.matches(".sf-view-board__box")) {
+      if (!event.target.closest?.("sf-checkbox")) {
+        const card = target.closest(".sf-view-board__card");
+        if (card) this.toggleSelected(card.dataset.id);
+      }
+
+      return;
+    }
+
+    if (target.hasAttribute("data-choose")) return this.setChoosing(!(this._choosing || this._selected.size > 0)); // In the choosing mode a tap on a card marks it (S-A 4).
+
+    if (data.open && (this._choosing || this._selected.size > 0)) return this.toggleSelected(data.open);
     if (data.open) this.openRecord(data.open);else if (data.menu) this.openCardMenu(data.menu, target);else if (data.add) this.createIn(data.add);else if (data.lanemenu) this.openLaneMenu(data.lanemenu, target);else if (data.more) this.showMore(data.more);else if (data.unfold) this.foldLane(data.unfold, false);else if (data.bulk) this._bulk(data.bulk, target);else if (target.hasAttribute("data-clear")) this.clearSelection();
   }
 
   _onContextMenu(event) {
     const card = event.target.closest?.(".sf-view-board__card");
     if (!card) return;
-    event.preventDefault();
+    event.preventDefault(); // A touch's long press chooses the card (S-A 4), it opens no menu.
+
+    if (this._pressFired || this._pressTouch) return;
     this.openCardMenu(card.dataset.id, null, [event.clientX, event.clientY]);
+  } // S-A 4 (VL-87, owner decision q4): on a touch screen a long press on a
+  // card (0.5 s, the finger kept still) enters the choosing mode and marks
+  // the card; a move first (a swipe between lanes, a scroll, a drag) is not
+  // a press. The menu stays on «⋯»; «Выбрать» does the same without the
+  // gesture (a gesture is a shortcut).
+
+
+  _onPressStart(event) {
+    this._pressEnd();
+
+    this._pressFired = false;
+    this._pressTouch = event.pointerType === "touch" || event.pointerType === "pen";
+    if (!this._pressTouch || this.getProp("selectable") === false) return;
+    const card = event.target.closest?.(".sf-view-board__card");
+    if (!card || event.target.closest?.("[data-menu], [data-box], sf-checkbox")) return;
+    this._pressAt = [event.clientX, event.clientY];
+    this._pressTimer = globalThis.setTimeout(() => {
+      this._pressTimer = null;
+      if (!card.isConnected) return;
+      this._pressFired = true;
+      this._choosing = true;
+
+      this._setSelected(card.dataset.id, true);
+
+      this.requestComponentUpdate("selected");
+    }, 500);
+  }
+
+  _onPressMove(event) {
+    if (!this._pressTimer || !this._pressAt) return;
+    if (Math.hypot(event.clientX - this._pressAt[0], event.clientY - this._pressAt[1]) > 10) this._pressEnd();
+  }
+
+  _pressEnd() {
+    if (this._pressTimer) globalThis.clearTimeout(this._pressTimer);
+    this._pressTimer = null;
+    this._pressAt = null;
+  } // «Выбрать» / «Готово»: the choosing mode on and off; off clears the marks.
+
+
+  setChoosing(on) {
+    const next = Boolean(on);
+    if (!next) this.clearSelection();
+    if (this._choosing === next) return;
+    this._choosing = next;
+    this.requestComponentUpdate("selected");
   }
 
   _onChange(event) {
@@ -704,8 +789,29 @@ class SfViewBoard extends BoardElement {
 
   _menu(options) {
     const menu = globalThis.SF?.menu;
-    if (typeof menu?.open !== "function") return Promise.resolve(null);
-    return Promise.resolve(menu.open(options)).catch(() => null);
+    if (typeof menu?.open !== "function") return Promise.resolve(null); // VL-88 (owner remark 13): a press outside the page that holds the
+    // board (the frame of a review page, another window) never reaches
+    // the menu's outside-press watch, so the card menu stayed open. The
+    // page losing focus closes the open menu, as a press outside does.
+
+    const view = globalThis.window;
+
+    const blur = () => {
+      const open = globalThis.document?.querySelector?.("[data-sf-menu-shared]");
+      if (open?.isOpen || open?.hasAttribute?.("open")) open.close?.({
+        reason: "outside",
+        restoreFocus: false
+      });
+    };
+
+    view?.addEventListener?.("blur", blur);
+
+    const done = () => view?.removeEventListener?.("blur", blur);
+
+    return Promise.resolve(menu.open(options)).catch(() => null).then(answer => {
+      done();
+      return answer;
+    });
   }
 
   openCardMenu(id, anchor = null, point = null) {
@@ -956,6 +1062,12 @@ class SfViewBoard extends BoardElement {
   }
 
   clearSelection() {
+    // × on the bar leaves the choosing mode too (S-A 4).
+    if (this._choosing) {
+      this._choosing = false;
+      this.requestComponentUpdate("selected");
+    }
+
     if (!this._selected.size) return;
 
     this._selected.clear();
@@ -1723,14 +1835,16 @@ function renderViewBoardTemplate(context) {
   const lanes = context.lanes;
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
         <div class="sf-view-board" data-size=${context.size} ?data-phone=${context.phone}
-             ?data-dragging=${context.dragging} ?data-selecting=${context.selected.size > 0}>
+             ?data-dragging=${context.dragging} ?data-selecting=${context.choosing}>
             ${context.phone ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<div class="sf-view-board__switch-row"><sf-tabs class="sf-view-board__switch" type="pills" size=${context.size} overflow="scroll"
                     aria-label=${component(context).word("lanes-label")} active-index=${String(context.phoneIndex)}
                     items=${JSON.stringify(lanes.map(lane => ({
     id: lane.value,
     label: lane.label,
     count: lane.total
-  })))}></sf-tabs></div>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+  })))}></sf-tabs>${context.selectable ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<sf-button class="sf-view-board__choose" data-choose size=${context.size} appearance="ghost" scheme="on-surface"
+                        icon-start=${context.choosing ? "check" : "checklist"} text=${component(context).word(context.choosing ? "choose-done-text" : "choose-text")}
+                        aria-pressed=${context.choosing ? "true" : "false"}></sf-button>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}</div>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
             <div class="sf-view-board__lanes" role="region" aria-label=${context.label}>
                 ${lanes.map((lane, index) => renderLane(context, lane, index))}
             </div>
@@ -1794,21 +1908,21 @@ module.exports = (globalThis.SF && globalThis.SF.runtimeModule ? globalThis.SF.r
 /***/ "6169da476610"
 (module) {
 
-module.exports = /*#__PURE__*/JSON.parse('{"id":"smart.view-board","tag":"sf-view-board","version":"1.4.0","kind":"leaf","settings":{"size":{"type":"enum","values":["1/2","1"],"default":"1/2"},"title-field":{"type":"string","default":"title"},"order-field":{"type":"string","default":""},"sort-active":{"type":"boolean","default":false},"selectable":{"type":"boolean","default":true},"creatable":{"type":"boolean","default":false},"movable":{"type":"boolean","default":true},"lanes":{"type":"list","default":[],"of":{"value":"string","label":{"type":"string","optional":true},"total":{"type":"number","optional":true},"totals":{"type":"object","optional":true},"records":"list","cursor":{"type":"any","nullable":true,"optional":true}}},"fields":{"type":"list","default":[],"of":{"key":"string","label":{"type":"string","optional":true},"propertyType":{"type":"string","optional":true},"options":{"type":"list","optional":true}}},"options":{"type":"object","default":{}},"moves":{"type":"object","default":{}},"actions":{"type":"list","default":[],"of":{"id":"id","text":"string","icon":{"type":"icon","optional":true}}},"selected":{"type":"list","default":[]},"sums-pending":{"type":"boolean","default":false}},"values":{},"events":{"move":{"carries":{"id":"id","field":"string","from":"string","to":"string","before":{"type":"id","nullable":true},"revision":{"type":"any","nullable":true},"how":"string"},"cancelable":true},"open":{"carries":{"id":"id"}},"create":{"carries":{"field":"string","value":"string"},"own-verb":true},"more":{"carries":{"lane":"string","cursor":{"type":"any","nullable":true},"offset":"number"},"own-verb":true},"select":{"carries":{"ids":"list"}},"save":{"carries":{"collapsed":"list","hidden":"list","order":"list"}},"apply":{"carries":{"action":"id","ids":"list","scope":"string"},"own-verb":true}},"actions":{"settle-move":{"with":{"id":"id","result":"object"}},"append-lane":{"with":{"lane":"string","records":"list","cursor":{"type":"any","nullable":true},"total":"number"}},"set-lane-totals":{"with":{"lanes":"list"}}},"layer":{"kind":"surface","locks-page":false,"traps-focus":false},"host-states":{},"css-variables":{"--sf-view-board-lane-width":{"type":"length","state":"default"},"--sf-view-board-gap":{"type":"length","state":"default"},"--sf-view-board-lane-background":{"type":"color","state":"default"},"--sf-view-board-lane-radius":{"type":"length","state":"default"},"--sf-view-board-refused-opacity":{"type":"number","state":"default"}}}');
+module.exports = /*#__PURE__*/JSON.parse('{"id":"smart.view-board","tag":"sf-view-board","version":"1.5.0","kind":"leaf","settings":{"size":{"type":"enum","values":["1/2","1"],"default":"1/2"},"title-field":{"type":"string","default":"title"},"order-field":{"type":"string","default":""},"sort-active":{"type":"boolean","default":false},"selectable":{"type":"boolean","default":true},"creatable":{"type":"boolean","default":false},"movable":{"type":"boolean","default":true},"lanes":{"type":"list","default":[],"of":{"value":"string","label":{"type":"string","optional":true},"total":{"type":"number","optional":true},"totals":{"type":"object","optional":true},"records":"list","cursor":{"type":"any","nullable":true,"optional":true}}},"fields":{"type":"list","default":[],"of":{"key":"string","label":{"type":"string","optional":true},"propertyType":{"type":"string","optional":true},"options":{"type":"list","optional":true}}},"options":{"type":"object","default":{}},"moves":{"type":"object","default":{}},"actions":{"type":"list","default":[],"of":{"id":"id","text":"string","icon":{"type":"icon","optional":true}}},"selected":{"type":"list","default":[]},"sums-pending":{"type":"boolean","default":false}},"values":{},"events":{"move":{"carries":{"id":"id","field":"string","from":"string","to":"string","before":{"type":"id","nullable":true},"revision":{"type":"any","nullable":true},"how":"string"},"cancelable":true},"open":{"carries":{"id":"id"}},"create":{"carries":{"field":"string","value":"string"},"own-verb":true},"more":{"carries":{"lane":"string","cursor":{"type":"any","nullable":true},"offset":"number"},"own-verb":true},"select":{"carries":{"ids":"list"}},"save":{"carries":{"collapsed":"list","hidden":"list","order":"list"}},"apply":{"carries":{"action":"id","ids":"list","scope":"string"},"own-verb":true}},"actions":{"settle-move":{"with":{"id":"id","result":"object"}},"append-lane":{"with":{"lane":"string","records":"list","cursor":{"type":"any","nullable":true},"total":"number"}},"set-lane-totals":{"with":{"lanes":"list"}}},"layer":{"kind":"surface","locks-page":false,"traps-focus":false},"host-states":{},"css-variables":{"--sf-view-board-lane-width":{"type":"length","state":"default"},"--sf-view-board-gap":{"type":"length","state":"default"},"--sf-view-board-lane-background":{"type":"color","state":"default"},"--sf-view-board-lane-radius":{"type":"length","state":"default"},"--sf-view-board-refused-opacity":{"type":"number","state":"default"}}}');
 
 /***/ },
 
 /***/ "21765acb70ff"
 (module) {
 
-module.exports = /*#__PURE__*/JSON.parse('{"title":"Kanban","runtime":{"actions-text":"Actions","add-short-text":"Add","add-text":"New record in “{lane}”","board-label":"Kanban","bulk-label":"Actions on the selection","card-menu-text":"Actions: {title}","clear-text":"Clear selection","collapse-text":"Collapse lane","collapsed-text":"Lane “{lane}” collapsed","empty-text":"Empty","expand-text":"Expand “{lane}”, {count}","expanded-text":"Lane “{lane}” expanded","hidden-text":"Lane “{lane}” hidden; bring it back in “View”","shown-text":"Lane “{lane}” is back on the board","hide-hint":"Bring it back in “View”","hide-text":"Hide lane","lane-label":"{lane}, {count}","lane-menu-text":"Lane “{lane}”","lane-short-text":"Lane","lanes-label":"Board lanes","more-text":"Show {count} more","move-selected-text":"Move to…","move-to-text":"Move to","moved-text":"{title} moved to “{lane}”, {index} of {count}","new-text":"New record","no-move-text":"No permission to change","not-moved-text":"{title} not moved: {reason}","open-text":"Open","placed-text":"{title}: place {index} in the lane","refuse-default":"Not allowed here","refuse-text":"Not allowed: {reason}","select-text":"Select {title}","selected-text":"{count} selected","sorted-text":"The lane follows the sort: {title} stays in place","to-end-text":"To the end of the lane","to-start-text":"To the start of the lane"}}');
+module.exports = /*#__PURE__*/JSON.parse('{"title":"Kanban","runtime":{"actions-text":"Actions","add-short-text":"Add","add-text":"New record in “{lane}”","board-label":"Kanban","bulk-label":"Actions on the selection","card-menu-text":"Actions: {title}","choose-done-text":"Done","choose-text":"Select","clear-text":"Clear selection","collapse-text":"Collapse lane","collapsed-text":"Lane “{lane}” collapsed","empty-text":"Empty","expand-text":"Expand “{lane}”, {count}","expanded-text":"Lane “{lane}” expanded","hidden-text":"Lane “{lane}” hidden; bring it back in “View”","hide-hint":"Bring it back in “View”","hide-text":"Hide lane","lane-label":"{lane}, {count}","lane-menu-text":"Lane “{lane}”","lane-short-text":"Lane","lanes-label":"Board lanes","more-text":"Show {count} more","move-selected-text":"Move to…","move-to-text":"Move to","moved-text":"{title} moved to “{lane}”, {index} of {count}","new-text":"New record","no-move-text":"No permission to change","not-moved-text":"{title} not moved: {reason}","open-text":"Open","placed-text":"{title}: place {index} in the lane","refuse-default":"Not allowed here","refuse-text":"Not allowed: {reason}","select-text":"Select {title}","selected-text":"{count} selected","shown-text":"Lane “{lane}” is back on the board","sorted-text":"The lane follows the sort: {title} stays in place","to-end-text":"To the end of the lane","to-start-text":"To the start of the lane"}}');
 
 /***/ },
 
 /***/ "b04d01ca8dbb"
 (module) {
 
-module.exports = /*#__PURE__*/JSON.parse('{"title":"Канбан","runtime":{"actions-text":"Действия","add-short-text":"Добавить","add-text":"Новая запись в «{lane}»","board-label":"Канбан","bulk-label":"Действия с выбранными","card-menu-text":"Действия: {title}","clear-text":"Снять выбор","collapse-text":"Свернуть колонку","collapsed-text":"Колонка «{lane}» свёрнута","empty-text":"Пусто","expand-text":"Развернуть «{lane}», {count}","expanded-text":"Колонка «{lane}» развёрнута","hidden-text":"Колонка «{lane}» скрыта, вернуть — в «Вид»","shown-text":"Колонка «{lane}» снова на доске","hide-hint":"Вернуть — в «Вид»","hide-text":"Скрыть колонку","lane-label":"{lane}, {count}","lane-menu-text":"Колонка «{lane}»","lane-short-text":"Колонка","lanes-label":"Колонки доски","more-text":"Показать ещё {count}","move-selected-text":"Переместить в…","move-to-text":"Переместить в","moved-text":"{title} — в «{lane}», {index} из {count}","new-text":"Новая запись","no-move-text":"Нет права менять","not-moved-text":"{title} — не перенесено: {reason}","open-text":"Открыть","placed-text":"{title} — {index}-е место в колонке","refuse-default":"Сюда нельзя","refuse-text":"Нельзя: {reason}","select-text":"Выбрать {title}","selected-text":"Выбрано {count}","sorted-text":"Порядок в колонке задаёт сортировка: {title} — на месте","to-end-text":"В конец колонки","to-start-text":"В начало колонки"}}');
+module.exports = /*#__PURE__*/JSON.parse('{"title":"Канбан","runtime":{"actions-text":"Действия","add-short-text":"Добавить","add-text":"Новая запись в «{lane}»","board-label":"Канбан","bulk-label":"Действия с выбранными","card-menu-text":"Действия: {title}","choose-done-text":"Готово","choose-text":"Выбрать","clear-text":"Снять выбор","collapse-text":"Свернуть колонку","collapsed-text":"Колонка «{lane}» свёрнута","empty-text":"Пусто","expand-text":"Развернуть «{lane}», {count}","expanded-text":"Колонка «{lane}» развёрнута","hidden-text":"Колонка «{lane}» скрыта, вернуть — в «Вид»","hide-hint":"Вернуть — в «Вид»","hide-text":"Скрыть колонку","lane-label":"{lane}, {count}","lane-menu-text":"Колонка «{lane}»","lane-short-text":"Колонка","lanes-label":"Колонки доски","more-text":"Показать ещё {count}","move-selected-text":"Переместить в…","move-to-text":"Переместить в","moved-text":"{title} — в «{lane}», {index} из {count}","new-text":"Новая запись","no-move-text":"Нет права менять","not-moved-text":"{title} — не перенесено: {reason}","open-text":"Открыть","placed-text":"{title} — {index}-е место в колонке","refuse-default":"Сюда нельзя","refuse-text":"Нельзя: {reason}","select-text":"Выбрать {title}","selected-text":"Выбрано {count}","shown-text":"Колонка «{lane}» снова на доске","sorted-text":"Порядок в колонке задаёт сортировка: {title} — на месте","to-end-text":"В конец колонки","to-start-text":"В начало колонки"}}');
 
 /***/ }
 

@@ -426,8 +426,8 @@
       "version": 2
     },
     "runtime_pair": {
-      "ui_revision": "62b1d9b6dc8d390837b7daa7c28a4543297521ad",
-      "ui_smart_revision": "62b1d9b6dc8d390837b7daa7c28a4543297521ad"
+      "ui_revision": "0000000000000000000000000000000000000000",
+      "ui_smart_revision": "0000000000000000000000000000000000000000"
     },
     "aliases": [],
     "deprecations": [],

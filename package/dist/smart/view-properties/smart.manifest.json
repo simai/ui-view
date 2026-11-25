@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-properties",
-  "version": "1.31.2",
+  "version": "1.32.0",
   "title": "Property view",
   "summary": "One object's fields shown as sections, groups and fields, each drawn by the per-type field renderer set, behind a separate host port. A group is edited and saved as one revision by the button, and a reference field is picked from the host's own candidates a page at a time. The pair to the data view: that one is a set of records, this one is a single object.",
   "kind": "composite",
@@ -1621,8 +1621,8 @@
       "version": 2
     },
     "runtime_pair": {
-      "ui_revision": "89834691fb9dce692be5353f3214df7aee3a7e27",
-      "ui_smart_revision": "89834691fb9dce692be5353f3214df7aee3a7e27"
+      "ui_revision": "0000000000000000000000000000000000000000",
+      "ui_smart_revision": "0000000000000000000000000000000000000000"
     },
     "aliases": [
       "<sf-property-view>"
@@ -2084,6 +2084,13 @@
         "changes": [
           "View round 18: under the stacked rules .sf-property-view-configure-top margin-block-end --sf-space-3, .sf-property-view-configure-hint flex 1 1 100% and padding-inline-start 2 x --sf-space-1/4."
         ]
+      },
+      {
+        "from": "1.31.2",
+        "to": "1.32.0",
+        "changes": [
+          "View round 19: saveView draft while configuring, commitConfiguringView, publishConfiguringView, cancel without write, layerDirty, ownView, panel menu reset; collection falls back to record.collection; tab-icon waits for its trigger; section swipe on the window with touch-action pan-y; phone section tabs; stacked sections static; variant A rules; words done-configuring-text, reset-view-text, own-view-text and the hints."
+        ]
       }
     ]
   },
@@ -2093,15 +2100,15 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-properties/index.js",
-        "sha256": "6f656e405abe98ad6829620ad1aa8d206aa0d2ee0b5604c8fa769e1524b3cd2a"
+        "sha256": "c61ca7b10356dd32cea13609d058594f644d1cac498cae27343cc9dd87c25755"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.js",
-        "sha256": "38ffa66db0e6abfe82ab72526a92e83a599602a5f943e4c634a134acf1430c21"
+        "sha256": "30809e02e73b92cab98480182b5c0c9c93fc324487b329e55c5605006d3418c4"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.css",
-        "sha256": "1e1a1bfe53716b72388b8b37b17d21ff392960a1d6f7aa82607165fc33ddacf9"
+        "sha256": "d7fbb22c60280406b83d770b29e294297661457f4a145357b561e6a5d9205a10"
       },
       {
         "path": "src/smart/view-properties/js/conditions.js",

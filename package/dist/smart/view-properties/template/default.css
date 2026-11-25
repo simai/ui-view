@@ -1496,6 +1496,10 @@
   .sf-property-view-layout[data-stacked="true"] > .sf-property-view-sections {
     inline-size: auto;
     max-inline-size: none;
+    /* VL-92 (SB-12): a row over the fields scrolls away with them. Held at
+       the top, its see-through tabs and the section heading stood over the
+       fields while scrolling and dragging (the side column stays held). */
+    position: static;
   }
 
   /* The row being edited in its window, and the fields a save just wrote. */
@@ -1724,5 +1728,102 @@
 
   .sf-property-view-row--edit > .sf-list-description-value > .sf-property-view-field-value {
     min-block-size: var(--sf-list-description--control);
+  }
+
+  /* ─── View round 19: the record card, study S-B variant A (VL-85, VL-90;
+     SB-1..SB-7, SB-21, SB-23). Groups are white areas on the panel's grey
+     (--sf-surface-card with a hairline on --sf-surface-area; a record-card
+     clause beside C52, forms unchanged), a row is the control height and
+     nothing more (40, 32 compact: it was 8 + 40 + 8 and an 8 gap, a pitch
+     of 64), the label is the value's size on the value's line, one label
+     column for the whole record (the values started at 1084 in one section
+     and 1108 in the next), the group's title a rung under the record's
+     title in every mode, and arranging draws the columns reading draws. */
+  .sf-property-view-list {
+    --sf-view-properties--label-column: minmax(0, var(--sf-view-properties-label-width, 10rem));
+  }
+
+  .sf-property-view-list > .sf-list-description-list > .sf-property-view-group.sf-property-view-group--list,
+  .sf-property-view-list > .sf-list-description-list > .sf-property-view-group.sf-property-view-group--form {
+    grid-template-columns: var(--sf-view-properties--label-column) minmax(0, 1fr);
+    column-gap: var(--sf-space-1);
+    padding-block: var(--sf-space-1\/2);
+    padding-inline: var(--sf-space-1);
+    background-color: var(--sf-surface-card);
+    border: var(--sf-px) solid var(--sf-outline-variant);
+    border-radius: var(--sf-radius--surface);
+  }
+
+  .sf-property-view-list .sf-property-view-group.sf-property-view-group--list > .sf-property-view-group-fields {
+    grid-column: 1 / -1;
+    row-gap: var(--sf-view-properties-row-gap, 0px);
+  }
+
+  /* A group of related records is a group like the others (white on the
+     panel's grey, VL-85): its embedded list starts on the labels' axis, as
+     C289 (4) keeps it, inside the same inset. */
+  .sf-property-view-list > .sf-list-description-list > .sf-property-view-group.sf-property-view-group--related {
+    padding-block: var(--sf-space-1\/2);
+    padding-inline: var(--sf-space-1);
+    background-color: var(--sf-surface-card);
+    border: var(--sf-px) solid var(--sf-outline-variant);
+    border-radius: var(--sf-radius--surface);
+  }
+
+  .sf-property-view-list .sf-property-view-group--list > .sf-property-view-group-fields > .sf-property-view-row {
+    padding-block: 0;
+    align-items: start;
+  }
+
+  .sf-property-view-list .sf-property-view-group--list > .sf-property-view-group-fields > .sf-property-view-row > .sf-list-description-label {
+    padding-block: calc((var(--sf-list-description--control) - var(--sf-list-description--line)) / 2);
+  }
+
+  .sf-property-view-list.sf-list-description--size-half .sf-property-view-group--list .sf-property-view-group-title,
+  .sf-property-view-list.sf-list-description--size-1 .sf-property-view-group--list .sf-property-view-group-title,
+  .sf-property-view-group-title {
+    font-size: var(--sf-text-size-1);
+    line-height: var(--sf-text-height-1);
+    font-weight: var(--sf-font-weight-medium);
+  }
+
+  /* Arranging draws what reading draws (SB-5, SB-C15): a group of two
+     columns has them where reading has them, from 44rem of room. */
+  @container sf-property-view-group (max-width: 44rem) {
+    .sf-property-view-group[data-columns="2"] .sf-property-view-group-fields {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* S-A 3: on a phone the fields take a sideways swipe (to the next or the
+     previous section); the page keeps its vertical scroll, and a box that
+     scrolls sideways itself keeps its own. */
+  [data-sections-layout="phone"] .sf-property-view-layout {
+    touch-action: pan-y;
+  }
+
+  /* A phone, or a list too narrow for a label beside its value: the label
+     stands over its value, the row label + value (20 + 36, a pitch of 56). */
+  @container not (min-width: 22rem) {
+    .sf-property-view-list > .sf-list-description-list > .sf-property-view-group.sf-property-view-group--list,
+    .sf-property-view-list > .sf-list-description-list > .sf-property-view-group.sf-property-view-group--form {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .sf-property-view-list .sf-property-view-group--list > .sf-property-view-group-fields > .sf-property-view-row > .sf-list-description-label {
+      padding-block: 0;
+    }
+  }
+
+  /* On a phone (below md, as sf-list-description's own stacked rule, C33)
+     the label is always over its value, however wide the list: the group's
+     two columns above would otherwise keep the label beside it. */
+  @media not all and (min-width: 48rem) {
+    .sf-property-view-list > .sf-list-description-list > .sf-property-view-group.sf-property-view-group--list,
+    .sf-property-view-list > .sf-list-description-list > .sf-property-view-group.sf-property-view-group--form {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .sf-property-view-list .sf-property-view-group--list > .sf-property-view-group-fields > .sf-property-view-row > .sf-list-description-label {
+      padding-block: 0;
+    }
   }
 }

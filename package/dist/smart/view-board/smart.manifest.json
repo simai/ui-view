@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-board",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "title": "Kanban",
   "summary": "The board layout of the view set: lanes by one field, cards with up to four fields in the «Кратко» place, a move is a change of that field the host settles. sf-view layout=\"board\" draws it over the lane window.",
   "kind": "smart",
@@ -594,6 +594,13 @@
         "changes": [
           "View round 18: laneChoices, showLane, _unhidden over the options' hidden lanes, words hidden-text / hide-hint name «Вид», new word shown-text; the ResizeObserver callback measures on the next frame (_measureFrame)."
         ]
+      },
+      {
+        "from": "1.4.0",
+        "to": "1.5.0",
+        "changes": [
+          "View round 19: _menu closes the shared menu on window blur; choosing mode (setChoosing, long press 500 ms touch/pen, 10 px slop), context.choosing drives data-selecting; words choose-text, choose-done-text; coarse pointer hit areas; fine pointer phone box hidden."
+        ]
       }
     ]
   },
@@ -603,7 +610,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-board/index.js",
-        "sha256": "ca3c0b0729237de8328b80e9c3894db57e463ba3465c80ccc49ce4b40124ebbf"
+        "sha256": "76cada5d89663685a8a82fae3bf4a5b5603330962785501ddb7fcb1686dead01"
       },
       {
         "path": "src/smart/view-board/js/board.js",
@@ -611,15 +618,15 @@
       },
       {
         "path": "src/smart/view-board/js/templates/default.js",
-        "sha256": "c26310cf4b5497aa1c524e473d6c33621fa549d097c2ed63c3b62352eaa15704"
+        "sha256": "a13d651ca8a1e72b6af89144a3a4f217fd19aa7aba877ceaf6c5276713317f42"
       },
       {
         "path": "src/smart/view-board/js/templates/default.css",
-        "sha256": "a73a6e71d2fb6705ce9ed62ce3d740e30b961e549cccf19c91286f896e93f9e3"
+        "sha256": "728ba0e84778b606838375fafa5acfb40f0c9f2249ad67519031125f4aa46cbd"
       },
       {
         "path": "src/smart/field-renderers/index.js",
-        "sha256": "be1d7608cbde16eb80ece5a9120c4b2130d40bd8760240a51b8fd922579c931b"
+        "sha256": "643b485d2d47950e1bac6bbbb2e655f4b2101b2437ac8d55216cbcd408e766b5"
       },
       {
         "path": "src/smart/view-board/rule.js",

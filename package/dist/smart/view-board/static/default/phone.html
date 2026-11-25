@@ -9,7 +9,7 @@
 <sf-button appearance="default" scheme="primary" size="1/2" text="Новый" root-class="selected" style="display: contents;" data-sf-size-relative>
 
 
-<button type="button" class="sf-button sf-button--size-1/2 sf-button--default sf-button--primary flex items-cross-center selected" data-sf-tab-index="0" id="sf-view-board-phone-1" role="tab" aria-controls="sf-tabs-1--panel-0" aria-selected="true" aria-disabled="false" aria-labelledby="sf-view-board-phone-2" tabindex="0" data-sf-static>
+<button type="button" class="sf-button sf-button--size-1/2 sf-button--default sf-button--primary flex items-cross-center selected" id="sf-view-board-phone-1" role="tab" aria-controls="sf-tabs-1--panel-0" aria-selected="true" aria-disabled="false" aria-labelledby="sf-view-board-phone-2" tabindex="0" data-sf-tab-index="0" data-sf-static>
 
 
 <span class="sf-button-text-container text-center pointer-events-none flex-1" id="sf-view-board-phone-2">
@@ -52,7 +52,16 @@
 </div>
 <div class="sf-tabs-main-container" hidden data-sf-panels-empty></div>
 </div>
-</sf-tabs></div>
+</sf-tabs><sf-button class="sf-view-board__choose" appearance="ghost" scheme="on-surface" size="1/2" icon-start="checklist" text="Выбрать" aria-pressed="false" style="display: contents;" data-sf-size-relative>
+<button type="button" class="sf-button sf-button--size-1/2 sf-button--ghost sf-button--link sf-button--on-surface flex items-cross-center" aria-pressed="false" data-choose data-sf-static>
+
+<sf-icon root-class="pointer-events-none" aria-hidden="true" icon="checklist" style="display: contents;"><i class="sf-icon pointer-events-none" aria-hidden="true" data-sf-static>checklist</i></sf-icon>
+<span class="sf-button-text-container text-center pointer-events-none">
+Выбрать
+</span>
+
+</button>
+</sf-button></div>
 <div class="sf-view-board__lanes" role="region" aria-label="Заказы">
 
 <section class="sf-view-board__lane" data-lane="new" data-lane-index="0" aria-label="Новый, 3">

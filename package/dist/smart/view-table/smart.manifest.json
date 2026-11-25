@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-table",
-  "version": "1.38.0",
+  "version": "1.39.0",
   "title": "Table",
   "summary": "Complete server-backed collection view with search, filters, table preferences, row and bulk actions, and pagination.",
   "kind": "composite",
@@ -2590,8 +2590,8 @@
       "version": 2
     },
     "runtime_pair": {
-      "ui_revision": "89834691fb9dce692be5353f3214df7aee3a7e27",
-      "ui_smart_revision": "89834691fb9dce692be5353f3214df7aee3a7e27"
+      "ui_revision": "0000000000000000000000000000000000000000",
+      "ui_smart_revision": "0000000000000000000000000000000000000000"
     },
     "aliases": [
       "smart.table",
@@ -3098,6 +3098,13 @@
         "changes": [
           "View round 18: list row facts renderFactBadge(fact, 'text'); under 31.98rem .sf-table-resource-supporting, .sf-table-list-end and .sf-table-resource-facts take --sf-text-size-1 / --sf-text-height-1."
         ]
+      },
+      {
+        "from": "1.38.0",
+        "to": "1.39.0",
+        "changes": [
+          "View round 19: toggleTableSettings always opens the table-settings context menu; .sf-table-settings-host > .sf-table-context-layer is absolute with no size."
+        ]
       }
     ]
   },
@@ -3107,7 +3114,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-table/index.js",
-        "sha256": "1c885528f37c406b4d57192509d9e205438916347c66489239bfe1d13d7f3981"
+        "sha256": "426ff8ba36b11b1e2ac9e3737b255bfb125e72b207523e7e36bebb1fbec3d21a"
       },
       {
         "path": "src/smart/view-table/js/templates/default.js",
@@ -3115,7 +3122,7 @@
       },
       {
         "path": "src/smart/view-table/js/templates/default.css",
-        "sha256": "c87690fe7ac3174c6cf275c8531e6aa50af886b730c51f8e041306af1d09cb76"
+        "sha256": "8e96c773f7b985c3ed52b9b29ecb5223a24a831ae666a5eb45a839b1522b2be3"
       },
       {
         "path": "src/smart/helpers/option-badge.js",

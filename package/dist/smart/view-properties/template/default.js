@@ -96,7 +96,11 @@ function renderViewChooser(context) {
 function renderConfigureBar(context) {
     if (!context.canConfigureView || !context.configuring) return nothing;
     const required = context.viewRequired;
-    const publish = context.canWriteShared && !required && context.hasPersonalEdits;
+    // Save model C1 (study S-B): «Сохранить» writes the draft for the person,
+    // «Сохранить для всех» (who may write the shared layer, with a draft or
+    // a layout of their own to publish) writes it for everyone, «Отменить»
+    // drops the draft. No line says edits are saved at once (VL-93).
+    const publish = context.canWriteShared && !required && (context.layerDirty || context.hasPersonalEdits);
     return html`
         <div class="sf-property-view-actions sf-property-view-configure-bar flex items-cross-center gap-1/3 flex-wrap"
              data-configuring="true" role="group"
@@ -106,7 +110,7 @@ function renderConfigureBar(context) {
                     size=${context.controlSize ?? nothing}
                     text=${context.doneConfiguringText}
                     data-action="done-configuring"
-                    @click=${() => context.component.stopConfiguringView()}
+                    @click=${() => context.component.commitConfiguringView()}
             ></sf-button>
             ${publish ? html`<sf-button
                     appearance="outline"
@@ -114,7 +118,7 @@ function renderConfigureBar(context) {
                     size=${context.controlSize ?? nothing}
                     text=${context.word('publishViewText')}
                     data-action="publish-view"
-                    @click=${() => context.component.publishView()}
+                    @click=${() => context.component.publishConfiguringView()}
             ></sf-button>` : nothing}
             <sf-button
                     appearance="ghost"
@@ -1122,11 +1126,15 @@ function tabLabel(context, section) {
 // a tab replaces its label.
 function renderSectionTabs(context, sections) {
     const at = Math.max(0, sections.findIndex((section) => String(section.key) === context.selectedSection));
+    // A phone's tabs scroll sideways (all names reachable, no «Ещё»), and a
+    // swipe over the fields turns them (S-A 3): the press is the visible way.
+    const phone = context.sectionsLayout === 'phone';
     return html`
         <sf-tabs
                 class="sf-property-view-tabs"
                 type="underline"
-                overflow="more"
+                overflow=${phone ? 'scroll' : 'more'}
+                ?data-phone-tabs=${phone}
                 ?sticky=${context.panel}
                 size=${context.controlSize ?? nothing}
                 active-index=${String(at)}
@@ -1525,6 +1533,8 @@ function renderPanelHead(context) {
                         aria-label=${context.favouriteLabel}
                         @click=${() => context.component.toggleFavourite()}
                 ></sf-button-icon>`) : nothing}
+                ${context.ownView ? html`<sf-badge class="sf-property-view-own-mark" size="1/2" appearance="tonal" scheme="primary"
+                        data-own-view text=${context.word('ownViewText')}></sf-badge>` : nothing}
                 <span class="sf-property-view-head-spacer" style="flex: 1 1 auto"></span>
                 ${context.hasHostSlot('actions') ? context.hostSlot('actions') : nothing}
                 ${renderMenuControl(context)}
@@ -1571,10 +1581,12 @@ function inPlaceActions(context) {
         || context.canDeleteRecord || (context.recordMenuItems?.length ?? 0) > 0);
 }
 
-// The sections as a list, each a level with «←» (C386): on a phone, and in a
-// side panel the rail would leave the fields under 20rem (C403).
+// The sections as a list, each a level with «←» (C386): in a side panel the
+// rail would leave the fields under 20rem (C403). On a phone the sections
+// are tabs on top that a swipe also turns (study S-A 3, VL-86): the list
+// with «←» hid the record's title inside a section (SB-19).
 function sectionLevels(context) {
-    return !context.wide || context.sectionsLayout === 'level';
+    return context.sectionsLayout === 'level';
 }
 
 // A section opened on a phone, inside a panel: a level of the panel (C157 (6)).
@@ -1744,7 +1756,7 @@ function sidebarDrawn(context) {
 // view is arranged the sections are rows that take a drop, drawn over the
 // groups instead (sectionsStacked).
 function lineTabsDrawn(context, sections) {
-    return context.sectionsLayout === 'tabs' && sections.length > 1 && !context.configuring;
+    return (context.sectionsLayout === 'tabs' || context.sectionsLayout === 'phone') && sections.length > 1 && !context.configuring;
 }
 
 // While arranging, «Вкладки» stand over the fields wherever the sections are
@@ -1889,6 +1901,7 @@ function renderBody(context, railOutside = false, withActions = true) {
         ${onPhoneSectionList(context, sections) ? renderPhoneSectionList(context, sections) : nothing}
         ${lineTabsDrawn(context, sections) ? renderSectionTabs(context, sections) : nothing}
         <div class="sf-property-view-layout"
+             @pointerdown=${(event) => context.component.sectionSwipeStart(event)}
              style=${`--sf-property-view--sections-width: ${context.sectionsWidth};${context.panel ? '' : sizeStyle(context)}`}
              data-sections=${String(sections.length)}
              data-screen=${onPhoneSectionList(context, sections) ? 'sections' : 'groups'}
