@@ -1782,6 +1782,13 @@
     }
   }
 
+  /* S-A 3: on a phone the fields take a sideways swipe (to the next or the
+     previous section); the page keeps its vertical scroll, and a box that
+     scrolls sideways itself keeps its own. */
+  [data-sections-layout="phone"] .sf-property-view-layout {
+    touch-action: pan-y;
+  }
+
   /* A phone, or a list too narrow for a label beside its value: the label
      stands over its value, the row label + value (20 + 36, a pitch of 56). */
   @container not (min-width: 22rem) {
