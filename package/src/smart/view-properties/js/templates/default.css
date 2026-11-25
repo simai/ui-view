@@ -1792,6 +1792,23 @@
   /* A phone, or a list too narrow for a label beside its value: the label
      stands over its value, the row label + value (20 + 36, a pitch of 56). */
   @container not (min-width: 22rem) {
+    .sf-property-view-list > .sf-list-description-list > .sf-property-view-group.sf-property-view-group--list,
+    .sf-property-view-list > .sf-list-description-list > .sf-property-view-group.sf-property-view-group--form {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .sf-property-view-list .sf-property-view-group--list > .sf-property-view-group-fields > .sf-property-view-row > .sf-list-description-label {
+      padding-block: 0;
+    }
+  }
+
+  /* On a phone (below md, as sf-list-description's own stacked rule, C33)
+     the label is always over its value, however wide the list: the group's
+     two columns above would otherwise keep the label beside it. */
+  @media not all and (min-width: 48rem) {
+    .sf-property-view-list > .sf-list-description-list > .sf-property-view-group.sf-property-view-group--list,
+    .sf-property-view-list > .sf-list-description-list > .sf-property-view-group.sf-property-view-group--form {
+      grid-template-columns: minmax(0, 1fr);
+    }
     .sf-property-view-list .sf-property-view-group--list > .sf-property-view-group-fields > .sf-property-view-row > .sf-list-description-label {
       padding-block: 0;
     }
