@@ -1902,9 +1902,6 @@ function renderBody(context, railOutside = false, withActions = true) {
         ${lineTabsDrawn(context, sections) ? renderSectionTabs(context, sections) : nothing}
         <div class="sf-property-view-layout"
              @pointerdown=${(event) => context.component.sectionSwipeStart(event)}
-             @pointermove=${(event) => context.component.sectionSwipeMove(event)}
-             @pointerup=${(event) => context.component.sectionSwipeEnd(event)}
-             @pointercancel=${() => context.component.sectionSwipeEnd(null)}
              style=${`--sf-property-view--sections-width: ${context.sectionsWidth};${context.panel ? '' : sizeStyle(context)}`}
              data-sections=${String(sections.length)}
              data-screen=${onPhoneSectionList(context, sections) ? 'sections' : 'groups'}

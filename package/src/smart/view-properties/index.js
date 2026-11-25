@@ -3237,6 +3237,27 @@ class SfPropertyView extends PropertyViewElement {
             if (style && /(auto|scroll)/.test(style.overflowX) && node.scrollWidth > node.clientWidth + 1) return;
         }
         this._swipe = {x: event.clientX, y: event.clientY, id: event.pointerId, t: event.timeStamp};
+        // The phone panel follows a finger toward its edge to close (C157 (4))
+        // and takes the pointer while it does, so the rest of the gesture is
+        // read on the window. On the first section the drag toward the edge
+        // still closes the panel (there is no section before it); on any other
+        // the swipe is the section's, and the panel does not start its drag.
+        const shown = this.sections.filter((section) => !section.hidden);
+        const list = shown.length ? shown : this.sections;
+        if (list.findIndex((section) => String(section.key) === this.selectedSection) > 0) event.stopPropagation();
+        this._swipeListen(true);
+    }
+
+    _swipeListen(on) {
+        this._swipeHandlers ??= {
+            pointermove: (event) => this.sectionSwipeMove(event),
+            pointerup: (event) => this.sectionSwipeEnd(event),
+            pointercancel: () => this.sectionSwipeEnd(null),
+        };
+        for (const [type, handler] of Object.entries(this._swipeHandlers)) {
+            if (on) globalThis.addEventListener?.(type, handler, true);
+            else globalThis.removeEventListener?.(type, handler, true);
+        }
     }
 
     sectionSwipeMove(event) {
@@ -3245,12 +3266,16 @@ class SfPropertyView extends PropertyViewElement {
         const dx = event.clientX - swipe.x;
         const dy = event.clientY - swipe.y;
         // A vertical start is a scroll: the swipe is given up.
-        if (Math.abs(dy) > 12 && Math.abs(dy) > Math.abs(dx)) this._swipe = null;
+        if (Math.abs(dy) > 12 && Math.abs(dy) > Math.abs(dx)) {
+            this._swipe = null;
+            this._swipeListen(false);
+        }
     }
 
     sectionSwipeEnd(event) {
         const swipe = this._swipe;
         this._swipe = null;
+        this._swipeListen(false);
         if (!swipe || !event || event.pointerId !== swipe.id) return;
         const dx = event.clientX - swipe.x;
         const dy = event.clientY - swipe.y;
