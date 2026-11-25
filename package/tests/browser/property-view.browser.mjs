@@ -1514,14 +1514,15 @@ try {
       note({case: "a number reads as the host's text with the field's unit",
         got: measured.before?.text?.sum, expected: '25 025,93 ₽'});
     }
-    // Since 1.17.0 (C289 (4), R252) a group read is a heading of the record's
-    // description list, not a painted card: no border, no radius, no padding,
-    // no surface of its own (an edited group keeps its card).
+    // Since View round 19 (study S-B variant A, the record-card clause beside
+    // C52; it was C289 (4), R252: a heading of the list) a group read is a
+    // white group on the panel's grey: a 1 px outline, the surface radius, an
+    // inset of its own and the card surface.
     const card = measured.before?.card ?? {};
-    if (card.border !== '0px' || card.radius !== '0px' || card.padding !== '0px'
-      || (card.background && card.background !== 'rgba(0, 0, 0, 0)')) {
-      note({case: 'a group read is a heading of the list, not a card', got: card,
-        expected: 'no border, radius, padding or surface'});
+    if (card.border !== '1px' || card.radius === '0px' || card.padding === '0px'
+      || !card.background || card.background === 'rgba(0, 0, 0, 0)') {
+      note({case: 'a group read is a white group on the panel (S-B variant A)', got: card,
+        expected: 'a 1 px outline, a radius, an inset and the card surface'});
     }
 
     // Rare: hidden, shown on request, and no second read.
