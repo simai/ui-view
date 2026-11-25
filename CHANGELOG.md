@@ -16,6 +16,35 @@ same numbers with other content); every next set version is above them
 up). Each component.json says the same under `x-decisions`
 `pro-copy-versions`.
 
+## 1.19.1 — 2026-11-25
+
+The include field fix over the SIMAI Framework pair of group build 19
+(ui-control `control/evidence/2026-11-25-view-1.19.1-release`).
+
+- Over the SIMAI Framework pair `ui-73df5d1b4d4c` (ui-source
+  `5e30b946fd0e`, npm `@simai-studio/ui@5.20261125.1855`, core.runtime
+  1.69.0). The set needs core.runtime 1.69.0 or newer (was 1.68.0).
+- The include field no longer stops the record card from drawing when it
+  moves to the next record («Cannot set properties of null (setting
+  'data')», View round 19 include-w1): the set's package core
+  (view-common) now carries the pair's field renderers 1.30.2, whose
+  include view owns no lit DOM. The same package core carries the pair's
+  menu opener, which waits for the context menu's code on a press.
+- `sf-view` 1.40.1, `sf-view-table` 1.39.1, `sf-view-properties` 1.32.1,
+  `sf-view-board` 1.5.1, `sf-view-cards` 1.5.3, `sf-view-calendar` 1.3.2
+  (patch: their Framework copy or its provenance follows the pair; their
+  own code and markup are unchanged); `sf-view-flow` 1.3.0 unchanged.
+- The owner remarks register over this build and pair: VL-77 (the split
+  button divider) now passes with the pair; see the release evidence for
+  the counts.
+- Known issues, open in this release (next View round):
+  - Customize mode and the record card do not yet agree.
+  - Density at 390.
+  - The kind menu after `?kind=board`.
+  - The phone section tabs are 36 px high.
+  - The «Сохранить» menu is to be a plain menu.
+  - The email field type on the site (the site's side).
+
 ## 1.19.0 — 2026-11-25
 
 View round 19 (round/view-r19; accepted on 2026-11-25: ui-control

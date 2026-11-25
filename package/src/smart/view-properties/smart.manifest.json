@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-properties",
-  "version": "1.32.0",
+  "version": "1.32.1",
   "title": "Property view",
   "summary": "One object's fields shown as sections, groups and fields, each drawn by the per-type field renderer set, behind a separate host port. A group is edited and saved as one revision by the button, and a reference field is picked from the host's own candidates a page at a time. The pair to the data view: that one is a set of records, this one is a single object.",
   "kind": "composite",
@@ -2090,6 +2090,13 @@
         "to": "1.32.0",
         "changes": [
           "View round 19: saveView draft while configuring, commitConfiguringView, publishConfiguringView, cancel without write, layerDirty, ownView, panel menu reset; collection falls back to record.collection; tab-icon waits for its trigger; section swipe on the window with touch-action pan-y; phone section tabs; stacked sections static; variant A rules; words done-configuring-text, reset-view-text, own-view-text and the hints."
+        ]
+      },
+      {
+        "from": "1.32.0",
+        "to": "1.32.1",
+        "changes": [
+          "view 1.19.1: over the SIMAI Framework pair ui-73df5d1b4d4c (ui-source 5e30b946fd0e, core.runtime 1.69.0); the Framework field renderers in the set's package core (view-common) are 1.30.2 (group build 19: the include view owns no lit DOM) (the include field fix, include-w1)."
         ]
       }
     ]

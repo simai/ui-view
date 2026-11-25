@@ -23,7 +23,7 @@ test('the set is pinned on the pair ui-73df5d1b4d4c and needs its runtime', {ski
   const set = JSON.parse(readFileSync(resolve(setRoot, 'set.json'), 'utf8'));
   assert.equal(lock.source.revision, '5e30b946fd0e620a4d00ab771af143dc286be1b8');
   assert.equal(set.framework.source_revision, lock.source.revision);
-  assert.equal(set.framework.core_runtime, '>=1.68.0');
+  assert.equal(set.framework.core_runtime, '>=1.69.0');
 });
 
 test('VN-3: the rail takes no room after the rows when «Показать ещё» follows them', () => {

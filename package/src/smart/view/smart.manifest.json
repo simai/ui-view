@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view",
-  "version": "1.40.0",
+  "version": "1.40.1",
   "title": "Data view",
   "summary": "Host-driven data view that composes toolbar, content and pagination around a separate data port.",
   "kind": "composite",
@@ -2050,6 +2050,13 @@
         "to": "1.40.0",
         "changes": [
           "View round 19: words head-copy, head-view-changed, head-view-reset, head-view-save-new; head state trigger outline primary with save / expand_more; phone head columns icon button; _lookItems drops single_line and lines on a phone; _kindSettings reads the drawn table; kinds menu kind radio; sf-view-table-view-change redraws the head; phone fields wheel scrolls sideways; head.css phone fields buttons flex none."
+        ]
+      },
+      {
+        "from": "1.40.0",
+        "to": "1.40.1",
+        "changes": [
+          "view 1.19.1: over the SIMAI Framework pair ui-73df5d1b4d4c (ui-source 5e30b946fd0e, core.runtime 1.69.0); the Framework menu opener in the set's package core (view-common) asks SF.Loader.ensure to wait on a press (group build 19)."
         ]
       }
     ]

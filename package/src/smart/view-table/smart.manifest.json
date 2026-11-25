@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-table",
-  "version": "1.39.0",
+  "version": "1.39.1",
   "title": "Table",
   "summary": "Complete server-backed collection view with search, filters, table preferences, row and bulk actions, and pagination.",
   "kind": "composite",
@@ -3104,6 +3104,13 @@
         "to": "1.39.0",
         "changes": [
           "View round 19: toggleTableSettings always opens the table-settings context menu; .sf-table-settings-host > .sf-table-context-layer is absolute with no size."
+        ]
+      },
+      {
+        "from": "1.39.0",
+        "to": "1.39.1",
+        "changes": [
+          "view 1.19.1: over the SIMAI Framework pair ui-73df5d1b4d4c (ui-source 5e30b946fd0e, core.runtime 1.69.0); the Framework field renderers in the set's package core (view-common) are 1.30.2 (group build 19: the include view owns no lit DOM); the Framework menu opener in the set's package core (view-common) asks SF.Loader.ensure to wait on a press (group build 19)."
         ]
       }
     ]
