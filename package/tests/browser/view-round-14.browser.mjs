@@ -404,7 +404,11 @@ try {
       const before = phone ? null : await rowHeight(page);
       await look(page).catch((error) => errors.push(`«Вид»: ${error.message.slice(0, 120)}`));
       const tableRows = await lookRows(page);
-      if (!['Плотность', 'Текст в одну строку', 'Линии между столбцами', 'Подгрузка'].every((row) => tableRows.includes(row))) failures.push({...label, got: tableRows, want: 'the table\'s rows'});
+      // S-A 1 (View round 19): a phone's «Вид» leaves out the table-only rows
+      // («Текст в одну строку», «Линии между столбцами»), not disabled but absent.
+      const tableOnly = ['Текст в одну строку', 'Линии между столбцами'];
+      if (!['Плотность', 'Подгрузка', ...(phone ? [] : tableOnly)].every((row) => tableRows.includes(row))
+        || (phone && tableOnly.some((row) => tableRows.includes(row)))) failures.push({...label, got: tableRows, want: phone ? 'the table\'s rows without the table-only ones' : 'the table\'s rows'});
       if (run === 1) await shot(page, `look-${width}-${theme}`);
       await closeAll(page);
       await look(page, 'Плотность', 'Компактная').catch((error) => errors.push(`compact: ${error.message.slice(0, 120)}`));
