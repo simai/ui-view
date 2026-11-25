@@ -137,7 +137,7 @@ export function renderViewBoardTemplate(context) {
             ${context.phone ? html`<div class="sf-view-board__switch-row"><sf-tabs class="sf-view-board__switch" type="pills" size=${context.size} overflow="scroll"
                     aria-label=${component(context).word("lanes-label")} active-index=${String(context.phoneIndex)}
                     items=${JSON.stringify(lanes.map((lane) => ({id: lane.value, label: lane.label, count: lane.total})))}></sf-tabs>${context.selectable
-                ? html`<sf-button class="sf-view-board__choose" data-choose size=${context.size} appearance="ghost" scheme=${context.choosing ? "primary" : "on-surface"}
+                ? html`<sf-button class="sf-view-board__choose" data-choose size=${context.size} appearance="ghost" scheme="on-surface"
                         icon-start=${context.choosing ? "check" : "checklist"} text=${component(context).word(context.choosing ? "choose-done-text" : "choose-text")}
                         aria-pressed=${context.choosing ? "true" : "false"}></sf-button>` : nothing}</div>` : nothing}
             <div class="sf-view-board__lanes" role="region" aria-label=${context.label}>
