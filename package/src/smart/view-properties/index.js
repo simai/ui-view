@@ -4892,8 +4892,18 @@ class SfPropertyView extends PropertyViewElement {
         if (at < 0) return false;
         if (id === "tab-rename") return this.startRenaming("section", key);
         if (id === "tab-icon") {
+            // VL-91 (SB-13): the tab already selected renders nothing new, so
+            // waiting for the next render never pressed the glyph choice. The
+            // choice is looked for once the menu has closed (its focus went
+            // back) and again on the next frames while the section draws.
             this.selectSection(key);
-            this.whenRendered?.(() => (this.panelContent?.() ?? this).querySelector?.(`[data-icon-for="${CSS.escape(key)}"] [data-action="section-icon"] button, [data-icon-for="${CSS.escape(key)}"] [data-action="section-icon"]`)?.click?.(), {next: true});
+            const find = () => (this.panelContent?.() ?? this).querySelector?.(`[data-icon-for="${CSS.escape(key)}"] [data-action="section-icon"] button, [data-icon-for="${CSS.escape(key)}"] [data-action="section-icon"]`);
+            const press = (tries) => {
+                const trigger = find();
+                if (trigger) trigger.click?.();
+                else if (tries > 0) requestAnimationFrame(() => press(tries - 1));
+            };
+            setTimeout(() => press(30), 60);
             return true;
         }
         if (id === "tab-up") return this.moveSection(key, at - 1);

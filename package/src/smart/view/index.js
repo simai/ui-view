@@ -42,6 +42,7 @@ const LISTENED = Object.freeze([
     "sf-view-table-search-change", "sf-view-table-filter-change", "sf-view-table-sort-change", "sf-view-table-save",
     "sf-view-table-apply", "sf-view-table-refresh", "sf-view-table-select", "sf-view-table-column-settings-reset",
     "sf-view-table-expand", "sf-view-table-load-more", "sf-view-table-reference-open", "sf-view-table-cell-set", "sf-view-table-move",
+    "sf-view-table-view-change",
     "sf-pagination-change", "sf-pagination-size-change", "sf-pagination-apply", "sf-pagination-load-more",
     "sf-pagination-selection-clear", "sf-pagination-count", "sf-pagination-action-change",
     "sf-pagination-action-for-all-change", "sf-view-save",
@@ -4806,6 +4807,9 @@ class SfDataView extends DataViewElement {
         // An event crossing the shadow boundary is observed once, at the shadow root.
         if (event.currentTarget === this && this.shadowRoot.contains(event.target)) return;
         if (event.type === "click" && event.target.matches?.("[data-show-all]")) return this.openList("row-cap");
+        // VL-76: the table's look changed by a call (a page's own density
+        // switch, setTableView): «Вид» names what the table shows now.
+        if (event.type === "sf-view-table-view-change") return this._head?.render?.();
         if (event.type === "sf-view-table-cell-set") return this.setCell(event.detail ?? {});
         if (event.type === "sf-view-table-move") return this.reorderRows(event.detail ?? {});
         if (event.type === "sf-view-table-search-change") {

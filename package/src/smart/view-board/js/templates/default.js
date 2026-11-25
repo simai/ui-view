@@ -133,10 +133,13 @@ export function renderViewBoardTemplate(context) {
     const lanes = context.lanes;
     return html`
         <div class="sf-view-board" data-size=${context.size} ?data-phone=${context.phone}
-             ?data-dragging=${context.dragging} ?data-selecting=${context.selected.size > 0}>
+             ?data-dragging=${context.dragging} ?data-selecting=${context.choosing}>
             ${context.phone ? html`<div class="sf-view-board__switch-row"><sf-tabs class="sf-view-board__switch" type="pills" size=${context.size} overflow="scroll"
                     aria-label=${component(context).word("lanes-label")} active-index=${String(context.phoneIndex)}
-                    items=${JSON.stringify(lanes.map((lane) => ({id: lane.value, label: lane.label, count: lane.total})))}></sf-tabs></div>` : nothing}
+                    items=${JSON.stringify(lanes.map((lane) => ({id: lane.value, label: lane.label, count: lane.total})))}></sf-tabs>${context.selectable
+                ? html`<sf-button class="sf-view-board__choose" data-choose size=${context.size} appearance="ghost" scheme=${context.choosing ? "primary" : "on-surface"}
+                        icon-start=${context.choosing ? "check" : "checklist"} text=${component(context).word(context.choosing ? "choose-done-text" : "choose-text")}
+                        aria-pressed=${context.choosing ? "true" : "false"}></sf-button>` : nothing}</div>` : nothing}
             <div class="sf-view-board__lanes" role="region" aria-label=${context.label}>
                 ${lanes.map((lane, index) => renderLane(context, lane, index))}
             </div>

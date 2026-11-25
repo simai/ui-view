@@ -5616,17 +5616,10 @@ class SfTable extends TableElement {
         }
         if (open) return;
         this._settingsOpenedAt = e.timeStamp;
-        // VR14-5: under the list head the gear opens the window against the
-        // head's «Колонки» (the same window, C406), below the head and at
-        // the list's end, so it no longer covers the rows' «≡» at their start.
-        const columns = this.hasAttribute("data-sf-columns-only")
-            ? this.closest?.("sf-view, sf-data-view")?.querySelector?.(':scope > [slot="head"] .sf-view-head-columns') : null;
-        // sf-button's host is display: contents: its <button> has the box.
-        const drawn = (columns?.querySelector?.("button") ?? columns)?.getClientRects?.().length > 0;
-        if (columns && drawn && !columns.contains(e.target)) {
-            this.openColumnSettings(columns);
-            return;
-        }
+        // VL-81 (owner remark 6, View round 19): the gear opens the column
+        // window at the gear, the control the person pressed; the head's
+        // «Колонки» opens the same window at «Колонки» (openColumnSettings).
+        // VR14-5 had sent the gear's window to «Колонки».
         this.openContextMenu(e, {menu: 'table-settings'});
     }
 

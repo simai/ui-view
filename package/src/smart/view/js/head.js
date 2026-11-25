@@ -239,6 +239,10 @@ export class ListHead {
         root.addEventListener("sf-popover-closed", (event) => this._onPopoverClosed(event));
         root.addEventListener("sf-button-select", (event) => this._onCreateSelect(event));
         root.addEventListener("sf-button-press", (event) => this._onCreatePress(event));
+        // VL-89: on the phone the chip row scrolls sideways by touch; a mouse
+        // wheel over it (a narrow desktop window) turns into the same sideways
+        // scroll while the row has more to show, so every chip is reachable.
+        root.addEventListener("wheel", (event) => this._onFieldsWheel(event), {passive: false});
         this._resize = typeof ResizeObserver === "function" ? new ResizeObserver(this._onResize) : null;
         this._resize?.observe(this.view);
         this._parts = typeof ResizeObserver === "function" ? new ResizeObserver(this._onPartsResize) : null;
@@ -658,7 +662,11 @@ export class ListHead {
         const toggle = `<sf-button-icon class="sf-view-head-zone-toggle" data-zone-toggle size="${size}" appearance="ghost" scheme="on-surface" icon="view_quilt" aria-controls="" hidden></sf-button-icon>`;
         // The owner's data menu is «⋯» (C407), not more_vert.
         const more = `<sf-button-icon class="sf-view-head-more" data-list-menu size="${size}" appearance="outline" scheme="on-surface" icon="more_horiz" aria-haspopup="menu" hidden></sf-button-icon>`;
-        const changed = pop("state", "bottom-start", `<sf-button slot="trigger" class="sf-view-head-changed" size="${size}" appearance="ghost" scheme="primary" icon-start="edit_note"></sf-button>`);
+        // VL-80 (DEV decision): a view that differs from what is saved shows
+        // «Сохранить» where «Изменено» stood; it opens the ways out (save for
+        // everyone where allowed, «Сохранить как новое», «Сбросить
+        // изменения»). Nothing is shown while the view is as saved.
+        const changed = pop("state", "bottom-start", `<sf-button slot="trigger" class="sf-view-head-changed" size="${size}" appearance="outline" scheme="primary" icon-start="save" icon-end="expand_more" aria-haspopup="dialog"></sf-button>`);
         this.root.innerHTML = phone
             ? `<div class="sf-view-head-title" data-title>
                  <h2 class="sf-view-head-name"><span data-name></span></h2>
@@ -675,7 +683,8 @@ export class ListHead {
                  <sf-button class="sf-view-head-views" data-views size="${size}" appearance="ghost" scheme="on-surface" icon-start="bookmarks" icon-end="expand_more" aria-haspopup="menu"></sf-button>
                  <sf-button-icon class="sf-view-head-kind-menu" data-kind-menu size="${size}" appearance="ghost" scheme="on-surface" icon="table_rows" aria-haspopup="menu"></sf-button-icon>
                  <sf-button-icon class="sf-view-head-tune sf-view-head-look" data-look size="${size}" appearance="ghost" scheme="on-surface" icon="tune" aria-haspopup="menu"></sf-button-icon>
-                 <sf-button class="sf-view-head-changed" data-head-open="state" size="${size}" appearance="ghost" scheme="primary" icon-start="edit_note" hidden></sf-button>
+                 <sf-button-icon class="sf-view-head-columns" data-columns size="${size}" appearance="ghost" scheme="on-surface" icon="view_column" aria-haspopup="dialog"></sf-button-icon>
+                 <sf-button class="sf-view-head-changed" data-head-open="state" size="${size}" appearance="outline" scheme="primary" icon-start="save" icon-end="expand_more" aria-haspopup="dialog" hidden></sf-button>
                </div>
                <sf-drawer data-sheet data-sf-role="head-sheet" placement="bottom"><div slot="content" data-body></div></sf-drawer>`
             : `<div class="sf-view-head-title" data-title>
@@ -1115,6 +1124,19 @@ export class ListHead {
     // (C301 (2)). The cut is sf-button's own (overflow="truncate" with
     // max-width, SIMAI Framework FW-LH-1); a pair whose sf-button does not
     // declare it draws the whole name, with the same tooltip.
+    _onFieldsWheel(event) {
+        const row = event.target?.closest?.(".sf-view-head-fields");
+        if (!row || this.mode !== "phone" || event.ctrlKey) return;
+        const room = row.scrollWidth - row.clientWidth;
+        if (room <= 0) return;
+        const delta = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY;
+        const step = event.deltaMode === 1 ? delta * 16 : event.deltaMode === 2 ? delta * row.clientWidth : delta;
+        const next = Math.max(0, Math.min(room, row.scrollLeft + step));
+        if (next === row.scrollLeft) return;
+        event.preventDefault();
+        row.scrollLeft = next;
+    }
+
     _truncate(node, width) {
         const Button = globalThis.customElements?.get?.("sf-button");
         if (!node || !Button?.observedAttributes?.includes?.("overflow")) return;
@@ -1398,8 +1420,14 @@ export class ListHead {
             // and «Текст в одну строку» are set here.
             if (this.view.table) {
                 add("density", choice("density", "headDensity", [["normal", this.text("headDensityNormal")], ["compact", this.text("headDensityCompact")]], settings.density));
-                add("single_line", toggle("single_line", "headSingleLine", settings.single_line));
-                add("lines", toggle("lines", "headLines", settings.lines));
+                // S-A 1 (VL-84, view part): a phone draws the table as a list,
+                // where one line and the lines between columns do nothing:
+                // hidden there, not disabled (a layout scope; the Framework's
+                // item scope waits).
+                if (this.mode !== "phone") {
+                    add("single_line", toggle("single_line", "headSingleLine", settings.single_line));
+                    add("lines", toggle("lines", "headLines", settings.lines));
+                }
             }
             if (this.view.pagingOffered) add("paging", choice("paging", "headPaging", paging, settings.paging));
             if (actions.length) add("row_actions", switches("row_actions", "headRowActions", actions, settings.row_actions));
@@ -1435,7 +1463,10 @@ export class ListHead {
         const look = this.view.look;
         const columnsShown = lookShown && (!look || look.includes("columns")) && this.kind === "table" && typeof table?.openColumnSettings === "function" && this.view.renders("settings");
         set(columns, "hidden", columnsShown ? null : "");
-        set(columns, "text", this.text("headColumns"));
+        // VL-83: the phone's zone has «Колонки» too (an icon beside «Вид»):
+        // the column window was out of reach at 390.
+        if (columns?.localName === "sf-button-icon") set(columns, "aria-label", this.text("headColumns"));
+        else set(columns, "text", this.text("headColumns"));
         set(columns, "title", this.text("headColumns"));
         for (const node of this.root.querySelectorAll(".sf-view-head-look")) {
             if (node.localName === "sf-button") { set(node, "text", this.text("headLook")); set(node, "title", this.text("headLook")); }
@@ -1508,14 +1539,16 @@ export class ListHead {
         // A setting changed in «Customize view» is already saved for the
         // person (C298); a filter or a display kind changed here is not saved.
         const mine = Boolean(this._settings && Object.values(this._settings).some((entry) => entry && Object.keys(entry).length));
-        // A view the person cannot write (a system view, one they may not
-        // share, or one with locked paths) is kept as their own copy:
-        // «Сохранить как моё»; their own view is saved as a new one
-        // («Сохранить представление», view-config/1 words).
-        const locked = this.viewLevel(view) !== "personal" && (!shared || this._locked().length > 0);
+        // VL-80 (DEV decision): the ways out are named for what they do --
+        // «Сохранить для всех» where the person may write the shared view,
+        // «Сохранить как новое» (a view of their own, the window
+        // «Сохранить представление» of view-config/1 names it), «Сбросить
+        // изменения» back to the saved view. A view they cannot write (a
+        // system view, locked paths) is kept the same way, as a new view of
+        // their own («Сохранить как моё» before).
         return this._note(this.text(mine ? "headViewStateMine" : "headViewStateUnsaved").replace("{name}", name))
             + `<div class="sf-view-head-actions">${shared ? button("view-save-all", this.text("headViewSaveAll"), true) : ""}`
-            + `${button("view-open-new", this.text(locked ? "headViewSaveMine" : "headViewSaveNew"), !shared)}${button("view-reset-all", this.text("headViewReset"), false)}</div>`;
+            + `${button("view-open-new", this.text("headViewSaveNew"), !shared)}${button("view-reset-all", this.text("headViewReset"), false)}</div>`;
     }
 
     _locked() {
@@ -1538,10 +1571,19 @@ export class ListHead {
             merged.row_actions ??= (this.view.rowActionCatalog ?? []).map((action) => String(action.id));
             merged.paging ??= this.view.pagingOf?.("table") ?? "both";
             // The density and one line as the table shows them (VR12A-1).
+            // VL-76: the table's look is the truth once it is drawn -- a page
+            // that moves it by a call (setTableView) is not outvoted by the
+            // choice the person once made here, which the table applied.
             const table = this.view.table;
-            merged.density ??= table?.shownViewDensity === "compact" ? "compact" : "normal";
-            merged.single_line ??= table?.tableView?.singleLine === true;
-            merged.lines ??= table?.tableView?.lines === true;
+            if (table?.tableView) {
+                merged.density = table.shownViewDensity === "compact" ? "compact" : "normal";
+                merged.single_line = table.tableView.singleLine === true;
+                merged.lines = table.tableView.lines === true;
+            } else {
+                merged.density ??= "normal";
+                merged.single_line ??= false;
+                merged.lines ??= false;
+            }
         }
         // The card fields a board or the cards draw now (their own defaults
         // when the view names none), so the window ticks what is on the cards.
@@ -1757,7 +1799,9 @@ export class ListHead {
         const entries = [];
         if (kindsOnly) {
             for (const kind of this.kinds) {
-                entries.push({id: `kind:${kind}`, text: this.kindLabel(kind), icon: kind === this.kind ? "check" : KINDS[kind]});
+                // A pick-one list: the current kind is a checked menuitemradio
+                // (aria-checked, the chosen row's fill), each with its own glyph.
+                entries.push({id: `kind:${kind}`, text: this.kindLabel(kind), icon: KINDS[kind], kind: "radio", checked: kind === this.kind});
             }
         } else {
             const levels = ["system", "shared", "personal", ""];

@@ -204,6 +204,10 @@
   scrollbar-width: none;
 }
 .sf-view-head[data-phone] .sf-view-head-fields::-webkit-scrollbar { display: none; }
+/* VL-83: sf-button's host is display: contents, so the row's flex item is its
+   <button>: kept at its own width, the saved filter's mark no longer shrinks
+   under its name (the name ran 18 px past it onto the next chip at 390). */
+.sf-view-head[data-phone] .sf-view-head-fields > :is(sf-button, sf-button-icon) > button { flex: none; }
 .sf-view-head-fields[hidden] { display: none; }
 
 /* The windows' content: a popover on a desktop, a bottom sheet on the phone. */

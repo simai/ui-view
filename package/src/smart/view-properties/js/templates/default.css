@@ -1495,6 +1495,10 @@
   .sf-property-view-layout[data-stacked="true"] > .sf-property-view-sections {
     inline-size: auto;
     max-inline-size: none;
+    /* VL-92 (SB-12): a row over the fields scrolls away with them. Held at
+       the top, its see-through tabs and the section heading stood over the
+       fields while scrolling and dragging (the side column stays held). */
+    position: static;
   }
 
   /* The row being edited in its window, and the fields a save just wrote. */

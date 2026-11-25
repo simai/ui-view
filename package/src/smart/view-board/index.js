@@ -71,6 +71,9 @@ class SfViewBoard extends BoardElement {
         this._moves = null;
         this._actions = [];
         this._selected = new Set();
+        // S-A 4 (VL-87): the choosing mode a long press or «Выбрать» enters --
+        // boxes on every card, a tap marks a card -- until «Готово» or ×.
+        this._choosing = false;
         // id -> {from, to, index, record}: a move shown and not yet settled.
         this._pending = new Map();
         // Lanes the person folded or unfolded here, over the options.
@@ -286,6 +289,7 @@ class SfViewBoard extends BoardElement {
             cardFields,
             perLane: options.perLane,
             selected: this._selected,
+            choosing: this._choosing || this._selected.size > 0,
             pending: this._pending,
             refusals: this._refusals,
             loadingLanes: this._loading,
@@ -317,6 +321,9 @@ class SfViewBoard extends BoardElement {
         this.addEventListener("keydown", (event) => this._onKey(event), {signal, capture: true});
         this.addEventListener("focusin", (event) => this._onFocus(event), {signal});
         this.addEventListener("contextmenu", (event) => this._onContextMenu(event), {signal});
+        this.addEventListener("pointerdown", (event) => this._onPressStart(event), {signal});
+        for (const type of ["pointerup", "pointercancel", "pointerleave"]) this.addEventListener(type, () => this._pressEnd(), {signal});
+        this.addEventListener("pointermove", (event) => this._onPressMove(event), {signal});
         this.addEventListener("sf-sortable-state", (event) => this._onDragState(event), {signal});
         this.addEventListener("sf-sortable-check", (event) => this._onCheck(event), {signal});
         this.addEventListener("sf-sortable-move", (event) => this._onSortableMove(event), {signal});
@@ -493,9 +500,28 @@ class SfViewBoard extends BoardElement {
     // ── clicks and menus ───────────────────────────────────────────────────
 
     _onClick(event) {
-        const target = event.target.closest?.("[data-open], [data-menu], [data-add], [data-lanemenu], [data-more], [data-unfold], [data-bulk], [data-clear]");
+        // The click that ends a long press is the press's, not a tap.
+        if (this._pressFired) {
+            this._pressFired = false;
+            event.preventDefault();
+            event.stopPropagation();
+            return;
+        }
+        const target = event.target.closest?.("[data-open], [data-menu], [data-add], [data-lanemenu], [data-more], [data-unfold], [data-bulk], [data-clear], [data-choose], .sf-view-board__box");
         if (!target || !this.contains(target)) return;
         const data = target.dataset;
+        // The box's touch area around the check box (44 on a coarse pointer):
+        // a press beside the box marks the card as a press on it does.
+        if (target.matches(".sf-view-board__box")) {
+            if (!event.target.closest?.("sf-checkbox")) {
+                const card = target.closest(".sf-view-board__card");
+                if (card) this.toggleSelected(card.dataset.id);
+            }
+            return;
+        }
+        if (target.hasAttribute("data-choose")) return this.setChoosing(!(this._choosing || this._selected.size > 0));
+        // In the choosing mode a tap on a card marks it (S-A 4).
+        if (data.open && (this._choosing || this._selected.size > 0)) return this.toggleSelected(data.open);
         if (data.open) this.openRecord(data.open);
         else if (data.menu) this.openCardMenu(data.menu, target);
         else if (data.add) this.createIn(data.add);
@@ -510,7 +536,52 @@ class SfViewBoard extends BoardElement {
         const card = event.target.closest?.(".sf-view-board__card");
         if (!card) return;
         event.preventDefault();
+        // A touch's long press chooses the card (S-A 4), it opens no menu.
+        if (this._pressFired || this._pressTouch) return;
         this.openCardMenu(card.dataset.id, null, [event.clientX, event.clientY]);
+    }
+
+    // S-A 4 (VL-87, owner decision q4): on a touch screen a long press on a
+    // card (0.5 s, the finger kept still) enters the choosing mode and marks
+    // the card; a move first (a swipe between lanes, a scroll, a drag) is not
+    // a press. The menu stays on «⋯»; «Выбрать» does the same without the
+    // gesture (a gesture is a shortcut).
+    _onPressStart(event) {
+        this._pressEnd();
+        this._pressFired = false;
+        this._pressTouch = event.pointerType === "touch" || event.pointerType === "pen";
+        if (!this._pressTouch || this.getProp("selectable") === false) return;
+        const card = event.target.closest?.(".sf-view-board__card");
+        if (!card || event.target.closest?.("[data-menu], [data-box], sf-checkbox")) return;
+        this._pressAt = [event.clientX, event.clientY];
+        this._pressTimer = globalThis.setTimeout(() => {
+            this._pressTimer = null;
+            if (!card.isConnected) return;
+            this._pressFired = true;
+            this._choosing = true;
+            this._setSelected(card.dataset.id, true);
+            this.requestComponentUpdate("selected");
+        }, 500);
+    }
+
+    _onPressMove(event) {
+        if (!this._pressTimer || !this._pressAt) return;
+        if (Math.hypot(event.clientX - this._pressAt[0], event.clientY - this._pressAt[1]) > 10) this._pressEnd();
+    }
+
+    _pressEnd() {
+        if (this._pressTimer) globalThis.clearTimeout(this._pressTimer);
+        this._pressTimer = null;
+        this._pressAt = null;
+    }
+
+    // «Выбрать» / «Готово»: the choosing mode on and off; off clears the marks.
+    setChoosing(on) {
+        const next = Boolean(on);
+        if (!next) this.clearSelection();
+        if (this._choosing === next) return;
+        this._choosing = next;
+        this.requestComponentUpdate("selected");
     }
 
     _onChange(event) {
@@ -547,7 +618,18 @@ class SfViewBoard extends BoardElement {
     _menu(options) {
         const menu = globalThis.SF?.menu;
         if (typeof menu?.open !== "function") return Promise.resolve(null);
-        return Promise.resolve(menu.open(options)).catch(() => null);
+        // VL-88 (owner remark 13): a press outside the page that holds the
+        // board (the frame of a review page, another window) never reaches
+        // the menu's outside-press watch, so the card menu stayed open. The
+        // page losing focus closes the open menu, as a press outside does.
+        const view = globalThis.window;
+        const blur = () => {
+            const open = globalThis.document?.querySelector?.("[data-sf-menu-shared]");
+            if (open?.isOpen || open?.hasAttribute?.("open")) open.close?.({reason: "outside", restoreFocus: false});
+        };
+        view?.addEventListener?.("blur", blur);
+        const done = () => view?.removeEventListener?.("blur", blur);
+        return Promise.resolve(menu.open(options)).catch(() => null).then((answer) => { done(); return answer; });
     }
 
     openCardMenu(id, anchor = null, point = null) {
@@ -694,6 +776,8 @@ class SfViewBoard extends BoardElement {
     }
 
     clearSelection() {
+        // × on the bar leaves the choosing mode too (S-A 4).
+        if (this._choosing) { this._choosing = false; this.requestComponentUpdate("selected"); }
         if (!this._selected.size) return;
         this._selected.clear();
         this.requestComponentUpdate("selected");

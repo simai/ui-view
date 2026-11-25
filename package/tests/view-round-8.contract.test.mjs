@@ -44,15 +44,16 @@ test('R67-2: the head saves a view, keeps a locked one as mine, and resets', () 
   const ru = json('src/smart/view/lang/ru.json').runtime;
   const en = json('src/smart/view/lang/en.json').runtime;
   assert.equal(ru['head-view-new'], 'Сохранить представление');
-  assert.equal(ru['head-view-save-new'], 'Сохранить представление');
+  // VL-80 (View round 19, DEV decision): the state window's ways out
+  assert.equal(ru['head-view-save-new'], 'Сохранить как новое');
   assert.equal(ru['head-view-save-mine'], 'Сохранить как моё');
-  assert.equal(ru['head-view-reset'], 'Сбросить');
+  assert.equal(ru['head-view-reset'], 'Сбросить изменения');
   assert.equal(en['head-view-save-mine'], 'Save as mine');
   const table = json('src/smart/view-table/lang/ru.json').runtime;
   assert.equal(table['templates-tab-text'], 'Представления');
   assert.equal(table['save-filter-template-label'], 'Сохранить представление');
   const head = read('src/smart/view/js/head.js');
-  assert.match(head, /this\.text\(locked \? "headViewSaveMine" : "headViewSaveNew"\)/u);
+  assert.match(head, /button\("view-open-new", this\.text\("headViewSaveNew"\), !shared\)/u);
 });
 
 test('R67-1: a board and cards keep the footer start that says their count', () => {
