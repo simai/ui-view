@@ -16,6 +16,46 @@ same numbers with other content); every next set version is above them
 up). Each component.json says the same under `x-decisions`
 `pro-copy-versions`.
 
+## Unreleased — view round 19
+
+View round 19 (round/view-r19, from main 3b010b7 = view 1.18.0): the owner
+remarks VL-76..VL-94 on the View review page and the studies S-A (phone)
+and S-B (record card) as decided. Over the SIMAI Framework pair
+`ui-3963bfe39302` (ui-source `96234dd717fb`, npm
+`@simai-studio/ui@5.20261124.2316`, core.runtime 1.68.0); the set needs
+core.runtime 1.68.0 or newer. Not released; package 1.19.0 is a candidate.
+
+- `sf-view` 1.40.0: «Дублировать» for «Сохранить копию» (VL-79). A view
+  that differs from its save shows «Сохранить» with «Сохранить как новое»
+  and «Сбросить изменения» in its menu, nothing when unchanged (VL-80).
+  «Вид» shows the applied density after an outside change (VL-76). On a
+  phone the filter button stands at the row's end and «Колонки» stays as an
+  icon (VL-83), the chip row scrolls (VL-89), and «Вид» leaves out
+  «Текст в одну строку» and «Линии между столбцами» (S-A 1). The narrow
+  kind menu marks the current kind with `aria-checked`.
+- `sf-view-table` 1.39.0: the header gear opens the column settings at the
+  gear (VL-81); the table no longer moves down when they open.
+- `sf-view-board` 1.5.0: the card menu closes, no hang (VL-88). On a phone
+  «Выбрать» / «Готово» and a long press choose cards (S-A 4); boxes and
+  lane tabs are hit over 44 on a coarse pointer; no empty box slot on a
+  fine pointer.
+- `sf-view-properties` 1.32.0: the record card variant A, arranging draws
+  what viewing draws, the draft save model C1 («Сохранить», «Сохранить для
+  всех», «Отменить», «Мой вид», «Вернуть общий вид»), the saved layout
+  carries its collection (S-B, VL-93). On a phone the sections are tabs on
+  top with a sideways swipe (S-A 3). The stacked tab list no longer covers
+  fields (VL-92). «Значок» from the tab menu works on the selected tab
+  (VL-91).
+- Known issues, open in this round:
+  - An include field in the record panel throws «Cannot set properties of
+    null» on the next record: the cause is in the SIMAI Framework
+    (field-renderers include view replaced under lit); it goes back to the
+    Framework.
+  - VL-77 (the split button divider) is the Framework's GB19.
+  - S-A 2's per-column «на телефоне» switch inside the one column list
+    waits for a Framework sf-settings item with a secondary switch (GB19);
+    the column list has no device tabs.
+
 ## 1.18.0 — 2026-11-24
 
 View round 18 (round/view-r18; accepted on 2026-11-24: ui-control

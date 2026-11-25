@@ -5,6 +5,15 @@
   "entries": [
     {
       "unit": "smart.view",
+      "version": "1.40.0",
+      "recorded_on": "2026-11-25",
+      "change": "minor",
+      "consumer": "Nothing to change for a host. «Сохранить копию» is «Дублировать» (register VL-79). A view that differs from its save shows a «Сохранить» button where the «Изменено» mark was; its menu offers «Сохранить как новое» and «Сбросить изменения», and nothing is drawn when the view matches its save (VL-80). «Вид» reads the table's applied density, one-line text and column lines, so a density set from outside shows there (VL-76). On a phone the filter button stands at the end of the chip row, «Колонки» stays reachable as an icon, the chip row scrolls sideways, and «Вид» leaves out the table-only «Текст в одну строку» and «Линии между столбцами» (VL-83, VL-89, S-A 1). The narrow kind menu marks its current kind with aria-checked (radio items).",
+      "summary": "View round 19: words head-copy, head-view-changed, head-view-reset, head-view-save-new; head state trigger outline primary with save / expand_more; phone head columns icon button; _lookItems drops single_line and lines on a phone; _kindSettings reads the drawn table; kinds menu kind radio; sf-view-table-view-change redraws the head; phone fields wheel scrolls sideways; head.css phone fields buttons flex none.",
+      "evidence": "control/evidence/2026-11-25-view-r19/README.md"
+    },
+    {
+      "unit": "smart.view",
       "version": "1.39.0",
       "recorded_on": "2026-11-24",
       "change": "minor",
@@ -329,6 +338,15 @@
     },
     {
       "unit": "smart.view-table",
+      "version": "1.39.0",
+      "recorded_on": "2026-11-25",
+      "change": "minor",
+      "consumer": "Nothing to change for a host. The header gear opens the column settings at the gear (VL-81); it no longer sends a phone to «Колонки». Opening them no longer shifts the table down by its row gap.",
+      "summary": "View round 19: toggleTableSettings always opens the table-settings context menu; .sf-table-settings-host > .sf-table-context-layer is absolute with no size.",
+      "evidence": "control/evidence/2026-11-25-view-r19/README.md"
+    },
+    {
+      "unit": "smart.view-table",
       "version": "1.38.0",
       "recorded_on": "2026-11-24",
       "change": "minor",
@@ -623,6 +641,15 @@
       "consumer": "Nothing to change for a host: only the SIMAI Framework file it builds in moved with the repin.",
       "summary": "Over SIMAI Framework ui-078a4b4c6f6e (ui-source 10145e63b9dc) the Framework file it builds in, src/smart/pagination/index.js (sf-pagination 1.7: «Show more» within reach, C167; a deleting action listed last, C116), moved; the provenance and the version follow. Nothing of its own; nothing to change for a host. 1.19.7 and 1.19.8 are ui-pro's own patched copies, never this set's.",
       "evidence": "https://github.com/simai/ui-view/commit/e214dd608fdcf39cea527676fc522afd718922d4"
+    },
+    {
+      "unit": "smart.view-properties",
+      "version": "1.32.0",
+      "recorded_on": "2026-11-25",
+      "change": "minor",
+      "consumer": "A host that saves views: arranging the card is a draft. «Сохранить» writes it to the personal view once, «Сохранить для всех» (with the right) publishes it, «Отменить» drops it with no write; a card with personal edits is marked «Мой вид» and offers «Вернуть общий вид» (S-B save model C1, VL-93: no saved text by «Сохранить» / «Отменить»). The saved layout carries its collection, read from the record when the card has none. The card draws variant A: groups on the card surface over the panel, labels at the start with one label column per record, rows at the control pitch, labels above values on a phone; arranging draws what viewing draws (S-B). On a phone the sections are tabs on top and a sideways swipe over the fields turns to the next or previous one (S-A 3); the stacked tab list no longer sticks over the fields (VL-92). «Значок» from the tab menu opens the icon picker on the selected tab too (VL-91).",
+      "summary": "View round 19: saveView draft while configuring, commitConfiguringView, publishConfiguringView, cancel without write, layerDirty, ownView, panel menu reset; collection falls back to record.collection; tab-icon waits for its trigger; section swipe on the window with touch-action pan-y; phone section tabs; stacked sections static; variant A rules; words done-configuring-text, reset-view-text, own-view-text and the hints.",
+      "evidence": "control/evidence/2026-11-25-view-r19/README.md"
     },
     {
       "unit": "smart.view-properties",
@@ -974,6 +1001,15 @@
       "consumer": "Nothing to change for a host: only the SIMAI Framework file it builds in moved with the repin.",
       "summary": "Over SIMAI Framework ui-078a4b4c6f6e (ui-source 10145e63b9dc) the Framework file it builds in, src/smart/helpers/confirm-surface.js, moved; the provenance and the version follow. Nothing of its own; nothing to change for a host.",
       "evidence": "https://github.com/simai/ui-view/commit/e214dd608fdcf39cea527676fc522afd718922d4"
+    },
+    {
+      "unit": "smart.view-board",
+      "version": "1.5.0",
+      "recorded_on": "2026-11-25",
+      "change": "minor",
+      "consumer": "Nothing to change for a host. A card's «⋯» menu closes when the window loses focus, it no longer hangs open (VL-88). On a phone a «Выбрать» button starts choosing cards and «Готово» ends it; a long press on a card selects it and starts choosing; while choosing a tap selects instead of opening (S-A 4). On a coarse pointer the boxes and lane tabs are hit over 44 x 44 (--sf-hit--touch); on a fine pointer at phone width the box and its slot are not drawn until choosing starts (no empty gap).",
+      "summary": "View round 19: _menu closes the shared menu on window blur; choosing mode (setChoosing, long press 500 ms touch/pen, 10 px slop), context.choosing drives data-selecting; words choose-text, choose-done-text; coarse pointer hit areas; fine pointer phone box hidden.",
+      "evidence": "control/evidence/2026-11-25-view-r19/README.md"
     },
     {
       "unit": "smart.view-board",

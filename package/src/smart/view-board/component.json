@@ -2,8 +2,15 @@
   "$comment": "sf-view-board, standard simai.smart-component 1.4 (vocabulary 1.1.5): the board layout of the view set (kanban; owner decisions C298, C304). Study: ui-control control/research/2026-11-17-board-view. Drag and keys are sf-sortable's, the card is .sf-card, the card fields the Framework field renderers' cell output, menus SF.menu.open, the selection bar sf-bulk-actions where the pair has it.",
   "id": "smart.view-board",
   "tag": "sf-view-board",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "x-history": [
+    {
+      "version": "1.5.0",
+      "kind": "minor",
+      "recorded_on": "2026-11-25",
+      "consumer": "Nothing to change for a host. A card's «⋯» menu closes when the window loses focus, it no longer hangs open (VL-88). On a phone a «Выбрать» button starts choosing cards and «Готово» ends it; a long press on a card selects it and starts choosing; while choosing a tap selects instead of opening (S-A 4). On a coarse pointer the boxes and lane tabs are hit over 44 x 44 (--sf-hit--touch); on a fine pointer at phone width the box and its slot are not drawn until choosing starts (no empty gap).",
+      "evidence": "control/evidence/2026-11-25-view-r19/README.md"
+    },
     {
       "version": "1.4.0",
       "kind": "minor",
@@ -736,6 +743,13 @@
           "to": "1.4.0",
           "changes": [
             "View round 18: laneChoices, showLane, _unhidden over the options' hidden lanes, words hidden-text / hide-hint name «Вид», new word shown-text; the ResizeObserver callback measures on the next frame (_measureFrame)."
+          ]
+        },
+        {
+          "from": "1.4.0",
+          "to": "1.5.0",
+          "changes": [
+            "View round 19: _menu closes the shared menu on window blur; choosing mode (setChoosing, long press 500 ms touch/pen, 10 px slop), context.choosing drives data-selecting; words choose-text, choose-done-text; coarse pointer hit areas; fine pointer phone box hidden."
           ]
         }
       ]

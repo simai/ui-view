@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view",
-  "version": "1.39.0",
+  "version": "1.40.0",
   "title": "Data view",
   "summary": "Host-driven data view that composes toolbar, content and pagination around a separate data port.",
   "kind": "composite",
@@ -2044,6 +2044,13 @@
         "changes": [
           "View round 18: _syncSelectMarks on a chrome change (marks kept, table cleared under a hold, bar redrawn), _bulkIds and _applyOwnMarks read renders('select'); saveColumnSettings returns capability-not-provided {session: true} without a notice when the host does not offer personal-column-settings; head viewChanged compares no conditions (C414); head «Вид» group lanes (lane:<value> switches, board showLane/hideLane), sf-view-board-save redraws the head; filter set marks data-sf-icon-scale=ladder; words head-lanes; V5 head kind reads layoutKind first, switchLayout writes query.view.type of the kind drawn; head _onResize rebuilds on a phone-line crossing in the next frame (_modeOf, _measureFrame)."
         ]
+      },
+      {
+        "from": "1.39.0",
+        "to": "1.40.0",
+        "changes": [
+          "View round 19: words head-copy, head-view-changed, head-view-reset, head-view-save-new; head state trigger outline primary with save / expand_more; phone head columns icon button; _lookItems drops single_line and lines on a phone; _kindSettings reads the drawn table; kinds menu kind radio; sf-view-table-view-change redraws the head; phone fields wheel scrolls sideways; head.css phone fields buttons flex none."
+        ]
       }
     ]
   },
@@ -2053,7 +2060,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view/index.js",
-        "sha256": "0a461ffe54b1049a60493eae13208ea5ffffcad26de16b3bc28fb07e34a8b73b"
+        "sha256": "0855ee1b5cd83c9ab99c6f321d7de823c343c755a649e15677f5772b5e8a0a6a"
       },
       {
         "path": "src/core/contracts/ports/simai.dataview-port/1.5.0/port.json",
