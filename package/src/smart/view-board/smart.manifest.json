@@ -626,7 +626,7 @@
       },
       {
         "path": "src/smart/field-renderers/index.js",
-        "sha256": "643b485d2d47950e1bac6bbbb2e655f4b2101b2437ac8d55216cbcd408e766b5"
+        "sha256": "5f96d6be51636e33f8942fd705054400e862aac9732009e217942c80022b652b"
       },
       {
         "path": "src/smart/view-board/rule.js",
