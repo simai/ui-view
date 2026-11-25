@@ -35,6 +35,7 @@ const notInThisPort = new Map([
   ['dataType', 'a second legacy alias of propertyType, kept for the same reason and declared under neither name'],
   ['currencies', 'the money field\'s currency list, declared by simai.property-view-port 1.19.0 (C294); the component accepts a 1.19.0 host, whose schema carries it, while the contract it is checked against stays 1.18.0'],
   ['defaultCountry', 'the phone renderer\'s first country, read by the pair\'s field renderers (ui-dc9fc39aeb26) but declared by no simai.property-view-port edition up to 1.22.0; a property-view host does not send it until the port declares it (reported to the Framework, 2026-11-18)'],
+  ['autocomplete', 'the email edit\'s browser address-book hint ("username" for a sign-in, "off"), read by the pair\'s field renderers (ui-3963bfe39302) with "email" as the default; declared by no simai.property-view-port edition up to 1.22.1, so a property-view host does not send it and the field keeps the default (2026-11-25)'],
   // The pair ui-b654460cad2a's field renderers read three keys more (C303 (2)
   // decimals, the field template and its parameters); simai.property-view-port
   // 1.20.0 declares all three, and the component accepts a 1.20.0-1.22.0 host.
