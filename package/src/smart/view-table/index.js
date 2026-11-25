@@ -5805,6 +5805,40 @@ class SfTable extends TableElement {
             settings.toggle?.(this.state.contextMenu?.anchor ?? this);
             if (view) settings.chooseGroup?.(1);
         }
+        this.settingsBesideGear(settings);
+    }
+
+    // VL-81 with VL-16 (View round 19): the gear's window opens at the gear,
+    // and the rows' «≡» stand in the gear's column under it. sf-settings
+    // places its panel under its trigger, start-aligned (no side of its own),
+    // so the panel is moved along the row past the gear's column: it still
+    // starts at the gear's row and covers no row handle. It stays put when
+    // that would take it off screen, and a phone sheet is not moved.
+    settingsBesideGear(settings) {
+        const cell = this.state.contextMenu?.anchor?.closest?.('th[data-key="settings"]');
+        const panel = settings.querySelector?.('[role="dialog"], .sf-settings-panel');
+        if (!panel) return;
+        panel.style.removeProperty("translate");
+        if (!cell) return;
+        let last = null;
+        let frames = 0;
+        const step = () => {
+            if (!panel.isConnected || panel.hasAttribute("data-sf-sheet") || !panel.matches?.(":popover-open")) return;
+            const box = panel.getBoundingClientRect();
+            const at = `${Math.round(box.left)},${Math.round(box.top)},${Math.round(box.width)}`;
+            if ((box.width === 0 || at !== last) && frames < 20) {
+                last = at;
+                frames += 1;
+                requestAnimationFrame(step);
+                return;
+            }
+            const column = cell.getBoundingClientRect();
+            const rtl = getComputedStyle(cell).direction === "rtl";
+            const by = rtl ? Math.min(0, column.left - box.right) : Math.max(0, column.right - box.left);
+            if (!by || (rtl ? box.left + by < 0 : box.right + by > globalThis.innerWidth)) return;
+            panel.style.translate = `${Math.round(by)}px 0`;
+        };
+        requestAnimationFrame(step);
     }
 
     renderMainContextMenu(data) {
