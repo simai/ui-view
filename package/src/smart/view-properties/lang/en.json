@@ -33,7 +33,7 @@
     "create-text": "Create",
     "delete-text": "Delete",
     "delete-view-text": "Remove the view",
-    "done-configuring-text": "Done",
+    "done-configuring-text": "Save",
     "edit-all-text": "Edit all",
     "edit-text": "Edit",
     "empty-record-text": "This record has nothing to show",
@@ -80,7 +80,7 @@
     "rename-text": "Rename",
     "required-error-text": "Fill in this field",
     "reset-view-ask-text": "Reset the whole view?",
-    "reset-view-text": "Back to everyone's",
+    "reset-view-text": "Back to the shared view",
     "save-failed-text": "The save failed",
     "save-name-text": "Save the name",
     "save-text": "Save",
@@ -132,8 +132,8 @@
     "to-tab-text": "To the tab «{name}»",
     "hide-field-text": "Hide «{name}»",
     "show-field-text": "Show «{name}»",
-    "configure-personal-hint-text": "Your edits are saved at once, for you only.",
-    "configure-admin-hint-text": "Your edits are saved at once, for you only. For everyone, with the button below.",
+    "configure-personal-hint-text": "«Save» keeps it for you only. The shared view is changed by an administrator.",
+    "configure-admin-hint-text": "«Save» keeps it for you only, «Save for everyone» for everyone.",
     "configure-required-hint-text": "This view is required. Edits stay until you leave the page.",
     "new-field-text": "New field…",
     "view-refused-invalid-text": "The view was not saved: its settings do not fit",
@@ -143,6 +143,7 @@
     "view-refused-required-text": "This card has a required view: it cannot be changed or replaced",
     "view-refused-lock-invalid-text": "This setting cannot be locked",
     "view-refused-head-invalid-text": "The head takes up to two fields, and the status is a field with a list of values",
-    "view-refused-icon-invalid-text": "This tab icon is unknown"
+    "view-refused-icon-invalid-text": "This tab icon is unknown",
+    "own-view-text": "My view"
   }
 }

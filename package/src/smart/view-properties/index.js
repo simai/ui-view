@@ -531,8 +531,11 @@ class SfPropertyView extends PropertyViewElement {
         return this.getAttribute("record-id") || "";
     }
 
+    // The record's collection: the attribute, else the record's own answer
+    // (SB-16: a layer was saved with collection null though the record said
+    // «orders», so the host could not tell whose layout it was).
     get collection() {
-        return this.getAttribute("collection") || "";
+        return this.getAttribute("collection") || String(this.record?.collection ?? "");
     }
 
     get showRare() {
@@ -1474,6 +1477,11 @@ class SfPropertyView extends PropertyViewElement {
         const items = [];
         if (this.canConfigureView && !this.configuring) {
             items.push({id: "configure", name: this.configureText, icon: "tune"});
+            // «Вернуть общий вид» (save model C1, SB-C12): a person with a
+            // layout of their own takes the shared one back (view.reset).
+            if (this.hasPersonalEdits && this.editableLayers.includes("personal") && !this.viewRequired) {
+                items.push({id: "reset", name: this.resetViewText, icon: "restart_alt"});
+            }
         }
         // Resetting is not offered here while the view is being arranged: the
         // bar at the foot carries «Сбросить» with a confirmation beside the
@@ -2509,6 +2517,10 @@ class SfPropertyView extends PropertyViewElement {
             entryError: (kind, key) => this.entryError(kind, key),
             configureText: this.configureText,
             doneConfiguringText: this.doneConfiguringText,
+            layerDirty: Boolean(this.layerDirty),
+            // «Мой вид» (save model C1, SB-C12): the person's own layout is
+            // drawn over the shared one; «⋯ → Вернуть общий вид» takes it away.
+            ownView: !this.configuring && this.hasPersonalEdits && this.editableLayers.includes("personal") && !this.viewRequired,
             resetViewText: this.resetViewText,
             resetViewAskText: this.resetViewAskText,
             cancelConfiguringText: this.cancelConfiguringText,
@@ -3206,6 +3218,50 @@ class SfPropertyView extends PropertyViewElement {
     get phoneSectionLabel() {
         const current = this.sections.find((section) => String(section.key) === this.phoneSection);
         return current ? String(current.label ?? current.key) : "";
+    }
+
+    // S-A 3 (VL-86): on a phone a horizontal swipe over the fields turns to
+    // the next or the previous section, as the tabs above do. Touch and pen
+    // only; never from a control, a field or a box that scrolls sideways
+    // (a wide block keeps its own scroll and hands nothing on at its edge);
+    // the motion must be clearly horizontal (the vertical page scroll wins).
+    sectionSwipeStart(event) {
+        this._swipe = null;
+        if (this.sectionsLayout !== "phone" || this.configuring || this.editing) return;
+        if (!["touch", "pen"].includes(event.pointerType)) return;
+        if ((this.sections?.length ?? 0) < 2) return;
+        const target = event.target;
+        if (target?.closest?.("input, textarea, select, button, a[href], [contenteditable], [role=slider], sf-input, sf-select, sf-input-textarea, [data-sf-sortable-handle]")) return;
+        for (let node = target; node && node !== event.currentTarget; node = node.parentElement) {
+            const style = globalThis.getComputedStyle?.(node);
+            if (style && /(auto|scroll)/.test(style.overflowX) && node.scrollWidth > node.clientWidth + 1) return;
+        }
+        this._swipe = {x: event.clientX, y: event.clientY, id: event.pointerId, t: event.timeStamp};
+    }
+
+    sectionSwipeMove(event) {
+        const swipe = this._swipe;
+        if (!swipe || event.pointerId !== swipe.id) return;
+        const dx = event.clientX - swipe.x;
+        const dy = event.clientY - swipe.y;
+        // A vertical start is a scroll: the swipe is given up.
+        if (Math.abs(dy) > 12 && Math.abs(dy) > Math.abs(dx)) this._swipe = null;
+    }
+
+    sectionSwipeEnd(event) {
+        const swipe = this._swipe;
+        this._swipe = null;
+        if (!swipe || !event || event.pointerId !== swipe.id) return;
+        const dx = event.clientX - swipe.x;
+        const dy = event.clientY - swipe.y;
+        if (Math.abs(dx) < 48 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+        const shown = this.sections.filter((section) => !section.hidden);
+        const list = shown.length ? shown : this.sections;
+        const at = list.findIndex((section) => String(section.key) === this.selectedSection);
+        const rtl = globalThis.getComputedStyle?.(this)?.direction === "rtl";
+        const step = (dx < 0) !== rtl ? 1 : -1;
+        const next = list[Math.max(0, Math.min(list.length - 1, (at < 0 ? 0 : at) + step))];
+        if (next && String(next.key) !== this.selectedSection) this.selectSection(String(next.key));
     }
 
     selectSection(key) {
@@ -3997,6 +4053,7 @@ class SfPropertyView extends PropertyViewElement {
     startConfiguringView() {
         if (!this.canConfigureView) return false;
         this.configuring = true;
+        this.layerDirty = false;
         if (this.viewProfiles.length) this.viewTarget = this._layerOfProfile();
         // What the arrangement was when the mode was entered. Every change in
         // this mode is written at once, so «cancel» can only mean putting back
@@ -4022,6 +4079,7 @@ class SfPropertyView extends PropertyViewElement {
     stopConfiguringView() {
         const wasConfiguring = this.configuring;
         this.configuring = false;
+        this.layerDirty = false;
         this._bindSectionDropTarget();
         this.layerDraft = null;
         this.arrangementEntered = null;
@@ -4079,8 +4137,48 @@ class SfPropertyView extends PropertyViewElement {
     // Nothing written since then means nothing to write back: the host's layer
     // is still the one entered with, and an identical view.save still cost a
     // shared revision and a history entry (simai.main QA, 2026-10-28).
+    // «Сохранить» (save model C1): the draft written once for the person, then
+    // the mode ends; a refusal or a conflict keeps the mode with its message.
+    async commitConfiguringView() {
+        if (!this.configuring) return false;
+        if (this.layerDirty && !this.viewRequired) {
+            this._committing = true;
+            let answer = null;
+            try { answer = await this.saveView(); } finally { this._committing = false; }
+            if (answer?.answer !== "applied") return answer;
+            this.layerDirty = false;
+        }
+        this.stopConfiguringView();
+        return true;
+    }
+
+    // «Сохранить для всех»: the draft written as the person's, then published.
+    async publishConfiguringView() {
+        if (!this.configuring || !this.canWriteShared || this.viewRequired) return null;
+        if (this.layerDirty) {
+            this._committing = true;
+            let saved = null;
+            try { saved = await this.saveView(); } finally { this._committing = false; }
+            if (saved?.answer !== "applied") return saved;
+            this.layerDirty = false;
+        }
+        const answer = await this.publishView();
+        if (answer?.answer === "applied") this.stopConfiguringView();
+        return answer;
+    }
+
     async cancelConfiguringView() {
         if (!this.configuring) return false;
+        // Save model C1: nothing was written in the mode, so «Отменить» drops
+        // the draft and writes nothing (it wrote the entered layout back and
+        // read the record again).
+        if (!this.viewRequired) {
+            if (this.arrangementEntered) this.layerDraft = copy(this.arrangementEntered.view);
+            this.layerDirty = false;
+            this.stopConfiguringView();
+            this.requestComponentUpdate("view-cancel");
+            return true;
+        }
         // A required view wrote nothing: what was drawn is read again.
         if (this.viewRequired) {
             const edited = this.requiredEdits;
@@ -4601,6 +4699,15 @@ class SfPropertyView extends PropertyViewElement {
     // does not accept it the record is read again and the host resolution wins.
     async saveView() {
         if (!this.canConfigureView || !this.layerDraft) return null;
+        // Save model C1 (study S-B, VL-93): arranging is a draft. A change is
+        // drawn at once and written by «Сохранить» (one view.save), by
+        // «Сохранить для всех» (view.save, then view.publish) or dropped by
+        // «Отменить» with no write. A required view keeps its own rule.
+        if (this.configuring && !this.viewRequired && !this._committing) {
+            this.layerDirty = true;
+            this.requestComponentUpdate("view-draft");
+            return {answer: "applied", draft: true};
+        }
         // Serialized, one write at a time. Two drags in quick succession would
         // otherwise both be sent against the revision the layer had before either
         // of them, so the second would be answered with a conflict the person

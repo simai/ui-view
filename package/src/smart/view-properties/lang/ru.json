@@ -33,7 +33,7 @@
     "create-text": "Создать",
     "delete-text": "Удалить",
     "delete-view-text": "Удалить вид",
-    "done-configuring-text": "Готово",
+    "done-configuring-text": "Сохранить",
     "edit-all-text": "Изменить всё",
     "edit-text": "Изменить",
     "empty-record-text": "В этой записи нечего показать",
@@ -80,7 +80,7 @@
     "rename-text": "Переименовать",
     "required-error-text": "Заполните поле",
     "reset-view-ask-text": "Сбросить весь вид?",
-    "reset-view-text": "Вернуть как у всех",
+    "reset-view-text": "Вернуть общий вид",
     "save-failed-text": "Не удалось сохранить",
     "save-name-text": "Сохранить название",
     "save-text": "Сохранить",
@@ -132,8 +132,8 @@
     "to-tab-text": "На вкладку «{name}»",
     "hide-field-text": "Скрыть «{name}»",
     "show-field-text": "Показать «{name}»",
-    "configure-personal-hint-text": "Ваши правки сохраняются сразу, только для вас.",
-    "configure-admin-hint-text": "Ваши правки сохраняются сразу, только для вас. Для всех — кнопкой внизу.",
+    "configure-personal-hint-text": "«Сохранить» — только для вас. Общий вид меняет администратор.",
+    "configure-admin-hint-text": "«Сохранить» — только для вас, «Сохранить для всех» — для всех.",
     "configure-required-hint-text": "Вид обязательный. Правки видны до ухода со страницы.",
     "new-field-text": "Новое поле…",
     "view-refused-invalid-text": "Вид не сохранён: настройки не подходят",
@@ -143,6 +143,7 @@
     "view-refused-required-text": "У этой карточки обязательный вид: его нельзя менять или заменить",
     "view-refused-lock-invalid-text": "Эту настройку нельзя закрыть",
     "view-refused-head-invalid-text": "В заголовке не больше двух полей, а статус — поле со списком значений",
-    "view-refused-icon-invalid-text": "Неизвестный значок вкладки"
+    "view-refused-icon-invalid-text": "Неизвестный значок вкладки",
+    "own-view-text": "Мой вид"
   }
 }
