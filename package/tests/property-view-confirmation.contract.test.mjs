@@ -47,7 +47,10 @@ test('going back keeps every entry', () => {
 
 test('the bar asks, in both bars, in both languages', () => {
   assert.match(template, /function renderOpenAllBar\(context\) \{\n\s+if \(context\.confirmation\) return renderConfirmation\(context\);/u);
-  assert.match(template, /if \(context\.editing && context\.confirmation\) return renderConfirmation\(context\);/u);
+  // A form's save asks in the foot; a group edited in place asks in its own
+  // bar, under its rows, where Save was pressed (view round 20, SB-C13).
+  assert.match(template, /if \(context\.editing && context\.confirmation && context\.formEdit\) return renderConfirmation\(context\);/u);
+  assert.match(template, /function renderGroupEditBar\(context\) \{\n\s+if \(context\.confirmation\) return renderConfirmation\(context, \{inGroup: true\}\);/u);
   const bar = template.slice(template.indexOf('function renderConfirmation('), template.indexOf('function renderOpenAllBar('));
   // The Framework's question in place since 1.17.0 (C289, C182): sf-confirm
   // inline with the host's words; accepted raises the digest, declined keeps editing.
