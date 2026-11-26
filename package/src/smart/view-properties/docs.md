@@ -364,8 +364,10 @@ receives.
   list where the port has no `field-options`. «Изменить всё» is in «⋯»; a press
   on a long value opens its group with the focus on that field.
 - **Ground**: in a panel the groups are white areas on the panel's grey; a
-  record on its own page draws the same grey ground itself
-  (`--sf-surface-area`, since 1.33.0, VL-85).
+  record that is the page draws the same grey ground itself
+  (`--sf-surface-area`, since 1.33.0, VL-85). Placed inside another component
+  (a chat message, a card of a set) it draws no ground of its own: the host's
+  surface stays the record's ground.
 - **History** (`history`, `auto` | `off`): offered when the port announces
   `record-history`. «⋯ → История изменений» opens a level of the same panel —
   «← <запись>», the title, «⋯», the close — with `sf-list-timeline` by day,

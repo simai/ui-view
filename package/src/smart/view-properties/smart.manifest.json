@@ -2103,7 +2103,7 @@
         "from": "1.32.1",
         "to": "1.33.0",
         "changes": [
-          "view round 20: arranging draws the reading layout (VL-95, SB-C15); the field handle moved into .sf-property-view-field-label; .sf-property-view-body[data-arranging] carries data-size. Also: cancelConfiguringView() reads the record again after a drawn draft (VL-93); the in-place group edit draws .sf-property-view-group-actions with data-action save/cancel inside the group and the panel foot no longer carries them (SB-C13); a user field with inline options edits as the renderer set's lookup without the field-options capability; .sf-property-view-layout--ground on a non-panel view paints --sf-surface-area (VL-85)."
+          "view round 20: arranging draws the reading layout (VL-95, SB-C15); the field handle moved into .sf-property-view-field-label; .sf-property-view-body[data-arranging] carries data-size. Also: cancelConfiguringView() reads the record again after a drawn draft (VL-93); the in-place group edit draws .sf-property-view-group-actions with data-action save/cancel inside the group and the panel foot no longer carries them (SB-C13); a user field with inline options edits as the renderer set's lookup without the field-options capability; .sf-property-view-layout--ground paints --sf-surface-area only when the view is the page (no panel and no custom-element ancestor across shadow roots, VL-85 r2); the arranging value cell centres its content (align-content) and .sf-property-view-configure-bar is sticky at the block end."
         ]
       }
     ]
@@ -2114,15 +2114,15 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-properties/index.js",
-        "sha256": "1b6ac080de71ecac38cb5d0e26403860af387b0589e15490262cea158e65ea90"
+        "sha256": "2cacf7b64c90e871831653bf3f9670571d9e9b14a061ecc9f748c4474e96569b"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.js",
-        "sha256": "f7649c33da410ba06595ffe3171e4a8896a2f47d6e9c177a53652bc5cd8b88b9"
+        "sha256": "11b46541dc4e802cea3f4ed42341a66e82ebe8c5b2397c4b2d928487dd42885d"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.css",
-        "sha256": "65c0d4e6ab8297c28f422ab3d7e8b61698db7d2547b9da1b664ccdd0ba43c01f"
+        "sha256": "f39467c178bdb89f221a0767cef75f58128c808472c1c67728ff3f2c5c2bea8c"
       },
       {
         "path": "src/smart/view-properties/js/conditions.js",
@@ -2174,7 +2174,7 @@
       },
       {
         "path": "src/smart/view-properties/docs.md",
-        "sha256": "b2b3f1c3551ae934e8ecab5ef6e8b851e8d4140e908adc5bbe500ff63b6f1dac"
+        "sha256": "001a1a0d7f5e0d238603c33a596e2675adc1cfffec317199417a92419a63ddcb"
       }
     ],
     "generated_runtime": []

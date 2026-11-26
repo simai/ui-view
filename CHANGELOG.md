@@ -58,6 +58,19 @@ DEV additions to the round (VL-85, VL-90, VL-93, VL-22, the VL-95 record page):
   text on the label's line. A record on its own page draws its own grey
   ground (`--sf-surface-area`, the panel's inset, the surface radius) under
   its white groups (VL-85, DEV decision 2026-11-26).
+
+Round 2 (the acceptance return, DEV decision 2026-11-27):
+
+- `sf-view-properties` 1.33.0: the grey ground is drawn only when the record
+  is the page: not a panel, and no other component above it (across shadow
+  roots). Inside another component, a chat message of Chat 1.1.1 among them,
+  the record draws no ground and measures as in 1.32.1 (view 1.19.1): the
+  chat card 154 px at 1440 and its edit card unchanged, light and dark.
+- `sf-view-properties` 1.33.0: while arranging, a text value («Название»,
+  an empty «Комментарий») stands on its label's line in the control height,
+  as the other values do; the arranging bar is sticky at the bottom of the
+  record's own scroll area (it holds the window's bottom where the page gives
+  the record the window's height).
 - `sf-view-table` 1.40.0 also: code in a cell (an include field's first
   line) is one line with an ellipsis, so the row stays 40 (VL-22). A table's
   own rows in a compact area keep the normal ladder below 60rem (C146 (1));
