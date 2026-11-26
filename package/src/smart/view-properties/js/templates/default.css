@@ -1866,7 +1866,9 @@
      --sf-surface-area in a panel; on a page they stood white on the page's
      white. The ground is the panel's: --sf-surface-area, the groups the
      panel's inset from its edge, the surface radius. */
-  .sf-property-view-layout.sf-property-view-layout--ground {
+  /* The skeleton stands on the same ground, so the first group does not move
+     when the record arrives (the pro issue #3 probe). */
+  .sf-property-view-layout--ground:is(.sf-property-view-layout, .sf-property-view-loading) {
     padding: var(--sf-space-1);
     border-radius: var(--sf-radius--surface);
     background-color: var(--sf-surface-area);
