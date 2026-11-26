@@ -6378,9 +6378,16 @@ class SfTable extends TableElement {
         }
         // A compact island still says compact rows: the Framework's density is
         // a desktop one (60rem), and below it the rows' own rung steps down.
-        const rows = compactArea ? "normal" : density;
+        // So does a compact area (VL-96, view round 20): on a tablet or a
+        // phone the area's compact moved nothing, and «Плотность →
+        // Компактная» checked its item over rows that stayed 52 px. The
+        // area's word is kept apart (data-sf-view-density-area), because on a
+        // desktop the area's density already moved the rows a rung.
+        const rows = density;
         if (rows === "normal") this.removeAttribute("data-sf-view-density");
         else this.setAttribute("data-sf-view-density", rows);
+        if (rows === "compact" && compactArea) this.setAttribute("data-sf-view-density-area", "");
+        else this.removeAttribute("data-sf-view-density-area");
         // Zebra is the author's (C146 (4)): a person's stored choice is no
         // longer read.
         flag("data-sf-view-stripes", this.hasAttribute("stripes") && this.getAttribute("stripes") !== "false");

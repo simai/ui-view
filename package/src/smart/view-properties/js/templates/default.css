@@ -1825,4 +1825,82 @@
       padding-block: 0;
     }
   }
+
+  /* ─── View round 20: arranging draws what reading draws (VL-95, SB-C15,
+     study S-B variant A). A field being arranged is a row of the reading
+     list's geometry: the label in the label column (the handle opens its
+     cell), the value from where reading starts it, the eye and the gear at
+     the row's end; a one-line row the control height (40, 32 at size 1/2),
+     the label and the value the list's text. The groups are the reading
+     groups: the card surface in every place, the same inset, rows at the
+     list's gap, and the columns reading draws -- two from 44rem of the
+     fields' room (the full screen), one otherwise -- whatever a group's own
+     `columns` says (reading does not read it either). On a phone the label
+     stays over its value, as reading has it. It drew each field as a label
+     over its value (72 px a row, the value 61 px from the group's edge
+     against reading's 201). */
+  .sf-property-view-body[data-arranging] {
+    --sf-property-view--arrange-control: var(--sf-ui-1--control-height);
+    --sf-property-view--arrange-size: var(--sf-text-size-1);
+    --sf-property-view--arrange-line: var(--sf-text-height-1);
+  }
+
+  .sf-property-view-body[data-arranging][data-size="half"] {
+    --sf-property-view--arrange-control: var(--sf-ui-1\/2--control-height);
+    --sf-property-view--arrange-size: var(--sf-text-size-1\/2);
+    --sf-property-view--arrange-line: var(--sf-text-height-1\/2);
+  }
+
+  .sf-property-view-body[data-arranging] .sf-property-view-group[data-sf-sortable-item]:not(.sf-property-view-group--unplaced) {
+    padding-block: var(--sf-space-1\/2);
+    padding-inline: var(--sf-space-1);
+    background-color: var(--sf-surface-card);
+  }
+
+  .sf-property-view-body[data-arranging] .sf-property-view-group[data-sf-sortable-item] > .sf-property-view-group-fields {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: var(--sf-view-properties-row-gap, 0px);
+  }
+
+  .sf-property-view-body[data-arranging] .sf-property-view-field[data-arranging="true"]:not(.sf-property-view-field--unplaced) {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "label actions"
+      "value value";
+  }
+
+  .sf-property-view-body[data-arranging] .sf-property-view-field[data-arranging="true"] > :is(.sf-property-view-field-label, .sf-property-view-field-value) {
+    font-size: var(--sf-property-view--arrange-size);
+    line-height: var(--sf-property-view--arrange-line);
+  }
+
+  @media (min-width: 48rem) {
+    @container sf-property-view-group (min-width: 22rem) {
+      /* The label column of reading's list (its 10rem less half the step the
+         list's subgrid adds) and reading's step after it, so the value starts
+         at the label column's edge, 184 px from the row in a panel. */
+      .sf-property-view-body[data-arranging] .sf-property-view-field[data-arranging="true"]:not(.sf-property-view-field--unplaced) {
+        grid-template-columns: minmax(0, calc(var(--sf-view-properties-label-width, 10rem) - (var(--sf-space-4) - var(--sf-space-1)) / 2)) minmax(0, 1fr) auto;
+        grid-template-areas: "label value actions";
+        column-gap: var(--sf-space-4);
+        min-block-size: var(--sf-property-view--arrange-control);
+      }
+    }
+  }
+
+  /* The full screen: two columns of fields from 44rem, each a label beside
+     its value on reading's 10rem and step (C305 (3), VP-22). */
+  @container sf-property-view-fields (min-width: 44rem) {
+    .sf-property-view-body[data-arranging] .sf-property-view-group[data-sf-sortable-item] > .sf-property-view-group-fields {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: var(--sf-space-2);
+    }
+
+    .sf-property-view-body[data-arranging] .sf-property-view-field[data-arranging="true"]:not(.sf-property-view-field--unplaced) {
+      grid-template-columns: minmax(0, var(--sf-view-properties-label-width, 10rem)) minmax(0, 1fr) auto;
+      grid-template-areas: "label value actions";
+      column-gap: var(--sf-space-1);
+      min-block-size: var(--sf-property-view--arrange-control);
+    }
+  }
 }

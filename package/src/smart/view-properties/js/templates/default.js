@@ -506,13 +506,16 @@ function renderField(context, field, editing, sectionKey = '', groupKey = '') {
              data-sf-sortable-item=${context.configuring ? key : nothing}
              data-arranging=${context.configuring ? 'true' : nothing}
              data-hidden=${context.configuring && field.hidden ? 'true' : nothing}>
-            ${context.configuring
-                    ? html`<i class="sf-icon sf-property-view-grip items-cross-center" data-sf-sortable-handle
-                              aria-hidden="true">drag_indicator</i>`
-                    : nothing}
             <!-- Reading: the label is quieter than its value. Editing: a form
-                 field's label, in the text colour with its «*» (C153 (1), (2)). -->
+                 field's label, in the text colour with its «*» (C153 (1), (2)).
+                 Arranging: the handle opens the label's cell, so the label
+                 column ends where the reading one ends and the value starts
+                 where it starts (SB-C15, VL-95). -->
             <div class="sf-property-view-field-label flex items-cross-center gap-1/3 ${editing ? 'color-on-surface' : 'color-on-surface-variant'}">
+                ${context.configuring
+                        ? html`<i class="sf-icon sf-property-view-grip items-cross-center" data-sf-sortable-handle
+                                  aria-hidden="true">drag_indicator</i>`
+                        : nothing}
                 ${String(field.label ?? key)}
                 ${field.required && editing
                         ? html`<span class="sf-property-view-required" aria-hidden="true">*</span>`
@@ -1918,7 +1921,8 @@ function renderBody(context, railOutside = false, withActions = true) {
                     : nothing}
             ${onPhoneSectionList(context, sections) ? nothing : context.configuring
                     ? html`
-                        <div class="sf-property-view-body flex-auto min-w-0 flex flex-col gap-4">
+                        <div class="sf-property-view-body flex-auto min-w-0 flex flex-col gap-4" data-arranging
+                             data-size=${context.size === '1/2' ? 'half' : '1'}>
                             ${sectionsStacked(context) ? nothing : renderConfigureTop(context)}
                             ${renderSectionBar(context, current, sections.length)}
                             <sf-sortable

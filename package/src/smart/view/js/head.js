@@ -666,7 +666,11 @@ export class ListHead {
         // «Сохранить» where «Изменено» stood; it opens the ways out (save for
         // everyone where allowed, «Сохранить как новое», «Сбросить
         // изменения»). Nothing is shown while the view is as saved.
-        const changed = pop("state", "bottom-start", `<sf-button slot="trigger" class="sf-view-head-changed" size="${size}" appearance="outline" scheme="primary" icon-start="save" icon-end="expand_more" aria-haspopup="dialog"></sf-button>`);
+        // VL-99 (view round 20): its ways out are an ordinary menu, the
+        // page's one menu (SF.menu.open), as every other menu of the head;
+        // the popover stays only as the window «Сохранить как новое» names
+        // the new view in, at this button.
+        const changed = pop("state", "bottom-start", `<sf-button slot="trigger" class="sf-view-head-changed" size="${size}" appearance="outline" scheme="primary" icon-start="save" icon-end="expand_more" aria-haspopup="menu"></sf-button>`);
         this.root.innerHTML = phone
             ? `<div class="sf-view-head-title" data-title>
                  <h2 class="sf-view-head-name"><span data-name></span></h2>
@@ -684,7 +688,7 @@ export class ListHead {
                  <sf-button-icon class="sf-view-head-kind-menu" data-kind-menu size="${size}" appearance="ghost" scheme="on-surface" icon="table_rows" aria-haspopup="menu"></sf-button-icon>
                  <sf-button-icon class="sf-view-head-tune sf-view-head-look" data-look size="${size}" appearance="ghost" scheme="on-surface" icon="tune" aria-haspopup="menu"></sf-button-icon>
                  <sf-button-icon class="sf-view-head-columns" data-columns size="${size}" appearance="ghost" scheme="on-surface" icon="view_column" aria-haspopup="dialog"></sf-button-icon>
-                 <sf-button class="sf-view-head-changed" data-head-open="state" size="${size}" appearance="outline" scheme="primary" icon-start="save" icon-end="expand_more" aria-haspopup="dialog" hidden></sf-button>
+                 <sf-button class="sf-view-head-changed" data-state-menu size="${size}" appearance="outline" scheme="primary" icon-start="save" icon-end="expand_more" aria-haspopup="menu" hidden></sf-button>
                </div>
                <sf-drawer data-sheet data-sf-role="head-sheet" placement="bottom"><div slot="content" data-body></div></sf-drawer>`
             : `<div class="sf-view-head-title" data-title>
@@ -1186,6 +1190,12 @@ export class ListHead {
         // «Сохранить представление» opened the filter window (VL-48).
         const borrowed = popover.__sfViewHeadKind;
         popover.__sfViewHeadKind = null;
+        // A press on «Сохранить» opens its menu, not the popover (VL-99).
+        if (!borrowed && popover.getAttribute("data-pop") === "state") {
+            event.preventDefault?.();
+            this._stateMenu(popover.querySelector(".sf-view-head-changed"));
+            return;
+        }
         const kind = borrowed ?? popover.getAttribute("data-pop");
         if (["filter", "save", "state", "view-new"].includes(kind) || kind.startsWith("rename:")) popover.setAttribute("label", this._title(kind));
         this._show(kind, popover, popover.querySelector("[data-body]"));
@@ -1354,7 +1364,6 @@ export class ListHead {
             const item = this.savedFilter(kind.slice(6));
             return `<div class="sf-view-head-actions">${this._savedMenu(item).filter((entry) => !entry.kind).map((entry) => `<sf-button data-saved-act="${esc(entry.id)}" data-saved-id="${esc(item.id)}" size="${size}" appearance="ghost" scheme="${entry.status === "danger" ? "primary" : "on-surface"}"${entry.status === "danger" ? ' status="danger"' : ""} icon-start="${esc(entry.icon)}" text="${esc(entry.text)}"></sf-button>`).join("")}</div>`;
         }
-        if (kind === "state") return this._statePanel();
         if (kind === "view-new") {
             const shared = this.permissions.shared_settings || this.permissions.share_views;
             return this._note(this.text("headSaveViewNote"))
@@ -1524,31 +1533,6 @@ export class ListHead {
             return;
         }
         this._applySetting(kind, id, typeof value === "boolean" ? value : String(value ?? ""));
-    }
-
-    // «Changed» (VS-2, VS-3): what is changed and the ways out -- save for
-    // everyone (where the host allows, never over a system view), save as a
-    // new view, reset to what is saved.
-    _statePanel() {
-        const size = esc(this.size);
-        const view = this.currentView;
-        const name = String(view?.label ?? view?.name ?? view?.key ?? "");
-        if (!this.viewChanged) return this._note(this.text("headViewStateNone").replace("{name}", name));
-        const shared = (this.permissions.shared_settings || this.permissions.share_views) && this.viewLevel(view) !== "system";
-        const button = (act, text, primary) => `<sf-button data-act="${act}" size="${size}"${primary ? "" : ' appearance="outline" scheme="on-surface"'} text="${esc(text)}"></sf-button>`;
-        // A setting changed in «Customize view» is already saved for the
-        // person (C298); a filter or a display kind changed here is not saved.
-        const mine = Boolean(this._settings && Object.values(this._settings).some((entry) => entry && Object.keys(entry).length));
-        // VL-80 (DEV decision): the ways out are named for what they do --
-        // «Сохранить для всех» where the person may write the shared view,
-        // «Сохранить как новое» (a view of their own, the window
-        // «Сохранить представление» of view-config/1 names it), «Сбросить
-        // изменения» back to the saved view. A view they cannot write (a
-        // system view, locked paths) is kept the same way, as a new view of
-        // their own («Сохранить как моё» before).
-        return this._note(this.text(mine ? "headViewStateMine" : "headViewStateUnsaved").replace("{name}", name))
-            + `<div class="sf-view-head-actions">${shared ? button("view-save-all", this.text("headViewSaveAll"), true) : ""}`
-            + `${button("view-open-new", this.text("headViewSaveNew"), !shared)}${button("view-reset-all", this.text("headViewReset"), false)}</div>`;
     }
 
     _locked() {
@@ -1765,6 +1749,11 @@ export class ListHead {
             this._listMenu(listMenu);
             return;
         }
+        const stateMenu = target.closest("[data-state-menu]");
+        if (stateMenu) {
+            this._stateMenu(stateMenu);
+            return;
+        }
         const create = target.closest("[data-create]");
         if (create && this.mode === "phone") {
             const items = this.createItems;
@@ -1846,6 +1835,32 @@ export class ListHead {
         this.view.query = {...query, ...(fields ? {filters_chosen: fields} : {}), view: {id: key, type}};
         this.view.openView?.(key);
         this.render();
+    }
+
+    // «Сохранить» of a changed view (VL-80, VL-99): an ordinary menu of its
+    // ways out, named for what they do -- «Сохранить для всех» where the
+    // person may write the shared view (never over a system view),
+    // «Сохранить как новое» (a view of their own, named in the window
+    // «Сохранить представление»), «Сбросить изменения» back to the saved
+    // view. The menu is named by the view's state for a screen reader: a
+    // setting changed in «Настроить вид» is already the person's (C298), a
+    // filter or a display kind changed here is not saved. It was a panel of
+    // the same ways as buttons across its width (view round 19).
+    async _stateMenu(anchor) {
+        if (!anchor || !this.viewChanged) return;
+        const view = this.currentView;
+        const name = String(view?.label ?? view?.name ?? view?.key ?? "");
+        const shared = (this.permissions.shared_settings || this.permissions.share_views) && this.viewLevel(view) !== "system";
+        const mine = Boolean(this._settings && Object.values(this._settings).some((entry) => entry && Object.keys(entry).length));
+        const entries = [
+            ...(shared ? [{id: "view-save-all", text: this.text("headViewSaveAll")}] : []),
+            {id: "view-open-new", text: this.text("headViewSaveNew")},
+            {id: "view-reset-all", text: this.text("headViewReset")},
+        ];
+        const id = await this._menu(anchor, this.text(mine ? "headViewStateMine" : "headViewStateUnsaved").replace("{name}", name), entries);
+        if (id === "view-open-new") return this._openKind("view-new");
+        if (id === "view-save-all") return this._saveViewForAll();
+        if (id === "view-reset-all") return this._resetView();
     }
 
     async _listMenu(anchor) {
@@ -2090,10 +2105,6 @@ export class ListHead {
             this.raise("filter.rename", {id, name});
             return;
         }
-        case "view-open-new":
-            this._closeOpen();
-            this._openKind("view-new");
-            return;
         case "view-save-new": {
             const label = value("[data-name]").trim();
             if (!label) {
@@ -2106,32 +2117,30 @@ export class ListHead {
             this.view.saveView?.({key: `view-${Date.now().toString(36)}`, label, level, settings: {filter_fields: this.chosen, layout: this.kind, ...(this._settings?.[this.kind] ? {layouts: {[this.kind]: copy(this._settings[this.kind])}} : {})}});
             return;
         }
-        case "view-save-all": {
-            const view = this.currentView;
-            this._closeOpen();
-            if (!view) return;
-            if (this._settings?.[this.kind]) this._saveSettings("shared", this._kindSettings(this.kind));
-            this.view.saveView?.({key: view.key, label: view.label ?? view.name ?? view.key, revision: view.revision, level: "shared", roles: view.roles, settings: {...(view.settings ?? {}), filter_fields: this.chosen, layout: this.kind}});
-            this._settings = null;
-            return;
-        }
-        case "view-reset-all": {
-            const view = this.currentView;
-            this._closeOpen();
-            if (!view) return;
-            if (this._settings) {
-                this._settings = null;
-                this._saveSettings("personal", null);
-            }
-            const filters = copy(view.query?.filters ?? view.filters ?? {});
-            const fields = Array.isArray(view.settings?.filter_fields) ? view.settings.filter_fields.map(String) : Object.keys(filters);
-            const layout = this.viewKind(view);
-            if (typeof layout === "string" && layout !== this.kind && this.kinds.includes(layout)) this._setKind(layout);
-            this._query({filters, filters_chosen: fields});
-            return;
-        }
         default:
         }
+    }
+
+    _saveViewForAll() {
+        const view = this.currentView;
+        if (!view) return;
+        if (this._settings?.[this.kind]) this._saveSettings("shared", this._kindSettings(this.kind));
+        this.view.saveView?.({key: view.key, label: view.label ?? view.name ?? view.key, revision: view.revision, level: "shared", roles: view.roles, settings: {...(view.settings ?? {}), filter_fields: this.chosen, layout: this.kind}});
+        this._settings = null;
+    }
+
+    _resetView() {
+        const view = this.currentView;
+        if (!view) return;
+        if (this._settings) {
+            this._settings = null;
+            this._saveSettings("personal", null);
+        }
+        const filters = copy(view.query?.filters ?? view.filters ?? {});
+        const fields = Array.isArray(view.settings?.filter_fields) ? view.settings.filter_fields.map(String) : Object.keys(filters);
+        const layout = this.viewKind(view);
+        if (typeof layout === "string" && layout !== this.kind && this.kinds.includes(layout)) this._setKind(layout);
+        this._query({filters, filters_chosen: fields});
     }
 
     _activeFilters() {

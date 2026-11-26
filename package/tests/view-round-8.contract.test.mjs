@@ -53,7 +53,10 @@ test('R67-2: the head saves a view, keeps a locked one as mine, and resets', () 
   assert.equal(table['templates-tab-text'], 'Представления');
   assert.equal(table['save-filter-template-label'], 'Сохранить представление');
   const head = read('src/smart/view/js/head.js');
-  assert.match(head, /button\("view-open-new", this\.text\("headViewSaveNew"\), !shared\)/u);
+  // VL-99 (view round 20): the ways out are an ordinary menu of «Сохранить».
+  assert.match(head, /\{id: "view-open-new", text: this\.text\("headViewSaveNew"\)\}/u);
+  assert.match(head, /\{id: "view-reset-all", text: this\.text\("headViewReset"\)\}/u);
+  assert.doesNotMatch(head, /_statePanel/u);
 });
 
 test('R67-1: a board and cards keep the footer start that says their count', () => {
