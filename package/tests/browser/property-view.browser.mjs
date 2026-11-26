@@ -2136,8 +2136,10 @@ try {
       // The bar is the last row of a column that does not scroll, so it keeps
       // the floor without being positioned. What it must not be is the last
       // thing in a scroller, which is where it used to be.
-      lastRow: bar === formBar ? bar?.getAttribute('data-sticky') === '' && barStyle?.position === 'sticky' : bar?.parentElement?.lastElementChild === bar,
-      inScroller: bar === formBar ? false : Boolean(bar?.closest('.sf-property-view-scroll')),
+      // A group edited in place carries its own bar under its rows (view
+      // round 20, SB-C13), sticky as sf-form's footer is.
+      lastRow: bar === formBar || bar?.classList.contains('sf-property-view-actions--group') ? bar?.getAttribute('data-sticky') === '' && barStyle?.position === 'sticky' : bar?.parentElement?.lastElementChild === bar,
+      inScroller: bar === formBar || bar?.classList.contains('sf-property-view-actions--group') ? false : Boolean(bar?.closest('.sf-property-view-scroll')),
       // A bar with no background of its own lets the rows pass through the only
       // control that saves them.
       background: barStyle?.backgroundColor ?? null,

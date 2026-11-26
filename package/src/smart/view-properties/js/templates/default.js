@@ -1175,7 +1175,8 @@ function renderConfirmation(context, {inGroup = false} = {}) {
     // the host's words and the two answers where Save was pressed. It was a bar
     // of this component's own.
     return html`
-        <div class="${inGroup ? 'sf-property-view-group-actions' : 'sf-property-view-actions'} sf-property-view-confirm" data-confirming="true">
+        <div class="sf-property-view-actions ${inGroup ? 'sf-property-view-actions--group' : ''} sf-property-view-confirm" data-confirming="true"
+             ?data-sticky=${inGroup && groupBarSticky(context)}>
             <sf-confirm
                     appearance="inline"
                     size=${context.controlSize ?? nothing}
@@ -1197,10 +1198,15 @@ function renderConfirmation(context, {inGroup = false} = {}) {
 // 20): under the group's last row, inside the group, so they read as the
 // group's; they stood in the panel's foot, outside the group being edited.
 // The confirmation the host asks for takes their place, where Save was pressed.
+// In a panel and on a phone the bar holds the bottom of the scroller while the
+// group is in view, as sf-form's footer="sticky" does for a form's group: Save
+// stays reachable without the rows scrolling through it.
+const groupBarSticky = (context) => Boolean(context.panel || context.sectionsLayout === 'phone');
 function renderGroupEditBar(context) {
     if (context.confirmation) return renderConfirmation(context, {inGroup: true});
     return html`
-        <div class="sf-property-view-group-actions flex items-cross-center gap-1/3 flex-wrap" role="group">
+        <div class="sf-property-view-actions sf-property-view-actions--group flex items-cross-center gap-1/3 flex-wrap" role="group"
+             ?data-sticky=${groupBarSticky(context)}>
             <sf-button
                     appearance="default"
                     size=${context.controlSize ?? nothing}
