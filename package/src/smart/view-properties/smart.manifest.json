@@ -2118,11 +2118,11 @@
       },
       {
         "path": "src/smart/view-properties/js/templates/default.js",
-        "sha256": "bafea2183e6d6f48c7ad2774e5155ba30e473e3489e5860cdbd87c33f08a0d85"
+        "sha256": "f7649c33da410ba06595ffe3171e4a8896a2f47d6e9c177a53652bc5cd8b88b9"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.css",
-        "sha256": "608d62974e48736a05bc414a9882dcd4f5b5c68d4a68e5fa6591662c7b511223"
+        "sha256": "65c0d4e6ab8297c28f422ab3d7e8b61698db7d2547b9da1b664ccdd0ba43c01f"
       },
       {
         "path": "src/smart/view-properties/js/conditions.js",
