@@ -705,6 +705,14 @@
     box-shadow: none;
   }
 
+  /* On the record page the arranging bar holds the window's bottom while the
+     record is in view, so «Сохранить» stays reachable below a long record
+     (View round 20 r2). A panel keeps its own foot (the rule above). */
+  .sf-property-view-actions.sf-property-view-configure-bar {
+    position: sticky;
+    inset-block-end: 0;
+  }
+
   /* Save and cancel hold the end of the bar; what is said about the edit, and
      the record's own actions, hold the start. */
 
@@ -1938,6 +1946,9 @@
   .sf-property-view-body[data-arranging] .sf-property-view-field[data-arranging="true"]:not(.sf-property-view-field--unplaced) > .sf-property-view-field-value {
     min-block-size: var(--sf-property-view--arrange-control);
     padding-inline-start: calc(var(--sf-property-view--grip) + var(--sf-space-1\/3));
+    /* A text value (a block cell) sits on its label's line in the control
+       height, as the flex cells do (View round 20 r2). */
+    align-content: center;
   }
 
   @media (min-width: 48rem) {
