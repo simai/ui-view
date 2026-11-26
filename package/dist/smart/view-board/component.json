@@ -2,8 +2,15 @@
   "$comment": "sf-view-board, standard simai.smart-component 1.4 (vocabulary 1.1.5): the board layout of the view set (kanban; owner decisions C298, C304). Study: ui-control control/research/2026-11-17-board-view. Drag and keys are sf-sortable's, the card is .sf-card, the card fields the Framework field renderers' cell output, menus SF.menu.open, the selection bar sf-bulk-actions where the pair has it.",
   "id": "smart.view-board",
   "tag": "sf-view-board",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "x-history": [
+    {
+      "version": "1.5.1",
+      "kind": "patch",
+      "recorded_on": "2026-11-25",
+      "consumer": "Nothing to change for a host. Repinned on the pair ui-73df5d1b4d4c: the Framework field renderers in the set's package core (view-common) are 1.30.2 (group build 19: the include view owns no lit DOM); the provenance of field-renderers/index.js follows the pair; the board's own code and markup are unchanged.",
+      "evidence": "control/evidence/2026-11-25-view-1.19.1-release/README.md"
+    },
     {
       "version": "1.5.0",
       "kind": "minor",
@@ -750,6 +757,13 @@
           "to": "1.5.0",
           "changes": [
             "View round 19: _menu closes the shared menu on window blur; choosing mode (setChoosing, long press 500 ms touch/pen, 10 px slop), context.choosing drives data-selecting; words choose-text, choose-done-text; coarse pointer hit areas; fine pointer phone box hidden."
+          ]
+        },
+        {
+          "from": "1.5.0",
+          "to": "1.5.1",
+          "changes": [
+            "view 1.19.1: over the SIMAI Framework pair ui-73df5d1b4d4c (ui-source 5e30b946fd0e, core.runtime 1.69.0); provenance of src/smart/field-renderers/index.js."
           ]
         }
       ]

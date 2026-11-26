@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-board",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "title": "Kanban",
   "summary": "The board layout of the view set: lanes by one field, cards with up to four fields in the «Кратко» place, a move is a change of that field the host settles. sf-view layout=\"board\" draws it over the lane window.",
   "kind": "smart",
@@ -601,6 +601,13 @@
         "changes": [
           "View round 19: _menu closes the shared menu on window blur; choosing mode (setChoosing, long press 500 ms touch/pen, 10 px slop), context.choosing drives data-selecting; words choose-text, choose-done-text; coarse pointer hit areas; fine pointer phone box hidden."
         ]
+      },
+      {
+        "from": "1.5.0",
+        "to": "1.5.1",
+        "changes": [
+          "view 1.19.1: over the SIMAI Framework pair ui-73df5d1b4d4c (ui-source 5e30b946fd0e, core.runtime 1.69.0); provenance of src/smart/field-renderers/index.js."
+        ]
       }
     ]
   },
@@ -626,7 +633,7 @@
       },
       {
         "path": "src/smart/field-renderers/index.js",
-        "sha256": "643b485d2d47950e1bac6bbbb2e655f4b2101b2437ac8d55216cbcd408e766b5"
+        "sha256": "5f96d6be51636e33f8942fd705054400e862aac9732009e217942c80022b652b"
       },
       {
         "path": "src/smart/view-board/rule.js",
