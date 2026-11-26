@@ -16,6 +16,35 @@ same numbers with other content); every next set version is above them
 up). Each component.json says the same under `x-decisions`
 `pro-copy-versions`.
 
+## Unreleased — view round 20
+
+View round 20 (round/view-r20, from main 2b0a19f = view 1.19.1): the five
+returns of the round 19 acceptance (register VL-95..VL-99). Over the same
+SIMAI Framework pair `ui-73df5d1b4d4c`; the set still needs core.runtime
+1.69.0 or newer. Not released; package 1.20.0 is a candidate.
+
+- `sf-view-properties` 1.33.0: «Настроить вид» draws the record as reading
+  draws it (study S-B variant A, SB-C15, VL-95): at a desktop width the
+  label stands beside its value in the label column, the value starts where
+  reading starts it (201 px from the group's edge in a panel, not 61), a
+  one-line row is the control height (40, not 72), the groups are on the
+  card surface with reading's inset, and the columns are reading's (two
+  only from 44rem of the fields' room). On a phone the label stays over its
+  value, the value under the label's words. The handle stands in the
+  label's cell.
+- `sf-view-table` 1.40.0: «Плотность → Компактная» lowers the rows below
+  60rem in a compact area too (VL-96): the phone's list of records goes
+  from 52 to 44 and back with «Обычная». A tablet table's one-line rows
+  stay at the height of the row menu «≡» (the SIMAI Framework's density is
+  a desktop one).
+- `sf-view` 1.41.0: «Сохранить» of a changed view opens an ordinary menu
+  («Сохранить для всех» where allowed, «Сохранить как новое», «Сбросить
+  изменения»), the page's one menu as every other menu of the head, not a
+  panel of buttons across its width (VL-99); on a phone the same menu.
+- VL-97 (the phone kind menu after `?kind=board`) and VL-98 (the phone
+  record section tabs take a 44 px press) pass on view 1.19.1 over this pair
+  already; nothing changed for them.
+
 ## 1.19.1 — 2026-11-25
 
 The include field fix over the SIMAI Framework pair of group build 19

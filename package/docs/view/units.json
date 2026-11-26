@@ -5,6 +5,15 @@
   "entries": [
     {
       "unit": "smart.view",
+      "version": "1.41.0",
+      "recorded_on": "2026-11-26",
+      "change": "minor",
+      "consumer": "Nothing to change for a host. «Сохранить» of a changed view opens an ordinary menu of its ways out (the page's one menu, SF.menu.open: «Сохранить для всех» where allowed, «Сохранить как новое», «Сбросить изменения»; VL-99) instead of a panel of buttons across its width; on a phone the same menu instead of the bottom sheet. «Сохранить как новое» still names the new view in its window at the button.",
+      "summary": "view round 20: «Сохранить» of a changed view opens an ordinary menu (VL-99); the state panel and its view-open-new / view-save-all / view-reset-all buttons are gone.",
+      "evidence": "control/evidence/2026-11-26-view-r20/README.md"
+    },
+    {
+      "unit": "smart.view",
       "version": "1.40.1",
       "recorded_on": "2026-11-25",
       "change": "patch",
@@ -347,6 +356,15 @@
     },
     {
       "unit": "smart.view-table",
+      "version": "1.40.0",
+      "recorded_on": "2026-11-26",
+      "change": "minor",
+      "consumer": "Nothing to change for a host. «Плотность → Компактная» now lowers the rows below 60rem in a compact area too (VL-96): the list of records on a phone goes from 52 to 44 and back, as it already did in a compact island. The table marks a compact density that comes from its area with data-sf-view-density-area beside data-sf-view-density=\"compact\".",
+      "summary": "view round 20: data-sf-view-density=\"compact\" is written in a compact area as well, with data-sf-view-density-area; below 60rem the rows and the list of records step one rung down (VL-96).",
+      "evidence": "control/evidence/2026-11-26-view-r20/README.md"
+    },
+    {
+      "unit": "smart.view-table",
       "version": "1.39.1",
       "recorded_on": "2026-11-25",
       "change": "patch",
@@ -659,6 +677,15 @@
       "consumer": "Nothing to change for a host: only the SIMAI Framework file it builds in moved with the repin.",
       "summary": "Over SIMAI Framework ui-078a4b4c6f6e (ui-source 10145e63b9dc) the Framework file it builds in, src/smart/pagination/index.js (sf-pagination 1.7: «Show more» within reach, C167; a deleting action listed last, C116), moved; the provenance and the version follow. Nothing of its own; nothing to change for a host. 1.19.7 and 1.19.8 are ui-pro's own patched copies, never this set's.",
       "evidence": "https://github.com/simai/ui-view/commit/e214dd608fdcf39cea527676fc522afd718922d4"
+    },
+    {
+      "unit": "smart.view-properties",
+      "version": "1.33.0",
+      "recorded_on": "2026-11-26",
+      "change": "minor",
+      "consumer": "Nothing to change for a host. «Настроить вид» draws the record the way reading draws it (study S-B variant A, SB-C15, VL-95): the label beside its value at the label column, the value where reading starts it, a one-line row the control height, the groups on the card surface with reading's inset and columns; on a phone the label over its value. The handle now stands inside the label's cell.",
+      "summary": "view round 20: arranging draws the reading layout (VL-95, SB-C15); the field handle moved into .sf-property-view-field-label; .sf-property-view-body[data-arranging] carries data-size.",
+      "evidence": "control/evidence/2026-11-26-view-r20/README.md"
     },
     {
       "unit": "smart.view-properties",
