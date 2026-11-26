@@ -715,6 +715,14 @@
     border-color: var(--sf-primary);
   }
 
+  /* Save and Cancel of a group edited in place stand under its last row,
+     inside the group (S-B SB-C13, VL-90, view round 20), across the label
+     and value columns, the rows' half step above them. */
+  .sf-property-view-group > .sf-property-view-group-actions {
+    grid-column: 1 / -1;
+    padding-block: var(--sf-space-1\/2) 0;
+  }
+
   /* The Framework's own md step, --sf-breakpoint-md: 48rem. A media query
      cannot read a custom property, so the number is written out -- but it is
      written the same way everywhere. The px form of this same boundary that
@@ -1069,6 +1077,11 @@
       flex: 1 1 calc((100% - var(--sf-space-1\/3)) / 2);
       min-inline-size: 0;
     }
+    /* The same halves under a group edited in place (view round 20). */
+    .sf-property-view-group-actions > sf-button > button:is([data-action='save'], [data-action='cancel']) {
+      flex: 1 1 calc((100% - var(--sf-space-1\/3)) / 2);
+      min-inline-size: 0;
+    }
     .sf-property-view-actions:has(> sf-button > button[data-action='cancel']) > .grow:last-child {
       display: none;
     }
@@ -1363,6 +1376,18 @@
   .sf-property-view-row .sf-property-view-field-value {
     min-inline-size: 0;
     flex: 1 1 auto;
+  }
+
+  /* Rich text is the row's line, not a page's (VL-90, view round 20): its
+     last paragraph kept the text's 16 below it, so a one-line «Описание» was
+     a 40 px line that started at the row's top, 8 px over its label. The
+     paragraphs keep their space between them. */
+  .sf-property-view-row .sf-field-html > :first-child {
+    margin-block-start: 0;
+  }
+
+  .sf-property-view-row .sf-field-html > :last-child {
+    margin-block-end: 0;
   }
 
   .sf-property-view-row .sf-property-view-field-error {
@@ -1824,6 +1849,19 @@
     .sf-property-view-list .sf-property-view-group--list > .sf-property-view-group-fields > .sf-property-view-row > .sf-list-description-label {
       padding-block: 0;
     }
+  }
+
+  /* ─── View round 20: the record on its own page draws its own grey
+     ground (VL-85; DEV decision 2026-11-26: «the full-page record view draws
+     its own grey ground, it is the component's layer, not the host page»).
+     The groups are white --sf-surface-card areas on the panel's
+     --sf-surface-area in a panel; on a page they stood white on the page's
+     white. The ground is the panel's: --sf-surface-area, the groups the
+     panel's inset from its edge, the surface radius. */
+  .sf-property-view-layout.sf-property-view-layout--ground {
+    padding: var(--sf-space-1);
+    border-radius: var(--sf-radius--surface);
+    background-color: var(--sf-surface-area);
   }
 
   /* ─── View round 20: arranging draws what reading draws (VL-95, SB-C15,

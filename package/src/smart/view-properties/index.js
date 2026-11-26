@@ -4198,9 +4198,16 @@ class SfPropertyView extends PropertyViewElement {
         // the draft and writes nothing (it wrote the entered layout back and
         // read the record again).
         if (!this.viewRequired) {
+            // A draft change was drawn at once: the field moved in the sections
+            // held here (a hidden one went to `unplaced`). Dropping only the
+            // draft left it there, so the next «Настроить вид» showed the field
+            // still hidden (View round 20, VL-93). The record is read again --
+            // a read, not a write -- and draws the arrangement the host holds.
+            const drawn = this.layerDirty;
             if (this.arrangementEntered) this.layerDraft = copy(this.arrangementEntered.view);
             this.layerDirty = false;
             this.stopConfiguringView();
+            if (drawn) await this.load("view-cancel");
             this.requestComponentUpdate("view-cancel");
             return true;
         }

@@ -58,9 +58,17 @@ export function renderFieldValue(context, field, editing, {disabled = false} = {
     // audit A-14). This view drew its own pair -- the day in a datepicker and
     // the time in a masked field -- which cut the day short in a half-width
     // field and held half-typed entries of its own.
+    // A person the host lists with the field itself (`options`, the user
+    // type's choices) is chosen from that list when the host has no picker of
+    // pages (capability field-options): the renderer set's lookup over an
+    // inline list, whose value is the same {value, label}. It fell back to
+    // the read-only name, so «Изменить» on a group showed «Менеджер» as text
+    // (VL-90 SB-C13, view round 20).
+    const listed = editing && (field.propertyType || field.type) === 'user' && !context.canPickRecords
+        && Array.isArray(field.options) && field.options.length > 0;
     const content = editing
         ? renderEditField(
-            field,
+            listed ? {...field, type: 'lookup', propertyType: 'lookup'} : field,
             context.changed.has(key) ? context.changed.get(key) : field.value,
             editHost,
             // A field its condition turns off is drawn disabled where the set
