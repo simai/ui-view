@@ -1870,7 +1870,7 @@ function renderLoading(context) {
     // row stood 32px taller (24px at 1/2) than the tabs that replaced it.
     // The root is not .sf-tabs: that class is the tabs script's to bind.
     const tabs = html`<div class="sf-property-view-tabs sf-property-view-tabs--skeleton" aria-hidden="true" data-sf-skeleton="tabs" data-sections-as=${context.sectionsLayout === 'tabs' ? 'tabs' : 'list'} data-size=${context.size}><div class="sf-tabs-top-container"><div class="sf-property-view-tabs-skeleton-strip flex items-cross-center gap-2">${[0, 1, 2].map((at) => html`<div class="flex-none" style="inline-size: 6rem">${bar(at + 3)}</div>`)}</div></div></div>`;
-    return html`${tabs}<div class="sf-property-view-loading ${context.panel ? '' : 'sf-property-view-layout--ground'} flex flex-col gap-4" data-state="loading">${Array.from({length: SKELETON_GROUPS}, (_, group) => html`<section class="sf-property-view-group ${groupSurface(context)} flex flex-col gap-2" aria-busy="true"><header class="sf-property-view-group-header flex items-cross-center content-main-between gap-2"><div class="flex-1">${bar(group)}</div></header>${Array.from({length: SKELETON_FIELDS}, (_, field) => bar(group + field + 1))}</section>`)}<span class="sr-only" role="status">${context.message}</span></div>`;
+    return html`${tabs}<div class="sf-property-view-loading ${context.onPage ? 'sf-property-view-layout--ground' : ''} flex flex-col gap-4" data-state="loading">${Array.from({length: SKELETON_GROUPS}, (_, group) => html`<section class="sf-property-view-group ${groupSurface(context)} flex flex-col gap-2" aria-busy="true"><header class="sf-property-view-group-header flex items-cross-center content-main-between gap-2"><div class="flex-1">${bar(group)}</div></header>${Array.from({length: SKELETON_FIELDS}, (_, field) => bar(group + field + 1))}</section>`)}<span class="sr-only" role="status">${context.message}</span></div>`;
 }
 
 function renderLoadFailure(context) {
@@ -1924,7 +1924,7 @@ function renderBody(context, railOutside = false, withActions = true) {
                 ${renderMenuControl(context)}` : nothing)}
         ${onPhoneSectionList(context, sections) ? renderPhoneSectionList(context, sections) : nothing}
         ${lineTabsDrawn(context, sections) ? renderSectionTabs(context, sections) : nothing}
-        <div class="sf-property-view-layout ${context.panel ? '' : 'sf-property-view-layout--ground'}"
+        <div class="sf-property-view-layout ${context.onPage ? 'sf-property-view-layout--ground' : ''}"
              @pointerdown=${(event) => context.component.sectionSwipeStart(event)}
              style=${`--sf-property-view--sections-width: ${context.sectionsWidth};${context.panel ? '' : sizeStyle(context)}`}
              data-sections=${String(sections.length)}

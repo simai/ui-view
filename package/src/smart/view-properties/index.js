@@ -855,6 +855,27 @@ class SfPropertyView extends PropertyViewElement {
         return this.getBooleanAttr("full", false);
     }
 
+    // The record is the page (VL-85, View round 20 r2, DEV decision
+    // 2026-11-27): not a panel, and no other component above it. Only then
+    // does it draw its own grey ground under its white groups. A card inside
+    // another component -- a chat message's answer, an editor's block --
+    // stays as that component draws it: the ground there doubled the host's
+    // own and grew a chat card by 32 px. The walk crosses shadow roots, so a
+    // card in a component's shadow tree is that component's too.
+    get standsOnPage() {
+        if (this.panel) return false;
+        let node = this.parentNode;
+        while (node) {
+            if (node.nodeType === 11) {
+                node = node.host ?? null;
+                continue;
+            }
+            if (node.nodeType === 1 && node.localName.includes("-")) return false;
+            node = node.parentNode;
+        }
+        return true;
+    }
+
     set full(value) {
         this.toggleAttribute("full", Boolean(value));
     }
@@ -2453,6 +2474,7 @@ class SfPropertyView extends PropertyViewElement {
             // why in sf-empty-state.
             loading: this.getAttribute("data-state") === "loading" && !this.record,
             panel: this.panel,
+            onPage: this.standsOnPage,
             panelOpen: this.panelOpen,
             // The set's own strip ground in a panel, until the pair's sf-tabs
             // paints it (component.tabs 1.5.4).
