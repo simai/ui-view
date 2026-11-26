@@ -2,8 +2,15 @@
   "$comment": "sf-view-flow, standard simai.smart-component 1.4 (vocabulary 1.1.5): properties as a block in a flow. Design: ui-view docs/design/sf-view-flow.md. The confirm surface (SIMAI Framework helpers/confirm-surface.js) gives the states, the expiry, the answer and expired events and the actions open, answer, confirm and cancel; the field values are sf-view-properties' js/field-value.js over the Framework field renderers.",
   "id": "smart.view-flow",
   "tag": "sf-view-flow",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "x-history": [
+    {
+      "version": "1.3.1",
+      "kind": "patch",
+      "recorded_on": "2026-11-26",
+      "consumer": "Nothing to change for a host. A person field whose choices come with the field (options) is edited from that list where the host has no field-options picker; it was shown read-only (the shared field value of the set, view round 20, VL-90).",
+      "evidence": "control/evidence/2026-11-26-view-r20/README.md"
+    },
     {
       "version": "1.3.0",
       "kind": "minor",
@@ -760,6 +767,13 @@
           "to": "1.3.0",
           "changes": [
             "View round 15m: round/view-r14 and round/view-modular-1 joined into one line (merge, no rebase); the number is above both branches."
+          ]
+        },
+        {
+          "from": "1.3.0",
+          "to": "1.3.1",
+          "changes": [
+            "view round 20: js/field-value.js edits a user field with inline options as the renderer set's lookup without the field-options capability."
           ]
         }
       ]

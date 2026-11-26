@@ -3117,7 +3117,7 @@
         "from": "1.39.1",
         "to": "1.40.0",
         "changes": [
-          "view round 20: data-sf-view-density=\"compact\" is written in a compact area as well, with data-sf-view-density-area; below 60rem the rows and the list of records step one rung down (VL-96)."
+          "view round 20: data-sf-view-density=\"compact\" is written in a compact area as well, with data-sf-view-density-area; below 60rem the list of records steps one rung down (VL-96); a table's rows step only in a compact island; td > code is one line with an ellipsis (VL-22)."
         ]
       }
     ]
@@ -3136,7 +3136,7 @@
       },
       {
         "path": "src/smart/view-table/js/templates/default.css",
-        "sha256": "e74dcd3f9e342e33a6c1780c792e031b022e2425fc6f7f6c47425a16514c2bc0"
+        "sha256": "bfab7ea7ea7f3a6e65c27b9ce18d389fba0a90987c92bee0da3a1aad9f96f334"
       },
       {
         "path": "src/smart/helpers/option-badge.js",

@@ -358,8 +358,14 @@ receives.
   only. A group edits in SIMAI Framework `sf-form`: the label above the field
   in a panel, beside it in the full screen, «Сохранить» first and a quiet
   «Отмена». A group holding a field `sf-form` cannot edit yet (a picker, an
-  upload, a set) keeps the card's own form. «Изменить всё» is in «⋯»; a press
+  upload, a set) keeps the card's own form, with its «Сохранить» and «Отмена»
+  under the group's last row, inside the group (since 1.33.0, SB-C13); a
+  person whose choices come with the field (`options`) is chosen from that
+  list where the port has no `field-options`. «Изменить всё» is in «⋯»; a press
   on a long value opens its group with the focus on that field.
+- **Ground**: in a panel the groups are white areas on the panel's grey; a
+  record on its own page draws the same grey ground itself
+  (`--sf-surface-area`, since 1.33.0, VL-85).
 - **History** (`history`, `auto` | `off`): offered when the port announces
   `record-history`. «⋯ → История изменений» opens a level of the same panel —
   «← <запись>», the title, «⋯», the close — with `sf-list-timeline` by day,

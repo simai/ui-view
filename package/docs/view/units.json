@@ -359,8 +359,8 @@
       "version": "1.40.0",
       "recorded_on": "2026-11-26",
       "change": "minor",
-      "consumer": "Nothing to change for a host. «Плотность → Компактная» now lowers the rows below 60rem in a compact area too (VL-96): the list of records on a phone goes from 52 to 44 and back, as it already did in a compact island. The table marks a compact density that comes from its area with data-sf-view-density-area beside data-sf-view-density=\"compact\".",
-      "summary": "view round 20: data-sf-view-density=\"compact\" is written in a compact area as well, with data-sf-view-density-area; below 60rem the rows and the list of records step one rung down (VL-96).",
+      "consumer": "Nothing to change for a host. «Плотность → Компактная» now lowers the rows below 60rem in a compact area too (VL-96): the list of records on a phone goes from 52 to 44 and back, as it already did in a compact island. The table marks a compact density that comes from its area with data-sf-view-density-area beside data-sf-view-density=\"compact\". A table's own rows in a compact area keep the normal ladder below 60rem (C146 (1)); only the list of records steps there. Code in a cell (an include field's first line) is one line with an ellipsis, so the row stays 40 (VL-22).",
+      "summary": "view round 20: data-sf-view-density=\"compact\" is written in a compact area as well, with data-sf-view-density-area; below 60rem the list of records steps one rung down (VL-96); a table's rows step only in a compact island; td > code is one line with an ellipsis (VL-22).",
       "evidence": "control/evidence/2026-11-26-view-r20/README.md"
     },
     {
@@ -683,8 +683,8 @@
       "version": "1.33.0",
       "recorded_on": "2026-11-26",
       "change": "minor",
-      "consumer": "Nothing to change for a host. «Настроить вид» draws the record the way reading draws it (study S-B variant A, SB-C15, VL-95): the label beside its value at the label column, the value where reading starts it, a one-line row the control height, the groups on the card surface with reading's inset and columns; on a phone the label over its value. The handle now stands inside the label's cell.",
-      "summary": "view round 20: arranging draws the reading layout (VL-95, SB-C15); the field handle moved into .sf-property-view-field-label; .sf-property-view-body[data-arranging] carries data-size.",
+      "consumer": "Nothing to change for a host. «Настроить вид» draws the record the way reading draws it (study S-B variant A, SB-C15, VL-95): the label beside its value at the label column, the value where reading starts it, a one-line row the control height, the groups on the card surface with reading's inset and columns; on a phone the label over its value. The handle now stands inside the label's cell. «Отменить» of arranging reads the record again when something was moved, so a field hidden and cancelled is back on the next «Настроить вид» (VL-93; a read, no view write). A group edited in place has its «Сохранить» and «Отмена» under its last row, inside the group (SB-C13, VL-90), no longer in the panel's foot. A person field whose choices come with the field (options) is edited from that list where the host has no field-options picker (VL-90). Rich text in a row has no outer paragraph margins (a one-line «Описание» is a 40 px row). A record on its own page (not a panel) draws its own grey ground, --sf-surface-area with the panel's inset and the surface radius, under its white groups (VL-85, DEV decision 2026-11-26).",
+      "summary": "view round 20: arranging draws the reading layout (VL-95, SB-C15); the field handle moved into .sf-property-view-field-label; .sf-property-view-body[data-arranging] carries data-size. Also: cancelConfiguringView() reads the record again after a drawn draft (VL-93); the in-place group edit draws .sf-property-view-group-actions with data-action save/cancel inside the group and the panel foot no longer carries them (SB-C13); a user field with inline options edits as the renderer set's lookup without the field-options capability; .sf-property-view-layout--ground on a non-panel view paints --sf-surface-area (VL-85).",
       "evidence": "control/evidence/2026-11-26-view-r20/README.md"
     },
     {
@@ -992,6 +992,15 @@
       "consumer": "Nothing to change for a host: the panel's title and foot follow the drawer's window steps.",
       "summary": "In its panel (VP-5, VP-8 of the 2026-11-16 re-check; C157 (3), C157 (7) = C159 (4), (5)): (1) the title reads the window title step the drawer's panel publishes, --sf-drawer--title-size / --sf-drawer--title-height (sf-drawer 1.16.4), before the h4 role: the head stands inside the drawer's body, where sf-drawer 1.16.0 moves the heading roles down for the content, and the title drew 16/18 (a phone 14/16) instead of 20/24 (16). --sf-property-view--title-* still come first; with no drawer, or a drawer before 1.16.4, the h4 role as before. (2) On a phone (below 48rem) Save (or Create) and Cancel in the foot share the row in equal halves, 8 apart, the main one first; what else the bar holds wraps under them. The desktop foot is unchanged. Markup, settings, events and the host port unchanged.",
       "evidence": "https://github.com/simai/ui-view/commit/85b747fe0b6d2682ff478130d431c2412d5d0b96"
+    },
+    {
+      "unit": "smart.view-flow",
+      "version": "1.3.1",
+      "recorded_on": "2026-11-26",
+      "change": "patch",
+      "consumer": "Nothing to change for a host. A person field whose choices come with the field (options) is edited from that list where the host has no field-options picker; it was shown read-only (the shared field value of the set, view round 20, VL-90).",
+      "summary": "view round 20: js/field-value.js edits a user field with inline options as the renderer set's lookup without the field-options capability.",
+      "evidence": "control/evidence/2026-11-26-view-r20/README.md"
     },
     {
       "unit": "smart.view-flow",

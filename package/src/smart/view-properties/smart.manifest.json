@@ -2103,7 +2103,7 @@
         "from": "1.32.1",
         "to": "1.33.0",
         "changes": [
-          "view round 20: arranging draws the reading layout (VL-95, SB-C15); the field handle moved into .sf-property-view-field-label; .sf-property-view-body[data-arranging] carries data-size."
+          "view round 20: arranging draws the reading layout (VL-95, SB-C15); the field handle moved into .sf-property-view-field-label; .sf-property-view-body[data-arranging] carries data-size. Also: cancelConfiguringView() reads the record again after a drawn draft (VL-93); the in-place group edit draws .sf-property-view-group-actions with data-action save/cancel inside the group and the panel foot no longer carries them (SB-C13); a user field with inline options edits as the renderer set's lookup without the field-options capability; .sf-property-view-layout--ground on a non-panel view paints --sf-surface-area (VL-85)."
         ]
       }
     ]
@@ -2114,15 +2114,15 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-properties/index.js",
-        "sha256": "c61ca7b10356dd32cea13609d058594f644d1cac498cae27343cc9dd87c25755"
+        "sha256": "1b6ac080de71ecac38cb5d0e26403860af387b0589e15490262cea158e65ea90"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.js",
-        "sha256": "7c3b950d77b0331061586a82418b8562843500bd1149b3cc5157dd3de727c52a"
+        "sha256": "bafea2183e6d6f48c7ad2774e5155ba30e473e3489e5860cdbd87c33f08a0d85"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.css",
-        "sha256": "ef8ec9a4ad61155fb7439c9c8dbb72704ebad738243c0efc63e9712c0fa01e48"
+        "sha256": "608d62974e48736a05bc414a9882dcd4f5b5c68d4a68e5fa6591662c7b511223"
       },
       {
         "path": "src/smart/view-properties/js/conditions.js",
@@ -2130,7 +2130,7 @@
       },
       {
         "path": "src/smart/view-properties/js/field-value.js",
-        "sha256": "5a74dd04d9e634b60d0048300dbc501609b6128def2e8aa08905d2835010a6d3"
+        "sha256": "239d3478d024a719be9911bc6769c1f83408ac13fe9828a63a4295fbdc49236c"
       },
       {
         "path": "src/smart/view-properties/js/history.js",

@@ -8,7 +8,7 @@
       "version": "1.40.0",
       "kind": "minor",
       "recorded_on": "2026-11-26",
-      "consumer": "Nothing to change for a host. «Плотность → Компактная» now lowers the rows below 60rem in a compact area too (VL-96): the list of records on a phone goes from 52 to 44 and back, as it already did in a compact island. The table marks a compact density that comes from its area with data-sf-view-density-area beside data-sf-view-density=\"compact\".",
+      "consumer": "Nothing to change for a host. «Плотность → Компактная» now lowers the rows below 60rem in a compact area too (VL-96): the list of records on a phone goes from 52 to 44 and back, as it already did in a compact island. The table marks a compact density that comes from its area with data-sf-view-density-area beside data-sf-view-density=\"compact\". A table's own rows in a compact area keep the normal ladder below 60rem (C146 (1)); only the list of records steps there. Code in a cell (an include field's first line) is one line with an ellipsis, so the row stays 40 (VL-22).",
       "evidence": "control/evidence/2026-11-26-view-r20/README.md"
     },
     {
@@ -3292,7 +3292,7 @@
           "from": "1.39.1",
           "to": "1.40.0",
           "changes": [
-            "view round 20: data-sf-view-density=\"compact\" is written in a compact area as well, with data-sf-view-density-area; below 60rem the rows and the list of records step one rung down (VL-96)."
+            "view round 20: data-sf-view-density=\"compact\" is written in a compact area as well, with data-sf-view-density-area; below 60rem the list of records steps one rung down (VL-96); a table's rows step only in a compact island; td > code is one line with an ellipsis (VL-22)."
           ]
         }
       ]

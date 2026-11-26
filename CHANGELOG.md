@@ -45,6 +45,30 @@ SIMAI Framework pair `ui-73df5d1b4d4c`; the set still needs core.runtime
   record section tabs take a 44 px press) pass on view 1.19.1 over this pair
   already; nothing changed for them.
 
+DEV additions to the round (VL-85, VL-90, VL-93, VL-22, the VL-95 record page):
+
+- `sf-view-properties` 1.33.0 also: «Отменить» of arranging reads the
+  record again when something was moved, so a field hidden and cancelled is
+  back on the next «Настроить вид» (VL-93; a read, no view write). A group
+  edited in place has its «Сохранить» and «Отмена» under its last row,
+  inside the group (SB-C13, VL-90), not in the panel's foot. A person field
+  whose choices come with the field (`options`) is edited from that list
+  where the host has no field-options picker (VL-90). Rich text in a row has
+  no outer paragraph margins: a one-line «Описание» is a 40 px row with its
+  text on the label's line. A record on its own page draws its own grey
+  ground (`--sf-surface-area`, the panel's inset, the surface radius) under
+  its white groups (VL-85, DEV decision 2026-11-26).
+- `sf-view-table` 1.40.0 also: code in a cell (an include field's first
+  line) is one line with an ellipsis, so the row stays 40 (VL-22). A table's
+  own rows in a compact area keep the normal ladder below 60rem (C146 (1));
+  only the phone's list of records steps there.
+- `sf-view-flow` 1.3.1: the person field with inline choices, through the
+  set's shared field value.
+- Not changed, waiting: the scale value «40 %» is the renderer set's 14 px
+  text in a 16 px row (the SIMAI Framework field renderers draw the scale at
+  size 1); VL-72 and the avatar rows of VL-90 measure the avatar's initials
+  as the cell's text (the head and the name are on their lines).
+
 ## 1.19.1 — 2026-11-25
 
 The include field fix over the SIMAI Framework pair of group build 19
