@@ -39,8 +39,10 @@ package 1.20.1 is a candidate.
   item when it opens and gives it back to the «≡» when it closes, by mouse
   and by keyboard; the table no longer pulls the focus back to the row.
 - `sf-view` 1.41.1, `sf-view-board` 1.5.2, `sf-view-cards` 1.5.4,
-  `sf-view-calendar` 1.3.3: repinned on the pair (field renderers 1.30.3,
-  group build 20 menus); their own code and markup are unchanged.
+  `sf-view-calendar` 1.3.3, `sf-view-flow` 1.3.2: repinned on the pair
+  (field renderers 1.30.3, group build 20 menus; the flow's «ask»
+  first-paint snapshot written again); their own code and markup are
+  unchanged.
 
 ## 1.20.0 — 2026-11-27
 
