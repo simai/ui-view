@@ -5,6 +5,15 @@
   "entries": [
     {
       "unit": "smart.view",
+      "version": "1.41.1",
+      "recorded_on": "2026-11-27",
+      "change": "patch",
+      "consumer": "Nothing to change for a host on the pair ui-4f5678e8c0ed (the set still needs core.runtime 1.69.0 or newer). The Framework parts in the set's package core (view-common) follow the pair: field renderers 1.30.3, the menu opener of group build 20 (Escape reaches an open row menu wherever the focus stands); the view's own code and markup are unchanged.",
+      "summary": "view round 21: over the SIMAI Framework pair ui-4f5678e8c0ed (ui-source 1b1b9ea75, core.runtime 1.70.0); the Framework parts in the set's package core (view-common) follow the pair (field renderers 1.30.3, group build 20 menus).",
+      "evidence": "control/evidence/2026-11-27-view-r21/README.md"
+    },
+    {
+      "unit": "smart.view",
       "version": "1.41.0",
       "recorded_on": "2026-11-26",
       "change": "minor",
@@ -356,6 +365,15 @@
     },
     {
       "unit": "smart.view-table",
+      "version": "1.40.1",
+      "recorded_on": "2026-11-27",
+      "change": "patch",
+      "consumer": "Nothing to change for a host. The row menu «≡» takes the focus into its first item when it opens and gives it back to the «≡» when it closes, by mouse and by keyboard: the table moved the focus back to the row after the menu had opened, so the arrows and Escape stayed on the row (DEV note on the GB20 acceptance, msg-5785f0949cc94dbbb655). A press on a button of a table row keeps the focus that press gave it; the row still becomes the current one.",
+      "summary": "view round 21: over the SIMAI Framework pair ui-4f5678e8c0ed (ui-source 1b1b9ea75, core.runtime 1.70.0); handleRowClick keeps the focus on a table row's button (isRowButtonTarget), focusRow honours focus:false for a table row.",
+      "evidence": "control/evidence/2026-11-27-view-r21/README.md"
+    },
+    {
+      "unit": "smart.view-table",
       "version": "1.40.0",
       "recorded_on": "2026-11-26",
       "change": "minor",
@@ -677,6 +695,15 @@
       "consumer": "Nothing to change for a host: only the SIMAI Framework file it builds in moved with the repin.",
       "summary": "Over SIMAI Framework ui-078a4b4c6f6e (ui-source 10145e63b9dc) the Framework file it builds in, src/smart/pagination/index.js (sf-pagination 1.7: «Show more» within reach, C167; a deleting action listed last, C116), moved; the provenance and the version follow. Nothing of its own; nothing to change for a host. 1.19.7 and 1.19.8 are ui-pro's own patched copies, never this set's.",
       "evidence": "https://github.com/simai/ui-view/commit/e214dd608fdcf39cea527676fc522afd718922d4"
+    },
+    {
+      "unit": "smart.view-properties",
+      "version": "1.33.1",
+      "recorded_on": "2026-11-27",
+      "change": "patch",
+      "consumer": "Nothing to change for a host. A scale value («Оценка клиента») writes its text at the value's size and line through sf-progress-scale's public --sf-progress-scale-font-size and --sf-progress-scale-line-height (sf-progress-scale 1.5.0, pair ui-4f5678e8c0ed), so the label and the value share one baseline at 1440 and the row stays 40 px (VL-90). A bar of actions under a record in place (not a panel) is as wide as the record: it took back a panel gutter there is none of, 16 px (12 at 390) wider than the record, and a record that scrolls itself drew a sideways scrollbar. On the record's own page every bar of the record holds the window's bottom while the record is in view (class sf-property-view-actions--page): «Сохранить» / «Отмена» of the whole-record editor are on screen at 1440 without scrolling, as the arranging bar already was. On the pair ui-73df5d1b4d4c the scale keeps its own text.",
+      "summary": "view round 21: over the SIMAI Framework pair ui-4f5678e8c0ed (ui-source 1b1b9ea75, core.runtime 1.70.0); .sf-property-view-field-value sf-progress-scale sets the scale's two public text variables to the value's text (VL-90); an in-place bar (direct child of the element, not the group's) margin-inline 0, padding-inline --sf-space-1; pageBar(context) adds sf-property-view-actions--page on the record page (open-all, arranging, leave ask and the host footer bar), sticky at the block end.",
+      "evidence": "control/evidence/2026-11-27-view-r21/README.md"
     },
     {
       "unit": "smart.view-properties",
@@ -1067,6 +1094,15 @@
     },
     {
       "unit": "smart.view-board",
+      "version": "1.5.2",
+      "recorded_on": "2026-11-27",
+      "change": "patch",
+      "consumer": "Nothing to change for a host. Repinned on the pair ui-4f5678e8c0ed: the Framework field renderers in the set's package core (view-common) are 1.30.3 (group build 20: a Framework record view draws the scale at the value's text); the provenance of field-renderers/index.js follows the pair; the board's own code and markup are unchanged.",
+      "summary": "view round 21: over the SIMAI Framework pair ui-4f5678e8c0ed (ui-source 1b1b9ea75, core.runtime 1.70.0); provenance of src/smart/field-renderers/index.js.",
+      "evidence": "control/evidence/2026-11-27-view-r21/README.md"
+    },
+    {
+      "unit": "smart.view-board",
       "version": "1.5.1",
       "recorded_on": "2026-11-25",
       "change": "patch",
@@ -1193,6 +1229,15 @@
     },
     {
       "unit": "smart.view-cards",
+      "version": "1.5.4",
+      "recorded_on": "2026-11-27",
+      "change": "patch",
+      "consumer": "Nothing to change for a host. Repinned on the pair ui-4f5678e8c0ed: the Framework field renderers in the set's package core (view-common) are 1.30.3 (group build 20: a Framework record view draws the scale at the value's text); the provenance of field-renderers/index.js follows the pair; the cards' own code and markup are unchanged.",
+      "summary": "view round 21: over the SIMAI Framework pair ui-4f5678e8c0ed (ui-source 1b1b9ea75, core.runtime 1.70.0); provenance of src/smart/field-renderers/index.js.",
+      "evidence": "control/evidence/2026-11-27-view-r21/README.md"
+    },
+    {
+      "unit": "smart.view-cards",
       "version": "1.5.3",
       "recorded_on": "2026-11-25",
       "change": "patch",
@@ -1316,6 +1361,15 @@
       "consumer": "New: sf-view layout=\"cards\" draws it, where the author turned cards on (C297); a host answers the window {page, per_page: 24} with {records, total, has_next}.",
       "summary": "New: the cards layout (owner decisions C297, C306): records as .sf-card in a grid whose columns follow its width (sizes S, M, L), a cover in a frame of one ratio drawn by the layout (cover or contain, lazy), the title in two lines and up to four fields in the «Кратко» place, «Показать ещё» over the window {page, per_page: 24}, one Tab stop with the arrows by rows, a selection for sf-bulk-actions, empty states by sf-empty-state.",
       "evidence": "control/evidence/2026-11-18-view-cards"
+    },
+    {
+      "unit": "smart.view-calendar",
+      "version": "1.3.3",
+      "recorded_on": "2026-11-27",
+      "change": "patch",
+      "consumer": "Nothing to change for a host. Repinned on the pair ui-4f5678e8c0ed: the Framework field renderers in the set's package core (view-common) are 1.30.3 (group build 20: a Framework record view draws the scale at the value's text); the provenance of field-renderers/index.js follows the pair; the calendar's own code and markup are unchanged.",
+      "summary": "view round 21: over the SIMAI Framework pair ui-4f5678e8c0ed (ui-source 1b1b9ea75, core.runtime 1.70.0); provenance of src/smart/field-renderers/index.js.",
+      "evidence": "control/evidence/2026-11-27-view-r21/README.md"
     },
     {
       "unit": "smart.view-calendar",

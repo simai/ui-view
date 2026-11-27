@@ -16,6 +16,32 @@ same numbers with other content); every next set version is above them
 up). Each component.json says the same under `x-decisions`
 `pro-copy-versions`.
 
+## Unreleased — view round 21
+
+View round 21 (round/view-r21, from main 17436f4 = view 1.20.0): four items
+left open by 1.20.0. Over the SIMAI Framework pair `ui-4f5678e8c0ed`
+(ui-source `1b1b9ea75`, npm `@simai-studio/ui@5.20261127.1637`, core.runtime
+1.70.0); the set still needs core.runtime 1.69.0 or newer. Not released;
+package 1.20.1 is a candidate.
+
+- `sf-view-properties` 1.33.1:
+  - a scale value («Оценка клиента») writes its text at the value's size
+    and line through sf-progress-scale's public text variables (1.5.0 of the
+    pair), so the label and the value share one baseline at 1440; the row
+    stays 40 px (VL-90);
+  - a bar of actions under a record in place is as wide as the record (it
+    was 16 px wider, 12 at 390, and a record that scrolls itself drew a
+    sideways scrollbar);
+  - on the record's own page «Сохранить» / «Отмена» of the whole-record
+    editor hold the window's bottom while the record is in view, as the
+    arranging bar does.
+- `sf-view-table` 1.40.1: the row menu «≡» takes the focus into its first
+  item when it opens and gives it back to the «≡» when it closes, by mouse
+  and by keyboard; the table no longer pulls the focus back to the row.
+- `sf-view` 1.41.1, `sf-view-board` 1.5.2, `sf-view-cards` 1.5.4,
+  `sf-view-calendar` 1.3.3: repinned on the pair (field renderers 1.30.3,
+  group build 20 menus); their own code and markup are unchanged.
+
 ## 1.20.0 — 2026-11-27
 
 View round 20 (round/view-r20 4cd1b98, from main 2b0a19f = view 1.19.1;

@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-properties",
-  "version": "1.33.0",
+  "version": "1.33.1",
   "title": "Property view",
   "summary": "One object's fields shown as sections, groups and fields, each drawn by the per-type field renderer set, behind a separate host port. A group is edited and saved as one revision by the button, and a reference field is picked from the host's own candidates a page at a time. The pair to the data view: that one is a set of records, this one is a single object.",
   "kind": "composite",
@@ -2105,6 +2105,13 @@
         "changes": [
           "view round 20: arranging draws the reading layout (VL-95, SB-C15); the field handle moved into .sf-property-view-field-label; .sf-property-view-body[data-arranging] carries data-size. Also: cancelConfiguringView() reads the record again after a drawn draft (VL-93); the in-place group edit draws .sf-property-view-group-actions with data-action save/cancel inside the group and the panel foot no longer carries them (SB-C13); a user field with inline options edits as the renderer set's lookup without the field-options capability; .sf-property-view-layout--ground paints --sf-surface-area only when the view is the page (no panel and no custom-element ancestor across shadow roots, VL-85 r2); the arranging value cell centres its content (align-content) and .sf-property-view-configure-bar is sticky at the block end."
         ]
+      },
+      {
+        "from": "1.33.0",
+        "to": "1.33.1",
+        "changes": [
+          "view round 21: over the SIMAI Framework pair ui-4f5678e8c0ed (ui-source 1b1b9ea75, core.runtime 1.70.0); .sf-property-view-field-value sf-progress-scale sets the scale's two public text variables to the value's text (VL-90); an in-place bar (direct child of the element, not the group's) margin-inline 0, padding-inline --sf-space-1; pageBar(context) adds sf-property-view-actions--page on the record page (open-all, arranging, leave ask and the host footer bar), sticky at the block end."
+        ]
       }
     ]
   },
@@ -2118,11 +2125,11 @@
       },
       {
         "path": "src/smart/view-properties/js/templates/default.js",
-        "sha256": "11b46541dc4e802cea3f4ed42341a66e82ebe8c5b2397c4b2d928487dd42885d"
+        "sha256": "636725acd87093f60298f4bd4756f0754e3b20218d55df4d54175c02ec94107c"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.css",
-        "sha256": "f39467c178bdb89f221a0767cef75f58128c808472c1c67728ff3f2c5c2bea8c"
+        "sha256": "b5daeaeb6238882ce658ea4575dda424bb6d505ad3d669b6a14f85ddacf34be1"
       },
       {
         "path": "src/smart/view-properties/js/conditions.js",

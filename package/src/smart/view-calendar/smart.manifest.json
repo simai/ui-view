@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-calendar",
-  "version": "1.3.2",
+  "version": "1.3.3",
   "title": "Calendar",
   "summary": "The calendar layout of the view set: month, week, day and list; records on the days of their date field, a move or a stretch is a change of the date fields the host settles. sf-view layout=\"calendar\" draws it over the date window.",
   "kind": "smart",
@@ -621,6 +621,13 @@
         "to": "1.3.2",
         "changes": [
           "view 1.19.1: over the SIMAI Framework pair ui-73df5d1b4d4c (ui-source 5e30b946fd0e, core.runtime 1.69.0); provenance of src/smart/field-renderers/index.js."
+        ]
+      },
+      {
+        "from": "1.3.2",
+        "to": "1.3.3",
+        "changes": [
+          "view round 21: over the SIMAI Framework pair ui-4f5678e8c0ed (ui-source 1b1b9ea75, core.runtime 1.70.0); provenance of src/smart/field-renderers/index.js."
         ]
       }
     ]

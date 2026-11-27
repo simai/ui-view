@@ -93,6 +93,13 @@ function renderViewChooser(context) {
     `;
 }
 
+// A bar of the record on its own page holds the window's bottom (view round
+// 21): the class says so, so a panel and a card inside another component keep
+// their own foot.
+function pageBar(context) {
+    return context.onPage ? 'sf-property-view-actions--page' : '';
+}
+
 function renderConfigureBar(context) {
     if (!context.canConfigureView || !context.configuring) return nothing;
     const required = context.viewRequired;
@@ -102,7 +109,7 @@ function renderConfigureBar(context) {
     // drops the draft. No line says edits are saved at once (VL-93).
     const publish = context.canWriteShared && !required && (context.layerDirty || context.hasPersonalEdits);
     return html`
-        <div class="sf-property-view-actions sf-property-view-configure-bar flex items-cross-center gap-1/3 flex-wrap"
+        <div class="sf-property-view-actions sf-property-view-configure-bar ${pageBar(context)} flex items-cross-center gap-1/3 flex-wrap"
              data-configuring="true" role="group"
              aria-label=${context.configureText}>
             <sf-button
@@ -1238,7 +1245,7 @@ function renderOpenAllBar(context) {
     if (context.confirmation) return renderConfirmation(context);
     const creating = context.mode === 'create';
     return html`
-        <div class="sf-property-view-actions flex items-cross-center gap-1/3 flex-wrap" role="group">
+        <div class="sf-property-view-actions ${pageBar(context)} flex items-cross-center gap-1/3 flex-wrap" role="group">
             <sf-button
                     appearance="default"
                     size=${context.controlSize ?? nothing}
@@ -1268,7 +1275,7 @@ function renderOpenAllBar(context) {
 // (C159 (6)): sf-confirm in the foot, «Закрыть без сохранения» or back.
 function renderLeaveAsk(context) {
     return html`
-        <div class="sf-property-view-actions sf-property-view-confirm" data-leaving="true">
+        <div class="sf-property-view-actions sf-property-view-confirm ${pageBar(context)}" data-leaving="true">
             <sf-confirm
                     appearance="inline"
                     size=${context.controlSize ?? nothing}
@@ -1307,7 +1314,7 @@ function renderActions(context, {panel = false} = {}) {
     if (!hosted && !conflict) return nothing;
 
     return html`
-        <div class="sf-property-view-actions flex items-cross-center gap-1/3 flex-wrap" role="group">
+        <div class="sf-property-view-actions ${pageBar(context)} flex items-cross-center gap-1/3 flex-wrap" role="group">
             ${conflict
                     ? html`<span class="sf-property-view-conflict color-error" role="alert">${context.conflict}</span>`
                     : nothing}

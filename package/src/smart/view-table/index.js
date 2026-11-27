@@ -1332,6 +1332,11 @@ class SfTable extends TableElement {
     // Controls inside a row answer for themselves. A click on a box, a row
     // menu, a link, a button or a field is that control's click, and neither
     // focuses the row nor opens the record.
+    isRowButtonTarget(target) {
+        if (!(target instanceof Element)) return false;
+        return Boolean(target.closest('button, [role="button"], sf-button, sf-button-icon'));
+    }
+
     isRowControlTarget(target) {
         if (!(target instanceof Element)) return false;
         return Boolean(target.closest(
@@ -1352,9 +1357,13 @@ class SfTable extends TableElement {
     // takes nothing away from that. Only opening the record stays off limits
     // from a control.
     handleRowClick(event, row, index = -1) {
-        // A list row's own buttons keep the focus a press gives them: the menu
-        // they open goes back to them.
-        this.focusRow(this.getRowKey(row, index), {focus: !(this.isList && this.isRowControlTarget(event?.target))});
+        // A list row's own controls, and a table row's buttons, keep the focus
+        // a press gives them: the menu a «≡» opens takes the focus into its
+        // first item and gives it back to the button (view round 21). The row
+        // took it back after the menu had opened, so the keys stayed on the row.
+        this.focusRow(this.getRowKey(row, index), {focus: !(this.isList
+            ? this.isRowControlTarget(event?.target)
+            : this.isRowButtonTarget(event?.target))});
         this.openReferenceFromCell(event, row);
         // row-open="row" (C31): a press anywhere in the row but its controls
         // opens the record, as the title link and Enter do. A press that
@@ -1756,7 +1765,7 @@ class SfTable extends TableElement {
         // At once, not smoothly: a page that scrolls smoothly would move the
         // window back to where it passes before it arrives.
         if (reveal) row?.scrollIntoView?.({block: "nearest", behavior: "instant"});
-        row?.focus?.({preventScroll: true});
+        if (focus) row?.focus?.({preventScroll: true});
         return this;
     }
 

@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-board",
-  "version": "1.5.1",
+  "version": "1.5.2",
   "title": "Kanban",
   "summary": "The board layout of the view set: lanes by one field, cards with up to four fields in the «Кратко» place, a move is a change of that field the host settles. sf-view layout=\"board\" draws it over the lane window.",
   "kind": "smart",
@@ -607,6 +607,13 @@
         "to": "1.5.1",
         "changes": [
           "view 1.19.1: over the SIMAI Framework pair ui-73df5d1b4d4c (ui-source 5e30b946fd0e, core.runtime 1.69.0); provenance of src/smart/field-renderers/index.js."
+        ]
+      },
+      {
+        "from": "1.5.1",
+        "to": "1.5.2",
+        "changes": [
+          "view round 21: over the SIMAI Framework pair ui-4f5678e8c0ed (ui-source 1b1b9ea75, core.runtime 1.70.0); provenance of src/smart/field-renderers/index.js."
         ]
       }
     ]
