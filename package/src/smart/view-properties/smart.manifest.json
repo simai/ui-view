@@ -2110,7 +2110,7 @@
         "from": "1.33.0",
         "to": "1.33.1",
         "changes": [
-          "view round 21: over the SIMAI Framework pair ui-4f5678e8c0ed (ui-source 1b1b9ea75, core.runtime 1.70.0); .sf-property-view-field-value sf-progress-scale sets the scale's two public text variables to the value's text (VL-90); an in-place bar (direct child of the element, not the group's) margin-inline 0, padding-inline --sf-space-1; pageBar(context) adds sf-property-view-actions--page on the record page (open-all, arranging, leave ask and the host footer bar), sticky at the block end."
+          "view round 21: over the SIMAI Framework pair ui-4f5678e8c0ed (ui-source 1b1b9ea75, core.runtime 1.70.0); .sf-property-view-field-value sf-progress-scale sets the scale's two public text variables to the value's text (VL-90); pageBar(context) adds sf-property-view-actions--page on the record page (open-all, arranging, leave ask and the host footer bar): margin-inline 0, padding-inline --sf-space-1, sticky at the block end; a card inside another component keeps its bar."
         ]
       }
     ]
@@ -2129,7 +2129,7 @@
       },
       {
         "path": "src/smart/view-properties/js/templates/default.css",
-        "sha256": "b5daeaeb6238882ce658ea4575dda424bb6d505ad3d669b6a14f85ddacf34be1"
+        "sha256": "eef7276a1270c60b57fe2650021887db70dd9160a97ed137627e69e9a447e00b"
       },
       {
         "path": "src/smart/view-properties/js/conditions.js",

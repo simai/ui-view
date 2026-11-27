@@ -724,12 +724,13 @@
     inset-block-end: 0;
   }
 
-  /* A bar in place, under a record that is not a panel (view round 21): it
-     takes no panel gutter back, because there is none. The negative margins
-     made it 16 px (12 at 390) wider than the record, and a record that
-     scrolls itself drew a sideways scrollbar under it. Its buttons start
-     where the record's content does: the ground's inset. */
-  :is(sf-view-properties, sf-property-view) > .sf-property-view-actions:not(.sf-property-view-actions--group) {
+  /* A bar of the record on its own page (view round 21) takes no panel
+     gutter back, because there is none: the negative margins made it 16 px
+     (12 at 390) wider than the record, and a record that scrolls itself drew
+     a sideways scrollbar under it. Its buttons start where the record's
+     content does: the ground's inset. A card inside another component (a
+     chat message) keeps the bar its host draws. */
+  :is(sf-view-properties, sf-property-view) > .sf-property-view-actions.sf-property-view-actions--page {
     margin-inline: 0;
     padding-inline: var(--sf-space-1);
   }

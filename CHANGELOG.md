@@ -29,7 +29,7 @@ package 1.20.1 is a candidate.
     and line through sf-progress-scale's public text variables (1.5.0 of the
     pair), so the label and the value share one baseline at 1440; the row
     stays 40 px (VL-90);
-  - a bar of actions under a record in place is as wide as the record (it
+  - a bar of actions under a record on its own page is as wide as the record (it
     was 16 px wider, 12 at 390, and a record that scrolls itself drew a
     sideways scrollbar);
   - on the record's own page «Сохранить» / «Отмена» of the whole-record
