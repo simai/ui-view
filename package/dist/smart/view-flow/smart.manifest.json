@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-flow",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "title": "Flow block",
   "summary": "A few properties as a block in a flow (a chat message, a feed, any stream): shows a record's fields, or asks for a few and sends them, then keeps the answer read-only. Fields are sf-view-properties' descriptors drawn by the Framework field renderers; a press is an event, the host answers with settle.",
   "kind": "smart",
@@ -502,6 +502,13 @@
         "changes": [
           "View round 15m: round/view-r14 and round/view-modular-1 joined into one line (merge, no rebase); the number is above both branches."
         ]
+      },
+      {
+        "from": "1.3.0",
+        "to": "1.3.1",
+        "changes": [
+          "view round 20: js/field-value.js edits a user field with inline options as the renderer set's lookup without the field-options capability."
+        ]
       }
     ]
   },
@@ -527,7 +534,7 @@
       },
       {
         "path": "src/smart/view-properties/js/field-value.js",
-        "sha256": "5a74dd04d9e634b60d0048300dbc501609b6128def2e8aa08905d2835010a6d3"
+        "sha256": "239d3478d024a719be9911bc6769c1f83408ac13fe9828a63a4295fbdc49236c"
       },
       {
         "path": "src/smart/view-properties/js/conditions.js",

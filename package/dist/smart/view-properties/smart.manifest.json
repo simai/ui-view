@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-properties",
-  "version": "1.32.1",
+  "version": "1.33.0",
   "title": "Property view",
   "summary": "One object's fields shown as sections, groups and fields, each drawn by the per-type field renderer set, behind a separate host port. A group is edited and saved as one revision by the button, and a reference field is picked from the host's own candidates a page at a time. The pair to the data view: that one is a set of records, this one is a single object.",
   "kind": "composite",
@@ -2098,6 +2098,13 @@
         "changes": [
           "view 1.19.1: over the SIMAI Framework pair ui-73df5d1b4d4c (ui-source 5e30b946fd0e, core.runtime 1.69.0); the Framework field renderers in the set's package core (view-common) are 1.30.2 (group build 19: the include view owns no lit DOM) (the include field fix, include-w1)."
         ]
+      },
+      {
+        "from": "1.32.1",
+        "to": "1.33.0",
+        "changes": [
+          "view round 20: arranging draws the reading layout (VL-95, SB-C15); the field handle moved into .sf-property-view-field-label; .sf-property-view-body[data-arranging] carries data-size. Also: cancelConfiguringView() reads the record again after a drawn draft (VL-93); the in-place group edit draws .sf-property-view-group-actions with data-action save/cancel inside the group and the panel foot no longer carries them (SB-C13); a user field with inline options edits as the renderer set's lookup without the field-options capability; .sf-property-view-layout--ground paints --sf-surface-area only when the view is the page (no panel and no custom-element ancestor across shadow roots, VL-85 r2); the arranging value cell centres its content (align-content) and .sf-property-view-configure-bar is sticky at the block end."
+        ]
       }
     ]
   },
@@ -2107,15 +2114,15 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-properties/index.js",
-        "sha256": "c61ca7b10356dd32cea13609d058594f644d1cac498cae27343cc9dd87c25755"
+        "sha256": "2cacf7b64c90e871831653bf3f9670571d9e9b14a061ecc9f748c4474e96569b"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.js",
-        "sha256": "30809e02e73b92cab98480182b5c0c9c93fc324487b329e55c5605006d3418c4"
+        "sha256": "11b46541dc4e802cea3f4ed42341a66e82ebe8c5b2397c4b2d928487dd42885d"
       },
       {
         "path": "src/smart/view-properties/js/templates/default.css",
-        "sha256": "d7fbb22c60280406b83d770b29e294297661457f4a145357b561e6a5d9205a10"
+        "sha256": "f39467c178bdb89f221a0767cef75f58128c808472c1c67728ff3f2c5c2bea8c"
       },
       {
         "path": "src/smart/view-properties/js/conditions.js",
@@ -2123,7 +2130,7 @@
       },
       {
         "path": "src/smart/view-properties/js/field-value.js",
-        "sha256": "5a74dd04d9e634b60d0048300dbc501609b6128def2e8aa08905d2835010a6d3"
+        "sha256": "239d3478d024a719be9911bc6769c1f83408ac13fe9828a63a4295fbdc49236c"
       },
       {
         "path": "src/smart/view-properties/js/history.js",
@@ -2167,7 +2174,7 @@
       },
       {
         "path": "src/smart/view-properties/docs.md",
-        "sha256": "c3e05dbbb66e57d1e1506145588db0ad28136a250a9ce6b5feefe7047eb9661d"
+        "sha256": "001a1a0d7f5e0d238603c33a596e2675adc1cfffec317199417a92419a63ddcb"
       }
     ],
     "generated_runtime": []

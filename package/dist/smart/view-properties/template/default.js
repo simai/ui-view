@@ -506,13 +506,16 @@ function renderField(context, field, editing, sectionKey = '', groupKey = '') {
              data-sf-sortable-item=${context.configuring ? key : nothing}
              data-arranging=${context.configuring ? 'true' : nothing}
              data-hidden=${context.configuring && field.hidden ? 'true' : nothing}>
-            ${context.configuring
-                    ? html`<i class="sf-icon sf-property-view-grip items-cross-center" data-sf-sortable-handle
-                              aria-hidden="true">drag_indicator</i>`
-                    : nothing}
             <!-- Reading: the label is quieter than its value. Editing: a form
-                 field's label, in the text colour with its «*» (C153 (1), (2)). -->
+                 field's label, in the text colour with its «*» (C153 (1), (2)).
+                 Arranging: the handle opens the label's cell, so the label
+                 column ends where the reading one ends and the value starts
+                 where it starts (SB-C15, VL-95). -->
             <div class="sf-property-view-field-label flex items-cross-center gap-1/3 ${editing ? 'color-on-surface' : 'color-on-surface-variant'}">
+                ${context.configuring
+                        ? html`<i class="sf-icon sf-property-view-grip items-cross-center" data-sf-sortable-handle
+                                  aria-hidden="true">drag_indicator</i>`
+                        : nothing}
                 ${String(field.label ?? key)}
                 ${field.required && editing
                         ? html`<span class="sf-property-view-required" aria-hidden="true">*</span>`
@@ -797,6 +800,7 @@ function renderGroup(context, section, group) {
                             : nothing}
                 </div>` : nothing}
                 ${fields.length ? html`<div class="sf-list-description-part sf-property-view-group-fields" role="group" aria-label=${String(group.label ?? groupKey)}>${fields.map((field) => renderEditRow(context, field))}</div>` : nothing}
+                ${renderGroupEditBar(context)}
             </section>`;
     }
     const rows = waiting > 0
@@ -1166,12 +1170,13 @@ function sizeStyle(context) {
 // two answers, in the bar where save was pressed -- the same place and the same
 // arrangement as the view's reset question. Going back sends nothing and keeps
 // what was entered.
-function renderConfirmation(context) {
+function renderConfirmation(context, {inGroup = false} = {}) {
     // The Framework's question in place (C289, C182; sf-confirm inline, C166):
     // the host's words and the two answers where Save was pressed. It was a bar
     // of this component's own.
     return html`
-        <div class="sf-property-view-actions sf-property-view-confirm" data-confirming="true">
+        <div class="sf-property-view-actions ${inGroup ? 'sf-property-view-actions--group' : ''} sf-property-view-confirm" data-confirming="true"
+             ?data-sticky=${inGroup && groupBarSticky(context)}>
             <sf-confirm
                     appearance="inline"
                     size=${context.controlSize ?? nothing}
@@ -1185,6 +1190,44 @@ function renderConfirmation(context) {
                         else context.component.cancelConfirmation();
                     }}
             ></sf-confirm>
+        </div>
+    `;
+}
+
+// Save and Cancel of a group edited in place (S-B SB-C13, VL-90, view round
+// 20): under the group's last row, inside the group, so they read as the
+// group's; they stood in the panel's foot, outside the group being edited.
+// The confirmation the host asks for takes their place, where Save was pressed.
+// In a panel and on a phone the bar holds the bottom of the scroller while the
+// group is in view, as sf-form's footer="sticky" does for a form's group: Save
+// stays reachable without the rows scrolling through it.
+const groupBarSticky = (context) => Boolean(context.panel || context.sectionsLayout === 'phone');
+function renderGroupEditBar(context) {
+    if (context.confirmation) return renderConfirmation(context, {inGroup: true});
+    return html`
+        <div class="sf-property-view-actions sf-property-view-actions--group flex items-cross-center gap-1/3 flex-wrap" role="group"
+             ?data-sticky=${groupBarSticky(context)}>
+            <sf-button
+                    appearance="default"
+                    size=${context.controlSize ?? nothing}
+                    text=${context.saveText}
+                    data-action="save"
+                    @click=${() => context.component.saveGroup()}
+            ></sf-button>
+            <sf-button
+                    appearance="ghost"
+                    scheme="on-surface"
+                    size=${context.controlSize ?? nothing}
+                    text=${context.cancelText}
+                    data-action="cancel"
+                    @click=${() => context.component.cancelEdit()}
+            ></sf-button>
+            ${context.errors.size
+                    ? html`<span class="sf-property-view-errors color-error">${context.errorsText}: ${context.errors.size}</span>`
+                    : nothing}
+            ${context.conflict
+                    ? html`<span class="sf-property-view-conflict color-error" role="alert">${context.conflict}</span>`
+                    : nothing}
         </div>
     `;
 }
@@ -1252,39 +1295,20 @@ function renderActions(context, {panel = false} = {}) {
     // saving a record and arranging the view it is read in are two modes, and a
     // bar holding both would offer a save for something nobody was editing.
     if (context.configuring) return renderConfigureBar(context);
-    if (context.editing && context.confirmation) return renderConfirmation(context);
-    // A panel's foot holds the host's own actions, slotted as `footer`, and
-    // the group's Save and Cancel. Deleting is a row of the head's «⋯» (C289
-    // (3), C180 (2)): a foot stands for two actions or more, never for one delete.
+    if (context.editing && context.confirmation && context.formEdit) return renderConfirmation(context);
+    // A panel's foot holds the host's own actions, slotted as `footer`.
+    // Deleting is a row of the head's «⋯» (C289 (3), C180 (2)): a foot stands
+    // for two actions or more, never for one delete.
     const hosted = panel && context.hasHostSlot('footer');
-    // sf-form carries its own Save and Cancel.
-    const own = context.editing && !context.formEdit;
-    if (!own && !hosted && !(context.editing && context.conflict)) return nothing;
+    // sf-form carries its own Save and Cancel, and a group edited in place
+    // its own under its rows, with what went wrong (renderGroupEditBar, view
+    // round 20). A conflict of a form's save is said here.
+    const conflict = context.editing && context.formEdit && context.conflict;
+    if (!hosted && !conflict) return nothing;
 
     return html`
         <div class="sf-property-view-actions flex items-cross-center gap-1/3 flex-wrap" role="group">
-            ${own
-                    ? html`
-                        <sf-button
-                                appearance="default"
-                                size=${context.controlSize ?? nothing}
-                                text=${context.saveText}
-                                data-action="save"
-                                @click=${() => context.component.saveGroup()}
-                        ></sf-button>
-                        <sf-button
-                                appearance="ghost"
-                                scheme="on-surface"
-                                size=${context.controlSize ?? nothing}
-                                text=${context.cancelText}
-                                data-action="cancel"
-                                @click=${() => context.component.cancelEdit()}
-                        ></sf-button>`
-                    : nothing}
-            ${own && context.errors.size
-                    ? html`<span class="sf-property-view-errors color-error">${context.errorsText}: ${context.errors.size}</span>`
-                    : nothing}
-            ${context.conflict
+            ${conflict
                     ? html`<span class="sf-property-view-conflict color-error" role="alert">${context.conflict}</span>`
                     : nothing}
             <span class="grow"></span>
@@ -1846,7 +1870,7 @@ function renderLoading(context) {
     // row stood 32px taller (24px at 1/2) than the tabs that replaced it.
     // The root is not .sf-tabs: that class is the tabs script's to bind.
     const tabs = html`<div class="sf-property-view-tabs sf-property-view-tabs--skeleton" aria-hidden="true" data-sf-skeleton="tabs" data-sections-as=${context.sectionsLayout === 'tabs' ? 'tabs' : 'list'} data-size=${context.size}><div class="sf-tabs-top-container"><div class="sf-property-view-tabs-skeleton-strip flex items-cross-center gap-2">${[0, 1, 2].map((at) => html`<div class="flex-none" style="inline-size: 6rem">${bar(at + 3)}</div>`)}</div></div></div>`;
-    return html`${tabs}<div class="sf-property-view-loading flex flex-col gap-4" data-state="loading">${Array.from({length: SKELETON_GROUPS}, (_, group) => html`<section class="sf-property-view-group ${groupSurface(context)} flex flex-col gap-2" aria-busy="true"><header class="sf-property-view-group-header flex items-cross-center content-main-between gap-2"><div class="flex-1">${bar(group)}</div></header>${Array.from({length: SKELETON_FIELDS}, (_, field) => bar(group + field + 1))}</section>`)}<span class="sr-only" role="status">${context.message}</span></div>`;
+    return html`${tabs}<div class="sf-property-view-loading ${context.onPage ? 'sf-property-view-layout--ground' : ''} flex flex-col gap-4" data-state="loading">${Array.from({length: SKELETON_GROUPS}, (_, group) => html`<section class="sf-property-view-group ${groupSurface(context)} flex flex-col gap-2" aria-busy="true"><header class="sf-property-view-group-header flex items-cross-center content-main-between gap-2"><div class="flex-1">${bar(group)}</div></header>${Array.from({length: SKELETON_FIELDS}, (_, field) => bar(group + field + 1))}</section>`)}<span class="sr-only" role="status">${context.message}</span></div>`;
 }
 
 function renderLoadFailure(context) {
@@ -1900,7 +1924,7 @@ function renderBody(context, railOutside = false, withActions = true) {
                 ${renderMenuControl(context)}` : nothing)}
         ${onPhoneSectionList(context, sections) ? renderPhoneSectionList(context, sections) : nothing}
         ${lineTabsDrawn(context, sections) ? renderSectionTabs(context, sections) : nothing}
-        <div class="sf-property-view-layout"
+        <div class="sf-property-view-layout ${context.onPage ? 'sf-property-view-layout--ground' : ''}"
              @pointerdown=${(event) => context.component.sectionSwipeStart(event)}
              style=${`--sf-property-view--sections-width: ${context.sectionsWidth};${context.panel ? '' : sizeStyle(context)}`}
              data-sections=${String(sections.length)}
@@ -1918,7 +1942,8 @@ function renderBody(context, railOutside = false, withActions = true) {
                     : nothing}
             ${onPhoneSectionList(context, sections) ? nothing : context.configuring
                     ? html`
-                        <div class="sf-property-view-body flex-auto min-w-0 flex flex-col gap-4">
+                        <div class="sf-property-view-body flex-auto min-w-0 flex flex-col gap-4" data-arranging
+                             data-size=${context.size === '1/2' ? 'half' : '1'}>
                             ${sectionsStacked(context) ? nothing : renderConfigureTop(context)}
                             ${renderSectionBar(context, current, sections.length)}
                             <sf-sortable

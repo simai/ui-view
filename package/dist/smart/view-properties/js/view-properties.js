@@ -1341,6 +1341,30 @@ class SfPropertyView extends PropertyViewElement {
 
   get full() {
     return this.getBooleanAttr("full", false);
+  } // The record is the page (VL-85, View round 20 r2, DEV decision
+  // 2026-11-27): not a panel, and no other component above it. Only then
+  // does it draw its own grey ground under its white groups. A card inside
+  // another component -- a chat message's answer, an editor's block --
+  // stays as that component draws it: the ground there doubled the host's
+  // own and grew a chat card by 32 px. The walk crosses shadow roots, so a
+  // card in a component's shadow tree is that component's too.
+
+
+  get standsOnPage() {
+    if (this.panel) return false;
+    let node = this.parentNode;
+
+    while (node) {
+      if (node.nodeType === 11) {
+        node = node.host ?? null;
+        continue;
+      }
+
+      if (node.nodeType === 1 && node.localName.includes("-")) return false;
+      node = node.parentNode;
+    }
+
+    return true;
   }
 
   set full(value) {
@@ -3232,6 +3256,7 @@ class SfPropertyView extends PropertyViewElement {
       // why in sf-empty-state.
       loading: this.getAttribute("data-state") === "loading" && !this.record,
       panel: this.panel,
+      onPage: this.standsOnPage,
       panelOpen: this.panelOpen,
       // The set's own strip ground in a panel, until the pair's sf-tabs
       // paints it (component.tabs 1.5.4).
@@ -5339,9 +5364,16 @@ class SfPropertyView extends PropertyViewElement {
     // read the record again).
 
     if (!this.viewRequired) {
+      // A draft change was drawn at once: the field moved in the sections
+      // held here (a hidden one went to `unplaced`). Dropping only the
+      // draft left it there, so the next «Настроить вид» showed the field
+      // still hidden (View round 20, VL-93). The record is read again --
+      // a read, not a write -- and draws the arrangement the host holds.
+      const drawn = this.layerDirty;
       if (this.arrangementEntered) this.layerDraft = copy(this.arrangementEntered.view);
       this.layerDirty = false;
       this.stopConfiguringView();
+      if (drawn) await this.load("view-cancel");
       this.requestComponentUpdate("view-cancel");
       return true;
     } // A required view wrote nothing: what was drawn is read again.
@@ -6975,9 +7007,19 @@ function renderFieldValue(context, field, editing, {
   // audit A-14). This view drew its own pair -- the day in a datepicker and
   // the time in a masked field -- which cut the day short in a half-width
   // field and held half-typed entries of its own.
+  // A person the host lists with the field itself (`options`, the user
+  // type's choices) is chosen from that list when the host has no picker of
+  // pages (capability field-options): the renderer set's lookup over an
+  // inline list, whose value is the same {value, label}. It fell back to
+  // the read-only name, so «Изменить» on a group showed «Менеджер» as text
+  // (VL-90 SB-C13, view round 20).
 
 
-  const content = editing ? (0,_view_common_field_renderers_js__WEBPACK_IMPORTED_MODULE_1__.renderEditField)(field, context.changed.has(key) ? context.changed.get(key) : field.value, editHost, // A field its condition turns off is drawn disabled where the set
+  const listed = editing && (field.propertyType || field.type) === 'user' && !context.canPickRecords && Array.isArray(field.options) && field.options.length > 0;
+  const content = editing ? (0,_view_common_field_renderers_js__WEBPACK_IMPORTED_MODULE_1__.renderEditField)(listed ? { ...field,
+    type: 'lookup',
+    propertyType: 'lookup'
+  } : field, context.changed.has(key) ? context.changed.get(key) : field.value, editHost, // A field its condition turns off is drawn disabled where the set
   // draws disabled apart from read-only (a choice as buttons).
   {
     size: context.size,
@@ -9110,11 +9152,14 @@ function renderField(context, field, editing, sectionKey = '', groupKey = '') {
              data-sf-sortable-item=${context.configuring ? key : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
              data-arranging=${context.configuring ? 'true' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
              data-hidden=${context.configuring && field.hidden ? 'true' : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}>
-            ${context.configuring ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<i class="sf-icon sf-property-view-grip items-cross-center" data-sf-sortable-handle
-                              aria-hidden="true">drag_indicator</i>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
             <!-- Reading: the label is quieter than its value. Editing: a form
-                 field's label, in the text colour with its «*» (C153 (1), (2)). -->
+                 field's label, in the text colour with its «*» (C153 (1), (2)).
+                 Arranging: the handle opens the label's cell, so the label
+                 column ends where the reading one ends and the value starts
+                 where it starts (SB-C15, VL-95). -->
             <div class="sf-property-view-field-label flex items-cross-center gap-1/3 ${editing ? 'color-on-surface' : 'color-on-surface-variant'}">
+                ${context.configuring ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<i class="sf-icon sf-property-view-grip items-cross-center" data-sf-sortable-handle
+                                  aria-hidden="true">drag_indicator</i>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                 ${String(field.label ?? key)}
                 ${field.required && editing ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-property-view-required" aria-hidden="true">*</span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                 ${field.hint // The hint is the Framework's own affordance for a hint,
@@ -9375,6 +9420,7 @@ function renderGroup(context, section, group) {
                             ></sf-button></span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                 </div>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
                 ${fields.length ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<div class="sf-list-description-part sf-property-view-group-fields" role="group" aria-label=${String(group.label ?? groupKey)}>${fields.map(field => renderEditRow(context, field))}</div>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                ${renderGroupEditBar(context)}
             </section>`;
   }
 
@@ -9728,12 +9774,15 @@ function sizeStyle(context) {
 // what was entered.
 
 
-function renderConfirmation(context) {
+function renderConfirmation(context, {
+  inGroup = false
+} = {}) {
   // The Framework's question in place (C289, C182; sf-confirm inline, C166):
   // the host's words and the two answers where Save was pressed. It was a bar
   // of this component's own.
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
-        <div class="sf-property-view-actions sf-property-view-confirm" data-confirming="true">
+        <div class="sf-property-view-actions ${inGroup ? 'sf-property-view-actions--group' : ''} sf-property-view-confirm" data-confirming="true"
+             ?data-sticky=${inGroup && groupBarSticky(context)}>
             <sf-confirm
                     appearance="inline"
                     size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
@@ -9746,6 +9795,43 @@ function renderConfirmation(context) {
     if (event.detail?.accepted) context.component.confirmSave();else context.component.cancelConfirmation();
   }}
             ></sf-confirm>
+        </div>
+    `;
+} // Save and Cancel of a group edited in place (S-B SB-C13, VL-90, view round
+// 20): under the group's last row, inside the group, so they read as the
+// group's; they stood in the panel's foot, outside the group being edited.
+// The confirmation the host asks for takes their place, where Save was pressed.
+// In a panel and on a phone the bar holds the bottom of the scroller while the
+// group is in view, as sf-form's footer="sticky" does for a form's group: Save
+// stays reachable without the rows scrolling through it.
+
+
+const groupBarSticky = context => Boolean(context.panel || context.sectionsLayout === 'phone');
+
+function renderGroupEditBar(context) {
+  if (context.confirmation) return renderConfirmation(context, {
+    inGroup: true
+  });
+  return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
+        <div class="sf-property-view-actions sf-property-view-actions--group flex items-cross-center gap-1/3 flex-wrap" role="group"
+             ?data-sticky=${groupBarSticky(context)}>
+            <sf-button
+                    appearance="default"
+                    size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                    text=${context.saveText}
+                    data-action="save"
+                    @click=${() => context.component.saveGroup()}
+            ></sf-button>
+            <sf-button
+                    appearance="ghost"
+                    scheme="on-surface"
+                    size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+                    text=${context.cancelText}
+                    data-action="cancel"
+                    @click=${() => context.component.cancelEdit()}
+            ></sf-button>
+            ${context.errors.size ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-property-view-errors color-error">${context.errorsText}: ${context.errors.size}</span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+            ${context.conflict ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-property-view-conflict color-error" role="alert">${context.conflict}</span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
         </div>
     `;
 } // The foot of a surface open all at once: Create or Save, and Cancel, with
@@ -9811,34 +9897,19 @@ function renderActions(context, {
   // bar holding both would offer a save for something nobody was editing.
 
   if (context.configuring) return renderConfigureBar(context);
-  if (context.editing && context.confirmation) return renderConfirmation(context); // A panel's foot holds the host's own actions, slotted as `footer`, and
-  // the group's Save and Cancel. Deleting is a row of the head's «⋯» (C289
-  // (3), C180 (2)): a foot stands for two actions or more, never for one delete.
+  if (context.editing && context.confirmation && context.formEdit) return renderConfirmation(context); // A panel's foot holds the host's own actions, slotted as `footer`.
+  // Deleting is a row of the head's «⋯» (C289 (3), C180 (2)): a foot stands
+  // for two actions or more, never for one delete.
 
-  const hosted = panel && context.hasHostSlot('footer'); // sf-form carries its own Save and Cancel.
+  const hosted = panel && context.hasHostSlot('footer'); // sf-form carries its own Save and Cancel, and a group edited in place
+  // its own under its rows, with what went wrong (renderGroupEditBar, view
+  // round 20). A conflict of a form's save is said here.
 
-  const own = context.editing && !context.formEdit;
-  if (!own && !hosted && !(context.editing && context.conflict)) return lit__WEBPACK_IMPORTED_MODULE_0__.nothing;
+  const conflict = context.editing && context.formEdit && context.conflict;
+  if (!hosted && !conflict) return lit__WEBPACK_IMPORTED_MODULE_0__.nothing;
   return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
         <div class="sf-property-view-actions flex items-cross-center gap-1/3 flex-wrap" role="group">
-            ${own ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
-                        <sf-button
-                                appearance="default"
-                                size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
-                                text=${context.saveText}
-                                data-action="save"
-                                @click=${() => context.component.saveGroup()}
-                        ></sf-button>
-                        <sf-button
-                                appearance="ghost"
-                                scheme="on-surface"
-                                size=${context.controlSize ?? lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
-                                text=${context.cancelText}
-                                data-action="cancel"
-                                @click=${() => context.component.cancelEdit()}
-                        ></sf-button>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
-            ${own && context.errors.size ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-property-view-errors color-error">${context.errorsText}: ${context.errors.size}</span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
-            ${context.conflict ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-property-view-conflict color-error" role="alert">${context.conflict}</span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
+            ${conflict ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<span class="sf-property-view-conflict color-error" role="alert">${context.conflict}</span>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
             <span class="grow"></span>
             ${hosted ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<div class="sf-property-view-host-footer flex flex-wrap items-cross-center gap-1/3">${context.hostSlot('footer')}</div>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
         </div>
@@ -10388,7 +10459,7 @@ function renderLoading(context) {
 
 
   const tabs = (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<div class="sf-property-view-tabs sf-property-view-tabs--skeleton" aria-hidden="true" data-sf-skeleton="tabs" data-sections-as=${context.sectionsLayout === 'tabs' ? 'tabs' : 'list'} data-size=${context.size}><div class="sf-tabs-top-container"><div class="sf-property-view-tabs-skeleton-strip flex items-cross-center gap-2">${[0, 1, 2].map(at => (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<div class="flex-none" style="inline-size: 6rem">${bar(at + 3)}</div>`)}</div></div></div>`;
-  return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`${tabs}<div class="sf-property-view-loading flex flex-col gap-4" data-state="loading">${Array.from({
+  return (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`${tabs}<div class="sf-property-view-loading ${context.onPage ? 'sf-property-view-layout--ground' : ''} flex flex-col gap-4" data-state="loading">${Array.from({
     length: SKELETON_GROUPS
   }, (_, group) => (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<section class="sf-property-view-group ${groupSurface(context)} flex flex-col gap-2" aria-busy="true"><header class="sf-property-view-group-header flex items-cross-center content-main-between gap-2"><div class="flex-1">${bar(group)}</div></header>${Array.from({
     length: SKELETON_FIELDS
@@ -10445,7 +10516,7 @@ function renderBody(context, railOutside = false, withActions = true) {
                 ${renderMenuControl(context)}` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing)}
         ${onPhoneSectionList(context, sections) ? renderPhoneSectionList(context, sections) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
         ${lineTabsDrawn(context, sections) ? renderSectionTabs(context, sections) : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
-        <div class="sf-property-view-layout"
+        <div class="sf-property-view-layout ${context.onPage ? 'sf-property-view-layout--ground' : ''}"
              @pointerdown=${event => context.component.sectionSwipeStart(event)}
              style=${`--sf-property-view--sections-width: ${context.sectionsWidth};${context.panel ? '' : sizeStyle(context)}`}
              data-sections=${String(sections.length)}
@@ -10458,7 +10529,8 @@ function renderBody(context, railOutside = false, withActions = true) {
             ${context.isEmptyRecord && !context.configuring ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`<p class="sf-property-view-empty-record color-on-surface-variant"
                               role="status">${context.emptyRecordText}</p>` : lit__WEBPACK_IMPORTED_MODULE_0__.nothing}
             ${onPhoneSectionList(context, sections) ? lit__WEBPACK_IMPORTED_MODULE_0__.nothing : context.configuring ? (0,lit__WEBPACK_IMPORTED_MODULE_0__.html)`
-                        <div class="sf-property-view-body flex-auto min-w-0 flex flex-col gap-4">
+                        <div class="sf-property-view-body flex-auto min-w-0 flex flex-col gap-4" data-arranging
+                             data-size=${context.size === '1/2' ? 'half' : '1'}>
                             ${sectionsStacked(context) ? lit__WEBPACK_IMPORTED_MODULE_0__.nothing : renderConfigureTop(context)}
                             ${renderSectionBar(context, current, sections.length)}
                             <sf-sortable
@@ -10779,7 +10851,7 @@ module.exports = /*#__PURE__*/JSON.parse('{"$comment":"Dated aliases of sf-view-
 /***/ "3ea81f4c3c20"
 (module) {
 
-module.exports = /*#__PURE__*/JSON.parse('{"id":"smart.view-properties","tag":"sf-view-properties","version":"1.32.1","kind":"leaf","implements":["record-view@1"],"settings":{"add-field-text":{"type":"string","default-from":"runtime.add-field-text"},"add-group-text":{"type":"string","default-from":"runtime.add-group-text"},"add-section-text":{"type":"string","default-from":"runtime.add-section-text"},"back-label":{"type":"string","default-from":"runtime.back-label"},"cancel-configuring-text":{"type":"string","default-from":"runtime.cancel-configuring-text"},"cancel-name-text":{"type":"string","default-from":"runtime.cancel-name-text"},"cancel-text":{"type":"string","default-from":"runtime.cancel-text"},"changed-text":{"type":"string","default-from":"runtime.changed-text"},"close-label":{"type":"string","default-from":"runtime.close-label"},"collection":{"type":"string","default":""},"collection-icon":{"type":"icon","default":""},"collection-label":{"type":"string","default":""},"configure-hint-narrow-text":{"type":"string","default-from":"runtime.configure-hint-narrow-text"},"configure-hint-text":{"type":"string","default-from":"runtime.configure-hint-text"},"configure-text":{"type":"string","default-from":"runtime.configure-text"},"conflict-text":{"type":"string","default-from":"runtime.conflict-text"},"copy-link-label":{"type":"string","default-from":"runtime.copy-link-label"},"delete-text":{"type":"string","default-from":"runtime.delete-text"},"done-configuring-text":{"type":"string","default-from":"runtime.done-configuring-text"},"edit-text":{"type":"string","default-from":"runtime.edit-text"},"empty-record-text":{"type":"string","default-from":"runtime.empty-record-text"},"empty-text":{"type":"string","default-from":"runtime.empty-text"},"errors-text":{"type":"string","default-from":"runtime.errors-text"},"favourite":{"type":"boolean","default":false},"favourite-label":{"type":"string","default-from":"runtime.favourite-label"},"field-label-text":{"type":"string","default-from":"runtime.field-label-text"},"field-settings-text":{"type":"string","default-from":"runtime.field-settings-text"},"hidden-text":{"type":"string","default-from":"runtime.hidden-text"},"hide-rare-text":{"type":"string","default-from":"runtime.hide-rare-text"},"hint-text":{"type":"string","default-from":"runtime.hint-text"},"in-this-group-text":{"type":"string","default-from":"runtime.in-this-group-text"},"inherited-text":{"type":"string","default-from":"runtime.inherited-text"},"link-copied-label":{"type":"string","default-from":"runtime.link-copied-label"},"menu-label":{"type":"string","default-from":"runtime.menu-label"},"move-down-text":{"type":"string","default-from":"runtime.move-down-text"},"move-up-text":{"type":"string","default-from":"runtime.move-up-text"},"new-group-title":{"type":"string","default-from":"runtime.new-group-title"},"new-section-title":{"type":"string","default-from":"runtime.new-section-title"},"no-match-text":{"type":"string","default-from":"runtime.no-match-text"},"open-full-label":{"type":"string","default-from":"runtime.open-full-label"},"panel":{"type":"boolean","default":false},"panel-label":{"type":"string","default":""},"panel-size":{"type":"enum","values":["1/2","1","2","full"],"default":"2"},"size":{"type":"enum","values":["1","1/2"],"default":"1"},"mode":{"type":"enum","values":["view","auto","edit","create"],"default":"auto"},"panel-width":{"type":"string","default":""},"personal-layer-text":{"type":"string","default-from":"runtime.personal-layer-text"},"rare-text":{"type":"string","default-from":"runtime.rare-text"},"record-id":{"type":"id","default":""},"remove-field-text":{"type":"string","default-from":"runtime.remove-field-text"},"remove-group-text":{"type":"string","default-from":"runtime.remove-group-text"},"remove-section-text":{"type":"string","default-from":"runtime.remove-section-text"},"rename-text":{"type":"string","default-from":"runtime.rename-text"},"reset-view-ask-text":{"type":"string","default-from":"runtime.reset-view-ask-text"},"reset-view-text":{"type":"string","default-from":"runtime.reset-view-text"},"save-name-text":{"type":"string","default-from":"runtime.save-name-text"},"save-text":{"type":"string","default-from":"runtime.save-text"},"section-icon-text":{"type":"string","default-from":"runtime.section-icon-text"},"section-icons":{"type":"string","default":""},"sections-as":{"type":"enum","values":["list","tabs"],"default":"list"},"sections-label":{"type":"string","default-from":"runtime.sections-label"},"shared-layer-text":{"type":"string","default-from":"runtime.shared-layer-text"},"show-rare":{"type":"boolean","default":false},"show-rare-text":{"type":"string","default-from":"runtime.show-rare-text"},"shown-text":{"type":"string","default-from":"runtime.shown-text"},"unplaced-hint-text":{"type":"string","default-from":"runtime.unplaced-hint-text"},"unplaced-title":{"type":"string","default-from":"runtime.unplaced-title"},"variant-text":{"type":"string","default-from":"runtime.variant-text"},"view-conflict-text":{"type":"string","default-from":"runtime.view-conflict-text"},"view-denied-text":{"type":"string","default-from":"runtime.view-denied-text"},"width-text":{"type":"string","default-from":"runtime.width-text"},"view-profile-label":{"type":"string","default-from":"runtime.view-profile-label"},"add-view-text":{"type":"string","default-from":"runtime.add-view-text"},"new-view-text":{"type":"string","default-from":"runtime.new-view-text"},"delete-view-text":{"type":"string","default-from":"runtime.delete-view-text"},"last-shared-view-text":{"type":"string","default-from":"runtime.last-shared-view-text"},"full":{"type":"boolean","default":false},"open":{"type":"boolean","default":true},"edit":{"type":"enum","values":["group","group+quick","none"],"default":"group+quick"},"history":{"type":"enum","values":["auto","off"],"default":"auto"},"modal":{"type":"enum","values":["auto","true"],"default":"auto"}},"values":{"revision":{"type":"string"},"section":{"type":"string"}},"events":{"close":{"carries":{"reason":{"type":"enum","values":["close","escape","outside","cancelled","deleted","api"]},"record_id":{"type":"id","nullable":true},"unsaved_fields":{"type":"list"},"asked":{"type":"boolean"}},"cancelable":true},"open-full":{"carries":{"id":"id","address":"string","record_id":{"type":"id","nullable":true}}},"saved":{"carries":{"id":"id","revision":{"type":"string","optional":true}}},"failed":{"carries":{"reason":"string","message":{"type":"string","optional":true}}},"open":{"carries":{"field":"string","value":"object","answer":"string"}},"delete":{"carries":{"collection":"string","revision":"string","answer":"string","record_id":{"type":"id","nullable":true}}},"created":{"carries":{"collection":{"type":"string","nullable":true},"record_id":{"type":"id","nullable":true}}},"cancel":{"carries":{"mode":{"type":"enum","values":["auto","edit","create"]},"scope":{"type":"enum","values":["group"],"optional":true},"section":{"type":"string","optional":true},"group":{"type":"string","optional":true}}},"state":{"carries":{"state":"string","message":"string"},"own-verb":true},"address-copy":{"carries":{},"own-verb":true},"favourite":{"carries":{"collection":{"type":"string","nullable":true},"favourite":"boolean","record_id":{"type":"id","nullable":true}},"own-verb":true},"step":{"carries":{"direction":{"type":"enum","values":["next","previous"]},"record_id":{"type":"id","nullable":true},"next_record_id":{"type":"id","nullable":true}},"cancelable":true,"own-verb":true},"history":{"carries":{"record_id":{"type":"id","nullable":true}},"own-verb":true},"structure":{"carries":{"collection":{"type":"string","nullable":true},"section":{"type":"string","nullable":true},"group":{"type":"string","nullable":true}},"own-verb":true,"cancelable":true}},"actions":{"refresh":{},"load":{"with":{"reason":{"type":"string","optional":true}}},"edit-group":{"with":{"section":"string","group":"string","options":{"type":"object","optional":true}}},"cancel-edit":{},"save-group":{"with":{"options":{"type":"object","optional":true}},"concurrency":"drop"},"select-section":{"with":{"key":"string"}},"close-panel":{"with":{"reason":{"type":"string","optional":true}}},"copy-address":{},"open-full-page":{},"confirm-save":{},"cancel-confirmation":{},"open-history":{},"edit-field":{"with":{"key":"string"}},"step":{"with":{"direction":{"type":"enum","values":["next","previous"]}}}},"port":{"id":"simai.property-view-port","version":"1.18.0","contract":"src/core/contracts/ports/simai.property-view-port/1.18.0/port.json"},"presentation":{"skeleton":{"file":"skeleton.html","late":[]}},"css-variables":{"--sf-view-properties-label-width":{"type":"length","state":"default","x-default":"10rem"},"--sf-view-properties-row-gap":{"type":"length","state":"default","x-default":"8px (--sf-space-1/3)"},"--sf-view-properties-group-gap":{"type":"length","state":"default","x-default":"24px (--sf-space-1)"},"--sf-view-properties-sections-width":{"type":"length","state":"default","x-default":"12rem"},"--sf-view-properties-side-width":{"type":"length","state":"default","x-default":"24rem"},"--sf-view-properties-current-background-color":{"type":"color","state":"default","x-default":"--sf-surface-container"},"--sf-view-properties-saved-background-color":{"type":"color","state":"default","x-default":"--sf-success-container"},"--sf-property-view--sections-width":{"type":"length","state":"default"},"--sf-property-view--title-size":{"type":"length","state":"default"},"--sf-property-view--label-size":{"type":"length","state":"default"},"--sf-property-view--value-size":{"type":"length","state":"default"},"--sf-property-view--group-size":{"type":"length","state":"default"},"--sf-property-view--edge-room":{"type":"length","state":"open"}},"host-states":{"data-state":"string","aria-busy":"string"}}');
+module.exports = /*#__PURE__*/JSON.parse('{"id":"smart.view-properties","tag":"sf-view-properties","version":"1.33.0","kind":"leaf","implements":["record-view@1"],"settings":{"add-field-text":{"type":"string","default-from":"runtime.add-field-text"},"add-group-text":{"type":"string","default-from":"runtime.add-group-text"},"add-section-text":{"type":"string","default-from":"runtime.add-section-text"},"back-label":{"type":"string","default-from":"runtime.back-label"},"cancel-configuring-text":{"type":"string","default-from":"runtime.cancel-configuring-text"},"cancel-name-text":{"type":"string","default-from":"runtime.cancel-name-text"},"cancel-text":{"type":"string","default-from":"runtime.cancel-text"},"changed-text":{"type":"string","default-from":"runtime.changed-text"},"close-label":{"type":"string","default-from":"runtime.close-label"},"collection":{"type":"string","default":""},"collection-icon":{"type":"icon","default":""},"collection-label":{"type":"string","default":""},"configure-hint-narrow-text":{"type":"string","default-from":"runtime.configure-hint-narrow-text"},"configure-hint-text":{"type":"string","default-from":"runtime.configure-hint-text"},"configure-text":{"type":"string","default-from":"runtime.configure-text"},"conflict-text":{"type":"string","default-from":"runtime.conflict-text"},"copy-link-label":{"type":"string","default-from":"runtime.copy-link-label"},"delete-text":{"type":"string","default-from":"runtime.delete-text"},"done-configuring-text":{"type":"string","default-from":"runtime.done-configuring-text"},"edit-text":{"type":"string","default-from":"runtime.edit-text"},"empty-record-text":{"type":"string","default-from":"runtime.empty-record-text"},"empty-text":{"type":"string","default-from":"runtime.empty-text"},"errors-text":{"type":"string","default-from":"runtime.errors-text"},"favourite":{"type":"boolean","default":false},"favourite-label":{"type":"string","default-from":"runtime.favourite-label"},"field-label-text":{"type":"string","default-from":"runtime.field-label-text"},"field-settings-text":{"type":"string","default-from":"runtime.field-settings-text"},"hidden-text":{"type":"string","default-from":"runtime.hidden-text"},"hide-rare-text":{"type":"string","default-from":"runtime.hide-rare-text"},"hint-text":{"type":"string","default-from":"runtime.hint-text"},"in-this-group-text":{"type":"string","default-from":"runtime.in-this-group-text"},"inherited-text":{"type":"string","default-from":"runtime.inherited-text"},"link-copied-label":{"type":"string","default-from":"runtime.link-copied-label"},"menu-label":{"type":"string","default-from":"runtime.menu-label"},"move-down-text":{"type":"string","default-from":"runtime.move-down-text"},"move-up-text":{"type":"string","default-from":"runtime.move-up-text"},"new-group-title":{"type":"string","default-from":"runtime.new-group-title"},"new-section-title":{"type":"string","default-from":"runtime.new-section-title"},"no-match-text":{"type":"string","default-from":"runtime.no-match-text"},"open-full-label":{"type":"string","default-from":"runtime.open-full-label"},"panel":{"type":"boolean","default":false},"panel-label":{"type":"string","default":""},"panel-size":{"type":"enum","values":["1/2","1","2","full"],"default":"2"},"size":{"type":"enum","values":["1","1/2"],"default":"1"},"mode":{"type":"enum","values":["view","auto","edit","create"],"default":"auto"},"panel-width":{"type":"string","default":""},"personal-layer-text":{"type":"string","default-from":"runtime.personal-layer-text"},"rare-text":{"type":"string","default-from":"runtime.rare-text"},"record-id":{"type":"id","default":""},"remove-field-text":{"type":"string","default-from":"runtime.remove-field-text"},"remove-group-text":{"type":"string","default-from":"runtime.remove-group-text"},"remove-section-text":{"type":"string","default-from":"runtime.remove-section-text"},"rename-text":{"type":"string","default-from":"runtime.rename-text"},"reset-view-ask-text":{"type":"string","default-from":"runtime.reset-view-ask-text"},"reset-view-text":{"type":"string","default-from":"runtime.reset-view-text"},"save-name-text":{"type":"string","default-from":"runtime.save-name-text"},"save-text":{"type":"string","default-from":"runtime.save-text"},"section-icon-text":{"type":"string","default-from":"runtime.section-icon-text"},"section-icons":{"type":"string","default":""},"sections-as":{"type":"enum","values":["list","tabs"],"default":"list"},"sections-label":{"type":"string","default-from":"runtime.sections-label"},"shared-layer-text":{"type":"string","default-from":"runtime.shared-layer-text"},"show-rare":{"type":"boolean","default":false},"show-rare-text":{"type":"string","default-from":"runtime.show-rare-text"},"shown-text":{"type":"string","default-from":"runtime.shown-text"},"unplaced-hint-text":{"type":"string","default-from":"runtime.unplaced-hint-text"},"unplaced-title":{"type":"string","default-from":"runtime.unplaced-title"},"variant-text":{"type":"string","default-from":"runtime.variant-text"},"view-conflict-text":{"type":"string","default-from":"runtime.view-conflict-text"},"view-denied-text":{"type":"string","default-from":"runtime.view-denied-text"},"width-text":{"type":"string","default-from":"runtime.width-text"},"view-profile-label":{"type":"string","default-from":"runtime.view-profile-label"},"add-view-text":{"type":"string","default-from":"runtime.add-view-text"},"new-view-text":{"type":"string","default-from":"runtime.new-view-text"},"delete-view-text":{"type":"string","default-from":"runtime.delete-view-text"},"last-shared-view-text":{"type":"string","default-from":"runtime.last-shared-view-text"},"full":{"type":"boolean","default":false},"open":{"type":"boolean","default":true},"edit":{"type":"enum","values":["group","group+quick","none"],"default":"group+quick"},"history":{"type":"enum","values":["auto","off"],"default":"auto"},"modal":{"type":"enum","values":["auto","true"],"default":"auto"}},"values":{"revision":{"type":"string"},"section":{"type":"string"}},"events":{"close":{"carries":{"reason":{"type":"enum","values":["close","escape","outside","cancelled","deleted","api"]},"record_id":{"type":"id","nullable":true},"unsaved_fields":{"type":"list"},"asked":{"type":"boolean"}},"cancelable":true},"open-full":{"carries":{"id":"id","address":"string","record_id":{"type":"id","nullable":true}}},"saved":{"carries":{"id":"id","revision":{"type":"string","optional":true}}},"failed":{"carries":{"reason":"string","message":{"type":"string","optional":true}}},"open":{"carries":{"field":"string","value":"object","answer":"string"}},"delete":{"carries":{"collection":"string","revision":"string","answer":"string","record_id":{"type":"id","nullable":true}}},"created":{"carries":{"collection":{"type":"string","nullable":true},"record_id":{"type":"id","nullable":true}}},"cancel":{"carries":{"mode":{"type":"enum","values":["auto","edit","create"]},"scope":{"type":"enum","values":["group"],"optional":true},"section":{"type":"string","optional":true},"group":{"type":"string","optional":true}}},"state":{"carries":{"state":"string","message":"string"},"own-verb":true},"address-copy":{"carries":{},"own-verb":true},"favourite":{"carries":{"collection":{"type":"string","nullable":true},"favourite":"boolean","record_id":{"type":"id","nullable":true}},"own-verb":true},"step":{"carries":{"direction":{"type":"enum","values":["next","previous"]},"record_id":{"type":"id","nullable":true},"next_record_id":{"type":"id","nullable":true}},"cancelable":true,"own-verb":true},"history":{"carries":{"record_id":{"type":"id","nullable":true}},"own-verb":true},"structure":{"carries":{"collection":{"type":"string","nullable":true},"section":{"type":"string","nullable":true},"group":{"type":"string","nullable":true}},"own-verb":true,"cancelable":true}},"actions":{"refresh":{},"load":{"with":{"reason":{"type":"string","optional":true}}},"edit-group":{"with":{"section":"string","group":"string","options":{"type":"object","optional":true}}},"cancel-edit":{},"save-group":{"with":{"options":{"type":"object","optional":true}},"concurrency":"drop"},"select-section":{"with":{"key":"string"}},"close-panel":{"with":{"reason":{"type":"string","optional":true}}},"copy-address":{},"open-full-page":{},"confirm-save":{},"cancel-confirmation":{},"open-history":{},"edit-field":{"with":{"key":"string"}},"step":{"with":{"direction":{"type":"enum","values":["next","previous"]}}}},"port":{"id":"simai.property-view-port","version":"1.18.0","contract":"src/core/contracts/ports/simai.property-view-port/1.18.0/port.json"},"presentation":{"skeleton":{"file":"skeleton.html","late":[]}},"css-variables":{"--sf-view-properties-label-width":{"type":"length","state":"default","x-default":"10rem"},"--sf-view-properties-row-gap":{"type":"length","state":"default","x-default":"8px (--sf-space-1/3)"},"--sf-view-properties-group-gap":{"type":"length","state":"default","x-default":"24px (--sf-space-1)"},"--sf-view-properties-sections-width":{"type":"length","state":"default","x-default":"12rem"},"--sf-view-properties-side-width":{"type":"length","state":"default","x-default":"24rem"},"--sf-view-properties-current-background-color":{"type":"color","state":"default","x-default":"--sf-surface-container"},"--sf-view-properties-saved-background-color":{"type":"color","state":"default","x-default":"--sf-success-container"},"--sf-property-view--sections-width":{"type":"length","state":"default"},"--sf-property-view--title-size":{"type":"length","state":"default"},"--sf-property-view--label-size":{"type":"length","state":"default"},"--sf-property-view--value-size":{"type":"length","state":"default"},"--sf-property-view--group-size":{"type":"length","state":"default"},"--sf-property-view--edge-room":{"type":"length","state":"open"}},"host-states":{"data-state":"string","aria-busy":"string"}}');
 
 /***/ },
 

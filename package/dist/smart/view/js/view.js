@@ -7529,8 +7529,12 @@ class ListHead {
     // «Сохранить» where «Изменено» stood; it opens the ways out (save for
     // everyone where allowed, «Сохранить как новое», «Сбросить
     // изменения»). Nothing is shown while the view is as saved.
+    // VL-99 (view round 20): its ways out are an ordinary menu, the
+    // page's one menu (SF.menu.open), as every other menu of the head;
+    // the popover stays only as the window «Сохранить как новое» names
+    // the new view in, at this button.
 
-    const changed = pop("state", "bottom-start", `<sf-button slot="trigger" class="sf-view-head-changed" size="${size}" appearance="outline" scheme="primary" icon-start="save" icon-end="expand_more" aria-haspopup="dialog"></sf-button>`);
+    const changed = pop("state", "bottom-start", `<sf-button slot="trigger" class="sf-view-head-changed" size="${size}" appearance="outline" scheme="primary" icon-start="save" icon-end="expand_more" aria-haspopup="menu"></sf-button>`);
     this.root.innerHTML = phone ? `<div class="sf-view-head-title" data-title>
                  <h2 class="sf-view-head-name"><span data-name></span></h2>
                </div>
@@ -7547,7 +7551,7 @@ class ListHead {
                  <sf-button-icon class="sf-view-head-kind-menu" data-kind-menu size="${size}" appearance="ghost" scheme="on-surface" icon="table_rows" aria-haspopup="menu"></sf-button-icon>
                  <sf-button-icon class="sf-view-head-tune sf-view-head-look" data-look size="${size}" appearance="ghost" scheme="on-surface" icon="tune" aria-haspopup="menu"></sf-button-icon>
                  <sf-button-icon class="sf-view-head-columns" data-columns size="${size}" appearance="ghost" scheme="on-surface" icon="view_column" aria-haspopup="dialog"></sf-button-icon>
-                 <sf-button class="sf-view-head-changed" data-head-open="state" size="${size}" appearance="outline" scheme="primary" icon-start="save" icon-end="expand_more" aria-haspopup="dialog" hidden></sf-button>
+                 <sf-button class="sf-view-head-changed" data-state-menu size="${size}" appearance="outline" scheme="primary" icon-start="save" icon-end="expand_more" aria-haspopup="menu" hidden></sf-button>
                </div>
                <sf-drawer data-sheet data-sf-role="head-sheet" placement="bottom"><div slot="content" data-body></div></sf-drawer>` : `<div class="sf-view-head-title" data-title>
                  <h2 class="sf-view-head-name"><span data-name></span></h2>
@@ -8129,7 +8133,16 @@ class ListHead {
     // «Сохранить представление» opened the filter window (VL-48).
 
     const borrowed = popover.__sfViewHeadKind;
-    popover.__sfViewHeadKind = null;
+    popover.__sfViewHeadKind = null; // A press on «Сохранить» opens its menu, not the popover (VL-99).
+
+    if (!borrowed && popover.getAttribute("data-pop") === "state") {
+      event.preventDefault?.();
+
+      this._stateMenu(popover.querySelector(".sf-view-head-changed"));
+
+      return;
+    }
+
     const kind = borrowed ?? popover.getAttribute("data-pop");
     if (["filter", "save", "state", "view-new"].includes(kind) || kind.startsWith("rename:")) popover.setAttribute("label", this._title(kind));
 
@@ -8319,8 +8332,6 @@ class ListHead {
       const item = this.savedFilter(kind.slice(6));
       return `<div class="sf-view-head-actions">${this._savedMenu(item).filter(entry => !entry.kind).map(entry => `<sf-button data-saved-act="${esc(entry.id)}" data-saved-id="${esc(item.id)}" size="${size}" appearance="ghost" scheme="${entry.status === "danger" ? "primary" : "on-surface"}"${entry.status === "danger" ? ' status="danger"' : ""} icon-start="${esc(entry.icon)}" text="${esc(entry.text)}"></sf-button>`).join("")}</div>`;
     }
-
-    if (kind === "state") return this._statePanel();
 
     if (kind === "view-new") {
       const shared = this.permissions.shared_settings || this.permissions.share_views;
@@ -8557,31 +8568,6 @@ class ListHead {
     }
 
     this._applySetting(kind, id, typeof value === "boolean" ? value : String(value ?? ""));
-  } // «Changed» (VS-2, VS-3): what is changed and the ways out -- save for
-  // everyone (where the host allows, never over a system view), save as a
-  // new view, reset to what is saved.
-
-
-  _statePanel() {
-    const size = esc(this.size);
-    const view = this.currentView;
-    const name = String(view?.label ?? view?.name ?? view?.key ?? "");
-    if (!this.viewChanged) return this._note(this.text("headViewStateNone").replace("{name}", name));
-    const shared = (this.permissions.shared_settings || this.permissions.share_views) && this.viewLevel(view) !== "system";
-
-    const button = (act, text, primary) => `<sf-button data-act="${act}" size="${size}"${primary ? "" : ' appearance="outline" scheme="on-surface"'} text="${esc(text)}"></sf-button>`; // A setting changed in «Customize view» is already saved for the
-    // person (C298); a filter or a display kind changed here is not saved.
-
-
-    const mine = Boolean(this._settings && Object.values(this._settings).some(entry => entry && Object.keys(entry).length)); // VL-80 (DEV decision): the ways out are named for what they do --
-    // «Сохранить для всех» where the person may write the shared view,
-    // «Сохранить как новое» (a view of their own, the window
-    // «Сохранить представление» of view-config/1 names it), «Сбросить
-    // изменения» back to the saved view. A view they cannot write (a
-    // system view, locked paths) is kept the same way, as a new view of
-    // their own («Сохранить как моё» before).
-
-    return this._note(this.text(mine ? "headViewStateMine" : "headViewStateUnsaved").replace("{name}", name)) + `<div class="sf-view-head-actions">${shared ? button("view-save-all", this.text("headViewSaveAll"), true) : ""}` + `${button("view-open-new", this.text("headViewSaveNew"), !shared)}${button("view-reset-all", this.text("headViewReset"), false)}</div>`;
   }
 
   _locked() {
@@ -8899,6 +8885,14 @@ class ListHead {
       return;
     }
 
+    const stateMenu = target.closest("[data-state-menu]");
+
+    if (stateMenu) {
+      this._stateMenu(stateMenu);
+
+      return;
+    }
+
     const create = target.closest("[data-create]");
 
     if (create && this.mode === "phone") {
@@ -9030,6 +9024,37 @@ class ListHead {
     };
     this.view.openView?.(key);
     this.render();
+  } // «Сохранить» of a changed view (VL-80, VL-99): an ordinary menu of its
+  // ways out, named for what they do -- «Сохранить для всех» where the
+  // person may write the shared view (never over a system view),
+  // «Сохранить как новое» (a view of their own, named in the window
+  // «Сохранить представление»), «Сбросить изменения» back to the saved
+  // view. The menu is named by the view's state for a screen reader: a
+  // setting changed in «Настроить вид» is already the person's (C298), a
+  // filter or a display kind changed here is not saved. It was a panel of
+  // the same ways as buttons across its width (view round 19).
+
+
+  async _stateMenu(anchor) {
+    if (!anchor || !this.viewChanged) return;
+    const view = this.currentView;
+    const name = String(view?.label ?? view?.name ?? view?.key ?? "");
+    const shared = (this.permissions.shared_settings || this.permissions.share_views) && this.viewLevel(view) !== "system";
+    const mine = Boolean(this._settings && Object.values(this._settings).some(entry => entry && Object.keys(entry).length));
+    const entries = [...(shared ? [{
+      id: "view-save-all",
+      text: this.text("headViewSaveAll")
+    }] : []), {
+      id: "view-open-new",
+      text: this.text("headViewSaveNew")
+    }, {
+      id: "view-reset-all",
+      text: this.text("headViewReset")
+    }];
+    const id = await this._menu(anchor, this.text(mine ? "headViewStateMine" : "headViewStateUnsaved").replace("{name}", name), entries);
+    if (id === "view-open-new") return this._openKind("view-new");
+    if (id === "view-save-all") return this._saveViewForAll();
+    if (id === "view-reset-all") return this._resetView();
   }
 
   async _listMenu(anchor) {
@@ -9393,13 +9418,6 @@ class ListHead {
           return;
         }
 
-      case "view-open-new":
-        this._closeOpen();
-
-        this._openKind("view-new");
-
-        return;
-
       case "view-save-new":
         {
           const label = value("[data-name]").trim();
@@ -9431,58 +9449,47 @@ class ListHead {
           return;
         }
 
-      case "view-save-all":
-        {
-          const view = this.currentView;
-
-          this._closeOpen();
-
-          if (!view) return;
-          if (this._settings?.[this.kind]) this._saveSettings("shared", this._kindSettings(this.kind));
-          this.view.saveView?.({
-            key: view.key,
-            label: view.label ?? view.name ?? view.key,
-            revision: view.revision,
-            level: "shared",
-            roles: view.roles,
-            settings: { ...(view.settings ?? {}),
-              filter_fields: this.chosen,
-              layout: this.kind
-            }
-          });
-          this._settings = null;
-          return;
-        }
-
-      case "view-reset-all":
-        {
-          const view = this.currentView;
-
-          this._closeOpen();
-
-          if (!view) return;
-
-          if (this._settings) {
-            this._settings = null;
-
-            this._saveSettings("personal", null);
-          }
-
-          const filters = copy(view.query?.filters ?? view.filters ?? {});
-          const fields = Array.isArray(view.settings?.filter_fields) ? view.settings.filter_fields.map(String) : Object.keys(filters);
-          const layout = this.viewKind(view);
-          if (typeof layout === "string" && layout !== this.kind && this.kinds.includes(layout)) this._setKind(layout);
-
-          this._query({
-            filters,
-            filters_chosen: fields
-          });
-
-          return;
-        }
-
       default:
     }
+  }
+
+  _saveViewForAll() {
+    const view = this.currentView;
+    if (!view) return;
+    if (this._settings?.[this.kind]) this._saveSettings("shared", this._kindSettings(this.kind));
+    this.view.saveView?.({
+      key: view.key,
+      label: view.label ?? view.name ?? view.key,
+      revision: view.revision,
+      level: "shared",
+      roles: view.roles,
+      settings: { ...(view.settings ?? {}),
+        filter_fields: this.chosen,
+        layout: this.kind
+      }
+    });
+    this._settings = null;
+  }
+
+  _resetView() {
+    const view = this.currentView;
+    if (!view) return;
+
+    if (this._settings) {
+      this._settings = null;
+
+      this._saveSettings("personal", null);
+    }
+
+    const filters = copy(view.query?.filters ?? view.filters ?? {});
+    const fields = Array.isArray(view.settings?.filter_fields) ? view.settings.filter_fields.map(String) : Object.keys(filters);
+    const layout = this.viewKind(view);
+    if (typeof layout === "string" && layout !== this.kind && this.kinds.includes(layout)) this._setKind(layout);
+
+    this._query({
+      filters,
+      filters_chosen: fields
+    });
   }
 
   _activeFilters() {
@@ -9805,7 +9812,7 @@ module.exports = /*#__PURE__*/JSON.parse('{"$comment":"Dated aliases of sf-view 
 /***/ "7086146c00cc"
 (module) {
 
-module.exports = /*#__PURE__*/JSON.parse('{"id":"smart.view","tag":"sf-view","version":"1.40.1","kind":"leaf","settings":{"chrome":{"type":"string","default":"toolbar pagination select settings"},"head":{"type":"enum","values":["","list"],"default":""},"heading":{"type":"string","default":""},"row-cap":{"type":"number","default":0,"integer":true,"min":0},"expected-columns":{"type":"number","default":4,"integer":true,"min":1},"list-shape":{"type":"string","default":""},"port-owner":{"type":"string","default":""},"port-record":{"type":"string","default":""},"port-group":{"type":"string","default":""},"size":{"type":"enum","values":["1/2","1"],"default":"1"},"layout":{"type":"enum","values":["auto","table","list","board","cards","calendar"],"default":"auto"},"layout-switch":{"type":"boolean","default":false},"list-below":{"type":"number","default":600},"quick-actions":{"type":"string","default":""},"row-open":{"type":"enum","values":["title","row"],"default":"title"},"list-roles":{"type":"string","default":""},"column-search-placeholder":{"type":"string"},"column-search-empty-text":{"type":"string"},"column-move-label":{"type":"string"},"filter-apply-text":{"type":"string"},"show-more-text":{"type":"string"},"selected-label":{"type":"string"},"total-label":{"type":"string"},"pages-label":{"type":"string"},"first-label":{"type":"string"},"previous-label":{"type":"string"},"page-label":{"type":"string"},"next-label":{"type":"string"},"last-label":{"type":"string"},"page-field-label":{"type":"string"},"action-choose-label":{"type":"string"},"actions-label":{"type":"string"},"actions-region-label":{"type":"string"},"clear-selection-label":{"type":"string"},"page-size-label":{"type":"string"},"pagination-aria-label":{"type":"string"},"paging":{"type":"enum","values":["pages","more","both","endless"],"default":"both"},"preferences-key":{"type":"string","default":""},"accept-files":{"type":"boolean","default":false},"collection":{"type":"string","default":""},"current":{"type":"string","default":""},"record-card":{"type":"string","default":""},"bulk-actions":{"type":"list","of":{"id":"string","label":"string","icon":{"type":"icon","optional":true}}},"first-answer":{"type":"object","optional":true}},"values":{"state":{"type":"state"},"total":{"type":"number","nullable":true},"selected":{"type":"id","optional":true},"selection":{"type":"list"}},"events":{"open":{"carries":{"id":"id"},"cancelable":true},"deleted":{"carries":{"ids":"list"}},"answer":{"carries":{"intent":{"type":"string"},"answer":{"type":"enum","values":["applied","conflict","refused","unavailable"],"schema":{"type":"string"}},"reason":{"type":"string","optional":true},"message":{"type":"string","optional":true},"data":{"type":"object","optional":true},"sequence":{"type":"number","integer":true,"optional":true},"effects":{"type":"list","optional":true},"instance_id":{"type":"string"}},"own-verb":true},"state":{"carries":{"state":{"type":"enum","values":["loading","populated","empty","error","no-access"],"schema":{"type":"string"}},"message":{"type":"string"},"instance_id":{"type":"string"}},"own-verb":true},"tree":{"carries":{"intent":"string","payload":{"type":"object","optional":true}},"own-verb":true},"files-drop":{"carries":{"files":{"type":"list","schema":{"items":{"type":"object"},"minItems":1}}},"own-verb":true},"pagination-count":{"shared":"count-on-request@1","carries":{"component":{"type":"object"},"tagName":{"type":"string"},"template":{"type":"string"},"reason":{"type":"enum","values":["total","last-page","action-for-all"],"schema":{"type":"string"}},"current":{"type":"number","integer":true},"pageSize":{"type":"number","integer":true}}},"save":{"carries":{"kind":{"type":"enum","values":["view"],"optional":true},"key":{"type":"string"},"label":{"type":"string"},"revision":{"type":"string","schema":{"type":["string","integer"]},"optional":true},"roles":{"type":"object","optional":true}}},"table-action-intent":{"shared":"table-intents@1","carries":{"action_id":{"type":"string","schema":{"minLength":1}},"record_ids":{"type":"list","schema":{"items":{"type":["string","integer"]},"minItems":1}}}},"table-column-settings-change":{"shared":"table-intents@1","carries":{"reason":{"type":"string"},"columnSettings":{"type":"object"},"tableSettingsKey":{"type":"string"},"target":{"type":"enum","values":["personal","shared"],"schema":{"type":"string"},"optional":true},"base_revision":{"type":"string","schema":{"type":["string","number"]},"optional":true}}},"table-column-settings-reset":{"shared":"table-intents@1","carries":{"target":{"type":"enum","values":["personal"],"schema":{"type":"string"}},"tableSettingsKey":{"type":"string","schema":{"type":["string","null"]}}}},"table-create-intent":{"shared":"table-intents@1","carries":{"item":{"type":"string","schema":{"type":["string","null"]}}}},"table-query-intent":{"shared":"table-intents@1","carries":{"reason":{"type":"enum","values":["context"]},"context":{"type":"object"},"sequence":{"type":"number","integer":true,"schema":{"minimum":1}}}},"table-template-delete":{"shared":"table-intents@1","carries":{"key":{"type":"string","schema":{"minLength":1}}}},"table-template-save":{"shared":"table-intents@1","carries":{"templates":{"type":"list","of":{"key":"string","label":"string","selected":"boolean","data":"object","settings":"object"},"schema":{"items":{"type":"object","required":["key","label","settings"],"properties":{"key":{"type":"string"},"label":{"type":"string"},"selected":{"type":"boolean"},"data":{"type":"object"},"settings":{"type":"object","properties":{"filter_fields":{"type":"array","items":{"type":"string"}}}}}},"minItems":1}}},"x-decision":"Event detail that is not a flat object (decision 2026-11-09, control/evidence/2026-11-09-pro-queue): a non-flat detail is a flat carries map whose fields carry the nesting -- §4.2 types, `of` for a list\'s entries and `schema` for what the manifest checks; a detail that is not an object (§8) is carried in a named field, and its old shape stays on the dated alias names with mode split and the element\'s adapter. template-save carries templates, a list of one or more templates; sf-table-template-save and onTemplateSave keep the 1.3 detail (the template object, or the array of them) through sfAliasAdapters. sf-view reads detail.templates and, until 2027-01-01, a bare template or array from a table before sf-view-table 1.16.0."},"table-template-select":{"shared":"table-intents@1","carries":{"key":{"type":"string","schema":{"minLength":1}}}},"host-port-request":{"shared":"host-port@1","carries":{"component":{"type":"object","optional":true},"context":{"type":"object","optional":true}}},"list-open":{"carries":{"reason":{"type":"id","schema":{"enum":["row-cap"]}},"query":{"type":"object"}}},"table-cell-set":{"shared":"table-intents@1","carries":{"id":{"type":"string","schema":{"type":["string","integer"]}},"key":{"type":"string"},"value":{"type":"id"},"revision":{"type":"string","schema":{"type":["string","integer","null"]}}}},"table-rows-reorder":{"shared":"table-intents@1","carries":{"ids":{"type":"list","schema":{"items":{"type":"string"},"minItems":1}},"before":{"type":"string","schema":{"type":["string","null"]}},"order":{"type":"list","schema":{"items":{"type":"string"}}}}},"display-change":{"carries":{"kind":{"type":"enum","values":["table","board","cards","calendar","list","tree"]},"previous":{"type":"string"}},"cancelable":true},"settings-open":{"carries":{"id":{"type":"enum","values":["rights","export","record-field-add"]}}}},"actions":{"refresh":{"with":{"reason":{"type":"string","optional":true}}},"change-query":{"with":{"patch":"object","reason":{"type":"string","optional":true}},"concurrency":"latest"},"open-view":{"with":{"key":"string"}},"save-view":{"with":{"view":{"type":"object"}},"concurrency":"drop"},"delete-view":{"with":{"key":"string"},"concurrency":"drop"},"apply-under-filter":{"with":{"action-id":"string","confirmed-total":"number"},"concurrency":"drop"},"reset-column-settings":{},"clear-selection":{},"notify":{"with":{"text":"string","options":{"type":"object","optional":true}}}},"port":{"id":"simai.dataview-port","version":"1.15.0","contract":"src/core/contracts/ports/simai.dataview-port/1.15.0/port.json"},"presentation":{"skeleton":{"late":[]}},"css-variables":{"--sf-data-view-gap":{"type":"length","state":"default"},"--sf-data-view-drop-border-color":{"type":"color","state":"dragged-over"},"--sf-data-view-drop-background-color":{"type":"color","state":"dragged-over"},"--sf-data-view-drop-color":{"type":"color","state":"dragged-over"},"--sf-data-view-toolbar-gap":{"type":"length","state":"default"}},"host-states":{"data-state":"string","aria-busy":"string"}}');
+module.exports = /*#__PURE__*/JSON.parse('{"id":"smart.view","tag":"sf-view","version":"1.41.0","kind":"leaf","settings":{"chrome":{"type":"string","default":"toolbar pagination select settings"},"head":{"type":"enum","values":["","list"],"default":""},"heading":{"type":"string","default":""},"row-cap":{"type":"number","default":0,"integer":true,"min":0},"expected-columns":{"type":"number","default":4,"integer":true,"min":1},"list-shape":{"type":"string","default":""},"port-owner":{"type":"string","default":""},"port-record":{"type":"string","default":""},"port-group":{"type":"string","default":""},"size":{"type":"enum","values":["1/2","1"],"default":"1"},"layout":{"type":"enum","values":["auto","table","list","board","cards","calendar"],"default":"auto"},"layout-switch":{"type":"boolean","default":false},"list-below":{"type":"number","default":600},"quick-actions":{"type":"string","default":""},"row-open":{"type":"enum","values":["title","row"],"default":"title"},"list-roles":{"type":"string","default":""},"column-search-placeholder":{"type":"string"},"column-search-empty-text":{"type":"string"},"column-move-label":{"type":"string"},"filter-apply-text":{"type":"string"},"show-more-text":{"type":"string"},"selected-label":{"type":"string"},"total-label":{"type":"string"},"pages-label":{"type":"string"},"first-label":{"type":"string"},"previous-label":{"type":"string"},"page-label":{"type":"string"},"next-label":{"type":"string"},"last-label":{"type":"string"},"page-field-label":{"type":"string"},"action-choose-label":{"type":"string"},"actions-label":{"type":"string"},"actions-region-label":{"type":"string"},"clear-selection-label":{"type":"string"},"page-size-label":{"type":"string"},"pagination-aria-label":{"type":"string"},"paging":{"type":"enum","values":["pages","more","both","endless"],"default":"both"},"preferences-key":{"type":"string","default":""},"accept-files":{"type":"boolean","default":false},"collection":{"type":"string","default":""},"current":{"type":"string","default":""},"record-card":{"type":"string","default":""},"bulk-actions":{"type":"list","of":{"id":"string","label":"string","icon":{"type":"icon","optional":true}}},"first-answer":{"type":"object","optional":true}},"values":{"state":{"type":"state"},"total":{"type":"number","nullable":true},"selected":{"type":"id","optional":true},"selection":{"type":"list"}},"events":{"open":{"carries":{"id":"id"},"cancelable":true},"deleted":{"carries":{"ids":"list"}},"answer":{"carries":{"intent":{"type":"string"},"answer":{"type":"enum","values":["applied","conflict","refused","unavailable"],"schema":{"type":"string"}},"reason":{"type":"string","optional":true},"message":{"type":"string","optional":true},"data":{"type":"object","optional":true},"sequence":{"type":"number","integer":true,"optional":true},"effects":{"type":"list","optional":true},"instance_id":{"type":"string"}},"own-verb":true},"state":{"carries":{"state":{"type":"enum","values":["loading","populated","empty","error","no-access"],"schema":{"type":"string"}},"message":{"type":"string"},"instance_id":{"type":"string"}},"own-verb":true},"tree":{"carries":{"intent":"string","payload":{"type":"object","optional":true}},"own-verb":true},"files-drop":{"carries":{"files":{"type":"list","schema":{"items":{"type":"object"},"minItems":1}}},"own-verb":true},"pagination-count":{"shared":"count-on-request@1","carries":{"component":{"type":"object"},"tagName":{"type":"string"},"template":{"type":"string"},"reason":{"type":"enum","values":["total","last-page","action-for-all"],"schema":{"type":"string"}},"current":{"type":"number","integer":true},"pageSize":{"type":"number","integer":true}}},"save":{"carries":{"kind":{"type":"enum","values":["view"],"optional":true},"key":{"type":"string"},"label":{"type":"string"},"revision":{"type":"string","schema":{"type":["string","integer"]},"optional":true},"roles":{"type":"object","optional":true}}},"table-action-intent":{"shared":"table-intents@1","carries":{"action_id":{"type":"string","schema":{"minLength":1}},"record_ids":{"type":"list","schema":{"items":{"type":["string","integer"]},"minItems":1}}}},"table-column-settings-change":{"shared":"table-intents@1","carries":{"reason":{"type":"string"},"columnSettings":{"type":"object"},"tableSettingsKey":{"type":"string"},"target":{"type":"enum","values":["personal","shared"],"schema":{"type":"string"},"optional":true},"base_revision":{"type":"string","schema":{"type":["string","number"]},"optional":true}}},"table-column-settings-reset":{"shared":"table-intents@1","carries":{"target":{"type":"enum","values":["personal"],"schema":{"type":"string"}},"tableSettingsKey":{"type":"string","schema":{"type":["string","null"]}}}},"table-create-intent":{"shared":"table-intents@1","carries":{"item":{"type":"string","schema":{"type":["string","null"]}}}},"table-query-intent":{"shared":"table-intents@1","carries":{"reason":{"type":"enum","values":["context"]},"context":{"type":"object"},"sequence":{"type":"number","integer":true,"schema":{"minimum":1}}}},"table-template-delete":{"shared":"table-intents@1","carries":{"key":{"type":"string","schema":{"minLength":1}}}},"table-template-save":{"shared":"table-intents@1","carries":{"templates":{"type":"list","of":{"key":"string","label":"string","selected":"boolean","data":"object","settings":"object"},"schema":{"items":{"type":"object","required":["key","label","settings"],"properties":{"key":{"type":"string"},"label":{"type":"string"},"selected":{"type":"boolean"},"data":{"type":"object"},"settings":{"type":"object","properties":{"filter_fields":{"type":"array","items":{"type":"string"}}}}}},"minItems":1}}},"x-decision":"Event detail that is not a flat object (decision 2026-11-09, control/evidence/2026-11-09-pro-queue): a non-flat detail is a flat carries map whose fields carry the nesting -- §4.2 types, `of` for a list\'s entries and `schema` for what the manifest checks; a detail that is not an object (§8) is carried in a named field, and its old shape stays on the dated alias names with mode split and the element\'s adapter. template-save carries templates, a list of one or more templates; sf-table-template-save and onTemplateSave keep the 1.3 detail (the template object, or the array of them) through sfAliasAdapters. sf-view reads detail.templates and, until 2027-01-01, a bare template or array from a table before sf-view-table 1.16.0."},"table-template-select":{"shared":"table-intents@1","carries":{"key":{"type":"string","schema":{"minLength":1}}}},"host-port-request":{"shared":"host-port@1","carries":{"component":{"type":"object","optional":true},"context":{"type":"object","optional":true}}},"list-open":{"carries":{"reason":{"type":"id","schema":{"enum":["row-cap"]}},"query":{"type":"object"}}},"table-cell-set":{"shared":"table-intents@1","carries":{"id":{"type":"string","schema":{"type":["string","integer"]}},"key":{"type":"string"},"value":{"type":"id"},"revision":{"type":"string","schema":{"type":["string","integer","null"]}}}},"table-rows-reorder":{"shared":"table-intents@1","carries":{"ids":{"type":"list","schema":{"items":{"type":"string"},"minItems":1}},"before":{"type":"string","schema":{"type":["string","null"]}},"order":{"type":"list","schema":{"items":{"type":"string"}}}}},"display-change":{"carries":{"kind":{"type":"enum","values":["table","board","cards","calendar","list","tree"]},"previous":{"type":"string"}},"cancelable":true},"settings-open":{"carries":{"id":{"type":"enum","values":["rights","export","record-field-add"]}}}},"actions":{"refresh":{"with":{"reason":{"type":"string","optional":true}}},"change-query":{"with":{"patch":"object","reason":{"type":"string","optional":true}},"concurrency":"latest"},"open-view":{"with":{"key":"string"}},"save-view":{"with":{"view":{"type":"object"}},"concurrency":"drop"},"delete-view":{"with":{"key":"string"},"concurrency":"drop"},"apply-under-filter":{"with":{"action-id":"string","confirmed-total":"number"},"concurrency":"drop"},"reset-column-settings":{},"clear-selection":{},"notify":{"with":{"text":"string","options":{"type":"object","optional":true}}}},"port":{"id":"simai.dataview-port","version":"1.15.0","contract":"src/core/contracts/ports/simai.dataview-port/1.15.0/port.json"},"presentation":{"skeleton":{"late":[]}},"css-variables":{"--sf-data-view-gap":{"type":"length","state":"default"},"--sf-data-view-drop-border-color":{"type":"color","state":"dragged-over"},"--sf-data-view-drop-background-color":{"type":"color","state":"dragged-over"},"--sf-data-view-drop-color":{"type":"color","state":"dragged-over"},"--sf-data-view-toolbar-gap":{"type":"length","state":"default"}},"host-states":{"data-state":"string","aria-busy":"string"}}');
 
 /***/ },
 

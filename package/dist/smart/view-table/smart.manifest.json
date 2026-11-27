@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-table",
-  "version": "1.39.1",
+  "version": "1.40.0",
   "title": "Table",
   "summary": "Complete server-backed collection view with search, filters, table preferences, row and bulk actions, and pagination.",
   "kind": "composite",
@@ -3112,6 +3112,13 @@
         "changes": [
           "view 1.19.1: over the SIMAI Framework pair ui-73df5d1b4d4c (ui-source 5e30b946fd0e, core.runtime 1.69.0); the Framework field renderers in the set's package core (view-common) are 1.30.2 (group build 19: the include view owns no lit DOM); the Framework menu opener in the set's package core (view-common) asks SF.Loader.ensure to wait on a press (group build 19)."
         ]
+      },
+      {
+        "from": "1.39.1",
+        "to": "1.40.0",
+        "changes": [
+          "view round 20: data-sf-view-density=\"compact\" is written in a compact area as well, with data-sf-view-density-area; below 60rem the list of records steps one rung down (VL-96); a table's rows step only in a compact island; td > code is one line with an ellipsis (VL-22)."
+        ]
       }
     ]
   },
@@ -3121,7 +3128,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-table/index.js",
-        "sha256": "426ff8ba36b11b1e2ac9e3737b255bfb125e72b207523e7e36bebb1fbec3d21a"
+        "sha256": "9f3b926ba90974052aa115cbc44b0d353ecb5027d43b9b2f40bc1c747d05a266"
       },
       {
         "path": "src/smart/view-table/js/templates/default.js",
@@ -3129,7 +3136,7 @@
       },
       {
         "path": "src/smart/view-table/js/templates/default.css",
-        "sha256": "8e96c773f7b985c3ed52b9b29ecb5223a24a831ae666a5eb45a839b1522b2be3"
+        "sha256": "bfab7ea7ea7f3a6e65c27b9ce18d389fba0a90987c92bee0da3a1aad9f96f334"
       },
       {
         "path": "src/smart/helpers/option-badge.js",

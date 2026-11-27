@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view",
-  "version": "1.40.1",
+  "version": "1.41.0",
   "title": "Data view",
   "summary": "Host-driven data view that composes toolbar, content and pagination around a separate data port.",
   "kind": "composite",
@@ -2058,6 +2058,13 @@
         "changes": [
           "view 1.19.1: over the SIMAI Framework pair ui-73df5d1b4d4c (ui-source 5e30b946fd0e, core.runtime 1.69.0); the Framework menu opener in the set's package core (view-common) asks SF.Loader.ensure to wait on a press (group build 19)."
         ]
+      },
+      {
+        "from": "1.40.1",
+        "to": "1.41.0",
+        "changes": [
+          "view round 20: «Сохранить» of a changed view opens an ordinary menu (VL-99); the state panel and its view-open-new / view-save-all / view-reset-all buttons are gone."
+        ]
       }
     ]
   },
@@ -2075,7 +2082,7 @@
       },
       {
         "path": "src/smart/view/docs.md",
-        "sha256": "79dc3825394be26d8246b5ec97080bc6460e2164455d41e29a0394e9abf10154"
+        "sha256": "58fc1ad8d569881a3aa753ef5e5375ee323a5f93ca5968ba4944d55830e631a8"
       },
       {
         "path": "tests/fixtures/data-view-composite-lab.html",

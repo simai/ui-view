@@ -1371,6 +1371,20 @@
     font-size: var(--sf-text-size-1\/2);
     line-height: var(--sf-text-height-1\/2);
   }
+
+  /* Code in a cell is one compact line (VL-22, view round 20): the renderer
+     set gives the script's first line, and it wrapped in its column -- three
+     lines of 13.6, a 45 px block that made a one-line row 48 instead of 40.
+     It keeps its line and ends in an ellipsis; the whole text is the
+     record's. */
+  :is(sf-view-table, sf-table) .table > tbody > tr > td > code {
+    display: inline-block;
+    max-inline-size: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: middle;
+  }
 }
 
 @layer sf.states {
@@ -1694,10 +1708,10 @@
      every size step; a two-line row keeps its two-line rung. It used to add block padding to the cells, which over
      the rung made a compact row taller than a normal one (size 1/2: 40
      against 32). */
-  :is(sf-view-table, sf-table)[data-sf-view-density="compact"]:not([data-sf-view-density-island]) > * .table > :is(thead, tbody) > tr:not(:has(.sf-table-link-cell-subtext, .sf-table-tree-path)) {
+  :is(sf-view-table, sf-table)[data-sf-view-density="compact"]:not([data-sf-view-density-island], [data-sf-view-density-area]) > * .table > :is(thead, tbody) > tr:not(:has(.sf-table-link-cell-subtext, .sf-table-tree-path)) {
     block-size: var(--sf-ui-1\/2--control-height);
   }
-  :is(sf-view-table, sf-table)[size="1/2"][data-sf-view-density="compact"]:not([data-sf-view-density-island]) > * .table > :is(thead, tbody) > tr:not(:has(.sf-table-link-cell-subtext, .sf-table-tree-path)) {
+  :is(sf-view-table, sf-table)[size="1/2"][data-sf-view-density="compact"]:not([data-sf-view-density-island], [data-sf-view-density-area]) > * .table > :is(thead, tbody) > tr:not(:has(.sf-table-link-cell-subtext, .sf-table-tree-path)) {
     block-size: var(--sf-ui-1\/3--control-height);
   }
   /* «Компактно» in a normal area is the Framework's compact density on the
@@ -1710,6 +1724,28 @@
     }
     :is(sf-view-table, sf-table)[size="1/2"][data-sf-view-density="compact"][data-sf-view-density-island] > * .table > :is(thead, tbody) > tr:not(:has(.sf-table-link-cell-subtext, .sf-table-tree-path)) {
       block-size: var(--sf-ui-1\/3--control-height);
+    }
+
+    /* The list of records (VL-96, view round 20): its row and its buttons
+       one rung down -- 44 for the phone's 52 -- in a compact island or a
+       compact area, where the Framework has no density. A table's rows in a
+       compact area keep the normal ladder here (C146 (1), the head ladder
+       probe): only an island steps them. */
+    :is(sf-view-table, sf-table)[data-sf-view-density="compact"]:is([data-sf-view-density-island], [data-sf-view-density-area]) .sf-table-list--resource {
+      --sf-table-resource--row: var(--sf-ui-2--control-height);
+      --sf-table-resource--button: var(--sf-ui-1\/2--control-height);
+    }
+    :is(sf-view-table, sf-table)[size="1/2"][data-sf-view-density="compact"]:is([data-sf-view-density-island], [data-sf-view-density-area]) .sf-table-list--resource {
+      --sf-table-resource--row: var(--sf-ui-1--control-height);
+      --sf-table-resource--button: var(--sf-ui-1\/3--control-height);
+    }
+  }
+
+  /* A phone: the mobile row of either size (52) to 44. */
+  @media (max-width: 31.98rem) {
+    :is(sf-view-table, sf-table):is([size="1/2"], :not([size="1/2"]))[data-sf-view-density="compact"]:is([data-sf-view-density-island], [data-sf-view-density-area]) .sf-table-list--resource {
+      --sf-table-resource--row: var(--sf-ui-2--control-height);
+      --sf-table-resource--button: var(--sf-ui-1\/2--control-height);
     }
   }
   /* No «Просторно» since owner decision D4 (2026-11-21): one density for the

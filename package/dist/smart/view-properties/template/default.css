@@ -706,6 +706,14 @@
     box-shadow: none;
   }
 
+  /* On the record page the arranging bar holds the window's bottom while the
+     record is in view, so «Сохранить» stays reachable below a long record
+     (View round 20 r2). A panel keeps its own foot (the rule above). */
+  .sf-property-view-actions.sf-property-view-configure-bar {
+    position: sticky;
+    inset-block-end: 0;
+  }
+
   /* Save and cancel hold the end of the bar; what is said about the edit, and
      the record's own actions, hold the start. */
 
@@ -714,6 +722,27 @@
      bottom belongs to. */
   .sf-property-view-group--editing {
     border-color: var(--sf-primary);
+  }
+
+  /* Save and Cancel of a group edited in place stand under its last row,
+     inside the group (S-B SB-C13, VL-90, view round 20), across the label
+     and value columns, the rows' half step above them. */
+  .sf-property-view-group > .sf-property-view-actions.sf-property-view-actions--group {
+    grid-column: 1 / -1;
+    z-index: 1;
+    margin: 0;
+    padding: var(--sf-space-1\/2) 0 0;
+    background-color: transparent;
+    border-top: 0;
+  }
+
+  /* In a panel and on a phone it holds the scroller's bottom while its group
+     is in view, on the group's own surface (sf-form's sticky footer). */
+  .sf-property-view-group > .sf-property-view-actions.sf-property-view-actions--group[data-sticky] {
+    position: sticky;
+    inset-block-end: 0;
+    padding-block-end: var(--sf-space-1\/2);
+    background-color: var(--sf-surface-card);
   }
 
   /* The Framework's own md step, --sf-breakpoint-md: 48rem. A media query
@@ -1366,6 +1395,18 @@
     flex: 1 1 auto;
   }
 
+  /* Rich text is the row's line, not a page's (VL-90, view round 20): its
+     last paragraph kept the text's 16 below it, so a one-line «Описание» was
+     a 40 px line that started at the row's top, 8 px over its label. The
+     paragraphs keep their space between them. */
+  .sf-property-view-row .sf-field-html > :first-child {
+    margin-block-start: 0;
+  }
+
+  .sf-property-view-row .sf-field-html > :last-child {
+    margin-block-end: 0;
+  }
+
   .sf-property-view-row .sf-property-view-field-error {
     font-size: var(--sf-list-description--below-font-size);
     line-height: var(--sf-list-description--below-line);
@@ -1824,6 +1865,128 @@
     }
     .sf-property-view-list .sf-property-view-group--list > .sf-property-view-group-fields > .sf-property-view-row > .sf-list-description-label {
       padding-block: 0;
+    }
+  }
+
+  /* ─── View round 20: the record on its own page draws its own grey
+     ground (VL-85; DEV decision 2026-11-26: «the full-page record view draws
+     its own grey ground, it is the component's layer, not the host page»).
+     The groups are white --sf-surface-card areas on the panel's
+     --sf-surface-area in a panel; on a page they stood white on the page's
+     white. The ground is the panel's: --sf-surface-area, the groups the
+     panel's inset from its edge, the surface radius. */
+  /* The skeleton stands on the same ground, so the first group does not move
+     when the record arrives (the pro issue #3 probe). */
+  .sf-property-view-layout--ground:is(.sf-property-view-layout, .sf-property-view-loading) {
+    padding: var(--sf-space-1);
+    border-radius: var(--sf-radius--surface);
+    background-color: var(--sf-surface-area);
+  }
+
+  /* ─── View round 20: arranging draws what reading draws (VL-95, SB-C15,
+     study S-B variant A). A field being arranged is a row of the reading
+     list's geometry: the label in the label column (the handle opens its
+     cell), the value from where reading starts it, the eye and the gear at
+     the row's end; a one-line row the control height (40, 32 at size 1/2),
+     the label and the value the list's text. The groups are the reading
+     groups: the card surface in every place, the same inset, rows at the
+     list's gap, and the columns reading draws -- two from 44rem of the
+     fields' room (the full screen), one otherwise -- whatever a group's own
+     `columns` says (reading does not read it either). On a phone the label
+     stays over its value, as reading has it. It drew each field as a label
+     over its value (72 px a row, the value 61 px from the group's edge
+     against reading's 201). */
+  .sf-property-view-body[data-arranging] {
+    --sf-property-view--arrange-control: var(--sf-ui-1--control-height);
+    --sf-property-view--arrange-size: var(--sf-text-size-1);
+    --sf-property-view--arrange-line: var(--sf-text-height-1);
+  }
+
+  .sf-property-view-body[data-arranging][data-size="half"] {
+    --sf-property-view--arrange-control: var(--sf-ui-1\/2--control-height);
+    --sf-property-view--arrange-size: var(--sf-text-size-1\/2);
+    --sf-property-view--arrange-line: var(--sf-text-height-1\/2);
+  }
+
+  .sf-property-view-body[data-arranging] .sf-property-view-group[data-sf-sortable-item]:not(.sf-property-view-group--unplaced) {
+    padding-block: var(--sf-space-1\/2);
+    padding-inline: var(--sf-space-1);
+    background-color: var(--sf-surface-card);
+  }
+
+  .sf-property-view-body[data-arranging] .sf-property-view-group[data-sf-sortable-item] > .sf-property-view-group-fields {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: var(--sf-view-properties-row-gap, 0px);
+  }
+
+  .sf-property-view-body[data-arranging] .sf-property-view-field[data-arranging="true"]:not(.sf-property-view-field--unplaced) {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "label actions"
+      "value value";
+  }
+
+  .sf-property-view-body[data-arranging] .sf-property-view-field[data-arranging="true"] > :is(.sf-property-view-field-label, .sf-property-view-field-value) {
+    font-size: var(--sf-property-view--arrange-size);
+    line-height: var(--sf-property-view--arrange-line);
+  }
+
+  /* The value takes the room reading gives it (the control height), and
+     under its label (a phone) it starts where the label's words start, past
+     the handle and the label's gap. The handle is drawn at least its glyph's
+     size, so its box is named once and read by both. */
+  .sf-property-view-body[data-arranging] .sf-property-view-field[data-arranging="true"]:not(.sf-property-view-field--unplaced) {
+    --sf-property-view--grip: max(var(--sf-space-2), var(--sf-text-height-1\/2));
+  }
+
+  .sf-property-view-body[data-arranging] .sf-property-view-field[data-arranging="true"]:not(.sf-property-view-field--unplaced) .sf-property-view-grip {
+    inline-size: var(--sf-property-view--grip);
+    min-inline-size: var(--sf-property-view--grip);
+  }
+
+  .sf-property-view-body[data-arranging] .sf-property-view-field[data-arranging="true"]:not(.sf-property-view-field--unplaced) > .sf-property-view-field-value {
+    min-block-size: var(--sf-property-view--arrange-control);
+    padding-inline-start: calc(var(--sf-property-view--grip) + var(--sf-space-1\/3));
+    /* A text value (a block cell) sits on its label's line in the control
+       height, as the flex cells do (View round 20 r2). */
+    align-content: center;
+  }
+
+  @media (min-width: 48rem) {
+    @container sf-property-view-group (min-width: 22rem) {
+      /* The label column of reading's list (its 10rem less half the step the
+         list's subgrid adds) and reading's step after it, so the value starts
+         at the label column's edge, 184 px from the row in a panel. */
+      .sf-property-view-body[data-arranging] .sf-property-view-field[data-arranging="true"]:not(.sf-property-view-field--unplaced) {
+        grid-template-columns: minmax(0, calc(var(--sf-view-properties-label-width, 10rem) - (var(--sf-space-4) - var(--sf-space-1)) / 2)) minmax(0, 1fr) auto;
+        grid-template-areas: "label value actions";
+        column-gap: var(--sf-space-4);
+        min-block-size: var(--sf-property-view--arrange-control);
+      }
+
+      .sf-property-view-body[data-arranging] .sf-property-view-field[data-arranging="true"]:not(.sf-property-view-field--unplaced) > .sf-property-view-field-value {
+        padding-inline-start: 0;
+      }
+    }
+  }
+
+  /* The full screen: two columns of fields from 44rem, each a label beside
+     its value on reading's 10rem and step (C305 (3), VP-22). */
+  @container sf-property-view-fields (min-width: 44rem) {
+    .sf-property-view-body[data-arranging] .sf-property-view-group[data-sf-sortable-item] > .sf-property-view-group-fields {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: var(--sf-space-2);
+    }
+
+    .sf-property-view-body[data-arranging] .sf-property-view-field[data-arranging="true"]:not(.sf-property-view-field--unplaced) {
+      grid-template-columns: minmax(0, var(--sf-view-properties-label-width, 10rem)) minmax(0, 1fr) auto;
+      grid-template-areas: "label value actions";
+      column-gap: var(--sf-space-1);
+      min-block-size: var(--sf-property-view--arrange-control);
+    }
+
+    .sf-property-view-body[data-arranging] .sf-property-view-field[data-arranging="true"]:not(.sf-property-view-field--unplaced) > .sf-property-view-field-value {
+      padding-inline-start: 0;
     }
   }
 }
