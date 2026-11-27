@@ -16,12 +16,20 @@ same numbers with other content); every next set version is above them
 up). Each component.json says the same under `x-decisions`
 `pro-copy-versions`.
 
-## Unreleased — view round 20
+## 1.20.0 — 2026-11-27
 
-View round 20 (round/view-r20, from main 2b0a19f = view 1.19.1): the five
+View round 20 (round/view-r20 4cd1b98, from main 2b0a19f = view 1.19.1;
+ui-control `control/evidence/2026-11-26-view-r20`, accepted by DEV in
+`control/evidence/2026-11-27-view-r20-acceptance-2`; release evidence
+`control/evidence/2026-11-27-view-1.20.0-release`): the five
 returns of the round 19 acceptance (register VL-95..VL-99). Over the same
-SIMAI Framework pair `ui-73df5d1b4d4c`; the set still needs core.runtime
-1.69.0 or newer. Not released; package 1.20.0 is a candidate.
+SIMAI Framework pair `ui-73df5d1b4d4c` (ui-source `5e30b946fd0e`, npm
+`@simai-studio/ui@5.20261125.1855`); the set still needs core.runtime
+1.69.0 or newer. New public behaviour: a record on its own page draws its
+own grey ground (VL-85), hence a minor version. `sf-view` 1.41.0,
+`sf-view-table` 1.40.0, `sf-view-properties` 1.33.0, `sf-view-flow`
+1.3.1; `sf-view-board` 1.5.1, `sf-view-cards` 1.5.3 and `sf-view-calendar`
+1.3.2 unchanged.
 
 - `sf-view-properties` 1.33.0: «Настроить вид» draws the record as reading
   draws it (study S-B variant A, SB-C15, VL-95): at a desktop width the
@@ -81,6 +89,16 @@ Round 2 (the acceptance return, DEV decision 2026-11-27):
   text in a 16 px row (the SIMAI Framework field renderers draw the scale at
   size 1); VL-72 and the avatar rows of VL-90 measure the avatar's initials
   as the cell's text (the head and the name are on their lines).
+- Known issues, open in this release (next View round; the same on 1.19.1):
+  - In whole-record edit and while arranging, the record's action bar is
+    16 px (12 at 390) wider than the record, so a record that scrolls
+    itself shows a horizontal scrollbar under the bar.
+  - The whole-record editor's «Сохранить» / «Отмена» are not sticky to
+    the window.
+  - The row menu «≡» does not close on Escape after a mouse open (the
+    SIMAI Framework menu, group build 20).
+  - VL-90: the scale value text in a record row (the SIMAI Framework
+    field renderers, group build 20).
 
 ## 1.19.1 — 2026-11-25
 
