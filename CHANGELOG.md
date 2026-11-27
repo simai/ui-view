@@ -16,13 +16,17 @@ same numbers with other content); every next set version is above them
 up). Each component.json says the same under `x-decisions`
 `pro-copy-versions`.
 
-## Unreleased — view round 21
+## 1.20.1 — 2026-11-28
 
-View round 21 (round/view-r21, from main 17436f4 = view 1.20.0): four items
-left open by 1.20.0. Over the SIMAI Framework pair `ui-4f5678e8c0ed`
+View round 21 (round/view-r21 e0ac1c8, from main 17436f4 = view 1.20.0;
+ui-control `control/evidence/2026-11-27-view-r21`, accepted by DEV;
+release evidence `control/evidence/2026-11-28-view-1.20.1-release`): the
+four items left open by 1.20.0 (VL-90 scale text on the label's baseline,
+the record page's action bar as wide as the record, the whole-record
+editor's «Сохранить» / «Отмена» sticky, the row menu takes the focus). Over the SIMAI Framework pair `ui-4f5678e8c0ed`
 (ui-source `1b1b9ea75`, npm `@simai-studio/ui@5.20261127.1637`, core.runtime
-1.70.0); the set still needs core.runtime 1.69.0 or newer. Not released;
-package 1.20.1 is a candidate.
+1.70.0); the set still needs core.runtime 1.69.0 or newer. Fixes only,
+hence a patch version.
 
 - `sf-view-properties` 1.33.1:
   - a scale value («Оценка клиента») writes its text at the value's size
@@ -43,6 +47,12 @@ package 1.20.1 is a candidate.
   (field renderers 1.30.3, group build 20 menus; the flow's «ask»
   first-paint snapshot written again); their own code and markup are
   unchanged.
+- Known issues, open in this release (next View round):
+  - At 390 the record on its own page is 4 px wider than the screen
+    (370 over 366) in edit and while arranging, from its title row (the
+    same on 1.20.0).
+  - The owner remarks register check VL-37 (page marks of the list) is
+    load-sensitive: it fails now and then under load on 1.20.0 too.
 
 ## 1.20.0 — 2026-11-27
 
