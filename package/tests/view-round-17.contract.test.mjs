@@ -18,10 +18,10 @@ const tableCss = read('src/smart/view-table/js/templates/default.css');
 // The passport and the lock sit beside the overlay (SET_ROOT, as the passport tests read them).
 const setRoot = process.env.SET_ROOT;
 
-test('the set is pinned on the pair ui-73df5d1b4d4c and needs its runtime', {skip: !setRoot && 'SET_ROOT is not given'}, () => {
+test('the set is pinned on the pair ui-4f5678e8c0ed and needs its runtime', {skip: !setRoot && 'SET_ROOT is not given'}, () => {
   const lock = JSON.parse(readFileSync(resolve(setRoot, 'framework.lock.json'), 'utf8'));
   const set = JSON.parse(readFileSync(resolve(setRoot, 'set.json'), 'utf8'));
-  assert.equal(lock.source.revision, '5e30b946fd0e620a4d00ab771af143dc286be1b8');
+  assert.equal(lock.source.revision, '1b1b9ea7561030d59727d588da0990e5f5fb51e3');
   assert.equal(set.framework.source_revision, lock.source.revision);
   assert.equal(set.framework.core_runtime, '>=1.69.0');
 });
