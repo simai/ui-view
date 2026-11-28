@@ -210,6 +210,24 @@ function contentStep(width) {
     return Math.ceil(width * 64) / 64;
 }
 
+// The measuring moment (sf-table-measuring: auto layout at max-content, its
+// cells on one line; -least sets the rows aside) makes the table shorter, and
+// the widths are read in that layout: the page (or a table that scrolls
+// itself) was held to the shorter content, the browser brought its scroll back
+// inside it, and the scroll stayed there once the class came off. A face that
+// came late (the icon subset, a webfont) measured again and threw a page
+// scrolled down to the pager back to its top, so the next press landed on a
+// row (VL-37, view round 22). The table keeps the height it has for that
+// moment; its widths do not depend on it. Answers the function that lets go.
+function holdBlockSize(table) {
+    const held = table.style.getPropertyValue("min-block-size");
+    table.style.setProperty("min-block-size", `${table.getBoundingClientRect().height}px`);
+    return () => {
+        if (held) table.style.setProperty("min-block-size", held);
+        else table.style.removeProperty("min-block-size");
+    };
+}
+
 // The common width the widest columns come down to so that together they give
 // `need` pixels (readFittedWidths): the highest whole width at which the
 // columns over it, each held at its least, give at least that much. Each entry
@@ -3253,6 +3271,7 @@ class SfTable extends TableElement {
         for (const cell of table.querySelectorAll('thead th[data-key]')) {
             if (SYSTEM_COLUMN_KEYS.has(cell.dataset.key)) systemWidths.set(cell, Math.ceil(cell.getBoundingClientRect().width));
         }
+        const letGo = holdBlockSize(table);
         table.classList.add('sf-table-measuring');
         // Measured before the table's own stylesheet has come, the measuring
         // class does nothing, the fixed layout squeezes every column to a
@@ -3261,6 +3280,7 @@ class SfTable extends TableElement {
         // the stylesheet's arrival measures again.
         if (getComputedStyle(table).tableLayout !== 'auto') {
             table.classList.remove('sf-table-measuring');
+            letGo();
             return false;
         }
         try {
@@ -3272,6 +3292,7 @@ class SfTable extends TableElement {
             }
         } finally {
             table.classList.remove('sf-table-measuring');
+            letGo();
         }
         // The content's own width: every data column at its content width (as
         // contentWidth caps it) and the system columns at their fixed ones. The
@@ -3671,6 +3692,7 @@ class SfTable extends TableElement {
         const table = this.refs.table?.value;
         if (!(table instanceof HTMLTableElement) || !table.isConnected) return null;
         const least = new Map();
+        const letGo = holdBlockSize(table);
         table.classList.add('sf-table-measuring', 'sf-table-measuring-least');
         try {
             if (getComputedStyle(table).tableLayout !== 'auto') return null;
@@ -3679,6 +3701,7 @@ class SfTable extends TableElement {
             }
         } finally {
             table.classList.remove('sf-table-measuring', 'sf-table-measuring-least');
+            letGo();
         }
         this._leastWidths = least;
         this._leastWidthsOf = this._contentWidths;
@@ -9324,11 +9347,13 @@ class SfTable extends TableElement {
         const th = table.querySelector(`thead th[data-key="${this.escapeColumnKey(key)}"]`);
         if (!column || !th) return this;
         let width = 0;
+        const letGo = holdBlockSize(table);
         table.classList.add("sf-table-measuring");
         try {
             if (getComputedStyle(table).tableLayout === "auto") width = th.getBoundingClientRect().width;
         } finally {
             table.classList.remove("sf-table-measuring");
+            letGo();
         }
         if (!width) return this;
         const {minWidth, maxWidth} = this.getColumnResizeLimits(column, width);
