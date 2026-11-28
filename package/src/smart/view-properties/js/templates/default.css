@@ -403,6 +403,18 @@
     margin-inline-start: auto;
   }
 
+  /* The line's last button stands at the record's edge, and its touch hit
+     area (the icon button's ::after, --sf-hit--touch, half the rest on each
+     side) reached past it: a record on its own page at 390 and 480 was 4 px
+     wider than itself (scrollWidth 370 over 366) and scrolled sideways
+     (view round 22). That hit area takes the rest on its start side only:
+     as large, nothing past the edge. */
+  .sf-property-view-head-line-end > :last-child > .sf-icon-button::after,
+  .sf-property-view-head-line-end > .sf-icon-button:last-child::after {
+    inset-inline-end: calc(var(--sf-px) * 0);
+    inset-inline-start: min(calc(var(--sf-px) * 0), calc(100% - var(--sf-hit--touch)));
+  }
+
   .sf-property-view-section-grip {
     cursor: grab;
   }
