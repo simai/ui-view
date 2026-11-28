@@ -16,7 +16,7 @@ Tables, boards, cards and a calendar for SIMAI Framework: the application gives 
 
 ## One list, several layouts
 
-A live list of orders. Its view zone is open: switch «Table», «Board»,
+A live list of orders. Its view zone is open: switch «Table», «Kanban»,
 «Cards» and «Calendar» — the filter and the search stay, and the application
 answers the same data in the shape of each layout. Open an order — the
 record card stands beside the list: the stage, the client and the sum in its
