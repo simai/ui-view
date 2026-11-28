@@ -577,6 +577,16 @@
     line-height: var(--sf-property-view--value-height, var(--sf-text-medium--height));
     color: var(--sf-on-surface);
   }
+  /* A scale value («Оценка клиента») writes its text at the value's size and
+     line, so the label and the value share one baseline (VL-90, view round
+     21). The scale is drawn at size 1, text 14/20 beside a 16/24 label: 2 px
+     off the line at 1440. sf-progress-scale 1.5.0 (pair ui-4f5678e8c0ed)
+     takes the host's text through its two public variables; the track is
+     unchanged, so the row stays the control height. */
+  .sf-property-view-field-value sf-progress-scale {
+    --sf-progress-scale-font-size: var(--sf-property-view--value-size, var(--sf-text-medium--size));
+    --sf-progress-scale-line-height: var(--sf-property-view--value-height, var(--sf-text-medium--height));
+  }
   .sf-property-view-group-fields {
     display: grid;
     grid-gap: var(--sf-space-3) var(--sf-space-4);
@@ -748,6 +758,28 @@
      record is in view, so «Сохранить» stays reachable below a long record
      (View round 20 r2). A panel keeps its own foot (the rule above). */
   .sf-property-view-actions.sf-property-view-configure-bar {
+    position: sticky;
+    bottom: 0;
+    inset-block-end: 0;
+  }
+  /* A bar of the record on its own page (view round 21) takes no panel
+     gutter back, because there is none: the negative margins made it 16 px
+     (12 at 390) wider than the record, and a record that scrolls itself drew
+     a sideways scrollbar under it. Its buttons start where the record's
+     content does: the ground's inset. A card inside another component (a
+     chat message) keeps the bar its host draws. */
+  :is(sf-view-properties, sf-property-view) > .sf-property-view-actions.sf-property-view-actions--page {
+    margin-left: 0;
+    margin-right: 0;
+    margin-inline: 0;
+    padding-left: var(--sf-space-1);
+    padding-right: var(--sf-space-1);
+    padding-inline: var(--sf-space-1);
+  }
+  /* On the record page every bar of the record holds the window's bottom
+     while the record is in view, as arranging does: «Сохранить» / «Отмена» of
+     the whole-record editor were below the fold at 1440 (view round 21). */
+  .sf-property-view-actions.sf-property-view-actions--page {
     position: sticky;
     bottom: 0;
     inset-block-end: 0;

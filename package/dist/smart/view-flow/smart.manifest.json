@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-flow",
-  "version": "1.3.1",
+  "version": "1.3.2",
   "title": "Flow block",
   "summary": "A few properties as a block in a flow (a chat message, a feed, any stream): shows a record's fields, or asks for a few and sends them, then keeps the answer read-only. Fields are sf-view-properties' descriptors drawn by the Framework field renderers; a press is an event, the host answers with settle.",
   "kind": "smart",
@@ -508,6 +508,13 @@
         "to": "1.3.1",
         "changes": [
           "view round 20: js/field-value.js edits a user field with inline options as the renderer set's lookup without the field-options capability."
+        ]
+      },
+      {
+        "from": "1.3.1",
+        "to": "1.3.2",
+        "changes": [
+          "view round 21: over the SIMAI Framework pair ui-4f5678e8c0ed (ui-source 1b1b9ea75, core.runtime 1.70.0); static/default/ask.html first-paint snapshot written again by scripts/run-first-paint.mjs snapshot."
         ]
       }
     ]

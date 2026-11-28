@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view",
-  "version": "1.41.0",
+  "version": "1.41.1",
   "title": "Data view",
   "summary": "Host-driven data view that composes toolbar, content and pagination around a separate data port.",
   "kind": "composite",
@@ -2064,6 +2064,13 @@
         "to": "1.41.0",
         "changes": [
           "view round 20: «Сохранить» of a changed view opens an ordinary menu (VL-99); the state panel and its view-open-new / view-save-all / view-reset-all buttons are gone."
+        ]
+      },
+      {
+        "from": "1.41.0",
+        "to": "1.41.1",
+        "changes": [
+          "view round 21: over the SIMAI Framework pair ui-4f5678e8c0ed (ui-source 1b1b9ea75, core.runtime 1.70.0); the Framework parts in the set's package core (view-common) follow the pair (field renderers 1.30.3, group build 20 menus)."
         ]
       }
     ]

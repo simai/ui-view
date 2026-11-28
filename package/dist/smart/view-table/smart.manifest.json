@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-table",
-  "version": "1.40.0",
+  "version": "1.40.1",
   "title": "Table",
   "summary": "Complete server-backed collection view with search, filters, table preferences, row and bulk actions, and pagination.",
   "kind": "composite",
@@ -3119,6 +3119,13 @@
         "changes": [
           "view round 20: data-sf-view-density=\"compact\" is written in a compact area as well, with data-sf-view-density-area; below 60rem the list of records steps one rung down (VL-96); a table's rows step only in a compact island; td > code is one line with an ellipsis (VL-22)."
         ]
+      },
+      {
+        "from": "1.40.0",
+        "to": "1.40.1",
+        "changes": [
+          "view round 21: over the SIMAI Framework pair ui-4f5678e8c0ed (ui-source 1b1b9ea75, core.runtime 1.70.0); handleRowClick keeps the focus on a table row's button (isRowButtonTarget), focusRow honours focus:false for a table row."
+        ]
       }
     ]
   },
@@ -3128,7 +3135,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-table/index.js",
-        "sha256": "9f3b926ba90974052aa115cbc44b0d353ecb5027d43b9b2f40bc1c747d05a266"
+        "sha256": "4eab4d1aedf80f5846e308b933c80ae85603b3283bc2e445629105b2157ee734"
       },
       {
         "path": "src/smart/view-table/js/templates/default.js",
