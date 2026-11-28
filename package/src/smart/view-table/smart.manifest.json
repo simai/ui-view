@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-table",
-  "version": "1.40.1",
+  "version": "1.40.2",
   "title": "Table",
   "summary": "Complete server-backed collection view with search, filters, table preferences, row and bulk actions, and pagination.",
   "kind": "composite",
@@ -3126,6 +3126,13 @@
         "changes": [
           "view round 21: over the SIMAI Framework pair ui-4f5678e8c0ed (ui-source 1b1b9ea75, core.runtime 1.70.0); handleRowClick keeps the focus on a table row's button (isRowButtonTarget), focusRow honours focus:false for a table row."
         ]
+      },
+      {
+        "from": "1.40.1",
+        "to": "1.40.2",
+        "changes": [
+          "view round 22: over the SIMAI Framework pair ui-4f5678e8c0ed (ui-source 1b1b9ea75, core.runtime 1.70.0); holdBlockSize(table) sets the table's min-block-size to its height for the measuring moment in measureContentWidths, leastContentWidths and fitColumnToContent, and gives it back after."
+        ]
       }
     ]
   },
@@ -3135,7 +3142,7 @@
     "source_artifacts": [
       {
         "path": "src/smart/view-table/index.js",
-        "sha256": "4eab4d1aedf80f5846e308b933c80ae85603b3283bc2e445629105b2157ee734"
+        "sha256": "87a0cdb8819ea98e9a038b2feabfa8414ad3e9416e6b60fa4cc76228b6a3ddeb"
       },
       {
         "path": "src/smart/view-table/js/templates/default.js",

@@ -365,6 +365,15 @@
     },
     {
       "unit": "smart.view-table",
+      "version": "1.40.2",
+      "recorded_on": "2026-11-28",
+      "change": "patch",
+      "consumer": "Nothing to change for a host. The table keeps its height while it measures its columns (the moment its cells stand on one line, or its rows are set aside for the least widths): it was shorter for that moment, the browser brought the page's scroll back inside the shorter content and it stayed there, so a face that came late (the icon subset, a webfont) threw a page scrolled down to the pager back to its top and the next press landed on a row (register VL-37: after marking rows the first press on the next page was lost under load).",
+      "summary": "view round 22: over the SIMAI Framework pair ui-4f5678e8c0ed (ui-source 1b1b9ea75, core.runtime 1.70.0); holdBlockSize(table) sets the table's min-block-size to its height for the measuring moment in measureContentWidths, leastContentWidths and fitColumnToContent, and gives it back after.",
+      "evidence": "control/evidence/2026-11-28-view-r22/README.md"
+    },
+    {
+      "unit": "smart.view-table",
       "version": "1.40.1",
       "recorded_on": "2026-11-27",
       "change": "patch",
@@ -695,6 +704,15 @@
       "consumer": "Nothing to change for a host: only the SIMAI Framework file it builds in moved with the repin.",
       "summary": "Over SIMAI Framework ui-078a4b4c6f6e (ui-source 10145e63b9dc) the Framework file it builds in, src/smart/pagination/index.js (sf-pagination 1.7: «Show more» within reach, C167; a deleting action listed last, C116), moved; the provenance and the version follow. Nothing of its own; nothing to change for a host. 1.19.7 and 1.19.8 are ui-pro's own patched copies, never this set's.",
       "evidence": "https://github.com/simai/ui-view/commit/e214dd608fdcf39cea527676fc522afd718922d4"
+    },
+    {
+      "unit": "smart.view-properties",
+      "version": "1.33.2",
+      "recorded_on": "2026-11-28",
+      "change": "patch",
+      "consumer": "Nothing to change for a host. The last button of the line under a record's title (the record's «⋯» on its own page) keeps its touch hit area inside the record: the area reached 4 px past the record's edge, so a record on its own page at phone widths was 4 px wider than itself (scrollWidth 370 over 366 at 390) in editing and arranging. The area is as large as before and takes its rest on its start side.",
+      "summary": "view round 22: over the SIMAI Framework pair ui-4f5678e8c0ed (ui-source 1b1b9ea75, core.runtime 1.70.0); .sf-property-view-head-line-end's last icon button: ::after inset-inline-end 0, inset-inline-start min(0, 100% - --sf-hit--touch).",
+      "evidence": "control/evidence/2026-11-28-view-r22/README.md"
     },
     {
       "unit": "smart.view-properties",

@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "smart.view-properties",
-  "version": "1.33.1",
+  "version": "1.33.2",
   "title": "Property view",
   "summary": "One object's fields shown as sections, groups and fields, each drawn by the per-type field renderer set, behind a separate host port. A group is edited and saved as one revision by the button, and a reference field is picked from the host's own candidates a page at a time. The pair to the data view: that one is a set of records, this one is a single object.",
   "kind": "composite",
@@ -2112,6 +2112,13 @@
         "changes": [
           "view round 21: over the SIMAI Framework pair ui-4f5678e8c0ed (ui-source 1b1b9ea75, core.runtime 1.70.0); .sf-property-view-field-value sf-progress-scale sets the scale's two public text variables to the value's text (VL-90); pageBar(context) adds sf-property-view-actions--page on the record page (open-all, arranging, leave ask and the host footer bar): margin-inline 0, padding-inline --sf-space-1, sticky at the block end; a card inside another component keeps its bar."
         ]
+      },
+      {
+        "from": "1.33.1",
+        "to": "1.33.2",
+        "changes": [
+          "view round 22: over the SIMAI Framework pair ui-4f5678e8c0ed (ui-source 1b1b9ea75, core.runtime 1.70.0); .sf-property-view-head-line-end's last icon button: ::after inset-inline-end 0, inset-inline-start min(0, 100% - --sf-hit--touch)."
+        ]
       }
     ]
   },
@@ -2129,7 +2136,7 @@
       },
       {
         "path": "src/smart/view-properties/js/templates/default.css",
-        "sha256": "eef7276a1270c60b57fe2650021887db70dd9160a97ed137627e69e9a447e00b"
+        "sha256": "82fb0eb0f98eca2b66e00f24ee40cd07bac6afba1c082cb22b2c0287276cc8c7"
       },
       {
         "path": "src/smart/view-properties/js/conditions.js",

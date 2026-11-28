@@ -16,6 +16,23 @@ same numbers with other content); every next set version is above them
 up). Each component.json says the same under `x-decisions`
 `pro-copy-versions`.
 
+## Unreleased — view round 22
+
+View round 22 (round/view-r22, from main 3b4423f = view 1.20.1): two fixes.
+Over the SIMAI Framework pair `ui-4f5678e8c0ed` (ui-source `1b1b9ea75`, npm
+`@simai-studio/ui@5.20261127.1637`, core.runtime 1.70.0); the set still
+needs core.runtime 1.69.0 or newer. Not released; package 1.20.2 is a
+candidate.
+
+- `sf-view-table` 1.40.2: the table keeps its height while it measures its
+  columns. It was shorter for that moment, so a face that came late (the
+  icon subset, a webfont) threw a page scrolled down to the pager back to
+  its top and the next press landed on a row (register VL-37: after marking
+  rows the first press on the next page was lost under load).
+- `sf-view-properties` 1.33.2: the last button of the line under a record's
+  title keeps its touch hit area inside the record; a record on its own page
+  at phone widths was 4 px wider than itself in editing and arranging.
+
 ## 1.20.1 — 2026-11-28
 
 View round 21 (round/view-r21 e0ac1c8, from main 17436f4 = view 1.20.0;
